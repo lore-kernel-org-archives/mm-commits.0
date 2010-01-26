@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timbgpio-add-support-for-interrupt-triggering-on-both-flanks.patch added to -mm tree
-Date: Tue, 26 Jan 2010 13:41:29 -0800
-Message-ID: <201001262141.o0QLfTOP022130@imap1.linux-foundation.org>
+Subject: + pci-hotplug-cpcihp-fix-pci-device-refcounting.patch added to -mm tree
+Date: Tue, 26 Jan 2010 13:42:06 -0800
+Message-ID: <201001262142.o0QLg6OL022181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754533Ab0AZVlk (ORCPT
+	by vger.kernel.org with ESMTP id S1751673Ab0AZVmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:41:40 -0500
+	Tue, 26 Jan 2010 16:42:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard.rojfors@pelagicore.com, david-b@pacbell.net
+Cc: jslaby@suse.cz, jbarnes@virtuousgeek.org, scott@spiteful.org
 
 
 The patch titled
-     timbgpio: add support for interrupt triggering on both flanks
+     pci: hotplug/cpcihp, fix pci device refcounting
 has been added to the -mm tree.  Its filename is
-     timbgpio-add-support-for-interrupt-triggering-on-both-flanks.patch
+     pci-hotplug-cpcihp-fix-pci-device-refcounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,118 +26,55 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timbgpio: add support for interrupt triggering on both flanks
-=46rom: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Subject: pci: hotplug/cpcihp, fix pci device refcounting
+From: Jiri Slaby <jslaby@suse.cz>
 
-Introduce support for triggering interrupts on both rising and falling
-edge.
+Stanse found an ommitted pci_dev_put on one error path in
+cpcihp_generic_init.  The path is taken on !dev, but also when
+dev->hdr_type != PCI_HEADER_TYPE_BRIDGE.  However it omits to pci_dev_put
+on the latter.
 
-This feature requires version 3 or newer of the IP, a version check is
-done when triggering on both edges is requested.
+As it is fine to pass NULL to pci_dev_put, put it in there uncoditionally.
 
-Signed-off-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Scott Murray <scott@spiteful.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/timbgpio.c |   32 +++++++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 9 deletions(-)
+ drivers/pci/hotplug/cpcihp_generic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/timbgpio.c~timbgpio-add-support-for-interrupt-tr=
-iggering-on-both-flanks drivers/gpio/timbgpio.c
---- a/drivers/gpio/timbgpio.c~timbgpio-add-support-for-interrupt-trigge=
-ring-on-both-flanks
-+++ a/drivers/gpio/timbgpio.c
-@@ -37,6 +37,8 @@
- #define TGPIO_ICR	0x14
- #define TGPIO_FLR	0x18
- #define TGPIO_LVR	0x1c
-+#define TGPIO_VER	0x20
-+#define TGPIO_BFLR	0x24
-=20
- struct timbgpio {
- 	void __iomem		*membase;
-@@ -125,17 +127,23 @@ static int timbgpio_irq_type(unsigned ir
- 	struct timbgpio *tgpio =3D get_irq_chip_data(irq);
- 	int offset =3D irq - tgpio->irq_base;
- 	unsigned long flags;
--	u32 lvr, flr;
-+	u32 lvr, flr, bflr =3D 0;
-+	u32 ver;
-=20
- 	if (offset < 0 || offset > tgpio->gpio.ngpio)
+diff -puN drivers/pci/hotplug/cpcihp_generic.c~pci-hotplug-cpcihp-fix-pci-device-refcounting drivers/pci/hotplug/cpcihp_generic.c
+--- a/drivers/pci/hotplug/cpcihp_generic.c~pci-hotplug-cpcihp-fix-pci-device-refcounting
++++ a/drivers/pci/hotplug/cpcihp_generic.c
+@@ -162,6 +162,7 @@ static int __init cpcihp_generic_init(vo
+ 	dev = pci_get_slot(bus, PCI_DEVFN(bridge_slot, 0));
+ 	if(!dev || dev->hdr_type != PCI_HEADER_TYPE_BRIDGE) {
+ 		err("Invalid bridge device %s", bridge);
++		pci_dev_put(dev);
  		return -EINVAL;
-=20
-+	ver =3D ioread32(tgpio->membase + TGPIO_VER);
-+
- 	spin_lock_irqsave(&tgpio->lock, flags);
-=20
- 	lvr =3D ioread32(tgpio->membase + TGPIO_LVR);
- 	flr =3D ioread32(tgpio->membase + TGPIO_FLR);
-+	if (ver > 2)
-+		bflr =3D ioread32(tgpio->membase + TGPIO_BFLR);
-=20
- 	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
-+		bflr &=3D ~(1 << offset);
- 		flr &=3D ~(1 << offset);
- 		if (trigger & IRQ_TYPE_LEVEL_HIGH)
- 			lvr |=3D 1 << offset;
-@@ -143,21 +151,27 @@ static int timbgpio_irq_type(unsigned ir
- 			lvr &=3D ~(1 << offset);
  	}
-=20
--	if ((trigger & IRQ_TYPE_EDGE_BOTH) =3D=3D IRQ_TYPE_EDGE_BOTH)
--		return -EINVAL;
--	else {
-+	if ((trigger & IRQ_TYPE_EDGE_BOTH) =3D=3D IRQ_TYPE_EDGE_BOTH) {
-+		if (ver < 3)
-+			return -EINVAL;
-+		else {
-+			flr |=3D 1 << offset;
-+			bflr |=3D 1 << offset;
-+		}
-+	} else {
-+		bflr &=3D ~(1 << offset);
- 		flr |=3D 1 << offset;
--		/* opposite compared to the datasheet, but it mirrors the
--		 * reality
--		 */
- 		if (trigger & IRQ_TYPE_EDGE_FALLING)
--			lvr |=3D 1 << offset;
--		else
- 			lvr &=3D ~(1 << offset);
-+		else
-+			lvr |=3D 1 << offset;
- 	}
-=20
- 	iowrite32(lvr, tgpio->membase + TGPIO_LVR);
- 	iowrite32(flr, tgpio->membase + TGPIO_FLR);
-+	if (ver > 2)
-+		iowrite32(bflr, tgpio->membase + TGPIO_BFLR);
-+
- 	iowrite32(1 << offset, tgpio->membase + TGPIO_ICR);
- 	spin_unlock_irqrestore(&tgpio->lock, flags);
-=20
+ 	bus = dev->subordinate;
 _
 
-Patches currently in -mm which might be from richard.rojfors@pelagicore=
-=2Ecom are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
+origin.patch
 linux-next.patch
-timbgpio-add-support-for-interrupt-triggering-on-both-flanks.patch
+gpu-drm-i915-fix-potential-null-dereference.patch
+infiniband-use-rlimit-helpers.patch
+mtd-chips-cfi-remove-unneeded-null-checks.patch
+pci-hotplug-cpcihp-fix-pci-device-refcounting.patch
+mm-use-rlimit-helpers.patch
+fs-use-rlimit-helpers.patch
+ipc-use-rlimit-helpers.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
