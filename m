@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-timers-return-correct-previous-timer-reload-value.patch added to -mm tree
-Date: Tue, 26 Jan 2010 13:39:30 -0800
-Message-ID: <201001262139.o0QLdULN021899@imap1.linux-foundation.org>
+Subject: + cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch added to -mm tree
+Date: Tue, 26 Jan 2010 13:39:34 -0800
+Message-ID: <201001262139.o0QLdZiG021908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932150Ab0AZVkQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753774Ab0AZVkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:40:16 -0500
+	Tue, 26 Jan 2010 16:40:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sgruszka@redhat.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, mingo@elte.h
 
 
 The patch titled
-     cpu-timers: return correct previous timer reload value
+     cpu-timers: assure to not iterate over all threads in fastpath_timer_check()
 has been added to the -mm tree.  Its filename is
-     cpu-timers-return-correct-previous-timer-reload-value.patch
+     cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-timers: return correct previous timer reload value
+Subject: cpu-timers: assure to not iterate over all threads in fastpath_timer_check()
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-According POSIX we need to correctly set old timer it_interval value when
-user request that in timer_settime().  Tested using below program.
+Spread p->sighand->siglock locking scope to assure fastpath_timer_check()
+never iterate over each threads.  Without locking there is small
+possibility that signal->cputimer will stop running while we write values
+to signal->cputime_expires.
 
- #include <sys/time.h>
- #include <signal.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <time.h>
- #include <unistd.h>
- #include <assert.h>
-
- int main(void)
- {
-	struct sigaction act;
-	struct sigevent evt = { };
-	timer_t tid;
-	struct itimerspec spec, u_spec, k_spec;
-
-	evt.sigev_notify = SIGEV_SIGNAL;
-	evt.sigev_signo = SIGPROF;
-	assert(timer_create(CLOCK_PROCESS_CPUTIME_ID, &evt,  &tid) == 0);
-
-	spec.it_value.tv_sec = 1;
-	spec.it_value.tv_nsec = 2;
-	spec.it_interval.tv_sec = 3;
-	spec.it_interval.tv_nsec = 4;
-	u_spec = spec;
-	assert(timer_settime(tid, 0, &spec,  NULL) == 0);
-
-	spec.it_value.tv_sec = 5;
-	spec.it_value.tv_nsec = 6;
-	spec.it_interval.tv_sec = 7;
-	spec.it_interval.tv_nsec = 8;
-	assert(timer_settime(tid, 0, &spec,  &k_spec) == 0);
-
- #define PRT(val) printf(#val ":\t%d/%d\n", (int) u_spec.val, (int) k_spec.val)
-	PRT(it_value.tv_sec);
-	PRT(it_value.tv_nsec);
-	PRT(it_interval.tv_sec);
-	PRT(it_interval.tv_nsec);
-
-	return 0;
- }
+Calling thread_group_cputime() from fastpath_timer_check() is not only bad
+because it is slow, also it is racy with __exit_signal() which can lead to
+invalid signal->{s,u}time values.
 
 Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -91,38 +56,90 @@ Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/posix-cpu-timers.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~cpu-timers-return-correct-previous-timer-reload-value kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~cpu-timers-return-correct-previous-timer-reload-value
+diff -puN kernel/posix-cpu-timers.c~cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check
 +++ a/kernel/posix-cpu-timers.c
-@@ -675,7 +675,7 @@ int posix_cpu_timer_set(struct k_itimer 
- 			struct itimerspec *new, struct itimerspec *old)
+@@ -549,7 +549,7 @@ static inline int expires_gt(cputime_t e
+ /*
+  * Insert the timer on the appropriate list before any timers that
+  * expire later.  This must be called with the tasklist_lock held
+- * for reading, and interrupts disabled.
++ * for reading, interrupts disabled and p->sighand->siglock taken.
+  */
+ static void arm_timer(struct k_itimer *timer)
  {
- 	struct task_struct *p = timer->it.cpu.task;
--	union cpu_time_count old_expires, new_expires, val;
-+	union cpu_time_count old_expires, new_expires, old_incr, val;
- 	int ret;
- 
- 	if (unlikely(p == NULL)) {
-@@ -706,6 +706,7 @@ int posix_cpu_timer_set(struct k_itimer 
- 	BUG_ON(!irqs_disabled());
- 
- 	ret = 0;
-+	old_incr = timer->it.cpu.incr;
- 	spin_lock(&p->sighand->siglock);
- 	old_expires = timer->it.cpu.expires;
- 	if (unlikely(timer->it.cpu.firing)) {
-@@ -821,7 +822,7 @@ int posix_cpu_timer_set(struct k_itimer 
-  out:
- 	if (old) {
- 		sample_to_timespec(timer->it_clock,
--				   timer->it.cpu.incr, &old->it_interval);
-+				   old_incr, &old->it_interval);
+@@ -568,9 +568,6 @@ static void arm_timer(struct k_itimer *t
  	}
- 	return ret;
+ 	head += CPUCLOCK_WHICH(timer->it_clock);
+ 
+-	BUG_ON(!irqs_disabled());
+-	spin_lock(&p->sighand->siglock);
+-
+ 	listpos = head;
+ 	list_for_each_entry(next, head, entry) {
+ 		if (cpu_time_before(timer->it_clock, nt->expires, next->expires))
+@@ -605,8 +602,6 @@ static void arm_timer(struct k_itimer *t
+ 			break;
+ 		}
+ 	}
+-
+-	spin_unlock(&p->sighand->siglock);
  }
+ 
+ /*
+@@ -719,7 +714,6 @@ int posix_cpu_timer_set(struct k_itimer 
+ 		ret = TIMER_RETRY;
+ 	} else
+ 		list_del_init(&timer->it.cpu.entry);
+-	spin_unlock(&p->sighand->siglock);
+ 
+ 	/*
+ 	 * We need to sample the current value to convert the new
+@@ -773,6 +767,7 @@ int posix_cpu_timer_set(struct k_itimer 
+ 		 * disable this firing since we are already reporting
+ 		 * it as an overrun (thanks to bump_cpu_timer above).
+ 		 */
++		spin_unlock(&p->sighand->siglock);
+ 		read_unlock(&tasklist_lock);
+ 		goto out;
+ 	}
+@@ -792,6 +787,7 @@ int posix_cpu_timer_set(struct k_itimer 
+ 		arm_timer(timer);
+ 	}
+ 
++	spin_unlock(&p->sighand->siglock);
+ 	read_unlock(&tasklist_lock);
+ 
+ 	/*
+@@ -1205,6 +1201,7 @@ void posix_cpu_timer_schedule(struct k_i
+ 			goto out;
+ 		}
+ 		read_lock(&tasklist_lock); /* arm_timer needs it.  */
++		spin_lock(&p->sighand->siglock);
+ 	} else {
+ 		read_lock(&tasklist_lock);
+ 		if (unlikely(p->signal == NULL)) {
+@@ -1225,6 +1222,7 @@ void posix_cpu_timer_schedule(struct k_i
+ 			clear_dead_task(timer, now);
+ 			goto out_unlock;
+ 		}
++		spin_lock(&p->sighand->siglock);
+ 		cpu_timer_sample_group(timer->it_clock, p, &now);
+ 		bump_cpu_timer(timer, now);
+ 		/* Leave the tasklist_lock locked for the call below.  */
+@@ -1233,7 +1231,9 @@ void posix_cpu_timer_schedule(struct k_i
+ 	/*
+ 	 * Now re-arm for the new expiry time.
+ 	 */
++	BUG_ON(!irqs_disabled());
+ 	arm_timer(timer);
++	spin_unlock(&p->sighand->siglock);
+ 
+ out_unlock:
+ 	read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from sgruszka@redhat.com are
