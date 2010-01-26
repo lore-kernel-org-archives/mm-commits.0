@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-do-translation-unlink-atomically-at-remove_proc_entry.patch added to -mm tree
-Date: Tue, 26 Jan 2010 13:56:31 -0800
-Message-ID: <201001262156.o0QLuVUA022954@imap1.linux-foundation.org>
+Subject: + rtc-ep93xxc-cleanup-probe-remove-routines.patch added to -mm tree
+Date: Tue, 26 Jan 2010 14:14:18 -0800
+Message-ID: <201001262214.o0QMEIEC023804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43488 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754678Ab0AZV4e (ORCPT
+	by vger.kernel.org with ESMTP id S1751974Ab0AZWOZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:56:34 -0500
+	Tue, 26 Jan 2010 17:14:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, viro@zeniv.linux.org.uk
+Cc: hartleys@visionengravers.com, a.zummo@towertech.it, hsweeten@visionengravers.com, p_gortmaker@yahoo.com
 
 
 The patch titled
-     proc: do translation + unlink atomically at remove_proc_entry()
+     rtc-ep93xx.c: cleanup probe/remove routines
 has been added to the -mm tree.  Its filename is
-     proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
+     rtc-ep93xxc-cleanup-probe-remove-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: do translation + unlink atomically at remove_proc_entry()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: rtc-ep93xx.c: cleanup probe/remove routines
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-remove_proc_entry() does
+Fix issue with rtc device not getting unregistered in probe error path.
 
-	lock
-	lookup parent
-	unlock
-	lock
-	unlink proc entry from lists
-	unlock
+Use the devres managed resource functions in the probe routine to cleanup
+the error path.
 
-which can be made bit more correct by doing parent translation + unlink
-without dropping lock.
+Use sysfs_{create/remove}_group to add/remove the sysfs files.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reduces the text size by 132 bytes, increases data by 12 bytes:
+    text	   data	    bss	    dec	    hex	filename
+-    937	    124	      0	   1061	    425	rtc-ep93xx.o
++    805	    136	      0	    941	    3ad	rtc-ep93xx.o
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   31 +++++++++++++++++++------------
- 1 file changed, 19 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-ep93xx.c |   73 ++++++++++++++-----------------------
+ 1 file changed, 29 insertions(+), 44 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-do-translation-unlink-atomically-at-remove_proc_entry fs/proc/generic.c
---- a/fs/proc/generic.c~proc-do-translation-unlink-atomically-at-remove_proc_entry
-+++ a/fs/proc/generic.c
-@@ -291,19 +291,17 @@ static const struct inode_operations pro
-  * returns the struct proc_dir_entry for "/proc/tty/driver", and
-  * returns "serial" in residual.
-  */
--static int xlate_proc_name(const char *name,
--			   struct proc_dir_entry **ret, const char **residual)
-+static int __xlate_proc_name(const char *name, struct proc_dir_entry **ret,
-+			     const char **residual)
+diff -puN drivers/rtc/rtc-ep93xx.c~rtc-ep93xxc-cleanup-probe-remove-routines drivers/rtc/rtc-ep93xx.c
+--- a/drivers/rtc/rtc-ep93xx.c~rtc-ep93xxc-cleanup-probe-remove-routines
++++ a/drivers/rtc/rtc-ep93xx.c
+@@ -115,6 +115,15 @@ static ssize_t ep93xx_rtc_show_comp_dele
+ }
+ static DEVICE_ATTR(comp_delete, S_IRUGO, ep93xx_rtc_show_comp_delete, NULL);
+ 
++static struct attribute *ep93xx_rtc_attrs[] = {
++	&dev_attr_comp_preload.attr,
++	&dev_attr_comp_delete.attr,
++	NULL
++};
++
++static const struct attribute_group ep93xx_rtc_sysfs_files = {
++	.attrs	= ep93xx_rtc_attrs,
++};
+ 
+ static int __init ep93xx_rtc_probe(struct platform_device *pdev)
  {
- 	const char     		*cp = name, *next;
- 	struct proc_dir_entry	*de;
- 	int			len;
--	int 			rtn = 0;
+@@ -123,27 +132,22 @@ static int __init ep93xx_rtc_probe(struc
+ 	struct rtc_device *rtc;
+ 	int err;
  
- 	de = *ret;
- 	if (!de)
- 		de = &proc_root;
+-	ep93xx_rtc = kzalloc(sizeof(struct ep93xx_rtc), GFP_KERNEL);
+-	if (ep93xx_rtc == NULL)
++	ep93xx_rtc = devm_kzalloc(&pdev->dev, sizeof(*ep93xx_rtc), GFP_KERNEL);
++	if (!ep93xx_rtc)
+ 		return -ENOMEM;
  
--	spin_lock(&proc_subdir_lock);
- 	while (1) {
- 		next = strchr(cp, '/');
- 		if (!next)
-@@ -314,17 +312,24 @@ static int xlate_proc_name(const char *n
- 			if (proc_match(len, cp, de))
- 				break;
- 		}
--		if (!de) {
--			rtn = -ENOENT;
--			goto out;
--		}
-+		if (!de)
-+			return -ENOENT;
- 		cp += len + 1;
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL) {
+-		err = -ENXIO;
+-		goto fail_free;
+-	}
+-
+-	res = request_mem_region(res->start, resource_size(res), pdev->name);
+-	if (res == NULL) {
+-		err = -EBUSY;
+-		goto fail_free;
+-	}
++	if (!res)
++		return -ENXIO;
+ 
+-	ep93xx_rtc->mmio_base = ioremap(res->start, resource_size(res));
+-	if (ep93xx_rtc->mmio_base == NULL) {
+-		err = -ENXIO;
+-		goto fail;
+-	}
++	if (!devm_request_mem_region(&pdev->dev, res->start,
++				     resource_size(res), pdev->name))
++		return -EBUSY;
++
++	ep93xx_rtc->mmio_base = devm_ioremap(&pdev->dev, res->start,
++					     resource_size(res));
++	if (!ep93xx_rtc->mmio_base)
++		return -ENXIO;
+ 
+ 	pdev->dev.platform_data = ep93xx_rtc;
+ 
+@@ -151,53 +155,34 @@ static int __init ep93xx_rtc_probe(struc
+ 				&pdev->dev, &ep93xx_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+ 		err = PTR_ERR(rtc);
+-		goto fail;
++		goto exit;
  	}
- 	*residual = cp;
- 	*ret = de;
--out:
-+	return 0;
-+}
-+
-+static int xlate_proc_name(const char *name, struct proc_dir_entry **ret,
-+			   const char **residual)
-+{
-+	int rv;
-+
-+	spin_lock(&proc_subdir_lock);
-+	rv = __xlate_proc_name(name, ret, residual);
- 	spin_unlock(&proc_subdir_lock);
--	return rtn;
-+	return rv;
+ 
+ 	platform_set_drvdata(pdev, rtc);
+ 
+-	err = device_create_file(&pdev->dev, &dev_attr_comp_preload);
++	err = sysfs_create_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
+ 	if (err)
+ 		goto fail;
+-	err = device_create_file(&pdev->dev, &dev_attr_comp_delete);
+-	if (err) {
+-		device_remove_file(&pdev->dev, &dev_attr_comp_preload);
+-		goto fail;
+-	}
+ 
+ 	return 0;
+ 
+ fail:
+-	if (ep93xx_rtc->mmio_base) {
+-		iounmap(ep93xx_rtc->mmio_base);
+-		pdev->dev.platform_data = NULL;
+-	}
+-	release_mem_region(res->start, resource_size(res));
+-fail_free:
+-	kfree(ep93xx_rtc);
++	platform_set_drvdata(pdev, NULL);
++	rtc_device_unregister(rtc);
++exit:
++	pdev->dev.platform_data = NULL;
+ 	return err;
  }
  
- static DEFINE_IDA(proc_inum_ida);
-@@ -797,11 +802,13 @@ void remove_proc_entry(const char *name,
- 	const char *fn = name;
- 	int len;
+ static int __exit ep93xx_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-	struct ep93xx_rtc *ep93xx_rtc = pdev->dev.platform_data;
+-	struct resource *res;
+-
+-	/* cleanup sysfs */
+-	device_remove_file(&pdev->dev, &dev_attr_comp_delete);
+-	device_remove_file(&pdev->dev, &dev_attr_comp_preload);
  
--	if (xlate_proc_name(name, &parent, &fn) != 0)
-+	spin_lock(&proc_subdir_lock);
-+	if (__xlate_proc_name(name, &parent, &fn) != 0) {
-+		spin_unlock(&proc_subdir_lock);
- 		return;
-+	}
- 	len = strlen(fn);
++	sysfs_remove_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
++	platform_set_drvdata(pdev, NULL);
+ 	rtc_device_unregister(rtc);
+-
+-	iounmap(ep93xx_rtc->mmio_base);
+ 	pdev->dev.platform_data = NULL;
  
--	spin_lock(&proc_subdir_lock);
- 	for (p = &parent->subdir; *p; p=&(*p)->next ) {
- 		if (proc_match(len, fn, *p)) {
- 			de = *p;
-_
-
-Patches currently in -mm which might be from adobriyan@gmail.com are
-
-origin.patch
-linux-next.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-dnotify-move-dir_notify_enable-declaration.patch
-mpt-fusion-convert-to-seq_file.patch
-proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
-proc-warn-on-non-existing-proc-entries.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, resource_size(res));
+-
+-	platform_set_drvdata(pdev, NULL);
