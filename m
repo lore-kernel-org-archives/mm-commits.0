@@ -1,174 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch added to -mm tree
-Date: Mon, 25 Jan 2010 15:57:15 -0800
-Message-ID: <201001252357.o0PNvFeU018705@imap1.linux-foundation.org>
+Subject: [to-be-updated] idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch removed from -mm tree
+Date: Mon, 25 Jan 2010 16:04:12 -0800
+Message-ID: <201001260004.o0Q04C7L019007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751437Ab0AYX5m (ORCPT
+	by vger.kernel.org with ESMTP id S1750773Ab0AZAEa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 18:57:42 -0500
+	Mon, 25 Jan 2010 19:04:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de
+To: eparis@redhat.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 UV: update UV arch to target Legacy VGA I/O correctly.
-has been added to the -mm tree.  Its filename is
-     x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch
+     idr: fix idr corruption when id crosses a layer boundary
+has been removed from the -mm tree.  Its filename was
+     idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64 UV: update UV arch to target Legacy VGA I/O correctly.
-From: Mike Travis <travis@sgi.com>
+Subject: idr: fix idr corruption when id crosses a layer boundary
+From: Eric Paris <eparis@redhat.com>
 
-Add function to direct Legacy VGA I/O traffic to correct I/O Hub.
+inotify has for months been been having problems keeping the fsnotify view
+of its objects in sync with the idr view of its objects.  I discovered
+this was only ever the case with the 4096th object created.  What actually
+happened is that inotify would try to do the following operation:
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Robin Holt <holt@sgi.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+idr_get_new_above(idr, NULL, 4095, &id);
+and would get id=4095.
+idr_get_new_above(idr, NULL, 4095, &id);
+and would get id=4096.
+
+Notice I used 4095 both times.  Everything seems fine.  We would then do:
+
+idr_find(idr, 4095);
+and would get the entry for 4095.
+idr_find(idr, 4096);
+and would get NULL!!  WHOOPS!
+
+idr_remove(idr, 4096) strangely enough didn't blow up.
+
+What I discovered was that when adding an id >= 4096 the idr needed to
+grow another layer.  This was normally dealt with in idr_get_empty_slot()
+if we found that the id was larger than the idr could hold.  The problem
+was that I was passing 4095 which appeared to be small enough to fit, but
+in sub_alloc() we found that 4095 was taken and bumped it up to 4096.  I
+added a test in sub_alloc() which kicks back out if the id is changed to
+be larger than fits in the idr.  I readily admit that I don't understand
+the other part of that test or how we 'get back to the top layer.' I
+wonder if that is not what was supposed to deal with this.  This certainly
+needs some review, but it fixes my problem and should finally silence the
+months and months old inotify complaints people's machines have been
+spewing...
+
+
+ #include <linux/idr.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+
+static DEFINE_IDR(test_idr);
+
+int init_module(void)
+{
+	int ret, forty95, forty96;
+	void *addr;
+
+	/* add 2 entries both with 4095 as the start address */
+again1:
+	if (!idr_pre_get(&test_idr, GFP_KERNEL))
+		return -ENOMEM;
+	ret = idr_get_new_above(&test_idr, (void *)4095, 4095, &forty95);
+	if (ret) {
+		if (ret == -EAGAIN)
+			goto again1;
+		return ret;
+	}
+	if (forty95 != 4095)
+		printk(KERN_ERR "hmmm, forty95=%d\n", forty95);
+
+again2:
+	if (!idr_pre_get(&test_idr, GFP_KERNEL))
+		return -ENOMEM;
+	ret = idr_get_new_above(&test_idr, (void *)4096, 4095, &forty96);
+	if (ret) {
+		if (ret == -EAGAIN)
+			goto again2;
+		return ret;
+	}
+	if (forty96 != 4096)
+		printk(KERN_ERR "hmmm, forty96=%d\n", forty96);
+
+	/* try to find the 2 entries, noticing that 4096 broke */
+	addr = idr_find(&test_idr, forty95);
+	if ((int)addr != forty95)
+		printk(KERN_ERR "hmmm, after find forty95=%d addr=%d\n", forty95, (int)addr);
+	addr = idr_find(&test_idr, forty96);
+	if ((int)addr != forty96)
+		printk(KERN_ERR "hmmm, after find forty96=%d addr=%d\n", forty96, (int)addr);
+	/* really weird, the entry which should be at 4096 is actually at 0!! */
+	addr = idr_find(&test_idr, 0);
+	if ((int)addr)
+		printk(KERN_ERR "found an entry at id=0 for addr=%d\n", (int)addr);
+
+	idr_remove(&test_idr, forty95);
+	idr_remove(&test_idr, forty96);
+
+	return 0;
+}
+
+void cleanup_module(void)
+{
+}
+
+MODULE_AUTHOR("Eric Paris <eparis@redhat.com>");
+MODULE_DESCRIPTION("Simple idr test");
+MODULE_LICENSE("GPL");
+
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/bios.h     |    4 ++-
- arch/x86/kernel/apic/x2apic_uv_x.c |   30 +++++++++++++++++++++++++++
- arch/x86/kernel/bios_uv.c          |   19 +++++++++++++++++
- 3 files changed, 52 insertions(+), 1 deletion(-)
+ lib/idr.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/uv/bios.h~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/include/asm/uv/bios.h
---- a/arch/x86/include/asm/uv/bios.h~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
-+++ a/arch/x86/include/asm/uv/bios.h
-@@ -36,7 +36,8 @@ enum uv_bios_cmd {
- 	UV_BIOS_WATCHLIST_ALLOC,
- 	UV_BIOS_WATCHLIST_FREE,
- 	UV_BIOS_MEMPROTECT,
--	UV_BIOS_GET_PARTITION_ADDR
-+	UV_BIOS_GET_PARTITION_ADDR,
-+	UV_BIOS_SET_LEGACY_VGA_TARGET
- };
+diff -puN lib/idr.c~idr-fix-idr-corruption-when-id-crosses-a-layer-boundary lib/idr.c
+--- a/lib/idr.c~idr-fix-idr-corruption-when-id-crosses-a-layer-boundary
++++ a/lib/idr.c
+@@ -155,8 +155,12 @@ static int sub_alloc(struct idr *idp, in
+ 			oid = id;
+ 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
  
- /*
-@@ -96,6 +97,7 @@ extern int uv_bios_mq_watchlist_alloc(un
- extern int uv_bios_mq_watchlist_free(int, int);
- extern s64 uv_bios_change_memprotect(u64, u64, enum uv_memprotect);
- extern s64 uv_bios_reserved_page_pa(u64, u64 *, u64 *, u64 *);
-+extern int uv_bios_set_legacy_vga_target(bool decode, int domain, int bus);
+-			/* if already at the top layer, we need to grow */
+-			if (!(p = pa[l])) {
++			/*
++			 * if already at the top layer or if we just rounded id
++			 * to be so large the idp doesn't have enough layers,
++			 * we need to grow.
++			 */
++			if (!(p = pa[l]) || (id >= (1 << (idp->layers * IDR_BITS)))) {
+ 				*starting_id = id;
+ 				return IDR_NEED_TO_GROW;
+ 			}
+@@ -260,7 +264,7 @@ build_up:
  
- extern void uv_bios_init(void);
+ static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
+ {
+-	struct idr_layer *pa[MAX_LEVEL];
++	struct idr_layer *pa[MAX_LEVEL] = { NULL, };
+ 	int id;
  
-diff -puN arch/x86/kernel/apic/x2apic_uv_x.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/kernel/apic/x2apic_uv_x.c
---- a/arch/x86/kernel/apic/x2apic_uv_x.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
-+++ a/arch/x86/kernel/apic/x2apic_uv_x.c
-@@ -20,6 +20,7 @@
- #include <linux/cpu.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/pci.h>
- 
- #include <asm/uv/uv_mmrs.h>
- #include <asm/uv/uv_hub.h>
-@@ -34,6 +35,8 @@
- 
- DEFINE_PER_CPU(int, x2apic_extra_bits);
- 
-+#define PR_DEVEL(fmt, args...)	pr_devel("%s: " fmt, __func__, args)
-+
- static enum uv_system_type uv_system_type;
- static u64 gru_start_paddr, gru_end_paddr;
- int uv_min_hub_revision_id;
-@@ -552,6 +555,30 @@ late_initcall(uv_init_heartbeat);
- 
- #endif /* !CONFIG_HOTPLUG_CPU */
- 
-+/* Direct Legacy VGA I/O traffic to designated IOH */
-+int uv_set_vga_state(struct pci_dev *pdev, bool decode,
-+		      unsigned int command_bits, bool change_bridge)
-+{
-+	int domain, bus, rc;
-+
-+	PR_DEVEL("devfn %x decode %d cmd %x chg_brdg %d\n",
-+			pdev->devfn, decode, command_bits, change_bridge);
-+
-+	if (!change_bridge)
-+		return 0;
-+
-+	if ((command_bits & PCI_COMMAND_IO) == 0)
-+		return 0;
-+
-+	domain = pci_domain_nr(pdev->bus);
-+	bus = pdev->bus->number;
-+
-+	rc = uv_bios_set_legacy_vga_target(decode, domain, bus);
-+	PR_DEVEL("vga decode %d %x:%x, rc: %d\n", decode, domain, bus, rc);
-+
-+	return rc;
-+}
-+
- /*
-  * Called on each cpu to initialize the per_cpu UV data area.
-  * FIXME: hotplug not supported yet
-@@ -690,4 +717,7 @@ void __init uv_system_init(void)
- 	uv_cpu_init();
- 	uv_scir_register_cpu_notifier();
- 	proc_mkdir("sgi_uv", NULL);
-+
-+	/* register Legacy VGA I/O redirection handler */
-+	pci_register_set_vga_state(uv_set_vga_state);
- }
-diff -puN arch/x86/kernel/bios_uv.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/kernel/bios_uv.c
---- a/arch/x86/kernel/bios_uv.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
-+++ a/arch/x86/kernel/bios_uv.c
-@@ -163,6 +163,25 @@ s64 uv_bios_freq_base(u64 clock_type, u6
- }
- EXPORT_SYMBOL_GPL(uv_bios_freq_base);
- 
-+/*
-+ * uv_bios_set_legacy_vga_target - Set Legacy VGA I/O Target
-+ * @decode: true to enable target, false to disable target
-+ * @domain: PCI domain number
-+ * @bus: PCI bus number
-+ *
-+ * Returns:
-+ *    0: Success
-+ *    -EINVAL: Invalid domain or bus number
-+ *    -ENOSYS: Capability not available
-+ *    -EBUSY: Legacy VGA I/O cannot be retargeted at this time
-+ */
-+int uv_bios_set_legacy_vga_target(bool decode, int domain, int bus)
-+{
-+	return uv_bios_call(UV_BIOS_SET_LEGACY_VGA_TARGET,
-+				(u64)decode, (u64)domain, (u64)bus, 0, 0);
-+}
-+EXPORT_SYMBOL_GPL(uv_bios_set_legacy_vga_target);
-+
- 
- #ifdef CONFIG_EFI
- void uv_bios_init(void)
+ 	id = idr_get_empty_slot(idp, starting_id, pa);
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from eparis@redhat.com are
 
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch
-vgaarb-fix-vga-arbiter-to-accept-pci-domains-other-than-0.patch
-vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system.patch
+linux-next.patch
+idr-fix-a-critical-misallocation-bug.patch
+idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch
 
