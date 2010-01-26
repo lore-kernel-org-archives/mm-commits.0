@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch added to -mm tree
-Date: Mon, 25 Jan 2010 17:02:14 -0800
-Message-ID: <201001260102.o0Q12ErR021868@imap1.linux-foundation.org>
+Subject: + cx23885-wrong-command-printed-in-cmd_to_str.patch added to -mm tree
+Date: Mon, 25 Jan 2010 17:03:07 -0800
+Message-ID: <201001260103.o0Q137Hv021889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751119Ab0AZBCU (ORCPT
+	by vger.kernel.org with ESMTP id S1751043Ab0AZBDS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 20:02:20 -0500
+	Mon, 25 Jan 2010 20:03:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dan.j.williams@intel.com, g.liakhovetski@gmx.de, maciej.sosnowski@intel.com
+Cc: roel.kluin@gmail.com, mchehab@infradead.org, stoth@kernellabs.com
 
 
 The patch titled
-     dma: cases IPU_PIX_FMT_BGRA32, BGR32 and ABGR32 are the same in ipu_ch_param_set_size()
+     cx23885: wrong command printed in cmd_to_str()
 has been added to the -mm tree.  Its filename is
-     dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch
+     cx23885-wrong-command-printed-in-cmd_to_str.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma: cases IPU_PIX_FMT_BGRA32, BGR32 and ABGR32 are the same in ipu_ch_param_set_size()
+Subject: cx23885: wrong command printed in cmd_to_str()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-In these cases the same statements are executed.
+The wrong command was printed for case CX2341X_ENC_SET_DNR_FILTER_MODE,
+and a typo in case CX2341X_ENC_SET_PCR_ID.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Maciej Sosnowski <maciej.sosnowski@intel.com
+Acked-By: Steven Toth <stoth@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ipu/ipu_idmac.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ drivers/media/video/cx23885/cx23885-417.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/ipu/ipu_idmac.c~dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size drivers/dma/ipu/ipu_idmac.c
---- a/drivers/dma/ipu/ipu_idmac.c~dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size
-+++ a/drivers/dma/ipu/ipu_idmac.c
-@@ -348,6 +348,7 @@ static void ipu_ch_param_set_size(union 
- 		break;
- 	case IPU_PIX_FMT_BGRA32:
- 	case IPU_PIX_FMT_BGR32:
-+	case IPU_PIX_FMT_ABGR32:
- 		params->ip.bpp	= 0;
- 		params->ip.pfs	= 4;
- 		params->ip.npb	= 7;
-@@ -376,20 +377,6 @@ static void ipu_ch_param_set_size(union 
- 		params->ip.wid2	= 7;		/* Blue bit width - 1 */
- 		params->ip.wid3	= 7;		/* Alpha bit width - 1 */
- 		break;
--	case IPU_PIX_FMT_ABGR32:
--		params->ip.bpp	= 0;
--		params->ip.pfs	= 4;
--		params->ip.npb	= 7;
--		params->ip.sat	= 2;		/* SAT = 32-bit access */
--		params->ip.ofs0	= 8;		/* Red bit offset */
--		params->ip.ofs1	= 16;		/* Green bit offset */
--		params->ip.ofs2	= 24;		/* Blue bit offset */
--		params->ip.ofs3	= 0;		/* Alpha bit offset */
--		params->ip.wid0	= 7;		/* Red bit width - 1 */
--		params->ip.wid1	= 7;		/* Green bit width - 1 */
--		params->ip.wid2	= 7;		/* Blue bit width - 1 */
--		params->ip.wid3	= 7;		/* Alpha bit width - 1 */
--		break;
- 	case IPU_PIX_FMT_UYVY:
- 		params->ip.bpp	= 2;
- 		params->ip.pfs	= 6;
+diff -puN drivers/media/video/cx23885/cx23885-417.c~cx23885-wrong-command-printed-in-cmd_to_str drivers/media/video/cx23885/cx23885-417.c
+--- a/drivers/media/video/cx23885/cx23885-417.c~cx23885-wrong-command-printed-in-cmd_to_str
++++ a/drivers/media/video/cx23885/cx23885-417.c
+@@ -681,7 +681,7 @@ static char *cmd_to_str(int cmd)
+ 	case CX2341X_ENC_SET_VIDEO_ID:
+ 		return  "SET_VIDEO_ID";
+ 	case CX2341X_ENC_SET_PCR_ID:
+-		return  "SET_PCR_PID";
++		return  "SET_PCR_ID";
+ 	case CX2341X_ENC_SET_FRAME_RATE:
+ 		return  "SET_FRAME_RATE";
+ 	case CX2341X_ENC_SET_FRAME_SIZE:
+@@ -693,7 +693,7 @@ static char *cmd_to_str(int cmd)
+ 	case CX2341X_ENC_SET_ASPECT_RATIO:
+ 		return  "SET_ASPECT_RATIO";
+ 	case CX2341X_ENC_SET_DNR_FILTER_MODE:
+-		return  "SET_DNR_FILTER_PROPS";
++		return  "SET_DNR_FILTER_MODE";
+ 	case CX2341X_ENC_SET_DNR_FILTER_PROPS:
+ 		return  "SET_DNR_FILTER_PROPS";
+ 	case CX2341X_ENC_SET_CORING_LEVELS:
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -93,6 +82,7 @@ gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
 dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch
+cx23885-wrong-command-printed-in-cmd_to_str.patch
 ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
 hisax-timeout-off-by-one-in-waitrecmsg.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
