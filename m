@@ -1,68 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch removed from -mm tree
-Date: Mon, 25 Jan 2010 16:04:12 -0800
-Message-ID: <201001260004.o0Q04C7L019007@imap1.linux-foundation.org>
+Subject: + idr-fix-a-critical-misallocation-bug.patch added to -mm tree
+Date: Mon, 25 Jan 2010 16:04:02 -0800
+Message-ID: <201001260004.o0Q042fM018996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750773Ab0AZAEa (ORCPT
+	by vger.kernel.org with ESMTP id S1751287Ab0AZAEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 19:04:30 -0500
+	Mon, 25 Jan 2010 19:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eparis@redhat.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tj@kernel.org, eparis@redhat.com, stable@kernel.org
 
 
 The patch titled
-     idr: fix idr corruption when id crosses a layer boundary
-has been removed from the -mm tree.  Its filename was
-     idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch
+     idr: fix a critical misallocation bug
+has been added to the -mm tree.  Its filename is
+     idr-fix-a-critical-misallocation-bug.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: fix idr corruption when id crosses a layer boundary
-From: Eric Paris <eparis@redhat.com>
+Subject: idr: fix a critical misallocation bug
+From: Tejun Heo <tj@kernel.org>
 
-inotify has for months been been having problems keeping the fsnotify view
-of its objects in sync with the idr view of its objects.  I discovered
-this was only ever the case with the 4096th object created.  What actually
-happened is that inotify would try to do the following operation:
+Eric Paris located a bug in idr.  With IDR_BITS of 6, it grows to three
+layers when id 4096 is first allocated.  When that happens, idr wraps
+incorrectly and searches the idr array ignoring the high bits.  The
+following test code from Eric demonstrates the bug nicely.
 
-idr_get_new_above(idr, NULL, 4095, &id);
-and would get id=4095.
-idr_get_new_above(idr, NULL, 4095, &id);
-and would get id=4096.
-
-Notice I used 4095 both times.  Everything seems fine.  We would then do:
-
-idr_find(idr, 4095);
-and would get the entry for 4095.
-idr_find(idr, 4096);
-and would get NULL!!  WHOOPS!
-
-idr_remove(idr, 4096) strangely enough didn't blow up.
-
-What I discovered was that when adding an id >= 4096 the idr needed to
-grow another layer.  This was normally dealt with in idr_get_empty_slot()
-if we found that the id was larger than the idr could hold.  The problem
-was that I was passing 4095 which appeared to be small enough to fit, but
-in sub_alloc() we found that 4095 was taken and bumped it up to 4096.  I
-added a test in sub_alloc() which kicks back out if the id is changed to
-be larger than fits in the idr.  I readily admit that I don't understand
-the other part of that test or how we 'get back to the top layer.' I
-wonder if that is not what was supposed to deal with this.  This certainly
-needs some review, but it fixes my problem and should finally silence the
-months and months old inotify complaints people's machines have been
-spewing...
-
-
- #include <linux/idr.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
+#include <linux/idr.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 
 static DEFINE_IDR(test_idr);
 
@@ -122,46 +104,86 @@ MODULE_AUTHOR("Eric Paris <eparis@redhat.com>");
 MODULE_DESCRIPTION("Simple idr test");
 MODULE_LICENSE("GPL");
 
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Tejun Heo <htejun@gmail.com>
+This happens because when sub_alloc() back tracks it doesn't always do it
+step-by-step while the over-the-limit detection assumes step-by-step
+backtracking.  The logic in sub_alloc() looks like the following.
+
+  restart:
+    clear pa[top level + 1] for end cond detection
+    l = top level
+    while (true) {
+	search for empty slot at this level
+	if (not found) {
+	    push id to the next possible value
+	    l++
+A:	    if (pa[l] is clear)
+	        failed, return asking caller to grow the tree
+	    if (going up 1 level gives more slots to search)
+	        continue the while loop above with the incremented l
+	    else
+C:	        goto restart
+	}
+	adjust id accordingly to the found slot
+	if (l == 0)
+	    return found id;
+	create lower level if not there yet
+	record pa[l] and l--
+    }
+
+Test A is the fail exit condition but this assumes that failure is
+propagated upwared one level at a time but the B optimization path breaks
+the assumption and restarts the whole thing with a start value which is
+above the possible limit with the current layers.  sub_alloc() assumes the
+start id value is inside the limit when called and test A is the only exit
+condition check, so it ends up searching for empty slot while ignoring
+high set bit.
+
+So, for 4095->4096 test, level0 search fails but pa[1] contains a valid
+pointer.  However, going up 1 level wouldn't give any more empty slot so
+it takes C and when the whole thing restarts nobody notices the high bit
+set beyond the top level.
+
+This patch fixes the bug by changing the fail exit condition check to full
+id limit check.
+
+Based-on-patch-from: Eric Paris <eparis@redhat.com>
+Reported-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ lib/idr.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-idr-corruption-when-id-crosses-a-layer-boundary lib/idr.c
---- a/lib/idr.c~idr-fix-idr-corruption-when-id-crosses-a-layer-boundary
+diff -puN lib/idr.c~idr-fix-a-critical-misallocation-bug lib/idr.c
+--- a/lib/idr.c~idr-fix-a-critical-misallocation-bug
 +++ a/lib/idr.c
-@@ -155,8 +155,12 @@ static int sub_alloc(struct idr *idp, in
+@@ -140,8 +140,7 @@ static int sub_alloc(struct idr *idp, in
+ 	id = *starting_id;
+  restart:
+ 	p = idp->top;
+-	l = idp->layers;
+-	pa[l--] = NULL;
++	l = p->layer;
+ 	while (1) {
+ 		/*
+ 		 * We run around this while until we reach the leaf node...
+@@ -155,8 +154,8 @@ static int sub_alloc(struct idr *idp, in
  			oid = id;
  			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
  
 -			/* if already at the top layer, we need to grow */
 -			if (!(p = pa[l])) {
-+			/*
-+			 * if already at the top layer or if we just rounded id
-+			 * to be so large the idp doesn't have enough layers,
-+			 * we need to grow.
-+			 */
-+			if (!(p = pa[l]) || (id >= (1 << (idp->layers * IDR_BITS)))) {
++			/* did id go over the limit? */
++			if (id >= (1 << (idp->layers * IDR_BITS))) {
  				*starting_id = id;
  				return IDR_NEED_TO_GROW;
  			}
-@@ -260,7 +264,7 @@ build_up:
- 
- static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
- {
--	struct idr_layer *pa[MAX_LEVEL];
-+	struct idr_layer *pa[MAX_LEVEL] = { NULL, };
- 	int id;
- 
- 	id = idr_get_empty_slot(idp, starting_id, pa);
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 linux-next.patch
 idr-fix-a-critical-misallocation-bug.patch
-idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch
 
