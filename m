@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-fix-kernel-doc-notation.patch added to -mm tree
-Date: Tue, 26 Jan 2010 14:29:26 -0800
-Message-ID: <201001262229.o0QMTQmx024656@imap1.linux-foundation.org>
+Subject: + mm-flush-dcache-before-writing-into-page-to-avoid-alias.patch added to -mm tree
+Date: Tue, 26 Jan 2010 14:42:30 -0800
+Message-ID: <201001262242.o0QMgUwJ026093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35201 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753167Ab0AZWaL (ORCPT
+	by vger.kernel.org with ESMTP id S932142Ab0AZWnl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 17:30:11 -0500
+	Tue, 26 Jan 2010 17:43:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, stefani@seibold.net
+Cc: anfei.zhou@gmail.com, linux-arch@vger.kernel.org, miklos@szeredi.hu, nickpiggin@yahoo.com.au, rmk@arm.linux.org.uk, stable@kernel.org, torvalds@linux-foundation.org
 
 
 The patch titled
-     kfifo: fix kernel-doc notation
+     mm: flush dcache before writing into page to avoid alias
 has been added to the -mm tree.  Its filename is
-     kfifo-fix-kernel-doc-notation.patch
+     mm-flush-dcache-before-writing-into-page-to-avoid-alias.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: fix kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: flush dcache before writing into page to avoid alias
+From: anfei zhou <anfei.zhou@gmail.com>
 
-Fix kfifo kernel-doc warnings:
+The cache alias problem will happen if the changes of user shared mapping
+is not flushed before copying, then user and kernel mapping may be mapped
+into two different cache line, it is impossible to guarantee the coherence
+after iov_iter_copy_from_user_atomic.  So the right steps should be:
 
-Warning(kernel/kfifo.c:361): No description found for parameter 'total'
-Warning(kernel/kfifo.c:402): bad line:  @ @lenout: pointer to output variable with copied data
-Warning(kernel/kfifo.c:412): No description found for parameter 'lenout'
+	flush_dcache_page(page);
+	kmap_atomic(page);
+	write to page;
+	kunmap_atomic(page);
+	flush_dcache_page(page);
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stefani Seibold <stefani@seibold.net>
+More precisely, we might create two new APIs flush_dcache_user_page and
+flush_dcache_kern_page to replace the two flush_dcache_page accordingly.
+
+Here is a snippet tested on omap2430 with VIPT cache, and I think it is
+not ARM-specific:
+
+	int val = 0x11111111;
+	fd = open("abc", O_RDWR);
+	addr = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	*(addr+0) = 0x44444444;
+	tmp = *(addr+0);
+	*(addr+1) = 0x77777777;
+	write(fd, &val, sizeof(int));
+	close(fd);
+
+The results are not always 0x11111111 0x77777777 at the beginning as expected.  Sometimes we see 0x44444444 0x77777777.
+
+Signed-off-by: Anfei <anfei.zhou@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: <linux-arch@vger.kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kfifo.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/fuse/file.c |    3 +++
+ mm/filemap.c   |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff -puN kernel/kfifo.c~kfifo-fix-kernel-doc-notation kernel/kfifo.c
---- a/kernel/kfifo.c~kfifo-fix-kernel-doc-notation
-+++ a/kernel/kfifo.c
-@@ -349,6 +349,7 @@ EXPORT_SYMBOL(__kfifo_from_user_n);
-  * @fifo: the fifo to be used.
-  * @from: pointer to the data to be added.
-  * @len: the length of the data to be added.
-+ * @total: the actual returned data length.
-  *
-  * This function copies at most @len bytes from the @from into the
-  * FIFO depending and returns -EFAULT/0.
-@@ -399,7 +400,7 @@ EXPORT_SYMBOL(__kfifo_to_user_n);
-  * @fifo: the fifo to be used.
-  * @to: where the data must be copied.
-  * @len: the size of the destination buffer.
-- @ @lenout: pointer to output variable with copied data
-+ * @lenout: pointer to output variable with copied data
-  *
-  * This function copies at most @len bytes from the FIFO into the
-  * @to buffer and 0 or -EFAULT.
+diff -puN fs/fuse/file.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias fs/fuse/file.c
+--- a/fs/fuse/file.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias
++++ a/fs/fuse/file.c
+@@ -828,6 +828,9 @@ static ssize_t fuse_fill_write_pages(str
+ 		if (!page)
+ 			break;
+ 
++		if (mapping_writably_mapped(mapping))
++			flush_dcache_page(page);
++
+ 		pagefault_disable();
+ 		tmp = iov_iter_copy_from_user_atomic(page, ii, offset, bytes);
+ 		pagefault_enable();
+diff -puN mm/filemap.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias mm/filemap.c
+--- a/mm/filemap.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias
++++ a/mm/filemap.c
+@@ -2196,6 +2196,9 @@ again:
+ 		if (unlikely(status))
+ 			break;
+ 
++		if (mapping_writably_mapped(mapping))
++			flush_dcache_page(page);
++
+ 		pagefault_disable();
+ 		copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
+ 		pagefault_enable();
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from anfei.zhou@gmail.com are
 
-linux-next.patch
-kfifo-fix-kernel-doc-notation.patch
-mfgpt-move-clocksource-menu.patch
-xen-add-kconfig-menu.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-cgroups-subsystem-module-unloading-fix.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+mm-flush-dcache-before-writing-into-page-to-avoid-alias.patch
 
