@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr.patch added to -mm tree
-Date: Mon, 25 Jan 2010 16:52:17 -0800
-Message-ID: <201001260052.o0Q0qHqt021353@imap1.linux-foundation.org>
+Subject: + comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register.patch added to -mm tree
+Date: Mon, 25 Jan 2010 16:58:06 -0800
+Message-ID: <201001260058.o0Q0w6t2021627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750883Ab0AZAwl (ORCPT
+	by vger.kernel.org with ESMTP id S1749667Ab0AZA6N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 19:52:41 -0500
+	Mon, 25 Jan 2010 19:58:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, huangj@brocade.com
+Cc: roel.kluin@gmail.com, devel@driverdev.osuosl.org, gregkh@suse.de, wfp5p@virginia.edu
 
 
 The patch titled
-     bfa: comparison with wrong msgtag in bfa_pport_isr()
+     comedi: G1-3 status registers not read in ni_gpct_to_660x_register()
 has been added to the -mm tree.  Its filename is
-     bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr.patch
+     comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bfa: comparison with wrong msgtag in bfa_pport_isr()
+Subject: comedi: G1-3 status registers not read in ni_gpct_to_660x_register()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Compare it with the disable msgtag.
+Read from the right status register
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jing Huang <huangj@brocade.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: <devel@driverdev.osuosl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/bfa/bfa_fcport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/comedi/drivers/ni_660x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/bfa/bfa_fcport.c~bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr drivers/scsi/bfa/bfa_fcport.c
---- a/drivers/scsi/bfa/bfa_fcport.c~bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr
-+++ a/drivers/scsi/bfa/bfa_fcport.c
-@@ -918,7 +918,7 @@ bfa_pport_isr(struct bfa_s *bfa, struct 
+diff -puN drivers/staging/comedi/drivers/ni_660x.c~comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register drivers/staging/comedi/drivers/ni_660x.c
+--- a/drivers/staging/comedi/drivers/ni_660x.c~comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register
++++ a/drivers/staging/comedi/drivers/ni_660x.c
+@@ -691,13 +691,13 @@ static enum NI_660x_Register ni_gpct_to_
+ 		ni_660x_register = G0StatusRegister;
  		break;
- 
- 	case BFI_PPORT_I2H_DISABLE_RSP:
--		if (pport->msgtag == i2hmsg.enable_rsp->msgtag)
-+		if (pport->msgtag == i2hmsg.disable_rsp->msgtag)
- 			bfa_sm_send_event(pport, BFA_PPORT_SM_FWRSP);
+ 	case NITIO_G1_Status_Reg:
+-		ni_660x_register = G0StatusRegister;
++		ni_660x_register = G1StatusRegister;
  		break;
- 
+ 	case NITIO_G2_Status_Reg:
+-		ni_660x_register = G0StatusRegister;
++		ni_660x_register = G2StatusRegister;
+ 		break;
+ 	case NITIO_G3_Status_Reg:
+-		ni_660x_register = G0StatusRegister;
++		ni_660x_register = G3StatusRegister;
+ 		break;
+ 	case NITIO_G0_Interrupt_Enable_Reg:
+ 		ni_660x_register = G0InterruptEnable;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -87,6 +96,7 @@ bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr.patch
 paride-fix-off-by-one-test.patch
 rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch
 serqt_usb2-two-branches-the-same-in-qt_set_termios.patch
+comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register.patch
 musb-test-always-evaluates-to-false.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
