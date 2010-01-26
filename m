@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mx3fb-some-debug-and-initialisation-fixes.patch added to -mm tree
-Date: Tue, 26 Jan 2010 13:47:01 -0800
-Message-ID: <201001262147.o0QLl1gE022450@imap1.linux-foundation.org>
+Subject: + mm-swapfilec-fix-nr_good_pages-calculation.patch added to -mm tree
+Date: Tue, 26 Jan 2010 13:49:22 -0800
+Message-ID: <201001262149.o0QLnNB9022528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751788Ab0AZVrv (ORCPT
+	by vger.kernel.org with ESMTP id S1751953Ab0AZVte (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:47:51 -0500
+	Tue, 26 Jan 2010 16:49:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maramaopercheseimorto@gmail.com, s.hauer@pengutronix.de, stable@kernel.org
+Cc: jarkko.lavinen@nokia.com, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     mx3fb: some debug and initialisation fixes.
+     mm/swapfile.c: fix nr_good_pages calculation
 has been added to the -mm tree.  Its filename is
-     mx3fb-some-debug-and-initialisation-fixes.patch
+     mm-swapfilec-fix-nr_good_pages-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mx3fb: some debug and initialisation fixes.
-From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+Subject: mm/swapfile.c: fix nr_good_pages calculation
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-Fix the kernel oops when dev_dbg is called with mx3_fbi->txd == NULL
+On x86 example machine A, swap partition is 15631245 kB.  /proc/swaps says
+the swap space is 15631236 KB, 9 KB less than the partition size or two
+page difference.  One page for the swap header, and the other for what?
 
-Fix the late initialisation of mx3fb->backlight_level.  If not, in the
-chain of function started by init_fb_chan(), in __blank() call
-sdc_set_brightness(mx3fb, mx3fb->backlight_level) that will shut down the
-CONTRAST PWM output.
+On another x86 macine B, swap partition is 409626 KB, /proc/swaps says it
+is 409616 KB, 10 KB difference or two pages and alignment bytes.  Again I
+can understand the need for one header page, but not two.
 
-Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski <at> gmx.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: <stable@kernel.org>
+However swapon system call intends to use all the space available except
+the header.  This can be seen from swap_map allocation:
+
+  SYSCALL_DEFINE2(swapon, ...
+        ...			
+	maxpages = swp_offset(pte_to_swp_entry(
+			swp_entry_to_pte(swp_entry(0, ~0UL)))) - 1;
+	if (maxpages > swap_header->info.last_page)
+		maxpages = swap_header->info.last_page;
+	p->highest_bit = maxpages - 1;
+	...
+	swap_map = vmalloc(maxpages);
+
+This way the swap_map has entries for the whole swap space
+except for the header.
+
+Then the nr_good_pages could be calculated with:
+
+-	nr_good_pages = swap_header->info.last_page -
+-			swap_header->info.nr_badpages -
+-			1 /* header page */;
++	nr_good_pages = maxpages - swap_header->info.nr_badpages;
+
+This change corrects the last swap file page never used problem.  If the
+last_page is ever greater than maxpages, this would also avoid setting
+nr_good_pages to too large value.
+
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/mx3fb.c~mx3fb-some-debug-and-initialisation-fixes drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~mx3fb-some-debug-and-initialisation-fixes
-+++ a/drivers/video/mx3fb.c
-@@ -324,8 +324,11 @@ static void sdc_enable_channel(struct mx
- 	unsigned long flags;
- 	dma_cookie_t cookie;
+diff -puN mm/swapfile.c~mm-swapfilec-fix-nr_good_pages-calculation mm/swapfile.c
+--- a/mm/swapfile.c~mm-swapfilec-fix-nr_good_pages-calculation
++++ a/mm/swapfile.c
+@@ -1966,7 +1966,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (error)
+ 		goto bad_swap;
  
--	dev_dbg(mx3fb->dev, "mx3fbi %p, desc %p, sg %p\n", mx3_fbi,
--		to_tx_desc(mx3_fbi->txd), to_tx_desc(mx3_fbi->txd)->sg);
-+	if (mx3_fbi->txd)
-+		dev_dbg(mx3fb->dev, "mx3fbi %p, desc %p, sg %p\n", mx3_fbi,
-+			to_tx_desc(mx3_fbi->txd), to_tx_desc(mx3_fbi->txd)->sg);
-+	else
-+		dev_dbg(mx3fb->dev, "mx3fbi %p, txd = NULL\n", mx3_fbi);
+-	nr_good_pages = swap_header->info.last_page -
++	nr_good_pages = swap_header->info.last_page + 1 -
+ 			swap_header->info.nr_badpages -
+ 			1 /* header page */;
  
- 	/* This enables the channel */
- 	if (mx3_fbi->cookie < 0) {
-@@ -646,6 +649,7 @@ static int sdc_set_global_alpha(struct m
- 
- static void sdc_set_brightness(struct mx3fb_data *mx3fb, uint8_t value)
- {
-+	dev_dbg(mx3fb->dev, "%s: value = %d\n", __func__, value);
- 	/* This might be board-specific */
- 	mx3fb_write_reg(mx3fb, 0x03000000UL | value << 16, SDC_PWM_CTRL);
- 	return;
-@@ -1486,12 +1490,12 @@ static int mx3fb_probe(struct platform_d
- 		goto ersdc0;
- 	}
- 
-+	mx3fb->backlight_level = 255;
-+
- 	ret = init_fb_chan(mx3fb, to_idmac_chan(chan));
- 	if (ret < 0)
- 		goto eisdc0;
- 
--	mx3fb->backlight_level = 255;
+_
+
+Patches currently in -mm which might be from jarkko.lavinen@nokia.com are
+
+mm-swapfilec-fix-nr_good_pages-calculation.patch
+
