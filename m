@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + futex_lock_pi-key-refcnt-fix.patch added to -mm tree
-Date: Wed, 27 Jan 2010 15:26:00 -0800
-Message-ID: <201001272326.o0RNQ1kv006467@imap1.linux-foundation.org>
+Subject: + broadsheetfb-add-mmio-hooks.patch added to -mm tree
+Date: Wed, 27 Jan 2010 15:29:11 -0800
+Message-ID: <201001272329.o0RNTBwg006632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755195Ab0A0X1M (ORCPT
+	by vger.kernel.org with ESMTP id S1752324Ab0A0X33 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 18:27:12 -0500
+	Wed, 27 Jan 2010 18:29:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se, a.p.zijlstra@chello.nl, dvhltc@us.ibm.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
+Cc: jayakumar.lkml@gmail.com, geert@linux-m68k.org, krzysztof.h1@wp.pl
 
 
 The patch titled
-     futex_lock_pi() key refcnt fix
+     broadsheetfb: add MMIO hooks
 has been added to the -mm tree.  Its filename is
-     futex_lock_pi-key-refcnt-fix.patch
+     broadsheetfb-add-mmio-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,249 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex_lock_pi() key refcnt fix
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: broadsheetfb: add MMIO hooks
+From: Jaya Kumar <jayakumar.lkml@gmail.com>
 
-This fixes a futex key reference count bug in futex_lock_pi(), where a
-key's reference count is incremented twice but decremented only once,
-causing the backing object to not be released.
+Allow boards with GP-MMIO controllers to provide hooks to broadsheetfb in
+order to offload cmd/data writes and data reads instead of relying only on
+host based GPIO wiggling.
 
-If the futex is created in a temporary file in an ext3 file system, this
-bug causes the file's inode to become an "undead" orphan, which causes an
-oops from a BUG_ON() in ext3_put_super() when the file system is
-unmounted.  glibc's test suite is known to trigger this, see
-<http://bugzilla.kernel.org/show_bug.cgi?id=14256>.
-
-The bug is a regression from 2.6.28-git3, namely Peter Zijlstra's
-38d47c1b7075bd7ec3881141bb3629da58f88dab "[PATCH] futex: rely on
-get_user_pages() for shared futexes".  That commit made get_futex_key()
-also increment the reference count of the futex key, and updated its
-callers to decrement the key's reference count before returning. 
-Unfortunately the normal exit path in futex_lock_pi() wasn't corrected:
-the reference count is incremented by get_futex_key() and queue_lock(),
-but the normal exit path only decrements once, via unqueue_me_pi().  The
-fix is to put_futex_key() after unqueue_me_pi(), since 2.6.31 this is
-easily done by 'goto out_put_key' rather than 'goto out'.
-
-This patch also works for backports to 2.6.32 and 2.6.31, but 2.6.30 and
-2.6.29 need a "put_futex_key(fshared, &q.key);" after "unqueue_me_pi(&q);"
-instead.  I can supply patches for these older kernels if necessary.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Acked-by: Darren Hart <dvhltc@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/broadsheetfb.c |  110 ++++++++++++++++++++++++++++-----
+ include/video/broadsheetfb.h |   17 +++--
+ 2 files changed, 107 insertions(+), 20 deletions(-)
 
-diff -puN kernel/futex.c~futex_lock_pi-key-refcnt-fix kernel/futex.c
---- a/kernel/futex.c~futex_lock_pi-key-refcnt-fix
-+++ a/kernel/futex.c
-@@ -1971,7 +1971,7 @@ retry_private:
- 	/* Unqueue and drop the lock */
- 	unqueue_me_pi(&q);
+diff -puN drivers/video/broadsheetfb.c~broadsheetfb-add-mmio-hooks drivers/video/broadsheetfb.c
+--- a/drivers/video/broadsheetfb.c~broadsheetfb-add-mmio-hooks
++++ a/drivers/video/broadsheetfb.c
+@@ -115,30 +115,30 @@ static struct fb_var_screeninfo broadshe
+ };
  
--	goto out;
-+	goto out_put_key;
+ /* main broadsheetfb functions */
+-static void broadsheet_issue_data(struct broadsheetfb_par *par, u16 data)
++static void broadsheet_gpio_issue_data(struct broadsheetfb_par *par, u16 data)
+ {
+ 	par->board->set_ctl(par, BS_WR, 0);
+ 	par->board->set_hdb(par, data);
+ 	par->board->set_ctl(par, BS_WR, 1);
+ }
  
- out_unlock_put_key:
- 	queue_unlock(&q, hb);
+-static void broadsheet_issue_cmd(struct broadsheetfb_par *par, u16 data)
++static void broadsheet_gpio_issue_cmd(struct broadsheetfb_par *par, u16 data)
+ {
+ 	par->board->set_ctl(par, BS_DC, 0);
+-	broadsheet_issue_data(par, data);
++	broadsheet_gpio_issue_data(par, data);
+ }
+ 
+-static void broadsheet_send_command(struct broadsheetfb_par *par, u16 data)
++static void broadsheet_gpio_send_command(struct broadsheetfb_par *par, u16 data)
+ {
+ 	par->board->wait_for_rdy(par);
+ 
+ 	par->board->set_ctl(par, BS_CS, 0);
+-	broadsheet_issue_cmd(par, data);
++	broadsheet_gpio_issue_cmd(par, data);
+ 	par->board->set_ctl(par, BS_DC, 1);
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
+-static void broadsheet_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
++static void broadsheet_gpio_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
+ 					int argc, u16 *argv)
+ {
+ 	int i;
+@@ -146,15 +146,43 @@ static void broadsheet_send_cmdargs(stru
+ 	par->board->wait_for_rdy(par);
+ 
+ 	par->board->set_ctl(par, BS_CS, 0);
+-	broadsheet_issue_cmd(par, cmd);
++	broadsheet_gpio_issue_cmd(par, cmd);
+ 	par->board->set_ctl(par, BS_DC, 1);
+ 
+ 	for (i = 0; i < argc; i++)
+-		broadsheet_issue_data(par, argv[i]);
++		broadsheet_gpio_issue_data(par, argv[i]);
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
+-static void broadsheet_burst_write(struct broadsheetfb_par *par, int size,
++static void broadsheet_mmio_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
++				    int argc, u16 *argv)
++{
++	int i;
++
++	par->board->mmio_write(par, BS_MMIO_CMD, cmd);
++
++	for (i = 0; i < argc; i++)
++		par->board->mmio_write(par, BS_MMIO_DATA, argv[i]);
++}
++
++static void broadsheet_send_command(struct broadsheetfb_par *par, u16 data)
++{
++	if (par->board->mmio_write)
++		par->board->mmio_write(par, BS_MMIO_CMD, data);
++	else
++		broadsheet_gpio_send_command(par, data);
++}
++
++static void broadsheet_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
++				    int argc, u16 *argv)
++{
++	if (par->board->mmio_write)
++		broadsheet_mmio_send_cmdargs(par, cmd, argc, argv);
++	else
++		broadsheet_gpio_send_cmdargs(par, cmd, argc, argv);
++}
++
++static void broadsheet_gpio_burst_write(struct broadsheetfb_par *par, int size,
+ 					u16 *data)
+ {
+ 	int i;
+@@ -174,7 +202,30 @@ static void broadsheet_burst_write(struc
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
+-static u16 broadsheet_get_data(struct broadsheetfb_par *par)
++static void broadsheet_mmio_burst_write(struct broadsheetfb_par *par, int size,
++				   u16 *data)
++{
++	int i;
++	u16 tmp;
++
++	for (i = 0; i < size; i++) {
++		tmp = (data[i] & 0x0F) << 4;
++		tmp |= (data[i] & 0x0F00) << 4;
++		par->board->mmio_write(par, BS_MMIO_DATA, tmp);
++	}
++
++}
++
++static void broadsheet_burst_write(struct broadsheetfb_par *par, int size,
++				   u16 *data)
++{
++	if (par->board->mmio_write)
++		broadsheet_mmio_burst_write(par, size, data);
++	else
++		broadsheet_gpio_burst_write(par, size, data);
++}
++
++static u16 broadsheet_gpio_get_data(struct broadsheetfb_par *par)
+ {
+ 	u16 res;
+ 	/* wait for ready to go hi. (lo is busy) */
+@@ -194,7 +245,16 @@ static u16 broadsheet_get_data(struct br
+ 	return res;
+ }
+ 
+-static void broadsheet_write_reg(struct broadsheetfb_par *par, u16 reg,
++
++static u16 broadsheet_get_data(struct broadsheetfb_par *par)
++{
++	if (par->board->mmio_read)
++		return par->board->mmio_read(par);
++	else
++		return broadsheet_gpio_get_data(par);
++}
++
++static void broadsheet_gpio_write_reg(struct broadsheetfb_par *par, u16 reg,
+ 					u16 data)
+ {
+ 	/* wait for ready to go hi. (lo is busy) */
+@@ -203,16 +263,34 @@ static void broadsheet_write_reg(struct 
+ 	/* cs lo, dc lo for cmd, we lo for each data, db as usual */
+ 	par->board->set_ctl(par, BS_CS, 0);
+ 
+-	broadsheet_issue_cmd(par, BS_CMD_WR_REG);
++	broadsheet_gpio_issue_cmd(par, BS_CMD_WR_REG);
+ 
+ 	par->board->set_ctl(par, BS_DC, 1);
+ 
+-	broadsheet_issue_data(par, reg);
+-	broadsheet_issue_data(par, data);
++	broadsheet_gpio_issue_data(par, reg);
++	broadsheet_gpio_issue_data(par, data);
+ 
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
++static void broadsheet_mmio_write_reg(struct broadsheetfb_par *par, u16 reg,
++				 u16 data)
++{
++	par->board->mmio_write(par, BS_MMIO_CMD, BS_CMD_WR_REG);
++	par->board->mmio_write(par, BS_MMIO_DATA, reg);
++	par->board->mmio_write(par, BS_MMIO_DATA, data);
++
++}
++
++static void broadsheet_write_reg(struct broadsheetfb_par *par, u16 reg,
++					u16 data)
++{
++	if (par->board->mmio_write)
++		broadsheet_mmio_write_reg(par, reg, data);
++	else
++		broadsheet_gpio_write_reg(par, reg, data);
++}
++
+ static void broadsheet_write_reg32(struct broadsheetfb_par *par, u16 reg,
+ 					u32 data)
+ {
+@@ -223,8 +301,8 @@ static void broadsheet_write_reg32(struc
+ 
+ static u16 broadsheet_read_reg(struct broadsheetfb_par *par, u16 reg)
+ {
+-	broadsheet_send_command(par, reg);
+-	msleep(100);
++	broadsheet_send_cmdargs(par, BS_CMD_RD_REG, 1, &reg);
++	par->board->wait_for_rdy(par);
+ 	return broadsheet_get_data(par);
+ }
+ 
+diff -puN include/video/broadsheetfb.h~broadsheetfb-add-mmio-hooks include/video/broadsheetfb.h
+--- a/include/video/broadsheetfb.h~broadsheetfb-add-mmio-hooks
++++ a/include/video/broadsheetfb.h
+@@ -34,6 +34,10 @@
+ #define BS_DC 	0x02
+ #define BS_WR 	0x03
+ 
++/* Broadsheet IO interface specific defines */
++#define BS_MMIO_CMD	0x01
++#define BS_MMIO_DATA	0x02
++
+ /* struct used by broadsheet. board specific stuff comes from *board */
+ struct broadsheetfb_par {
+ 	struct fb_info *info;
+@@ -49,12 +53,17 @@ struct broadsheet_board {
+ 	struct module *owner;
+ 	int (*init)(struct broadsheetfb_par *);
+ 	int (*wait_for_rdy)(struct broadsheetfb_par *);
+-	void (*set_ctl)(struct broadsheetfb_par *, unsigned char, u8);
+-	void (*set_hdb)(struct broadsheetfb_par *, u16);
+-	u16 (*get_hdb)(struct broadsheetfb_par *);
+ 	void (*cleanup)(struct broadsheetfb_par *);
+ 	int (*get_panel_type)(void);
+ 	int (*setup_irq)(struct fb_info *);
+-};
+ 
++	/* Functions for boards that use GPIO */
++	void (*set_ctl)(struct broadsheetfb_par *, unsigned char, u8);
++	void (*set_hdb)(struct broadsheetfb_par *, u16);
++	u16 (*get_hdb)(struct broadsheetfb_par *);
++
++	/* Functions for boards that have specialized MMIO */
++	void (*mmio_write)(struct broadsheetfb_par *, int type, u16);
++	u16 (*mmio_read)(struct broadsheetfb_par *);
++};
+ #endif
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
 
-futex_lock_pi-key-refcnt-fix.patch
+broadsheetfb-add-multiple-panel-type-support.patch
+broadsheetfb-add-mmio-hooks.patch
 
