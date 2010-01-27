@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-indent-a-comment.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:37:38 -0800
-Message-ID: <201001270037.o0R0bcZZ032542@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-remove-unnecessary-return-and-braces.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:38:06 -0800
+Message-ID: <201001270038.o0R0c6Yq032588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754697Ab0A0ArA (ORCPT
+	by vger.kernel.org with ESMTP id S1754748Ab0A0ArT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:47:00 -0500
+	Tue, 26 Jan 2010 19:47:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: indent a comment
+     drivers/block/floppy.c: remove unnecessary return and braces
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-indent-a-comment.patch
+     drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: indent a comment
+Subject: drivers/block/floppy.c: remove unnecessary return and braces
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
@@ -45,21 +45,24 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/floppy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-indent-a-comment drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-indent-a-comment
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-unnecessary-return-and-braces drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-unnecessary-return-and-braces
 +++ a/drivers/block/floppy.c
-@@ -4262,7 +4262,7 @@ static int __init floppy_init(void)
- 		FDCS->dtr = -1;
- 		FDCS->dor = 0x4;
- #if defined(__sparc__) || defined(__mc68000__)
--		/*sparcs/sun3x don't have a DOR reset which we can fall back on to */
-+	/*sparcs/sun3x don't have a DOR reset which we can fall back on to */
- #ifdef __mc68000__
- 		if (MACH_IS_SUN3X)
- #endif
+@@ -1796,10 +1796,8 @@ static void recalibrate_floppy(void)
+ 	debugt("recalibrate floppy:");
+ 	do_floppy = recal_interrupt;
+ 	output_byte(FD_RECALIBRATE);
+-	if (output_byte(UNIT(current_drive)) < 0) {
++	if (output_byte(UNIT(current_drive)) < 0)
+ 		reset_fdc();
+-		return;
+-	}
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
