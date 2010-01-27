@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-add-function-is_ready_state.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:38:04 -0800
-Message-ID: <201001270038.o0R0c49K032585@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:38:02 -0800
+Message-ID: <201001270038.o0R0c22Z032582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754269Ab0A0Aij (ORCPT
+	by vger.kernel.org with ESMTP id S1754260Ab0A0Aij (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 26 Jan 2010 19:38:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: add function is_ready_state
+     drivers/block/floppy.c: convert int initialising to bool initialized
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-add-function-is_ready_state.patch
+     drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: add function is_ready_state
+Subject: drivers/block/floppy.c: convert int initialising to bool initialized
 From: Joe Perches <joe@perches.com>
 
-Used a couple of times, might simplify the code a bit.
+Don't initialize initialized either.  Default is false.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -47,60 +47,89 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ drivers/block/floppy.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-add-function-is_ready_state drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-add-function-is_ready_state
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-convert-int-initialising-to-bool-initialized drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-convert-int-initialising-to-bool-initialized
 +++ a/drivers/block/floppy.c
-@@ -782,6 +782,12 @@ static inline int is_selected(int dor, i
- 	return ((dor & (0x10 << unit)) && (dor & 3) == unit);
- }
+@@ -290,7 +290,7 @@ static inline void fallback_on_nodma_all
+ /* End dma memory related stuff */
  
-+static bool is_ready_state(int status)
-+{
-+	int state = status & (STATUS_READY | STATUS_DIR | STATUS_DMA);
-+	return state == STATUS_READY;
-+}
-+
- static int set_dor(int fdc, char mask, char data)
+ static unsigned long fake_change;
+-static int initialising = 1;
++static bool initialized;
+ 
+ #define ITYPE(x)	(((x) >> 2) & 0x1f)
+ #define TOMINOR(x)	((x & 3) | ((x & 4) << 5))
+@@ -1147,7 +1147,7 @@ static int wait_til_ready(void)
+ 		if (status & STATUS_READY)
+ 			return status;
+ 	}
+-	if (!initialising) {
++	if (initialized) {
+ 		DPRINT("Getstatus times out (%x) on fdc %d\n", status, fdc);
+ 		show_floppy();
+ 	}
+@@ -1173,7 +1173,7 @@ static int output_byte(char byte)
+ 		return 0;
+ 	}
+ 	FDCS->reset = 1;
+-	if (!initialising) {
++	if (initialized) {
+ 		DPRINT("Unable to send byte %x to FDC. Fdc=%x Status=%x\n",
+ 		       byte, fdc, status);
+ 		show_floppy();
+@@ -1204,10 +1204,9 @@ static int result(void)
+ 		else
+ 			break;
+ 	}
+-	if (!initialising) {
+-		DPRINT
+-		    ("get result error. Fdc=%d Last status=%x Read bytes=%d\n",
+-		     fdc, status, i);
++	if (initialized) {
++		DPRINT("get result error. Fdc=%d Last status=%x Read bytes=%d\n",
++		       fdc, status, i);
+ 		show_floppy();
+ 	}
+ 	FDCS->reset = 1;
+@@ -1754,7 +1753,7 @@ irqreturn_t floppy_interrupt(int irq, vo
+ 	 * activity.
+ 	 */
+ 
+-	do_print = !handler && print_unex && !initialising;
++	do_print = !handler && print_unex && initialized;
+ 
+ 	inr = result();
+ 	if (do_print)
+@@ -1882,7 +1881,7 @@ static void floppy_shutdown(unsigned lon
  {
- 	unsigned char unit;
-@@ -823,8 +829,10 @@ static void twaddle(void)
- 	DRS->select_date = jiffies;
- }
+ 	unsigned long flags;
  
--/* reset all driver information about the current fdc. This is needed after
-- * a reset, and after a raw command. */
-+/*
-+ * Reset all driver information about the current fdc.
-+ * This is needed after a reset, and after a raw command.
-+ */
- static void reset_fdc_info(int mode)
- {
- 	int drive;
-@@ -1162,7 +1170,8 @@ static int output_byte(char byte)
+-	if (!initialising)
++	if (initialized)
+ 		show_floppy();
+ 	cancel_activity();
  
- 	if (status < 0)
- 		return -1;
--	if ((status & (STATUS_READY | STATUS_DIR | STATUS_DMA)) == STATUS_READY) {
-+
-+	if (is_ready_state(status)) {
- 		fd_outb(byte, FD_DATA);
- #ifdef FLOPPY_SANITY_CHECK
- 		output_log[output_log_pos].data = byte;
-@@ -1221,8 +1230,10 @@ static int need_more_output(void)
+@@ -1894,7 +1893,7 @@ static void floppy_shutdown(unsigned lon
  
- 	if (status < 0)
- 		return -1;
--	if ((status & (STATUS_READY | STATUS_DIR | STATUS_DMA)) == STATUS_READY)
-+
-+	if (is_ready_state(status))
- 		return MORE_OUTPUT;
-+
- 	return result();
- }
+ 	/* avoid dma going to a random drive after shutdown */
  
+-	if (!initialising)
++	if (initialized)
+ 		DPRINT("floppy timeout called\n");
+ 	FDCS->reset = 1;
+ 	if (cont) {
+@@ -4337,7 +4336,7 @@ static int __init floppy_init(void)
+ 	fdc = 0;
+ 	del_timer(&fd_timeout);
+ 	current_drive = 0;
+-	initialising = 0;
++	initialized = true;
+ 	if (have_no_fdc) {
+ 		DPRINT("no floppy controllers found\n");
+ 		err = have_no_fdc;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
