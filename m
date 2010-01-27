@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-remove-used-once-check_ready-macro.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:37:28 -0800
-Message-ID: <201001270037.o0R0bS1R032523@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-remove-last_out-macro.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:37:32 -0800
+Message-ID: <201001270037.o0R0bWlk032529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754231Ab0A0AiK (ORCPT
+	by vger.kernel.org with ESMTP id S1754237Ab0A0AiK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 26 Jan 2010 19:38:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: remove used once CHECK_READY macro
+     drivers/block/floppy.c: remove LAST_OUT macro
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+     drivers-block-floppyc-remove-last_out-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: remove used once CHECK_READY macro
+Subject: drivers/block/floppy.c: remove LAST_OUT macro
 From: Joe Perches <joe@perches.com>
+
+Macros with hidden returns are not nice.
+Convert the 2 uses to use direct code.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -45,32 +48,45 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/block/floppy.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-used-once-check_ready-macro drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-remove-used-once-check_ready-macro
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-last_out-macro drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-last_out-macro
 +++ a/drivers/block/floppy.c
-@@ -575,7 +575,6 @@ static void floppy_release_irq_and_dma(v
-  * reset doesn't need to be tested before sending commands, because
-  * output_byte is automatically disabled when reset is set.
-  */
--#define CHECK_RESET { if (FDCS->reset){ reset_fdc(); return; } }
- static void reset_fdc(void);
+@@ -1198,8 +1198,6 @@ static int output_byte(char byte)
+ 	return -1;
+ }
  
- /*
-@@ -1958,7 +1957,10 @@ static int start_motor(void (*function)(
- 
- static void floppy_ready(void)
+-#define LAST_OUT(x) if (output_byte(x)<0){ reset_fdc();return;}
+-
+ /* gets the response from the fdc */
+ static int result(void)
  {
--	CHECK_RESET;
-+	if (FDCS->reset) {
+@@ -1679,7 +1677,10 @@ static void seek_floppy(void)
+ 	do_floppy = seek_interrupt;
+ 	output_byte(FD_SEEK);
+ 	output_byte(UNIT(current_drive));
+-	LAST_OUT(track);
++	if (output_byte(track) < 0) {
 +		reset_fdc();
 +		return;
 +	}
- 	if (start_motor(floppy_ready))
- 		return;
- 	if (fdc_dtr())
+ 	debugt("seek command:");
+ }
+ 
+@@ -1809,7 +1810,10 @@ static void recalibrate_floppy(void)
+ 	debugt("recalibrate floppy:");
+ 	do_floppy = recal_interrupt;
+ 	output_byte(FD_RECALIBRATE);
+-	LAST_OUT(UNIT(current_drive));
++	if (output_byte(UNIT(current_drive)) < 0) {
++		reset_fdc();
++		return;
++	}
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
