@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-comment-neatening-and-remove-naked.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:37:34 -0800
-Message-ID: <201001270037.o0R0bYeV032532@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-add-debug_dcl-macro.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:37:46 -0800
+Message-ID: <201001270037.o0R0bknq032555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754871Ab0A0Asa (ORCPT
+	by vger.kernel.org with ESMTP id S1754876Ab0A0Asr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:48:30 -0500
+	Tue, 26 Jan 2010 19:48:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: comment neatening and remove naked ;
+     drivers/block/floppy.c: add debug_dcl(...) macro
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+     drivers-block-floppyc-add-debug_dcl-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: comment neatening and remove naked ;
+Subject: drivers/block/floppy.c: add debug_dcl(...) macro
 From: Joe Perches <joe@perches.com>
 
-Spacing, column alignment and a for loop with
-a naked semicolon converted to an assign and while
+Converted #ifdef DCL_DEBUG if (test) DPRINTK(...); #endif
+to debug_dcl(test, ...);
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -48,135 +48,179 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   55 +++++++++++++++++++++------------------
- 1 file changed, 30 insertions(+), 25 deletions(-)
+ drivers/block/floppy.c |   83 ++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 52 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-comment-neatening-and-remove-naked drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-comment-neatening-and-remove-naked
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-add-debug_dcl-macro drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-add-debug_dcl-macro
 +++ a/drivers/block/floppy.c
-@@ -1262,9 +1262,12 @@ static inline void perpendicular_mode(vo
- 		default:
- 			DPRINT("Invalid data rate for perpendicular mode!\n");
- 			cont->done(0);
--			FDCS->reset = 1;	/* convenient way to return to
--						 * redo without to much hassle (deep
--						 * stack et al. */
-+			FDCS->reset = 1;
-+					/*
-+					 * convenient way to return to
-+					 * redo without too much hassle
-+					 * (deep stack et al.)
-+					 */
- 			return;
- 		}
- 	} else
-@@ -1977,8 +1980,8 @@ static void floppy_ready(void)
+@@ -152,6 +152,15 @@
+ #define DEBUGT 2
+ #define DCL_DEBUG		/* debug disk change line */
+ 
++#ifdef DCL_DEBUG
++#define debug_dcl(test, fmt, args...) \
++	do { if ((test) & FD_DEBUG) DPRINT(fmt, ##args); } while (0)
++#else
++#define debug_dcl(test, fmt, args...) \
++	do { if (0) DPRINT(fmt, ##args); } while (0)
++#endif
++
++
+ /* do print messages for unexpected interrupts */
+ static int print_unex = 1;
+ #include <linux/module.h>
+@@ -748,14 +757,12 @@ static int disk_change(int drive)
+ 	}
  #endif
+ 
+-#ifdef DCL_DEBUG
+-	if (UDP->flags & FD_DEBUG) {
+-		DPRINT("checking disk change line for drive %d\n", drive);
+-		DPRINT("jiffies=%lu\n", jiffies);
+-		DPRINT("disk change line=%x\n", fd_inb(FD_DIR) & 0x80);
+-		DPRINT("flags=%lx\n", UDRS->flags);
+-	}
+-#endif
++	debug_dcl(UDP->flags,
++		  "checking disk change line for drive %d\n", drive);
++	debug_dcl(UDP->flags, "jiffies=%lu\n", jiffies);
++	debug_dcl(UDP->flags, "disk change line=%x\n", fd_inb(FD_DIR) & 0x80);
++	debug_dcl(UDP->flags, "flags=%lx\n", UDRS->flags);
++
+ 	if (UDP->flags & FD_BROKEN_DCL)
+ 		return UTESTF(FD_DISK_CHANGED);
+ 	if ((fd_inb(FD_DIR) ^ UDP->flags) & 0x80) {
+@@ -804,10 +811,8 @@ static int set_dor(int fdc, char mask, c
+ 		unit = olddor & 0x3;
+ 		if (is_selected(olddor, unit) && !is_selected(newdor, unit)) {
+ 			drive = REVDRIVE(fdc, unit);
+-#ifdef DCL_DEBUG
+-			if (UDP->flags & FD_DEBUG)
+-				DPRINT("calling disk change from set_dor\n");
+-#endif
++			debug_dcl(UDP->flags,
++				  "calling disk change from set_dor\n");
+ 			disk_change(drive);
+ 		}
+ 		FDCS->dor = newdor;
+@@ -1020,10 +1025,7 @@ static void cancel_activity(void)
+  * transfer */
+ static void fd_watchdog(void)
+ {
+-#ifdef DCL_DEBUG
+-	if (DP->flags & FD_DEBUG)
+-		DPRINT("calling disk change from watchdog\n");
+-#endif
++	debug_dcl(DP->flags, "calling disk change from watchdog\n");
+ 
+ 	if (disk_change(current_drive)) {
+ 		DPRINT("disk removed during i/o\n");
+@@ -1582,12 +1584,9 @@ static void seek_interrupt(void)
+ 		return;
+ 	}
+ 	if (DRS->track >= 0 && DRS->track != ST1 && !blind_seek) {
+-#ifdef DCL_DEBUG
+-		if (DP->flags & FD_DEBUG) {
+-			DPRINT("clearing NEWCHANGE flag because of effective seek\n");
+-			DPRINT("jiffies=%lu\n", jiffies);
+-		}
+-#endif
++		debug_dcl(DP->flags,
++			  "clearing NEWCHANGE flag because of effective seek\n");
++		debug_dcl(DP->flags, "jiffies=%lu\n", jiffies);
+ 		CLEARF(FD_DISK_NEWCHANGE);	/* effective seek */
+ 		DRS->select_date = jiffies;
+ 	}
+@@ -1607,12 +1606,9 @@ static void check_wp(void)
+ 		}
+ 		CLEARF(FD_VERIFY);
+ 		CLEARF(FD_NEED_TWADDLE);
+-#ifdef DCL_DEBUG
+-		if (DP->flags & FD_DEBUG) {
+-			DPRINT("checking whether disk is write protected\n");
+-			DPRINT("wp=%x\n", ST3 & 0x40);
+-		}
+-#endif
++		debug_dcl(DP->flags,
++			  "checking whether disk is write protected\n");
++		debug_dcl(DP->flags, "wp=%x\n", ST3 & 0x40);
+ 		if (!(ST3 & 0x40))
+ 			SETF(FD_DISK_WRITABLE);
+ 		else
+@@ -1626,10 +1622,7 @@ static void seek_floppy(void)
+ 
+ 	blind_seek = 0;
+ 
+-#ifdef DCL_DEBUG
+-	if (DP->flags & FD_DEBUG)
+-		DPRINT("calling disk change from seek\n");
+-#endif
++	debug_dcl(DP->flags, "calling disk change from seek\n");
+ 
+ 	if (!TESTF(FD_DISK_NEWCHANGE) &&
+ 	    disk_change(current_drive) && (raw_cmd->flags & FD_RAW_NEED_DISK)) {
+@@ -1705,10 +1698,8 @@ static void recal_interrupt(void)
+ 			 * not to move at recalibration is to
+ 			 * be already at track 0.) Clear the
+ 			 * new change flag */
+-#ifdef DCL_DEBUG
+-			if (DP->flags & FD_DEBUG)
+-				DPRINT("clearing NEWCHANGE flag because of second recalibrate\n");
+-#endif
++			debug_dcl(DP->flags,
++				  "clearing NEWCHANGE flag because of second recalibrate\n");
+ 
+ 			CLEARF(FD_DISK_NEWCHANGE);
+ 			DRS->select_date = jiffies;
+@@ -1968,10 +1959,7 @@ static void floppy_ready(void)
+ 	if (fdc_dtr())
+ 		return;
+ 
+-#ifdef DCL_DEBUG
+-	if (DP->flags & FD_DEBUG)
+-		DPRINT("calling disk change from floppy_ready\n");
+-#endif
++	debug_dcl(DP->flags, "calling disk change from floppy_ready\n");
  	if (!(raw_cmd->flags & FD_RAW_NO_MOTOR) &&
  	    disk_change(current_drive) && !DP->select_delay)
--		twaddle();	/* this clears the dcl on certain drive/controller
--				 * combinations */
-+		twaddle();	/* this clears the dcl on certain
-+				 * drive/controller combinations */
+ 		twaddle();	/* this clears the dcl on certain
+@@ -2002,10 +1990,7 @@ static void floppy_start(void)
+ 	reschedule_timeout(current_reqD, "floppy start", 0);
  
- #ifdef fd_chose_dma_mode
- 	if ((raw_cmd->flags & FD_RAW_READ) || (raw_cmd->flags & FD_RAW_WRITE)) {
-@@ -2806,15 +2809,14 @@ static int make_raw_rw_request(void)
- 	    ((CT(COMMAND) == FD_READ ||
- 	      (!in_sector_offset && blk_rq_sectors(current_req) >= ssize)) &&
- 	     max_sector > 2 * max_buffer_sectors + buffer_min &&
--	     max_size + fsector_t > 2 * max_buffer_sectors + buffer_min)
--	    /* not enough space */
--	    ) {
-+	     max_size + fsector_t > 2 * max_buffer_sectors + buffer_min)) {
-+		/* not enough space */
- 		buffer_track = -1;
- 		buffer_drive = current_drive;
- 		buffer_max = buffer_min = aligned_sector_t;
- 	}
- 	raw_cmd->kernel_data = floppy_track_buffer +
--	    ((aligned_sector_t - buffer_min) << 9);
-+		((aligned_sector_t - buffer_min) << 9);
- 
- 	if (CT(COMMAND) == FD_WRITE) {
- 		/* copy write buffer to track buffer.
-@@ -3171,11 +3173,12 @@ static inline int raw_cmd_copyout(int cm
- 		COPYOUT(*ptr);
- 		param += sizeof(struct floppy_raw_cmd);
- 		if ((ptr->flags & FD_RAW_READ) && ptr->buffer_length) {
--			if (ptr->length >= 0
--			    && ptr->length <= ptr->buffer_length)
--				ECALL(fd_copyout
--				      (ptr->data, ptr->kernel_data,
--				       ptr->buffer_length - ptr->length));
-+			if (ptr->length >= 0 &&
-+			    ptr->length <= ptr->buffer_length) {
-+				long length = ptr->buffer_length - ptr->length;
-+				ECALL(fd_copyout(ptr->data, ptr->kernel_data,
-+						 length));
-+			}
- 		}
- 		ptr = ptr->next;
- 	}
-@@ -3827,8 +3830,7 @@ static int check_floppy_change(struct ge
-  * a disk in the drive, and whether that disk is writable.
-  */
- 
--static void floppy_rb0_complete(struct bio *bio,
--			       int err)
-+static void floppy_rb0_complete(struct bio *bio, int err)
- {
- 	complete((struct completion *)bio->bi_private);
+ 	scandrives();
+-#ifdef DCL_DEBUG
+-	if (DP->flags & FD_DEBUG)
+-		DPRINT("setting NEWCHANGE in floppy_start\n");
+-#endif
++	debug_dcl(DP->flags, "setting NEWCHANGE in floppy_start\n");
+ 	SETF(FD_DISK_NEWCHANGE);
+ 	floppy_ready();
  }
-@@ -4120,9 +4122,9 @@ static int __init floppy_setup(char *str
- 				else
- 					param = config_params[i].def_param;
- 				if (config_params[i].fn)
--					config_params[i].
--					    fn(ints, param,
--					       config_params[i].param2);
-+					config_params[i].fn(ints, param,
-+							    config_params[i].
-+							    param2);
- 				if (config_params[i].var) {
- 					DPRINT("%s=%d\n", str, param);
- 					*config_params[i].var = param;
-@@ -4180,8 +4182,8 @@ static const struct dev_pm_ops floppy_pm
+@@ -3024,10 +3009,7 @@ static int poll_drive(int interruptible,
+ 	raw_cmd->track = 0;
+ 	raw_cmd->cmd_count = 0;
+ 	cont = &poll_cont;
+-#ifdef DCL_DEBUG
+-	if (DP->flags & FD_DEBUG)
+-		DPRINT("setting NEWCHANGE in poll_drive\n");
+-#endif
++	debug_dcl(DP->flags, "setting NEWCHANGE in poll_drive\n");
+ 	SETF(FD_DISK_NEWCHANGE);
+ 	WAIT(floppy_ready);
+ 	return ret;
+@@ -3290,10 +3272,7 @@ static int raw_cmd_ioctl(int cmd, void _
+ 	raw_cmd = my_raw_cmd;
+ 	cont = &raw_cmd_cont;
+ 	ret = wait_til_done(floppy_start, 1);
+-#ifdef DCL_DEBUG
+-	if (DP->flags & FD_DEBUG)
+-		DPRINT("calling disk change from raw_cmd ioctl\n");
+-#endif
++	debug_dcl(DP->flags, "calling disk change from raw_cmd ioctl\n");
  
- static struct platform_driver floppy_driver = {
- 	.driver = {
--		.name = "floppy",
--		.pm = &floppy_pm_ops,
-+		   .name = "floppy",
-+		   .pm = &floppy_pm_ops,
- 	},
- };
- 
-@@ -4429,8 +4431,10 @@ static int floppy_request_regions(int fd
- 	const struct io_region *p;
- 
- 	for (p = io_regions; p < ARRAY_END(io_regions); p++) {
--		if (!request_region(FDCS->address + p->offset, p->size, "floppy")) {
--			DPRINT("Floppy io-port 0x%04lx in use\n", FDCS->address + p->offset);
-+		if (!request_region(FDCS->address + p->offset,
-+				    p->size, "floppy")) {
-+			DPRINT("Floppy io-port 0x%04lx in use\n",
-+			       FDCS->address + p->offset);
- 			floppy_release_allocated_regions(fdc, p);
- 			return -EBUSY;
- 		}
-@@ -4586,8 +4590,9 @@ static void __init parse_floppy_cfg_stri
- 	char *ptr;
- 
- 	while (*cfg) {
--		for (ptr = cfg; *cfg && *cfg != ' ' && *cfg != '\t'; cfg++)
--			;
-+		ptr = cfg;
-+		while (*cfg && *cfg != ' ' && *cfg != '\t')
-+			cfg++;
- 		if (*cfg) {
- 			*cfg = '\0';
- 			cfg++;
+ 	if (ret != -EINTR && FDCS->reset)
+ 		ret = -EIO;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
