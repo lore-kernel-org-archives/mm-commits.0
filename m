@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-take-f_lock-on-modifying-f_mode-after-open-time.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:50:58 -0800
-Message-ID: <201001270050.o0R0owLG000978@imap1.linux-foundation.org>
+Subject: + readahead-introduce-fmode_random-for-posix_fadv_random.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:51:01 -0800
+Message-ID: <201001270051.o0R0p1SU000981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755322Ab0A0AwQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751395Ab0A0AxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:52:16 -0500
+	Tue, 26 Jan 2010 19:53:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, Trond.Myklebust@netapp.com, chuck.lever@oracle.com, hch@infradead.org, stable@kernel.org, viro@zeniv.linux.org.uk
+Cc: fengguang.wu@intel.com, Trond.Myklebust@netapp.com, andi@firstfloor.org, chuck.lever@oracle.com, corbet@lwn.net, dhowells@redhat.com, hch@infradead.org, npiggin@suse.de, qbarnes+nfs@yahoo-inc.com, stable@kernel.org, swhiteho@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: take f_lock on modifying f_mode after open time
+     readahead: introduce FMODE_RANDOM for POSIX_FADV_RANDOM
 has been added to the -mm tree.  Its filename is
-     vfs-take-f_lock-on-modifying-f_mode-after-open-time.patch
+     readahead-introduce-fmode_random-for-posix_fadv_random.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: take f_lock on modifying f_mode after open time
+Subject: readahead: introduce FMODE_RANDOM for POSIX_FADV_RANDOM
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-We'll introduce FMODE_RANDOM which will be runtime modified.  So protect
-all runtime modification to f_mode with f_lock to avoid races.
+This fixes inefficient page-by-page reads on POSIX_FADV_RANDOM.
 
+POSIX_FADV_RANDOM used to set ra_pages=0, which leads to poor performance:
+a 16K read will be carried out in 4 _sync_ 1-page reads.
+
+In other places, ra_pages==0 means
+- it's ramfs/tmpfs/hugetlbfs/sysfs/configfs
+- some IO error happened
+where multi-page read IO won't help or should be avoided.
+
+POSIX_FADV_RANDOM actually want a different semantics: to disable the
+*heuristic* readahead algorithm, and to use a dumb one which faithfully
+submit read IO for whatever application requests.
+
+So introduce a flag FMODE_RANDOM for POSIX_FADV_RANDOM.
+
+Note that the random hint is not likely to help random reads performance
+noticeably.  And it may be too permissive on huge request size (its IO
+size is not limited by read_ahead_kb).
+
+In Quentin's report (http://lkml.org/lkml/2009/12/24/145), the overall
+(NFS read) performance of the application increased by 313%!
+
+Tested-by: Quentin Barnes <qbarnes+nfs@yahoo-inc.com>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
@@ -49,36 +75,65 @@ Cc: <stable@kernel.org>			[2.6.33.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c     |    2 ++
- fs/nfsd/nfs4state.c |    2 ++
- 2 files changed, 4 insertions(+)
+ include/linux/fs.h |    3 +++
+ mm/fadvise.c       |   10 +++++++++-
+ mm/readahead.c     |    6 ++++++
+ 3 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN fs/file_table.c~vfs-take-f_lock-on-modifying-f_mode-after-open-time fs/file_table.c
---- a/fs/file_table.c~vfs-take-f_lock-on-modifying-f_mode-after-open-time
-+++ a/fs/file_table.c
-@@ -401,7 +401,9 @@ retry:
- 			continue;
- 		if (!(f->f_mode & FMODE_WRITE))
- 			continue;
-+		spin_lock(&f->f_lock);
- 		f->f_mode &= ~FMODE_WRITE;
-+		spin_unlock(&f->f_lock);
- 		if (file_check_writeable(f) != 0)
- 			continue;
- 		file_release_write(f);
-diff -puN fs/nfsd/nfs4state.c~vfs-take-f_lock-on-modifying-f_mode-after-open-time fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~vfs-take-f_lock-on-modifying-f_mode-after-open-time
-+++ a/fs/nfsd/nfs4state.c
-@@ -1998,7 +1998,9 @@ nfs4_file_downgrade(struct file *filp, u
- {
- 	if (share_access & NFS4_SHARE_ACCESS_WRITE) {
- 		drop_file_write_access(filp);
-+		spin_lock(&filp->f_lock);
- 		filp->f_mode = (filp->f_mode | FMODE_READ) & ~FMODE_WRITE;
-+		spin_unlock(&filp->f_lock);
- 	}
- }
+diff -puN include/linux/fs.h~readahead-introduce-fmode_random-for-posix_fadv_random include/linux/fs.h
+--- a/include/linux/fs.h~readahead-introduce-fmode_random-for-posix_fadv_random
++++ a/include/linux/fs.h
+@@ -87,6 +87,9 @@ struct inodes_stat_t {
+  */
+ #define FMODE_NOCMTIME		((__force fmode_t)2048)
  
++/* Expect random access pattern */
++#define FMODE_RANDOM		((__force fmode_t)0x1000)
++
+ /* File was opened by fanotify and shouldn't generate fanotify events */
+ #define FMODE_NONOTIFY		((__force fmode_t)8388608)
+ 
+diff -puN mm/fadvise.c~readahead-introduce-fmode_random-for-posix_fadv_random mm/fadvise.c
+--- a/mm/fadvise.c~readahead-introduce-fmode_random-for-posix_fadv_random
++++ a/mm/fadvise.c
+@@ -77,12 +77,20 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, lof
+ 	switch (advice) {
+ 	case POSIX_FADV_NORMAL:
+ 		file->f_ra.ra_pages = bdi->ra_pages;
++		spin_lock(&file->f_lock);
++		file->f_flags &= ~FMODE_RANDOM;
++		spin_unlock(&file->f_lock);
+ 		break;
+ 	case POSIX_FADV_RANDOM:
+-		file->f_ra.ra_pages = 0;
++		spin_lock(&file->f_lock);
++		file->f_flags |= FMODE_RANDOM;
++		spin_unlock(&file->f_lock);
+ 		break;
+ 	case POSIX_FADV_SEQUENTIAL:
+ 		file->f_ra.ra_pages = bdi->ra_pages * 2;
++		spin_lock(&file->f_lock);
++		file->f_flags &= ~FMODE_RANDOM;
++		spin_unlock(&file->f_lock);
+ 		break;
+ 	case POSIX_FADV_WILLNEED:
+ 		if (!mapping->a_ops->readpage) {
+diff -puN mm/readahead.c~readahead-introduce-fmode_random-for-posix_fadv_random mm/readahead.c
+--- a/mm/readahead.c~readahead-introduce-fmode_random-for-posix_fadv_random
++++ a/mm/readahead.c
+@@ -501,6 +501,12 @@ void page_cache_sync_readahead(struct ad
+ 	if (!ra->ra_pages)
+ 		return;
+ 
++	/* be dumb */
++	if (filp->f_mode & FMODE_RANDOM) {
++		force_page_cache_readahead(mapping, filp, offset, req_size);
++		return;
++	}
++
+ 	/* do read-ahead */
+ 	ondemand_readahead(mapping, ra, filp, false, offset, req_size);
+ }
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
