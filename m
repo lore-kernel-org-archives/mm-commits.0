@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:38:02 -0800
-Message-ID: <201001270038.o0R0c22Z032582@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-remove-define-device_name-floppy.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:38:00 -0800
+Message-ID: <201001270038.o0R0c0Ha032578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754260Ab0A0Aij (ORCPT
+	by vger.kernel.org with ESMTP id S1754198Ab0A0Aih (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:38:39 -0500
+	Tue, 26 Jan 2010 19:38:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: convert int initialising to bool initialized
+     drivers/block/floppy.c: remove #define DEVICE_NAME "floppy"
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+     drivers-block-floppyc-remove-define-device_name-floppy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: convert int initialising to bool initialized
+Subject: drivers/block/floppy.c: remove #define DEVICE_NAME "floppy"
 From: Joe Perches <joe@perches.com>
 
-Don't initialize initialized either.  Default is false.
+Use it directly in the one place it's used.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -47,89 +47,30 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/block/floppy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-convert-int-initialising-to-bool-initialized drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-convert-int-initialising-to-bool-initialized
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-define-device_name-floppy drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-define-device_name-floppy
 +++ a/drivers/block/floppy.c
-@@ -290,7 +290,7 @@ static inline void fallback_on_nodma_all
- /* End dma memory related stuff */
+@@ -250,8 +250,6 @@ static int allowed_drive_mask = 0x33;
  
- static unsigned long fake_change;
--static int initialising = 1;
-+static bool initialized;
+ static int irqdma_allocated;
  
- #define ITYPE(x)	(((x) >> 2) & 0x1f)
- #define TOMINOR(x)	((x & 3) | ((x & 4) << 5))
-@@ -1147,7 +1147,7 @@ static int wait_til_ready(void)
- 		if (status & STATUS_READY)
- 			return status;
- 	}
--	if (!initialising) {
-+	if (initialized) {
- 		DPRINT("Getstatus times out (%x) on fdc %d\n", status, fdc);
- 		show_floppy();
- 	}
-@@ -1173,7 +1173,7 @@ static int output_byte(char byte)
- 		return 0;
- 	}
- 	FDCS->reset = 1;
--	if (!initialising) {
-+	if (initialized) {
- 		DPRINT("Unable to send byte %x to FDC. Fdc=%x Status=%x\n",
- 		       byte, fdc, status);
- 		show_floppy();
-@@ -1204,10 +1204,9 @@ static int result(void)
- 		else
- 			break;
- 	}
--	if (!initialising) {
--		DPRINT
--		    ("get result error. Fdc=%d Last status=%x Read bytes=%d\n",
--		     fdc, status, i);
-+	if (initialized) {
-+		DPRINT("get result error. Fdc=%d Last status=%x Read bytes=%d\n",
-+		       fdc, status, i);
- 		show_floppy();
- 	}
- 	FDCS->reset = 1;
-@@ -1754,7 +1753,7 @@ irqreturn_t floppy_interrupt(int irq, vo
- 	 * activity.
- 	 */
+-#define DEVICE_NAME "floppy"
+-
+ #include <linux/blkdev.h>
+ #include <linux/blkpg.h>
+ #include <linux/cdrom.h>	/* for the compatibility eject ioctl */
+@@ -312,7 +310,7 @@ static int initialising = 1;
+ #define UFDCS	(&fdc_state[FDC(drive)])
  
--	do_print = !handler && print_unex && !initialising;
-+	do_print = !handler && print_unex && initialized;
+ #define DPRINT(format, args...) \
+-	pr_info(DEVICE_NAME "%d: " format, current_drive, ##args)
++	pr_info("floppy%d: " format, current_drive, ##args)
  
- 	inr = result();
- 	if (do_print)
-@@ -1882,7 +1881,7 @@ static void floppy_shutdown(unsigned lon
- {
- 	unsigned long flags;
- 
--	if (!initialising)
-+	if (initialized)
- 		show_floppy();
- 	cancel_activity();
- 
-@@ -1894,7 +1893,7 @@ static void floppy_shutdown(unsigned lon
- 
- 	/* avoid dma going to a random drive after shutdown */
- 
--	if (!initialising)
-+	if (initialized)
- 		DPRINT("floppy timeout called\n");
- 	FDCS->reset = 1;
- 	if (cont) {
-@@ -4337,7 +4336,7 @@ static int __init floppy_init(void)
- 	fdc = 0;
- 	del_timer(&fd_timeout);
- 	current_drive = 0;
--	initialising = 0;
-+	initialized = true;
- 	if (have_no_fdc) {
- 		DPRINT("no floppy controllers found\n");
- 		err = have_no_fdc;
+ #define PH_HEAD(floppy, head) (((((floppy)->stretch & 2) >> 1) ^ head) << 2)
+ #define STRETCH(floppy)	((floppy)->stretch & FD_STRETCH)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
