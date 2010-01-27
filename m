@@ -1,105 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-fsh-convert-fmode_-constants-to-hex.patch added to -mm tree
-Date: Tue, 26 Jan 2010 17:16:16 -0800
-Message-ID: <201001270116.o0R1GGTx002525@imap1.linux-foundation.org>
+Subject: [to-be-updated] exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix.patch removed from -mm tree
+Date: Wed, 27 Jan 2010 13:33:07 -0800
+Message-ID: <201001272133.o0RLX7uH000709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753725Ab0A0BQf (ORCPT
+	by vger.kernel.org with ESMTP id S1752741Ab0A0VdQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 20:16:35 -0500
+	Wed, 27 Jan 2010 16:33:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eparis@redhat.com, fengguang.wu@intel.com
+To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/fs.h: convert FMODE_* constants to hex
-has been added to the -mm tree.  Its filename is
-     include-linux-fsh-convert-fmode_-constants-to-hex.patch
+     exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix
+has been removed from the -mm tree.  Its filename was
+     exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/fs.h: convert FMODE_* constants to hex
+Subject: exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It was tolerable until Eric went and added 8388608.
-
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~include-linux-fsh-convert-fmode_-constants-to-hex include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-convert-fmode_-constants-to-hex
-+++ a/include/linux/fs.h
-@@ -60,24 +60,24 @@ struct inodes_stat_t {
+diff -puN fs/exec.c~exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix fs/exec.c
+--- a/fs/exec.c~exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix
++++ a/fs/exec.c
+@@ -1767,7 +1767,7 @@ static void wait_for_dump_helpers(struct
+  * It is called in the context of the task that is going to exec itself to be
+  * the helper, so we can modify current here.
   */
- 
- /* file is open for reading */
--#define FMODE_READ		((__force fmode_t)1)
-+#define FMODE_READ		((__force fmode_t)0x1)
- /* file is open for writing */
--#define FMODE_WRITE		((__force fmode_t)2)
-+#define FMODE_WRITE		((__force fmode_t)0x2)
- /* file is seekable */
--#define FMODE_LSEEK		((__force fmode_t)4)
-+#define FMODE_LSEEK		((__force fmode_t)0x4)
- /* file can be accessed using pread */
--#define FMODE_PREAD		((__force fmode_t)8)
-+#define FMODE_PREAD		((__force fmode_t)0x8)
- /* file can be accessed using pwrite */
--#define FMODE_PWRITE		((__force fmode_t)16)
-+#define FMODE_PWRITE		((__force fmode_t)0x10)
- /* File is opened for execution with sys_execve / sys_uselib */
--#define FMODE_EXEC		((__force fmode_t)32)
-+#define FMODE_EXEC		((__force fmode_t)0x20)
- /* File is opened with O_NDELAY (only set for block devices) */
--#define FMODE_NDELAY		((__force fmode_t)64)
-+#define FMODE_NDELAY		((__force fmode_t)0x40)
- /* File is opened with O_EXCL (only set for block devices) */
--#define FMODE_EXCL		((__force fmode_t)128)
-+#define FMODE_EXCL		((__force fmode_t)0x80)
- /* File is opened using open(.., 3, ..) and is writeable only for ioctls
-    (specialy hack for floppy.c) */
--#define FMODE_WRITE_IOCTL	((__force fmode_t)256)
-+#define FMODE_WRITE_IOCTL	((__force fmode_t)0x100)
- 
- /*
-  * Don't update ctime and mtime.
-@@ -85,13 +85,13 @@ struct inodes_stat_t {
-  * Currently a special hack for the XFS open_by_handle ioctl, but we'll
-  * hopefully graduate it to a proper O_CMTIME flag supported by open(2) soon.
-  */
--#define FMODE_NOCMTIME		((__force fmode_t)2048)
-+#define FMODE_NOCMTIME		((__force fmode_t)0x800)
- 
- /* Expect random access pattern */
- #define FMODE_RANDOM		((__force fmode_t)0x1000)
- 
- /* File was opened by fanotify and shouldn't generate fanotify events */
--#define FMODE_NONOTIFY		((__force fmode_t)8388608)
-+#define FMODE_NONOTIFY		((__force fmode_t)0x800000)
- 
- /*
-  * The below are the various read and write types that we support. Some of
+-void core_pipe_setup(void)
++static void core_pipe_setup(void)
+ {
+ 	task_lock(current->group_leader);
+ 	current->signal->rlim[RLIMIT_CORE].rlim_cur = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,7 +76,6 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 uml-linec-avoid-null-pointer-dereference-simplify.patch
 resources-introduce-generic-page_is_ram-fix.patch
 mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes.patch
 exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
