@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-dma-apitxt-remove-deprecated-function-descriptions.patch added to -mm tree
-Date: Wed, 27 Jan 2010 15:32:09 -0800
-Message-ID: <201001272332.o0RNW9cA006832@imap1.linux-foundation.org>
+Subject: + cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch added to -mm tree
+Date: Wed, 27 Jan 2010 15:33:34 -0800
+Message-ID: <201001272333.o0RNXYOk006883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756531Ab0A0XcR (ORCPT
+	by vger.kernel.org with ESMTP id S1756518Ab0A0Xd7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 18:32:17 -0500
+	Wed, 27 Jan 2010 18:33:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, davem@davemloft.net, joro@8bytes.org
+Cc: richard@rsk.demon.co.uk, arjan@linux.intel.com
 
 
 The patch titled
-     Documentation/DMA-API.txt: remove deprecated function descriptions
+     cpuidle menu: remove 8 bytes of padding on 64 bit builds
 has been added to the -mm tree.  Its filename is
-     documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
+     cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/DMA-API.txt: remove deprecated function descriptions
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: cpuidle menu: remove 8 bytes of padding on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-dma_sync_single(), pci_dma_sync_single(), dma_sync_sg(), and
-pci_dma_sync_sg() are deprecated.  We should not advertise them.
+Reorder struct menu_device to remove 8 bytes of padding on 64 bit builds. 
+Size drops from 136 to 128 bytes, so possibly needing one fewer cache
+lines.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Joerg Roedel <joro@8bytes.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt |   28 ----------------------------
- 1 file changed, 28 deletions(-)
+ drivers/cpuidle/governors/menu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DMA-API.txt~documentation-dma-apitxt-remove-deprecated-function-descriptions Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~documentation-dma-apitxt-remove-deprecated-function-descriptions
-+++ a/Documentation/DMA-API.txt
-@@ -364,34 +364,6 @@ API.
- Note: <nents> must be the number you passed in, *not* the number of
- physical entries returned.
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds
++++ a/drivers/cpuidle/governors/menu.c
+@@ -100,8 +100,8 @@ struct menu_device {
+ 	int             needs_update;
  
--void
--dma_sync_single(struct device *dev, dma_addr_t dma_handle, size_t size,
--		enum dma_data_direction direction)
--void
--pci_dma_sync_single(struct pci_dev *hwdev, dma_addr_t dma_handle,
--			   size_t size, int direction)
--void
--dma_sync_sg(struct device *dev, struct scatterlist *sg, int nelems,
--			  enum dma_data_direction direction)
--void
--pci_dma_sync_sg(struct pci_dev *hwdev, struct scatterlist *sg,
--		       int nelems, int direction)
--
--Synchronise a single contiguous or scatter/gather mapping.  All the
--parameters must be the same as those passed into the single mapping
--API.
--
--Notes:  You must do this:
--
--- Before reading values that have been written by DMA from the device
--  (use the DMA_FROM_DEVICE direction)
--- After writing values that will be written to the device using DMA
--  (use the DMA_TO_DEVICE) direction
--- before *and* after handing memory to the device if the memory is
--  DMA_BIDIRECTIONAL
--
--See also dma_map_single().
+ 	unsigned int	expected_us;
+-	u64		predicted_us;
+ 	unsigned int	measured_us;
++	u64		predicted_us;
+ 	unsigned int	exit_us;
+ 	unsigned int	bucket;
+ 	u64		correction_factor[BUCKETS];
+_
+
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+
+get_maintainerpl-teach-git-log-to-use-no-color.patch
+kernel-timekeeping-move-xtime_cache-to-be-in-the-same-cache-line-as-the-lock.patch
+cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch
+
