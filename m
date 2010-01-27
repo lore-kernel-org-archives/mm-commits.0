@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + resources-introduce-generic-page_is_ram-fix.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:31:19 -0800
-Message-ID: <201001270031.o0R0VJ2S032203@imap1.linux-foundation.org>
+Subject: + x86-remove-bios-data-range-from-e820.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:31:21 -0800
+Message-ID: <201001270031.o0R0VL3r032206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751821Ab0A0AcH (ORCPT
+	by vger.kernel.org with ESMTP id S1754156Ab0A0AdV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:32:07 -0500
+	Tue, 26 Jan 2010 19:33:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com
+Cc: yinghai@kernel.org, fengguang.wu@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com, mingo@elte.hu, ralf@linux-mips.org, tglx@linutronix.de, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     resources-introduce-generic-page_is_ram-fix
+     x86: remove bios data range from e820
 has been added to the -mm tree.  Its filename is
-     resources-introduce-generic-page_is_ram-fix.patch
+     x86-remove-bios-data-range-from-e820.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,80 +29,123 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: resources-introduce-generic-page_is_ram-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86: remove bios data range from e820
+=46rom: Yinghai Lu <yinghai@kernel.org>
 
-Use __weak.
+To prepare move page_is_ram() as generic one.
 
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Tested-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Am=E9rico Wang <xiyou.wangcong@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/e820.c  |    8 ++++++++
+ arch/x86/kernel/setup.c |   19 ++++++++++++++++++-
+ arch/x86/mm/ioremap.c   |   16 ----------------
+ 3 files changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN kernel/resource.c~resources-introduce-generic-page_is_ram-fix kernel/resource.c
---- a/kernel/resource.c~resources-introduce-generic-page_is_ram-fix
-+++ a/kernel/resource.c
-@@ -335,7 +335,7 @@ static int __is_ram(unsigned long pfn, u
-  * This generic page_is_ram() returns true if specified address is
-  * registered as "System RAM" in iomem_resource list.
-  */
--int __attribute__((weak)) page_is_ram(unsigned long pfn)
-+int __weak page_is_ram(unsigned long pfn)
+diff -puN arch/x86/kernel/e820.c~x86-remove-bios-data-range-from-e820 a=
+rch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~x86-remove-bios-data-range-from-e820
++++ a/arch/x86/kernel/e820.c
+@@ -517,11 +517,19 @@ u64 __init e820_remove_range(u64 start,=20
+ 			     int checktype)
  {
- 	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-resources-introduce-generic-page_is_ram-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes.patch
-exec-allow-core_pipe-recursion-check-to-look-for-a-value-of-1-rather-than-0-checkpatch-fixes-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+ 	int i;
++	u64 end;
+ 	u64 real_removed_size =3D 0;
+=20
+ 	if (size > (ULLONG_MAX - start))
+ 		size =3D ULLONG_MAX - start;
+=20
++	end =3D start + size;
++	printk(KERN_DEBUG "e820 remove range: %016Lx - %016Lx ",
++		       (unsigned long long) start,
++		       (unsigned long long) end);
++	e820_print_type(old_type);
++	printk(KERN_CONT "\n");
++
+ 	for (i =3D 0; i < e820.nr_map; i++) {
+ 		struct e820entry *ei =3D &e820.map[i];
+ 		u64 final_start, final_end;
+diff -puN arch/x86/kernel/setup.c~x86-remove-bios-data-range-from-e820 =
+arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-remove-bios-data-range-from-e820
++++ a/arch/x86/kernel/setup.c
+@@ -659,6 +659,23 @@ static struct dmi_system_id __initdata b
+ 	{}
+ };
+=20
++static void __init trim_bios_range(void)
++{
++	/*
++	 * A special case is the first 4Kb of memory;
++	 * This is a BIOS owned area, not kernel ram, but generally
++	 * not listed as such in the E820 table.
++	 */
++	e820_update_range(0, PAGE_SIZE, E820_RAM, E820_RESERVED);
++	/*
++	 * special case: Some BIOSen report the PC BIOS
++	 * area (640->1Mb) as ram even though it is not.
++	 * take them out.
++	 */
++	e820_remove_range(BIOS_BEGIN, BIOS_END - BIOS_BEGIN, E820_RAM, 1);
++	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
++}
++
+ /*
+  * Determine if we were loaded by an EFI loader.  If so, then we have =
+also been
+  * passed the efi memmap, systab, etc., so we should use these data st=
+ructures
+@@ -822,7 +839,7 @@ void __init setup_arch(char **cmdline_p)
+ 	insert_resource(&iomem_resource, &data_resource);
+ 	insert_resource(&iomem_resource, &bss_resource);
+=20
+-
++	trim_bios_range();
+ #ifdef CONFIG_X86_32
+ 	if (ppro_with_ram_bug()) {
+ 		e820_update_range(0x70000000ULL, 0x40000ULL, E820_RAM,
+diff -puN arch/x86/mm/ioremap.c~x86-remove-bios-data-range-from-e820 ar=
+ch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~x86-remove-bios-data-range-from-e820
++++ a/arch/x86/mm/ioremap.c
+@@ -29,22 +29,6 @@ int page_is_ram(unsigned long pagenr)
+ 	resource_size_t addr, end;
+ 	int i;
+=20
+-	/*
+-	 * A special case is the first 4Kb of memory;
+-	 * This is a BIOS owned area, not kernel ram, but generally
+-	 * not listed as such in the E820 table.
+-	 */
+-	if (pagenr =3D=3D 0)
+-		return 0;
+-
+-	/*
+-	 * Second special case: Some BIOSen report the PC BIOS
+-	 * area (640->1Mb) as ram even though it is not.
+-	 */
+-	if (pagenr >=3D (BIOS_BEGIN >> PAGE_SHIFT) &&
+-		    pagenr < (BIOS_END >> PAGE_SHIFT))
+-		return 0;
