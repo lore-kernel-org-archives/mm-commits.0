@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch added to -mm tree
-Date: Wed, 27 Jan 2010 15:30:22 -0800
-Message-ID: <201001272330.o0RNUMuZ006675@imap1.linux-foundation.org>
+Subject: + documentation-dma-apitxt-remove-deprecated-function-descriptions.patch added to -mm tree
+Date: Wed, 27 Jan 2010 15:32:09 -0800
+Message-ID: <201001272332.o0RNW9cA006832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756456Ab0A0Xar (ORCPT
+	by vger.kernel.org with ESMTP id S1756531Ab0A0XcR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 18:30:47 -0500
+	Wed, 27 Jan 2010 18:32:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net, dhowells@redhat.com
+Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, davem@davemloft.net, joro@8bytes.org
 
 
 The patch titled
-     frv: remove pci_dma_sync_single() and pci_dma_sync_sg()
+     Documentation/DMA-API.txt: remove deprecated function descriptions
 has been added to the -mm tree.  Its filename is
-     frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch
+     documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: remove pci_dma_sync_single() and pci_dma_sync_sg()
+Subject: Documentation/DMA-API.txt: remove deprecated function descriptions
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-No architecture except for frv has pci_dma_sync_single() and
-pci_dma_sync_sg().  The APIs are deprecated.
+dma_sync_single(), pci_dma_sync_single(), dma_sync_sg(), and
+pci_dma_sync_sg() are deprecated.  We should not advertise them.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Acked-by: David S. Miller <davem@davemloft.net>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: Joerg Roedel <joro@8bytes.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/pci.h |   37 -----------------------------------
- 1 file changed, 37 deletions(-)
+ Documentation/DMA-API.txt |   28 ----------------------------
+ 1 file changed, 28 deletions(-)
 
-diff -puN arch/frv/include/asm/pci.h~frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg arch/frv/include/asm/pci.h
---- a/arch/frv/include/asm/pci.h~frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg
-+++ a/arch/frv/include/asm/pci.h
-@@ -68,41 +68,4 @@ static inline void pci_dma_burst_advice(
- #define PCIBIOS_MIN_IO		0x100
- #define PCIBIOS_MIN_MEM		0x00010000
+diff -puN Documentation/DMA-API.txt~documentation-dma-apitxt-remove-deprecated-function-descriptions Documentation/DMA-API.txt
+--- a/Documentation/DMA-API.txt~documentation-dma-apitxt-remove-deprecated-function-descriptions
++++ a/Documentation/DMA-API.txt
+@@ -364,34 +364,6 @@ API.
+ Note: <nents> must be the number you passed in, *not* the number of
+ physical entries returned.
  
--/* Make physical memory consistent for a single
-- * streaming mode DMA translation after a transfer.
-- *
-- * If you perform a pci_map_single() but wish to interrogate the
-- * buffer using the cpu, yet do not wish to teardown the PCI dma
-- * mapping, you must call this function before doing so.  At the
-- * next point you give the PCI dma address back to the card, the
-- * device again owns the buffer.
-- */
--static inline void pci_dma_sync_single(struct pci_dev *hwdev,
--				       dma_addr_t dma_handle,
--				       size_t size, int direction)
--{
--	BUG_ON(direction == PCI_DMA_NONE);
+-void
+-dma_sync_single(struct device *dev, dma_addr_t dma_handle, size_t size,
+-		enum dma_data_direction direction)
+-void
+-pci_dma_sync_single(struct pci_dev *hwdev, dma_addr_t dma_handle,
+-			   size_t size, int direction)
+-void
+-dma_sync_sg(struct device *dev, struct scatterlist *sg, int nelems,
+-			  enum dma_data_direction direction)
+-void
+-pci_dma_sync_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+-		       int nelems, int direction)
 -
--	frv_cache_wback_inv((unsigned long)bus_to_virt(dma_handle),
--			    (unsigned long)bus_to_virt(dma_handle) + size);
--}
+-Synchronise a single contiguous or scatter/gather mapping.  All the
+-parameters must be the same as those passed into the single mapping
+-API.
 -
--/* Make physical memory consistent for a set of streaming
-- * mode DMA translations after a transfer.
-- *
-- * The same as pci_dma_sync_single but for a scatter-gather list,
-- * same rules and usage.
-- */
--static inline void pci_dma_sync_sg(struct pci_dev *hwdev,
--				   struct scatterlist *sg,
--				   int nelems, int direction)
--{
--	int i;
--	BUG_ON(direction == PCI_DMA_NONE);
+-Notes:  You must do this:
 -
--	for (i = 0; i < nelems; i++)
--		frv_cache_wback_inv(sg_dma_address(&sg[i]),
--				    sg_dma_address(&sg[i])+sg_dma_len(&sg[i]));
--}
+-- Before reading values that have been written by DMA from the device
+-  (use the DMA_FROM_DEVICE direction)
+-- After writing values that will be written to the device using DMA
+-  (use the DMA_TO_DEVICE) direction
+-- before *and* after handing memory to the device if the memory is
+-  DMA_BIDIRECTIONAL
+-
+-See also dma_map_single().
