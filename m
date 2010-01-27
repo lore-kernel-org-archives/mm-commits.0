@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrolc-fix-integer-as-null-pointer-sparse-warning.patch added to -mm tree
-Date: Wed, 27 Jan 2010 15:12:37 -0800
-Message-ID: <201001272312.o0RNCbAj005831@imap1.linux-foundation.org>
+Subject: + kernel-kfifoc-fix-integer-as-null-pointer-sparse-warning.patch added to -mm tree
+Date: Wed, 27 Jan 2010 15:13:30 -0800
+Message-ID: <201001272313.o0RNDUhc005852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754337Ab0A0XMl (ORCPT
+	by vger.kernel.org with ESMTP id S1753924Ab0A0XNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 18:12:41 -0500
+	Wed, 27 Jan 2010 18:13:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tfransosi@gmail.com, balbir@linux.vnet.ibm.com
+Cc: tfransosi@gmail.com, stefani@seibold.net
 
 
 The patch titled
-     mm/memcontrol.c: fix "integer as NULL pointer" sparse warning
+     kernel/kfifo.c: fix "integer as NULL pointer" sparse warning
 has been added to the -mm tree.  Its filename is
-     mm-memcontrolc-fix-integer-as-null-pointer-sparse-warning.patch
+     kernel-kfifoc-fix-integer-as-null-pointer-sparse-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memcontrol.c: fix "integer as NULL pointer" sparse warning
+Subject: kernel/kfifo.c: fix "integer as NULL pointer" sparse warning
 From: Thiago Farina <tfransosi@gmail.com>
 
-mm/memcontrol.c:2548:32: warning: Using plain integer as NULL pointer
+kernel/kfifo.c:83:35: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Thiago Farina <tfransosi@gmail.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ kernel/kfifo.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-fix-integer-as-null-pointer-sparse-warning mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-fix-integer-as-null-pointer-sparse-warning
-+++ a/mm/memcontrol.c
-@@ -2545,7 +2545,7 @@ static int mem_cgroup_force_empty_list(s
- 		pc = list_entry(list->prev, struct page_cgroup, lru);
- 		if (busy == pc) {
- 			list_move(&pc->lru, list);
--			busy = 0;
-+			busy = NULL;
- 			spin_unlock_irqrestore(&zone->lru_lock, flags);
- 			continue;
- 		}
+diff -puN kernel/kfifo.c~kernel-kfifoc-fix-integer-as-null-pointer-sparse-warning kernel/kfifo.c
+--- a/kernel/kfifo.c~kernel-kfifoc-fix-integer-as-null-pointer-sparse-warning
++++ a/kernel/kfifo.c
+@@ -80,7 +80,7 @@ int kfifo_alloc(struct kfifo *fifo, unsi
+ 
+ 	buffer = kmalloc(size, gfp_mask);
+ 	if (!buffer) {
+-		_kfifo_init(fifo, 0, 0);
++		_kfifo_init(fifo, NULL, 0);
+ 		return -ENOMEM;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from tfransosi@gmail.com are
@@ -67,4 +67,5 @@ linux-next.patch
 mm-memcontrolc-fix-integer-as-null-pointer-sparse-warning.patch
 kernel-exitc-fix-shadows-sparse-warning.patch
 console-vgaconc-mark-file-local-symbol-static.patch
+kernel-kfifoc-fix-integer-as-null-pointer-sparse-warning.patch
 
