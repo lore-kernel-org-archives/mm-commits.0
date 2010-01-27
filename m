@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:37:36 -0800
-Message-ID: <201001270037.o0R0baL2032539@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-remove-macro-lock_fdc.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:37:44 -0800
+Message-ID: <201001270037.o0R0biRO032552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753348Ab0A0Arh (ORCPT
+	by vger.kernel.org with ESMTP id S1754800Ab0A0Ary (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:47:37 -0500
+	Tue, 26 Jan 2010 19:47:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: remove CLEARSTRUCT macro, use memset
+     drivers/block/floppy.c: remove macro LOCK_FDC
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+     drivers-block-floppyc-remove-macro-lock_fdc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: remove CLEARSTRUCT macro, use memset
+Subject: drivers/block/floppy.c: remove macro LOCK_FDC
 From: Joe Perches <joe@perches.com>
+
+Macros with hidden returns aren't nice.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -45,59 +47,144 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/block/floppy.c |   43 +++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-clearstruct-macro-use-memset drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-remove-clearstruct-macro-use-memset
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-macro-lock_fdc drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-macro-lock_fdc
 +++ a/drivers/block/floppy.c
-@@ -314,8 +314,6 @@ static int initialising = 1;
- #define PH_HEAD(floppy, head) (((((floppy)->stretch & 2) >> 1) ^ head) << 2)
- #define STRETCH(floppy)	((floppy)->stretch & FD_STRETCH)
+@@ -908,10 +908,6 @@ static int _lock_fdc(int drive, int inte
+ #define lock_fdc(drive, interruptible)			\
+ 	_lock_fdc(drive, interruptible, __LINE__)
  
--#define CLEARSTRUCT(x)	memset((x), 0, sizeof(*(x)))
+-#define LOCK_FDC(drive, interruptible)	    \
+-	if (lock_fdc(drive, interruptible)) \
+-		return -EINTR;
 -
- /* read/write */
- #define COMMAND		(raw_cmd->cmd[0])
- #define DR_SELECT	(raw_cmd->cmd[1])
-@@ -3509,7 +3507,7 @@ static int fd_ioctl(struct block_device 
- 		return -EINVAL;
+ /* unlocks the driver */
+ static inline void unlock_fdc(void)
+ {
+@@ -2276,7 +2272,9 @@ static int do_format(int drive, struct f
+ {
+ 	int ret;
  
- 	/* copyin */
--	CLEARSTRUCT(&inparam);
-+	memset(&inparam, 0, sizeof(inparam));
- 	if (_IOC_DIR(cmd) & _IOC_WRITE)
- 	    ECALL(fd_copyin((void __user *)param, &inparam, size))
+-	LOCK_FDC(drive, 1);
++	if (lock_fdc(drive, 1))
++		return -EINTR;
++
+ 	set_floppy(drive);
+ 	if (!_floppy ||
+ 	    _floppy->track > DP->tracks ||
+@@ -3056,8 +3054,9 @@ static int user_reset_fdc(int drive, int
+ {
+ 	int ret;
  
-@@ -3598,7 +3596,7 @@ static int fd_ioctl(struct block_device 
- 			OUT(FDGETFDCSTAT, UFDCS);
+-	ret = 0;
+-	LOCK_FDC(drive, interruptible);
++	if (lock_fdc(drive, interruptible))
++		return -EINTR;
++
+ 	if (arg == FD_RESET_ALWAYS)
+ 		FDCS->reset = 1;
+ 	if (FDCS->reset) {
+@@ -3065,7 +3064,7 @@ static int user_reset_fdc(int drive, int
+ 		WAIT(reset_fdc);
+ 	}
+ 	process_fd_request();
+-	return ret;
++	return 0;
+ }
  
- 		case FDWERRORCLR:
--			CLEARSTRUCT(UDRWE);
-+			memset(UDRWE, 0, sizeof(*UDRWE));
- 			return 0;
- 			OUT(FDWERRORGET, UDRWE);
+ /*
+@@ -3352,7 +3351,9 @@ static inline int set_geometry(unsigned 
+ 		mutex_unlock(&open_lock);
+ 	} else {
+ 		int oldStretch;
+-		LOCK_FDC(drive, 1);
++
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		if (cmd != FDDEFPRM)
+ 			/* notice a disk change immediately, else
+ 			 * we lose our settings immediately*/
+@@ -3435,7 +3436,8 @@ static int get_floppy_geometry(int drive
+ 	if (type)
+ 		*g = &floppy_type[type];
+ 	else {
+-		LOCK_FDC(drive, 0);
++		if (lock_fdc(drive, 0))
++			return -EINTR;
+ 		CALL(poll_drive(0, 0));
+ 		process_fd_request();
+ 		*g = current_type[drive];
+@@ -3514,7 +3516,8 @@ static int fd_ioctl(struct block_device 
+ 		if (UDRS->fd_ref != 1)
+ 			/* somebody else has this drive open */
+ 			return -EBUSY;
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
  
-@@ -4260,7 +4258,7 @@ static int __init floppy_init(void)
- 
- 	for (i = 0; i < N_FDC; i++) {
- 		fdc = i;
--		CLEARSTRUCT(FDCS);
-+		memset(FDCS, 0, sizeof(*FDCS));
- 		FDCS->dtr = -1;
- 		FDCS->dor = 0x4;
- #if defined(__sparc__) || defined(__mc68000__)
-@@ -4293,8 +4291,8 @@ static int __init floppy_init(void)
- 
- 	/* initialise drive state */
- 	for (drive = 0; drive < N_DRIVE; drive++) {
--		CLEARSTRUCT(UDRS);
--		CLEARSTRUCT(UDRWE);
-+		memset(UDRS, 0, sizeof(*UDRS));
-+		memset(UDRWE, 0, sizeof(*UDRWE));
- 		USETF(FD_DISK_NEWCHANGE);
- 		USETF(FD_DISK_CHANGED);
- 		USETF(FD_VERIFY);
+ 		/* do the actual eject. Fails on
+ 		 * non-Sparc architectures */
+@@ -3525,7 +3528,8 @@ static int fd_ioctl(struct block_device 
+ 		process_fd_request();
+ 		return ret;
+ 	case FDCLRPRM:
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		current_type[drive] = NULL;
+ 		floppy_sizes[drive] = MAX_DISK_SIZE << 1;
+ 		UDRS->keep_data = 0;
+@@ -3545,7 +3549,8 @@ static int fd_ioctl(struct block_device 
+ 		UDP->flags &= ~FTD_MSG;
+ 		return 0;
+ 	case FDFMTBEG:
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		CALL(poll_drive(1, FD_RAW_NEED_DISK));
+ 		ret = UDRS->flags;
+ 		process_fd_request();
+@@ -3560,7 +3565,8 @@ static int fd_ioctl(struct block_device 
+ 		return do_format(drive, &inparam.f);
+ 	case FDFMTEND:
+ 	case FDFLUSH:
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		return invalidate_drive(bdev);
+ 	case FDSETEMSGTRESH:
+ 		UDP->max_errors.reporting = (unsigned short)(param & 0x0f);
+@@ -3582,7 +3588,8 @@ static int fd_ioctl(struct block_device 
+ 		outparam = (const char *)UDP;
+ 		break;
+ 	case FDPOLLDRVSTAT:
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		CALL(poll_drive(1, FD_RAW_NEED_DISK));
+ 		process_fd_request();
+ 		/* fall through */
+@@ -3603,13 +3610,15 @@ static int fd_ioctl(struct block_device 
+ 	case FDRAWCMD:
+ 		if (type)
+ 			return -EINVAL;
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		set_floppy(drive);
+ 		CALL(i = raw_cmd_ioctl(cmd, (void __user *)param));
+ 		process_fd_request();
+ 		return i;
+ 	case FDTWADDLE:
+-		LOCK_FDC(drive, 1);
++		if (lock_fdc(drive, 1))
++			return -EINTR;
+ 		twaddle();
+ 		process_fd_request();
+ 		return 0;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
