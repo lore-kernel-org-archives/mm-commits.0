@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-remove-define-device_name-floppy.patch added to -mm tree
-Date: Tue, 26 Jan 2010 16:38:00 -0800
-Message-ID: <201001270038.o0R0c0Ha032578@imap1.linux-foundation.org>
+Subject: + devmem-check-vmalloc-address-on-kmem-read-write.patch added to -mm tree
+Date: Tue, 26 Jan 2010 16:42:29 -0800
+Message-ID: <201001270042.o0R0gTKN000504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754198Ab0A0Aih (ORCPT
+	by vger.kernel.org with ESMTP id S1751399Ab0A0AnT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 19:38:37 -0500
+	Tue, 26 Jan 2010 19:43:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@gmail.com, shemminger@vyatta.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, gregkh@suse.de, hugh.dickins@tiscali.co.uk, stable@kernel.org
 
 
 The patch titled
-     drivers/block/floppy.c: remove #define DEVICE_NAME "floppy"
+     devmem: check vmalloc address on kmem read/write
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-remove-define-device_name-floppy.patch
+     devmem-check-vmalloc-address-on-kmem-read-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: remove #define DEVICE_NAME "floppy"
-From: Joe Perches <joe@perches.com>
+Subject: devmem: check vmalloc address on kmem read/write
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Use it directly in the one place it's used.
+Otherwise vmalloc_to_page() will BUG().
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+This also makes the kmem read/write implementation aligned with mem(4):
+"References to nonexistent locations cause errors to be returned." Here we
+return -ENXIO (inspired by Hugh) if no bytes have been transfered to/from
+user space, otherwise return partial read/write results.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/char/mem.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-define-device_name-floppy drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-remove-define-device_name-floppy
-+++ a/drivers/block/floppy.c
-@@ -250,8 +250,6 @@ static int allowed_drive_mask = 0x33;
+diff -puN drivers/char/mem.c~devmem-check-vmalloc-address-on-kmem-read-write drivers/char/mem.c
+--- a/drivers/char/mem.c~devmem-check-vmalloc-address-on-kmem-read-write
++++ a/drivers/char/mem.c
+@@ -395,6 +395,7 @@ static ssize_t read_kmem(struct file *fi
+ 	unsigned long p = *ppos;
+ 	ssize_t low_count, read, sz;
+ 	char * kbuf; /* k-addr because vread() takes vmlist_lock rwlock */
++	int err = 0;
  
- static int irqdma_allocated;
+ 	read = 0;
+ 	if (p < (unsigned long) high_memory) {
+@@ -441,12 +442,16 @@ static ssize_t read_kmem(struct file *fi
+ 			return -ENOMEM;
+ 		while (count > 0) {
+ 			sz = size_inside_page(p, count);
++			if (!is_vmalloc_or_module_addr((void *)p)) {
++				err = -ENXIO;
++				break;
++			}
+ 			sz = vread(kbuf, (char *)p, sz);
+ 			if (!sz)
+ 				break;
+ 			if (copy_to_user(buf, kbuf, sz)) {
+-				free_page((unsigned long)kbuf);
+-				return -EFAULT;
++				err = -EFAULT;
++				break;
+ 			}
+ 			count -= sz;
+ 			buf += sz;
+@@ -455,8 +460,8 @@ static ssize_t read_kmem(struct file *fi
+ 		}
+ 		free_page((unsigned long)kbuf);
+ 	}
+- 	*ppos = p;
+- 	return read;
++	*ppos = p;
++	return read ? read : err;
+ }
  
--#define DEVICE_NAME "floppy"
--
- #include <linux/blkdev.h>
- #include <linux/blkpg.h>
- #include <linux/cdrom.h>	/* for the compatibility eject ioctl */
-@@ -312,7 +310,7 @@ static int initialising = 1;
- #define UFDCS	(&fdc_state[FDC(drive)])
  
- #define DPRINT(format, args...) \
--	pr_info(DEVICE_NAME "%d: " format, current_drive, ##args)
-+	pr_info("floppy%d: " format, current_drive, ##args)
+@@ -520,6 +525,7 @@ static ssize_t write_kmem(struct file * 
+ 	ssize_t wrote = 0;
+ 	ssize_t virtr = 0;
+ 	char * kbuf; /* k-addr because vwrite() takes vmlist_lock rwlock */
++	int err = 0;
  
- #define PH_HEAD(floppy, head) (((((floppy)->stretch & 2) >> 1) ^ head) << 2)
- #define STRETCH(floppy)	((floppy)->stretch & FD_STRETCH)
+ 	if (p < (unsigned long) high_memory) {
+ 		unsigned long to_write = min_t(unsigned long, count,
+@@ -540,12 +546,14 @@ static ssize_t write_kmem(struct file * 
+ 			unsigned long sz = size_inside_page(p, count);
+ 			unsigned long n;
+ 
++			if (!is_vmalloc_or_module_addr((void *)p)) {
++				err = -ENXIO;
++				break;
++			}
+ 			n = copy_from_user(kbuf, buf, sz);
+ 			if (n) {
+-				if (wrote + virtr)
+-					break;
+-				free_page((unsigned long)kbuf);
+-				return -EFAULT;
++				err = -EFAULT;
++				break;
+ 			}
+ 			sz = vwrite(kbuf, (char *)p, sz);
+ 			count -= sz;
+@@ -556,8 +564,8 @@ static ssize_t write_kmem(struct file * 
+ 		free_page((unsigned long)kbuf);
+ 	}
+ 
+- 	*ppos = p;
+- 	return virtr + wrote;
++	*ppos = p;
++	return virtr + wrote ? : err;
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-linux-next.patch
-net-rds-remove-uses-of-nipquad-use-%pi4.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+devmem-check-vmalloc-address-on-kmem-read-write.patch
+devmem-fix-kmem-write-bug-on-memory-holes.patch
+mm-clean-up-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+vmscan-get_scan_ratio-cleanup.patch
+memcg-add-anon_scan_ratio-to-memorystat-file.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
+mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
+oom-kill-add-lowmem-usage-aware-oom-kill-handling.patch
+nodemaskh-remove-macro-any_online_node.patch
+resources-introduce-generic-page_is_ram.patch
+x86-remove-bios-data-range-from-e820.patch
+x86-use-the-generic-page_is_ram.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
 
