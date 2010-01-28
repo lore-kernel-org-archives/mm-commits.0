@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-remove-obfuscating-code2size-macro.patch added to -mm tree
-Date: Wed, 27 Jan 2010 17:19:00 -0800
-Message-ID: <201001280119.o0S1J01D011829@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-use-%pf-in-logging-messages.patch added to -mm tree
+Date: Wed, 27 Jan 2010 17:18:52 -0800
+Message-ID: <201001280118.o0S1Iq2P011815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755744Ab0A1BTJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755475Ab0A1BS6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 20:19:09 -0500
+	Wed, 27 Jan 2010 20:18:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: remove obfuscating CODE2SIZE macro
+     drivers/block/floppy.c: use %pf in logging messages
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+     drivers-block-floppyc-use-%pf-in-logging-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: remove obfuscating CODE2SIZE macro
+Subject: drivers/block/floppy.c: use %pf in logging messages
 From: Joe Perches <joe@perches.com>
+
+Print the function name not the pointer address where useful and possible
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -45,38 +47,66 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/block/floppy.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-obfuscating-code2size-macro drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-remove-obfuscating-code2size-macro
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-use-%pf-in-logging-messages drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-use-%pf-in-logging-messages
 +++ a/drivers/block/floppy.c
-@@ -2143,7 +2143,6 @@ static void format_interrupt(void)
+@@ -908,7 +908,7 @@ static inline void unlock_fdc(void)
+ 		DPRINT("FDC access conflict!\n");
+ 
+ 	if (do_floppy)
+-		DPRINT("device interrupt still active at FDC release: %p!\n",
++		DPRINT("device interrupt still active at FDC release: %pf!\n",
+ 		       do_floppy);
+ 	command_status = FD_COMMAND_NONE;
+ 	spin_lock_irqsave(&floppy_lock, flags);
+@@ -1733,7 +1733,7 @@ irqreturn_t floppy_interrupt(int irq, vo
+ 		/* we don't even know which FDC is the culprit */
+ 		pr_info("DOR0=%x\n", fdc_state[0].dor);
+ 		pr_info("floppy interrupt on bizarre fdc %d\n", fdc);
+-		pr_info("handler=%p\n", handler);
++		pr_info("handler=%pf\n", handler);
+ 		is_alive(__func__, "bizarre fdc");
+ 		return IRQ_NONE;
+ 	}
+@@ -1792,7 +1792,7 @@ static void reset_interrupt(void)
+ 	debugt("reset interrupt:");
+ 	result();		/* get the status ready for set_fdc */
+ 	if (FDCS->reset) {
+-		pr_info("reset set in interrupt, calling %p\n", cont->error);
++		pr_info("reset set in interrupt, calling %pf\n", cont->error);
+ 		cont->error();	/* a reset just after a reset. BAD! */
+ 	}
  	cont->redo();
- }
+@@ -1833,7 +1833,7 @@ static void show_floppy(void)
+ 	pr_info("\n");
+ 	pr_info("floppy driver state\n");
+ 	pr_info("-------------------\n");
+-	pr_info("now=%lu last interrupt=%lu diff=%lu last called handler=%p\n",
++	pr_info("now=%lu last interrupt=%lu diff=%lu last called handler=%pf\n",
+ 		jiffies, interruptjiffies, jiffies - interruptjiffies,
+ 		lasthandler);
  
--#define CODE2SIZE (ssize = ((1 << SIZECODE) + 3) >> 2)
- #define FM_MODE(x, y) ((y) & ~(((x)->rate & 0x80) >> 1))
- #define CT(x) ((x) | 0xc0)
- 
-@@ -2347,7 +2346,7 @@ static void rw_interrupt(void)
- 		DRS->first_read_date = jiffies;
- 
- 	nr_sectors = 0;
--	CODE2SIZE;
-+	ssize = DIV_ROUND_UP(1 << SIZECODE, 4);
- 
- 	if (ST1 & ST1_EOC)
- 		eoc = 1;
-@@ -2647,7 +2646,7 @@ static int make_raw_rw_request(void)
- 	raw_cmd->track = TRACK << STRETCH(_floppy);
- 	DR_SELECT = UNIT(current_drive) + PH_HEAD(_floppy, HEAD);
- 	GAP = _floppy->gap;
--	CODE2SIZE;
-+	ssize = DIV_ROUND_UP(1 << SIZECODE, 4);
- 	SECT_PER_TRACK = _floppy->sect << 2 >> SIZECODE;
- 	SECTOR = ((fsector_t % _floppy->sect) << 2 >> SIZECODE) +
- 	    FD_SECTBASE(_floppy);
+@@ -1852,13 +1852,13 @@ static void show_floppy(void)
+ 	pr_info("status=%x\n", fd_inb(FD_STATUS));
+ 	pr_info("fdc_busy=%lu\n", fdc_busy);
+ 	if (do_floppy)
+-		pr_info("do_floppy=%p\n", do_floppy);
++		pr_info("do_floppy=%pf\n", do_floppy);
+ 	if (work_pending(&floppy_work))
+-		pr_info("floppy_work.func=%p\n", floppy_work.func);
++		pr_info("floppy_work.func=%pf\n", floppy_work.func);
+ 	if (timer_pending(&fd_timer))
+-		pr_info("fd_timer.function=%p\n", fd_timer.function);
++		pr_info("fd_timer.function=%pf\n", fd_timer.function);
+ 	if (timer_pending(&fd_timeout)) {
+-		pr_info("timer_function=%p\n", fd_timeout.function);
++		pr_info("timer_function=%pf\n", fd_timeout.function);
+ 		pr_info("expires=%lu\n", fd_timeout.expires - jiffies);
+ 		pr_info("now=%lu\n", jiffies);
+ 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
