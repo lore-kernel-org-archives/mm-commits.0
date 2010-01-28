@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oprofile-x86-fix-crash-when-profiling-more-than-28-events.patch added to -mm tree
-Date: Wed, 27 Jan 2010 16:05:01 -0800
-Message-ID: <201001280005.o0S051ls008365@imap1.linux-foundation.org>
+Subject: + cpufreq-ondemand-refactor-frequency-increase-code.patch added to -mm tree
+Date: Wed, 27 Jan 2010 16:17:49 -0800
+Message-ID: <201001280017.o0S0Hnar009014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932166Ab0A1AG7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755734Ab0A1ASg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 19:06:59 -0500
+	Wed, 27 Jan 2010 19:18:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suravee.suthikulpanit@amd.com, mingo@elte.hu, robert.richter@amd.com, stable@kernel.org
+Cc: mike@android.com, davej@codemonkey.org.uk, trenn@suse.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     oprofile/x86: fix crash when profiling more than 28 events
+     cpufreq: ondemand: refactor frequency increase code
 has been added to the -mm tree.  Its filename is
-     oprofile-x86-fix-crash-when-profiling-more-than-28-events.patch
+     cpufreq-ondemand-refactor-frequency-increase-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oprofile/x86: fix crash when profiling more than 28 events
-From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Subject: cpufreq: ondemand: refactor frequency increase code
+From: Mike Chan <mike@android.com>
 
-With multiplexing enabled oprofile crashs when profiling more than 28
-events.  This patch fixes this.
+Make simpler to read and call.
 
-Signed-off-by: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Signed-off-by: Robert Richter <robert.richter@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Signed-off-by: Mike Chan <mike@android.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/oprofile/nmi_int.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/cpufreq/cpufreq_ondemand.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/oprofile/nmi_int.c~oprofile-x86-fix-crash-when-profiling-more-than-28-events arch/x86/oprofile/nmi_int.c
---- a/arch/x86/oprofile/nmi_int.c~oprofile-x86-fix-crash-when-profiling-more-than-28-events
-+++ a/arch/x86/oprofile/nmi_int.c
-@@ -222,7 +222,7 @@ static void nmi_cpu_switch(void *dummy)
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-ondemand-refactor-frequency-increase-code drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-ondemand-refactor-frequency-increase-code
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -443,6 +443,17 @@ static struct attribute_group dbs_attr_g
  
- 	/* move to next set */
- 	si += model->num_counters;
--	if ((si > model->num_virt_counters) || (counter_config[si].count == 0))
-+	if ((si >= model->num_virt_counters) || (counter_config[si].count == 0))
- 		per_cpu(switch_index, cpu) = 0;
- 	else
- 		per_cpu(switch_index, cpu) = si;
-_
-
-Patches currently in -mm which might be from suravee.suthikulpanit@amd.com are
-
-oprofile-x86-fix-crash-when-profiling-more-than-28-events.patch
-
+ /************************** sysfs end ************************/
+ 
++static int dbs_freq_increase(struct cpufreq_policy *p, unsigned int target_freq)
++{
++	if (dbs_tuners_ins.powersave_bias)
++		target_freq = powersave_bias_target(p, target_freq,
++				CPUFREQ_RELATION_H);
++
++	__cpufreq_driver_target(p, target_freq,
++			dbs_tuners_ins.powersave_bias ?
++			CPUFREQ_RELATION_L : CPUFREQ_RELATION_H);
++}
++
+ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
+ {
+ 	unsigned int max_load_freq;
+@@ -520,19 +531,8 @@ static void dbs_check_cpu(struct cpu_dbs
+ 
+ 	/* Check for frequency increase */
+ 	if (max_load_freq > dbs_tuners_ins.up_threshold * policy->cur) {
+-		/* if we are already at full speed then break out early */
+-		if (!dbs_tuners_ins.powersave_bias) {
+-			if (policy->cur == policy->max)
+-				return;
