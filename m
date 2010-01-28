@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-use-__func__-where-appropriate.patch added to -mm tree
-Date: Wed, 27 Jan 2010 17:18:50 -0800
-Message-ID: <201001280118.o0S1IoJI011812@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-remove-some-unnecessary-casting.patch added to -mm tree
+Date: Wed, 27 Jan 2010 17:18:55 -0800
+Message-ID: <201001280118.o0S1ItEv011818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34726 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755472Ab0A1BS4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755592Ab0A1BTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 20:18:56 -0500
+	Wed, 27 Jan 2010 20:19:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: use __func__ where appropriate
+     drivers/block/floppy.c: remove some unnecessary casting
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-use-__func__-where-appropriate.patch
+     drivers-block-floppyc-remove-some-unnecessary-casting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: use __func__ where appropriate
+Subject: drivers/block/floppy.c: remove some unnecessary casting
 From: Joe Perches <joe@perches.com>
 
-Add and use __func__ to is_alive.
-Use __func__ in some DPRINTs.
+Remove char/void __user * use.
+Remove kmalloc cast.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -48,105 +48,52 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/block/floppy.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-use-__func__-where-appropriate drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-use-__func__-where-appropriate
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-some-unnecessary-casting drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-some-unnecessary-casting
 +++ a/drivers/block/floppy.c
-@@ -631,12 +631,12 @@ static DEFINE_TIMER(fd_timeout, floppy_s
+@@ -3104,13 +3104,13 @@ static struct cont_t raw_cmd_cont = {
+ 	.done		= raw_cmd_done
+ };
  
- static const char *timeout_message;
- 
--static void is_alive(const char *message)
-+static void is_alive(const char *func, const char *message)
+-static inline int raw_cmd_copyout(int cmd, char __user *param,
++static inline int raw_cmd_copyout(int cmd, void __user *param,
+ 				  struct floppy_raw_cmd *ptr)
  {
- 	/* this routine checks whether the floppy driver is "alive" */
- 	if (test_bit(0, &fdc_busy) && command_status < 2 &&
- 	    !timer_pending(&fd_timeout)) {
--		DPRINT("timeout handler died: %s\n", message);
-+		DPRINT("%s: timeout handler died.  %s\n", func, message);
+ 	int ret;
+ 
+ 	while (ptr) {
+-		ret = copy_to_user((void __user *)param, ptr, sizeof(*ptr));
++		ret = copy_to_user(param, ptr, sizeof(*ptr));
+ 		if (ret)
+ 			return -EFAULT;
+ 		param += sizeof(struct floppy_raw_cmd);
+@@ -3148,7 +3148,7 @@ static void raw_cmd_free(struct floppy_r
  	}
  }
  
-@@ -1734,7 +1734,7 @@ irqreturn_t floppy_interrupt(int irq, vo
- 		pr_info("DOR0=%x\n", fdc_state[0].dor);
- 		pr_info("floppy interrupt on bizarre fdc %d\n", fdc);
- 		pr_info("handler=%p\n", handler);
--		is_alive("bizarre fdc");
-+		is_alive(__func__, "bizarre fdc");
- 		return IRQ_NONE;
- 	}
- 
-@@ -1769,7 +1769,7 @@ irqreturn_t floppy_interrupt(int irq, vo
- 		return IRQ_NONE;
- 	}
- 	schedule_bh(handler);
--	is_alive("normal interrupt end");
-+	is_alive(__func__, "normal interrupt end");
- 
- 	/* FIXME! Was it really for us? */
- 	return IRQ_HANDLED;
-@@ -1894,7 +1894,7 @@ static void floppy_shutdown(unsigned lon
- 		pr_info("no cont in shutdown!\n");
- 		process_fd_request();
- 	}
--	is_alive("floppy shutdown");
-+	is_alive(__func__, "");
- }
- 
- /* start motor, check media-changed condition and write protection */
-@@ -2027,7 +2027,7 @@ static int wait_til_done(void (*handler)
- 			if (command_status >= 2 || !NO_SIGNAL)
- 				break;
- 
--			is_alive("wait_til_done");
-+			is_alive(__func__, "");
- 			schedule();
- 		}
- 
-@@ -2602,7 +2602,7 @@ static int make_raw_rw_request(void)
- 		raw_cmd->flags |= FD_RAW_WRITE;
- 		COMMAND = FM_MODE(_floppy, FD_WRITE);
- 	} else {
--		DPRINT("make_raw_rw_request: unknown command\n");
-+		DPRINT("%s: unknown command\n", __func__);
- 		return 0;
- 	}
- 
-@@ -2743,7 +2743,7 @@ static int make_raw_rw_request(void)
- 			raw_cmd->kernel_data = current_req->buffer;
- 			raw_cmd->length = current_count_sectors << 9;
- 			if (raw_cmd->length == 0) {
--				DPRINT("zero dma transfer attempted from make_raw_request\n");
-+				DPRINT("%s: zero dma transfer attempted\n", __func__);
- 				DPRINT("indirect=%d direct=%d fsector_t=%d\n",
- 				       indirect, direct, fsector_t);
- 				return 0;
-@@ -2938,7 +2938,7 @@ static void process_fd_request(void)
- static void do_fd_request(struct request_queue *q)
+-static inline int raw_cmd_copyin(int cmd, char __user *param,
++static inline int raw_cmd_copyin(int cmd, void __user *param,
+ 				 struct floppy_raw_cmd **rcmd)
  {
- 	if (max_buffer_sectors == 0) {
--		pr_info("VFS: do_fd_request called on non-open device\n");
-+		pr_info("VFS: %s called on non-open device\n", __func__);
- 		return;
- 	}
+ 	struct floppy_raw_cmd *ptr;
+@@ -3157,12 +3157,11 @@ static inline int raw_cmd_copyin(int cmd
  
-@@ -2953,12 +2953,12 @@ static void do_fd_request(struct request
- 	if (test_bit(0, &fdc_busy)) {
- 		/* fdc busy, this new request will be treated when the
- 		   current one is done */
--		is_alive("do fd request, old request running");
-+		is_alive(__func__, "old request running");
- 		return;
- 	}
- 	lock_fdc(MAXTIMEOUT, false);
- 	process_fd_request();
--	is_alive("do fd request");
-+	is_alive(__func__, "");
- }
- 
- static struct cont_t poll_cont = {
+ 	*rcmd = NULL;
+ 	while (1) {
+-		ptr = (struct floppy_raw_cmd *)
+-		    kmalloc(sizeof(struct floppy_raw_cmd), GFP_USER);
++		ptr = kmalloc(sizeof(struct floppy_raw_cmd), GFP_USER);
+ 		if (!ptr)
+ 			return -ENOMEM;
+ 		*rcmd = ptr;
+-		ret = copy_from_user(ptr, (void __user *)param, sizeof(*ptr));
++		ret = copy_from_user(ptr, param, sizeof(*ptr));
+ 		if (ret)
+ 			return -EFAULT;
+ 		ptr->next = NULL;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
