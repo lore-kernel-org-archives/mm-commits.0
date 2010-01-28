@@ -1,161 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-add-anon_scan_ratio-to-memorystat-file.patch removed from -mm tree
-Date: Wed, 27 Jan 2010 23:42:13 -0800
-Message-ID: <201001280742.o0S7gDOi028122@imap1.linux-foundation.org>
+Subject: - bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr.patch removed from -mm tree
+Date: Thu, 28 Jan 2010 00:59:18 -0800
+Message-ID: <201001280924.o0S9Oc5F000383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932251Ab0A1HnD (ORCPT
+	by vger.kernel.org with ESMTP id S1751547Ab0A1JYo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jan 2010 02:43:03 -0500
+	Thu, 28 Jan 2010 04:24:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, huangj@brocade.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: add anon_scan_ratio to memory.stat file
+     bfa: comparison with wrong msgtag in bfa_pport_isr()
 has been removed from the -mm tree.  Its filename was
-     memcg-add-anon_scan_ratio-to-memorystat-file.patch
+     bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr.patch
 
-This patch was dropped because I dropped memcg-add-anon_scan_ratio-to-memorystat-file.patch
+This patch was dropped because it doesn't compile
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add anon_scan_ratio to memory.stat file
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: bfa: comparison with wrong msgtag in bfa_pport_isr()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-anon_scan_ratio feature doesn't only useful for global VM pressure
-analysis, but it also useful for memcg memroy pressure analysis.
+Compare it with the disable msgtag.
 
-Then, this patch add anon_scan_ratio field to memory.stat file too.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jing Huang <huangj@brocade.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   63 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 41 insertions(+), 22 deletions(-)
+ drivers/scsi/bfa/bfa_fcport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-add-anon_scan_ratio-to-memorystat-file mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-anon_scan_ratio-to-memorystat-file
-+++ a/mm/memcontrol.c
-@@ -2950,6 +2950,11 @@ static int mem_control_stat_show(struct 
- {
- 	struct mem_cgroup *mem_cont = mem_cgroup_from_cont(cont);
- 	struct mcs_total_stat mystat;
-+	struct zone *zone;
-+	unsigned long total_anon = 0;
-+	unsigned long total_scan_anon = 0;
-+	unsigned long recent_rotated[2] = {0};
-+	unsigned long recent_scanned[2] = {0};
- 	int i;
+diff -puN drivers/scsi/bfa/bfa_fcport.c~bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr drivers/scsi/bfa/bfa_fcport.c
+--- a/drivers/scsi/bfa/bfa_fcport.c~bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr
++++ a/drivers/scsi/bfa/bfa_fcport.c
+@@ -918,7 +918,7 @@ bfa_pport_isr(struct bfa_s *bfa, struct 
+ 		break;
  
- 	memset(&mystat, 0, sizeof(mystat));
-@@ -2978,33 +2983,47 @@ static int mem_control_stat_show(struct 
- 		cb->fill(cb, memcg_stat_strings[i].total_name, mystat.stat[i]);
- 	}
+ 	case BFI_PPORT_I2H_DISABLE_RSP:
+-		if (pport->msgtag == i2hmsg.enable_rsp->msgtag)
++		if (pport->msgtag == i2hmsg.disable_rsp->msgtag)
+ 			bfa_sm_send_event(pport, BFA_PPORT_SM_FWRSP);
+ 		break;
  
--#ifdef CONFIG_DEBUG_VM
- 	cb->fill(cb, "inactive_ratio", calc_inactive_ratio(mem_cont, NULL));
- 
--	{
--		int nid, zid;
-+	for_each_populated_zone(zone) {
-+		int nid = zone->zone_pgdat->node_id;
-+		int zid = zone_idx(zone);
- 		struct mem_cgroup_per_zone *mz;
--		unsigned long recent_rotated[2] = {0, 0};
--		unsigned long recent_scanned[2] = {0, 0};
-+		unsigned long anon;
-+		unsigned long ratio;
-+
-+		mz = mem_cgroup_zoneinfo(mem_cont, nid, zid);
-+
-+		anon = MEM_CGROUP_ZSTAT(mz, LRU_INACTIVE_ANON);
-+		anon += MEM_CGROUP_ZSTAT(mz, LRU_ACTIVE_ANON);
-+
-+		ratio = get_anon_scan_ratio(zone, mem_cont, mem_cont->swappiness);
-+
-+		/*
-+		 * We have per-zone anon-scan-ratio. but we don't hope display such
-+		 * value directly. Instead, we display following fomula.
-+		 *
-+		 *   sum(anon * ratio/100)
-+		 *   --------------------- * 100
-+		 *        sum(anon)
-+		 */
-+		total_anon += anon;
-+		total_scan_anon += anon * ratio;
- 
--		for_each_online_node(nid)
--			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--				mz = mem_cgroup_zoneinfo(mem_cont, nid, zid);
--
--				recent_rotated[0] +=
--					mz->reclaim_stat.recent_rotated[0];
--				recent_rotated[1] +=
--					mz->reclaim_stat.recent_rotated[1];
--				recent_scanned[0] +=
--					mz->reclaim_stat.recent_scanned[0];
--				recent_scanned[1] +=
--					mz->reclaim_stat.recent_scanned[1];
--			}
--		cb->fill(cb, "recent_rotated_anon", recent_rotated[0]);
--		cb->fill(cb, "recent_rotated_file", recent_rotated[1]);
--		cb->fill(cb, "recent_scanned_anon", recent_scanned[0]);
--		cb->fill(cb, "recent_scanned_file", recent_scanned[1]);
-+#ifdef CONFIG_DEBUG_VM
-+		recent_rotated[0] += mz->reclaim_stat.recent_rotated[0];
-+		recent_rotated[1] += mz->reclaim_stat.recent_rotated[1];
-+		recent_scanned[0] += mz->reclaim_stat.recent_scanned[0];
-+		recent_scanned[1] += mz->reclaim_stat.recent_scanned[1];
-+#endif
- 	}
-+	cb->fill(cb, "anon_scan_ratio", total_scan_anon / total_anon);
-+
-+#ifdef CONFIG_DEBUG_VM
-+	cb->fill(cb, "recent_rotated_anon", recent_rotated[0]);
-+	cb->fill(cb, "recent_rotated_file", recent_rotated[1]);
-+	cb->fill(cb, "recent_scanned_anon", recent_scanned[0]);
-+	cb->fill(cb, "recent_scanned_file", recent_scanned[1]);
- #endif
- 
- 	return 0;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-vmscan-get_scan_ratio-cleanup.patch
-memcg-add-anon_scan_ratio-to-memorystat-file.patch
-mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
-mm-page_allocc-remove-duplicate-call-to-trace_mm_page_free_direct.patch
-mm-page_allocc-adjust-a-call-site-to-trace_mm_page_free_direct.patch
-mm-remove-function-free_hot_page.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-fix-mbind-vma-merge-problem.patch
-mm-fix-mbind-vma-merge-problem-fix.patch
-mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch
-mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-memcg-move-charges-of-anonymous-swap-fix-2.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+linux-next.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit.patch
+gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch
+cx23885-wrong-command-printed-in-cmd_to_str.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
+hisax-timeout-off-by-one-in-waitrecmsg.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
+bfa-comparison-with-wrong-msgtag-in-bfa_pport_isr.patch
+paride-fix-off-by-one-test.patch
+rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch
+serqt_usb2-two-branches-the-same-in-qt_set_termios.patch
+comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register.patch
+musb-test-always-evaluates-to-false.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+cris-v32-typo-in-crisv32_arbiter_unwatch.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
