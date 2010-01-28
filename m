@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-floppyc-use-%pf-in-logging-messages.patch added to -mm tree
-Date: Wed, 27 Jan 2010 17:18:52 -0800
-Message-ID: <201001280118.o0S1Iq2P011815@imap1.linux-foundation.org>
+Subject: + drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch added to -mm tree
+Date: Wed, 27 Jan 2010 17:19:04 -0800
+Message-ID: <201001280119.o0S1J5Ue011837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755475Ab0A1BS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755790Ab0A1BTK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 20:18:58 -0500
+	Wed, 27 Jan 2010 20:19:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@g
 
 
 The patch titled
-     drivers/block/floppy.c: use %pf in logging messages
+     drivers/block/floppy.c: remove unnecessary casting in fd_ioctl
 has been added to the -mm tree.  Its filename is
-     drivers-block-floppyc-use-%pf-in-logging-messages.patch
+     drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: use %pf in logging messages
+Subject: drivers/block/floppy.c: remove unnecessary casting in fd_ioctl
 From: Joe Perches <joe@perches.com>
 
-Print the function name not the pointer address where useful and possible
+Convert outparam to const void *.
+Cast outparam to const char * for strlen().
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -47,66 +48,77 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/floppy.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-use-%pf-in-logging-messages drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-use-%pf-in-logging-messages
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl
 +++ a/drivers/block/floppy.c
-@@ -908,7 +908,7 @@ static inline void unlock_fdc(void)
- 		DPRINT("FDC access conflict!\n");
+@@ -3431,7 +3431,7 @@ static int fd_ioctl(struct block_device 
+ 		struct floppy_max_errors max_errors;
+ 		struct floppy_drive_params dp;
+ 	} inparam;		/* parameters coming from user space */
+-	const char *outparam;	/* parameters passed back to user space */
++	const void *outparam;	/* parameters passed back to user space */
  
- 	if (do_floppy)
--		DPRINT("device interrupt still active at FDC release: %p!\n",
-+		DPRINT("device interrupt still active at FDC release: %pf!\n",
- 		       do_floppy);
- 	command_status = FD_COMMAND_NONE;
- 	spin_lock_irqsave(&floppy_lock, flags);
-@@ -1733,7 +1733,7 @@ irqreturn_t floppy_interrupt(int irq, vo
- 		/* we don't even know which FDC is the culprit */
- 		pr_info("DOR0=%x\n", fdc_state[0].dor);
- 		pr_info("floppy interrupt on bizarre fdc %d\n", fdc);
--		pr_info("handler=%p\n", handler);
-+		pr_info("handler=%pf\n", handler);
- 		is_alive(__func__, "bizarre fdc");
- 		return IRQ_NONE;
- 	}
-@@ -1792,7 +1792,7 @@ static void reset_interrupt(void)
- 	debugt("reset interrupt:");
- 	result();		/* get the status ready for set_fdc */
- 	if (FDCS->reset) {
--		pr_info("reset set in interrupt, calling %p\n", cont->error);
-+		pr_info("reset set in interrupt, calling %pf\n", cont->error);
- 		cont->error();	/* a reset just after a reset. BAD! */
- 	}
- 	cont->redo();
-@@ -1833,7 +1833,7 @@ static void show_floppy(void)
- 	pr_info("\n");
- 	pr_info("floppy driver state\n");
- 	pr_info("-------------------\n");
--	pr_info("now=%lu last interrupt=%lu diff=%lu last called handler=%p\n",
-+	pr_info("now=%lu last interrupt=%lu diff=%lu last called handler=%pf\n",
- 		jiffies, interruptjiffies, jiffies - interruptjiffies,
- 		lasthandler);
- 
-@@ -1852,13 +1852,13 @@ static void show_floppy(void)
- 	pr_info("status=%x\n", fd_inb(FD_STATUS));
- 	pr_info("fdc_busy=%lu\n", fdc_busy);
- 	if (do_floppy)
--		pr_info("do_floppy=%p\n", do_floppy);
-+		pr_info("do_floppy=%pf\n", do_floppy);
- 	if (work_pending(&floppy_work))
--		pr_info("floppy_work.func=%p\n", floppy_work.func);
-+		pr_info("floppy_work.func=%pf\n", floppy_work.func);
- 	if (timer_pending(&fd_timer))
--		pr_info("fd_timer.function=%p\n", fd_timer.function);
-+		pr_info("fd_timer.function=%pf\n", fd_timer.function);
- 	if (timer_pending(&fd_timeout)) {
--		pr_info("timer_function=%p\n", fd_timeout.function);
-+		pr_info("timer_function=%pf\n", fd_timeout.function);
- 		pr_info("expires=%lu\n", fd_timeout.expires - jiffies);
- 		pr_info("now=%lu\n", jiffies);
- 	}
+ 	/* convert compatibility eject ioctls into floppy eject ioctl.
+ 	 * We do this in order to provide a means to eject floppy disks before
+@@ -3495,8 +3495,7 @@ static int fd_ioctl(struct block_device 
+ 		return set_geometry(cmd, &inparam.g, drive, type, bdev);
+ 	case FDGETPRM:
+ 		ret = get_floppy_geometry(drive, type,
+-					  (struct floppy_struct **)
+-					  &outparam);
++					  (struct floppy_struct **)&outparam);
+ 		if (ret)
+ 			return ret;
+ 		break;
+@@ -3531,20 +3530,20 @@ static int fd_ioctl(struct block_device 
+ 		UDP->max_errors.reporting = (unsigned short)(param & 0x0f);
+ 		return 0;
+ 	case FDGETMAXERRS:
+-		outparam = (const char *)&UDP->max_errors;
++		outparam = &UDP->max_errors;
+ 		break;
+ 	case FDSETMAXERRS:
+ 		UDP->max_errors = inparam.max_errors;
+ 		break;
+ 	case FDGETDRVTYP:
+ 		outparam = drive_name(type, drive);
+-		SUPBOUND(size, strlen(outparam) + 1);
++		SUPBOUND(size, strlen((const char *)outparam) + 1);
+ 		break;
+ 	case FDSETDRVPRM:
+ 		*UDP = inparam.dp;
+ 		break;
+ 	case FDGETDRVPRM:
+-		outparam = (const char *)UDP;
++		outparam = UDP;
+ 		break;
+ 	case FDPOLLDRVSTAT:
+ 		if (lock_fdc(drive, true))
+@@ -3554,18 +3553,18 @@ static int fd_ioctl(struct block_device 
+ 		process_fd_request();
+ 		/* fall through */
+ 	case FDGETDRVSTAT:
+-		outparam = (const char *)UDRS;
++		outparam = UDRS;
+ 		break;
+ 	case FDRESET:
+ 		return user_reset_fdc(drive, (int)param, true);
+ 	case FDGETFDCSTAT:
+-		outparam = (const char *)UFDCS;
++		outparam = UFDCS;
+ 		break;
+ 	case FDWERRORCLR:
+ 		memset(UDRWE, 0, sizeof(*UDRWE));
+ 		return 0;
+ 	case FDWERRORGET:
+-		outparam = (const char *)UDRWE;
++		outparam = UDRWE;
+ 		break;
+ 	case FDRAWCMD:
+ 		if (type)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
