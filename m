@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + resources-introduce-generic-page_is_ram-fix-2.patch added to -mm tree
-Date: Wed, 27 Jan 2010 16:57:40 -0800
-Message-ID: <201001280057.o0S0ve8V010837@imap1.linux-foundation.org>
+Subject: + fbdev-remove-obsolete-config_fb_soft_cursor.patch added to -mm tree
+Date: Wed, 27 Jan 2010 16:59:46 -0800
+Message-ID: <201001280059.o0S0xkrW010879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755054Ab0A1A5m (ORCPT
+	by vger.kernel.org with ESMTP id S1755359Ab0A1BAE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 19:57:42 -0500
+	Wed, 27 Jan 2010 20:00:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com
+Cc: siccegge@stud.informatik.uni-erlangen.de, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     resources-introduce-generic-page_is_ram-fix-2
+     fbdev: remove obsolete CONFIG_FB_SOFT_CURSOR
 has been added to the -mm tree.  Its filename is
-     resources-introduce-generic-page_is_ram-fix-2.patch
+     fbdev-remove-obsolete-config_fb_soft_cursor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: resources-introduce-generic-page_is_ram-fix-2
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: fbdev: remove obsolete CONFIG_FB_SOFT_CURSOR
+From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
 
+The config Option FB_SOFT_BUFFER was removed in
+c465e05a03209651078b95686158648fd7ed84c5 ("fbcon/fbdev: Move softcursor
+out of fbdev to fbcon").
 
+While moving to fbcon this single driver has it left as a select in
+KConfig / #ifdef in source.  This last occurence is removed here so the
+option is really gone
 
+Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    2 --
- include/linux/mm.h     |    2 ++
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/Kconfig        |    1 -
+ drivers/video/sis/sis_main.c |    3 ---
+ 2 files changed, 4 deletions(-)
 
-diff -puN include/linux/ioport.h~resources-introduce-generic-page_is_ram-fix-2 include/linux/ioport.h
---- a/include/linux/ioport.h~resources-introduce-generic-page_is_ram-fix-2
-+++ a/include/linux/ioport.h
-@@ -191,7 +191,5 @@ extern int
- walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
- 		void *arg, int (*func)(unsigned long, unsigned long, void *));
- 
--extern int page_is_ram(unsigned long pfn);
--
- #endif /* __ASSEMBLY__ */
- #endif	/* _LINUX_IOPORT_H */
-diff -puN include/linux/mm.h~resources-introduce-generic-page_is_ram-fix-2 include/linux/mm.h
---- a/include/linux/mm.h~resources-introduce-generic-page_is_ram-fix-2
-+++ a/include/linux/mm.h
-@@ -265,6 +265,8 @@ static inline int get_page_unless_zero(s
- 	return atomic_inc_not_zero(&page->_count);
- }
- 
-+extern int page_is_ram(unsigned long pfn);
-+
- /* Support for virtually mapped pages */
- struct page *vmalloc_to_page(const void *addr);
- unsigned long vmalloc_to_pfn(const void *addr);
+diff -puN drivers/video/Kconfig~fbdev-remove-obsolete-config_fb_soft_cursor drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-remove-obsolete-config_fb_soft_cursor
++++ a/drivers/video/Kconfig
+@@ -1494,7 +1494,6 @@ config FB_VIA
+        select FB_CFB_FILLRECT
+        select FB_CFB_COPYAREA
+        select FB_CFB_IMAGEBLIT
+-       select FB_SOFT_CURSOR
+        select I2C_ALGOBIT
+        select I2C
+        help
+diff -puN drivers/video/sis/sis_main.c~fbdev-remove-obsolete-config_fb_soft_cursor drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~fbdev-remove-obsolete-config_fb_soft_cursor
++++ a/drivers/video/sis/sis_main.c
+@@ -1891,9 +1891,6 @@ static struct fb_ops sisfb_ops = {
+ 	.fb_fillrect	= fbcon_sis_fillrect,
+ 	.fb_copyarea	= fbcon_sis_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
+-#ifdef CONFIG_FB_SOFT_CURSOR
+-	.fb_cursor	= soft_cursor,
+-#endif
+ 	.fb_sync	= fbcon_sis_sync,
+ #ifdef SIS_NEW_CONFIG_COMPAT
+ 	.fb_compat_ioctl= sisfb_ioctl,
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
 
 linux-next.patch
-devmem-check-vmalloc-address-on-kmem-read-write.patch
-devmem-fix-kmem-write-bug-on-memory-holes.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-vfs-take-f_lock-on-modifying-f_mode-after-open-time.patch
-readahead-introduce-fmode_random-for-posix_fadv_random.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-resources-introduce-generic-page_is_ram.patch
-resources-introduce-generic-page_is_ram-fix.patch
-resources-introduce-generic-page_is_ram-fix-2.patch
-x86-remove-bios-data-range-from-e820.patch
-x86-use-the-generic-page_is_ram.patch
+fbdev-remove-obsolete-config_fb_soft_cursor.patch
 
