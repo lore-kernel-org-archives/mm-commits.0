@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-remove-obsolete-config_fb_soft_cursor.patch added to -mm tree
-Date: Wed, 27 Jan 2010 16:59:46 -0800
-Message-ID: <201001280059.o0S0xkrW010879@imap1.linux-foundation.org>
+Subject: + zlib-make-new-optimized-inflate-endian-independent.patch added to -mm tree
+Date: Wed, 27 Jan 2010 17:05:48 -0800
+Message-ID: <201001280105.o0S15m0V011204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755359Ab0A1BAE (ORCPT
+	by vger.kernel.org with ESMTP id S1753301Ab0A1BGP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 20:00:04 -0500
+	Wed, 27 Jan 2010 20:06:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: siccegge@stud.informatik.uni-erlangen.de, krzysztof.h1@poczta.fm
+Cc: joakim.tjernlund@transmode.se, Joakim.Tjernlund@transmode.se, benh@kernel.crashing.org
 
 
 The patch titled
-     fbdev: remove obsolete CONFIG_FB_SOFT_CURSOR
+     zlib: make new optimized inflate endian independent
 has been added to the -mm tree.  Its filename is
-     fbdev-remove-obsolete-config_fb_soft_cursor.patch
+     zlib-make-new-optimized-inflate-endian-independent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: remove obsolete CONFIG_FB_SOFT_CURSOR
-From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Subject: zlib: make new optimized inflate endian independent
+From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
 
-The config Option FB_SOFT_BUFFER was removed in
-c465e05a03209651078b95686158648fd7ed84c5 ("fbcon/fbdev: Move softcursor
-out of fbdev to fbcon").
+Commit 6846ee5ca68d81e6baccf0d56221d7a00c1be18b ("zlib: Fix build of
+powerpc boot wrapper") made the new optimized inflate only available on
+arch's that define CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS.  This fixes it
+by defining our own endian independent versions of unaligned access.
 
-While moving to fbcon this single driver has it left as a select in
-KConfig / #ifdef in source.  This last occurence is removed here so the
-option is really gone
-
-Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig        |    1 -
- drivers/video/sis/sis_main.c |    3 ---
- 2 files changed, 4 deletions(-)
+ lib/zlib_inflate/inffast.c |   70 +++++++++++++++--------------------
+ 1 file changed, 30 insertions(+), 40 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-remove-obsolete-config_fb_soft_cursor drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-remove-obsolete-config_fb_soft_cursor
-+++ a/drivers/video/Kconfig
-@@ -1494,7 +1494,6 @@ config FB_VIA
-        select FB_CFB_FILLRECT
-        select FB_CFB_COPYAREA
-        select FB_CFB_IMAGEBLIT
--       select FB_SOFT_CURSOR
-        select I2C_ALGOBIT
-        select I2C
-        help
-diff -puN drivers/video/sis/sis_main.c~fbdev-remove-obsolete-config_fb_soft_cursor drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~fbdev-remove-obsolete-config_fb_soft_cursor
-+++ a/drivers/video/sis/sis_main.c
-@@ -1891,9 +1891,6 @@ static struct fb_ops sisfb_ops = {
- 	.fb_fillrect	= fbcon_sis_fillrect,
- 	.fb_copyarea	= fbcon_sis_copyarea,
- 	.fb_imageblit	= cfb_imageblit,
--#ifdef CONFIG_FB_SOFT_CURSOR
--	.fb_cursor	= soft_cursor,
+diff -puN lib/zlib_inflate/inffast.c~zlib-make-new-optimized-inflate-endian-independent lib/zlib_inflate/inffast.c
+--- a/lib/zlib_inflate/inffast.c~zlib-make-new-optimized-inflate-endian-independent
++++ a/lib/zlib_inflate/inffast.c
+@@ -8,21 +8,6 @@
+ #include "inflate.h"
+ #include "inffast.h"
+ 
+-/* Only do the unaligned "Faster" variant when
+- * CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is set
+- *
+- * On powerpc, it won't be as we don't include autoconf.h
+- * automatically for the boot wrapper, which is intended as
+- * we run in an environment where we may not be able to deal
+- * with (even rare) alignment faults. In addition, we do not
+- * define __KERNEL__ for arch/powerpc/boot unlike x86
+- */
+-
+-#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+-#include <asm/unaligned.h>
+-#include <asm/byteorder.h>
 -#endif
- 	.fb_sync	= fbcon_sis_sync,
- #ifdef SIS_NEW_CONFIG_COMPAT
- 	.fb_compat_ioctl= sisfb_ioctl,
+-
+ #ifndef ASMINF
+ 
+ /* Allow machine dependent optimization for post-increment or pre-increment.
+@@ -36,14 +21,31 @@
+    - Pentium III (Anderson)
+    - M68060 (Nikl)
+  */
++union uu {
++	unsigned short us;
++	unsigned char b[2];
++};
++
++/* Endian independed version */
++static inline unsigned short
++get_unaligned16(const unsigned short *p)
++{
++	union uu  mm;
++	unsigned char *b = (unsigned char *)p;
++
++	mm.b[0] = b[0];
++	mm.b[1] = b[1];
++	return mm.us;
++}
++
+ #ifdef POSTINC
+ #  define OFF 0
+ #  define PUP(a) *(a)++
+-#  define UP_UNALIGNED(a) get_unaligned((a)++)
++#  define UP_UNALIGNED(a) get_unaligned16((a)++)
+ #else
+ #  define OFF 1
+ #  define PUP(a) *++(a)
+-#  define UP_UNALIGNED(a) get_unaligned(++(a))
++#  define UP_UNALIGNED(a) get_unaligned16(++(a))
+ #endif
+ 
+ /*
+@@ -256,7 +258,6 @@ void inflate_fast(z_streamp strm, unsign
+                     }
+                 }
+                 else {
+-#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 		    unsigned short *sout;
+ 		    unsigned long loops;
+ 
+@@ -274,7 +275,11 @@ void inflate_fast(z_streamp strm, unsign
+ 			sfrom = (unsigned short *)(from - OFF);
+ 			loops = len >> 1;
+ 			do
++#ifdef  CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
++			    PUP(sout) = PUP(sfrom);
++#else
+ 			    PUP(sout) = UP_UNALIGNED(sfrom);
++#endif
+ 			while (--loops);
+ 			out = (unsigned char *)sout + OFF;
+ 			from = (unsigned char *)sfrom + OFF;
+@@ -282,14 +287,13 @@ void inflate_fast(z_streamp strm, unsign
+ 			unsigned short pat16;
+ 
+ 			pat16 = *(sout-2+2*OFF);
+-			if (dist == 1)
+-#if defined(__BIG_ENDIAN)
+-			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff) << 8);
+-#elif defined(__LITTLE_ENDIAN)
+-			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00) >> 8);
+-#else
+-#error __BIG_ENDIAN nor __LITTLE_ENDIAN is defined
+-#endif
++			if (dist == 1) {
++				union uu mm;
++				/* copy one char pattern to both bytes */
++				mm.us = pat16;
++				mm.b[0] = mm.b[1];
++				pat16 = mm.us;
++			}
+ 			loops = len >> 1;
+ 			do
+ 			    PUP(sout) = pat16;
+@@ -298,20 +302,6 @@ void inflate_fast(z_streamp strm, unsign
+ 		    }
+ 		    if (len & 1)
+ 			PUP(out) = PUP(from);
+-#else /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
+-                    from = out - dist;          /* copy direct from output */
+-                    do {                        /* minimum length is three */
+-			 PUP(out) = PUP(from);
+-			 PUP(out) = PUP(from);
+-			 PUP(out) = PUP(from);
+-			 len -= 3;
+-                    } while (len > 2);
+-                    if (len) {
+-			 PUP(out) = PUP(from);
+-			 if (len > 1)
+-			     PUP(out) = PUP(from);
+-                    }
+-#endif /* !CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
+                 }
+             }
+             else if ((op & 64) == 0) {          /* 2nd level distance code */
 _
 
-Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
+Patches currently in -mm which might be from joakim.tjernlund@transmode.se are
 
-linux-next.patch
-fbdev-remove-obsolete-config_fb_soft_cursor.patch
+zlib-make-new-optimized-inflate-endian-independent.patch
 
