@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-add-quirk-to-clamp-byte-mode-transfer.patch added to -mm tree
-Date: Wed, 27 Jan 2010 16:54:49 -0800
-Message-ID: <201001280054.o0S0sns2010662__7467.80092963508$1264640101$gmane$org@imap1.linux-foundation.org>
+Subject: + intelfb-new-maintainer.patch added to -mm tree
+Date: Wed, 27 Jan 2010 16:56:47 -0800
+Message-ID: <201001280056.o0S0ulvf010818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754650Ab0A1Ayx (ORCPT
+	by vger.kernel.org with ESMTP id S1754840Ab0A1A5f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jan 2010 19:54:53 -0500
+	Wed, 27 Jan 2010 19:57:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bzhao@marvell.com, linux-mmc@vger.kernel.org, nico@marvell.com
+Cc: mbroemme@plusserver.de, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org, krzysztof.h1@poczta.fm, sylvain.meyer@worldonline.fr
 
 
 The patch titled
-     sdio: add quirk to clamp byte mode transfer
+     intelfb: new maintainer
 has been added to the -mm tree.  Its filename is
-     sdio-add-quirk-to-clamp-byte-mode-transfer.patch
+     intelfb-new-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: add quirk to clamp byte mode transfer
-From: Bing Zhao <bzhao@marvell.com>
+Subject: intelfb: new maintainer
+From: Maik Broemme <mbroemme@plusserver.de>
 
-Some SDIO cards expect byte transfers not to exceed the configured block
-transfer size.  Add a quirk to that effect.
+It seems that Sylvain no longer maintain the intelfb driver.  Two weeks
+ago I had a short mail conversation with Jean regarding who can replace
+him.  Well I will do it, because I know the driver and use it very often. 
 
-Patches to make use of this quirk will be sent separately.
+Attached is a patch which update the maintainer file to make bug reporting
+easier.
 
-Signed-off-by: Bing Zhao <bzhao@marvell.com>
-Signed-off-by: Nicolas Pitre <nico@marvell.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Maik Broemme <mbroemme@plusserver.de>
+Sylvain Meyer <sylvain.meyer@worldonline.fr>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_io.c |    7 ++++++-
- include/linux/mmc/card.h   |    7 +++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/sdio_io.c~sdio-add-quirk-to-clamp-byte-mode-transfer drivers/mmc/core/sdio_io.c
---- a/drivers/mmc/core/sdio_io.c~sdio-add-quirk-to-clamp-byte-mode-transfer
-+++ a/drivers/mmc/core/sdio_io.c
-@@ -189,7 +189,12 @@ static inline unsigned int sdio_max_byte
- {
- 	unsigned mval =	min(func->card->host->max_seg_size,
- 			    func->card->host->max_blk_size);
--	mval = min(mval, func->max_blksize);
-+
-+	if (mmc_blksz_for_byte_mode(func->card))
-+		mval = min(mval, func->cur_blksize);
-+	else
-+		mval = min(mval, func->max_blksize);
-+
- 	return min(mval, 512u); /* maximum size for byte mode */
- }
+diff -puN MAINTAINERS~intelfb-new-maintainer MAINTAINERS
+--- a/MAINTAINERS~intelfb-new-maintainer
++++ a/MAINTAINERS
+@@ -2776,7 +2776,7 @@ S:	Maintained
+ F:	drivers/input/
  
-diff -puN include/linux/mmc/card.h~sdio-add-quirk-to-clamp-byte-mode-transfer include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~sdio-add-quirk-to-clamp-byte-mode-transfer
-+++ a/include/linux/mmc/card.h
-@@ -99,6 +99,8 @@ struct mmc_card {
- #define MMC_STATE_BLOCKADDR	(1<<3)		/* card uses block-addressing */
- 	unsigned int		quirks; 	/* card quirks */
- #define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
-+#define MMC_QUIRK_BLKSZ_FOR_BYTE_MODE (1<<1)	/* use func->cur_blksize */
-+						/* for byte mode */
- 
- 	u32			raw_cid[4];	/* raw card CID */
- 	u32			raw_csd[4];	/* raw card CSD */
-@@ -139,6 +141,11 @@ static inline int mmc_card_lenient_fn0(c
- 	return c->quirks & MMC_QUIRK_LENIENT_FN0;
- }
- 
-+static inline int mmc_blksz_for_byte_mode(const struct mmc_card *c)
-+{
-+	return c->quirks & MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
-+}
-+
- #define mmc_card_name(c)	((c)->cid.prod_name)
- #define mmc_card_id(c)		(dev_name(&(c)->dev))
- 
+ INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
+-M:	Sylvain Meyer <sylvain.meyer@worldonline.fr>
++M:	Maik Broemme <mbroemme@plusserver.de>
+ L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/fb/intelfb.txt
 _
 
-Patches currently in -mm which might be from bzhao@marvell.com are
+Patches currently in -mm which might be from mbroemme@plusserver.de are
 
-sdio-add-quirk-to-clamp-byte-mode-transfer.patch
+intelfb-new-maintainer.patch
 
