@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serqt_usb2-two-branches-the-same-in-qt_set_termios.patch removed from -mm tree
-Date: Fri, 29 Jan 2010 12:17:05 -0800
-Message-ID: <201001292017.o0TKH5iO003282@imap1.linux-foundation.org>
+Subject: [merged] rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch removed from -mm tree
+Date: Fri, 29 Jan 2010 12:17:02 -0800
+Message-ID: <201001292017.o0TKH2AP003279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33784 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754192Ab0A2UXm (ORCPT
+	by vger.kernel.org with ESMTP id S1754667Ab0A2UYN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jan 2010 15:23:42 -0500
+	Fri, 29 Jan 2010 15:24:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, gregkh@suse.de, oliver@neukum.org, wfp5p@virginia.edu, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, bzolnier@gmail.com, devel@driverdev.osuosl.org, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/staging/serqt_usb2/serqt_usb2.c: two branches the same in qt_set_termios()
+     rt2860/sta_ioctl.c: two branches the same in rt_ioctl_giwscan()
 has been removed from the -mm tree.  Its filename was
-     serqt_usb2-two-branches-the-same-in-qt_set_termios.patch
+     rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/serqt_usb2/serqt_usb2.c: two branches the same in qt_set_termios()
+Subject: rt2860/sta_ioctl.c: two branches the same in rt_ioctl_giwscan()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Regardless of the condition, the branches executed the same code
+Regardless of the condition, the branches execute the same code
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Oliver Neukum <oliver@neukum.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: <devel@driverdev.osuosl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/serqt_usb2/serqt_usb2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/rt2860/sta_ioctl.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/staging/serqt_usb2/serqt_usb2.c~serqt_usb2-two-branches-the-same-in-qt_set_termios drivers/staging/serqt_usb2/serqt_usb2.c
---- a/drivers/staging/serqt_usb2/serqt_usb2.c~serqt_usb2-two-branches-the-same-in-qt_set_termios
-+++ a/drivers/staging/serqt_usb2/serqt_usb2.c
-@@ -1277,7 +1277,7 @@ static void qt_set_termios(struct tty_st
- 	if (cflag & CSTOPB)
- 		new_LCR |= SERIAL_TWO_STOPB;
- 	else
--		new_LCR |= SERIAL_TWO_STOPB;
-+		new_LCR |= SERIAL_ONE_STOPB;
- 
- 	dbg("%s - 4\n", __func__);
+diff -puN drivers/staging/rt2860/sta_ioctl.c~rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan drivers/staging/rt2860/sta_ioctl.c
+--- a/drivers/staging/rt2860/sta_ioctl.c~rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan
++++ a/drivers/staging/rt2860/sta_ioctl.c
+@@ -975,10 +975,7 @@ int rt_ioctl_giwscan(struct net_device *
+ 		/*================================ */
+ 		memset(&iwe, 0, sizeof(iwe));
+ 		iwe.cmd = SIOCGIWFREQ;
+-		if (INFRA_ON(pAdapter) || ADHOC_ON(pAdapter))
+-			iwe.u.freq.m = pAdapter->ScanTab.BssEntry[i].Channel;
+-		else
+-			iwe.u.freq.m = pAdapter->ScanTab.BssEntry[i].Channel;
++		iwe.u.freq.m = pAdapter->ScanTab.BssEntry[i].Channel;
+ 		iwe.u.freq.e = 0;
+ 		iwe.u.freq.i = 0;
  
 _
 
