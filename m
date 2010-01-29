@@ -1,58 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sis-usb2vga-driver-support-kairens-usb-vga-adaptor-usb20svga-mb-plus.patch removed from -mm tree
-Date: Fri, 29 Jan 2010 12:17:14 -0800
-Message-ID: <201001292017.o0TKHE4J003293@imap1.linux-foundation.org>
+Subject: [merged] starfire-clean-up-properly-if-firmware-loading-fails.patch removed from -mm tree
+Date: Fri, 29 Jan 2010 12:16:37 -0800
+Message-ID: <201001292016.o0TKGbWs003252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754857Ab0A2UR5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754858Ab0A2USC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jan 2010 15:17:57 -0500
+	Fri, 29 Jan 2010 15:18:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akr@fsij.org, gregkh@suse.de, thomas@winischhofer.net, mm-commits@vger.kernel.org
+To: bhutchings@solarflare.com, davem@davemloft.net, michael@moffatt.org.nz, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SIS USB2VGA DRIVER: support KAIREN's USB VGA adaptor USB20SVGA-MB-PLUS
+     starfire: clean up properly if firmware loading fails
 has been removed from the -mm tree.  Its filename was
-     sis-usb2vga-driver-support-kairens-usb-vga-adaptor-usb20svga-mb-plus.patch
+     starfire-clean-up-properly-if-firmware-loading-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SIS USB2VGA DRIVER: support KAIREN's USB VGA adaptor USB20SVGA-MB-PLUS
-From: Tanaka Akira <akr@fsij.org>
+Subject: starfire: clean up properly if firmware loading fails
+From: Ben Hutchings <bhutchings@solarflare.com>
 
-Add the USB product ID of KAIREN's USB VGA Adaptor, USB20SVGA-MB-PLUS, to
-make sisusbvga work with it.
+netdev_open() will return without cleaning up net device or hardware state
+if firmware loading fails.  This results in a BUG() on a second attempt to
+bring the interface up, reported in
+<http://bugzilla.kernel.org/show_bug.cgi?id=15117>, and probably has even
+worse effects if the driver is removed afterwards.
 
-Signed-off-by: Tanaka Akira <akr@fsij.org>
-Cc: Thomas Winischhofer <thomas@winischhofer.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Call netdev_close() to clean up on failure.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=15091
+
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Reported-by: Michael Moffatt <michael@moffatt.org.nz>
+Tested-by: Michael Moffatt <michael@moffatt.org.nz>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/sisusbvga/sisusb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/starfire.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/misc/sisusbvga/sisusb.c~sis-usb2vga-driver-support-kairens-usb-vga-adaptor-usb20svga-mb-plus drivers/usb/misc/sisusbvga/sisusb.c
---- a/drivers/usb/misc/sisusbvga/sisusb.c~sis-usb2vga-driver-support-kairens-usb-vga-adaptor-usb20svga-mb-plus
-+++ a/drivers/usb/misc/sisusbvga/sisusb.c
-@@ -3255,6 +3255,7 @@ static const struct usb_device_id sisusb
- 	{ USB_DEVICE(0x0711, 0x0902) },
- 	{ USB_DEVICE(0x0711, 0x0903) },
- 	{ USB_DEVICE(0x0711, 0x0918) },
-+	{ USB_DEVICE(0x0711, 0x0920) },
- 	{ USB_DEVICE(0x182d, 0x021c) },
- 	{ USB_DEVICE(0x182d, 0x0269) },
- 	{ }
+diff -puN drivers/net/starfire.c~starfire-clean-up-properly-if-firmware-loading-fails drivers/net/starfire.c
+--- a/drivers/net/starfire.c~starfire-clean-up-properly-if-firmware-loading-fails
++++ a/drivers/net/starfire.c
+@@ -1063,7 +1063,7 @@ static int netdev_open(struct net_device
+ 	if (retval) {
+ 		printk(KERN_ERR "starfire: Failed to load firmware \"%s\"\n",
+ 		       FIRMWARE_RX);
+-		return retval;
++		goto out_init;
+ 	}
+ 	if (fw_rx->size % 4) {
+ 		printk(KERN_ERR "starfire: bogus length %zu in \"%s\"\n",
+@@ -1108,6 +1108,9 @@ out_tx:
+ 	release_firmware(fw_tx);
+ out_rx:
+ 	release_firmware(fw_rx);
++out_init:
++	if (retval)
++		netdev_close(dev);
+ 	return retval;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akr@fsij.org are
+Patches currently in -mm which might be from bhutchings@solarflare.com are
 
+origin.patch
 linux-next.patch
 
