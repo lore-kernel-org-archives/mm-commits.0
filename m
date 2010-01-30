@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uartlite-fix-crash-when-using-as-console.patch added to -mm tree
-Date: Fri, 29 Jan 2010 16:43:08 -0800
-Message-ID: <201001300043.o0U0h83v019482@imap1.linux-foundation.org>
+Subject: + zlib-make-new-optimized-inflate-endian-independent.patch added to -mm tree
+Date: Fri, 29 Jan 2010 17:20:56 -0800
+Message-ID: <201001300120.o0U1KunF020964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899Ab0A3AoQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751017Ab0A3BVT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jan 2010 19:44:16 -0500
+	Fri, 29 Jan 2010 20:21:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard.rojfors@pelagicore.com, alan@lxorguk.ukuu.org.uk, jacmet@sunsite.dk, stable@kernel.org
+Cc: joakim.tjernlund@transmode.se, Joakim.Tjernlund@transmode.se, anton@samba.org, benh@kernel.crashing.org, dwmw2@infradead.org, galak@kernel.crashing.org
 
 
 The patch titled
-     uartlite: fix crash when using as console
+     zlib: make new optimized inflate endian independent
 has been added to the -mm tree.  Its filename is
-     uartlite-fix-crash-when-using-as-console.patch
+     zlib-make-new-optimized-inflate-endian-independent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,126 +26,162 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uartlite: fix crash when using as console
-=46rom: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Subject: zlib: make new optimized inflate endian independent
+From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
 
-Move the ulite_console_setup to the .devinit section since it might be
-called on probe, which is in devinit.  Fixes the crash below where the
-uartlite hw is probed after the .init section is freed from the kernel.
+Commit 6846ee5ca68d81e6baccf0d56221d7a00c1be18b ("zlib: Fix build of
+powerpc boot wrapper") made the new optimized inflate only available on
+arch's that define CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS.
 
-uartlite: ttyUL0 at MMIO 0xc8000100 (irq =3D 30) is a uartlite
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<c176720e>] ulite_console_setup+0x6f/0xa8
-*pdpt =3D 0000000036fb0001 *pde =3D 0000000000000000
-Oops: 0000 [#1] PREEMPT SMP
-last sysfs file: /sys/devices/pci0000:00/0000:00:1f.1/host0/uevent
-Modules linked in: puffin(+) serio_raw
+This patch will again enable the optimization for all arch's by defining
+our own endian independent version of unaligned access.  As an added
+bonus, arch's that define CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS do a
+plain load instead.
 
-Pid: 151, comm: modprobe Not tainted (2.6.31.5-1.0.b1-b1 #1) POULSBO
-EIP: 0060:[<c176720e>] EFLAGS: 00010246 CPU: 0
-EIP is at ulite_console_setup+0x6f/0xa8
-EAX: c16ec824 EBX: c16ec824 ECX: c176719f EDX: 00000000
-ESI: 00000000 EDI: c17b42c4 EBP: f6fd1cf0 ESP: f6fd1cd8
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process modprobe (pid: 151, ti=3Df6fd0000 task=3Df6fa1020 task.ti=3Df6f=
-d0000)
-Stack:
- c1031f51 00000000 00000000 00000246 c182237c f7742000 f6fd1d5c c11fd31=
-6
-<0> c16ec85c f77420d4 0000001e 00000000 00000000 c1633e78 4f494d4d 6378=
-3020
-<0> 30303038 00303031 f6fd1d3c c10e0786 f6fd1d48 00000000 f6fd1d48 0000=
-0000
-Call Trace:
- [<c1031f51>] ? register_console+0xf6/0x1fc
- [<c11fd316>] ? uart_add_one_port+0x237/0x2bb
- [<c10e0786>] ? sysfs_add_one+0x13/0xd3
- [<c10e142f>] ? sysfs_do_create_link+0xba/0xfc
- [<c146f200>] ? ulite_probe+0x198/0x1eb
- [<c12064ee>] ? platform_drv_probe+0xc/0xe
- [<c120597b>] ? driver_probe_device+0x79/0x105
- [<c1205a8e>] ? __device_attach+0x28/0x30
- [<c120511f>] ? bus_for_each_drv+0x3d/0x67
- [<c1205af9>] ? device_attach+0x44/0x58
- [<c1205a66>] ? __device_attach+0x0/0x30
- [<c1204fb8>] ? bus_probe_device+0x1f/0x34
- [<c1203e68>] ? device_add+0x385/0x4c0
- [<c148491f>] ? _write_unlock+0x8/0x1f
- [<c1206aac>] ? platform_device_add+0xd9/0x11c
- [<c120c685>] ? mfd_add_devices+0x165/0x1bc
- [<f831b378>] ? puffin_probe+0x2d0/0x390 [puffin]
- [<c11a08ef>] ? pci_match_device+0xa0/0xa7
- [<c11a07bc>] ? local_pci_probe+0xe/0x10
- [<c11a11db>] ? pci_device_probe+0x43/0x66
- [<c120597b>] ? driver_probe_device+0x79/0x105
- [<c1205a4a>] ? __driver_attach+0x43/0x5f
- [<c120535d>] ? bus_for_each_dev+0x3d/0x67
- [<c1205852>] ? driver_attach+0x14/0x16
- [<c1205a07>] ? __driver_attach+0x0/0x5f
- [<c1204dea>] ? bus_add_driver+0xf9/0x220
- [<c1205c8f>] ? driver_register+0x8b/0xeb
- [<c11a1518>] ? __pci_register_driver+0x43/0x9f
- [<c10477ef>] ? __blocking_notifier_call_chain+0x40/0x4c
- [<f831f000>] ? puffin_init+0x0/0x48 [puffin]
- [<f831f017>] ? puffin_init+0x17/0x48 [puffin]
- [<c1001139>] ? do_one_initcall+0x4c/0x131
- [<c105607b>] ? sys_init_module+0xa7/0x1b7
- [<c1002a61>] ? syscall_call+0x7/0xb
- Code: 6e 74 00 00 00 92 33 00 00 18 00 0e 01 73 79 6e 63 65 2d 72 65 6=
-7 69 73 74 72 79 0c 00 49 32
-00 00 14 00 09 01 61 6c 73 61 2d 69 <6e> 66 6f 00 00 00 42 37 00 00 10 =
-00 07 01 6b 69 6c 6c 61 6c 6c
-EIP: [<c176720e>] ulite_console_setup+0x6f/0xa8 SS:ESP 0068:f6fd1cd8
-CR2: 0000000000000000
-
-Signed-off-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/uartlite.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/zlib_inflate/inffast.c |   70 +++++++++++++++--------------------
+ 1 file changed, 30 insertions(+), 40 deletions(-)
 
-diff -puN drivers/serial/uartlite.c~uartlite-fix-crash-when-using-as-co=
-nsole drivers/serial/uartlite.c
---- a/drivers/serial/uartlite.c~uartlite-fix-crash-when-using-as-consol=
-e
-+++ a/drivers/serial/uartlite.c
-@@ -394,7 +394,7 @@ static void ulite_console_write(struct c
- 		spin_unlock_irqrestore(&port->lock, flags);
- }
-=20
--static int __init ulite_console_setup(struct console *co, char *option=
-s)
-+static int __devinit ulite_console_setup(struct console *co, char *opt=
-ions)
- {
- 	struct uart_port *port;
- 	int baud =3D 9600;
+diff -puN lib/zlib_inflate/inffast.c~zlib-make-new-optimized-inflate-endian-independent lib/zlib_inflate/inffast.c
+--- a/lib/zlib_inflate/inffast.c~zlib-make-new-optimized-inflate-endian-independent
++++ a/lib/zlib_inflate/inffast.c
+@@ -8,21 +8,6 @@
+ #include "inflate.h"
+ #include "inffast.h"
+ 
+-/* Only do the unaligned "Faster" variant when
+- * CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is set
+- *
+- * On powerpc, it won't be as we don't include autoconf.h
+- * automatically for the boot wrapper, which is intended as
+- * we run in an environment where we may not be able to deal
+- * with (even rare) alignment faults. In addition, we do not
+- * define __KERNEL__ for arch/powerpc/boot unlike x86
+- */
+-
+-#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+-#include <asm/unaligned.h>
+-#include <asm/byteorder.h>
+-#endif
+-
+ #ifndef ASMINF
+ 
+ /* Allow machine dependent optimization for post-increment or pre-increment.
+@@ -36,14 +21,31 @@
+    - Pentium III (Anderson)
+    - M68060 (Nikl)
+  */
++union uu {
++	unsigned short us;
++	unsigned char b[2];
++};
++
++/* Endian independed version */
++static inline unsigned short
++get_unaligned16(const unsigned short *p)
++{
++	union uu  mm;
++	unsigned char *b = (unsigned char *)p;
++
++	mm.b[0] = b[0];
++	mm.b[1] = b[1];
++	return mm.us;
++}
++
+ #ifdef POSTINC
+ #  define OFF 0
+ #  define PUP(a) *(a)++
+-#  define UP_UNALIGNED(a) get_unaligned((a)++)
++#  define UP_UNALIGNED(a) get_unaligned16((a)++)
+ #else
+ #  define OFF 1
+ #  define PUP(a) *++(a)
+-#  define UP_UNALIGNED(a) get_unaligned(++(a))
++#  define UP_UNALIGNED(a) get_unaligned16(++(a))
+ #endif
+ 
+ /*
+@@ -256,7 +258,6 @@ void inflate_fast(z_streamp strm, unsign
+                     }
+                 }
+                 else {
+-#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 		    unsigned short *sout;
+ 		    unsigned long loops;
+ 
+@@ -274,7 +275,11 @@ void inflate_fast(z_streamp strm, unsign
+ 			sfrom = (unsigned short *)(from - OFF);
+ 			loops = len >> 1;
+ 			do
++#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
++			    PUP(sout) = PUP(sfrom);
++#else
+ 			    PUP(sout) = UP_UNALIGNED(sfrom);
++#endif
+ 			while (--loops);
+ 			out = (unsigned char *)sout + OFF;
+ 			from = (unsigned char *)sfrom + OFF;
+@@ -282,14 +287,13 @@ void inflate_fast(z_streamp strm, unsign
+ 			unsigned short pat16;
+ 
+ 			pat16 = *(sout-2+2*OFF);
+-			if (dist == 1)
+-#if defined(__BIG_ENDIAN)
+-			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff) << 8);
+-#elif defined(__LITTLE_ENDIAN)
+-			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00) >> 8);
+-#else
+-#error __BIG_ENDIAN nor __LITTLE_ENDIAN is defined
+-#endif
++			if (dist == 1) {
++				union uu mm;
++				/* copy one char pattern to both bytes */
++				mm.us = pat16;
++				mm.b[0] = mm.b[1];
++				pat16 = mm.us;
++			}
+ 			loops = len >> 1;
+ 			do
+ 			    PUP(sout) = pat16;
+@@ -298,20 +302,6 @@ void inflate_fast(z_streamp strm, unsign
+ 		    }
+ 		    if (len & 1)
+ 			PUP(out) = PUP(from);
+-#else /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
+-                    from = out - dist;          /* copy direct from output */
+-                    do {                        /* minimum length is three */
+-			 PUP(out) = PUP(from);
+-			 PUP(out) = PUP(from);
+-			 PUP(out) = PUP(from);
+-			 len -= 3;
+-                    } while (len > 2);
+-                    if (len) {
+-			 PUP(out) = PUP(from);
+-			 if (len > 1)
+-			     PUP(out) = PUP(from);
+-                    }
+-#endif /* !CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
+                 }
+             }
+             else if ((op & 64) == 0) {          /* 2nd level distance code */
 _
 
-Patches currently in -mm which might be from richard.rojfors@pelagicore=
-=2Ecom are
+Patches currently in -mm which might be from joakim.tjernlund@transmode.se are
 
-linux-next.patch
-uartlite-fix-crash-when-using-as-console.patch
-radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
-timbgpio-add-support-for-interrupt-triggering-on-both-flanks.patch
+zlib-make-new-optimized-inflate-endian-independent.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
