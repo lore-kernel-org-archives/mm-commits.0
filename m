@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch added to -mm tree
-Date: Fri, 29 Jan 2010 16:35:34 -0800
-Message-ID: <201001300035.o0U0ZYOa019115@imap1.linux-foundation.org>
+Subject: + uartlite-fix-crash-when-using-as-console.patch added to -mm tree
+Date: Fri, 29 Jan 2010 16:43:08 -0800
+Message-ID: <201001300043.o0U0h83v019482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755081Ab0A3AgO (ORCPT
+	by vger.kernel.org with ESMTP id S1750899Ab0A3AoQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jan 2010 19:36:14 -0500
+	Fri, 29 Jan 2010 19:44:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton@samba.org, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, peterz@infradead.org, schwidefsky@de.ibm.com, tony.luck@intel.com
+Cc: richard.rojfors@pelagicore.com, alan@lxorguk.ukuu.org.uk, jacmet@sunsite.dk, stable@kernel.org
 
 
 The patch titled
-     sched: cpuacct: use bigger percpu counter batch values for stats counters
+     uartlite: fix crash when using as console
 has been added to the -mm tree.  Its filename is
-     sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
+     uartlite-fix-crash-when-using-as-console.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,117 +29,126 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sched: cpuacct: use bigger percpu counter batch values for stats counters
-From: Anton Blanchard <anton@samba.org>
+Subject: uartlite: fix crash when using as console
+=46rom: Richard R=F6jfors <richard.rojfors@pelagicore.com>
 
-When CONFIG_VIRT_CPU_ACCOUNTING and CONFIG_CGROUP_CPUACCT are enabled we
-can call cpuacct_update_stats with values much larger than
-percpu_counter_batch.  This means the call to percpu_counter_add will
-always add to the global count which is protected by a spinlock and we end
-up with a global spinlock in the scheduler.
+Move the ulite_console_setup to the .devinit section since it might be
+called on probe, which is in devinit.  Fixes the crash below where the
+uartlite hw is probed after the .init section is freed from the kernel.
 
-Based on an idea by KOSAKI Motohiro, this patch scales the batch value by
-cputime_one_jiffy such that we have the same batch limit as we would if
-CONFIG_VIRT_CPU_ACCOUNTING was disabled.  His patch did this once at boot
-but that initialisation happened too early on PowerPC (before time_init)
-and it was never updated at runtime as a result of a hotplug cpu
-add/remove.
+uartlite: ttyUL0 at MMIO 0xc8000100 (irq =3D 30) is a uartlite
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [<c176720e>] ulite_console_setup+0x6f/0xa8
+*pdpt =3D 0000000036fb0001 *pde =3D 0000000000000000
+Oops: 0000 [#1] PREEMPT SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1f.1/host0/uevent
+Modules linked in: puffin(+) serio_raw
 
-This patch instead scales percpu_counter_batch by cputime_one_jiffy at
-runtime, which keeps the batch correct even after cpu hotplug operations. 
-We cap it at INT_MAX in case of overflow.
+Pid: 151, comm: modprobe Not tainted (2.6.31.5-1.0.b1-b1 #1) POULSBO
+EIP: 0060:[<c176720e>] EFLAGS: 00010246 CPU: 0
+EIP is at ulite_console_setup+0x6f/0xa8
+EAX: c16ec824 EBX: c16ec824 ECX: c176719f EDX: 00000000
+ESI: 00000000 EDI: c17b42c4 EBP: f6fd1cf0 ESP: f6fd1cd8
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 151, ti=3Df6fd0000 task=3Df6fa1020 task.ti=3Df6f=
+d0000)
+Stack:
+ c1031f51 00000000 00000000 00000246 c182237c f7742000 f6fd1d5c c11fd31=
+6
+<0> c16ec85c f77420d4 0000001e 00000000 00000000 c1633e78 4f494d4d 6378=
+3020
+<0> 30303038 00303031 f6fd1d3c c10e0786 f6fd1d48 00000000 f6fd1d48 0000=
+0000
+Call Trace:
+ [<c1031f51>] ? register_console+0xf6/0x1fc
+ [<c11fd316>] ? uart_add_one_port+0x237/0x2bb
+ [<c10e0786>] ? sysfs_add_one+0x13/0xd3
+ [<c10e142f>] ? sysfs_do_create_link+0xba/0xfc
+ [<c146f200>] ? ulite_probe+0x198/0x1eb
+ [<c12064ee>] ? platform_drv_probe+0xc/0xe
+ [<c120597b>] ? driver_probe_device+0x79/0x105
+ [<c1205a8e>] ? __device_attach+0x28/0x30
+ [<c120511f>] ? bus_for_each_drv+0x3d/0x67
+ [<c1205af9>] ? device_attach+0x44/0x58
+ [<c1205a66>] ? __device_attach+0x0/0x30
+ [<c1204fb8>] ? bus_probe_device+0x1f/0x34
+ [<c1203e68>] ? device_add+0x385/0x4c0
+ [<c148491f>] ? _write_unlock+0x8/0x1f
+ [<c1206aac>] ? platform_device_add+0xd9/0x11c
+ [<c120c685>] ? mfd_add_devices+0x165/0x1bc
+ [<f831b378>] ? puffin_probe+0x2d0/0x390 [puffin]
+ [<c11a08ef>] ? pci_match_device+0xa0/0xa7
+ [<c11a07bc>] ? local_pci_probe+0xe/0x10
+ [<c11a11db>] ? pci_device_probe+0x43/0x66
+ [<c120597b>] ? driver_probe_device+0x79/0x105
+ [<c1205a4a>] ? __driver_attach+0x43/0x5f
+ [<c120535d>] ? bus_for_each_dev+0x3d/0x67
+ [<c1205852>] ? driver_attach+0x14/0x16
+ [<c1205a07>] ? __driver_attach+0x0/0x5f
+ [<c1204dea>] ? bus_add_driver+0xf9/0x220
+ [<c1205c8f>] ? driver_register+0x8b/0xeb
+ [<c11a1518>] ? __pci_register_driver+0x43/0x9f
+ [<c10477ef>] ? __blocking_notifier_call_chain+0x40/0x4c
+ [<f831f000>] ? puffin_init+0x0/0x48 [puffin]
+ [<f831f017>] ? puffin_init+0x17/0x48 [puffin]
+ [<c1001139>] ? do_one_initcall+0x4c/0x131
+ [<c105607b>] ? sys_init_module+0xa7/0x1b7
+ [<c1002a61>] ? syscall_call+0x7/0xb
+ Code: 6e 74 00 00 00 92 33 00 00 18 00 0e 01 73 79 6e 63 65 2d 72 65 6=
+7 69 73 74 72 79 0c 00 49 32
+00 00 14 00 09 01 61 6c 73 61 2d 69 <6e> 66 6f 00 00 00 42 37 00 00 10 =
+00 07 01 6b 69 6c 6c 61 6c 6c
+EIP: [<c176720e>] ulite_console_setup+0x6f/0xa8 SS:ESP 0068:f6fd1cd8
+CR2: 0000000000000000
 
-For architectures that do not support CONFIG_VIRT_CPU_ACCOUNTING,
-cputime_one_jiffy is the constant 1 and gcc is smart enough to optimise
-min(s32 percpu_counter_batch, INT_MAX) to just percpu_counter_batch at
-least on x86 and PowerPC.  So there is no need to add an #ifdef.
-
-On a 64 thread PowerPC box with CONFIG_VIRT_CPU_ACCOUNTING and
-CONFIG_CGROUP_CPUACCT enabled, a context switch microbenchmark is 234x
-faster and almost matches a CONFIG_CGROUP_CPUACCT disabled kernel:
-
-CONFIG_CGROUP_CPUACCT disabled:		16906698 ctx switches/sec
-CONFIG_CGROUP_CPUACCT enabled:		   61720 ctx switches/sec
-CONFIG_CGROUP_CPUACCT + patch:		16663217 ctx switches/sec
-
-Tested with:
-
-wget http://ozlabs.org/~anton/junkcode/context_switch.c
-make context_switch
-for i in `seq 0 63`; do taskset -c $i ./context_switch & done
-vmstat 1
-
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/serial/uartlite.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters kernel/sched.c
---- a/kernel/sched.c~sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters
-+++ a/kernel/sched.c
-@@ -10898,12 +10898,30 @@ static void cpuacct_charge(struct task_s
+diff -puN drivers/serial/uartlite.c~uartlite-fix-crash-when-using-as-co=
+nsole drivers/serial/uartlite.c
+--- a/drivers/serial/uartlite.c~uartlite-fix-crash-when-using-as-consol=
+e
++++ a/drivers/serial/uartlite.c
+@@ -394,7 +394,7 @@ static void ulite_console_write(struct c
+ 		spin_unlock_irqrestore(&port->lock, flags);
  }
- 
- /*
-+ * When CONFIG_VIRT_CPU_ACCOUNTING is enabled one jiffy can be very large
-+ * in cputime_t units. As a result, cpuacct_update_stats calls
-+ * percpu_counter_add with values large enough to always overflow the
-+ * per cpu batch limit causing bad SMP scalability.
-+ *
-+ * To fix this we scale percpu_counter_batch by cputime_one_jiffy so we
-+ * batch the same amount of time with CONFIG_VIRT_CPU_ACCOUNTING disabled
-+ * and enabled. We cap it at INT_MAX which is the largest allowed batch value.
-+ */
-+#ifdef CONFIG_SMP
-+#define CPUACCT_BATCH	\
-+	min_t(long, percpu_counter_batch * cputime_one_jiffy, INT_MAX)
-+#else
-+#define CPUACCT_BATCH	0
-+#endif
-+
-+/*
-  * Charge the system/user time to the task's accounting group.
-  */
- static void cpuacct_update_stats(struct task_struct *tsk,
- 		enum cpuacct_stat_index idx, cputime_t val)
+=20
+-static int __init ulite_console_setup(struct console *co, char *option=
+s)
++static int __devinit ulite_console_setup(struct console *co, char *opt=
+ions)
  {
- 	struct cpuacct *ca;
-+	int batch = CPUACCT_BATCH;
- 
- 	if (unlikely(!cpuacct_subsys.active))
- 		return;
-@@ -10912,7 +10930,7 @@ static void cpuacct_update_stats(struct 
- 	ca = task_ca(tsk);
- 
- 	do {
--		percpu_counter_add(&ca->cpustat[idx], val);
-+		__percpu_counter_add(&ca->cpustat[idx], val, batch);
- 		ca = ca->parent;
- 	} while (ca);
- 	rcu_read_unlock();
+ 	struct uart_port *port;
+ 	int baud =3D 9600;
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from richard.rojfors@pelagicore=
+=2Ecom are
 
-origin.patch
-percpu_counter-make-__percpu_counter_add-an-inline-function-on-up.patch
-sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
-zlib-make-new-optimized-inflate-endian-independent.patch
+linux-next.patch
+uartlite-fix-crash-when-using-as-console.patch
+radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
+timbgpio-add-support-for-interrupt-triggering-on-both-flanks.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
