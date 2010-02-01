@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:21:05 -0800
-Message-ID: <201002012021.o11KL5pS010144@imap1.linux-foundation.org>
+Subject: + lpfc-positive-error-return-into-negative.patch added to -mm tree
+Date: Mon, 01 Feb 2010 12:21:52 -0800
+Message-ID: <201002012021.o11KLqkt010176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756049Ab0BAUVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:21:39 -0500
+	by vger.kernel.org with ESMTP id S1756015Ab0BAUW1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:22:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, james.smart@emulex.com
 
 
 The patch titled
-     mISDN: positive error return should be negative in mode_hfcmulti()
+     lpfc: positive error return into negative
 has been added to the -mm tree.  Its filename is
-     misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch
+     lpfc-positive-error-return-into-negative.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: positive error return should be negative in mode_hfcmulti()
+Subject: lpfc: positive error return into negative
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The error return should be negative.  Its only caller that acts upon its
-return, handle_bmsg(), transmits the positive error but can also return
-negative errors.
+In the comment on top of lpfc_sli_hbq_setup() and of its caller which
+transmits this error, lpfc_sli_hba_setup(), it is stated that the function
+should return a negative error code.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Acked-by: James Smart <james.smart@emulex.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/hfcmulti.c |    2 +-
+ drivers/scsi/lpfc/lpfc_sli.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-positive-error-return-should-be-negative-in-mode_hfcmulti drivers/isdn/hardware/mISDN/hfcmulti.c
---- a/drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-positive-error-return-should-be-negative-in-mode_hfcmulti
-+++ a/drivers/isdn/hardware/mISDN/hfcmulti.c
-@@ -2846,7 +2846,7 @@ mode_hfcmulti(struct hfc_multi *hc, int 
- 	int conf;
+diff -puN drivers/scsi/lpfc/lpfc_sli.c~lpfc-positive-error-return-into-negative drivers/scsi/lpfc/lpfc_sli.c
+--- a/drivers/scsi/lpfc/lpfc_sli.c~lpfc-positive-error-return-into-negative
++++ a/drivers/scsi/lpfc/lpfc_sli.c
+@@ -3709,7 +3709,7 @@ lpfc_sli_hbq_setup(struct lpfc_hba *phba
  
- 	if (ch < 0 || ch > 31)
--		return EINVAL;
-+		return -EINVAL;
- 	oslot_tx = hc->chan[ch].slot_tx;
- 	oslot_rx = hc->chan[ch].slot_rx;
- 	conf = hc->chan[ch].conf;
+ 			phba->link_state = LPFC_HBA_ERROR;
+ 			mempool_free(pmb, phba->mbox_mem_pool);
+-			return ENXIO;
++			return -ENXIO;
+ 		}
+ 	}
+ 	phba->hbq_count = hbq_count;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -87,6 +88,8 @@ scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
 dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
 mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
 lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
+lpfc-positive-error-return-into-negative.patch
+qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
 paride-fix-off-by-one-test.patch
 musb-test-always-evaluates-to-false.patch
 frv-duplicate-output_buffer-of-e03.patch
@@ -95,6 +98,4 @@ cryptocop-fix-assertion-in-create_output_descriptors.patch
 cris-v32-typo-in-crisv32_arbiter_unwatch.patch
 asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 w1-fix-test-in-ds2482_wait_1wire_idle.patch
-lpfc-positive-error-return-into-negative.patch
-qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
 
