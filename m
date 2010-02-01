@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lpfc-positive-error-return-into-negative.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:21:52 -0800
-Message-ID: <201002012021.o11KLqkt010176@imap1.linux-foundation.org>
+Subject: + qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch added to -mm tree
+Date: Mon, 01 Feb 2010 12:22:19 -0800
+Message-ID: <201002012022.o11KMJbS010189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756015Ab0BAUW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:22:27 -0500
+	by vger.kernel.org with ESMTP id S1755925Ab0BAUWv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:22:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, james.smart@emulex.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     lpfc: positive error return into negative
+     qla2xxx: negative error return in qla2x00_change_queue_depth()
 has been added to the -mm tree.  Its filename is
-     lpfc-positive-error-return-into-negative.patch
+     qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lpfc: positive error return into negative
+Subject: qla2xxx: negative error return in qla2x00_change_queue_depth()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-In the comment on top of lpfc_sli_hbq_setup() and of its caller which
-transmits this error, lpfc_sli_hba_setup(), it is stated that the function
-should return a negative error code.
+The *change_queue_depth functions usually return a negative error return.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: James Smart <james.smart@emulex.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_sli.c |    2 +-
+ drivers/scsi/qla2xxx/qla_os.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_sli.c~lpfc-positive-error-return-into-negative drivers/scsi/lpfc/lpfc_sli.c
---- a/drivers/scsi/lpfc/lpfc_sli.c~lpfc-positive-error-return-into-negative
-+++ a/drivers/scsi/lpfc/lpfc_sli.c
-@@ -3709,7 +3709,7 @@ lpfc_sli_hbq_setup(struct lpfc_hba *phba
- 
- 			phba->link_state = LPFC_HBA_ERROR;
- 			mempool_free(pmb, phba->mbox_mem_pool);
--			return ENXIO;
-+			return -ENXIO;
- 		}
+diff -puN drivers/scsi/qla2xxx/qla_os.c~qla2xxx-negative-error-return-in-qla2x00_change_queue_depth drivers/scsi/qla2xxx/qla_os.c
+--- a/drivers/scsi/qla2xxx/qla_os.c~qla2xxx-negative-error-return-in-qla2x00_change_queue_depth
++++ a/drivers/scsi/qla2xxx/qla_os.c
+@@ -1258,7 +1258,7 @@ qla2x00_change_queue_depth(struct scsi_d
+ 		qla2x00_adjust_sdev_qdepth_up(sdev, qdepth);
+ 		break;
+ 	default:
+-		return EOPNOTSUPP;
++		return -EOPNOTSUPP;
  	}
- 	phba->hbq_count = hbq_count;
+ 
+ 	return sdev->queue_depth;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
