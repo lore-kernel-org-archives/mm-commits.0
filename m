@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atm-use-for_each_set_bit.patch added to -mm tree
-Date: Mon, 01 Feb 2010 14:26:21 -0800
-Message-ID: <201002012226.o11MQLbg016328@imap1.linux-foundation.org>
+Subject: + sched-use-for_each_set_bit.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:26:27 -0800
+Message-ID: <201002012226.o11MQRPi016332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754462Ab0BAW1G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:27:06 -0500
+	by vger.kernel.org with ESMTP id S1754534Ab0BAW1J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:27:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, chas@cmf.nrl.navy.mil
+Cc: akinobu.mita@gmail.com, mingo@elte.hu, peterz@infradead.org
 
 
 The patch titled
-     atm: use for_each_set_bit()
+     sched: use for_each_set_bit()
 has been added to the -mm tree.  Its filename is
-     atm-use-for_each_set_bit.patch
+     sched-use-for_each_set_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atm: use for_each_set_bit()
+Subject: sched: use for_each_set_bit()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Replace open-coded loop with for_each_set_bit().
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/lanai.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/sched_cpupri.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/atm/lanai.c~atm-use-for_each_set_bit drivers/atm/lanai.c
---- a/drivers/atm/lanai.c~atm-use-for_each_set_bit
-+++ a/drivers/atm/lanai.c
-@@ -306,11 +306,10 @@ static void vci_bitfield_iterate(struct 
- 	const unsigned long *lp,
- 	void (*func)(struct lanai_dev *,vci_t vci))
- {
--	vci_t vci = find_first_bit(lp, NUM_VCI);
--	while (vci < NUM_VCI) {
-+	vci_t vci;
-+
-+	for_each_set_bit(vci, lp, NUM_VCI)
- 		func(lanai, vci);
--		vci = find_next_bit(lp, NUM_VCI, vci + 1);
--	}
+diff -puN kernel/sched_cpupri.c~sched-use-for_each_set_bit kernel/sched_cpupri.c
+--- a/kernel/sched_cpupri.c~sched-use-for_each_set_bit
++++ a/kernel/sched_cpupri.c
+@@ -47,9 +47,7 @@ static int convert_prio(int prio)
  }
  
- /* -------------------- BUFFER  UTILITIES: */
+ #define for_each_cpupri_active(array, idx)                    \
+-  for (idx = find_first_bit(array, CPUPRI_NR_PRIORITIES);     \
+-       idx < CPUPRI_NR_PRIORITIES;                            \
+-       idx = find_next_bit(array, CPUPRI_NR_PRIORITIES, idx+1))
++	for_each_set_bit(idx, array, CPUPRI_NR_PRIORITIES)
+ 
+ /**
+  * cpupri_find - find the best (lowest-pri) CPU in the system
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
