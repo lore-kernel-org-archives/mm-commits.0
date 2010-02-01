@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch added to -mm tree
-Date: Mon, 01 Feb 2010 15:29:46 -0800
-Message-ID: <201002012355.o11NtCGY020437@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch added to -mm tree
+Date: Mon, 01 Feb 2010 15:31:14 -0800
+Message-ID: <201002012356.o11NuebE020469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754396Ab0BAXzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:55:15 -0500
+	by vger.kernel.org with ESMTP id S1754432Ab0BAX5B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:57:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, jglisse@redhat.com
 
 
 The patch titled
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix
+     drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+     drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,28 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix
+Subject: drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+drivers/gpu/drm/radeon/radeon_agp.c: In function 'radeon_agp_init':
+drivers/gpu/drm/radeon/radeon_agp.c:137: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alex Deucher <alexdeucher@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/max8925-core.c |    2 +-
+ drivers/gpu/drm/radeon/radeon_agp.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix drivers/mfd/max8925-core.c
---- a/drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix
-+++ a/drivers/mfd/max8925-core.c
-@@ -235,7 +235,7 @@ static irqreturn_t max8925_irq_thread(in
- 		goto out;
- 	}
+diff -puN drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning drivers/gpu/drm/radeon/radeon_agp.c
+--- a/drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning
++++ a/drivers/gpu/drm/radeon/radeon_agp.c
+@@ -134,7 +134,7 @@ int radeon_agp_init(struct radeon_device
+ 	int ret;
  
--	for_each_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
-+	for_each_set_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
- 		clear_bit(i, irq_status);
- 		dev_dbg(chip->dev, "Servicing IRQ #%d in %s\n", i, chip->name);
- 
+ 	if (rdev->ddev->agp->agp_info.aper_size < 32) {
+-		dev_warn(rdev->dev, "AGP aperture to small (%dM) "
++		dev_warn(rdev->dev, "AGP aperture to small (%zdM) "
+ 			"need at least 32M, disabling AGP\n",
+ 			rdev->ddev->agp->agp_info.aper_size);
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +77,7 @@ ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
 pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
 cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
 drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
 radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
