@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-randomc-fix-unused-var-warning.patch added to -mm tree
-Date: Mon, 01 Feb 2010 15:16:33 -0800
-Message-ID: <201002012341.o11NfxFZ019821@imap1.linux-foundation.org>
+Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch added to -mm tree
+Date: Mon, 01 Feb 2010 15:29:46 -0800
+Message-ID: <201002012355.o11NtCGY020437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752790Ab0BAXmj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:42:39 -0500
+	by vger.kernel.org with ESMTP id S1754396Ab0BAXzP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:55:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, mpm@selenic.com
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com
 
 
 The patch titled
-     drivers/char/random.c: fix unused var warning
+     bitops-rename-for_each_bit-to-for_each_set_bit-fix
 has been added to the -mm tree.  Its filename is
-     drivers-char-randomc-fix-unused-var-warning.patch
+     bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/random.c: fix unused var warning
+Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair
-
-: commit b9b06a1fda275559492f8b083927fde4cec641dc
-: Author:     Herbert Xu <herbert@gondor.apana.org.au>
-: AuthorDate: Fri Jan 29 21:50:36 2010 +1300
-: Commit:     Herbert Xu <herbert@gondor.apana.org.au>
-: CommitDate: Fri Jan 29 21:50:36 2010 +1300
-: 
-:     random: drop weird m_time/a_time manipulation
-    
-
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mfd/max8925-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning
-+++ a/drivers/char/random.c
-@@ -1101,7 +1101,6 @@ static ssize_t random_write(struct file 
- 			    size_t count, loff_t *ppos)
- {
- 	size_t ret;
--	struct inode *inode = file->f_path.dentry->d_inode;
+diff -puN drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix drivers/mfd/max8925-core.c
+--- a/drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix
++++ a/drivers/mfd/max8925-core.c
+@@ -235,7 +235,7 @@ static irqreturn_t max8925_irq_thread(in
+ 		goto out;
+ 	}
  
- 	ret = write_pool(&blocking_pool, buffer, count);
- 	if (ret)
+-	for_each_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
++	for_each_set_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
+ 		clear_bit(i, irq_status);
+ 		dev_dbg(chip->dev, "Servicing IRQ #%d in %s\n", i, chip->name);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +67,7 @@ drivers-media-video-cx23885-needs-kfifo-conversion.patch
 drivers-char-randomc-fix-unused-var-warning.patch
 memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
 ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
 pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
 cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
