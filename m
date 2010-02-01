@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:22:19 -0800
-Message-ID: <201002012022.o11KMJbS010189@imap1.linux-foundation.org>
+Subject: + ricoh_mmc-port-from-driver-to-pci-quirk-update.patch added to -mm tree
+Date: Mon, 01 Feb 2010 12:24:37 -0800
+Message-ID: <201002012024.o11KObAY010344__42206.4616847367$1265055961$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755925Ab0BAUWv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:22:51 -0500
+	by vger.kernel.org with ESMTP id S1754821Ab0BAUZs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:25:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com
+Cc: maximlevitsky@gmail.com, linux-mmc@vger.kernel.org, philipl@overt.org, w.sang@pengutronix.de
 
 
 The patch titled
-     qla2xxx: negative error return in qla2x00_change_queue_depth()
+     ricoh_mmc-port-from-driver-to-pci-quirk-update
 has been added to the -mm tree.  Its filename is
-     qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
+     ricoh_mmc-port-from-driver-to-pci-quirk-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qla2xxx: negative error return in qla2x00_change_queue_depth()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ricoh_mmc-port-from-driver-to-pci-quirk-update
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-The *change_queue_depth functions usually return a negative error return.
+This patch solves nasty problem original driver had.
+Original goal of the ricoh_mmc, was to disable this device because
+then, mmc cards can be read using standard SDHCI controller,
+thus avoiding the need in yet another driver.
+However, the act of disablement, makes other pci functions that belong to
+this controller (xD and memstick) shift up one level, thus pci core has now wrong idea
+about these devices.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+To fix this issue, this patch moves the driver into pci quirk section, thus it
+is executed before the pci is enumerated, and therefore solve that issue,
+also the same is preformed on resume for same reasons.
+
+Also regardless of the above, this way is cleaner.
+
+You still need to set CONFIG_MMC_RICOH_MMC
+to enable this quirk
+
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Philip Langdale <philipl@overt.org>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_os.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/quirks.c |   53 +++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 30 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_os.c~qla2xxx-negative-error-return-in-qla2x00_change_queue_depth drivers/scsi/qla2xxx/qla_os.c
---- a/drivers/scsi/qla2xxx/qla_os.c~qla2xxx-negative-error-return-in-qla2x00_change_queue_depth
-+++ a/drivers/scsi/qla2xxx/qla_os.c
-@@ -1258,7 +1258,7 @@ qla2x00_change_queue_depth(struct scsi_d
- 		qla2x00_adjust_sdev_qdepth_up(sdev, qdepth);
- 		break;
- 	default:
--		return EOPNOTSUPP;
-+		return -EOPNOTSUPP;
- 	}
+diff -puN drivers/pci/quirks.c~ricoh_mmc-port-from-driver-to-pci-quirk-update drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~ricoh_mmc-port-from-driver-to-pci-quirk-update
++++ a/drivers/pci/quirks.c
+@@ -2516,27 +2516,30 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+ #endif	/* CONFIG_PCI_IOV */
  
- 	return sdev->queue_depth;
-_
-
-Patches currently in -mm which might be from roel.kluin@gmail.com are
-
-linux-next.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
-thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit.patch
-gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
-dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch
-ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
-mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
-mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
-lpfc-positive-error-return-into-negative.patch
-qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
-paride-fix-off-by-one-test.patch
-musb-test-always-evaluates-to-false.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-cris-v32-typo-in-crisv32_arbiter_unwatch.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
-
+ /*
+- * This is a quirk for Ricoh MMC controller found as a part of
+- * mulifunction chip.
++ * This is a quirk for the Ricoh MMC controller found as a part of
++ * some mulifunction chips.
+ 
+- * This is very similiar and based on ricoh_mmc driver
+- * written by Philip Langdale. Thank you for these magic sequencies.
+-
+- * These chips implement the four main memory card
+- * controllers (SD, MMC, MS, xD) and one or both
+- * of cardbus or firewire. It happens that they implement SD and MMC
++ * This is very similiar and based on the ricoh_mmc driver written by
++ * Philip Langdale. Thank you for these magic sequences.
++ *
++ * These chips implement the four main memory card controllers (SD, MMC, MS, xD)
++ * and one or both of cardbus or firewire.
++ *
++ * It happens that they implement SD and MMC
+  * support as separate controllers (and PCI functions). The linux SDHCI
+  * driver supports MMC cards but the chip detects MMC cards in hardware
+  * and directs them to the MMC controller - so the SDHCI driver never sees
+- * them. To get around this, we must disable the useless MMC controller.
++ * them.
++ *
++ * To get around this, we must disable the useless MMC controller.
+  * At that point, the SDHCI controller will start seeing them
+  * It seems to be the case that the relevant PCI registers to deactivate the
+  * MMC controller live on PCI function 0, which might be the cardbus controller
+  * or the firewire controller, depending on the particular chip in question
+-
++ *
+  * This has to be done early, because as soon as we disable the MMC controller
+- * other pci functions shift up one level, e.g. function #2 becames function
+- * #1, and therefore is confusing the pci core.
++ * other pci functions shift up one level, e.g. function #2 becomes function
++ * #1, and this will confuse the pci core.
+  */
+ 
+ #ifdef CONFIG_MMC_RICOH_MMC
+@@ -2563,9 +2566,11 @@ static void ricoh_mmc_fixup_rl5c476(stru
+ 	pci_write_config_byte(dev, 0x8E, write_enable);
+ 	pci_write_config_byte(dev, 0x8D, write_target);
+ 
+-	printk(KERN_NOTICE "pci: Ricoh MMC controller disabled\n");
+-	printk(KERN_NOTICE "pci: mmc cards will be supported through SDHCI\n");
++	dev_notice(&dev->dev, "proprietary Ricoh MMC controller disabled (via cardbus function)\n");
++	dev_notice(&dev->dev, "MMC cards are now supported by standard SDHCI controller\n");
+ }
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476, ricoh_mmc_fixup_rl5c476);
++DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476, ricoh_mmc_fixup_rl5c476);
+ 
+ static void ricoh_mmc_fixup_r5c832(struct pci_dev *dev)
+ {
+@@ -2587,23 +2592,11 @@ static void ricoh_mmc_fixup_r5c832(struc
+ 	pci_write_config_byte(dev, 0xCB, disable | 0x02);
+ 	pci_write_config_byte(dev, 0xCA, write_enable);
+ 
+-	printk(KERN_NOTICE "pci: Ricoh MMC controller disabled\n");
+-	printk(KERN_NOTICE "pci: mmc cards will be supported through SDHCI\n");
++	dev_notice(&dev->dev, "proprietary Ricoh MMC controller disabled (via firewire function)\n");
++	dev_notice(&dev->dev, "MMC cards are now supported by standard SDHCI controller\n");
+ }
+-
+-DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476,
+-	ricoh_mmc_fixup_rl5c476);
+-
+-DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476,
+-	ricoh_mmc_fixup_rl5c476);
+-
+-
+-DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_R5C832,
+-	ricoh_mmc_fixup_r5c832);
+-
+-DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_R5C832,
+-	ricoh_mmc_fixup_r5c832);
