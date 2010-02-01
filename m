@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pcmcia-yenta_socketc-ene-cb712-cardbus-bridge-needs-special-treatment-with-echo-audio-indigo-soundcards.patch added to -mm tree
-Date: Mon, 01 Feb 2010 13:29:22 -0800
-Message-ID: <201002012129.o11LTM4Y013529@imap1.linux-foundation.org>
+Subject: + memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch added to -mm tree
+Date: Mon, 01 Feb 2010 13:55:25 -0800
+Message-ID: <201002012155.o11LtPRf014804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36352 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754806Ab0BAV3a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 16:29:30 -0500
+	by vger.kernel.org with ESMTP id S1752442Ab0BAV5K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 16:57:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michal.pecio@gmail.com, daniel.ritz@gmx.ch, linux@dominikbrodowski.net
+Cc: akpm@linux-foundation.org, ak@linux.intel.com, fengguang.wu@intel.com, haicheng.li@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, shaohui.zheng@intel.com, tglx@linutronix.de
 
 
 The patch titled
-     drivers/pcmcia/yenta_socket.c: ENE CB712 CardBus bridge needs special treatment with Echo Audio Indigo soundcards
+     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
 has been added to the -mm tree.  Its filename is
-     drivers-pcmcia-yenta_socketc-ene-cb712-cardbus-bridge-needs-special-treatment-with-echo-audio-indigo-soundcards.patch
+     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pcmcia/yenta_socket.c: ENE CB712 CardBus bridge needs special treatment with Echo Audio Indigo soundcards
-From: Michal Pecio <michal.pecio@gmail.com>
+Subject: memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Indigos are well known for distortions when running on some buggy ENE
-controllers.  There is a workaround in the yenta driver, but for some
-reason it isn't activated on CB712.  However, I own a laptop with such
-chip and it seems that it also is affected - I can clearly hear occasional
-cracks, especially under heavy network load, and in Windows XP the card is
-completely unusable.
+simplify comment
 
-This simple change fixed things for me.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=15191
-
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Haicheng <haicheng.li@intel.com>
+Cc: Shaohui Zheng <shaohui.zheng@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/yenta_socket.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/init_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pcmcia/yenta_socket.c~drivers-pcmcia-yenta_socketc-ene-cb712-cardbus-bridge-needs-special-treatment-with-echo-audio-indigo-soundcards drivers/pcmcia/yenta_socket.c
---- a/drivers/pcmcia/yenta_socket.c~drivers-pcmcia-yenta_socketc-ene-cb712-cardbus-bridge-needs-special-treatment-with-echo-audio-indigo-soundcards
-+++ a/drivers/pcmcia/yenta_socket.c
-@@ -1408,7 +1408,7 @@ static struct pci_device_id yenta_table[
- 	CB_ID(PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_7610, TI12XX),
- 
- 	CB_ID(PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_710, TI12XX),
--	CB_ID(PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_712, TI12XX),
-+	CB_ID(PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_712, ENE),
- 	CB_ID(PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_720, TI12XX),
- 	CB_ID(PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_722, TI12XX),
- 	CB_ID(PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_1211, ENE),
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
++++ a/arch/x86/mm/init_64.c
+@@ -617,8 +617,8 @@ void __init paging_init(void)
+  */
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+- * After memory hotplug, the variables max_pfn, max_low_pfn and high_memory will
+- * be affected, they will be updated in this function.
++ * After memory hotplug the variables max_pfn, max_low_pfn and high_memory need
++ * updating.
+  */
+ static void  update_end_of_memory_vars(u64 start, u64 size)
+ {
 _
 
-Patches currently in -mm which might be from michal.pecio@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-pcmcia-yenta_socketc-ene-cb712-cardbus-bridge-needs-special-treatment-with-echo-audio-indigo-soundcards.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+resources-introduce-generic-page_is_ram-fix.patch
+lib-more-scalable-list_sort-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
