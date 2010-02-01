@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch added to -mm tree
-Date: Mon, 01 Feb 2010 15:50:44 -0800
-Message-ID: <201002020016.o120GAYR021335@imap1.linux-foundation.org>
+Subject: + drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch added to -mm tree
+Date: Mon, 01 Feb 2010 15:52:07 -0800
+Message-ID: <201002020017.o120HXmL021378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752827Ab0BBAQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 19:16:37 -0500
+	by vger.kernel.org with ESMTP id S1752827Ab0BBARx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 19:17:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, manu@linuxtv.org, mchehab@redhat.com
 
 
 The patch titled
-     drivers/media/dvb/frontends/stv090x.c: fix use-uninitialised
+     drivers/media/dvb/frontends/stv090x.c: fix use-uninitlalised
 has been added to the -mm tree.  Its filename is
-     drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
+     drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/frontends/stv090x.c: fix use-uninitialised
+Subject: drivers/media/dvb/frontends/stv090x.c: fix use-uninitlalised
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/dvb/frontends/stv090x.c: In function 'stv090x_blind_search':
-drivers/media/dvb/frontends/stv090x.c:1967: warning: 'coarse_fail' may be used uninitialized in this function
+Mad guess.
 
 Cc: Manu Abraham <manu@linuxtv.org>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/stv090x.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/dvb/frontends/stv090x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised drivers/media/dvb/frontends/stv090x.c
---- a/drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised
+diff -puN drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised drivers/media/dvb/frontends/stv090x.c
+--- a/drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised
 +++ a/drivers/media/dvb/frontends/stv090x.c
-@@ -1964,7 +1964,8 @@ static int stv090x_blind_search(struct s
- 	u32 agc2, reg, srate_coarse;
- 	s32 cpt_fail, agc2_ovflw, i;
- 	u8 k_ref, k_max, k_min;
--	int coarse_fail, lock;
-+	int coarse_fail = 0;
-+	int lock;
+@@ -2047,7 +2047,7 @@ static int stv090x_chk_tmg(struct stv090
+ 	u32 reg;
+ 	s32 tmg_cpt = 0, i;
+ 	u8 freq, tmg_thh, tmg_thl;
+-	int tmg_lock;
++	int tmg_lock = 0;
  
- 	k_max = 110;
- 	k_min = 10;
+ 	freq = STV090x_READ_DEMOD(state, CARFREQ);
+ 	tmg_thh = STV090x_READ_DEMOD(state, TMGTHRISE);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +79,7 @@ drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
 radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
 drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
 3x59x-fix-pci-resource-management.patch
@@ -116,5 +115,5 @@ put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
 
