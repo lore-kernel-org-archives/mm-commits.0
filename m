@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch added to -mm tree
-Date: Mon, 01 Feb 2010 15:31:14 -0800
-Message-ID: <201002012356.o11NuebE020469@imap1.linux-foundation.org>
+Subject: + broadsheetfb-support-storing-waveform-fix.patch added to -mm tree
+Date: Mon, 01 Feb 2010 15:47:36 -0800
+Message-ID: <201002020013.o120D2HO021183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754432Ab0BAX5B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:57:01 -0500
+	by vger.kernel.org with ESMTP id S1752973Ab0BBANT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 19:13:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, jglisse@redhat.com
+Cc: akpm@linux-foundation.org, geert@linux-m68k.org, jayakumar.lkml@gmail.com, krzysztof.h1@wp.pl
 
 
 The patch titled
-     drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
+     broadsheetfb-support-storing-waveform-fix
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
+     broadsheetfb-support-storing-waveform-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
+Subject: broadsheetfb-support-storing-waveform-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/gpu/drm/radeon/radeon_agp.c: In function 'radeon_agp_init':
-drivers/gpu/drm/radeon/radeon_agp.c:137: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+drivers/video/broadsheetfb.c:766: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
 
-Cc: David Airlie <airlied@linux.ie>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Alex Deucher <alexdeucher@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/radeon_agp.c |    2 +-
+ drivers/video/broadsheetfb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning drivers/gpu/drm/radeon/radeon_agp.c
---- a/drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning
-+++ a/drivers/gpu/drm/radeon/radeon_agp.c
-@@ -134,7 +134,7 @@ int radeon_agp_init(struct radeon_device
- 	int ret;
+diff -puN drivers/video/broadsheetfb.c~broadsheetfb-support-storing-waveform-fix drivers/video/broadsheetfb.c
+--- a/drivers/video/broadsheetfb.c~broadsheetfb-support-storing-waveform-fix
++++ a/drivers/video/broadsheetfb.c
+@@ -763,7 +763,7 @@ static ssize_t broadsheet_loadstore_wave
+ 		goto err_failed;
+ 	}
  
- 	if (rdev->ddev->agp->agp_info.aper_size < 32) {
--		dev_warn(rdev->dev, "AGP aperture to small (%dM) "
-+		dev_warn(rdev->dev, "AGP aperture to small (%zdM) "
- 			"need at least 32M, disabling AGP\n",
- 			rdev->ddev->agp->agp_info.aper_size);
- 		return -EINVAL;
+-	dev_info(dev, "Stored broadsheet waveform, size %d\n", fw_entry->size);
++	dev_info(dev, "Stored broadsheet waveform, size %zd\n", fw_entry->size);
+ 
+ 	return len;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +100,7 @@ resources-introduce-generic-page_is_ram-fix.patch
 panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix.patch
 lib-more-scalable-list_sort-fix.patch
 mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
