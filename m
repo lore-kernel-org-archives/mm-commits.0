@@ -1,94 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] freeze_bdev-dont-deactivate-successfully-frozen-ms_rdonly-sb.patch removed from -mm tree
-Date: Mon, 01 Feb 2010 10:38:48 -0800
-Message-ID: <201002011838.o11Icm8M004875@imap1.linux-foundation.org>
+Subject: [merged] python-change-scripts-to-use-system-python-instead-of-env.patch removed from -mm tree
+Date: Mon, 01 Feb 2010 10:38:58 -0800
+Message-ID: <201002011838.o11Icw2D004886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755621Ab0BASkM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 13:40:12 -0500
+	by vger.kernel.org with ESMTP id S1755678Ab0BASmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 13:42:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: j-nomura@ce.jp.nec.com, hch@lst.de, jens.axboe@oracle.com, neilb@suse.de, stable@kernel.org, tmb@mandriva.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, kyle@mcmartin.ca, mmarek@suse.cz, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freeze_bdev(): don't deactivate successfully frozen MS_RDONLY sb
+     scripts: python: change scripts to use system python instead of env
 has been removed from the -mm tree.  Its filename was
-     freeze_bdev-dont-deactivate-successfully-frozen-ms_rdonly-sb.patch
+     python-change-scripts-to-use-system-python-instead-of-env.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freeze_bdev(): don't deactivate successfully frozen MS_RDONLY sb
-From: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
+Subject: scripts: python: change scripts to use system python instead of env
+From: Don Zickus <dzickus@redhat.com>
 
-If MS_RDONLY, freeze_bdev should just up_write(s_umount) instead of
-deactivate_locked_super().
+Just a small change to a couple of scripts to go from
 
-Also, keep sb->s_frozen consistent so that remount can check the frozen
-state.
+ #!/usr/bin/env python
 
-Otherwise a crash reported here can happen:
-http://lkml.org/lkml/2010/1/16/37
-http://lkml.org/lkml/2010/1/28/53
+to
 
-Thanks Thomas and Christoph for testing and review.
+ #!/usr/bin/python
 
-Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Thomas Backlund <tmb@mandriva.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@kernel.org>		[2.6.32.x]
+This shouldn't effect anyone, unless they don't install python there.
+
+In preparation for python3, Fedora is doing a big push to change the
+scripts to use the system python.  This allows developers to put the
+python3 in their path without fear of breaking existing scripts.
+
+Now I am pretty sure anyone using python3 for testing purposes will
+probably not run any of the scripts I changed, but Fedora has this
+automated tool that checks for this stuff so I thought I would try to push
+it upstream.
+
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/ia64/scripts/unwcheck.py  |    2 +-
+ scripts/rt-tester/rt-tester.py |    2 +-
+ scripts/show_delta             |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/block_dev.c~freeze_bdev-dont-deactivate-successfully-frozen-ms_rdonly-sb fs/block_dev.c
---- a/fs/block_dev.c~freeze_bdev-dont-deactivate-successfully-frozen-ms_rdonly-sb
-+++ a/fs/block_dev.c
-@@ -246,7 +246,8 @@ struct super_block *freeze_bdev(struct b
- 	if (!sb)
- 		goto out;
- 	if (sb->s_flags & MS_RDONLY) {
--		deactivate_locked_super(sb);
-+		sb->s_frozen = SB_FREEZE_TRANS;
-+		up_write(&sb->s_umount);
- 		mutex_unlock(&bdev->bd_fsfreeze_mutex);
- 		return sb;
- 	}
-@@ -307,7 +308,7 @@ int thaw_bdev(struct block_device *bdev,
- 	BUG_ON(sb->s_bdev != bdev);
- 	down_write(&sb->s_umount);
- 	if (sb->s_flags & MS_RDONLY)
--		goto out_deactivate;
-+		goto out_unfrozen;
- 
- 	if (sb->s_op->unfreeze_fs) {
- 		error = sb->s_op->unfreeze_fs(sb);
-@@ -321,11 +322,11 @@ int thaw_bdev(struct block_device *bdev,
- 		}
- 	}
- 
-+out_unfrozen:
- 	sb->s_frozen = SB_UNFROZEN;
- 	smp_wmb();
- 	wake_up(&sb->s_wait_unfrozen);
- 
--out_deactivate:
- 	if (sb)
- 		deactivate_locked_super(sb);
- out_unlock:
+diff -puN arch/ia64/scripts/unwcheck.py~python-change-scripts-to-use-system-python-instead-of-env arch/ia64/scripts/unwcheck.py
+--- a/arch/ia64/scripts/unwcheck.py~python-change-scripts-to-use-system-python-instead-of-env
++++ a/arch/ia64/scripts/unwcheck.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python
+ #
+ # Usage: unwcheck.py FILE
+ #
+diff -puN scripts/rt-tester/rt-tester.py~python-change-scripts-to-use-system-python-instead-of-env scripts/rt-tester/rt-tester.py
+--- a/scripts/rt-tester/rt-tester.py~python-change-scripts-to-use-system-python-instead-of-env
++++ a/scripts/rt-tester/rt-tester.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python
+ #
+ # rt-mutex tester
+ #
+diff -puN scripts/show_delta~python-change-scripts-to-use-system-python-instead-of-env scripts/show_delta
+--- a/scripts/show_delta~python-change-scripts-to-use-system-python-instead-of-env
++++ a/scripts/show_delta
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python
+ #
+ # show_deltas: Read list of printk messages instrumented with
+ # time data, and format with time deltas.
 _
 
-Patches currently in -mm which might be from j-nomura@ce.jp.nec.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
 linux-next.patch
 
