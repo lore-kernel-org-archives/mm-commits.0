@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-generic-sys_old_select.patch added to -mm tree
-Date: Mon, 01 Feb 2010 14:58:12 -0800
-Message-ID: <201002012258.o11MwCx5017894@imap1.linux-foundation.org>
+Subject: + add-generic-sys_olduname.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:58:31 -0800
+Message-ID: <201002012258.o11MwVPj017912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752091Ab0BAW7i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:59:38 -0500
+	by vger.kernel.org with ESMTP id S1752091Ab0BAW74 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:59:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hch@lst.de, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.c
 
 
 The patch titled
-     Add generic sys_old_select()
+     Add generic sys_olduname()
 has been added to the -mm tree.  Its filename is
-     add-generic-sys_old_select.patch
+     add-generic-sys_olduname.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add generic sys_old_select()
+Subject: Add generic sys_olduname()
 From: Christoph Hellwig <hch@lst.de>
 
-Add a generic implementation of the old select() syscall, which expects
-its argument in a memory block and switch all architectures over to use
-it.
+Add generic implementations of the old and really old uname system calls. 
+Note that sh only implements sys_olduname but not sys_oldolduname, but I'm
+not going to bother with another ifdef for that special case.
+
+m32r implemented an old uname but never wired it up, so kill it, too.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -48,581 +50,595 @@ Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Reviewed-by: H. Peter Anvin <hpa@zytor.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: James Morris <jmorris@namei.org>
-Acked-by: Andreas Schwab <schwab@linux-m68k.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/unistd.h        |    1 +
- arch/arm/kernel/calls.S              |    2 +-
- arch/arm/kernel/sys_arm.c            |   21 ---------------------
- arch/h8300/include/asm/unistd.h      |    1 +
- arch/h8300/kernel/sys_h8300.c        |   16 ----------------
- arch/h8300/kernel/syscalls.S         |    2 +-
- arch/ia64/ia32/ia32_entry.S          |    2 +-
- arch/ia64/ia32/sys_ia32.c            |   19 -------------------
- arch/m68k/include/asm/unistd.h       |    1 +
- arch/m68k/kernel/entry.S             |    2 +-
- arch/m68k/kernel/sys_m68k.c          |   16 ----------------
- arch/m68knommu/kernel/sys_m68k.c     |   16 ----------------
- arch/m68knommu/kernel/syscalltable.S |    2 +-
- arch/mn10300/include/asm/unistd.h    |    1 +
- arch/mn10300/kernel/entry.S          |    2 +-
- arch/mn10300/kernel/sys_mn10300.c    |   18 ------------------
- arch/s390/kernel/entry.h             |    1 -
- arch/um/sys-i386/syscalls.c          |   18 ------------------
- arch/x86/ia32/ia32entry.S            |    2 +-
- arch/x86/ia32/sys_ia32.c             |   18 ------------------
- arch/x86/include/asm/sys_ia32.h      |    2 --
- arch/x86/include/asm/syscalls.h      |    2 --
- arch/x86/include/asm/unistd_32.h     |    1 +
- arch/x86/kernel/sys_i386_32.c        |   17 -----------------
- arch/x86/kernel/syscall_table_32.S   |    2 +-
- fs/compat.c                          |   18 ++++++++++++++++++
- fs/select.c                          |   17 +++++++++++++++++
- include/linux/compat.h               |    3 +++
- include/linux/syscalls.h             |    2 ++
- 29 files changed, 53 insertions(+), 172 deletions(-)
+ arch/m32r/kernel/sys_m32r.c       |   11 -----
+ arch/mips/include/asm/unistd.h    |    1 
+ arch/mips/kernel/syscall.c        |   42 --------------------
+ arch/powerpc/include/asm/unistd.h |    1 
+ arch/powerpc/kernel/syscalls.c    |   57 ----------------------------
+ arch/sh/include/asm/syscalls.h    |    3 -
+ arch/sh/include/asm/unistd_32.h   |    1 
+ arch/sh/include/asm/unistd_64.h   |    1 
+ arch/sh/kernel/sys_sh.c           |   11 -----
+ arch/um/kernel/syscall.c          |   45 ----------------------
+ arch/x86/ia32/ia32entry.S         |    4 -
+ arch/x86/ia32/sys_ia32.c          |   52 -------------------------
+ arch/x86/include/asm/sys_ia32.h   |    5 --
+ arch/x86/include/asm/syscalls.h   |    7 ---
+ arch/x86/include/asm/unistd_32.h  |    1 
+ arch/x86/include/asm/unistd_64.h  |    1 
+ arch/x86/kernel/sys_i386_32.c     |   49 ------------------------
+ include/linux/syscalls.h          |    4 +
+ kernel/sys.c                      |   54 ++++++++++++++++++++++++++
+ 19 files changed, 66 insertions(+), 284 deletions(-)
 
-diff -puN arch/arm/include/asm/unistd.h~add-generic-sys_old_select arch/arm/include/asm/unistd.h
---- a/arch/arm/include/asm/unistd.h~add-generic-sys_old_select
-+++ a/arch/arm/include/asm/unistd.h
-@@ -443,6 +443,7 @@
- #define __ARCH_WANT_SYS_SIGPROCMASK
- #define __ARCH_WANT_SYS_RT_SIGACTION
- #define __ARCH_WANT_SYS_RT_SIGSUSPEND
-+#define __ARCH_WANT_SYS_OLD_SELECT
+diff -puN arch/m32r/kernel/sys_m32r.c~add-generic-sys_olduname arch/m32r/kernel/sys_m32r.c
+--- a/arch/m32r/kernel/sys_m32r.c~add-generic-sys_olduname
++++ a/arch/m32r/kernel/sys_m32r.c
+@@ -76,17 +76,6 @@ asmlinkage int sys_tas(int __user *addr)
+ 	return oldval;
+ }
  
- #if !defined(CONFIG_AEABI) || defined(CONFIG_OABI_COMPAT)
- #define __ARCH_WANT_SYS_TIME
-diff -puN arch/arm/kernel/calls.S~add-generic-sys_old_select arch/arm/kernel/calls.S
---- a/arch/arm/kernel/calls.S~add-generic-sys_old_select
-+++ a/arch/arm/kernel/calls.S
-@@ -91,7 +91,7 @@
- 		CALL(sys_settimeofday)
- /* 80 */	CALL(sys_getgroups16)
- 		CALL(sys_setgroups16)
--		CALL(OBSOLETE(old_select))	/* used by libc4 */
-+		CALL(OBSOLETE(sys_old_select))	/* used by libc4 */
- 		CALL(sys_symlink)
- 		CALL(sys_ni_syscall)		/* was sys_lstat */
- /* 85 */	CALL(sys_readlink)
-diff -puN arch/arm/kernel/sys_arm.c~add-generic-sys_old_select arch/arm/kernel/sys_arm.c
---- a/arch/arm/kernel/sys_arm.c~add-generic-sys_old_select
-+++ a/arch/arm/kernel/sys_arm.c
-@@ -54,27 +54,6 @@ out:
+-asmlinkage int sys_uname(struct old_utsname __user * name)
+-{
+-	int err;
+-	if (!name)
+-		return -EFAULT;
+-	down_read(&uts_sem);
+-	err = copy_to_user(name, utsname(), sizeof (*name));
+-	up_read(&uts_sem);
+-	return err?-EFAULT:0;
+-}
+-
+ asmlinkage int sys_cacheflush(void *addr, int bytes, int cache)
+ {
+ 	/* This should flush more selectively ...  */
+diff -puN arch/mips/include/asm/unistd.h~add-generic-sys_olduname arch/mips/include/asm/unistd.h
+--- a/arch/mips/include/asm/unistd.h~add-generic-sys_olduname
++++ a/arch/mips/include/asm/unistd.h
+@@ -1014,6 +1014,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_UNAME
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+diff -puN arch/mips/kernel/syscall.c~add-generic-sys_olduname arch/mips/kernel/syscall.c
+--- a/arch/mips/kernel/syscall.c~add-generic-sys_olduname
++++ a/arch/mips/kernel/syscall.c
+@@ -215,48 +215,6 @@ out:
  	return error;
  }
  
 -/*
-- * Perform the select(nd, in, out, ex, tv) and mmap() system
-- * calls.
+- * Compacrapability ...
 - */
--
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set __user *inp, *outp, *exp;
--	struct timeval __user *tvp;
--};
--
--asmlinkage int old_select(struct sel_arg_struct __user *arg)
+-SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
 -{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
+-	if (name && !copy_to_user(name, utsname(), sizeof (*name)))
+-		return 0;
+-	return -EFAULT;
 -}
 -
- #if !defined(CONFIG_AEABI) || defined(CONFIG_OABI_COMPAT)
- /*
-  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-diff -puN arch/h8300/include/asm/unistd.h~add-generic-sys_old_select arch/h8300/include/asm/unistd.h
---- a/arch/h8300/include/asm/unistd.h~add-generic-sys_old_select
-+++ a/arch/h8300/include/asm/unistd.h
-@@ -348,6 +348,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_SELECT
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/h8300/kernel/sys_h8300.c~add-generic-sys_old_select arch/h8300/kernel/sys_h8300.c
---- a/arch/h8300/kernel/sys_h8300.c~add-generic-sys_old_select
-+++ a/arch/h8300/kernel/sys_h8300.c
-@@ -60,22 +60,6 @@ out:
- 	return error;
- }
- 
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set *inp, *outp, *exp;
--	struct timeval *tvp;
--};
--
--asmlinkage int old_select(struct sel_arg_struct *arg)
+-/*
+- * Compacrapability ...
+- */
+-SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
 -{
--	struct sel_arg_struct a;
+-	int error;
 -
--	if (copy_from_user(&a, arg, sizeof(a)))
+-	if (!name)
 -		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
+-	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
+-		return -EFAULT;
+-
+-	error = __copy_to_user(&name->sysname, &utsname()->sysname,
+-			       __OLD_UTS_LEN);
+-	error -= __put_user(0, name->sysname + __OLD_UTS_LEN);
+-	error -= __copy_to_user(&name->nodename, &utsname()->nodename,
+-				__OLD_UTS_LEN);
+-	error -= __put_user(0, name->nodename + __OLD_UTS_LEN);
+-	error -= __copy_to_user(&name->release, &utsname()->release,
+-				__OLD_UTS_LEN);
+-	error -= __put_user(0, name->release + __OLD_UTS_LEN);
+-	error -= __copy_to_user(&name->version, &utsname()->version,
+-				__OLD_UTS_LEN);
+-	error -= __put_user(0, name->version + __OLD_UTS_LEN);
+-	error -= __copy_to_user(&name->machine, &utsname()->machine,
+-				__OLD_UTS_LEN);
+-	error = __put_user(0, name->machine + __OLD_UTS_LEN);
+-	error = error ? -EFAULT : 0;
+-
+-	return error;
 -}
 -
- /*
-  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-  *
-diff -puN arch/h8300/kernel/syscalls.S~add-generic-sys_old_select arch/h8300/kernel/syscalls.S
---- a/arch/h8300/kernel/syscalls.S~add-generic-sys_old_select
-+++ a/arch/h8300/kernel/syscalls.S
-@@ -96,7 +96,7 @@ SYMBOL_NAME_LABEL(sys_call_table)	
- 	.long SYMBOL_NAME(sys_settimeofday)
- 	.long SYMBOL_NAME(sys_getgroups16)	/* 80 */
- 	.long SYMBOL_NAME(sys_setgroups16)
--	.long SYMBOL_NAME(old_select)
-+	.long SYMBOL_NAME(sys_old_select)
- 	.long SYMBOL_NAME(sys_symlink)
- 	.long SYMBOL_NAME(sys_lstat)
- 	.long SYMBOL_NAME(sys_readlink)		/* 85 */
-diff -puN arch/ia64/ia32/ia32_entry.S~add-generic-sys_old_select arch/ia64/ia32/ia32_entry.S
---- a/arch/ia64/ia32/ia32_entry.S~add-generic-sys_old_select
-+++ a/arch/ia64/ia32/ia32_entry.S
-@@ -260,7 +260,7 @@ ia32_syscall_table:
- 	data8 compat_sys_settimeofday
- 	data8 sys32_getgroups16	  /* 80 */
- 	data8 sys32_setgroups16
--	data8 sys32_old_select
-+	data8 compat_sys_old_select
- 	data8 sys_symlink
- 	data8 sys_ni_syscall
- 	data8 sys_readlink	  /* 85 */
-diff -puN arch/ia64/ia32/sys_ia32.c~add-generic-sys_old_select arch/ia64/ia32/sys_ia32.c
---- a/arch/ia64/ia32/sys_ia32.c~add-generic-sys_old_select
-+++ a/arch/ia64/ia32/sys_ia32.c
-@@ -1107,25 +1107,6 @@ sys32_alarm (unsigned int seconds)
- 	return alarm_setitimer(seconds);
- }
- 
--struct sel_arg_struct {
--	unsigned int n;
--	unsigned int inp;
--	unsigned int outp;
--	unsigned int exp;
--	unsigned int tvp;
--};
--
--asmlinkage long
--sys32_old_select (struct sel_arg_struct __user *arg)
--{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	return compat_sys_select(a.n, compat_ptr(a.inp), compat_ptr(a.outp),
--				 compat_ptr(a.exp), compat_ptr(a.tvp));
--}
--
- #define SEMOP		 1
- #define SEMGET		 2
- #define SEMCTL		 3
-diff -puN arch/m68k/include/asm/unistd.h~add-generic-sys_old_select arch/m68k/include/asm/unistd.h
---- a/arch/m68k/include/asm/unistd.h~add-generic-sys_old_select
-+++ a/arch/m68k/include/asm/unistd.h
-@@ -359,6 +359,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_SELECT
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/m68k/kernel/entry.S~add-generic-sys_old_select arch/m68k/kernel/entry.S
---- a/arch/m68k/kernel/entry.S~add-generic-sys_old_select
-+++ a/arch/m68k/kernel/entry.S
-@@ -510,7 +510,7 @@ sys_call_table:
- 	.long sys_settimeofday
- 	.long sys_getgroups16	/* 80 */
- 	.long sys_setgroups16
--	.long old_select
-+	.long sys_old_select
- 	.long sys_symlink
- 	.long sys_lstat
- 	.long sys_readlink	/* 85 */
-diff -puN arch/m68k/kernel/sys_m68k.c~add-generic-sys_old_select arch/m68k/kernel/sys_m68k.c
---- a/arch/m68k/kernel/sys_m68k.c~add-generic-sys_old_select
-+++ a/arch/m68k/kernel/sys_m68k.c
-@@ -75,22 +75,6 @@ out:
- 	return error;
- }
- 
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set __user *inp, *outp, *exp;
--	struct timeval __user *tvp;
--};
--
--asmlinkage int old_select(struct sel_arg_struct __user *arg)
--{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
--}
--
- /*
-  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-  *
-diff -puN arch/m68knommu/kernel/sys_m68k.c~add-generic-sys_old_select arch/m68knommu/kernel/sys_m68k.c
---- a/arch/m68knommu/kernel/sys_m68k.c~add-generic-sys_old_select
-+++ a/arch/m68knommu/kernel/sys_m68k.c
-@@ -61,22 +61,6 @@ out:
- 	return error;
- }
- 
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set *inp, *outp, *exp;
--	struct timeval *tvp;
--};
--
--asmlinkage int old_select(struct sel_arg_struct *arg)
--{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
--}
--
- /*
-  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-  *
-diff -puN arch/m68knommu/kernel/syscalltable.S~add-generic-sys_old_select arch/m68knommu/kernel/syscalltable.S
---- a/arch/m68knommu/kernel/syscalltable.S~add-generic-sys_old_select
-+++ a/arch/m68knommu/kernel/syscalltable.S
-@@ -100,7 +100,7 @@ ENTRY(sys_call_table)
- 	.long sys_settimeofday
- 	.long sys_getgroups16	/* 80 */
- 	.long sys_setgroups16
--	.long old_select
-+	.long sys_old_select
- 	.long sys_symlink
- 	.long sys_lstat
- 	.long sys_readlink	/* 85 */
-diff -puN arch/mn10300/include/asm/unistd.h~add-generic-sys_old_select arch/mn10300/include/asm/unistd.h
---- a/arch/mn10300/include/asm/unistd.h~add-generic-sys_old_select
-+++ a/arch/mn10300/include/asm/unistd.h
-@@ -375,6 +375,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_SELECT
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/mn10300/kernel/entry.S~add-generic-sys_old_select arch/mn10300/kernel/entry.S
---- a/arch/mn10300/kernel/entry.S~add-generic-sys_old_select
-+++ a/arch/mn10300/kernel/entry.S
-@@ -468,7 +468,7 @@ ENTRY(sys_call_table)
- 	.long sys_settimeofday
- 	.long sys_getgroups16	/* 80 */
- 	.long sys_setgroups16
--	.long old_select
-+	.long sys_old_select
- 	.long sys_symlink
- 	.long sys_lstat
- 	.long sys_readlink	/* 85 */
-diff -puN arch/mn10300/kernel/sys_mn10300.c~add-generic-sys_old_select arch/mn10300/kernel/sys_mn10300.c
---- a/arch/mn10300/kernel/sys_mn10300.c~add-generic-sys_old_select
-+++ a/arch/mn10300/kernel/sys_mn10300.c
-@@ -32,24 +32,6 @@ asmlinkage long old_mmap(unsigned long a
- 	return sys_mmap_pgoff(addr, len, prot, flags, fd, offset >> PAGE_SHIFT);
- }
- 
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set *inp;
--	fd_set *outp;
--	fd_set *exp;
--	struct timeval *tvp;
--};
--
--asmlinkage int old_select(struct sel_arg_struct __user *arg)
--{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
--}
--
- /*
-  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-  *
-diff -puN arch/s390/kernel/entry.h~add-generic-sys_old_select arch/s390/kernel/entry.h
---- a/arch/s390/kernel/entry.h~add-generic-sys_old_select
-+++ a/arch/s390/kernel/entry.h
-@@ -28,7 +28,6 @@ struct new_utsname;
- struct mmap_arg_struct;
- struct fadvise64_64_args;
- struct old_sigaction;
--struct sel_arg_struct;
- 
- long sys_mmap2(struct mmap_arg_struct __user  *arg);
- long sys_s390_old_mmap(struct mmap_arg_struct __user *arg);
-diff -puN arch/um/sys-i386/syscalls.c~add-generic-sys_old_select arch/um/sys-i386/syscalls.c
---- a/arch/um/sys-i386/syscalls.c~add-generic-sys_old_select
-+++ a/arch/um/sys-i386/syscalls.c
-@@ -44,24 +44,6 @@ long old_mmap_i386(struct mmap_arg_struc
- 	return err;
- }
- 
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set __user *inp;
--	fd_set __user *outp;
--	fd_set __user *exp;
--	struct timeval __user *tvp;
--};
--
--long old_select(struct sel_arg_struct __user *arg)
--{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
--}
--
- /*
-  * The prototype on i386 is:
-  *
-diff -puN arch/x86/ia32/ia32entry.S~add-generic-sys_old_select arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~add-generic-sys_old_select
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -586,7 +586,7 @@ ia32_sys_call_table:
- 	.quad compat_sys_settimeofday
- 	.quad sys_getgroups16	/* 80 */
- 	.quad sys_setgroups16
--	.quad sys32_old_select
-+	.quad compat_sys_old_select
- 	.quad sys_symlink
- 	.quad sys_lstat
- 	.quad sys_readlink		/* 85 */
-diff -puN arch/x86/ia32/sys_ia32.c~add-generic-sys_old_select arch/x86/ia32/sys_ia32.c
---- a/arch/x86/ia32/sys_ia32.c~add-generic-sys_old_select
-+++ a/arch/x86/ia32/sys_ia32.c
-@@ -332,24 +332,6 @@ asmlinkage long sys32_alarm(unsigned int
- 	return alarm_setitimer(seconds);
- }
- 
--struct sel_arg_struct {
--	unsigned int n;
--	unsigned int inp;
--	unsigned int outp;
--	unsigned int exp;
--	unsigned int tvp;
--};
--
--asmlinkage long sys32_old_select(struct sel_arg_struct __user *arg)
--{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
--		return -EFAULT;
--	return compat_sys_select(a.n, compat_ptr(a.inp), compat_ptr(a.outp),
--				 compat_ptr(a.exp), compat_ptr(a.tvp));
--}
--
- asmlinkage long sys32_waitpid(compat_pid_t pid, unsigned int *stat_addr,
- 			      int options)
+ SYSCALL_DEFINE1(set_thread_area, unsigned long, addr)
  {
-diff -puN arch/x86/include/asm/sys_ia32.h~add-generic-sys_old_select arch/x86/include/asm/sys_ia32.h
---- a/arch/x86/include/asm/sys_ia32.h~add-generic-sys_old_select
-+++ a/arch/x86/include/asm/sys_ia32.h
-@@ -40,8 +40,6 @@ asmlinkage long sys32_rt_sigprocmask(int
- 				     compat_sigset_t __user *, unsigned int);
- asmlinkage long sys32_alarm(unsigned int);
- 
--struct sel_arg_struct;
--asmlinkage long sys32_old_select(struct sel_arg_struct __user *);
- asmlinkage long sys32_waitpid(compat_pid_t, unsigned int *, int);
- asmlinkage long sys32_sysfs(int, u32, u32);
- 
-diff -puN arch/x86/include/asm/syscalls.h~add-generic-sys_old_select arch/x86/include/asm/syscalls.h
---- a/arch/x86/include/asm/syscalls.h~add-generic-sys_old_select
-+++ a/arch/x86/include/asm/syscalls.h
-@@ -52,12 +52,10 @@ unsigned long sys_sigreturn(struct pt_re
- 
- /* kernel/sys_i386_32.c */
- struct mmap_arg_struct;
--struct sel_arg_struct;
- struct oldold_utsname;
- struct old_utsname;
- 
- asmlinkage int old_mmap(struct mmap_arg_struct __user *);
--asmlinkage int old_select(struct sel_arg_struct __user *);
- asmlinkage int sys_ipc(uint, int, int, int, void __user *, long);
- asmlinkage int sys_uname(struct old_utsname __user *);
- asmlinkage int sys_olduname(struct oldold_utsname __user *);
-diff -puN arch/x86/include/asm/unistd_32.h~add-generic-sys_old_select arch/x86/include/asm/unistd_32.h
---- a/arch/x86/include/asm/unistd_32.h~add-generic-sys_old_select
-+++ a/arch/x86/include/asm/unistd_32.h
-@@ -370,6 +370,7 @@
+ 	struct thread_info *ti = task_thread_info(current);
+diff -puN arch/powerpc/include/asm/unistd.h~add-generic-sys_olduname arch/powerpc/include/asm/unistd.h
+--- a/arch/powerpc/include/asm/unistd.h~add-generic-sys_olduname
++++ a/arch/powerpc/include/asm/unistd.h
+@@ -377,6 +377,7 @@
  #define __ARCH_WANT_SYS_LLSEEK
  #define __ARCH_WANT_SYS_NICE
  #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_SELECT
++#define __ARCH_WANT_SYS_OLD_UNAME
  #define __ARCH_WANT_SYS_OLDUMOUNT
  #define __ARCH_WANT_SYS_SIGPENDING
  #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/x86/kernel/sys_i386_32.c~add-generic-sys_old_select arch/x86/kernel/sys_i386_32.c
---- a/arch/x86/kernel/sys_i386_32.c~add-generic-sys_old_select
-+++ a/arch/x86/kernel/sys_i386_32.c
-@@ -58,23 +58,6 @@ out:
+diff -puN arch/powerpc/kernel/syscalls.c~add-generic-sys_olduname arch/powerpc/kernel/syscalls.c
+--- a/arch/powerpc/kernel/syscalls.c~add-generic-sys_olduname
++++ a/arch/powerpc/kernel/syscalls.c
+@@ -101,63 +101,6 @@ ppc_select(int n, fd_set __user *inp, fd
+ }
+ #endif
+ 
+-#ifdef CONFIG_PPC64
+-#define OVERRIDE_MACHINE    (personality(current->personality) == PER_LINUX32)
+-#else
+-#define OVERRIDE_MACHINE    0
+-#endif
+-
+-static inline int override_machine(char __user *mach)
+-{
+-	if (OVERRIDE_MACHINE) {
+-		/* change ppc64 to ppc */
+-		if (__put_user(0, mach+3) || __put_user(0, mach+4))
+-			return -EFAULT;
+-	}
+-	return 0;
+-}
+-
+-int sys_uname(struct old_utsname __user *name)
+-{
+-	int err = 0;
+-	
+-	down_read(&uts_sem);
+-	if (copy_to_user(name, utsname(), sizeof(*name)))
+-		err = -EFAULT;
+-	up_read(&uts_sem);
+-	if (!err)
+-		err = override_machine(name->machine);
+-	return err;
+-}
+-
+-int sys_olduname(struct oldold_utsname __user *name)
+-{
+-	int error;
+-
+-	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
+-		return -EFAULT;
+-  
+-	down_read(&uts_sem);
+-	error = __copy_to_user(&name->sysname, &utsname()->sysname,
+-			       __OLD_UTS_LEN);
+-	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->release, &utsname()->release,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->release + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->version, &utsname()->version,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->version + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->machine, &utsname()->machine,
+-				__OLD_UTS_LEN);
+-	error |= override_machine(name->machine);
+-	up_read(&uts_sem);
+-
+-	return error? -EFAULT: 0;
+-}
+-
+ long ppc_fadvise64_64(int fd, int advice, u32 offset_high, u32 offset_low,
+ 		      u32 len_high, u32 len_low)
+ {
+diff -puN arch/sh/include/asm/syscalls.h~add-generic-sys_olduname arch/sh/include/asm/syscalls.h
+--- a/arch/sh/include/asm/syscalls.h~add-generic-sys_olduname
++++ a/arch/sh/include/asm/syscalls.h
+@@ -3,15 +3,12 @@
+ 
+ #ifdef __KERNEL__
+ 
+-struct old_utsname;
+-
+ asmlinkage int old_mmap(unsigned long addr, unsigned long len,
+ 			unsigned long prot, unsigned long flags,
+ 			int fd, unsigned long off);
+ asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
+ 			  unsigned long prot, unsigned long flags,
+ 			  unsigned long fd, unsigned long pgoff);
+-asmlinkage int sys_uname(struct old_utsname __user *name);
+ 
+ #ifdef CONFIG_SUPERH32
+ # include "syscalls_32.h"
+diff -puN arch/sh/include/asm/unistd_32.h~add-generic-sys_olduname arch/sh/include/asm/unistd_32.h
+--- a/arch/sh/include/asm/unistd_32.h~add-generic-sys_olduname
++++ a/arch/sh/include/asm/unistd_32.h
+@@ -371,6 +371,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_UNAME
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+diff -puN arch/sh/include/asm/unistd_64.h~add-generic-sys_olduname arch/sh/include/asm/unistd_64.h
+--- a/arch/sh/include/asm/unistd_64.h~add-generic-sys_olduname
++++ a/arch/sh/include/asm/unistd_64.h
+@@ -411,6 +411,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_UNAME
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+diff -puN arch/sh/kernel/sys_sh.c~add-generic-sys_olduname arch/sh/kernel/sys_sh.c
+--- a/arch/sh/kernel/sys_sh.c~add-generic-sys_olduname
++++ a/arch/sh/kernel/sys_sh.c
+@@ -93,14 +93,3 @@ asmlinkage int sys_cacheflush(unsigned l
+ 	up_read(&current->mm->mmap_sem);
+ 	return 0;
+ }
+-
+-asmlinkage int sys_uname(struct old_utsname __user *name)
+-{
+-	int err;
+-	if (!name)
+-		return -EFAULT;
+-	down_read(&uts_sem);
+-	err = copy_to_user(name, utsname(), sizeof(*name));
+-	up_read(&uts_sem);
+-	return err?-EFAULT:0;
+-}
+diff -puN arch/um/kernel/syscall.c~add-generic-sys_olduname arch/um/kernel/syscall.c
+--- a/arch/um/kernel/syscall.c~add-generic-sys_olduname
++++ a/arch/um/kernel/syscall.c
+@@ -51,51 +51,6 @@ long old_mmap(unsigned long addr, unsign
  	return err;
  }
  
--
--struct sel_arg_struct {
--	unsigned long n;
--	fd_set __user *inp, *outp, *exp;
--	struct timeval __user *tvp;
--};
--
--asmlinkage int old_select(struct sel_arg_struct __user *arg)
+-long sys_uname(struct old_utsname __user * name)
 -{
--	struct sel_arg_struct a;
--
--	if (copy_from_user(&a, arg, sizeof(a)))
+-	long err;
+-	if (!name)
 -		return -EFAULT;
--	/* sys_select() does the appropriate kernel locking */
--	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
+-	down_read(&uts_sem);
+-	err = copy_to_user(name, utsname(), sizeof (*name));
+-	up_read(&uts_sem);
+-	return err?-EFAULT:0;
 -}
 -
- /*
-  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-  *
-diff -puN arch/x86/kernel/syscall_table_32.S~add-generic-sys_old_select arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~add-generic-sys_old_select
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -81,7 +81,7 @@ ENTRY(sys_call_table)
- 	.long sys_settimeofday
- 	.long sys_getgroups16	/* 80 */
- 	.long sys_setgroups16
--	.long old_select
-+	.long sys_old_select
- 	.long sys_symlink
- 	.long sys_lstat
- 	.long sys_readlink	/* 85 */
-diff -puN fs/compat.c~add-generic-sys_old_select fs/compat.c
---- a/fs/compat.c~add-generic-sys_old_select
-+++ a/fs/compat.c
-@@ -1794,6 +1794,24 @@ asmlinkage long compat_sys_select(int n,
+-long sys_olduname(struct oldold_utsname __user * name)
+-{
+-	long error;
+-
+-	if (!name)
+-		return -EFAULT;
+-	if (!access_ok(VERIFY_WRITE,name,sizeof(struct oldold_utsname)))
+-		return -EFAULT;
+-
+-	down_read(&uts_sem);
+-
+-	error = __copy_to_user(&name->sysname, &utsname()->sysname,
+-			       __OLD_UTS_LEN);
+-	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->release, &utsname()->release,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->release + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->version, &utsname()->version,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->version + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->machine, &utsname()->machine,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
+-
+-	up_read(&uts_sem);
+-
+-	error = error ? -EFAULT : 0;
+-
+-	return error;
+-}
+-
+ int kernel_execve(const char *filename, char *const argv[], char *const envp[])
+ {
+ 	mm_segment_t fs;
+diff -puN arch/x86/ia32/ia32entry.S~add-generic-sys_olduname arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~add-generic-sys_olduname
++++ a/arch/x86/ia32/ia32entry.S
+@@ -563,7 +563,7 @@ ia32_sys_call_table:
+ 	.quad quiet_ni_syscall			/* old mpx syscall holder */
+ 	.quad sys_setpgid
+ 	.quad quiet_ni_syscall			/* old ulimit syscall holder */
+-	.quad sys32_olduname
++	.quad sys_olduname
+ 	.quad sys_umask		/* 60 */
+ 	.quad sys_chroot
+ 	.quad compat_sys_ustat
+@@ -613,7 +613,7 @@ ia32_sys_call_table:
+ 	.quad compat_sys_newstat
+ 	.quad compat_sys_newlstat
+ 	.quad compat_sys_newfstat
+-	.quad sys32_uname
++	.quad sys_uname
+ 	.quad stub32_iopl		/* 110 */
+ 	.quad sys_vhangup
+ 	.quad quiet_ni_syscall	/* old "idle" system call */
+diff -puN arch/x86/ia32/sys_ia32.c~add-generic-sys_olduname arch/x86/ia32/sys_ia32.c
+--- a/arch/x86/ia32/sys_ia32.c~add-generic-sys_olduname
++++ a/arch/x86/ia32/sys_ia32.c
+@@ -434,58 +434,6 @@ asmlinkage long sys32_sendfile(int out_f
  	return ret;
  }
  
-+struct compat_sel_arg_struct {
-+	compat_ulong_t n;
-+	compat_ulong_t inp;
-+	compat_ulong_t outp;
-+	compat_ulong_t exp;
-+	compat_ulong_t tvp;
-+};
-+
-+asmlinkage long compat_sys_old_select(struct compat_sel_arg_struct __user *arg)
+-asmlinkage long sys32_olduname(struct oldold_utsname __user *name)
+-{
+-	char *arch = "x86_64";
+-	int err;
+-
+-	if (!name)
+-		return -EFAULT;
+-	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
+-		return -EFAULT;
+-
+-	down_read(&uts_sem);
+-
+-	err = __copy_to_user(&name->sysname, &utsname()->sysname,
+-			     __OLD_UTS_LEN);
+-	err |= __put_user(0, name->sysname+__OLD_UTS_LEN);
+-	err |= __copy_to_user(&name->nodename, &utsname()->nodename,
+-			      __OLD_UTS_LEN);
+-	err |= __put_user(0, name->nodename+__OLD_UTS_LEN);
+-	err |= __copy_to_user(&name->release, &utsname()->release,
+-			      __OLD_UTS_LEN);
+-	err |= __put_user(0, name->release+__OLD_UTS_LEN);
+-	err |= __copy_to_user(&name->version, &utsname()->version,
+-			      __OLD_UTS_LEN);
+-	err |= __put_user(0, name->version+__OLD_UTS_LEN);
+-
+-	if (personality(current->personality) == PER_LINUX32)
+-		arch = "i686";
+-
+-	err |= __copy_to_user(&name->machine, arch, strlen(arch) + 1);
+-
+-	up_read(&uts_sem);
+-
+-	err = err ? -EFAULT : 0;
+-
+-	return err;
+-}
+-
+-long sys32_uname(struct old_utsname __user *name)
+-{
+-	int err;
+-
+-	if (!name)
+-		return -EFAULT;
+-	down_read(&uts_sem);
+-	err = copy_to_user(name, utsname(), sizeof(*name));
+-	up_read(&uts_sem);
+-	if (personality(current->personality) == PER_LINUX32)
+-		err |= copy_to_user(&name->machine, "i686", 5);
+-
+-	return err ? -EFAULT : 0;
+-}
+-
+ asmlinkage long sys32_execve(char __user *name, compat_uptr_t __user *argv,
+ 			     compat_uptr_t __user *envp, struct pt_regs *regs)
+ {
+diff -puN arch/x86/include/asm/sys_ia32.h~add-generic-sys_olduname arch/x86/include/asm/sys_ia32.h
+--- a/arch/x86/include/asm/sys_ia32.h~add-generic-sys_olduname
++++ a/arch/x86/include/asm/sys_ia32.h
+@@ -53,11 +53,6 @@ asmlinkage long sys32_pwrite(unsigned in
+ 
+ asmlinkage long sys32_sendfile(int, int, compat_off_t __user *, s32);
+ 
+-struct oldold_utsname;
+-struct old_utsname;
+-asmlinkage long sys32_olduname(struct oldold_utsname __user *);
+-long sys32_uname(struct old_utsname __user *);
+-
+ asmlinkage long sys32_execve(char __user *, compat_uptr_t __user *,
+ 			     compat_uptr_t __user *, struct pt_regs *);
+ asmlinkage long sys32_clone(unsigned int, unsigned int, struct pt_regs *);
+diff -puN arch/x86/include/asm/syscalls.h~add-generic-sys_olduname arch/x86/include/asm/syscalls.h
+--- a/arch/x86/include/asm/syscalls.h~add-generic-sys_olduname
++++ a/arch/x86/include/asm/syscalls.h
+@@ -50,13 +50,6 @@ asmlinkage int sys_sigaction(int, const 
+ 			     struct old_sigaction __user *);
+ unsigned long sys_sigreturn(struct pt_regs *);
+ 
+-/* kernel/sys_i386_32.c */
+-struct oldold_utsname;
+-struct old_utsname;
+-
+-asmlinkage int sys_uname(struct old_utsname __user *);
+-asmlinkage int sys_olduname(struct oldold_utsname __user *);
+-
+ /* kernel/vm86_32.c */
+ int sys_vm86old(struct vm86_struct __user *, struct pt_regs *);
+ int sys_vm86(unsigned long, unsigned long, struct pt_regs *);
+diff -puN arch/x86/include/asm/unistd_32.h~add-generic-sys_olduname arch/x86/include/asm/unistd_32.h
+--- a/arch/x86/include/asm/unistd_32.h~add-generic-sys_olduname
++++ a/arch/x86/include/asm/unistd_32.h
+@@ -371,6 +371,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_UNAME
+ #define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLD_SELECT
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+diff -puN arch/x86/include/asm/unistd_64.h~add-generic-sys_olduname arch/x86/include/asm/unistd_64.h
+--- a/arch/x86/include/asm/unistd_64.h~add-generic-sys_olduname
++++ a/arch/x86/include/asm/unistd_64.h
+@@ -688,6 +688,7 @@ __SYSCALL(__NR_setprlimit, sys_setprlimi
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_UNAME
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+diff -puN arch/x86/kernel/sys_i386_32.c~add-generic-sys_olduname arch/x86/kernel/sys_i386_32.c
+--- a/arch/x86/kernel/sys_i386_32.c~add-generic-sys_olduname
++++ a/arch/x86/kernel/sys_i386_32.c
+@@ -25,55 +25,6 @@
+ #include <asm/syscalls.h>
+ 
+ /*
+- * Old cruft
+- */
+-asmlinkage int sys_uname(struct old_utsname __user *name)
+-{
+-	int err;
+-	if (!name)
+-		return -EFAULT;
+-	down_read(&uts_sem);
+-	err = copy_to_user(name, utsname(), sizeof(*name));
+-	up_read(&uts_sem);
+-	return err? -EFAULT:0;
+-}
+-
+-asmlinkage int sys_olduname(struct oldold_utsname __user *name)
+-{
+-	int error;
+-
+-	if (!name)
+-		return -EFAULT;
+-	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
+-		return -EFAULT;
+-
+-	down_read(&uts_sem);
+-
+-	error = __copy_to_user(&name->sysname, &utsname()->sysname,
+-			       __OLD_UTS_LEN);
+-	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->release, &utsname()->release,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->release + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->version, &utsname()->version,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->version + __OLD_UTS_LEN);
+-	error |= __copy_to_user(&name->machine, &utsname()->machine,
+-				__OLD_UTS_LEN);
+-	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
+-
+-	up_read(&uts_sem);
+-
+-	error = error ? -EFAULT : 0;
+-
+-	return error;
+-}
+-
+-
+-/*
+  * Do a system call from kernel instead of calling sys_execve so we
+  * end up with proper pt_regs.
+  */
+diff -puN include/linux/syscalls.h~add-generic-sys_olduname include/linux/syscalls.h
+--- a/include/linux/syscalls.h~add-generic-sys_olduname
++++ a/include/linux/syscalls.h
+@@ -31,6 +31,8 @@ struct msqid_ds;
+ struct new_utsname;
+ struct nfsctl_arg;
+ struct __old_kernel_stat;
++struct oldold_utsname;
++struct old_utsname;
+ struct pollfd;
+ struct rlimit;
+ struct rusage;
+@@ -653,6 +655,8 @@ asmlinkage long sys_gethostname(char __u
+ asmlinkage long sys_sethostname(char __user *name, int len);
+ asmlinkage long sys_setdomainname(char __user *name, int len);
+ asmlinkage long sys_newuname(struct new_utsname __user *name);
++asmlinkage long sys_uname(struct old_utsname __user *);
++asmlinkage long sys_olduname(struct oldold_utsname __user *);
+ 
+ asmlinkage long sys_getrlimit(unsigned int resource,
+ 				struct rlimit __user *rlim);
+diff -puN kernel/sys.c~add-generic-sys_olduname kernel/sys.c
+--- a/kernel/sys.c~add-generic-sys_olduname
++++ a/kernel/sys.c
+@@ -1136,6 +1136,60 @@ SYSCALL_DEFINE1(newuname, struct new_uts
+ 	return errno;
+ }
+ 
++#ifdef __ARCH_WANT_SYS_OLD_UNAME
++/*
++ * Old cruft
++ */
++SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
 +{
-+	struct compat_sel_arg_struct a;
++	int error = 0;
 +
-+	if (copy_from_user(&a, arg, sizeof(a)))
++	if (!name)
 +		return -EFAULT;
-+	return compat_sys_select(a.n, compat_ptr(a.inp), compat_ptr(a.outp),
-+				 compat_ptr(a.exp), compat_ptr(a.tvp));
++
++	down_read(&uts_sem);
++	if (copy_to_user(name, utsname(), sizeof(*name)))
++		error = -EFAULT;
++	up_read(&uts_sem);
++
++	if (!error && override_architecture(name))
++		error = -EFAULT;
++	return error;
 +}
 +
- #ifdef HAVE_SET_RESTORE_SIGMASK
- static long do_compat_pselect(int n, compat_ulong_t __user *inp,
- 	compat_ulong_t __user *outp, compat_ulong_t __user *exp,
-diff -puN fs/select.c~add-generic-sys_old_select fs/select.c
---- a/fs/select.c~add-generic-sys_old_select
-+++ a/fs/select.c
-@@ -691,6 +691,23 @@ SYSCALL_DEFINE6(pselect6, int, n, fd_set
- }
- #endif /* HAVE_SET_RESTORE_SIGMASK */
- 
-+#ifdef __ARCH_WANT_SYS_OLD_SELECT
-+struct sel_arg_struct {
-+	unsigned long n;
-+	fd_set __user *inp, *outp, *exp;
-+	struct timeval __user *tvp;
-+};
-+
-+SYSCALL_DEFINE1(old_select, struct sel_arg_struct __user *, arg)
++SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
 +{
-+	struct sel_arg_struct a;
++	int error;
 +
-+	if (copy_from_user(&a, arg, sizeof(a)))
++	if (!name)
 +		return -EFAULT;
-+	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
++	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
++		return -EFAULT;
++
++	down_read(&uts_sem);
++	error = __copy_to_user(&name->sysname, &utsname()->sysname,
++			       __OLD_UTS_LEN);
++	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
++	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
++				__OLD_UTS_LEN);
++	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
++	error |= __copy_to_user(&name->release, &utsname()->release,
++				__OLD_UTS_LEN);
++	error |= __put_user(0, name->release + __OLD_UTS_LEN);
++	error |= __copy_to_user(&name->version, &utsname()->version,
++				__OLD_UTS_LEN);
++	error |= __put_user(0, name->version + __OLD_UTS_LEN);
++	error |= __copy_to_user(&name->machine, &utsname()->machine,
++				__OLD_UTS_LEN);
++	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
++	up_read(&uts_sem);
++
++	if (!error && override_architecture(name))
++		error = -EFAULT;
++	return error ? -EFAULT : 0;
 +}
 +#endif
 +
- struct poll_list {
- 	struct poll_list *next;
- 	int len;
-diff -puN include/linux/compat.h~add-generic-sys_old_select include/linux/compat.h
---- a/include/linux/compat.h~add-generic-sys_old_select
-+++ a/include/linux/compat.h
-@@ -23,6 +23,7 @@
- typedef __compat_uid32_t	compat_uid_t;
- typedef __compat_gid32_t	compat_gid_t;
- 
-+struct compat_sel_arg_struct;
- struct rusage;
- 
- struct compat_itimerspec { 
-@@ -249,6 +250,8 @@ asmlinkage long compat_sys_select(int n,
- 		compat_ulong_t __user *outp, compat_ulong_t __user *exp,
- 		struct compat_timeval __user *tvp);
- 
-+asmlinkage long compat_sys_old_select(struct compat_sel_arg_struct __user *arg);
-+
- asmlinkage long compat_sys_wait4(compat_pid_t pid,
- 				 compat_uint_t __user *stat_addr, int options,
- 				 struct compat_rusage __user *ru);
-diff -puN include/linux/syscalls.h~add-generic-sys_old_select include/linux/syscalls.h
---- a/include/linux/syscalls.h~add-generic-sys_old_select
-+++ a/include/linux/syscalls.h
-@@ -34,6 +34,7 @@ struct pollfd;
- struct rlimit;
- struct rusage;
- struct sched_param;
-+struct sel_arg_struct;
- struct semaphore;
- struct sembuf;
- struct shmid_ds;
-@@ -636,6 +637,7 @@ asmlinkage long sys_poll(struct pollfd _
- 				long timeout);
- asmlinkage long sys_select(int n, fd_set __user *inp, fd_set __user *outp,
- 			fd_set __user *exp, struct timeval __user *tvp);
-+asmlinkage long sys_old_select(struct sel_arg_struct __user * arg);
- asmlinkage long sys_epoll_create(int size);
- asmlinkage long sys_epoll_create1(int flags);
- asmlinkage long sys_epoll_ctl(int epfd, int op, int fd,
+ SYSCALL_DEFINE2(sethostname, char __user *, name, int, len)
+ {
+ 	int errno;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
