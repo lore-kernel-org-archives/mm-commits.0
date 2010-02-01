@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-introduce-fmode_random-for-posix_fadv_random-fix.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:13:59 -0800
-Message-ID: <201002012013.o11KDxBr009710@imap1.linux-foundation.org>
+Subject: + edac-add-__init-to-i7core_xeon_pci_fixup.patch added to -mm tree
+Date: Mon, 01 Feb 2010 12:18:05 -0800
+Message-ID: <201002012018.o11KI5tS009976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756063Ab0BAUOd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:14:33 -0500
+	by vger.kernel.org with ESMTP id S1756052Ab0BAUSz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:18:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, qbarnes+nfs@yahoo-inc.com
+Cc: jslaby@suse.cz, mchehab@redhat.com, norsk5@yahoo.com
 
 
 The patch titled
-     readahead-introduce-fmode_random-for-posix_fadv_random-fix
+     edac: add __init to i7core_xeon_pci_fixup()
 has been added to the -mm tree.  Its filename is
-     readahead-introduce-fmode_random-for-posix_fadv_random-fix.patch
+     edac-add-__init-to-i7core_xeon_pci_fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead-introduce-fmode_random-for-posix_fadv_random-fix
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: edac: add __init to i7core_xeon_pci_fixup()
+From: Jiri Slaby <jslaby@suse.cz>
 
-This fixes a nasty bug of the patch, reported by Quentin Barnes.
+It's called only from an __init function and is the only user of
+pcibios_scan_specific_bus which shall be marked as __devinit to resolve
+section mismatches.
 
-Cc: <qbarnes+nfs@yahoo-inc.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/edac/i7core_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/fadvise.c~readahead-introduce-fmode_random-for-posix_fadv_random-fix mm/fadvise.c
---- a/mm/fadvise.c~readahead-introduce-fmode_random-for-posix_fadv_random-fix
-+++ a/mm/fadvise.c
-@@ -78,18 +78,18 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, lof
- 	case POSIX_FADV_NORMAL:
- 		file->f_ra.ra_pages = bdi->ra_pages;
- 		spin_lock(&file->f_lock);
--		file->f_flags &= ~FMODE_RANDOM;
-+		file->f_mode &= ~FMODE_RANDOM;
- 		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_RANDOM:
- 		spin_lock(&file->f_lock);
--		file->f_flags |= FMODE_RANDOM;
-+		file->f_mode |= FMODE_RANDOM;
- 		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_SEQUENTIAL:
- 		file->f_ra.ra_pages = bdi->ra_pages * 2;
- 		spin_lock(&file->f_lock);
--		file->f_flags &= ~FMODE_RANDOM;
-+		file->f_mode &= ~FMODE_RANDOM;
- 		spin_unlock(&file->f_lock);
- 		break;
- 	case POSIX_FADV_WILLNEED:
+diff -puN drivers/edac/i7core_edac.c~edac-add-__init-to-i7core_xeon_pci_fixup drivers/edac/i7core_edac.c
+--- a/drivers/edac/i7core_edac.c~edac-add-__init-to-i7core_xeon_pci_fixup
++++ a/drivers/edac/i7core_edac.c
+@@ -1141,7 +1141,7 @@ static void i7core_put_all_devices(void)
+ 		i7core_put_devices(i7core_dev);
+ }
+ 
+-static void i7core_xeon_pci_fixup(int dev_id)
++static void __init i7core_xeon_pci_fixup(int dev_id)
+ {
+ 	struct pci_dev *pdev = NULL;
+ 	int i;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 linux-next.patch
-devmem-check-vmalloc-address-on-kmem-read-write.patch
-devmem-fix-kmem-write-bug-on-memory-holes.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-vfs-take-f_lock-on-modifying-f_mode-after-open-time.patch
-readahead-introduce-fmode_random-for-posix_fadv_random.patch
-readahead-introduce-fmode_random-for-posix_fadv_random-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-resources-introduce-generic-page_is_ram.patch
-resources-introduce-generic-page_is_ram-fix.patch
-resources-introduce-generic-page_is_ram-fix-2.patch
-x86-remove-bios-data-range-from-e820.patch
-x86-use-the-generic-page_is_ram.patch
+gpu-drm-i915-fix-potential-null-dereference.patch
+infiniband-use-rlimit-helpers.patch
+mtd-chips-cfi-remove-unneeded-null-checks.patch
+video-backlight-progear-fix-pci-device-refcounting.patch
+mm-use-rlimit-helpers.patch
+bootmem-avoid-dma32-zone-by-default.patch
+fs-use-rlimit-helpers.patch
+posix-cpu-timers-cleanup-rlimits-usage.patch
+kernel-core-use-helpers-for-rlimits.patch
+ipc-use-rlimit-helpers.patch
+edac-add-__init-to-i7core_xeon_pci_fixup.patch
 
