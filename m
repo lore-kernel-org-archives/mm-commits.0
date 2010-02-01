@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch added to -mm tree
-Date: Mon, 01 Feb 2010 13:55:23 -0800
-Message-ID: <201002012155.o11LtOQB014801@imap1.linux-foundation.org>
+Subject: + panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:03:05 -0800
+Message-ID: <201002012203.o11M36dI015175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283Ab0BAV6H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 16:58:07 -0500
+	by vger.kernel.org with ESMTP id S1753918Ab0BAWDX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:03:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haicheng.li@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de
+Cc: anton@samba.org, mingo@elte.hu
 
 
 The patch titled
-     memory hotplug: fix a bug on /dev/mem for 64-bit kernels
+     panic: fix panic_timeout accuracy when running on a hypervisor
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
+     panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: fix a bug on /dev/mem for 64-bit kernels
-From: Shaohui Zheng <shaohui.zheng@intel.com>
+Subject: panic: fix panic_timeout accuracy when running on a hypervisor
+From: Anton Blanchard <anton@samba.org>
 
-Newly added memory can not be accessed via /dev/mem, because we do not
-update the variables high_memory, max_pfn and max_low_pfn.
+I've had some complaints about panic_timeout being wildly innacurate on
+shared processor PowerPC partitions (a 3 minute panic_timeout taking 30
+minutes).
 
-Add a function update_end_of_memory_vars() to update these variables for
-64-bit kernels.
+The problem is we loop on mdelay(1) and with a 1ms in 10ms hypervisor
+timeslice each of these will take 10ms (ie 10x) longer.  I expect other
+platforms with shared processor hypervisors will see the same issue.
 
-Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Li Haicheng <haicheng.li@intel.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+This patch keeps the old behaviour if we have a panic_blink (only keyboard
+LEDs right now) and does 1 second mdelays if we don't.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ kernel/panic.c |   46 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 16 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels
-+++ a/arch/x86/mm/init_64.c
-@@ -49,6 +49,7 @@
- #include <asm/numa.h>
- #include <asm/cacheflush.h>
- #include <asm/init.h>
-+#include <linux/bootmem.h>
+diff -puN kernel/panic.c~panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor kernel/panic.c
+--- a/kernel/panic.c~panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor
++++ a/kernel/panic.c
+@@ -36,15 +36,36 @@ ATOMIC_NOTIFIER_HEAD(panic_notifier_list
  
- static unsigned long dma_reserve __initdata;
+ EXPORT_SYMBOL(panic_notifier_list);
  
-@@ -616,6 +617,21 @@ void __init paging_init(void)
-  */
- #ifdef CONFIG_MEMORY_HOTPLUG
- /*
-+ * After memory hotplug, the variables max_pfn, max_low_pfn and high_memory will
-+ * be affected, they will be updated in this function.
-+ */
-+static void  update_end_of_memory_vars(u64 start, u64 size)
+-static long no_blink(long time)
+-{
+-	return 0;
+-}
+-
+ /* Returns how long it waited in ms */
+ long (*panic_blink)(long time);
+ EXPORT_SYMBOL(panic_blink);
+ 
++static void panic_blink_one_second(void)
 +{
-+	unsigned long end_pfn = PFN_UP(start + size);
++	static long i = 0, end;
 +
-+	if (end_pfn > max_pfn) {
-+		max_pfn = end_pfn;
-+		max_low_pfn = end_pfn;
-+		high_memory = (void *)__va(max_pfn * PAGE_SIZE - 1) + 1;
++	if (panic_blink) {
++		end = i + MSEC_PER_SEC;
++
++		while (i < end) {
++			i += panic_blink(i);
++			mdelay(1);
++			i++;
++		}
++	} else {
++		/*
++		 * When running under a hypervisor a small mdelay may get
++		 * rounded up to the hypervisor timeslice. For example, with
++		 * a 1ms in 10ms hypervisor timeslice we might inflate a
++		 * mdelay(1) loop by 10x.
++		 *
++		 * If we have nothing to blink, spin on 1 second calls to
++		 * mdelay to avoid this.
++		 */
++		mdelay(MSEC_PER_SEC);
 +	}
 +}
 +
-+/*
-  * Memory is added always to NORMAL zone. This means you will never get
-  * additional DMA/DMA32 memory.
-  */
-@@ -634,6 +650,9 @@ int arch_add_memory(int nid, u64 start, 
- 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
- 	WARN_ON_ONCE(ret);
+ /**
+  *	panic - halt the system
+  *	@fmt: The text string to print
+@@ -96,9 +117,6 @@ NORET_TYPE void panic(const char * fmt, 
  
-+	/* update max_pfn, max_low_pfn and high_memory */
-+	update_end_of_memory_vars(start, size);
-+
- 	return ret;
+ 	bust_spinlocks(0);
+ 
+-	if (!panic_blink)
+-		panic_blink = no_blink;
+-
+ 	if (panic_timeout > 0) {
+ 		/*
+ 		 * Delay timeout seconds before rebooting the machine.
+@@ -106,11 +124,9 @@ NORET_TYPE void panic(const char * fmt, 
+ 		 */
+ 		printk(KERN_EMERG "Rebooting in %d seconds..", panic_timeout);
+ 
+-		for (i = 0; i < panic_timeout*1000; ) {
++		for (i = 0; i < panic_timeout; i++) {
+ 			touch_nmi_watchdog();
+-			i += panic_blink(i);
+-			mdelay(1);
+-			i++;
++			panic_blink_one_second();
+ 		}
+ 		/*
+ 		 * This will not be a clean reboot, with everything
+@@ -136,11 +152,9 @@ NORET_TYPE void panic(const char * fmt, 
+ 	}
+ #endif
+ 	local_irq_enable();
+-	for (i = 0; ; ) {
++	while (1) {
+ 		touch_softlockup_watchdog();
+-		i += panic_blink(i);
+-		mdelay(1);
+-		i++;
++		panic_blink_one_second();
+ 	}
  }
- EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
 _
 
-Patches currently in -mm which might be from shaohui.zheng@intel.com are
+Patches currently in -mm which might be from anton@samba.org are
 
-memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
-memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+linux-next.patch
+fault-injection-correct-function-names-in-documentation.patch
+percpu_counter-make-__percpu_counter_add-an-inline-function-on-up.patch
+sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
+panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch
+panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix.patch
+zlib-make-new-optimized-inflate-endian-independent.patch
 
