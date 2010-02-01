@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-schedc-suppress-unused-var-warning.patch added to -mm tree
-Date: Mon, 01 Feb 2010 15:12:55 -0800
-Message-ID: <201002012338.o11NcLpf019628@imap1.linux-foundation.org>
+Subject: + drivers-char-randomc-fix-unused-var-warning.patch added to -mm tree
+Date: Mon, 01 Feb 2010 15:16:33 -0800
+Message-ID: <201002012341.o11NfxFZ019821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753335Ab0BAXih (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:38:37 -0500
+	by vger.kernel.org with ESMTP id S1752790Ab0BAXmj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:42:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
+Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, mpm@selenic.com
 
 
 The patch titled
-     kernel/sched.c: suppress unused var warning
+     drivers/char/random.c: fix unused var warning
 has been added to the -mm tree.  Its filename is
-     kernel-schedc-suppress-unused-var-warning.patch
+     drivers-char-randomc-fix-unused-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/sched.c: suppress unused var warning
+Subject: drivers/char/random.c: fix unused var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-On UP:
+Repair
 
-kernel/sched.c: In function 'wake_up_new_task':
-kernel/sched.c:2631: warning: unused variable 'cpu'
+: commit b9b06a1fda275559492f8b083927fde4cec641dc
+: Author:     Herbert Xu <herbert@gondor.apana.org.au>
+: AuthorDate: Fri Jan 29 21:50:36 2010 +1300
+: Commit:     Herbert Xu <herbert@gondor.apana.org.au>
+: CommitDate: Fri Jan 29 21:50:36 2010 +1300
+: 
+:     random: drop weird m_time/a_time manipulation
+    
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/random.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/sched.c~kernel-schedc-suppress-unused-var-warning kernel/sched.c
---- a/kernel/sched.c~kernel-schedc-suppress-unused-var-warning
-+++ a/kernel/sched.c
-@@ -2628,7 +2628,7 @@ void wake_up_new_task(struct task_struct
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning
++++ a/drivers/char/random.c
+@@ -1101,7 +1101,6 @@ static ssize_t random_write(struct file 
+ 			    size_t count, loff_t *ppos)
  {
- 	unsigned long flags;
- 	struct rq *rq;
--	int cpu = get_cpu();
-+	int cpu __maybe_unused = get_cpu();
+ 	size_t ret;
+-	struct inode *inode = file->f_path.dentry->d_inode;
  
- #ifdef CONFIG_SMP
- 	/*
+ 	ret = write_pool(&blocking_pool, buffer, count);
+ 	if (ret)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +75,7 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-char-randomc-fix-unused-var-warning.patch
 memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
 ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
