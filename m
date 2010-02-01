@@ -1,147 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: + ricoh_mmc-port-from-driver-to-pci-quirk-update.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:24:37 -0800
-Message-ID: <201002012024.o11KObAY010344__42206.4616847367$1265055961$gmane$org@imap1.linux-foundation.org>
+Subject: [to-be-updated] markup_oopspl-add-options-to-improve-cross-compilation-environments.patch removed from -mm tree
+Date: Mon, 01 Feb 2010 12:29:07 -0800
+Message-ID: <201002012029.o11KT7UA010573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754821Ab0BAUZs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:25:48 -0500
+	by vger.kernel.org with ESMTP id S1756138Ab0BAU3h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:29:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: maximlevitsky@gmail.com, linux-mmc@vger.kernel.org, philipl@overt.org, w.sang@pengutronix.de
+To: teawater@gmail.com, arjan@linux.intel.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ricoh_mmc-port-from-driver-to-pci-quirk-update
-has been added to the -mm tree.  Its filename is
-     ricoh_mmc-port-from-driver-to-pci-quirk-update.patch
+     markup_oops.pl: add options to improve cross-compilation environments
+has been removed from the -mm tree.  Its filename was
+     markup_oopspl-add-options-to-improve-cross-compilation-environments.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ricoh_mmc-port-from-driver-to-pci-quirk-update
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: markup_oops.pl: add options to improve cross-compilation environments
+From: Hui Zhu <teawater@gmail.com>
 
-This patch solves nasty problem original driver had.
-Original goal of the ricoh_mmc, was to disable this device because
-then, mmc cards can be read using standard SDHCI controller,
-thus avoiding the need in yet another driver.
-However, the act of disablement, makes other pci functions that belong to
-this controller (xD and memstick) shift up one level, thus pci core has now wrong idea
-about these devices.
+The markup_oops.pl have 3 troubles to support cross-compiler environment:
 
-To fix this issue, this patch moves the driver into pci quirk section, thus it
-is executed before the pci is enumerated, and therefore solve that issue,
-also the same is preformed on resume for same reasons.
+1.  It uses objdump directly.
+2.  It uses modinfo to get the message of module.
+3.  It uses hex function that cannot support 64-bit number in 32-bit arch.
 
-Also regardless of the above, this way is cleaner.
+This patch add 3 options to markup_oops.pl:
 
-You still need to set CONFIG_MMC_RICOH_MMC
-to enable this quirk
+1. -c CROSS_COMPILE	Specify the prefix used for toolchain.
+2. -m MODULE_DIRNAME	Specify the module directory name.
+3. Change hex function to Math::BigInt->from_hex.
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Philip Langdale <philipl@overt.org>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: <linux-mmc@vger.kernel.org>
+After this patch, when parsing the x86_64 oops on x86, we can:
+
+cat amd64m | perl ~/kernel/tmp/m.pl -c /home/teawater/kernel/bin/x8664- -m ./e.ko vmlinux
+
+Signed-off-by: Hui Zhu <teawater@gmail.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   53 +++++++++++++++++------------------------
- 1 file changed, 23 insertions(+), 30 deletions(-)
+ scripts/markup_oops.pl |   71 +++++++++++++++++++++++++++++++++------
+ 1 file changed, 61 insertions(+), 10 deletions(-)
 
-diff -puN drivers/pci/quirks.c~ricoh_mmc-port-from-driver-to-pci-quirk-update drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~ricoh_mmc-port-from-driver-to-pci-quirk-update
-+++ a/drivers/pci/quirks.c
-@@ -2516,27 +2516,30 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
- #endif	/* CONFIG_PCI_IOV */
+diff -puN scripts/markup_oops.pl~markup_oopspl-add-options-to-improve-cross-compilation-environments scripts/markup_oops.pl
+--- a/scripts/markup_oops.pl~markup_oopspl-add-options-to-improve-cross-compilation-environments
++++ a/scripts/markup_oops.pl
+@@ -15,8 +15,46 @@ use Math::BigInt;
+ # 	Arjan van de Ven <arjan@linux.intel.com>
  
- /*
-- * This is a quirk for Ricoh MMC controller found as a part of
-- * mulifunction chip.
-+ * This is a quirk for the Ricoh MMC controller found as a part of
-+ * some mulifunction chips.
  
-- * This is very similiar and based on ricoh_mmc driver
-- * written by Philip Langdale. Thank you for these magic sequencies.
--
-- * These chips implement the four main memory card
-- * controllers (SD, MMC, MS, xD) and one or both
-- * of cardbus or firewire. It happens that they implement SD and MMC
-+ * This is very similiar and based on the ricoh_mmc driver written by
-+ * Philip Langdale. Thank you for these magic sequences.
-+ *
-+ * These chips implement the four main memory card controllers (SD, MMC, MS, xD)
-+ * and one or both of cardbus or firewire.
-+ *
-+ * It happens that they implement SD and MMC
-  * support as separate controllers (and PCI functions). The linux SDHCI
-  * driver supports MMC cards but the chip detects MMC cards in hardware
-  * and directs them to the MMC controller - so the SDHCI driver never sees
-- * them. To get around this, we must disable the useless MMC controller.
-+ * them.
-+ *
-+ * To get around this, we must disable the useless MMC controller.
-  * At that point, the SDHCI controller will start seeing them
-  * It seems to be the case that the relevant PCI registers to deactivate the
-  * MMC controller live on PCI function 0, which might be the cardbus controller
-  * or the firewire controller, depending on the particular chip in question
--
-+ *
-  * This has to be done early, because as soon as we disable the MMC controller
-- * other pci functions shift up one level, e.g. function #2 becames function
-- * #1, and therefore is confusing the pci core.
-+ * other pci functions shift up one level, e.g. function #2 becomes function
-+ * #1, and this will confuse the pci core.
-  */
- 
- #ifdef CONFIG_MMC_RICOH_MMC
-@@ -2563,9 +2566,11 @@ static void ricoh_mmc_fixup_rl5c476(stru
- 	pci_write_config_byte(dev, 0x8E, write_enable);
- 	pci_write_config_byte(dev, 0x8D, write_target);
- 
--	printk(KERN_NOTICE "pci: Ricoh MMC controller disabled\n");
--	printk(KERN_NOTICE "pci: mmc cards will be supported through SDHCI\n");
-+	dev_notice(&dev->dev, "proprietary Ricoh MMC controller disabled (via cardbus function)\n");
-+	dev_notice(&dev->dev, "MMC cards are now supported by standard SDHCI controller\n");
+-my $vmlinux_name = $ARGV[0];
+-if (!defined($vmlinux_name)) {
++my $cross_compile = "";
++my $vmlinux_name = "";
++my $modulefile = "";
++
++# Get options
++my $option = 0;
++for (my $i = 0; $i <= $#ARGV; $i++) {
++	if ($option == 0) {
++		if ($ARGV[$i] eq "-c") {
++			$option = 1;
++		}
++		elsif ($ARGV[$i] eq "-m") {
++			$option = 2;
++		}
++		elsif ($ARGV[$i] eq "-h") {
++			usage();
++			exit;
++		}
++		elsif ($i == $#ARGV) {
++			$vmlinux_name = $ARGV[$i];
++		}
++		else {
++			usage();
++			exit;
++		}
++	}
++	elsif ($option == 1) {
++		$cross_compile = $ARGV[$i];
++		$option = 0;
++	}
++	elsif ($option == 2) {
++		$modulefile = $ARGV[$i];
++		$option = 0;
++	}
++}
++
++if ($vmlinux_name ne "") {
++	$vmlinux_name = $ARGV[$#ARGV];
++}
++else {
+ 	my $kerver = `uname -r`;
+ 	chomp($kerver);
+ 	$vmlinux_name = "/lib/modules/$kerver/build/vmlinux";
+@@ -177,26 +215,27 @@ my $decodestart = Math::BigInt->from_hex
+ my $decodestop = Math::BigInt->from_hex("0x$target") + 8192;
+ if ($target eq "0") {
+ 	print "No oops found!\n";
+-	print "Usage: \n";
+-	print "    dmesg | perl scripts/markup_oops.pl vmlinux\n";
++	usage();
+ 	exit;
  }
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476, ricoh_mmc_fixup_rl5c476);
-+DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476, ricoh_mmc_fixup_rl5c476);
  
- static void ricoh_mmc_fixup_r5c832(struct pci_dev *dev)
- {
-@@ -2587,23 +2592,11 @@ static void ricoh_mmc_fixup_r5c832(struc
- 	pci_write_config_byte(dev, 0xCB, disable | 0x02);
- 	pci_write_config_byte(dev, 0xCA, write_enable);
+ # if it's a module, we need to find the .ko file and calculate a load offset
+ if ($module ne "") {
+-	my $modulefile = `modinfo $module | grep '^filename:' | awk '{ print \$2 }'`;
+-	chomp($modulefile);
++	if ($modulefile eq "") {
++		my $modulefile = `modinfo $module | grep '^filename:' | awk '{ print \$2 }'`;
++		chomp($modulefile);
++	}
+ 	$filename = $modulefile;
+ 	if ($filename eq "") {
+ 		print "Module .ko file for $module not found. Aborting\n";
+ 		exit;
+ 	}
+ 	# ok so we found the module, now we need to calculate the vma offset
+-	open(FILE, "objdump -dS $filename |") || die "Cannot start objdump";
++	open(FILE, $cross_compile."objdump -dS $filename |") || die "Cannot start objdump";
+ 	while (<FILE>) {
+ 		if ($_ =~ /^([0-9a-f]+) \<$function\>\:/) {
+ 			my $fu = $1;
+-			$vmaoffset = hex($target) - hex($fu) - hex($func_offset);
++			$vmaoffset = Math::BigInt->from_hex("0x$target") - Math::BigInt->from_hex("0x$fu") - Math::BigInt->from_hex("0x$func_offset");
+ 		}
+ 	}
+ 	close(FILE);
+@@ -212,7 +251,7 @@ sub InRange {
+ 	my ($address, $target) = @_;
+ 	my $ad = "0x".$address;
+ 	my $ta = "0x".$target;
+-	my $delta = hex($ad) - hex($ta);
++	my $delta = Math::BigInt->from_hex($ad) - Math::BigInt->from_hex($ta);
  
--	printk(KERN_NOTICE "pci: Ricoh MMC controller disabled\n");
--	printk(KERN_NOTICE "pci: mmc cards will be supported through SDHCI\n");
-+	dev_notice(&dev->dev, "proprietary Ricoh MMC controller disabled (via firewire function)\n");
-+	dev_notice(&dev->dev, "MMC cards are now supported by standard SDHCI controller\n");
+ 	if (($delta > -4096) && ($delta < 4096)) {
+ 		return 1;
+@@ -225,7 +264,7 @@ sub InRange {
+ # first, parse the input into the lines array, but to keep size down,
+ # we only do this for 4Kb around the sweet spot
+ 
+-open(FILE, "objdump -dS --adjust-vma=$vmaoffset --start-address=$decodestart --stop-address=$decodestop $filename |") || die "Cannot start objdump";
++open(FILE, $cross_compile."objdump -dS --adjust-vma=$vmaoffset --start-address=$decodestart --stop-address=$decodestop $filename |") || die "Cannot start objdump";
+ 
+ while (<FILE>) {
+ 	my $line = $_;
+@@ -344,3 +383,15 @@ while ($i < $finish) {
+ 	$i = $i +1;
  }
--
--DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476,
--	ricoh_mmc_fixup_rl5c476);
--
--DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_RL5C476,
--	ricoh_mmc_fixup_rl5c476);
--
--
--DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_R5C832,
--	ricoh_mmc_fixup_r5c832);
--
--DECLARE_PCI_FIXUP_RESUME_EARLY(PCI_VENDOR_ID_RICOH, PCI_DEVICE_ID_RICOH_R5C832,
--	ricoh_mmc_fixup_r5c832);
+ 
++sub usage {
++    print <<EOT;
++Usage:
++  dmesg | perl $0 [OPTION] [VMLINUX]
++
++OPTION:
++  -c CROSS_COMPILE	Specify the prefix used for toolchain.
++  -m MODULE_DIRNAME	Specify the module directory name.
++  -h			Help
++EOT
++}
++
+_
+
+Patches currently in -mm which might be from teawater@gmail.com are
+
+linux-next.patch
+markup_oopspl-fix-func_offset-error-with-x86_64.patch
+markup_oopspl-add-options-to-improve-cross-compilation-environments.patch
+markup_oopspl-add-options-to-improve-cross-compilation-environments-update.patch
+
