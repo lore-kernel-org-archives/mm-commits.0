@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + infiniband-use-for_each_set_bit.patch added to -mm tree
-Date: Mon, 01 Feb 2010 14:26:08 -0800
-Message-ID: <201002012226.o11MQ8H8016304@imap1.linux-foundation.org>
+Subject: + sgi-gru-use-for_each_set_bit.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:27:02 -0800
+Message-ID: <201002012227.o11MR2L0016344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754895Ab0BAW10 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:27:26 -0500
+	by vger.kernel.org with ESMTP id S1753834Ab0BAW1g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:27:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, hal.rosenstock@gmail.com, rolandd@cisco.com, sean.hefty@intel.com
+Cc: akinobu.mita@gmail.com, steiner@sgi.com
 
 
 The patch titled
-     infiniband: use for_each_set_bit()
+     sgi-gru: use for_each_set_bit()
 has been added to the -mm tree.  Its filename is
-     infiniband-use-for_each_set_bit.patch
+     sgi-gru-use-for_each_set_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: infiniband: use for_each_set_bit()
+Subject: sgi-gru: use for_each_set_bit()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Replace open-coded loop with for_each_set_bit().
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/mad.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/misc/sgi-gru/grutables.h |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/infiniband/core/mad.c~infiniband-use-for_each_set_bit drivers/infiniband/core/mad.c
---- a/drivers/infiniband/core/mad.c~infiniband-use-for_each_set_bit
-+++ a/drivers/infiniband/core/mad.c
-@@ -1193,10 +1193,7 @@ static int method_in_use(struct ib_mad_m
- {
- 	int i;
+diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-use-for_each_set_bit drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-use-for_each_set_bit
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -516,8 +516,7 @@ struct gru_blade_state {
  
--	for (i = find_first_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS);
--	     i < IB_MGMT_MAX_METHODS;
--	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
--			       1+i)) {
-+	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS) {
- 		if ((*method)->agent[i]) {
- 			printk(KERN_ERR PFX "Method %d already in use\n", i);
- 			return -EINVAL;
-@@ -1330,13 +1327,9 @@ static int add_nonoui_reg_req(struct ib_
- 		goto error3;
+ /* Scan all active GRUs in a GRU bitmap */
+ #define for_each_gru_in_bitmap(gid, map)				\
+-	for ((gid) = find_first_bit((map), GRU_MAX_GRUS); (gid) < GRU_MAX_GRUS;\
+-		(gid)++, (gid) = find_next_bit((map), GRU_MAX_GRUS, (gid)))
++	for_each_set_bit((gid), (map), GRU_MAX_GRUS)
  
- 	/* Finally, add in methods being registered */
--	for (i = find_first_bit(mad_reg_req->method_mask,
--				IB_MGMT_MAX_METHODS);
--	     i < IB_MGMT_MAX_METHODS;
--	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
--			       1+i)) {
-+	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS)
- 		(*method)->agent[i] = agent_priv;
--	}
-+
- 	return 0;
+ /* Scan all active GRUs on a specific blade */
+ #define for_each_gru_on_blade(gru, nid, i)				\
+@@ -536,23 +535,17 @@ struct gru_blade_state {
  
- error3:
-@@ -1429,13 +1422,9 @@ check_in_use:
- 		goto error4;
+ /* Scan each CBR whose bit is set in a TFM (or copy of) */
+ #define for_each_cbr_in_tfm(i, map)					\
+-	for ((i) = find_first_bit(map, GRU_NUM_CBE);			\
+-			(i) < GRU_NUM_CBE;				\
+-			(i)++, (i) = find_next_bit(map, GRU_NUM_CBE, i))
++	for_each_set_bit((i), (map), GRU_NUM_CBE)
  
- 	/* Finally, add in methods being registered */
--	for (i = find_first_bit(mad_reg_req->method_mask,
--				IB_MGMT_MAX_METHODS);
--	     i < IB_MGMT_MAX_METHODS;
--	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
--			       1+i)) {
-+	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS)
- 		(*method)->agent[i] = agent_priv;
--	}
-+
- 	return 0;
+ /* Scan each CBR in a CBR bitmap. Note: multiple CBRs in an allocation unit */
+ #define for_each_cbr_in_allocation_map(i, map, k)			\
+-	for ((k) = find_first_bit(map, GRU_CBR_AU); (k) < GRU_CBR_AU;	\
+-			(k) = find_next_bit(map, GRU_CBR_AU, (k) + 1)) 	\
++	for_each_set_bit((k), (map), GRU_CBR_AU)			\
+ 		for ((i) = (k)*GRU_CBR_AU_SIZE;				\
+ 				(i) < ((k) + 1) * GRU_CBR_AU_SIZE; (i)++)
  
- error4:
+ /* Scan each DSR in a DSR bitmap. Note: multiple DSRs in an allocation unit */
+ #define for_each_dsr_in_allocation_map(i, map, k)			\
+-	for ((k) = find_first_bit((const unsigned long *)map, GRU_DSR_AU);\
+-			(k) < GRU_DSR_AU;				\
+-			(k) = find_next_bit((const unsigned long *)map,	\
+-					  GRU_DSR_AU, (k) + 1))		\
++	for_each_set_bit((k), (const unsigned long *)(map), GRU_DSR_AU)	\
+ 		for ((i) = (k) * GRU_DSR_AU_CL;				\
+ 				(i) < ((k) + 1) * GRU_DSR_AU_CL; (i)++)
+ 
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
