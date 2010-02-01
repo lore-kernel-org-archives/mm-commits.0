@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch added to -mm tree
-Date: Mon, 01 Feb 2010 13:55:25 -0800
-Message-ID: <201002012155.o11LtPRf014804@imap1.linux-foundation.org>
+Subject: + memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch added to -mm tree
+Date: Mon, 01 Feb 2010 13:55:23 -0800
+Message-ID: <201002012155.o11LtOQB014801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752442Ab0BAV5K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 16:57:10 -0500
+	by vger.kernel.org with ESMTP id S1753283Ab0BAV6H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 16:58:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, fengguang.wu@intel.com, haicheng.li@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, shaohui.zheng@intel.com, tglx@linutronix.de
+Cc: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haicheng.li@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
+     memory hotplug: fix a bug on /dev/mem for 64-bit kernels
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
+     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory hotplug: fix a bug on /dev/mem for 64-bit kernels
+From: Shaohui Zheng <shaohui.zheng@intel.com>
 
-simplify comment
+Newly added memory can not be accessed via /dev/mem, because we do not
+update the variables high_memory, max_pfn and max_low_pfn.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Add a function update_end_of_memory_vars() to update these variables for
+64-bit kernels.
+
+Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Haicheng <haicheng.li@intel.com>
-Cc: Shaohui Zheng <shaohui.zheng@intel.com>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels
 +++ a/arch/x86/mm/init_64.c
-@@ -617,8 +617,8 @@ void __init paging_init(void)
+@@ -49,6 +49,7 @@
+ #include <asm/numa.h>
+ #include <asm/cacheflush.h>
+ #include <asm/init.h>
++#include <linux/bootmem.h>
+ 
+ static unsigned long dma_reserve __initdata;
+ 
+@@ -616,6 +617,21 @@ void __init paging_init(void)
   */
  #ifdef CONFIG_MEMORY_HOTPLUG
  /*
-- * After memory hotplug, the variables max_pfn, max_low_pfn and high_memory will
-- * be affected, they will be updated in this function.
-+ * After memory hotplug the variables max_pfn, max_low_pfn and high_memory need
-+ * updating.
++ * After memory hotplug, the variables max_pfn, max_low_pfn and high_memory will
++ * be affected, they will be updated in this function.
++ */
++static void  update_end_of_memory_vars(u64 start, u64 size)
++{
++	unsigned long end_pfn = PFN_UP(start + size);
++
++	if (end_pfn > max_pfn) {
++		max_pfn = end_pfn;
++		max_low_pfn = end_pfn;
++		high_memory = (void *)__va(max_pfn * PAGE_SIZE - 1) + 1;
++	}
++}
++
++/*
+  * Memory is added always to NORMAL zone. This means you will never get
+  * additional DMA/DMA32 memory.
   */
- static void  update_end_of_memory_vars(u64 start, u64 size)
- {
+@@ -634,6 +650,9 @@ int arch_add_memory(int nid, u64 start, 
+ 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
+ 	WARN_ON_ONCE(ret);
+ 
++	/* update max_pfn, max_low_pfn and high_memory */
++	update_end_of_memory_vars(start, size);
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(arch_add_memory);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
+memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
 memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-resources-introduce-generic-page_is_ram-fix.patch
-lib-more-scalable-list_sort-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
