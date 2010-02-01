@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:27:25 -0800
-Message-ID: <201002012027.o11KRPGt010426@imap1.linux-foundation.org>
+Subject: + drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch added to -mm tree
+Date: Mon, 01 Feb 2010 12:37:26 -0800
+Message-ID: <201002012037.o11KbQM6010940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754821Ab0BAUek (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:34:40 -0500
+	by vger.kernel.org with ESMTP id S1754821Ab0BAUhg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:37:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: catalin.marinas@arm.com, jgarzik@pobox.com, stable@kernel.org, tj@kernel.org
+Cc: mail@mcbeister.de, akpm@linux-foundation.org, marcel@holtmann.org
 
 
 The patch titled
-     ata: call flush_dcache_page() around PIO data transfers in libata-aff.c
+     drivers/bluetooth/btusb.c: add "TDK Corp. Integrated Bluetooth" support
 has been added to the -mm tree.  Its filename is
-     ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc.patch
+     drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ata: call flush_dcache_page() around PIO data transfers in libata-aff.c
-From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: drivers/bluetooth/btusb.c: add "TDK Corp. Integrated Bluetooth" support
+From: Marcel Beister <mail@mcbeister.de>
 
-Depending on the direction of the transfer, flush_dcache_page() must be
-called either before (ATA_TFLAG_WRITE) or after (!ATA_TFLAG_WRITE) the
-data copying to avoid D-cache aliasing with user space or I-D cache
-coherency issues (when reading data from an ATA device using PIO, the
-kernel dirties the D-cache but there is no flush_dcache_page() required on
-Harvard architectures).
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=15172
 
-This patch allows the ARM boards to use a rootfs on CompactFlash with the
-PATA platform driver.
-
-As Anfei Zhou mentioned in a recent patch ("flush dcache before writing
-into page to avoid alias"), on some architectures there may be a
-performance benefit in differentiating the flush_dcache_page() calls based
-on whether the kernel or the user page needs flushing.
-
-IMHO, we should differentiate based on the direction (kernel reading or
-writing from/to such page).  In the ARM case with PIPT Harvard caches
-(newer processors), the kernel reading from a page that may be mapped in
-user space shouldn't need cache flushing.  The kernel writing to such page
-would require D-cache flushing because of coherency with the I-cache. 
-Currently on ARM, the latter happens in both cases.
-
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/bluetooth/btusb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/ata/libata-sff.c~ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc
-+++ a/drivers/ata/libata-sff.c
-@@ -874,6 +874,9 @@ static void ata_pio_sector(struct ata_qu
+diff -puN drivers/bluetooth/btusb.c~drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support drivers/bluetooth/btusb.c
+--- a/drivers/bluetooth/btusb.c~drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support
++++ a/drivers/bluetooth/btusb.c
+@@ -65,6 +65,9 @@ static struct usb_device_id btusb_table[
+ 	/* Bluetooth Ultraport Module from IBM */
+ 	{ USB_DEVICE(0x04bf, 0x030a) },
  
- 	DPRINTK("data %s\n", qc->tf.flags & ATA_TFLAG_WRITE ? "write" : "read");
- 
-+	if (do_write)
-+		flush_dcache_page(page);
++	/* TDK Corp. Integrated Bluetooth */
++	{ USB_DEVICE(0x04bf, 0x0310) },
 +
- 	if (PageHighMem(page)) {
- 		unsigned long flags;
- 
-@@ -893,6 +896,9 @@ static void ata_pio_sector(struct ata_qu
- 				       do_write);
- 	}
- 
-+	if (!do_write)
-+		flush_dcache_page(page);
-+
- 	qc->curbytes += qc->sect_size;
- 	qc->cursg_ofs += qc->sect_size;
- 
+ 	/* ALPS Modules with non-standard id */
+ 	{ USB_DEVICE(0x044e, 0x3001) },
+ 	{ USB_DEVICE(0x044e, 0x3002) },
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from mail@mcbeister.de are
 
-linux-next.patch
-ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc.patch
+drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
 
