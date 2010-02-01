@@ -1,93 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] python-change-scripts-to-use-system-python-instead-of-env.patch removed from -mm tree
-Date: Mon, 01 Feb 2010 10:38:58 -0800
-Message-ID: <201002011838.o11Icw2D004886@imap1.linux-foundation.org>
+Subject: [to-be-updated] cpufreq-ondemand-refactor-frequency-increase-code.patch removed from -mm tree
+Date: Mon, 01 Feb 2010 11:37:08 -0800
+Message-ID: <201002011937.o11Jb8jF007855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755678Ab0BASmF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 13:42:05 -0500
+	by vger.kernel.org with ESMTP id S1755775Ab0BAThx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 14:37:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dzickus@redhat.com, kyle@mcmartin.ca, mmarek@suse.cz, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mike@android.com, davej@codemonkey.org.uk, trenn@suse.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts: python: change scripts to use system python instead of env
+     cpufreq: ondemand: refactor frequency increase code
 has been removed from the -mm tree.  Its filename was
-     python-change-scripts-to-use-system-python-instead-of-env.patch
+     cpufreq-ondemand-refactor-frequency-increase-code.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: python: change scripts to use system python instead of env
-From: Don Zickus <dzickus@redhat.com>
+Subject: cpufreq: ondemand: refactor frequency increase code
+From: Mike Chan <mike@android.com>
 
-Just a small change to a couple of scripts to go from
+Make simpler to read and call.
 
- #!/usr/bin/env python
-
-to
-
- #!/usr/bin/python
-
-This shouldn't effect anyone, unless they don't install python there.
-
-In preparation for python3, Fedora is doing a big push to change the
-scripts to use the system python.  This allows developers to put the
-python3 in their path without fear of breaking existing scripts.
-
-Now I am pretty sure anyone using python3 for testing purposes will
-probably not run any of the scripts I changed, but Fedora has this
-automated tool that checks for this stuff so I thought I would try to push
-it upstream.
-
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Mike Chan <mike@android.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/scripts/unwcheck.py  |    2 +-
- scripts/rt-tester/rt-tester.py |    2 +-
- scripts/show_delta             |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/cpufreq/cpufreq_ondemand.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/ia64/scripts/unwcheck.py~python-change-scripts-to-use-system-python-instead-of-env arch/ia64/scripts/unwcheck.py
---- a/arch/ia64/scripts/unwcheck.py~python-change-scripts-to-use-system-python-instead-of-env
-+++ a/arch/ia64/scripts/unwcheck.py
-@@ -1,4 +1,4 @@
--#!/usr/bin/env python
-+#!/usr/bin/python
- #
- # Usage: unwcheck.py FILE
- #
-diff -puN scripts/rt-tester/rt-tester.py~python-change-scripts-to-use-system-python-instead-of-env scripts/rt-tester/rt-tester.py
---- a/scripts/rt-tester/rt-tester.py~python-change-scripts-to-use-system-python-instead-of-env
-+++ a/scripts/rt-tester/rt-tester.py
-@@ -1,4 +1,4 @@
--#!/usr/bin/env python
-+#!/usr/bin/python
- #
- # rt-mutex tester
- #
-diff -puN scripts/show_delta~python-change-scripts-to-use-system-python-instead-of-env scripts/show_delta
---- a/scripts/show_delta~python-change-scripts-to-use-system-python-instead-of-env
-+++ a/scripts/show_delta
-@@ -1,4 +1,4 @@
--#!/usr/bin/env python
-+#!/usr/bin/python
- #
- # show_deltas: Read list of printk messages instrumented with
- # time data, and format with time deltas.
-_
-
-Patches currently in -mm which might be from dzickus@redhat.com are
-
-linux-next.patch
-
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-ondemand-refactor-frequency-increase-code drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-ondemand-refactor-frequency-increase-code
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -443,6 +443,17 @@ static struct attribute_group dbs_attr_g
+ 
+ /************************** sysfs end ************************/
+ 
++static int dbs_freq_increase(struct cpufreq_policy *p, unsigned int target_freq)
++{
++	if (dbs_tuners_ins.powersave_bias)
++		target_freq = powersave_bias_target(p, target_freq,
++				CPUFREQ_RELATION_H);
++
++	__cpufreq_driver_target(p, target_freq,
++			dbs_tuners_ins.powersave_bias ?
++			CPUFREQ_RELATION_L : CPUFREQ_RELATION_H);
++}
++
+ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
+ {
+ 	unsigned int max_load_freq;
+@@ -520,19 +531,8 @@ static void dbs_check_cpu(struct cpu_dbs
+ 
+ 	/* Check for frequency increase */
+ 	if (max_load_freq > dbs_tuners_ins.up_threshold * policy->cur) {
+-		/* if we are already at full speed then break out early */
+-		if (!dbs_tuners_ins.powersave_bias) {
+-			if (policy->cur == policy->max)
+-				return;
