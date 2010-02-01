@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-generic-sys_olduname.patch added to -mm tree
-Date: Mon, 01 Feb 2010 14:58:31 -0800
-Message-ID: <201002012258.o11MwVPj017912@imap1.linux-foundation.org>
+Subject: + improve-sys_personality-for-compat-architectures.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:58:24 -0800
+Message-ID: <201002012258.o11MwONp017906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59863 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752091Ab0BAW74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:59:56 -0500
+	by vger.kernel.org with ESMTP id S1753063Ab0BAW76 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hch@lst.de, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.c
 
 
 The patch titled
-     Add generic sys_olduname()
+     improve sys_personality() for compat architectures
 has been added to the -mm tree.  Its filename is
-     add-generic-sys_olduname.patch
+     improve-sys_personality-for-compat-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add generic sys_olduname()
+Subject: improve sys_personality() for compat architectures
 From: Christoph Hellwig <hch@lst.de>
 
-Add generic implementations of the old and really old uname system calls. 
-Note that sh only implements sys_olduname but not sys_oldolduname, but I'm
-not going to bother with another ifdef for that special case.
-
-m32r implemented an old uname but never wired it up, so kill it, too.
+On an architecture that supports 32-bit compat we need to claim to be
+PER_LINUX even if we're actually PER_LINUX32.  Instead of duplicating the
+code for that in all architectures and having various bugs in the handling
+of personality flags do it once and right in the common code.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -61,584 +60,375 @@ Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/sys_m32r.c       |   11 -----
- arch/mips/include/asm/unistd.h    |    1 
- arch/mips/kernel/syscall.c        |   42 --------------------
- arch/powerpc/include/asm/unistd.h |    1 
- arch/powerpc/kernel/syscalls.c    |   57 ----------------------------
- arch/sh/include/asm/syscalls.h    |    3 -
- arch/sh/include/asm/unistd_32.h   |    1 
- arch/sh/include/asm/unistd_64.h   |    1 
- arch/sh/kernel/sys_sh.c           |   11 -----
- arch/um/kernel/syscall.c          |   45 ----------------------
- arch/x86/ia32/ia32entry.S         |    4 -
- arch/x86/ia32/sys_ia32.c          |   52 -------------------------
- arch/x86/include/asm/sys_ia32.h   |    5 --
- arch/x86/include/asm/syscalls.h   |    7 ---
- arch/x86/include/asm/unistd_32.h  |    1 
- arch/x86/include/asm/unistd_64.h  |    1 
- arch/x86/kernel/sys_i386_32.c     |   49 ------------------------
- include/linux/syscalls.h          |    4 +
- kernel/sys.c                      |   54 ++++++++++++++++++++++++++
- 19 files changed, 66 insertions(+), 284 deletions(-)
+ arch/ia64/ia32/ia32_entry.S         |    2 +-
+ arch/ia64/ia32/sys_ia32.c           |   13 -------------
+ arch/mips/kernel/linux32.c          |   13 -------------
+ arch/mips/kernel/scall64-n32.S      |    2 +-
+ arch/mips/kernel/scall64-o32.S      |    2 +-
+ arch/parisc/kernel/sys_parisc.c     |   15 ---------------
+ arch/parisc/kernel/syscall_table.S  |    2 +-
+ arch/powerpc/include/asm/syscalls.h |    1 -
+ arch/powerpc/include/asm/systbl.h   |    2 +-
+ arch/powerpc/kernel/syscalls.c      |   15 ---------------
+ arch/s390/kernel/compat_wrapper.S   |    2 +-
+ arch/s390/kernel/entry.h            |    1 -
+ arch/s390/kernel/sys_s390.c         |   13 -------------
+ arch/s390/kernel/syscalls.S         |    2 +-
+ arch/sparc/kernel/sys_sparc_64.c    |   14 --------------
+ arch/sparc/kernel/systbls.h         |    1 -
+ arch/sparc/kernel/systbls_64.S      |    4 ++--
+ arch/x86/ia32/sys_ia32.c            |   14 --------------
+ arch/x86/include/asm/sys_ia32.h     |    1 -
+ kernel/exec_domain.c                |   11 ++++++++++-
+ 20 files changed, 19 insertions(+), 111 deletions(-)
 
-diff -puN arch/m32r/kernel/sys_m32r.c~add-generic-sys_olduname arch/m32r/kernel/sys_m32r.c
---- a/arch/m32r/kernel/sys_m32r.c~add-generic-sys_olduname
-+++ a/arch/m32r/kernel/sys_m32r.c
-@@ -76,17 +76,6 @@ asmlinkage int sys_tas(int __user *addr)
- 	return oldval;
- }
- 
--asmlinkage int sys_uname(struct old_utsname __user * name)
--{
--	int err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof (*name));
--	up_read(&uts_sem);
--	return err?-EFAULT:0;
--}
--
- asmlinkage int sys_cacheflush(void *addr, int bytes, int cache)
- {
- 	/* This should flush more selectively ...  */
-diff -puN arch/mips/include/asm/unistd.h~add-generic-sys_olduname arch/mips/include/asm/unistd.h
---- a/arch/mips/include/asm/unistd.h~add-generic-sys_olduname
-+++ a/arch/mips/include/asm/unistd.h
-@@ -1014,6 +1014,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/mips/kernel/syscall.c~add-generic-sys_olduname arch/mips/kernel/syscall.c
---- a/arch/mips/kernel/syscall.c~add-generic-sys_olduname
-+++ a/arch/mips/kernel/syscall.c
-@@ -215,48 +215,6 @@ out:
- 	return error;
- }
- 
--/*
-- * Compacrapability ...
-- */
--SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
--{
--	if (name && !copy_to_user(name, utsname(), sizeof (*name)))
--		return 0;
--	return -EFAULT;
--}
--
--/*
-- * Compacrapability ...
-- */
--SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
--{
--	int error;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error -= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error -= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error -= __put_user(0, name->release + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error -= __put_user(0, name->version + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error = __put_user(0, name->machine + __OLD_UTS_LEN);
--	error = error ? -EFAULT : 0;
--
--	return error;
--}
--
- SYSCALL_DEFINE1(set_thread_area, unsigned long, addr)
- {
- 	struct thread_info *ti = task_thread_info(current);
-diff -puN arch/powerpc/include/asm/unistd.h~add-generic-sys_olduname arch/powerpc/include/asm/unistd.h
---- a/arch/powerpc/include/asm/unistd.h~add-generic-sys_olduname
-+++ a/arch/powerpc/include/asm/unistd.h
-@@ -377,6 +377,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/powerpc/kernel/syscalls.c~add-generic-sys_olduname arch/powerpc/kernel/syscalls.c
---- a/arch/powerpc/kernel/syscalls.c~add-generic-sys_olduname
-+++ a/arch/powerpc/kernel/syscalls.c
-@@ -101,63 +101,6 @@ ppc_select(int n, fd_set __user *inp, fd
- }
- #endif
- 
--#ifdef CONFIG_PPC64
--#define OVERRIDE_MACHINE    (personality(current->personality) == PER_LINUX32)
--#else
--#define OVERRIDE_MACHINE    0
--#endif
--
--static inline int override_machine(char __user *mach)
--{
--	if (OVERRIDE_MACHINE) {
--		/* change ppc64 to ppc */
--		if (__put_user(0, mach+3) || __put_user(0, mach+4))
--			return -EFAULT;
--	}
--	return 0;
--}
--
--int sys_uname(struct old_utsname __user *name)
--{
--	int err = 0;
--	
--	down_read(&uts_sem);
--	if (copy_to_user(name, utsname(), sizeof(*name)))
--		err = -EFAULT;
--	up_read(&uts_sem);
--	if (!err)
--		err = override_machine(name->machine);
--	return err;
--}
--
--int sys_olduname(struct oldold_utsname __user *name)
--{
--	int error;
--
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--  
--	down_read(&uts_sem);
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->release + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->version + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error |= override_machine(name->machine);
--	up_read(&uts_sem);
--
--	return error? -EFAULT: 0;
--}
--
- long ppc_fadvise64_64(int fd, int advice, u32 offset_high, u32 offset_low,
- 		      u32 len_high, u32 len_low)
- {
-diff -puN arch/sh/include/asm/syscalls.h~add-generic-sys_olduname arch/sh/include/asm/syscalls.h
---- a/arch/sh/include/asm/syscalls.h~add-generic-sys_olduname
-+++ a/arch/sh/include/asm/syscalls.h
-@@ -3,15 +3,12 @@
- 
- #ifdef __KERNEL__
- 
--struct old_utsname;
--
- asmlinkage int old_mmap(unsigned long addr, unsigned long len,
- 			unsigned long prot, unsigned long flags,
- 			int fd, unsigned long off);
- asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
- 			  unsigned long prot, unsigned long flags,
- 			  unsigned long fd, unsigned long pgoff);
--asmlinkage int sys_uname(struct old_utsname __user *name);
- 
- #ifdef CONFIG_SUPERH32
- # include "syscalls_32.h"
-diff -puN arch/sh/include/asm/unistd_32.h~add-generic-sys_olduname arch/sh/include/asm/unistd_32.h
---- a/arch/sh/include/asm/unistd_32.h~add-generic-sys_olduname
-+++ a/arch/sh/include/asm/unistd_32.h
-@@ -371,6 +371,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/sh/include/asm/unistd_64.h~add-generic-sys_olduname arch/sh/include/asm/unistd_64.h
---- a/arch/sh/include/asm/unistd_64.h~add-generic-sys_olduname
-+++ a/arch/sh/include/asm/unistd_64.h
-@@ -411,6 +411,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/sh/kernel/sys_sh.c~add-generic-sys_olduname arch/sh/kernel/sys_sh.c
---- a/arch/sh/kernel/sys_sh.c~add-generic-sys_olduname
-+++ a/arch/sh/kernel/sys_sh.c
-@@ -93,14 +93,3 @@ asmlinkage int sys_cacheflush(unsigned l
- 	up_read(&current->mm->mmap_sem);
- 	return 0;
- }
--
--asmlinkage int sys_uname(struct old_utsname __user *name)
--{
--	int err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof(*name));
--	up_read(&uts_sem);
--	return err?-EFAULT:0;
--}
-diff -puN arch/um/kernel/syscall.c~add-generic-sys_olduname arch/um/kernel/syscall.c
---- a/arch/um/kernel/syscall.c~add-generic-sys_olduname
-+++ a/arch/um/kernel/syscall.c
-@@ -51,51 +51,6 @@ long old_mmap(unsigned long addr, unsign
- 	return err;
- }
- 
--long sys_uname(struct old_utsname __user * name)
--{
--	long err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof (*name));
--	up_read(&uts_sem);
--	return err?-EFAULT:0;
--}
--
--long sys_olduname(struct oldold_utsname __user * name)
--{
--	long error;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE,name,sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	down_read(&uts_sem);
--
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->release + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->version + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
--
--	up_read(&uts_sem);
--
--	error = error ? -EFAULT : 0;
--
--	return error;
--}
--
- int kernel_execve(const char *filename, char *const argv[], char *const envp[])
- {
- 	mm_segment_t fs;
-diff -puN arch/x86/ia32/ia32entry.S~add-generic-sys_olduname arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~add-generic-sys_olduname
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -563,7 +563,7 @@ ia32_sys_call_table:
- 	.quad quiet_ni_syscall			/* old mpx syscall holder */
- 	.quad sys_setpgid
- 	.quad quiet_ni_syscall			/* old ulimit syscall holder */
--	.quad sys32_olduname
-+	.quad sys_olduname
- 	.quad sys_umask		/* 60 */
- 	.quad sys_chroot
- 	.quad compat_sys_ustat
-@@ -613,7 +613,7 @@ ia32_sys_call_table:
- 	.quad compat_sys_newstat
- 	.quad compat_sys_newlstat
- 	.quad compat_sys_newfstat
--	.quad sys32_uname
-+	.quad sys_uname
- 	.quad stub32_iopl		/* 110 */
- 	.quad sys_vhangup
- 	.quad quiet_ni_syscall	/* old "idle" system call */
-diff -puN arch/x86/ia32/sys_ia32.c~add-generic-sys_olduname arch/x86/ia32/sys_ia32.c
---- a/arch/x86/ia32/sys_ia32.c~add-generic-sys_olduname
-+++ a/arch/x86/ia32/sys_ia32.c
-@@ -434,58 +434,6 @@ asmlinkage long sys32_sendfile(int out_f
+diff -puN arch/ia64/ia32/ia32_entry.S~improve-sys_personality-for-compat-architectures arch/ia64/ia32/ia32_entry.S
+--- a/arch/ia64/ia32/ia32_entry.S~improve-sys_personality-for-compat-architectures
++++ a/arch/ia64/ia32/ia32_entry.S
+@@ -314,7 +314,7 @@ ia32_syscall_table:
+ 	data8 sys_fchdir
+ 	data8 sys_ni_syscall	/* sys_bdflush */
+ 	data8 sys_sysfs		/* 135 */
+-	data8 sys32_personality
++	data8 sys_personality
+ 	data8 sys_ni_syscall	  /* for afs_syscall */
+ 	data8 sys_setfsuid	/* 16-bit version */
+ 	data8 sys_setfsgid	/* 16-bit version */
+diff -puN arch/ia64/ia32/sys_ia32.c~improve-sys_personality-for-compat-architectures arch/ia64/ia32/sys_ia32.c
+--- a/arch/ia64/ia32/sys_ia32.c~improve-sys_personality-for-compat-architectures
++++ a/arch/ia64/ia32/sys_ia32.c
+@@ -1867,19 +1867,6 @@ sys32_sendfile (int out_fd, int in_fd, i
  	return ret;
  }
  
--asmlinkage long sys32_olduname(struct oldold_utsname __user *name)
+-asmlinkage long
+-sys32_personality (unsigned int personality)
 -{
--	char *arch = "x86_64";
--	int err;
+-	long ret;
 -
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
+-	if (current->personality == PER_LINUX32 && personality == PER_LINUX)
+-		personality = PER_LINUX32;
+-	ret = sys_personality(personality);
+-	if (ret == PER_LINUX32)
+-		ret = PER_LINUX;
+-	return ret;
+-}
 -
--	down_read(&uts_sem);
+ asmlinkage unsigned long
+ sys32_brk (unsigned int brk)
+ {
+diff -puN arch/mips/kernel/linux32.c~improve-sys_personality-for-compat-architectures arch/mips/kernel/linux32.c
+--- a/arch/mips/kernel/linux32.c~improve-sys_personality-for-compat-architectures
++++ a/arch/mips/kernel/linux32.c
+@@ -265,19 +265,6 @@ SYSCALL_DEFINE1(32_newuname, struct new_
+ 	return ret;
+ }
+ 
+-SYSCALL_DEFINE1(32_personality, unsigned long, personality)
+-{
+-	int ret;
+-	personality &= 0xffffffff;
+-	if (personality(current->personality) == PER_LINUX32 &&
+-	    personality == PER_LINUX)
+-		personality = PER_LINUX32;
+-	ret = sys_personality(personality);
+-	if (ret == PER_LINUX32)
+-		ret = PER_LINUX;
+-	return ret;
+-}
 -
--	err = __copy_to_user(&name->sysname, &utsname()->sysname,
--			     __OLD_UTS_LEN);
--	err |= __put_user(0, name->sysname+__OLD_UTS_LEN);
--	err |= __copy_to_user(&name->nodename, &utsname()->nodename,
--			      __OLD_UTS_LEN);
--	err |= __put_user(0, name->nodename+__OLD_UTS_LEN);
--	err |= __copy_to_user(&name->release, &utsname()->release,
--			      __OLD_UTS_LEN);
--	err |= __put_user(0, name->release+__OLD_UTS_LEN);
--	err |= __copy_to_user(&name->version, &utsname()->version,
--			      __OLD_UTS_LEN);
--	err |= __put_user(0, name->version+__OLD_UTS_LEN);
+ SYSCALL_DEFINE4(32_sendfile, long, out_fd, long, in_fd,
+ 	compat_off_t __user *, offset, s32, count)
+ {
+diff -puN arch/mips/kernel/scall64-n32.S~improve-sys_personality-for-compat-architectures arch/mips/kernel/scall64-n32.S
+--- a/arch/mips/kernel/scall64-n32.S~improve-sys_personality-for-compat-architectures
++++ a/arch/mips/kernel/scall64-n32.S
+@@ -252,7 +252,7 @@ EXPORT(sysn32_call_table)
+ 	PTR	sys32_sigaltstack
+ 	PTR	compat_sys_utime		/* 6130 */
+ 	PTR	sys_mknod
+-	PTR	sys_32_personality
++	PTR	sys_personality
+ 	PTR	compat_sys_ustat
+ 	PTR	compat_sys_statfs
+ 	PTR	compat_sys_fstatfs		/* 6135 */
+diff -puN arch/mips/kernel/scall64-o32.S~improve-sys_personality-for-compat-architectures arch/mips/kernel/scall64-o32.S
+--- a/arch/mips/kernel/scall64-o32.S~improve-sys_personality-for-compat-architectures
++++ a/arch/mips/kernel/scall64-o32.S
+@@ -339,7 +339,7 @@ sys_call_table:
+ 	PTR	sys_fchdir
+ 	PTR	sys_bdflush
+ 	PTR	sys_sysfs			/* 4135 */
+-	PTR	sys_32_personality
++	PTR	sys_personality
+ 	PTR	sys_ni_syscall	 		/* for afs_syscall */
+ 	PTR	sys_setfsuid
+ 	PTR	sys_setfsgid
+diff -puN arch/parisc/kernel/sys_parisc.c~improve-sys_personality-for-compat-architectures arch/parisc/kernel/sys_parisc.c
+--- a/arch/parisc/kernel/sys_parisc.c~improve-sys_personality-for-compat-architectures
++++ a/arch/parisc/kernel/sys_parisc.c
+@@ -220,21 +220,6 @@ asmlinkage int sys_free_hugepages(unsign
+ 	return -EINVAL;
+ }
+ 
+-long parisc_personality(unsigned long personality)
+-{
+-	long err;
 -
--	if (personality(current->personality) == PER_LINUX32)
--		arch = "i686";
+-	if (personality(current->personality) == PER_LINUX32
+-	    && personality == PER_LINUX)
+-		personality = PER_LINUX32;
 -
--	err |= __copy_to_user(&name->machine, arch, strlen(arch) + 1);
--
--	up_read(&uts_sem);
--
--	err = err ? -EFAULT : 0;
+-	err = sys_personality(personality);
+-	if (err == PER_LINUX32)
+-		err = PER_LINUX;
 -
 -	return err;
 -}
 -
--long sys32_uname(struct old_utsname __user *name)
--{
--	int err;
--
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof(*name));
--	up_read(&uts_sem);
--	if (personality(current->personality) == PER_LINUX32)
--		err |= copy_to_user(&name->machine, "i686", 5);
--
--	return err ? -EFAULT : 0;
--}
--
- asmlinkage long sys32_execve(char __user *name, compat_uptr_t __user *argv,
- 			     compat_uptr_t __user *envp, struct pt_regs *regs)
+ long parisc_newuname(struct new_utsname __user *name)
  {
-diff -puN arch/x86/include/asm/sys_ia32.h~add-generic-sys_olduname arch/x86/include/asm/sys_ia32.h
---- a/arch/x86/include/asm/sys_ia32.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/sys_ia32.h
-@@ -53,11 +53,6 @@ asmlinkage long sys32_pwrite(unsigned in
+ 	int err = sys_newuname(name);
+diff -puN arch/parisc/kernel/syscall_table.S~improve-sys_personality-for-compat-architectures arch/parisc/kernel/syscall_table.S
+--- a/arch/parisc/kernel/syscall_table.S~improve-sys_personality-for-compat-architectures
++++ a/arch/parisc/kernel/syscall_table.S
+@@ -216,7 +216,7 @@
+ 	ENTRY_SAME(fchdir)
+ 	ENTRY_SAME(bdflush)
+ 	ENTRY_SAME(sysfs)		/* 135 */
+-	ENTRY_OURS(personality)
++	ENTRY_SAME(personality)
+ 	ENTRY_SAME(ni_syscall)	/* for afs_syscall */
+ 	ENTRY_SAME(setfsuid)
+ 	ENTRY_SAME(setfsgid)
+diff -puN arch/powerpc/include/asm/syscalls.h~improve-sys_personality-for-compat-architectures arch/powerpc/include/asm/syscalls.h
+--- a/arch/powerpc/include/asm/syscalls.h~improve-sys_personality-for-compat-architectures
++++ a/arch/powerpc/include/asm/syscalls.h
+@@ -35,7 +35,6 @@ asmlinkage long sys_pipe2(int __user *fi
+ asmlinkage long sys_rt_sigaction(int sig,
+ 		const struct sigaction __user *act,
+ 		struct sigaction __user *oact, size_t sigsetsize);
+-asmlinkage long ppc64_personality(unsigned long personality);
+ asmlinkage int ppc_rtas(struct rtas_args __user *uargs);
+ asmlinkage time_t sys64_time(time_t __user * tloc);
+ asmlinkage long ppc_newuname(struct new_utsname __user * name);
+diff -puN arch/powerpc/include/asm/systbl.h~improve-sys_personality-for-compat-architectures arch/powerpc/include/asm/systbl.h
+--- a/arch/powerpc/include/asm/systbl.h~improve-sys_personality-for-compat-architectures
++++ a/arch/powerpc/include/asm/systbl.h
+@@ -139,7 +139,7 @@ COMPAT_SYS_SPU(getpgid)
+ SYSCALL_SPU(fchdir)
+ SYSCALL_SPU(bdflush)
+ COMPAT_SYS(sysfs)
+-SYSX_SPU(ppc64_personality,ppc64_personality,sys_personality)
++SYSCALL_SPU(personality)
+ SYSCALL(ni_syscall)
+ SYSCALL_SPU(setfsuid)
+ SYSCALL_SPU(setfsgid)
+diff -puN arch/powerpc/kernel/syscalls.c~improve-sys_personality-for-compat-architectures arch/powerpc/kernel/syscalls.c
+--- a/arch/powerpc/kernel/syscalls.c~improve-sys_personality-for-compat-architectures
++++ a/arch/powerpc/kernel/syscalls.c
+@@ -102,21 +102,6 @@ ppc_select(int n, fd_set __user *inp, fd
+ #endif
  
- asmlinkage long sys32_sendfile(int, int, compat_off_t __user *, s32);
+ #ifdef CONFIG_PPC64
+-long ppc64_personality(unsigned long personality)
+-{
+-	long ret;
+-
+-	if (personality(current->personality) == PER_LINUX32
+-	    && personality == PER_LINUX)
+-		personality = PER_LINUX32;
+-	ret = sys_personality(personality);
+-	if (ret == PER_LINUX32)
+-		ret = PER_LINUX;
+-	return ret;
+-}
+-#endif
+-
+-#ifdef CONFIG_PPC64
+ #define OVERRIDE_MACHINE    (personality(current->personality) == PER_LINUX32)
+ #else
+ #define OVERRIDE_MACHINE    0
+diff -puN arch/s390/kernel/compat_wrapper.S~improve-sys_personality-for-compat-architectures arch/s390/kernel/compat_wrapper.S
+--- a/arch/s390/kernel/compat_wrapper.S~improve-sys_personality-for-compat-architectures
++++ a/arch/s390/kernel/compat_wrapper.S
+@@ -615,7 +615,7 @@ sys32_sysfs_wrapper:
+ 	.globl	sys32_personality_wrapper
+ sys32_personality_wrapper:
+ 	llgfr	%r2,%r2			# unsigned long
+-	jg	sys_s390_personality	# branch to system call
++	jg	sys_personality		# branch to system call
  
--struct oldold_utsname;
--struct old_utsname;
--asmlinkage long sys32_olduname(struct oldold_utsname __user *);
--long sys32_uname(struct old_utsname __user *);
+ 	.globl	sys32_setfsuid16_wrapper
+ sys32_setfsuid16_wrapper:
+diff -puN arch/s390/kernel/entry.h~improve-sys_personality-for-compat-architectures arch/s390/kernel/entry.h
+--- a/arch/s390/kernel/entry.h~improve-sys_personality-for-compat-architectures
++++ a/arch/s390/kernel/entry.h
+@@ -33,7 +33,6 @@ long sys_mmap2(struct s390_mmap_arg_stru
+ long sys_s390_ipc(uint call, int first, unsigned long second,
+ 	     unsigned long third, void __user *ptr);
+ long sys_s390_newuname(struct new_utsname __user *name);
+-long sys_s390_personality(unsigned long personality);
+ long sys_s390_fadvise64(int fd, u32 offset_high, u32 offset_low,
+ 		    size_t len, int advice);
+ long sys_s390_fadvise64_64(struct fadvise64_64_args __user *args);
+diff -puN arch/s390/kernel/sys_s390.c~improve-sys_personality-for-compat-architectures arch/s390/kernel/sys_s390.c
+--- a/arch/s390/kernel/sys_s390.c~improve-sys_personality-for-compat-architectures
++++ a/arch/s390/kernel/sys_s390.c
+@@ -141,19 +141,6 @@ SYSCALL_DEFINE1(s390_newuname, struct ne
+ 	}
+ 	return ret;
+ }
 -
- asmlinkage long sys32_execve(char __user *, compat_uptr_t __user *,
- 			     compat_uptr_t __user *, struct pt_regs *);
- asmlinkage long sys32_clone(unsigned int, unsigned int, struct pt_regs *);
-diff -puN arch/x86/include/asm/syscalls.h~add-generic-sys_olduname arch/x86/include/asm/syscalls.h
---- a/arch/x86/include/asm/syscalls.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/syscalls.h
-@@ -50,13 +50,6 @@ asmlinkage int sys_sigaction(int, const 
- 			     struct old_sigaction __user *);
- unsigned long sys_sigreturn(struct pt_regs *);
- 
--/* kernel/sys_i386_32.c */
--struct oldold_utsname;
--struct old_utsname;
+-SYSCALL_DEFINE1(s390_personality, unsigned long, personality)
+-{
+-	int ret;
 -
--asmlinkage int sys_uname(struct old_utsname __user *);
--asmlinkage int sys_olduname(struct oldold_utsname __user *);
+-	if (current->personality == PER_LINUX32 && personality == PER_LINUX)
+-		personality = PER_LINUX32;
+-	ret = sys_personality(personality);
+-	if (ret == PER_LINUX32)
+-		ret = PER_LINUX;
 -
- /* kernel/vm86_32.c */
- int sys_vm86old(struct vm86_struct __user *, struct pt_regs *);
- int sys_vm86(unsigned long, unsigned long, struct pt_regs *);
-diff -puN arch/x86/include/asm/unistd_32.h~add-generic-sys_olduname arch/x86/include/asm/unistd_32.h
---- a/arch/x86/include/asm/unistd_32.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/unistd_32.h
-@@ -371,6 +371,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLD_MMAP
- #define __ARCH_WANT_SYS_OLD_SELECT
- #define __ARCH_WANT_SYS_OLDUMOUNT
-diff -puN arch/x86/include/asm/unistd_64.h~add-generic-sys_olduname arch/x86/include/asm/unistd_64.h
---- a/arch/x86/include/asm/unistd_64.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/unistd_64.h
-@@ -688,6 +688,7 @@ __SYSCALL(__NR_setprlimit, sys_setprlimi
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/x86/kernel/sys_i386_32.c~add-generic-sys_olduname arch/x86/kernel/sys_i386_32.c
---- a/arch/x86/kernel/sys_i386_32.c~add-generic-sys_olduname
-+++ a/arch/x86/kernel/sys_i386_32.c
-@@ -25,55 +25,6 @@
- #include <asm/syscalls.h>
+-	return ret;
+-}
+ #endif /* CONFIG_64BIT */
  
  /*
-- * Old cruft
-- */
--asmlinkage int sys_uname(struct old_utsname __user *name)
--{
--	int err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof(*name));
--	up_read(&uts_sem);
--	return err? -EFAULT:0;
--}
--
--asmlinkage int sys_olduname(struct oldold_utsname __user *name)
--{
--	int error;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	down_read(&uts_sem);
--
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->release + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->version + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
--
--	up_read(&uts_sem);
--
--	error = error ? -EFAULT : 0;
--
--	return error;
--}
--
--
--/*
-  * Do a system call from kernel instead of calling sys_execve so we
-  * end up with proper pt_regs.
-  */
-diff -puN include/linux/syscalls.h~add-generic-sys_olduname include/linux/syscalls.h
---- a/include/linux/syscalls.h~add-generic-sys_olduname
-+++ a/include/linux/syscalls.h
-@@ -31,6 +31,8 @@ struct msqid_ds;
- struct new_utsname;
- struct nfsctl_arg;
- struct __old_kernel_stat;
-+struct oldold_utsname;
-+struct old_utsname;
- struct pollfd;
- struct rlimit;
- struct rusage;
-@@ -653,6 +655,8 @@ asmlinkage long sys_gethostname(char __u
- asmlinkage long sys_sethostname(char __user *name, int len);
- asmlinkage long sys_setdomainname(char __user *name, int len);
- asmlinkage long sys_newuname(struct new_utsname __user *name);
-+asmlinkage long sys_uname(struct old_utsname __user *);
-+asmlinkage long sys_olduname(struct oldold_utsname __user *);
- 
- asmlinkage long sys_getrlimit(unsigned int resource,
- 				struct rlimit __user *rlim);
-diff -puN kernel/sys.c~add-generic-sys_olduname kernel/sys.c
---- a/kernel/sys.c~add-generic-sys_olduname
-+++ a/kernel/sys.c
-@@ -1136,6 +1136,60 @@ SYSCALL_DEFINE1(newuname, struct new_uts
- 	return errno;
+diff -puN arch/s390/kernel/syscalls.S~improve-sys_personality-for-compat-architectures arch/s390/kernel/syscalls.S
+--- a/arch/s390/kernel/syscalls.S~improve-sys_personality-for-compat-architectures
++++ a/arch/s390/kernel/syscalls.S
+@@ -144,7 +144,7 @@ SYSCALL(sys_getpgid,sys_getpgid,sys32_ge
+ SYSCALL(sys_fchdir,sys_fchdir,sys32_fchdir_wrapper)
+ SYSCALL(sys_bdflush,sys_bdflush,sys32_bdflush_wrapper)
+ SYSCALL(sys_sysfs,sys_sysfs,sys32_sysfs_wrapper)		/* 135 */
+-SYSCALL(sys_personality,sys_s390_personality,sys32_personality_wrapper)
++SYSCALL(sys_personality,sys_personality,sys32_personality_wrapper)
+ NI_SYSCALL							/* for afs_syscall */
+ SYSCALL(sys_setfsuid16,sys_ni_syscall,sys32_setfsuid16_wrapper)	/* old setfsuid16 syscall */
+ SYSCALL(sys_setfsgid16,sys_ni_syscall,sys32_setfsgid16_wrapper)	/* old setfsgid16 syscall */
+diff -puN arch/sparc/kernel/sys_sparc_64.c~improve-sys_personality-for-compat-architectures arch/sparc/kernel/sys_sparc_64.c
+--- a/arch/sparc/kernel/sys_sparc_64.c~improve-sys_personality-for-compat-architectures
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -522,20 +522,6 @@ SYSCALL_DEFINE1(sparc64_newuname, struct
+ 	return ret;
  }
  
-+#ifdef __ARCH_WANT_SYS_OLD_UNAME
-+/*
-+ * Old cruft
-+ */
-+SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
-+{
-+	int error = 0;
-+
-+	if (!name)
-+		return -EFAULT;
-+
-+	down_read(&uts_sem);
-+	if (copy_to_user(name, utsname(), sizeof(*name)))
-+		error = -EFAULT;
-+	up_read(&uts_sem);
-+
-+	if (!error && override_architecture(name))
-+		error = -EFAULT;
-+	return error;
-+}
-+
-+SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
-+{
-+	int error;
-+
-+	if (!name)
-+		return -EFAULT;
-+	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
-+		return -EFAULT;
-+
-+	down_read(&uts_sem);
-+	error = __copy_to_user(&name->sysname, &utsname()->sysname,
-+			       __OLD_UTS_LEN);
-+	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->release, &utsname()->release,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->release + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->version, &utsname()->version,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->version + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->machine, &utsname()->machine,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
-+	up_read(&uts_sem);
-+
-+	if (!error && override_architecture(name))
-+		error = -EFAULT;
-+	return error ? -EFAULT : 0;
-+}
-+#endif
-+
- SYSCALL_DEFINE2(sethostname, char __user *, name, int, len)
+-SYSCALL_DEFINE1(sparc64_personality, unsigned long, personality)
+-{
+-	int ret;
+-
+-	if (current->personality == PER_LINUX32 &&
+-	    personality == PER_LINUX)
+-		personality = PER_LINUX32;
+-	ret = sys_personality(personality);
+-	if (ret == PER_LINUX32)
+-		ret = PER_LINUX;
+-
+-	return ret;
+-}
+-
+ int sparc_mmap_check(unsigned long addr, unsigned long len)
  {
- 	int errno;
+ 	if (test_thread_flag(TIF_32BIT)) {
+diff -puN arch/sparc/kernel/systbls.h~improve-sys_personality-for-compat-architectures arch/sparc/kernel/systbls.h
+--- a/arch/sparc/kernel/systbls.h~improve-sys_personality-for-compat-architectures
++++ a/arch/sparc/kernel/systbls.h
+@@ -15,7 +15,6 @@ extern asmlinkage long sys_sparc_ipc(uns
+ 			       unsigned long third,
+ 			       void __user *ptr, long fifth);
+ extern asmlinkage long sparc64_newuname(struct new_utsname __user *name);
+-extern asmlinkage long sparc64_personality(unsigned long personality);
+ extern asmlinkage long sys64_munmap(unsigned long addr, size_t len);
+ extern asmlinkage unsigned long sys64_mremap(unsigned long addr,
+ 					     unsigned long old_len,
+diff -puN arch/sparc/kernel/systbls_64.S~improve-sys_personality-for-compat-architectures arch/sparc/kernel/systbls_64.S
+--- a/arch/sparc/kernel/systbls_64.S~improve-sys_personality-for-compat-architectures
++++ a/arch/sparc/kernel/systbls_64.S
+@@ -56,7 +56,7 @@ sys_call_table32:
+ 	.word sys_setsid, sys_fchdir, sys32_fgetxattr, sys_listxattr, sys_llistxattr
+ /*180*/	.word sys32_flistxattr, sys_removexattr, sys_lremovexattr, compat_sys_sigpending, sys_ni_syscall
+ 	.word sys32_setpgid, sys32_fremovexattr, sys32_tkill, sys32_exit_group, sys_sparc64_newuname
+-/*190*/	.word sys32_init_module, sys_sparc64_personality, sys_remap_file_pages, sys32_epoll_create, sys32_epoll_ctl
++/*190*/	.word sys32_init_module, sys_personality, sys_remap_file_pages, sys32_epoll_create, sys32_epoll_ctl
+ 	.word sys32_epoll_wait, sys32_ioprio_set, sys_getppid, sys32_sigaction, sys_sgetmask
+ /*200*/	.word sys32_ssetmask, sys_sigsuspend, compat_sys_newlstat, sys_uselib, compat_sys_old_readdir
+ 	.word sys32_readahead, sys32_socketcall, sys32_syslog, sys32_lookup_dcookie, sys32_fadvise64
+@@ -131,7 +131,7 @@ sys_call_table:
+ 	.word sys_setsid, sys_fchdir, sys_fgetxattr, sys_listxattr, sys_llistxattr
+ /*180*/	.word sys_flistxattr, sys_removexattr, sys_lremovexattr, sys_nis_syscall, sys_ni_syscall
+ 	.word sys_setpgid, sys_fremovexattr, sys_tkill, sys_exit_group, sys_sparc64_newuname
+-/*190*/	.word sys_init_module, sys_sparc64_personality, sys_remap_file_pages, sys_epoll_create, sys_epoll_ctl
++/*190*/	.word sys_init_module, sys_personality, sys_remap_file_pages, sys_epoll_create, sys_epoll_ctl
+ 	.word sys_epoll_wait, sys_ioprio_set, sys_getppid, sys_nis_syscall, sys_sgetmask
+ /*200*/	.word sys_ssetmask, sys_nis_syscall, sys_newlstat, sys_uselib, sys_nis_syscall
+ 	.word sys_readahead, sys_socketcall, sys_syslog, sys_lookup_dcookie, sys_fadvise64
+diff -puN arch/x86/ia32/sys_ia32.c~improve-sys_personality-for-compat-architectures arch/x86/ia32/sys_ia32.c
+--- a/arch/x86/ia32/sys_ia32.c~improve-sys_personality-for-compat-architectures
++++ a/arch/x86/ia32/sys_ia32.c
+@@ -414,20 +414,6 @@ asmlinkage long sys32_pwrite(unsigned in
+ 			  ((loff_t)AA(poshi) << 32) | AA(poslo));
+ }
+ 
+-
+-asmlinkage long sys32_personality(unsigned long personality)
+-{
+-	int ret;
+-
+-	if (personality(current->personality) == PER_LINUX32 &&
+-		personality == PER_LINUX)
+-		personality = PER_LINUX32;
+-	ret = sys_personality(personality);
+-	if (ret == PER_LINUX32)
+-		ret = PER_LINUX;
+-	return ret;
+-}
+-
+ asmlinkage long sys32_sendfile(int out_fd, int in_fd,
+ 			       compat_off_t __user *offset, s32 count)
+ {
+diff -puN arch/x86/include/asm/sys_ia32.h~improve-sys_personality-for-compat-architectures arch/x86/include/asm/sys_ia32.h
+--- a/arch/x86/include/asm/sys_ia32.h~improve-sys_personality-for-compat-architectures
++++ a/arch/x86/include/asm/sys_ia32.h
+@@ -51,7 +51,6 @@ asmlinkage long sys32_rt_sigqueueinfo(in
+ asmlinkage long sys32_pread(unsigned int, char __user *, u32, u32, u32);
+ asmlinkage long sys32_pwrite(unsigned int, char __user *, u32, u32, u32);
+ 
+-asmlinkage long sys32_personality(unsigned long);
+ asmlinkage long sys32_sendfile(int, int, compat_off_t __user *, s32);
+ 
+ struct oldold_utsname;
+diff -puN kernel/exec_domain.c~improve-sys_personality-for-compat-architectures kernel/exec_domain.c
+--- a/kernel/exec_domain.c~improve-sys_personality-for-compat-architectures
++++ a/kernel/exec_domain.c
+@@ -188,17 +188,26 @@ static int __init proc_execdomains_init(
+ module_init(proc_execdomains_init);
+ #endif
+ 
++/*
++ * Get/set the personality.
++ *
++ * Note that we simply return PER_LINUX even if we actually have a 32-bit
++ * task (PER_LINUX32) as this is expected by 32-bit userland.
++ */
+ SYSCALL_DEFINE1(personality, u_long, personality)
+ {
+ 	u_long old = current->personality;
+ 
+ 	if (personality != 0xffffffff) {
++		if (personality(old) == PER_LINUX32 &&
++		    personality == PER_LINUX)
++			personality = PER_LINUX32;
+ 		set_personality(personality);
+ 		if (current->personality != personality)
+ 			return -EINVAL;
+ 	}
+ 
+-	return (long)old;
++	return (long)(old == PER_LINUX32 ? PER_LINUX : old);
+ }
+ 
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
