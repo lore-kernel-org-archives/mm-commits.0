@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ati_pcigart-fix-printk-format-warning.patch added to -mm tree
-Date: Mon, 01 Feb 2010 14:31:05 -0800
-Message-ID: <201002012231.o11MV5OR016587@imap1.linux-foundation.org>
+Subject: + doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:31:34 -0800
+Message-ID: <201002012231.o11MVYoC016613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755072Ab0BAWbN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:31:13 -0500
+	by vger.kernel.org with ESMTP id S1755055Ab0BAWbk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 17:31:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, airlied@linux.ie, zhenyuw@linux.intel.com
+Cc: cascardo@holoscopio.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     ati_pcigart: fix printk format warning
+     doc: console doc should read "bind & unbind" instead of "bind & bind"
 has been added to the -mm tree.  Its filename is
-     ati_pcigart-fix-printk-format-warning.patch
+     doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ati_pcigart: fix printk format warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: doc: console doc should read "bind & unbind" instead of "bind & bind"
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-Fix ati_pcigart printk format warning:
-
-drivers/gpu/drm/ati_pcigart.c:115: warning: format '%Lx' expects type 'long long unsigned int', but argument 3 has type 'dma_addr_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ati_pcigart.c |    2 +-
+ Documentation/console/console.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/ati_pcigart.c~ati_pcigart-fix-printk-format-warning drivers/gpu/drm/ati_pcigart.c
---- a/drivers/gpu/drm/ati_pcigart.c~ati_pcigart-fix-printk-format-warning
-+++ a/drivers/gpu/drm/ati_pcigart.c
-@@ -113,7 +113,7 @@ int drm_ati_pcigart_init(struct drm_devi
+diff -puN Documentation/console/console.txt~doc-console-doc-should-read-bind-unbind-instead-of-bind-bind Documentation/console/console.txt
+--- a/Documentation/console/console.txt~doc-console-doc-should-read-bind-unbind-instead-of-bind-bind
++++ a/Documentation/console/console.txt
+@@ -74,7 +74,7 @@ driver takes over the consoles vacated b
+ hand, will bind the driver to the consoles that are currently occupied by a
+ system driver.
  
- 		if (pci_set_dma_mask(dev->pdev, gart_info->table_mask)) {
- 			DRM_ERROR("fail to set dma mask to 0x%Lx\n",
--				  gart_info->table_mask);
-+				  (unsigned long long)gart_info->table_mask);
- 			ret = 1;
- 			goto done;
- 		}
+-NOTE1: Binding and binding must be selected in Kconfig. It's under:
++NOTE1: Binding and unbinding must be selected in Kconfig. It's under:
+ 
+ Device Drivers -> Character devices -> Support for binding and unbinding
+ console drivers
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
 linux-next.patch
-kfifo-fix-kernel-doc-notation.patch
-ati_pcigart-fix-printk-format-warning.patch
-radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
-mfgpt-move-clocksource-menu.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
-xen-add-kconfig-menu.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-cgroups-subsystem-module-unloading-fix.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+eisa-fix-coding-style-for-eisa-bus-code.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
 
