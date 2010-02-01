@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch added to -mm tree
-Date: Mon, 01 Feb 2010 12:20:32 -0800
-Message-ID: <201002012020.o11KKWlZ010135@imap1.linux-foundation.org>
+Subject: + misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch added to -mm tree
+Date: Mon, 01 Feb 2010 12:21:05 -0800
+Message-ID: <201002012021.o11KL5pS010144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756049Ab0BAUVM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:21:12 -0500
+	by vger.kernel.org with ESMTP id S1756049Ab0BAUVj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 15:21:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dwmw2@infradead.org
+Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
 
 
 The patch titled
-     mtd: change positive error return into negative in mtd_do_writeoob()
+     mISDN: positive error return should be negative in mode_hfcmulti()
 has been added to the -mm tree.  Its filename is
-     mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
+     misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: change positive error return into negative in mtd_do_writeoob()
+Subject: mISDN: positive error return should be negative in mode_hfcmulti()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The error return should be negative
+The error return should be negative.  Its only caller that acts upon its
+return, handle_bmsg(), transmits the positive error but can also return
+negative errors.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Karsten Keil <isdn@linux-pingi.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdchar.c |    2 +-
+ drivers/isdn/hardware/mISDN/hfcmulti.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/mtdchar.c~mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob drivers/mtd/mtdchar.c
---- a/drivers/mtd/mtdchar.c~mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob
-+++ a/drivers/mtd/mtdchar.c
-@@ -373,7 +373,7 @@ static int mtd_do_writeoob(struct file *
- 	if (!mtd->write_oob)
- 		ret = -EOPNOTSUPP;
- 	else
--		ret = access_ok(VERIFY_READ, ptr, length) ? 0 : EFAULT;
-+		ret = access_ok(VERIFY_READ, ptr, length) ? 0 : -EFAULT;
+diff -puN drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-positive-error-return-should-be-negative-in-mode_hfcmulti drivers/isdn/hardware/mISDN/hfcmulti.c
+--- a/drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-positive-error-return-should-be-negative-in-mode_hfcmulti
++++ a/drivers/isdn/hardware/mISDN/hfcmulti.c
+@@ -2846,7 +2846,7 @@ mode_hfcmulti(struct hfc_multi *hc, int 
+ 	int conf;
  
- 	if (ret)
- 		return ret;
+ 	if (ch < 0 || ch > 31)
+-		return EINVAL;
++		return -EINVAL;
+ 	oslot_tx = hc->chan[ch].slot_tx;
+ 	oslot_rx = hc->chan[ch].slot_rx;
+ 	conf = hc->chan[ch].conf;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -74,6 +76,7 @@ ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
 mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
 mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
 hisax-timeout-off-by-one-in-waitrecmsg.patch
+misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 drivers-scsi-gdthc-fix-buffer-overflow.patch
 drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
@@ -92,7 +95,6 @@ cryptocop-fix-assertion-in-create_output_descriptors.patch
 cris-v32-typo-in-crisv32_arbiter_unwatch.patch
 asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 w1-fix-test-in-ds2482_wait_1wire_idle.patch
-misdn-positive-error-return-should-be-negative-in-mode_hfcmulti.patch
 lpfc-positive-error-return-into-negative.patch
 qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
 
