@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch added to -mm tree
-Date: Mon, 01 Feb 2010 15:49:01 -0800
-Message-ID: <201002020014.o120ERbU021208@imap1.linux-foundation.org>
+Subject: + drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch added to -mm tree
+Date: Mon, 01 Feb 2010 15:50:44 -0800
+Message-ID: <201002020016.o120GAYR021335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752827Ab0BBAOm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 19:14:42 -0500
+	by vger.kernel.org with ESMTP id S1752827Ab0BBAQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 19:16:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, awalls@radix.net, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, manu@linuxtv.org, mchehab@redhat.com
 
 
 The patch titled
-     drivers/media/video/cx18/cx18-alsa-pcm.c: fix printk warning
+     drivers/media/dvb/frontends/stv090x.c: fix use-uninitialised
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
+     drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/cx18/cx18-alsa-pcm.c: fix printk warning
+Subject: drivers/media/dvb/frontends/stv090x.c: fix use-uninitialised
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/cx18/cx18-alsa-pcm.c: In function 'cx18_alsa_announce_pcm_data':
-drivers/media/video/cx18/cx18-alsa-pcm.c:82: warning: format '%d' expects type 'int', but argument 5 has type 'size_t'
+drivers/media/dvb/frontends/stv090x.c: In function 'stv090x_blind_search':
+drivers/media/dvb/frontends/stv090x.c:1967: warning: 'coarse_fail' may be used uninitialized in this function
 
-Cc: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Manu Abraham <manu@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx18/cx18-alsa-pcm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/frontends/stv090x.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/cx18/cx18-alsa-pcm.c~drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning drivers/media/video/cx18/cx18-alsa-pcm.c
---- a/drivers/media/video/cx18/cx18-alsa-pcm.c~drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning
-+++ a/drivers/media/video/cx18/cx18-alsa-pcm.c
-@@ -79,7 +79,7 @@ void cx18_alsa_announce_pcm_data(struct 
- 	int period_elapsed = 0;
- 	int length;
+diff -puN drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised drivers/media/dvb/frontends/stv090x.c
+--- a/drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised
++++ a/drivers/media/dvb/frontends/stv090x.c
+@@ -1964,7 +1964,8 @@ static int stv090x_blind_search(struct s
+ 	u32 agc2, reg, srate_coarse;
+ 	s32 cpt_fail, agc2_ovflw, i;
+ 	u8 k_ref, k_max, k_min;
+-	int coarse_fail, lock;
++	int coarse_fail = 0;
++	int lock;
  
--	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%d\n", cxsc,
-+	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%zd\n", cxsc,
- 		pcm_data, num_bytes);
- 
- 	substream = cxsc->capture_pcm_substream;
+ 	k_max = 110;
+ 	k_min = 10;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +80,7 @@ drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
 radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
+drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
 3x59x-fix-pci-resource-management.patch
@@ -114,5 +116,5 @@ put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
 
