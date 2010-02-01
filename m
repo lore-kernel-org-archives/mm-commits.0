@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-generic-sys_ipc-wrapper.patch added to -mm tree
-Date: Mon, 01 Feb 2010 14:58:21 -0800
-Message-ID: <201002012258.o11MwL7N017900@imap1.linux-foundation.org>
+Subject: + add-generic-sys_old_mmap.patch added to -mm tree
+Date: Mon, 01 Feb 2010 14:58:16 -0800
+Message-ID: <201002012258.o11MwGoP017897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752127Ab0BAXAI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:00:08 -0500
+	by vger.kernel.org with ESMTP id S1753115Ab0BAXAS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 18:00:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hch@lst.de, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.c
 
 
 The patch titled
-     Add generic sys_ipc wrapper
+     Add generic sys_old_mmap()
 has been added to the -mm tree.  Its filename is
-     add-generic-sys_ipc-wrapper.patch
+     add-generic-sys_old_mmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add generic sys_ipc wrapper
+Subject: Add generic sys_old_mmap()
 From: Christoph Hellwig <hch@lst.de>
 
-Add a generic implementation of the ipc demultiplexer syscall.  Except for
-s390 and sparc64 all implementations of the sys_ipc are nearly identical.
-
-There are slight differences in the types of the parameters, where mips
-and powerpc as the only 64-bit architectures with sys_ipc use unsigned
-long for the "third" argument as it gets casted to a pointer later, while
-it traditionally is an "int" like most other paramters.  frv goes even
-further and uses unsigned long for all parameters execept for "ptr" which
-is a pointer type everywhere.  The change from int to unsigned long for
-"third" and back to "int" for the others on frv should be fine due to the
-in-register calling conventions for syscalls (we already had a similar
-issue with the generic sys_ptrace), but I'd prefer to have the arch
-maintainers looks over this in details.
-
-Except for that h8300, m68k and m68knommu lack an impplementation of the
-semtimedop sub call which this patch adds, and various architectures have
-gets used - at least on i386 it seems superflous as the compat code on
-x86-64 and ia64 doesn't even bother to implement it.
+Add a generic implementation of the old mmap() syscall, which expects its
+argument in a memory block and switch all architectures over to use it.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -74,1815 +58,747 @@ Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/unistd.h       |    1 
- arch/arm/kernel/sys_arm.c           |   82 ------------------
- arch/arm/kernel/sys_oabi-compat.c   |    3 
- arch/cris/include/asm/unistd.h      |    1 
- arch/cris/kernel/sys_cris.c         |   78 -----------------
- arch/frv/include/asm/unistd.h       |    1 
- arch/frv/kernel/sys_frv.c           |   89 --------------------
- arch/h8300/include/asm/unistd.h     |    1 
- arch/h8300/kernel/sys_h8300.c       |   88 --------------------
- arch/m32r/include/asm/unistd.h      |    1 
- arch/m32r/kernel/sys_m32r.c         |   81 ------------------
- arch/m68k/include/asm/unistd.h      |    1 
- arch/m68k/kernel/sys_m68k.c         |   81 ------------------
- arch/m68knommu/kernel/sys_m68k.c    |   86 -------------------
- arch/mips/include/asm/unistd.h      |    1 
- arch/mips/kernel/syscall.c          |   88 --------------------
- arch/mn10300/include/asm/unistd.h   |    1 
- arch/mn10300/kernel/sys_mn10300.c   |   88 --------------------
- arch/powerpc/include/asm/syscalls.h |    2 
- arch/powerpc/include/asm/unistd.h   |    1 
- arch/powerpc/kernel/syscalls.c      |   94 ---------------------
- arch/s390/kernel/entry.h            |    2 
- arch/s390/kernel/sys_s390.c         |    2 
- arch/s390/kernel/syscalls.S         |    2 
- arch/sh/include/asm/syscalls.h      |    2 
- arch/sh/include/asm/unistd_32.h     |    1 
- arch/sh/include/asm/unistd_64.h     |    1 
- arch/sh/kernel/sys_sh.c             |  104 -----------------------
- arch/sparc/include/asm/unistd.h     |    4 
- arch/sparc/kernel/sys_sparc_32.c    |  113 --------------------------
- arch/sparc/kernel/sys_sparc_64.c    |    2 
- arch/sparc/kernel/systbls.h         |    2 
- arch/sparc/kernel/systbls_64.S      |    2 
- arch/um/sys-i386/syscalls.c         |   86 -------------------
- arch/x86/include/asm/syscalls.h     |    1 
- arch/x86/include/asm/unistd_32.h    |    1 
- arch/x86/kernel/sys_i386_32.c       |   85 -------------------
- include/linux/syscalls.h            |    2 
- ipc/Makefile                        |    2 
- ipc/syscall.c                       |   99 ++++++++++++++++++++++
- 40 files changed, 123 insertions(+), 1259 deletions(-)
+ arch/arm/include/asm/unistd.h             |    1 
+ arch/arm/kernel/calls.S                   |    2 -
+ arch/arm/kernel/sys_arm.c                 |   26 ---------------
+ arch/cris/arch-v10/kernel/entry.S         |    2 -
+ arch/cris/arch-v32/kernel/entry.S         |    2 -
+ arch/cris/include/asm/unistd.h            |    1 
+ arch/cris/kernel/sys_cris.c               |   18 ----------
+ arch/h8300/include/asm/unistd.h           |    1 
+ arch/h8300/kernel/sys_h8300.c             |   34 --------------------
+ arch/h8300/kernel/syscalls.S              |    2 -
+ arch/ia64/ia32/sys_ia32.c                 |    6 +--
+ arch/m68k/include/asm/unistd.h            |    1 
+ arch/m68k/kernel/entry.S                  |    2 -
+ arch/m68k/kernel/sys_m68k.c               |   34 --------------------
+ arch/m68knommu/kernel/sys_m68k.c          |   34 --------------------
+ arch/m68knommu/kernel/syscalltable.S      |    2 -
+ arch/s390/include/asm/unistd.h            |    1 
+ arch/s390/kernel/entry.h                  |    5 +-
+ arch/s390/kernel/sys_s390.c               |   30 +++--------------
+ arch/s390/kernel/syscalls.S               |    2 -
+ arch/um/sys-i386/shared/sysdep/syscalls.h |    2 -
+ arch/um/sys-i386/sys_call_table.S         |    2 -
+ arch/um/sys-i386/syscalls.c               |   33 -------------------
+ arch/x86/ia32/sys_ia32.c                  |    6 +--
+ arch/x86/include/asm/sys_ia32.h           |    4 +-
+ arch/x86/include/asm/syscalls.h           |    2 -
+ arch/x86/include/asm/unistd_32.h          |    1 
+ arch/x86/kernel/sys_i386_32.c             |   34 --------------------
+ arch/x86/kernel/syscall_table_32.S        |    2 -
+ include/linux/syscalls.h                  |    3 +
+ mm/mmap.c                                 |   24 ++++++++++++++
+ mm/nommu.c                                |   24 ++++++++++++++
+ 32 files changed, 82 insertions(+), 261 deletions(-)
 
-diff -puN arch/arm/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/arm/include/asm/unistd.h
---- a/arch/arm/include/asm/unistd.h~add-generic-sys_ipc-wrapper
+diff -puN arch/arm/include/asm/unistd.h~add-generic-sys_old_mmap arch/arm/include/asm/unistd.h
+--- a/arch/arm/include/asm/unistd.h~add-generic-sys_old_mmap
 +++ a/arch/arm/include/asm/unistd.h
-@@ -448,6 +448,7 @@
+@@ -443,6 +443,7 @@
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+ #define __ARCH_WANT_SYS_RT_SIGACTION
+ #define __ARCH_WANT_SYS_RT_SIGSUSPEND
++#define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLD_SELECT
  
  #if !defined(CONFIG_AEABI) || defined(CONFIG_OABI_COMPAT)
- #define __ARCH_WANT_SYS_TIME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_UTIME
-diff -puN arch/arm/kernel/sys_arm.c~add-generic-sys_ipc-wrapper arch/arm/kernel/sys_arm.c
---- a/arch/arm/kernel/sys_arm.c~add-generic-sys_ipc-wrapper
+diff -puN arch/arm/kernel/calls.S~add-generic-sys_old_mmap arch/arm/kernel/calls.S
+--- a/arch/arm/kernel/calls.S~add-generic-sys_old_mmap
++++ a/arch/arm/kernel/calls.S
+@@ -99,7 +99,7 @@
+ 		CALL(sys_swapon)
+ 		CALL(sys_reboot)
+ 		CALL(OBSOLETE(sys_old_readdir))	/* used by libc4 */
+-/* 90 */	CALL(OBSOLETE(old_mmap))	/* used by libc4 */
++/* 90 */	CALL(OBSOLETE(sys_old_mmap))	/* used by libc4 */
+ 		CALL(sys_munmap)
+ 		CALL(sys_truncate)
+ 		CALL(sys_ftruncate)
+diff -puN arch/arm/kernel/sys_arm.c~add-generic-sys_old_mmap arch/arm/kernel/sys_arm.c
+--- a/arch/arm/kernel/sys_arm.c~add-generic-sys_old_mmap
 +++ a/arch/arm/kernel/sys_arm.c
-@@ -28,88 +28,6 @@
+@@ -28,32 +28,6 @@
  #include <linux/ipc.h>
  #include <linux/uaccess.h>
  
--#if !defined(CONFIG_AEABI) || defined(CONFIG_OABI_COMPAT)
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage int sys_ipc(uint call, int first, int second, int third,
--		       void __user *ptr, long fifth)
+-struct mmap_arg_struct {
+-	unsigned long addr;
+-	unsigned long len;
+-	unsigned long prot;
+-	unsigned long flags;
+-	unsigned long fd;
+-	unsigned long offset;
+-};
+-
+-asmlinkage int old_mmap(struct mmap_arg_struct __user *arg)
 -{
--	int version, ret;
+-	int error = -EFAULT;
+-	struct mmap_arg_struct a;
 -
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
 -
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop (first, (struct sembuf __user *)ptr, second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr, second,
--					(const struct timespec __user *)fifth);
+-	error = -EINVAL;
+-	if (a.offset & ~PAGE_MASK)
+-		goto out;
 -
--	case SEMGET:
--		return sys_semget (first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void __user * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl (first, second, third, fourth);
--	}
--
--	case MSGSND:
--		return sys_msgsnd(first, (struct msgbuf __user *) ptr, 
--				  second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--			if (copy_from_user(&tmp,(struct ipc_kludge __user *)ptr,
--					   sizeof (tmp)))
--				return -EFAULT;
--			return sys_msgrcv (first, tmp.msgp, second,
--					   tmp.msgtyp, third);
--		}
--		default:
--			return sys_msgrcv (first,
--					   (struct msgbuf __user *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget ((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl(first, second, (struct msqid_ds __user *)ptr);
--
--	case SHMAT:
--		switch (version) {
--		default: {
--			ulong raddr;
--			ret = do_shmat(first, (char __user *)ptr, second, &raddr);
--			if (ret)
--				return ret;
--			return put_user(raddr, (ulong __user *)third);
--		}
--		case 1: /* Of course, we don't support iBCS2! */
--			return -EINVAL;
--		}
--	case SHMDT: 
--		return sys_shmdt ((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget (first, second, third);
--	case SHMCTL:
--		return sys_shmctl (first, second,
--				   (struct shmid_ds __user *) ptr);
--	default:
--		return -ENOSYS;
--	}
--}
--#endif
--
- /* Fork a new task - this creates a new program thread.
-  * This is called indirectly via a small wrapper
-  */
-diff -puN arch/arm/kernel/sys_oabi-compat.c~add-generic-sys_ipc-wrapper arch/arm/kernel/sys_oabi-compat.c
---- a/arch/arm/kernel/sys_oabi-compat.c~add-generic-sys_ipc-wrapper
-+++ a/arch/arm/kernel/sys_oabi-compat.c
-@@ -346,9 +346,6 @@ asmlinkage long sys_oabi_semop(int semid
- 	return sys_oabi_semtimedop(semid, tsops, nsops, NULL);
- }
- 
--extern asmlinkage int sys_ipc(uint call, int first, int second, int third,
--			      void __user *ptr, long fifth);
--
- asmlinkage int sys_oabi_ipc(uint call, int first, int second, int third,
- 			    void __user *ptr, long fifth)
- {
-diff -puN arch/cris/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/cris/include/asm/unistd.h
---- a/arch/cris/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/cris/include/asm/unistd.h
-@@ -352,6 +352,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/cris/kernel/sys_cris.c~add-generic-sys_ipc-wrapper arch/cris/kernel/sys_cris.c
---- a/arch/cris/kernel/sys_cris.c~add-generic-sys_ipc-wrapper
-+++ a/arch/cris/kernel/sys_cris.c
-@@ -33,81 +33,3 @@ sys_mmap2(unsigned long addr, unsigned l
- 	/* bug(?): 8Kb pages here */
-         return sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff);
- }
--
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly. (same as arch/i386)
-- */
--
--asmlinkage int sys_ipc (uint call, int first, int second,
--			int third, void __user *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop (first, (struct sembuf __user *)ptr, second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr, second,
--					(const struct timespec __user *)fifth);
--
--	case SEMGET:
--		return sys_semget (first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl (first, second, third, fourth);
--	}
--
--	case MSGSND:
--		return sys_msgsnd (first, (struct msgbuf __user *) ptr, 
--				   second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--			
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge __user *) ptr, 
--					   sizeof (tmp)))
--				return -EFAULT;
--			return sys_msgrcv (first, tmp.msgp, second,
--					   tmp.msgtyp, third);
--		}
--		default:
--			return sys_msgrcv (first,
--					   (struct msgbuf __user *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget ((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl (first, second, (struct msqid_ds __user *) ptr);
--
--	case SHMAT: {
--                ulong raddr;
--                ret = do_shmat (first, (char __user *) ptr, second, &raddr);
--                if (ret)
--                        return ret;
--                return put_user (raddr, (ulong __user *) third);
--        }
--	case SHMDT: 
--		return sys_shmdt ((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget (first, second, third);
--	case SHMCTL:
--		return sys_shmctl (first, second,
--				   (struct shmid_ds __user *) ptr);
--	default:
--		return -ENOSYS;
--	}
--}
-diff -puN arch/frv/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/frv/include/asm/unistd.h
---- a/arch/frv/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/frv/include/asm/unistd.h
-@@ -354,6 +354,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- /* #define __ARCH_WANT_SYS_GETHOSTNAME */
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- /* #define __ARCH_WANT_SYS_SGETMASK */
- /* #define __ARCH_WANT_SYS_SIGNAL */
-diff -puN arch/frv/kernel/sys_frv.c~add-generic-sys_ipc-wrapper arch/frv/kernel/sys_frv.c
---- a/arch/frv/kernel/sys_frv.c~add-generic-sys_ipc-wrapper
-+++ a/arch/frv/kernel/sys_frv.c
-@@ -42,92 +42,3 @@ asmlinkage long sys_mmap2(unsigned long 
- 	return sys_mmap_pgoff(addr, len, prot, flags, fd,
- 			      pgoff >> (PAGE_SHIFT - 12));
- }
--
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage long sys_ipc(unsigned long call,
--			unsigned long first,
--			unsigned long second,
--			unsigned long third,
--			void __user *ptr,
--			unsigned long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr, second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr, second,
--				      (const struct timespec __user *)fifth);
--
--	case SEMGET:
--		return sys_semget (first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl (first, second, third, fourth);
--	}
--
--	case MSGSND:
--		return sys_msgsnd (first, (struct msgbuf __user *) ptr,
--				   second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge __user *) ptr,
--					   sizeof (tmp)))
--				return -EFAULT;
--			return sys_msgrcv (first, tmp.msgp, second,
--					   tmp.msgtyp, third);
--		}
--		default:
--			return sys_msgrcv (first,
--					   (struct msgbuf __user *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget ((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl (first, second, (struct msqid_ds __user *) ptr);
--
--	case SHMAT:
--		switch (version) {
--		default: {
--			ulong raddr;
--			ret = do_shmat (first, (char __user *) ptr, second, &raddr);
--			if (ret)
--				return ret;
--			return put_user (raddr, (ulong __user *) third);
--		}
--		case 1:	/* iBCS2 emulator entry point */
--			if (!segment_eq(get_fs(), get_ds()))
--				return -EINVAL;
--			/* The "(ulong *) third" is valid _only_ because of the kernel segment thing */
--			return do_shmat (first, (char __user *) ptr, second, (ulong *) third);
--		}
--	case SHMDT:
--		return sys_shmdt ((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget (first, second, third);
--	case SHMCTL:
--		return sys_shmctl (first, second,
--				   (struct shmid_ds __user *) ptr);
--	default:
--		return -ENOSYS;
--	}
--}
-diff -puN arch/h8300/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/h8300/include/asm/unistd.h
---- a/arch/h8300/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/h8300/include/asm/unistd.h
-@@ -336,6 +336,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/h8300/kernel/sys_h8300.c~add-generic-sys_ipc-wrapper arch/h8300/kernel/sys_h8300.c
---- a/arch/h8300/kernel/sys_h8300.c~add-generic-sys_ipc-wrapper
-+++ a/arch/h8300/kernel/sys_h8300.c
-@@ -26,94 +26,6 @@
- #include <asm/traps.h>
- #include <asm/unistd.h>
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage int sys_ipc (uint call, int first, int second,
--			int third, void *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	if (call <= SEMCTL)
--		switch (call) {
--		case SEMOP:
--			return sys_semop (first, (struct sembuf *)ptr, second);
--		case SEMGET:
--			return sys_semget (first, second, third);
--		case SEMCTL: {
--			union semun fourth;
--			if (!ptr)
--				return -EINVAL;
--			if (get_user(fourth.__pad, (void **) ptr))
--				return -EFAULT;
--			return sys_semctl (first, second, third, fourth);
--			}
--		default:
--			return -EINVAL;
--		}
--	if (call <= MSGCTL) 
--		switch (call) {
--		case MSGSND:
--			return sys_msgsnd (first, (struct msgbuf *) ptr, 
--					  second, third);
--		case MSGRCV:
--			switch (version) {
--			case 0: {
--				struct ipc_kludge tmp;
--				if (!ptr)
--					return -EINVAL;
--				if (copy_from_user (&tmp,
--						    (struct ipc_kludge *)ptr,
--						    sizeof (tmp)))
--					return -EFAULT;
--				return sys_msgrcv (first, tmp.msgp, second,
--						   tmp.msgtyp, third);
--				}
--			default:
--				return sys_msgrcv (first,
--						   (struct msgbuf *) ptr,
--						   second, fifth, third);
--			}
--		case MSGGET:
--			return sys_msgget ((key_t) first, second);
--		case MSGCTL:
--			return sys_msgctl (first, second,
--					   (struct msqid_ds *) ptr);
--		default:
--			return -EINVAL;
--		}
--	if (call <= SHMCTL) 
--		switch (call) {
--		case SHMAT:
--			switch (version) {
--			default: {
--				ulong raddr;
--				ret = do_shmat (first, (char *) ptr,
--						 second, &raddr);
--				if (ret)
--					return ret;
--				return put_user (raddr, (ulong *) third);
--			}
--			}
--		case SHMDT: 
--			return sys_shmdt ((char *)ptr);
--		case SHMGET:
--			return sys_shmget (first, second, third);
--		case SHMCTL:
--			return sys_shmctl (first, second,
--					   (struct shmid_ds *) ptr);
--		default:
--			return -EINVAL;
--		}
--
--	return -EINVAL;
+-	error = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd, a.offset >> PAGE_SHIFT);
+-out:
+-	return error;
 -}
 -
- /* sys_cacheflush -- no support.  */
- asmlinkage int
- sys_cacheflush (unsigned long addr, int scope, int cache, unsigned long len)
-diff -puN arch/m32r/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/m32r/include/asm/unistd.h
---- a/arch/m32r/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/m32r/include/asm/unistd.h
-@@ -339,6 +339,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_TIME
- #define __ARCH_WANT_SYS_UTIME
-diff -puN arch/m32r/kernel/sys_m32r.c~add-generic-sys_ipc-wrapper arch/m32r/kernel/sys_m32r.c
---- a/arch/m32r/kernel/sys_m32r.c~add-generic-sys_ipc-wrapper
-+++ a/arch/m32r/kernel/sys_m32r.c
-@@ -76,87 +76,6 @@ asmlinkage int sys_tas(int __user *addr)
- 	return oldval;
- }
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage int sys_ipc(uint call, int first, int second,
--		       int third, void __user *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      second, (const struct timespec __user *)fifth);
--	case SEMGET:
--		return sys_semget (first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void __user * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl (first, second, third, fourth);
--		}
--
--	case MSGSND:
--		return sys_msgsnd (first, (struct msgbuf __user *) ptr,
--				   second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge __user *) ptr,
--					   sizeof (tmp)))
--				return -EFAULT;
--			return sys_msgrcv (first, tmp.msgp, second,
--					   tmp.msgtyp, third);
--			}
--		default:
--			return sys_msgrcv (first,
--					   (struct msgbuf __user *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget ((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl (first, second,
--				   (struct msqid_ds __user *) ptr);
--	case SHMAT: {
--		ulong raddr;
--
--		if (!access_ok(VERIFY_WRITE, (ulong __user *) third,
--				      sizeof(ulong)))
--			return -EFAULT;
--		ret = do_shmat (first, (char __user *) ptr, second, &raddr);
--		if (ret)
--			return ret;
--		return put_user (raddr, (ulong __user *) third);
--		}
--	case SHMDT:
--		return sys_shmdt ((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget (first, second, third);
--	case SHMCTL:
--		return sys_shmctl (first, second,
--				   (struct shmid_ds __user *) ptr);
--	default:
--		return -ENOSYS;
--	}
--}
--
- asmlinkage int sys_uname(struct old_utsname __user * name)
- {
- 	int err;
-diff -puN arch/m68k/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/m68k/include/asm/unistd.h
---- a/arch/m68k/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/m68k/include/asm/unistd.h
-@@ -347,6 +347,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/m68k/kernel/sys_m68k.c~add-generic-sys_ipc-wrapper arch/m68k/kernel/sys_m68k.c
---- a/arch/m68k/kernel/sys_m68k.c~add-generic-sys_ipc-wrapper
-+++ a/arch/m68k/kernel/sys_m68k.c
-@@ -41,87 +41,6 @@ asmlinkage long sys_mmap2(unsigned long 
- 	return sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff);
- }
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage int sys_ipc (uint call, int first, int second,
--			int third, void __user *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	if (call <= SEMCTL)
--		switch (call) {
--		case SEMOP:
--			return sys_semop (first, ptr, second);
--		case SEMGET:
--			return sys_semget (first, second, third);
--		case SEMCTL: {
--			union semun fourth;
--			if (!ptr)
--				return -EINVAL;
--			if (get_user(fourth.__pad, (void __user *__user *) ptr))
--				return -EFAULT;
--			return sys_semctl (first, second, third, fourth);
--			}
--		default:
--			return -ENOSYS;
--		}
--	if (call <= MSGCTL)
--		switch (call) {
--		case MSGSND:
--			return sys_msgsnd (first, ptr, second, third);
--		case MSGRCV:
--			switch (version) {
--			case 0: {
--				struct ipc_kludge tmp;
--				if (!ptr)
--					return -EINVAL;
--				if (copy_from_user (&tmp, ptr, sizeof (tmp)))
--					return -EFAULT;
--				return sys_msgrcv (first, tmp.msgp, second,
--						   tmp.msgtyp, third);
--				}
--			default:
--				return sys_msgrcv (first, ptr,
--						   second, fifth, third);
--			}
--		case MSGGET:
--			return sys_msgget ((key_t) first, second);
--		case MSGCTL:
--			return sys_msgctl (first, second, ptr);
--		default:
--			return -ENOSYS;
--		}
--	if (call <= SHMCTL)
--		switch (call) {
--		case SHMAT:
--			switch (version) {
--			default: {
--				ulong raddr;
--				ret = do_shmat (first, ptr, second, &raddr);
--				if (ret)
--					return ret;
--				return put_user (raddr, (ulong __user *) third);
--			}
--			}
--		case SHMDT:
--			return sys_shmdt (ptr);
--		case SHMGET:
--			return sys_shmget (first, second, third);
--		case SHMCTL:
--			return sys_shmctl (first, second, ptr);
--		default:
--			return -ENOSYS;
--		}
--
--	return -EINVAL;
--}
--
- /* Convert virtual (user) address VADDR to physical address PADDR */
- #define virt_to_phys_040(vaddr)						\
- ({									\
-diff -puN arch/m68knommu/kernel/sys_m68k.c~add-generic-sys_ipc-wrapper arch/m68knommu/kernel/sys_m68k.c
---- a/arch/m68knommu/kernel/sys_m68k.c~add-generic-sys_ipc-wrapper
-+++ a/arch/m68knommu/kernel/sys_m68k.c
-@@ -27,92 +27,6 @@
- #include <asm/cacheflush.h>
- #include <asm/unistd.h>
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage int sys_ipc (uint call, int first, int second,
--			int third, void *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	if (call <= SEMCTL)
--		switch (call) {
--		case SEMOP:
--			return sys_semop (first, (struct sembuf *)ptr, second);
--		case SEMGET:
--			return sys_semget (first, second, third);
--		case SEMCTL: {
--			union semun fourth;
--			if (!ptr)
--				return -EINVAL;
--			if (get_user(fourth.__pad, (void **) ptr))
--				return -EFAULT;
--			return sys_semctl (first, second, third, fourth);
--			}
--		default:
--			return -EINVAL;
--		}
--	if (call <= MSGCTL) 
--		switch (call) {
--		case MSGSND:
--			return sys_msgsnd (first, (struct msgbuf *) ptr, 
--					  second, third);
--		case MSGRCV:
--			switch (version) {
--			case 0: {
--				struct ipc_kludge tmp;
--				if (!ptr)
--					return -EINVAL;
--				if (copy_from_user (&tmp,
--						    (struct ipc_kludge *)ptr,
--						    sizeof (tmp)))
--					return -EFAULT;
--				return sys_msgrcv (first, tmp.msgp, second,
--						   tmp.msgtyp, third);
--				}
--			default:
--				return sys_msgrcv (first,
--						   (struct msgbuf *) ptr,
--						   second, fifth, third);
--			}
--		case MSGGET:
--			return sys_msgget ((key_t) first, second);
--		case MSGCTL:
--			return sys_msgctl (first, second,
--					   (struct msqid_ds *) ptr);
--		default:
--			return -EINVAL;
--		}
--	if (call <= SHMCTL)
--		switch (call) {
--		case SHMAT:
--			switch (version) {
--			default: {
--				ulong raddr;
--				ret = do_shmat (first, ptr, second, &raddr);
--				if (ret)
--					return ret;
--				return put_user (raddr, (ulong __user *) third);
--			}
--			}
--		case SHMDT:
--			return sys_shmdt (ptr);
--		case SHMGET:
--			return sys_shmget (first, second, third);
--		case SHMCTL:
--			return sys_shmctl (first, second, ptr);
--		default:
--			return -ENOSYS;
--		}
--
--	return -EINVAL;
--}
--
- /* sys_cacheflush -- flush (part of) the processor cache.  */
- asmlinkage int
- sys_cacheflush (unsigned long addr, int scope, int cache, unsigned long len)
-diff -puN arch/mips/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/mips/include/asm/unistd.h
---- a/arch/mips/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/mips/include/asm/unistd.h
-@@ -1004,6 +1004,7 @@
- #define __ARCH_WANT_OLD_READDIR
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_UTIME
-diff -puN arch/mips/kernel/syscall.c~add-generic-sys_ipc-wrapper arch/mips/kernel/syscall.c
---- a/arch/mips/kernel/syscall.c~add-generic-sys_ipc-wrapper
-+++ a/arch/mips/kernel/syscall.c
-@@ -407,94 +407,6 @@ _sys_sysmips(nabi_no_regargs struct pt_r
- }
- 
+ #if !defined(CONFIG_AEABI) || defined(CONFIG_OABI_COMPAT)
  /*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--SYSCALL_DEFINE6(ipc, unsigned int, call, int, first, int, second,
--	unsigned long, third, void __user *, ptr, long, fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr,
--		                      second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      second,
--				      (const struct timespec __user *)fifth);
--	case SEMGET:
--		return sys_semget(first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void __user *__user *) ptr))
--			return -EFAULT;
--		return sys_semctl(first, second, third, fourth);
--	}
--
--	case MSGSND:
--		return sys_msgsnd(first, (struct msgbuf __user *) ptr,
--				  second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge __user *) ptr,
--					   sizeof(tmp)))
--				return -EFAULT;
--			return sys_msgrcv(first, tmp.msgp, second,
--					  tmp.msgtyp, third);
--		}
--		default:
--			return sys_msgrcv(first,
--					  (struct msgbuf __user *) ptr,
--					  second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl(first, second,
--				  (struct msqid_ds __user *) ptr);
--
--	case SHMAT:
--		switch (version) {
--		default: {
--			unsigned long raddr;
--			ret = do_shmat(first, (char __user *) ptr, second,
--				       &raddr);
--			if (ret)
--				return ret;
--			return put_user(raddr, (unsigned long __user *) third);
--		}
--		case 1:	/* iBCS2 emulator entry point */
--			if (!segment_eq(get_fs(), get_ds()))
--				return -EINVAL;
--			return do_shmat(first, (char __user *) ptr, second,
--				        (unsigned long *) third);
--		}
--	case SHMDT:
--		return sys_shmdt((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget(first, second, third);
--	case SHMCTL:
--		return sys_shmctl(first, second,
--				  (struct shmid_ds __user *) ptr);
--	default:
--		return -ENOSYS;
--	}
--}
--
--/*
-  * No implemented yet ...
-  */
- SYSCALL_DEFINE3(cachectl, char *, addr, int, nbytes, int, op)
-diff -puN arch/mn10300/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/mn10300/include/asm/unistd.h
---- a/arch/mn10300/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/mn10300/include/asm/unistd.h
-@@ -363,6 +363,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/mn10300/kernel/sys_mn10300.c~add-generic-sys_ipc-wrapper arch/mn10300/kernel/sys_mn10300.c
---- a/arch/mn10300/kernel/sys_mn10300.c~add-generic-sys_ipc-wrapper
-+++ a/arch/mn10300/kernel/sys_mn10300.c
-@@ -31,91 +31,3 @@ asmlinkage long old_mmap(unsigned long a
- 		return -EINVAL;
- 	return sys_mmap_pgoff(addr, len, prot, flags, fd, offset >> PAGE_SHIFT);
- }
--
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage long sys_ipc(uint call, int first, int second,
--			int third, void __user *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      second,
--				      (const struct timespec __user *)fifth);
--	case SEMGET:
--		return sys_semget(first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void __user * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl(first, second, third, fourth);
--	}
--
--	case MSGSND:
--		return sys_msgsnd(first, (struct msgbuf __user *) ptr,
--				  second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge __user *) ptr,
--					   sizeof(tmp)))
--				return -EFAULT;
--			return sys_msgrcv(first, tmp.msgp, second,
--					  tmp.msgtyp, third);
--		}
--		default:
--			return sys_msgrcv(first,
--					  (struct msgbuf __user *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl(first, second,
--				   (struct msqid_ds __user *) ptr);
--
--	case SHMAT:
--		switch (version) {
--		default: {
--			ulong raddr;
--			ret = do_shmat(first, (char __user *) ptr, second,
--				       &raddr);
--			if (ret)
--				return ret;
--			return put_user(raddr, (ulong *) third);
--		}
--		case 1:	/* iBCS2 emulator entry point */
--			if (!segment_eq(get_fs(), get_ds()))
--				return -EINVAL;
--			return do_shmat(first, (char __user *) ptr, second,
--					(ulong *) third);
--		}
--	case SHMDT:
--		return sys_shmdt((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget(first, second, third);
--	case SHMCTL:
--		return sys_shmctl(first, second,
--				  (struct shmid_ds __user *) ptr);
--	default:
--		return -EINVAL;
--	}
--}
-diff -puN arch/powerpc/include/asm/syscalls.h~add-generic-sys_ipc-wrapper arch/powerpc/include/asm/syscalls.h
---- a/arch/powerpc/include/asm/syscalls.h~add-generic-sys_ipc-wrapper
-+++ a/arch/powerpc/include/asm/syscalls.h
-@@ -35,8 +35,6 @@ asmlinkage long sys_pipe2(int __user *fi
- asmlinkage long sys_rt_sigaction(int sig,
- 		const struct sigaction __user *act,
- 		struct sigaction __user *oact, size_t sigsetsize);
--asmlinkage int sys_ipc(uint call, int first, unsigned long second,
--		long third, void __user *ptr, long fifth);
- asmlinkage long ppc64_personality(unsigned long personality);
- asmlinkage int ppc_rtas(struct rtas_args __user *uargs);
- asmlinkage time_t sys64_time(time_t __user * tloc);
-diff -puN arch/powerpc/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/powerpc/include/asm/unistd.h
---- a/arch/powerpc/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/powerpc/include/asm/unistd.h
+  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
+diff -puN arch/cris/arch-v10/kernel/entry.S~add-generic-sys_old_mmap arch/cris/arch-v10/kernel/entry.S
+--- a/arch/cris/arch-v10/kernel/entry.S~add-generic-sys_old_mmap
++++ a/arch/cris/arch-v10/kernel/entry.S
+@@ -692,7 +692,7 @@ sys_call_table:	
+ 	.long sys_swapon
+ 	.long sys_reboot
+ 	.long sys_old_readdir
+-	.long old_mmap		/* 90 */
++	.long sys_old_mmap	/* 90 */
+ 	.long sys_munmap
+ 	.long sys_truncate
+ 	.long sys_ftruncate
+diff -puN arch/cris/arch-v32/kernel/entry.S~add-generic-sys_old_mmap arch/cris/arch-v32/kernel/entry.S
+--- a/arch/cris/arch-v32/kernel/entry.S~add-generic-sys_old_mmap
++++ a/arch/cris/arch-v32/kernel/entry.S
+@@ -615,7 +615,7 @@ sys_call_table:
+ 	.long sys_swapon
+ 	.long sys_reboot
+ 	.long sys_old_readdir
+-	.long old_mmap		/* 90 */
++	.long sys_old_mmap	/* 90 */
+ 	.long sys_munmap
+ 	.long sys_truncate
+ 	.long sys_ftruncate
+diff -puN arch/cris/include/asm/unistd.h~add-generic-sys_old_mmap arch/cris/include/asm/unistd.h
+--- a/arch/cris/include/asm/unistd.h~add-generic-sys_old_mmap
++++ a/arch/cris/include/asm/unistd.h
 @@ -364,6 +364,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/powerpc/kernel/syscalls.c~add-generic-sys_ipc-wrapper arch/powerpc/kernel/syscalls.c
---- a/arch/powerpc/kernel/syscalls.c~add-generic-sys_ipc-wrapper
-+++ a/arch/powerpc/kernel/syscalls.c
-@@ -42,100 +42,6 @@
- #include <asm/time.h>
- #include <asm/unistd.h>
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--int sys_ipc(uint call, int first, unsigned long second, long third,
--	    void __user *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	ret = -ENOSYS;
--	switch (call) {
--	case SEMOP:
--		ret = sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      (unsigned)second, NULL);
--		break;
--	case SEMTIMEDOP:
--		ret = sys_semtimedop(first, (struct sembuf __user *)ptr,
--				      (unsigned)second,
--				      (const struct timespec __user *) fifth);
--		break;
--	case SEMGET:
--		ret = sys_semget (first, (int)second, third);
--		break;
--	case SEMCTL: {
--		union semun fourth;
--
--		ret = -EINVAL;
--		if (!ptr)
--			break;
--		if ((ret = get_user(fourth.__pad, (void __user * __user *)ptr)))
--			break;
--		ret = sys_semctl(first, (int)second, third, fourth);
--		break;
--	}
--	case MSGSND:
--		ret = sys_msgsnd(first, (struct msgbuf __user *)ptr,
--				 (size_t)second, third);
--		break;
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--
--			ret = -EINVAL;
--			if (!ptr)
--				break;
--			if ((ret = copy_from_user(&tmp,
--						(struct ipc_kludge __user *) ptr,
--						sizeof (tmp)) ? -EFAULT : 0))
--				break;
--			ret = sys_msgrcv(first, tmp.msgp, (size_t) second,
--					  tmp.msgtyp, third);
--			break;
--		}
--		default:
--			ret = sys_msgrcv (first, (struct msgbuf __user *) ptr,
--					  (size_t)second, fifth, third);
--			break;
--		}
--		break;
--	case MSGGET:
--		ret = sys_msgget((key_t)first, (int)second);
--		break;
--	case MSGCTL:
--		ret = sys_msgctl(first, (int)second,
--				  (struct msqid_ds __user *)ptr);
--		break;
--	case SHMAT: {
--		ulong raddr;
--		ret = do_shmat(first, (char __user *)ptr, (int)second, &raddr);
--		if (ret)
--			break;
--		ret = put_user(raddr, (ulong __user *) third);
--		break;
--	}
--	case SHMDT:
--		ret = sys_shmdt((char __user *)ptr);
--		break;
--	case SHMGET:
--		ret = sys_shmget(first, (size_t)second, third);
--		break;
--	case SHMCTL:
--		ret = sys_shmctl(first, (int)second,
--				 (struct shmid_ds __user *)ptr);
--		break;
--	}
--
--	return ret;
--}
--
- static inline unsigned long do_mmap2(unsigned long addr, size_t len,
- 			unsigned long prot, unsigned long flags,
- 			unsigned long fd, unsigned long off, int shift)
-diff -puN arch/s390/kernel/entry.h~add-generic-sys_ipc-wrapper arch/s390/kernel/entry.h
---- a/arch/s390/kernel/entry.h~add-generic-sys_ipc-wrapper
-+++ a/arch/s390/kernel/entry.h
-@@ -30,7 +30,7 @@ struct fadvise64_64_args;
- struct old_sigaction;
- 
- long sys_mmap2(struct s390_mmap_arg_struct __user  *arg);
--long sys_ipc(uint call, int first, unsigned long second,
-+long sys_s390_ipc(uint call, int first, unsigned long second,
- 	     unsigned long third, void __user *ptr);
- long sys_s390_newuname(struct new_utsname __user *name);
- long sys_s390_personality(unsigned long personality);
-diff -puN arch/s390/kernel/sys_s390.c~add-generic-sys_ipc-wrapper arch/s390/kernel/sys_s390.c
---- a/arch/s390/kernel/sys_s390.c~add-generic-sys_ipc-wrapper
-+++ a/arch/s390/kernel/sys_s390.c
-@@ -64,7 +64,7 @@ out:
-  *
-  * This is really horribly ugly.
-  */
--SYSCALL_DEFINE5(ipc, uint, call, int, first, unsigned long, second,
-+SYSCALL_DEFINE5(s390_ipc, uint, call, int, first, unsigned long, second,
- 		unsigned long, third, void __user *, ptr)
- {
-         struct ipc_kludge tmp;
-diff -puN arch/s390/kernel/syscalls.S~add-generic-sys_ipc-wrapper arch/s390/kernel/syscalls.S
---- a/arch/s390/kernel/syscalls.S~add-generic-sys_ipc-wrapper
-+++ a/arch/s390/kernel/syscalls.S
-@@ -125,7 +125,7 @@ NI_SYSCALL							/* vm86old for i386 */
- SYSCALL(sys_wait4,sys_wait4,compat_sys_wait4_wrapper)
- SYSCALL(sys_swapoff,sys_swapoff,sys32_swapoff_wrapper)		/* 115 */
- SYSCALL(sys_sysinfo,sys_sysinfo,compat_sys_sysinfo_wrapper)
--SYSCALL(sys_ipc,sys_ipc,sys32_ipc_wrapper)
-+SYSCALL(sys_s390_ipc,sys_s390_ipc,sys32_ipc_wrapper)
- SYSCALL(sys_fsync,sys_fsync,sys32_fsync_wrapper)
- SYSCALL(sys_sigreturn,sys_sigreturn,sys32_sigreturn)
- SYSCALL(sys_clone,sys_clone,sys_clone_wrapper)			/* 120 */
-diff -puN arch/sh/include/asm/syscalls.h~add-generic-sys_ipc-wrapper arch/sh/include/asm/syscalls.h
---- a/arch/sh/include/asm/syscalls.h~add-generic-sys_ipc-wrapper
-+++ a/arch/sh/include/asm/syscalls.h
-@@ -11,8 +11,6 @@ asmlinkage int old_mmap(unsigned long ad
- asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
- 			  unsigned long prot, unsigned long flags,
- 			  unsigned long fd, unsigned long pgoff);
--asmlinkage int sys_ipc(uint call, int first, int second,
--		       int third, void __user *ptr, long fifth);
- asmlinkage int sys_uname(struct old_utsname __user *name);
- 
- #ifdef CONFIG_SUPERH32
-diff -puN arch/sh/include/asm/unistd_32.h~add-generic-sys_ipc-wrapper arch/sh/include/asm/unistd_32.h
---- a/arch/sh/include/asm/unistd_32.h~add-generic-sys_ipc-wrapper
-+++ a/arch/sh/include/asm/unistd_32.h
-@@ -358,6 +358,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/sh/include/asm/unistd_64.h~add-generic-sys_ipc-wrapper arch/sh/include/asm/unistd_64.h
---- a/arch/sh/include/asm/unistd_64.h~add-generic-sys_ipc-wrapper
-+++ a/arch/sh/include/asm/unistd_64.h
-@@ -398,6 +398,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/sh/kernel/sys_sh.c~add-generic-sys_ipc-wrapper arch/sh/kernel/sys_sh.c
---- a/arch/sh/kernel/sys_sh.c~add-generic-sys_ipc-wrapper
-+++ a/arch/sh/kernel/sys_sh.c
-@@ -53,110 +53,6 @@ asmlinkage long sys_mmap2(unsigned long 
- 	return sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff);
- }
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
--asmlinkage int sys_ipc(uint call, int first, int second,
--		       int third, void __user *ptr, long fifth)
--{
--	int version, ret;
--
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
--
--	if (call <= SEMTIMEDOP)
--		switch (call) {
--		case SEMOP:
--			return sys_semtimedop(first,
--					      (struct sembuf __user *)ptr,
--					      second, NULL);
--		case SEMTIMEDOP:
--			return sys_semtimedop(first,
--				(struct sembuf __user *)ptr, second,
--			        (const struct timespec __user *)fifth);
--		case SEMGET:
--			return sys_semget (first, second, third);
--		case SEMCTL: {
--			union semun fourth;
--			if (!ptr)
--				return -EINVAL;
--			if (get_user(fourth.__pad, (void __user * __user *) ptr))
--				return -EFAULT;
--			return sys_semctl (first, second, third, fourth);
--			}
--		default:
--			return -EINVAL;
--		}
--
--	if (call <= MSGCTL)
--		switch (call) {
--		case MSGSND:
--			return sys_msgsnd (first, (struct msgbuf __user *) ptr,
--					  second, third);
--		case MSGRCV:
--			switch (version) {
--			case 0:
--			{
--				struct ipc_kludge tmp;
--
--				if (!ptr)
--					return -EINVAL;
--
--				if (copy_from_user(&tmp,
--					(struct ipc_kludge __user *) ptr,
--						   sizeof (tmp)))
--					return -EFAULT;
--
--				return sys_msgrcv (first, tmp.msgp, second,
--						   tmp.msgtyp, third);
--			}
--			default:
--				return sys_msgrcv (first,
--						   (struct msgbuf __user *) ptr,
--						   second, fifth, third);
--			}
--		case MSGGET:
--			return sys_msgget ((key_t) first, second);
--		case MSGCTL:
--			return sys_msgctl (first, second,
--					   (struct msqid_ds __user *) ptr);
--		default:
--			return -EINVAL;
--		}
--	if (call <= SHMCTL)
--		switch (call) {
--		case SHMAT:
--			switch (version) {
--			default: {
--				ulong raddr;
--				ret = do_shmat (first, (char __user *) ptr,
--						 second, &raddr);
--				if (ret)
--					return ret;
--				return put_user (raddr, (ulong __user *) third);
--			}
--			case 1:	/* iBCS2 emulator entry point */
--				if (!segment_eq(get_fs(), get_ds()))
--					return -EINVAL;
--				return do_shmat (first, (char __user *) ptr,
--						  second, (ulong *) third);
--			}
--		case SHMDT:
--			return sys_shmdt ((char __user *)ptr);
--		case SHMGET:
--			return sys_shmget (first, second, third);
--		case SHMCTL:
--			return sys_shmctl (first, second,
--					   (struct shmid_ds __user *) ptr);
--		default:
--			return -EINVAL;
--		}
--
--	return -EINVAL;
--}
--
- /* sys_cacheflush -- flush (part of) the processor cache.  */
- asmlinkage int sys_cacheflush(unsigned long addr, unsigned long len, int op)
- {
-diff -puN arch/sparc/include/asm/unistd.h~add-generic-sys_ipc-wrapper arch/sparc/include/asm/unistd.h
---- a/arch/sparc/include/asm/unistd.h~add-generic-sys_ipc-wrapper
-+++ a/arch/sparc/include/asm/unistd.h
-@@ -432,7 +432,9 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLDUMOUNT
  #define __ARCH_WANT_SYS_SIGPENDING
  #define __ARCH_WANT_SYS_SIGPROCMASK
- #define __ARCH_WANT_SYS_RT_SIGSUSPEND
--#ifndef __32bit_syscall_numbers__
-+#ifdef __32bit_syscall_numbers__
-+#define __ARCH_WANT_SYS_IPC
-+#else
- #define __ARCH_WANT_COMPAT_SYS_TIME
- #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
- #endif
-diff -puN arch/sparc/kernel/sys_sparc_32.c~add-generic-sys_ipc-wrapper arch/sparc/kernel/sys_sparc_32.c
---- a/arch/sparc/kernel/sys_sparc_32.c~add-generic-sys_ipc-wrapper
-+++ a/arch/sparc/kernel/sys_sparc_32.c
-@@ -98,119 +98,6 @@ out:
- 	return error;
- }
+diff -puN arch/cris/kernel/sys_cris.c~add-generic-sys_old_mmap arch/cris/kernel/sys_cris.c
+--- a/arch/cris/kernel/sys_cris.c~add-generic-sys_old_mmap
++++ a/arch/cris/kernel/sys_cris.c
+@@ -26,24 +26,6 @@
+ #include <asm/uaccess.h>
+ #include <asm/segment.h>
  
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
-- */
+-asmlinkage unsigned long old_mmap(unsigned long __user *args)
+-{        
+-	unsigned long buffer[6];
+-	int err = -EFAULT;
 -
--asmlinkage int sys_ipc (uint call, int first, int second, int third, void __user *ptr, long fifth)
--{
--	int version, err;
+-	if (copy_from_user(&buffer, args, sizeof(buffer)))
+-		goto out;
 -
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
+-	err = -EINVAL;
+-	if (buffer[5] & ~PAGE_MASK) /* verify that offset is on page boundary */
+-		goto out;
 -
--	if (call <= SEMCTL)
--		switch (call) {
--		case SEMOP:
--			err = sys_semtimedop (first, (struct sembuf __user *)ptr, second, NULL);
--			goto out;
--		case SEMTIMEDOP:
--			err = sys_semtimedop (first, (struct sembuf __user *)ptr, second, (const struct timespec __user *) fifth);
--			goto out;
--		case SEMGET:
--			err = sys_semget (first, second, third);
--			goto out;
--		case SEMCTL: {
--			union semun fourth;
--			err = -EINVAL;
--			if (!ptr)
--				goto out;
--			err = -EFAULT;
--			if (get_user(fourth.__pad,
--				     (void __user * __user *)ptr))
--				goto out;
--			err = sys_semctl (first, second, third, fourth);
--			goto out;
--			}
--		default:
--			err = -ENOSYS;
--			goto out;
--		}
--	if (call <= MSGCTL) 
--		switch (call) {
--		case MSGSND:
--			err = sys_msgsnd (first, (struct msgbuf __user *) ptr, 
--					  second, third);
--			goto out;
--		case MSGRCV:
--			switch (version) {
--			case 0: {
--				struct ipc_kludge tmp;
--				err = -EINVAL;
--				if (!ptr)
--					goto out;
--				err = -EFAULT;
--				if (copy_from_user(&tmp, (struct ipc_kludge __user *) ptr, sizeof (tmp)))
--					goto out;
--				err = sys_msgrcv (first, tmp.msgp, second, tmp.msgtyp, third);
--				goto out;
--				}
--			case 1: default:
--				err = sys_msgrcv (first,
--						  (struct msgbuf __user *) ptr,
--						  second, fifth, third);
--				goto out;
--			}
--		case MSGGET:
--			err = sys_msgget ((key_t) first, second);
--			goto out;
--		case MSGCTL:
--			err = sys_msgctl (first, second, (struct msqid_ds __user *) ptr);
--			goto out;
--		default:
--			err = -ENOSYS;
--			goto out;
--		}
--	if (call <= SHMCTL) 
--		switch (call) {
--		case SHMAT:
--			switch (version) {
--			case 0: default: {
--				ulong raddr;
--				err = do_shmat (first, (char __user *) ptr, second, &raddr);
--				if (err)
--					goto out;
--				err = -EFAULT;
--				if (put_user (raddr, (ulong __user *) third))
--					goto out;
--				err = 0;
--				goto out;
--				}
--			case 1:	/* iBCS2 emulator entry point */
--				err = -EINVAL;
--				goto out;
--			}
--		case SHMDT: 
--			err = sys_shmdt ((char __user *)ptr);
--			goto out;
--		case SHMGET:
--			err = sys_shmget (first, second, third);
--			goto out;
--		case SHMCTL:
--			err = sys_shmctl (first, second, (struct shmid_ds __user *) ptr);
--			goto out;
--		default:
--			err = -ENOSYS;
--			goto out;
--		}
--	else
--		err = -ENOSYS;
+-	err = sys_mmap_pgoff(buffer[0], buffer[1], buffer[2], buffer[3],
+-                       buffer[4], buffer[5] >> PAGE_SHIFT);
 -out:
 -	return err;
 -}
 -
- int sparc_mmap_check(unsigned long addr, unsigned long len)
- {
- 	if (ARCH_SUN4C &&
-diff -puN arch/sparc/kernel/sys_sparc_64.c~add-generic-sys_ipc-wrapper arch/sparc/kernel/sys_sparc_64.c
---- a/arch/sparc/kernel/sys_sparc_64.c~add-generic-sys_ipc-wrapper
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -427,7 +427,7 @@ out:
-  * This is really horribly ugly.
-  */
+ asmlinkage long
+ sys_mmap2(unsigned long addr, unsigned long len, unsigned long prot,
+           unsigned long flags, unsigned long fd, unsigned long pgoff)
+diff -puN arch/h8300/include/asm/unistd.h~add-generic-sys_old_mmap arch/h8300/include/asm/unistd.h
+--- a/arch/h8300/include/asm/unistd.h~add-generic-sys_old_mmap
++++ a/arch/h8300/include/asm/unistd.h
+@@ -348,6 +348,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLD_SELECT
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+diff -puN arch/h8300/kernel/sys_h8300.c~add-generic-sys_old_mmap arch/h8300/kernel/sys_h8300.c
+--- a/arch/h8300/kernel/sys_h8300.c~add-generic-sys_old_mmap
++++ a/arch/h8300/kernel/sys_h8300.c
+@@ -27,40 +27,6 @@
+ #include <asm/unistd.h>
  
--SYSCALL_DEFINE6(ipc, unsigned int, call, int, first, unsigned long, second,
-+SYSCALL_DEFINE6(sparc_ipc, unsigned int, call, int, first, unsigned long, second,
- 		unsigned long, third, void __user *, ptr, long, fifth)
- {
- 	long err;
-diff -puN arch/sparc/kernel/systbls.h~add-generic-sys_ipc-wrapper arch/sparc/kernel/systbls.h
---- a/arch/sparc/kernel/systbls.h~add-generic-sys_ipc-wrapper
-+++ a/arch/sparc/kernel/systbls.h
-@@ -10,7 +10,7 @@ struct new_utsname;
- 
- extern asmlinkage unsigned long sys_getpagesize(void);
- extern asmlinkage long sparc_pipe(struct pt_regs *regs);
--extern asmlinkage long sys_ipc(unsigned int call, int first,
-+extern asmlinkage long sys_sparc_ipc(unsigned int call, int first,
- 			       unsigned long second,
- 			       unsigned long third,
- 			       void __user *ptr, long fifth);
-diff -puN arch/sparc/kernel/systbls_64.S~add-generic-sys_ipc-wrapper arch/sparc/kernel/systbls_64.S
---- a/arch/sparc/kernel/systbls_64.S~add-generic-sys_ipc-wrapper
-+++ a/arch/sparc/kernel/systbls_64.S
-@@ -136,7 +136,7 @@ sys_call_table:
- /*200*/	.word sys_ssetmask, sys_nis_syscall, sys_newlstat, sys_uselib, sys_nis_syscall
- 	.word sys_readahead, sys_socketcall, sys_syslog, sys_lookup_dcookie, sys_fadvise64
- /*210*/	.word sys_fadvise64_64, sys_tgkill, sys_waitpid, sys_swapoff, sys_sysinfo
--	.word sys_ipc, sys_nis_syscall, sys_clone, sys_ioprio_get, sys_adjtimex
-+	.word sys_sparc_ipc, sys_nis_syscall, sys_clone, sys_ioprio_get, sys_adjtimex
- /*220*/	.word sys_nis_syscall, sys_ni_syscall, sys_delete_module, sys_ni_syscall, sys_getpgid
- 	.word sys_bdflush, sys_sysfs, sys_nis_syscall, sys_setfsuid, sys_setfsgid
- /*230*/	.word sys_select, sys_nis_syscall, sys_splice, sys_stime, sys_statfs64
-diff -puN arch/um/sys-i386/syscalls.c~add-generic-sys_ipc-wrapper arch/um/sys-i386/syscalls.c
---- a/arch/um/sys-i386/syscalls.c~add-generic-sys_ipc-wrapper
-+++ a/arch/um/sys-i386/syscalls.c
-@@ -34,92 +34,6 @@ long sys_clone(unsigned long clone_flags
- 	return ret;
- }
- 
--/*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
+ /*
+- * Perform the select(nd, in, out, ex, tv) and mmap() system
+- * calls. Linux/m68k cloned Linux/i386, which didn't use to be able to
+- * handle more than 4 system call parameters, so these system calls
+- * used a memory block for parameter passing..
 - */
--long sys_ipc (uint call, int first, int second,
--	     int third, void __user *ptr, long fifth)
+-
+-struct mmap_arg_struct {
+-	unsigned long addr;
+-	unsigned long len;
+-	unsigned long prot;
+-	unsigned long flags;
+-	unsigned long fd;
+-	unsigned long offset;
+-};
+-
+-asmlinkage int old_mmap(struct mmap_arg_struct *arg)
 -{
--	int version, ret;
+-	struct mmap_arg_struct a;
+-	int error = -EFAULT;
 -
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
 -
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop(first, (struct sembuf __user *) ptr,
--				      second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *) ptr,
--				      second,
--				      (const struct timespec __user *) fifth);
--	case SEMGET:
--		return sys_semget (first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void __user * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl (first, second, third, fourth);
--	}
+-	error = -EINVAL;
+-	if (a.offset & ~PAGE_MASK)
+-		goto out;
 -
--	case MSGSND:
--		return sys_msgsnd (first, (struct msgbuf *) ptr,
--				   second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge *) ptr,
--					   sizeof (tmp)))
--				return -EFAULT;
--			return sys_msgrcv (first, tmp.msgp, second,
--					   tmp.msgtyp, third);
--		}
--		default:
--		        panic("msgrcv with version != 0");
--			return sys_msgrcv (first,
--					   (struct msgbuf *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget ((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl (first, second, (struct msqid_ds *) ptr);
--
--	case SHMAT:
--		switch (version) {
--		default: {
--			ulong raddr;
--			ret = do_shmat (first, (char *) ptr, second, &raddr);
--			if (ret)
--				return ret;
--			return put_user (raddr, (ulong *) third);
--		}
--		case 1:	/* iBCS2 emulator entry point */
--			if (!segment_eq(get_fs(), get_ds()))
--				return -EINVAL;
--			return do_shmat (first, (char *) ptr, second, (ulong *) third);
--		}
--	case SHMDT:
--		return sys_shmdt ((char *)ptr);
--	case SHMGET:
--		return sys_shmget (first, second, third);
--	case SHMCTL:
--		return sys_shmctl (first, second,
--				   (struct shmid_ds *) ptr);
--	default:
--		return -ENOSYS;
--	}
+-	error = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
+-			       a.offset >> PAGE_SHIFT);
+-out:
+-	return error;
 -}
 -
- long sys_sigaction(int sig, const struct old_sigaction __user *act,
- 			 struct old_sigaction __user *oact)
+-/*
+  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
+  *
+  * This is really horribly ugly.
+diff -puN arch/h8300/kernel/syscalls.S~add-generic-sys_old_mmap arch/h8300/kernel/syscalls.S
+--- a/arch/h8300/kernel/syscalls.S~add-generic-sys_old_mmap
++++ a/arch/h8300/kernel/syscalls.S
+@@ -104,7 +104,7 @@ SYMBOL_NAME_LABEL(sys_call_table)	
+ 	.long SYMBOL_NAME(sys_swapon)
+ 	.long SYMBOL_NAME(sys_reboot)
+ 	.long SYMBOL_NAME(sys_old_readdir)
+-	.long SYMBOL_NAME(old_mmap)		/* 90 */
++	.long SYMBOL_NAME(sys_old_mmap)		/* 90 */
+ 	.long SYMBOL_NAME(sys_munmap)
+ 	.long SYMBOL_NAME(sys_truncate)
+ 	.long SYMBOL_NAME(sys_ftruncate)
+diff -puN arch/ia64/ia32/sys_ia32.c~add-generic-sys_old_mmap arch/ia64/ia32/sys_ia32.c
+--- a/arch/ia64/ia32/sys_ia32.c~add-generic-sys_old_mmap
++++ a/arch/ia64/ia32/sys_ia32.c
+@@ -883,7 +883,7 @@ ia32_do_mmap (struct file *file, unsigne
+  * system calls used a memory block for parameter passing..
+  */
+ 
+-struct mmap_arg_struct {
++struct mmap_arg_struct32 {
+ 	unsigned int addr;
+ 	unsigned int len;
+ 	unsigned int prot;
+@@ -893,9 +893,9 @@ struct mmap_arg_struct {
+ };
+ 
+ asmlinkage long
+-sys32_mmap (struct mmap_arg_struct __user *arg)
++sys32_mmap (struct mmap_arg_struct32 __user *arg)
  {
-diff -puN arch/x86/include/asm/syscalls.h~add-generic-sys_ipc-wrapper arch/x86/include/asm/syscalls.h
---- a/arch/x86/include/asm/syscalls.h~add-generic-sys_ipc-wrapper
+-	struct mmap_arg_struct a;
++	struct mmap_arg_struct32 a;
+ 	struct file *file = NULL;
+ 	unsigned long addr;
+ 	int flags;
+diff -puN arch/m68k/include/asm/unistd.h~add-generic-sys_old_mmap arch/m68k/include/asm/unistd.h
+--- a/arch/m68k/include/asm/unistd.h~add-generic-sys_old_mmap
++++ a/arch/m68k/include/asm/unistd.h
+@@ -359,6 +359,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLD_SELECT
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+diff -puN arch/m68k/kernel/entry.S~add-generic-sys_old_mmap arch/m68k/kernel/entry.S
+--- a/arch/m68k/kernel/entry.S~add-generic-sys_old_mmap
++++ a/arch/m68k/kernel/entry.S
+@@ -518,7 +518,7 @@ sys_call_table:
+ 	.long sys_swapon
+ 	.long sys_reboot
+ 	.long sys_old_readdir
+-	.long old_mmap		/* 90 */
++	.long sys_old_mmap	/* 90 */
+ 	.long sys_munmap
+ 	.long sys_truncate
+ 	.long sys_ftruncate
+diff -puN arch/m68k/kernel/sys_m68k.c~add-generic-sys_old_mmap arch/m68k/kernel/sys_m68k.c
+--- a/arch/m68k/kernel/sys_m68k.c~add-generic-sys_old_mmap
++++ a/arch/m68k/kernel/sys_m68k.c
+@@ -42,40 +42,6 @@ asmlinkage long sys_mmap2(unsigned long 
+ }
+ 
+ /*
+- * Perform the select(nd, in, out, ex, tv) and mmap() system
+- * calls. Linux/m68k cloned Linux/i386, which didn't use to be able to
+- * handle more than 4 system call parameters, so these system calls
+- * used a memory block for parameter passing..
+- */
+-
+-struct mmap_arg_struct {
+-	unsigned long addr;
+-	unsigned long len;
+-	unsigned long prot;
+-	unsigned long flags;
+-	unsigned long fd;
+-	unsigned long offset;
+-};
+-
+-asmlinkage int old_mmap(struct mmap_arg_struct __user *arg)
+-{
+-	struct mmap_arg_struct a;
+-	int error = -EFAULT;
+-
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
+-
+-	error = -EINVAL;
+-	if (a.offset & ~PAGE_MASK)
+-		goto out;
+-
+-	error = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
+-			       a.offset >> PAGE_SHIFT);
+-out:
+-	return error;
+-}
+-
+-/*
+  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
+  *
+  * This is really horribly ugly.
+diff -puN arch/m68knommu/kernel/sys_m68k.c~add-generic-sys_old_mmap arch/m68knommu/kernel/sys_m68k.c
+--- a/arch/m68knommu/kernel/sys_m68k.c~add-generic-sys_old_mmap
++++ a/arch/m68knommu/kernel/sys_m68k.c
+@@ -28,40 +28,6 @@
+ #include <asm/unistd.h>
+ 
+ /*
+- * Perform the select(nd, in, out, ex, tv) and mmap() system
+- * calls. Linux/m68k cloned Linux/i386, which didn't use to be able to
+- * handle more than 4 system call parameters, so these system calls
+- * used a memory block for parameter passing..
+- */
+-
+-struct mmap_arg_struct {
+-	unsigned long addr;
+-	unsigned long len;
+-	unsigned long prot;
+-	unsigned long flags;
+-	unsigned long fd;
+-	unsigned long offset;
+-};
+-
+-asmlinkage int old_mmap(struct mmap_arg_struct *arg)
+-{
+-	struct mmap_arg_struct a;
+-	int error = -EFAULT;
+-
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
+-
+-	error = -EINVAL;
+-	if (a.offset & ~PAGE_MASK)
+-		goto out;
+-
+-	error = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
+-				a.offset >> PAGE_SHIFT);
+-out:
+-	return error;
+-}
+-
+-/*
+  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
+  *
+  * This is really horribly ugly.
+diff -puN arch/m68knommu/kernel/syscalltable.S~add-generic-sys_old_mmap arch/m68knommu/kernel/syscalltable.S
+--- a/arch/m68knommu/kernel/syscalltable.S~add-generic-sys_old_mmap
++++ a/arch/m68knommu/kernel/syscalltable.S
+@@ -108,7 +108,7 @@ ENTRY(sys_call_table)
+ 	.long sys_ni_syscall	/* sys_swapon */
+ 	.long sys_reboot
+ 	.long sys_old_readdir
+-	.long old_mmap		/* 90 */
++	.long sys_old_mmap	/* 90 */
+ 	.long sys_munmap
+ 	.long sys_truncate
+ 	.long sys_ftruncate
+diff -puN arch/s390/include/asm/unistd.h~add-generic-sys_old_mmap arch/s390/include/asm/unistd.h
+--- a/arch/s390/include/asm/unistd.h~add-generic-sys_old_mmap
++++ a/arch/s390/include/asm/unistd.h
+@@ -392,6 +392,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+diff -puN arch/s390/kernel/entry.h~add-generic-sys_old_mmap arch/s390/kernel/entry.h
+--- a/arch/s390/kernel/entry.h~add-generic-sys_old_mmap
++++ a/arch/s390/kernel/entry.h
+@@ -25,12 +25,11 @@ void __init startup_init(void);
+ void die(const char * str, struct pt_regs * regs, long err);
+ 
+ struct new_utsname;
+-struct mmap_arg_struct;
++struct s390_mmap_arg_struct;
+ struct fadvise64_64_args;
+ struct old_sigaction;
+ 
+-long sys_mmap2(struct mmap_arg_struct __user  *arg);
+-long sys_s390_old_mmap(struct mmap_arg_struct __user *arg);
++long sys_mmap2(struct s390_mmap_arg_struct __user  *arg);
+ long sys_ipc(uint call, int first, unsigned long second,
+ 	     unsigned long third, void __user *ptr);
+ long sys_s390_newuname(struct new_utsname __user *name);
+diff -puN arch/s390/kernel/sys_s390.c~add-generic-sys_old_mmap arch/s390/kernel/sys_s390.c
+--- a/arch/s390/kernel/sys_s390.c~add-generic-sys_old_mmap
++++ a/arch/s390/kernel/sys_s390.c
+@@ -33,13 +33,12 @@
+ #include "entry.h"
+ 
+ /*
+- * Perform the select(nd, in, out, ex, tv) and mmap() system
+- * calls. Linux for S/390 isn't able to handle more than 5
+- * system call parameters, so these system calls used a memory
+- * block for parameter passing..
++ * Perform the mmap() system call. Linux for S/390 isn't able to handle more
++ * than 5 system call parameters, so this system call uses a memory block
++ * for parameter passing.
+  */
+ 
+-struct mmap_arg_struct {
++struct s390_mmap_arg_struct {
+ 	unsigned long addr;
+ 	unsigned long len;
+ 	unsigned long prot;
+@@ -48,9 +47,9 @@ struct mmap_arg_struct {
+ 	unsigned long offset;
+ };
+ 
+-SYSCALL_DEFINE1(mmap2, struct mmap_arg_struct __user *, arg)
++SYSCALL_DEFINE1(mmap2, struct s390_mmap_arg_struct __user *, arg)
+ {
+-	struct mmap_arg_struct a;
++	struct s390_mmap_arg_struct a;
+ 	int error = -EFAULT;
+ 
+ 	if (copy_from_user(&a, arg, sizeof(a)))
+@@ -60,23 +59,6 @@ out:
+ 	return error;
+ }
+ 
+-SYSCALL_DEFINE1(s390_old_mmap, struct mmap_arg_struct __user *, arg)
+-{
+-	struct mmap_arg_struct a;
+-	long error = -EFAULT;
+-
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
+-
+-	error = -EINVAL;
+-	if (a.offset & ~PAGE_MASK)
+-		goto out;
+-
+-	error = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd, a.offset >> PAGE_SHIFT);
+-out:
+-	return error;
+-}
+-
+ /*
+  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
+  *
+diff -puN arch/s390/kernel/syscalls.S~add-generic-sys_old_mmap arch/s390/kernel/syscalls.S
+--- a/arch/s390/kernel/syscalls.S~add-generic-sys_old_mmap
++++ a/arch/s390/kernel/syscalls.S
+@@ -98,7 +98,7 @@ SYSCALL(sys_uselib,sys_uselib,sys32_usel
+ SYSCALL(sys_swapon,sys_swapon,sys32_swapon_wrapper)
+ SYSCALL(sys_reboot,sys_reboot,sys32_reboot_wrapper)
+ SYSCALL(sys_ni_syscall,sys_ni_syscall,old32_readdir_wrapper)	/* old readdir syscall */
+-SYSCALL(sys_s390_old_mmap,sys_s390_old_mmap,old32_mmap_wrapper)	/* 90 */
++SYSCALL(sys_old_mmap,sys_old_mmap,old32_mmap_wrapper)		/* 90 */
+ SYSCALL(sys_munmap,sys_munmap,sys32_munmap_wrapper)
+ SYSCALL(sys_truncate,sys_truncate,sys32_truncate_wrapper)
+ SYSCALL(sys_ftruncate,sys_ftruncate,sys32_ftruncate_wrapper)
+diff -puN arch/um/sys-i386/shared/sysdep/syscalls.h~add-generic-sys_old_mmap arch/um/sys-i386/shared/sysdep/syscalls.h
+--- a/arch/um/sys-i386/shared/sysdep/syscalls.h~add-generic-sys_old_mmap
++++ a/arch/um/sys-i386/shared/sysdep/syscalls.h
+@@ -13,8 +13,6 @@ typedef long syscall_handler_t(struct pt
+  */
+ extern syscall_handler_t sys_rt_sigaction;
+ 
+-extern syscall_handler_t old_mmap_i386;
+-
+ extern syscall_handler_t *sys_call_table[];
+ 
+ #define EXECUTE_SYSCALL(syscall, regs) \
+diff -puN arch/um/sys-i386/sys_call_table.S~add-generic-sys_old_mmap arch/um/sys-i386/sys_call_table.S
+--- a/arch/um/sys-i386/sys_call_table.S~add-generic-sys_old_mmap
++++ a/arch/um/sys-i386/sys_call_table.S
+@@ -7,7 +7,7 @@
+ #define sys_vm86old sys_ni_syscall
+ #define sys_vm86 sys_ni_syscall
+ 
+-#define old_mmap old_mmap_i386
++#define old_mmap sys_old_mmap
+ 
+ #define ptregs_fork sys_fork
+ #define ptregs_execve sys_execve
+diff -puN arch/um/sys-i386/syscalls.c~add-generic-sys_old_mmap arch/um/sys-i386/syscalls.c
+--- a/arch/um/sys-i386/syscalls.c~add-generic-sys_old_mmap
++++ a/arch/um/sys-i386/syscalls.c
+@@ -12,39 +12,6 @@
+ #include "asm/unistd.h"
+ 
+ /*
+- * Perform the select(nd, in, out, ex, tv) and mmap() system
+- * calls. Linux/i386 didn't use to be able to handle more than
+- * 4 system call parameters, so these system calls used a memory
+- * block for parameter passing..
+- */
+-
+-struct mmap_arg_struct {
+-	unsigned long addr;
+-	unsigned long len;
+-	unsigned long prot;
+-	unsigned long flags;
+-	unsigned long fd;
+-	unsigned long offset;
+-};
+-
+-extern int old_mmap(unsigned long addr, unsigned long len,
+-		    unsigned long prot, unsigned long flags,
+-		    unsigned long fd, unsigned long offset);
+-
+-long old_mmap_i386(struct mmap_arg_struct __user *arg)
+-{
+-	struct mmap_arg_struct a;
+-	int err = -EFAULT;
+-
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
+-
+-	err = old_mmap(a.addr, a.len, a.prot, a.flags, a.fd, a.offset);
+- out:
+-	return err;
+-}
+-
+-/*
+  * The prototype on i386 is:
+  *
+  *     int clone(int flags, void * child_stack, int * parent_tidptr, struct user_desc * newtls, int * child_tidptr)
+diff -puN arch/x86/ia32/sys_ia32.c~add-generic-sys_old_mmap arch/x86/ia32/sys_ia32.c
+--- a/arch/x86/ia32/sys_ia32.c~add-generic-sys_old_mmap
++++ a/arch/x86/ia32/sys_ia32.c
+@@ -143,7 +143,7 @@ asmlinkage long sys32_fstatat(unsigned i
+  * block for parameter passing..
+  */
+ 
+-struct mmap_arg_struct {
++struct mmap_arg_struct32 {
+ 	unsigned int addr;
+ 	unsigned int len;
+ 	unsigned int prot;
+@@ -152,9 +152,9 @@ struct mmap_arg_struct {
+ 	unsigned int offset;
+ };
+ 
+-asmlinkage long sys32_mmap(struct mmap_arg_struct __user *arg)
++asmlinkage long sys32_mmap(struct mmap_arg_struct32 __user *arg)
+ {
+-	struct mmap_arg_struct a;
++	struct mmap_arg_struct32 a;
+ 
+ 	if (copy_from_user(&a, arg, sizeof(a)))
+ 		return -EFAULT;
+diff -puN arch/x86/include/asm/sys_ia32.h~add-generic-sys_old_mmap arch/x86/include/asm/sys_ia32.h
+--- a/arch/x86/include/asm/sys_ia32.h~add-generic-sys_old_mmap
++++ a/arch/x86/include/asm/sys_ia32.h
+@@ -26,8 +26,8 @@ asmlinkage long sys32_lstat64(char __use
+ asmlinkage long sys32_fstat64(unsigned int, struct stat64 __user *);
+ asmlinkage long sys32_fstatat(unsigned int, char __user *,
+ 			      struct stat64 __user *, int);
+-struct mmap_arg_struct;
+-asmlinkage long sys32_mmap(struct mmap_arg_struct __user *);
++struct mmap_arg_struct32;
++asmlinkage long sys32_mmap(struct mmap_arg_struct32 __user *);
+ asmlinkage long sys32_mprotect(unsigned long, size_t, unsigned long);
+ 
+ struct sigaction32;
+diff -puN arch/x86/include/asm/syscalls.h~add-generic-sys_old_mmap arch/x86/include/asm/syscalls.h
+--- a/arch/x86/include/asm/syscalls.h~add-generic-sys_old_mmap
 +++ a/arch/x86/include/asm/syscalls.h
-@@ -54,7 +54,6 @@ unsigned long sys_sigreturn(struct pt_re
+@@ -51,11 +51,9 @@ asmlinkage int sys_sigaction(int, const 
+ unsigned long sys_sigreturn(struct pt_regs *);
+ 
+ /* kernel/sys_i386_32.c */
+-struct mmap_arg_struct;
  struct oldold_utsname;
  struct old_utsname;
  
--asmlinkage int sys_ipc(uint, int, int, int, void __user *, long);
+-asmlinkage int old_mmap(struct mmap_arg_struct __user *);
+ asmlinkage int sys_ipc(uint, int, int, int, void __user *, long);
  asmlinkage int sys_uname(struct old_utsname __user *);
  asmlinkage int sys_olduname(struct oldold_utsname __user *);
- 
-diff -puN arch/x86/include/asm/unistd_32.h~add-generic-sys_ipc-wrapper arch/x86/include/asm/unistd_32.h
---- a/arch/x86/include/asm/unistd_32.h~add-generic-sys_ipc-wrapper
+diff -puN arch/x86/include/asm/unistd_32.h~add-generic-sys_old_mmap arch/x86/include/asm/unistd_32.h
+--- a/arch/x86/include/asm/unistd_32.h~add-generic-sys_old_mmap
 +++ a/arch/x86/include/asm/unistd_32.h
-@@ -358,6 +358,7 @@
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_ALARM
- #define __ARCH_WANT_SYS_GETHOSTNAME
-+#define __ARCH_WANT_SYS_IPC
- #define __ARCH_WANT_SYS_PAUSE
- #define __ARCH_WANT_SYS_SGETMASK
- #define __ARCH_WANT_SYS_SIGNAL
-diff -puN arch/x86/kernel/sys_i386_32.c~add-generic-sys_ipc-wrapper arch/x86/kernel/sys_i386_32.c
---- a/arch/x86/kernel/sys_i386_32.c~add-generic-sys_ipc-wrapper
+@@ -370,6 +370,7 @@
+ #define __ARCH_WANT_SYS_LLSEEK
+ #define __ARCH_WANT_SYS_NICE
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
++#define __ARCH_WANT_SYS_OLD_MMAP
+ #define __ARCH_WANT_SYS_OLD_SELECT
+ #define __ARCH_WANT_SYS_OLDUMOUNT
+ #define __ARCH_WANT_SYS_SIGPENDING
+diff -puN arch/x86/kernel/sys_i386_32.c~add-generic-sys_old_mmap arch/x86/kernel/sys_i386_32.c
+--- a/arch/x86/kernel/sys_i386_32.c~add-generic-sys_old_mmap
 +++ a/arch/x86/kernel/sys_i386_32.c
-@@ -25,91 +25,6 @@
+@@ -25,40 +25,6 @@
  #include <asm/syscalls.h>
  
  /*
-- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
-- *
-- * This is really horribly ugly.
+- * Perform the select(nd, in, out, ex, tv) and mmap() system
+- * calls. Linux/i386 didn't use to be able to handle more than
+- * 4 system call parameters, so these system calls used a memory
+- * block for parameter passing..
 - */
--asmlinkage int sys_ipc(uint call, int first, int second,
--			int third, void __user *ptr, long fifth)
+-
+-struct mmap_arg_struct {
+-	unsigned long addr;
+-	unsigned long len;
+-	unsigned long prot;
+-	unsigned long flags;
+-	unsigned long fd;
+-	unsigned long offset;
+-};
+-
+-asmlinkage int old_mmap(struct mmap_arg_struct __user *arg)
 -{
--	int version, ret;
+-	struct mmap_arg_struct a;
+-	int err = -EFAULT;
 -
--	version = call >> 16; /* hack for backward compatibility */
--	call &= 0xffff;
+-	if (copy_from_user(&a, arg, sizeof(a)))
+-		goto out;
 -
--	switch (call) {
--	case SEMOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr, second, NULL);
--	case SEMTIMEDOP:
--		return sys_semtimedop(first, (struct sembuf __user *)ptr, second,
--					(const struct timespec __user *)fifth);
+-	err = -EINVAL;
+-	if (a.offset & ~PAGE_MASK)
+-		goto out;
 -
--	case SEMGET:
--		return sys_semget(first, second, third);
--	case SEMCTL: {
--		union semun fourth;
--		if (!ptr)
--			return -EINVAL;
--		if (get_user(fourth.__pad, (void __user * __user *) ptr))
--			return -EFAULT;
--		return sys_semctl(first, second, third, fourth);
--	}
--
--	case MSGSND:
--		return sys_msgsnd(first, (struct msgbuf __user *) ptr,
--				   second, third);
--	case MSGRCV:
--		switch (version) {
--		case 0: {
--			struct ipc_kludge tmp;
--			if (!ptr)
--				return -EINVAL;
--
--			if (copy_from_user(&tmp,
--					   (struct ipc_kludge __user *) ptr,
--					   sizeof(tmp)))
--				return -EFAULT;
--			return sys_msgrcv(first, tmp.msgp, second,
--					   tmp.msgtyp, third);
--		}
--		default:
--			return sys_msgrcv(first,
--					   (struct msgbuf __user *) ptr,
--					   second, fifth, third);
--		}
--	case MSGGET:
--		return sys_msgget((key_t) first, second);
--	case MSGCTL:
--		return sys_msgctl(first, second, (struct msqid_ds __user *) ptr);
--
--	case SHMAT:
--		switch (version) {
--		default: {
--			ulong raddr;
--			ret = do_shmat(first, (char __user *) ptr, second, &raddr);
--			if (ret)
--				return ret;
--			return put_user(raddr, (ulong __user *) third);
--		}
--		case 1:	/* iBCS2 emulator entry point */
--			if (!segment_eq(get_fs(), get_ds()))
--				return -EINVAL;
--			/* The "(ulong *) third" is valid _only_ because of the kernel segment thing */
--			return do_shmat(first, (char __user *) ptr, second, (ulong *) third);
--		}
--	case SHMDT:
--		return sys_shmdt((char __user *)ptr);
--	case SHMGET:
--		return sys_shmget(first, second, third);
--	case SHMCTL:
--		return sys_shmctl(first, second,
--				   (struct shmid_ds __user *) ptr);
--	default:
--		return -ENOSYS;
--	}
+-	err = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags,
+-			a.fd, a.offset >> PAGE_SHIFT);
+-out:
+-	return err;
 -}
 -
 -/*
-  * Old cruft
-  */
- asmlinkage int sys_uname(struct old_utsname __user *name)
-diff -puN include/linux/syscalls.h~add-generic-sys_ipc-wrapper include/linux/syscalls.h
---- a/include/linux/syscalls.h~add-generic-sys_ipc-wrapper
+  * sys_ipc() is the de-multiplexer for the SysV IPC calls..
+  *
+  * This is really horribly ugly.
+diff -puN arch/x86/kernel/syscall_table_32.S~add-generic-sys_old_mmap arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~add-generic-sys_old_mmap
++++ a/arch/x86/kernel/syscall_table_32.S
+@@ -89,7 +89,7 @@ ENTRY(sys_call_table)
+ 	.long sys_swapon
+ 	.long sys_reboot
+ 	.long sys_old_readdir
+-	.long old_mmap		/* 90 */
++	.long sys_old_mmap	/* 90 */
+ 	.long sys_munmap
+ 	.long sys_truncate
+ 	.long sys_ftruncate
+diff -puN include/linux/syscalls.h~add-generic-sys_old_mmap include/linux/syscalls.h
+--- a/include/linux/syscalls.h~add-generic-sys_old_mmap
 +++ a/include/linux/syscalls.h
-@@ -686,6 +686,8 @@ asmlinkage long sys_shmat(int shmid, cha
- asmlinkage long sys_shmget(key_t key, size_t size, int flag);
- asmlinkage long sys_shmdt(char __user *shmaddr);
- asmlinkage long sys_shmctl(int shmid, int cmd, struct shmid_ds __user *buf);
-+asmlinkage long sys_ipc(unsigned int call, int first, int second,
-+		unsigned long third, void __user *ptr, long fifth);
- 
- asmlinkage long sys_mq_open(const char __user *name, int oflag, mode_t mode, struct mq_attr __user *attr);
- asmlinkage long sys_mq_unlink(const char __user *name);
-diff -puN ipc/Makefile~add-generic-sys_ipc-wrapper ipc/Makefile
---- a/ipc/Makefile~add-generic-sys_ipc-wrapper
-+++ a/ipc/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- obj-$(CONFIG_SYSVIPC_COMPAT) += compat.o
--obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o ipcns_notifier.o
-+obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o ipcns_notifier.o syscall.o
- obj-$(CONFIG_SYSVIPC_SYSCTL) += ipc_sysctl.o
- obj_mq-$(CONFIG_COMPAT) += compat_mq.o
- obj-$(CONFIG_POSIX_MQUEUE) += mqueue.o msgutil.o $(obj_mq-y)
-diff -puN /dev/null ipc/syscall.c
---- /dev/null
-+++ a/ipc/syscall.c
-@@ -0,0 +1,99 @@
-+/*
-+ * sys_ipc() is the old de-multiplexer for the SysV IPC calls.
-+ *
-+ * This is really horribly ugly, and new architectures should just wire up
-+ * the individual syscalls instead.
-+ */
-+#include <linux/unistd.h>
+@@ -23,6 +23,7 @@ struct kexec_segment;
+ struct linux_dirent;
+ struct linux_dirent64;
+ struct list_head;
++struct mmap_arg_struct;
+ struct msgbuf;
+ struct msghdr;
+ struct mmsghdr;
+@@ -845,4 +846,6 @@ asmlinkage long sys_perf_event_open(
+ asmlinkage long sys_mmap_pgoff(unsigned long addr, unsigned long len,
+ 			unsigned long prot, unsigned long flags,
+ 			unsigned long fd, unsigned long pgoff);
++asmlinkage long sys_old_mmap(struct mmap_arg_struct __user *arg);
 +
-+#ifdef __ARCH_WANT_SYS_IPC
-+#include <linux/errno.h>
-+#include <linux/ipc.h>
-+#include <linux/shm.h>
-+#include <linux/syscalls.h>
-+#include <linux/uaccess.h>
+ #endif
+diff -puN mm/mmap.c~add-generic-sys_old_mmap mm/mmap.c
+--- a/mm/mmap.c~add-generic-sys_old_mmap
++++ a/mm/mmap.c
+@@ -1088,6 +1088,30 @@ out:
+ 	return retval;
+ }
+ 
++#ifdef __ARCH_WANT_SYS_OLD_MMAP
++struct mmap_arg_struct {
++	unsigned long addr;
++	unsigned long len;
++	unsigned long prot;
++	unsigned long flags;
++	unsigned long fd;
++	unsigned long offset;
++};
 +
-+SYSCALL_DEFINE6(ipc, unsigned int, call, int, first, int, second,
-+		unsigned long, third, void __user *, ptr, long, fifth)
++SYSCALL_DEFINE1(old_mmap, struct mmap_arg_struct __user *, arg)
 +{
-+	int version, ret;
++	struct mmap_arg_struct a;
 +
-+	version = call >> 16; /* hack for backward compatibility */
-+	call &= 0xffff;
++	if (copy_from_user(&a, arg, sizeof(a)))
++		return -EFAULT;
++	if (a.offset & ~PAGE_MASK)
++		return -EINVAL;
 +
-+	switch (call) {
-+	case SEMOP:
-+		return sys_semtimedop(first, (struct sembuf __user *)ptr,
-+				      second, NULL);
-+	case SEMTIMEDOP:
-+		return sys_semtimedop(first, (struct sembuf __user *)ptr,
-+				      second,
-+				      (const struct timespec __user *)fifth);
-+
-+	case SEMGET:
-+		return sys_semget(first, second, third);
-+	case SEMCTL: {
-+		union semun fourth;
-+		if (!ptr)
-+			return -EINVAL;
-+		if (get_user(fourth.__pad, (void __user * __user *) ptr))
-+			return -EFAULT;
-+		return sys_semctl(first, second, third, fourth);
-+	}
-+
-+	case MSGSND:
-+		return sys_msgsnd(first, (struct msgbuf __user *) ptr,
-+				  second, third);
-+	case MSGRCV:
-+		switch (version) {
-+		case 0: {
-+			struct ipc_kludge tmp;
-+			if (!ptr)
-+				return -EINVAL;
-+
-+			if (copy_from_user(&tmp,
-+					   (struct ipc_kludge __user *) ptr,
-+					   sizeof(tmp)))
-+				return -EFAULT;
-+			return sys_msgrcv(first, tmp.msgp, second,
-+					   tmp.msgtyp, third);
-+		}
-+		default:
-+			return sys_msgrcv(first,
-+					   (struct msgbuf __user *) ptr,
-+					   second, fifth, third);
-+		}
-+	case MSGGET:
-+		return sys_msgget((key_t) first, second);
-+	case MSGCTL:
-+		return sys_msgctl(first, second, (struct msqid_ds __user *)ptr);
-+
-+	case SHMAT:
-+		switch (version) {
-+		default: {
-+			unsigned long raddr;
-+			ret = do_shmat(first, (char __user *)ptr,
-+				       second, &raddr);
-+			if (ret)
-+				return ret;
-+			return put_user(raddr, (unsigned long __user *) third);
-+		}
-+		case 1:
-+			/*
-+			 * This was the entry point for kernel-originating calls
-+			 * from iBCS2 in 2.2 days.
-+			 */
-+			return -EINVAL;
-+		}
-+	case SHMDT:
-+		return sys_shmdt((char __user *)ptr);
-+	case SHMGET:
-+		return sys_shmget(first, second, third);
-+	case SHMCTL:
-+		return sys_shmctl(first, second,
-+				   (struct shmid_ds __user *) ptr);
-+	default:
-+		return -ENOSYS;
-+	}
++	return sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
++			      a.offset >> PAGE_SHIFT);
 +}
-+#endif
++#endif /* __ARCH_WANT_SYS_OLD_MMAP */
++
+ /*
+  * Some shared mappigns will want the pages marked read-only
+  * to track write events. If so, we'll downgrade vm_page_prot
+diff -puN mm/nommu.c~add-generic-sys_old_mmap mm/nommu.c
+--- a/mm/nommu.c~add-generic-sys_old_mmap
++++ a/mm/nommu.c
+@@ -1428,6 +1428,30 @@ out:
+ 	return retval;
+ }
+ 
++#ifdef __ARCH_WANT_SYS_OLD_MMAP
++struct mmap_arg_struct {
++	unsigned long addr;
++	unsigned long len;
++	unsigned long prot;
++	unsigned long flags;
++	unsigned long fd;
++	unsigned long offset;
++};
++
++SYSCALL_DEFINE1(old_mmap, struct mmap_arg_struct __user *, arg)
++{
++	struct mmap_arg_struct a;
++
++	if (copy_from_user(&a, arg, sizeof(a)))
++		return -EFAULT;
++	if (a.offset & ~PAGE_MASK)
++		return -EINVAL;
++
++	return sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
++			      a.offset >> PAGE_SHIFT);
++}
++#endif /* __ARCH_WANT_SYS_OLD_MMAP */
++
+ /*
+  * split a vma into two pieces at address 'addr', a new vma is allocated either
+  * for the first part or the tail.
 _
 
 Patches currently in -mm which might be from hch@lst.de are
