@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix.patch removed from -mm tree
-Date: Mon, 01 Feb 2010 17:21:07 -0800
-Message-ID: <201002020121.o121L70A024173@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch removed from -mm tree
+Date: Tue, 02 Feb 2010 11:31:43 -0800
+Message-ID: <201002021931.o12JVhVh009241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751560Ab0BBBWn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2010 20:22:43 -0500
+	by vger.kernel.org with ESMTP id S1751089Ab0BBTc2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 14:32:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anton@samba.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix
+     drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
 has been removed from the -mm tree.  Its filename was
-     panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix.patch
+     drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix
+Subject: drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove static, simplify code
+drivers/gpu/drm/radeon/radeon_agp.c: In function 'radeon_agp_init':
+drivers/gpu/drm/radeon/radeon_agp.c:137: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
 
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alex Deucher <alexdeucher@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/radeon/radeon_agp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/panic.c~panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix kernel/panic.c
---- a/kernel/panic.c~panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix
-+++ a/kernel/panic.c
-@@ -42,12 +42,10 @@ EXPORT_SYMBOL(panic_blink);
+diff -puN drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning drivers/gpu/drm/radeon/radeon_agp.c
+--- a/drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning
++++ a/drivers/gpu/drm/radeon/radeon_agp.c
+@@ -134,7 +134,7 @@ int radeon_agp_init(struct radeon_device
+ 	int ret;
  
- static void panic_blink_one_second(void)
- {
--	static long i = 0, end;
--
- 	if (panic_blink) {
--		end = i + MSEC_PER_SEC;
-+		long i = 0;
- 
--		while (i < end) {
-+		while (i < MSEC_PER_SEC) {
- 			i += panic_blink(i);
- 			mdelay(1);
- 			i++;
+ 	if (rdev->ddev->agp->agp_info.aper_size < 32) {
+-		dev_warn(rdev->dev, "AGP aperture to small (%dM) "
++		dev_warn(rdev->dev, "AGP aperture to small (%zdM) "
+ 			"need at least 32M, disabling AGP\n",
+ 			rdev->ddev->agp->agp_info.aper_size);
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-char-randomc-fix-unused-var-warning.patch
 memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
@@ -95,7 +91,6 @@ mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.pat
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 uml-linec-avoid-null-pointer-dereference-simplify.patch
 resources-introduce-generic-page_is_ram-fix.patch
-panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor-fix.patch
 add-generic-sys_ipc-wrapper-fix.patch
 lib-more-scalable-list_sort-fix.patch
 mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
