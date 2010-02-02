@@ -1,68 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch removed from -mm tree
-Date: Tue, 02 Feb 2010 12:26:09 -0800
-Message-ID: <201002022026.o12KQ9Hv011858@imap1.linux-foundation.org>
+Subject: [folded] pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch removed from -mm tree
+Date: Tue, 02 Feb 2010 14:13:32 -0800
+Message-ID: <201002022213.o12MDWBR017560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976Ab0BBU0e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 15:26:34 -0500
+	by vger.kernel.org with ESMTP id S1756982Ab0BBWNr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 17:13:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, fengguang.wu@intel.com, haicheng.li@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, shaohui.zheng@intel.com, tg
+To: akpm@linux-foundation.org, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
+     pci-update-pci_set_vga_state-to-call-arch-functions-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
+     pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
 
-This patch was dropped because it was folded into memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
+This patch was dropped because it was folded into pci-update-pci_set_vga_state-to-call-arch-functions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
+Subject: pci-update-pci_set_vga_state-to-call-arch-functions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-simplify comment
+Make pci_register_set_vga_state() __init.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Haicheng <haicheng.li@intel.com>
-Cc: Shaohui Zheng <shaohui.zheng@intel.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
-+++ a/arch/x86/mm/init_64.c
-@@ -617,8 +617,8 @@ void __init paging_init(void)
-  */
- #ifdef CONFIG_MEMORY_HOTPLUG
- /*
-- * After memory hotplug, the variables max_pfn, max_low_pfn and high_memory will
-- * be affected, they will be updated in this function.
-+ * After memory hotplug the variables max_pfn, max_low_pfn and high_memory need
-+ * updating.
-  */
- static void  update_end_of_memory_vars(u64 start, u64 size)
+diff -puN drivers/pci/pci.c~pci-update-pci_set_vga_state-to-call-arch-functions-fix drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-update-pci_set_vga_state-to-call-arch-functions-fix
++++ a/drivers/pci/pci.c
+@@ -2757,7 +2757,7 @@ int pci_resource_bar(struct pci_dev *dev
+ /* Some architectures require additional programming to enable VGA */
+ static arch_set_vga_state_t arch_set_vga_state;
+ 
+-void pci_register_set_vga_state(arch_set_vga_state_t func)
++void __init pci_register_set_vga_state(arch_set_vga_state_t func)
  {
+ 	arch_set_vga_state = func;	/* NULL disables */
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
-memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
@@ -70,7 +66,7 @@ revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
 pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
 cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
 drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
@@ -83,6 +79,7 @@ timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
 3x59x-fix-pci-resource-management.patch
 drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
 kernel-schedc-suppress-unused-var-warning.patch
 mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
 mm-count-swap-usage-checkpatch-fixes.patch
