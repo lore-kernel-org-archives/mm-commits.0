@@ -1,55 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch removed from -mm tree
-Date: Tue, 02 Feb 2010 11:31:43 -0800
-Message-ID: <201002021931.o12JVhVh009241@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-randomc-fix-unused-var-warning.patch removed from -mm tree
+Date: Tue, 02 Feb 2010 11:32:40 -0800
+Message-ID: <201002021932.o12JWeC5009268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32886 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751089Ab0BBTc2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 14:32:28 -0500
+	by vger.kernel.org with ESMTP id S1751089Ab0BBTdS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 14:33:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, jglisse@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, herbert@gondor.apana.org.au, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
+     drivers/char/random.c: fix unused var warning
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
+     drivers-char-randomc-fix-unused-var-warning.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/radeon/radeon_agp.c: fix printk warning
+Subject: drivers/char/random.c: fix unused var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/gpu/drm/radeon/radeon_agp.c: In function 'radeon_agp_init':
-drivers/gpu/drm/radeon/radeon_agp.c:137: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+Repair
 
-Cc: David Airlie <airlied@linux.ie>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Alex Deucher <alexdeucher@gmail.com>
+: commit b9b06a1fda275559492f8b083927fde4cec641dc
+: Author:     Herbert Xu <herbert@gondor.apana.org.au>
+: AuthorDate: Fri Jan 29 21:50:36 2010 +1300
+: Commit:     Herbert Xu <herbert@gondor.apana.org.au>
+: CommitDate: Fri Jan 29 21:50:36 2010 +1300
+: 
+:     random: drop weird m_time/a_time manipulation
+    
+
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/radeon_agp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/random.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning drivers/gpu/drm/radeon/radeon_agp.c
---- a/drivers/gpu/drm/radeon/radeon_agp.c~drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning
-+++ a/drivers/gpu/drm/radeon/radeon_agp.c
-@@ -134,7 +134,7 @@ int radeon_agp_init(struct radeon_device
- 	int ret;
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning
++++ a/drivers/char/random.c
+@@ -1101,7 +1101,6 @@ static ssize_t random_write(struct file 
+ 			    size_t count, loff_t *ppos)
+ {
+ 	size_t ret;
+-	struct inode *inode = file->f_path.dentry->d_inode;
  
- 	if (rdev->ddev->agp->agp_info.aper_size < 32) {
--		dev_warn(rdev->dev, "AGP aperture to small (%dM) "
-+		dev_warn(rdev->dev, "AGP aperture to small (%zdM) "
- 			"need at least 32M, disabling AGP\n",
- 			rdev->ddev->agp->agp_info.aper_size);
- 		return -EINVAL;
+ 	ret = write_pool(&blocking_pool, buffer, count);
+ 	if (ret)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +73,6 @@ ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
 pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
 cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
 drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-gpu-drm-radeon-radeon_agpc-fix-printk-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
 radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh-fix.patch
 drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
