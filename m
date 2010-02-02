@@ -1,58 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch removed from -mm tree
-Date: Tue, 02 Feb 2010 14:13:32 -0800
-Message-ID: <201002022213.o12MDWBR017560@imap1.linux-foundation.org>
+Subject: [folded] cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 02 Feb 2010 14:14:11 -0800
+Message-ID: <201002022214.o12MEB7A017576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756982Ab0BBWNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 17:13:47 -0500
+	by vger.kernel.org with ESMTP id S1757015Ab0BBWO0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 17:14:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, jocelyn.falempe@motorola.com, mike@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-update-pci_set_vga_state-to-call-arch-functions-fix
+     cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
+     cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into pci-update-pci_set_vga_state-to-call-arch-functions.patch
+This patch was dropped because it was folded into cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-update-pci_set_vga_state-to-call-arch-functions-fix
+Subject: cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make pci_register_set_vga_state() __init.
+ERROR: code indent should use tabs where possible
+#36: FILE: drivers/cpufreq/cpufreq_ondemand.c:611:
++ ^I^Idelay -= jiffies % delay;$
 
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+total: 1 errors, 0 warnings, 20 lines checked
+
+./patches/cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Jocelyn Falempe <jocelyn.falempe@motorola.com>
+Cc: Mike Chan <mike@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c |    2 +-
+ drivers/cpufreq/cpufreq_ondemand.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pci.c~pci-update-pci_set_vga_state-to-call-arch-functions-fix drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-update-pci_set_vga_state-to-call-arch-functions-fix
-+++ a/drivers/pci/pci.c
-@@ -2757,7 +2757,7 @@ int pci_resource_bar(struct pci_dev *dev
- /* Some architectures require additional programming to enable VGA */
- static arch_set_vga_state_t arch_set_vga_state;
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -608,7 +608,7 @@ static inline void dbs_timer_init(struct
+ 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
  
--void pci_register_set_vga_state(arch_set_vga_state_t func)
-+void __init pci_register_set_vga_state(arch_set_vga_state_t func)
- {
- 	arch_set_vga_state = func;	/* NULL disables */
- }
+ 	if (num_online_cpus() > 1)
+- 		delay -= jiffies % delay;
++		delay -= jiffies % delay;
+ 
+ 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
+ 	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +73,7 @@ drivers-media-video-cx23885-needs-kfifo-conversion.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
 pci-update-pci_set_vga_state-to-call-arch-functions.patch
-pci-update-pci_set_vga_state-to-call-arch-functions-fix.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
 cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present-checkpatch-fixes.patch
 drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
