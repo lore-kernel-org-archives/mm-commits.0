@@ -1,72 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-randomc-fix-unused-var-warning.patch removed from -mm tree
-Date: Tue, 02 Feb 2010 11:32:40 -0800
-Message-ID: <201002021932.o12JWeC5009268@imap1.linux-foundation.org>
+Subject: [folded] memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch removed from -mm tree
+Date: Tue, 02 Feb 2010 12:26:09 -0800
+Message-ID: <201002022026.o12KQ9Hv011858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751089Ab0BBTdS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 14:33:18 -0500
+	by vger.kernel.org with ESMTP id S1753976Ab0BBU0e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2010 15:26:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, herbert@gondor.apana.org.au, mpm@selenic.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, fengguang.wu@intel.com, haicheng.li@intel.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, shaohui.zheng@intel.com, tg
 
 
 The patch titled
-     drivers/char/random.c: fix unused var warning
+     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-char-randomc-fix-unused-var-warning.patch
+     memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/random.c: fix unused var warning
+Subject: memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair
+simplify comment
 
-: commit b9b06a1fda275559492f8b083927fde4cec641dc
-: Author:     Herbert Xu <herbert@gondor.apana.org.au>
-: AuthorDate: Fri Jan 29 21:50:36 2010 +1300
-: Commit:     Herbert Xu <herbert@gondor.apana.org.au>
-: CommitDate: Fri Jan 29 21:50:36 2010 +1300
-: 
-:     random: drop weird m_time/a_time manipulation
-    
-
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Haicheng <haicheng.li@intel.com>
+Cc: Shaohui Zheng <shaohui.zheng@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/mm/init_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-randomc-fix-unused-var-warning
-+++ a/drivers/char/random.c
-@@ -1101,7 +1101,6 @@ static ssize_t random_write(struct file 
- 			    size_t count, loff_t *ppos)
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix
++++ a/arch/x86/mm/init_64.c
+@@ -617,8 +617,8 @@ void __init paging_init(void)
+  */
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+- * After memory hotplug, the variables max_pfn, max_low_pfn and high_memory will
+- * be affected, they will be updated in this function.
++ * After memory hotplug the variables max_pfn, max_low_pfn and high_memory need
++ * updating.
+  */
+ static void  update_end_of_memory_vars(u64 start, u64 size)
  {
- 	size_t ret;
--	struct inode *inode = file->f_path.dentry->d_inode;
- 
- 	ret = write_pool(&blocking_pool, buffer, count);
- 	if (ret)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
+memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
-memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels-fix.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
 ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
