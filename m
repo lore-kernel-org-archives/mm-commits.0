@@ -1,81 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-adjust-to-the-new-aops-fixup.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 12:19:28 -0800
-Message-ID: <201002032019.o13KJSxd016654@imap1.linux-foundation.org>
+Subject: [folded] reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 12:19:34 -0800
+Message-ID: <201002032019.o13KJYIN016663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757867Ab0BCUTa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:30 -0500
+	by vger.kernel.org with ESMTP id S1757887Ab0BCUTi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, edward.shishkin@gmail.com, laurent.riffard@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: adjust to the new aops fixup
+     reiser4-remove-simple_prepare_write-usage-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     reiser4-adjust-to-the-new-aops-fixup.patch
+     reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: adjust to the new aops fixup
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: reiser4-remove-simple_prepare_write-usage-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make sure that reiser4_write_begin() is not called for interruptible
-copies.
+ERROR: code indent should use tabs where possible
+#27: FILE: fs/reiser4/plugin/item/extent_file_ops.c:1063:
++^I^I^I                   page_off + to_page,$
 
-Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
+ERROR: code indent should use tabs where possible
+#28: FILE: fs/reiser4/plugin/item/extent_file_ops.c:1064:
++^I^I^I                   PAGE_CACHE_SIZE);$
+
+total: 2 errors, 0 warnings, 11 lines checked
+
+./patches/reiser4-remove-simple_prepare_write-usage.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Laurent Riffard <laurent.riffard@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file_conversion.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/reiser4/plugin/item/extent_file_ops.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/file_conversion.c~reiser4-adjust-to-the-new-aops-fixup fs/reiser4/plugin/file/file_conversion.c
---- a/fs/reiser4/plugin/file/file_conversion.c~reiser4-adjust-to-the-new-aops-fixup
-+++ a/fs/reiser4/plugin/file/file_conversion.c
-@@ -682,6 +682,12 @@ int reiser4_write_begin_careful(struct f
- 	reiser4_context *ctx;
- 	struct inode * inode = file->f_dentry->d_inode;
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-remove-simple_prepare_write-usage-checkpatch-fixes fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-remove-simple_prepare_write-usage-checkpatch-fixes
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -1060,8 +1060,8 @@ ssize_t reiser4_write_extent(struct file
+ 		lock_page(page);
+ 		if (!PageUptodate(page) && to_page != PAGE_CACHE_SIZE)
+ 			zero_user_segments(page, 0, page_off,
+-			                   page_off + to_page,
+-			                   PAGE_CACHE_SIZE);
++					   page_off + to_page,
++					   PAGE_CACHE_SIZE);
  
-+	/**
-+	 * reiser4_write_end() can not cope with
-+	 * short writes for now
-+	 */
-+	BUG_ON(!(flags & AOP_FLAG_UNINTERRUPTIBLE));
-+
- 	index = pos >> PAGE_CACHE_SHIFT;
- 	start = pos & (PAGE_CACHE_SIZE - 1);
- 	end = start + len;
+ 		written = filemap_copy_from_user(page, page_off, buf, to_page);
+ 		if (unlikely(written != to_page)) {
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-improve-writeback_inodes_wb.patch
-vfs-add-super-operation-writeback_inodes.patch
-vfs-take-2add-set_page_dirty_notag.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
+drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+resources-introduce-generic-page_is_ram-fix.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-fs-reiser4-add-parenths-around-x-y.patch
 fs-reiser4-contextc-current_is_pdflush-got-removed.patch
 reiser4-fix.patch
-reiser4-rename-psched-to-dispatch.patch
-reiser4-drop-journal-info.patch
-reiser4-fix-compile-warnings.patch
-reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
-reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
-reiser4-some-changes-from-reiser4-2631-patch.patch
-reiser4-some-comments-were-still-mentioning-pdflush.patch
-reiser4-writeback_inodes-implementation.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
