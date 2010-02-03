@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-generic-ptrace_resume-code.patch added to -mm tree
-Date: Wed, 03 Feb 2010 14:09:09 -0800
-Message-ID: <201002032209.o13M9A8i022027@imap1.linux-foundation.org>
+Subject: + m32r-use-generic-ptrace_resume-code.patch added to -mm tree
+Date: Wed, 03 Feb 2010 14:09:19 -0800
+Message-ID: <201002032209.o13M9Jmg022049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756254Ab0BCWJ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:09:56 -0500
+	by vger.kernel.org with ESMTP id S1754603Ab0BCWKX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:10:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, chris@zankel.net, oleg@redhat.com, roland@redhat.com
+Cc: hch@lst.de, oleg@redhat.com, roland@redhat.com, takata@linux-m32r.org
 
 
 The patch titled
-     xtensa: use generic ptrace_resume code
+     m32r: use generic ptrace_resume code
 has been added to the -mm tree.  Its filename is
-     xtensa-use-generic-ptrace_resume-code.patch
+     m32r-use-generic-ptrace_resume-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use generic ptrace_resume code
+Subject: m32r: use generic ptrace_resume code
 From: Christoph Hellwig <hch@lst.de>
 
 Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
@@ -44,61 +44,85 @@ causes the breakpoint information to be cleared on fork, which could be
 considered a bug fix.
 
 Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
-it previously wasn't which is consistent with all architectures using the
+it previously wasn't, which is consistent with all architectures using the
 modern ptrace code.
+
+The old code only disables the breakpoints on PTRACE_KILL, while after
+this patch this also happens for PTRACE_CONT and PTRACE_SYSCALL which
+matches the behaviour of the other architetures.  I think this is a
+bugfixes, but please double verify this is correct.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/ptrace.h |    1 
- arch/xtensa/kernel/ptrace.c      |   56 +++++------------------------
- 2 files changed, 12 insertions(+), 45 deletions(-)
+ arch/m32r/include/asm/ptrace.h |    2 
+ arch/m32r/kernel/ptrace.c      |   97 +++++++++----------------------
+ 2 files changed, 31 insertions(+), 68 deletions(-)
 
-diff -puN arch/xtensa/include/asm/ptrace.h~xtensa-use-generic-ptrace_resume-code arch/xtensa/include/asm/ptrace.h
---- a/arch/xtensa/include/asm/ptrace.h~xtensa-use-generic-ptrace_resume-code
-+++ a/arch/xtensa/include/asm/ptrace.h
-@@ -113,6 +113,7 @@ struct pt_regs {
+diff -puN arch/m32r/include/asm/ptrace.h~m32r-use-generic-ptrace_resume-code arch/m32r/include/asm/ptrace.h
+--- a/arch/m32r/include/asm/ptrace.h~m32r-use-generic-ptrace_resume-code
++++ a/arch/m32r/include/asm/ptrace.h
+@@ -120,6 +120,8 @@ struct pt_regs {
  
- #include <variant/core.h>
+ #include <asm/m32r.h>		/* M32R_PSW_BSM, M32R_PSW_BPM */
  
-+# define arch_has_single_step()	(1)
- # define task_pt_regs(tsk) ((struct pt_regs*) \
-   (task_stack_page(tsk) + KERNEL_STACK_SIZE - (XCHAL_NUM_AREGS-16)*4) - 1)
- # define user_mode(regs) (((regs)->ps & 0x00000020)!=0)
-diff -puN arch/xtensa/kernel/ptrace.c~xtensa-use-generic-ptrace_resume-code arch/xtensa/kernel/ptrace.c
---- a/arch/xtensa/kernel/ptrace.c~xtensa-use-generic-ptrace_resume-code
-+++ a/arch/xtensa/kernel/ptrace.c
-@@ -30,6 +30,17 @@
- #include <asm/elf.h>
- #include <asm/coprocessor.h>
- 
++#define arch_has_single_step() (1)
 +
+ struct task_struct;
+ extern void init_debug_traps(struct task_struct *);
+ #define arch_ptrace_attach(child) \
+diff -puN arch/m32r/kernel/ptrace.c~m32r-use-generic-ptrace_resume-code arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~m32r-use-generic-ptrace_resume-code
++++ a/arch/m32r/kernel/ptrace.c
+@@ -580,6 +580,35 @@ init_debug_traps(struct task_struct *chi
+ 	}
+ }
+ 
 +void user_enable_single_step(struct task_struct *child)
 +{
-+	child->ptrace |= PT_SINGLESTEP;
++	unsigned long next_pc;
++	unsigned long pc, insn;
++
++	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
++
++	/* Compute next pc.  */
++	pc = get_stack_long(child, PT_BPC);
++
++	if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
++	    != sizeof(insn))
++		break;
++
++	compute_next_pc(insn, pc, &next_pc, child);
++	if (next_pc & 0x80000000)
++		break;
++
++	if (embed_debug_trap(child, next_pc))
++		break;
++
++	invalidate_cache();
 +}
 +
 +void user_disable_single_step(struct task_struct *child)
 +{
-+	child->ptrace &= ~PT_SINGLESTEP;
++	unregister_all_debug_traps(child);
++	invalidate_cache();
 +}
-+
+ 
  /*
-  * Called by kernel/ptrace.c when detaching to disable single stepping.
-  */
-@@ -268,51 +279,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = ptrace_pokeusr(child, addr, data);
+  * Called by kernel/ptrace.c when detaching..
+@@ -630,74 +659,6 @@ arch_ptrace(struct task_struct *child, l
+ 		ret = ptrace_write_user(child, addr, data);
  		break;
  
--	/* continue and stop at next (return from) syscall */
--
+-	/*
+-	 * continue/restart and stop at next (return from) syscall
+-	 */
 -	case PTRACE_SYSCALL:
--	case PTRACE_CONT: /* restart after signal. */
--	{
+-	case PTRACE_CONT:
 -		ret = -EIO;
 -		if (!valid_signal(data))
 -			break;
@@ -107,40 +131,63 @@ diff -puN arch/xtensa/kernel/ptrace.c~xtensa-use-generic-ptrace_resume-code arch
 -		else
 -			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
 -		child->exit_code = data;
--		/* Make sure the single step bit is not set. */
--		child->ptrace &= ~PT_SINGLESTEP;
 -		wake_up_process(child);
 -		ret = 0;
 -		break;
--	}
 -
 -	/*
 -	 * make the child exit.  Best I can do is send it a sigkill.
 -	 * perhaps it should be put in the status that it wants to
 -	 * exit.
 -	 */
--	case PTRACE_KILL:
+-	case PTRACE_KILL: {
 -		ret = 0;
+-		unregister_all_debug_traps(child);
+-		invalidate_cache();
 -		if (child->exit_state == EXIT_ZOMBIE)	/* already dead */
 -			break;
 -		child->exit_code = SIGKILL;
--		child->ptrace &= ~PT_SINGLESTEP;
 -		wake_up_process(child);
 -		break;
+-	}
 -
--	case PTRACE_SINGLESTEP:
+-	/*
+-	 * execute single instruction.
+-	 */
+-	case PTRACE_SINGLESTEP: {
+-		unsigned long next_pc;
+-		unsigned long pc, insn;
+-
 -		ret = -EIO;
 -		if (!valid_signal(data))
 -			break;
 -		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--		child->ptrace |= PT_SINGLESTEP;
+-
+-		/* Compute next pc.  */
+-		pc = get_stack_long(child, PT_BPC);
+-
+-		if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
+-		    != sizeof(insn))
+-			break;
+-
+-		compute_next_pc(insn, pc, &next_pc, child);
+-		if (next_pc & 0x80000000)
+-			break;
+-
+-		if (embed_debug_trap(child, next_pc))
+-			break;
+-
+-		invalidate_cache();
 -		child->exit_code = data;
+-
+-		/* give it a chance to run. */
 -		wake_up_process(child);
 -		ret = 0;
 -		break;
+-	}
 -
  	case PTRACE_GETREGS:
- 		ret = ptrace_getregs(child, (void __user *) data);
+ 		ret = ptrace_getregs(child, (void __user *)data);
  		break;
 _
 
