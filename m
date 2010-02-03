@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ll-temac-driver-add-non-virtex-5-support.patch added to -mm tree
-Date: Wed, 03 Feb 2010 13:45:42 -0800
-Message-ID: <201002032145.o13LjgUY020957@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch added to -mm tree
+Date: Wed, 03 Feb 2010 13:56:43 -0800
+Message-ID: <201002032156.o13Luhir021461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755952Ab0BCVpu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 16:45:50 -0500
+	by vger.kernel.org with ESMTP id S932657Ab0BCV4s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 16:56:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jtyner@cs.ucr.edu, afleming@freescale.com, davem@davemloft.net, grant.likely@secretlab.ca
+Cc: joe@perches.com, petkovbb@googlemail.com
 
 
 The patch titled
-     LL TEMAC driver: add non-Virtex 5 support
+     scripts/get_maintainer.pl: add ability to read from STDIN
 has been added to the -mm tree.  Its filename is
-     ll-temac-driver-add-non-virtex-5-support.patch
+     scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: LL TEMAC driver: add non-Virtex 5 support
-From: John Tyner <jtyner@cs.ucr.edu>
+Subject: scripts/get_maintainer.pl: add ability to read from STDIN
+From: Joe Perches <joe@perches.com>
 
-Add support for using the LL TEMAC Ethernet driver on non-Virtex 5
-platforms by adding support for accessing the Soft DMA registers as if
-they were memory mapped instead of solely through the DCR's (available on
-the Virtex 5).
+Doesn't need or accept '-' as a trailing option to read stdin.  Doesn't
+print usage() after bad options.  Adds --usage as command line equivalent
+of --help
 
-Signed-off-by: John Tyner <jtyner@cs.ucr.edu>
-Cc: Andy Fleming <afleming@freescale.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: David S. Miller <davem@davemloft.net>
+Suggested-by: Borislav Petkov <petkovbb@googlemail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ll_temac.h      |    1 +
- drivers/net/ll_temac_main.c |   31 ++++++++++++++++++++-----------
- 2 files changed, 21 insertions(+), 11 deletions(-)
+ scripts/get_maintainer.pl |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/ll_temac.h~ll-temac-driver-add-non-virtex-5-support drivers/net/ll_temac.h
---- a/drivers/net/ll_temac.h~ll-temac-driver-add-non-virtex-5-support
-+++ a/drivers/net/ll_temac.h
-@@ -338,6 +338,7 @@ struct temac_local {
- 	/* IO registers and IRQs */
- 	void __iomem *regs;
- 	dcr_host_t sdma_dcrs;
-+	u32 __iomem *sdma_regs;
- 	int tx_irq;
- 	int rx_irq;
- 	int emac_num;
-diff -puN drivers/net/ll_temac_main.c~ll-temac-driver-add-non-virtex-5-support drivers/net/ll_temac_main.c
---- a/drivers/net/ll_temac_main.c~ll-temac-driver-add-non-virtex-5-support
-+++ a/drivers/net/ll_temac_main.c
-@@ -20,9 +20,6 @@
-  *   or rx, so this should be okay.
-  *
-  * TODO:
-- * - Fix driver to work on more than just Virtex5.  Right now the driver
-- *   assumes that the locallink DMA registers are accessed via DCR
-- *   instructions.
-  * - Factor out locallink DMA code into separate driver
-  * - Fix multicast assignment.
-  * - Fix support for hardware checksumming.
-@@ -117,12 +114,20 @@ void temac_indirect_out32(struct temac_l
- 
- static u32 temac_dma_in32(struct temac_local *lp, int reg)
- {
--	return dcr_read(lp->sdma_dcrs, reg);
-+	if (lp->sdma_regs) {
-+		return __raw_readl(lp->sdma_regs + reg);
-+	} else {
-+		return dcr_read(lp->sdma_dcrs, reg);
-+	}
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-ability-to-read-from-stdin scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-ability-to-read-from-stdin
++++ a/scripts/get_maintainer.pl
+@@ -126,7 +126,7 @@ if (!GetOptions(
+ 		'fe|file-emails!' => \$file_emails,
+ 		'f|file' => \$from_filename,
+ 		'v|version' => \$version,
+-		'h|help' => \$help,
++		'h|help|usage' => \$help,
+ 		)) {
+     die "$P: invalid argument - use --help if necessary\n";
+ }
+@@ -141,9 +141,9 @@ if ($version != 0) {
+     exit 0;
  }
  
- static void temac_dma_out32(struct temac_local *lp, int reg, u32 value)
- {
--	dcr_write(lp->sdma_dcrs, reg, value);
-+	if (lp->sdma_regs) {
-+		__raw_writel(value, lp->sdma_regs + reg);
-+	} else {
-+		dcr_write(lp->sdma_dcrs, reg, value);
-+	}
+-if ($#ARGV < 0) {
+-    usage();
+-    die "$P: argument missing: patchfile or -f file please\n";
++if (-t STDIN && !@ARGV) {
++    # We're talking to a terminal, but have no command line arguments.
++    die "$P: missing patchfile or -f file - use --help if necessary\n";
  }
  
- /**
-@@ -862,13 +867,17 @@ temac_of_probe(struct of_device *op, con
- 		goto nodev;
- 	}
+ if ($output_separator ne ", ") {
+@@ -165,7 +165,6 @@ if ($sections) {
+ } else {
+     my $selections = $email + $scm + $status + $subsystem + $web;
+     if ($selections == 0) {
+-	usage();
+ 	die "$P:  Missing required option: email, scm, status, subsystem or web\n";
+     }
+ }
+@@ -173,7 +172,6 @@ if ($sections) {
+ if ($email &&
+     ($email_maintainer + $email_list + $email_subscriber_list +
+      $email_git + $email_git_penguin_chiefs + $email_git_blame) == 0) {
+-    usage();
+     die "$P: Please select at least 1 email option\n";
+ }
  
--	dcrs = dcr_resource_start(np, 0);
--	if (dcrs == 0) {
--		dev_err(&op->dev, "could not get DMA register address\n");
-+	lp->sdma_regs = NULL;
+@@ -248,12 +246,18 @@ my @range = ();
+ my @keyword_tvi = ();
+ my @file_emails = ();
+ 
++if (!@ARGV) {
++    push(@ARGV, "&STDIN");
++}
 +
-+	if ((dcrs = dcr_resource_start(np, 0)) != 0) {
-+		lp->sdma_dcrs = dcr_map(np, dcrs, dcr_resource_len(np, 0));
-+		dev_dbg(&op->dev, "DCR base: %x\n", dcrs);
-+	} else if ((lp->sdma_regs = of_iomap(np, 0))) {
-+		dev_dbg(&op->dev, "MEM base: %p\n", lp->sdma_regs);
-+	} else {
-+		dev_err(&op->dev, "unable to map DMA registers\n");
- 		goto nodev;
- 	}
--	lp->sdma_dcrs = dcr_map(np, dcrs, dcr_resource_len(np, 0));
--	dev_dbg(&op->dev, "DCR base: %x\n", dcrs);
- 
- 	lp->rx_irq = irq_of_parse_and_map(np, 0);
- 	lp->tx_irq = irq_of_parse_and_map(np, 1);
-@@ -895,7 +904,7 @@ temac_of_probe(struct of_device *op, con
- 
- 	lp->phy_node = of_parse_phandle(op->node, "phy-handle", 0);
- 	if (lp->phy_node)
--		dev_dbg(lp->dev, "using PHY node %s (%p)\n", np->full_name, np);
-+		dev_dbg(lp->dev, "using PHY node %s (%p)\n", lp->phy_node->full_name, lp->phy_node);
- 
- 	/* Add the device attributes */
- 	rc = sysfs_create_group(&lp->dev->kobj, &temac_attr_group);
+ foreach my $file (@ARGV) {
+-    ##if $file is a directory and it lacks a trailing slash, add one
+-    if ((-d $file)) {
+-	$file =~ s@([^/])$@$1/@;
+-    } elsif (!(-f $file)) {
+-	die "$P: file '${file}' not found\n";
++    if ($file ne "&STDIN") {
++	##if $file is a directory and it lacks a trailing slash, add one
++	if ((-d $file)) {
++	    $file =~ s@([^/])$@$1/@;
++	} elsif (!(-f $file)) {
++	    die "$P: file '${file}' not found\n";
++	}
+     }
+     if ($from_filename) {
+ 	push(@files, $file);
 _
 
-Patches currently in -mm which might be from jtyner@cs.ucr.edu are
+Patches currently in -mm which might be from joe@perches.com are
 
-ll-temac-driver-add-non-virtex-5-support.patch
+origin.patch
+linux-next.patch
+net-rds-remove-uses-of-nipquad-use-%pi4.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
+drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+maintainers-remove-hayes-esp-serial-driver.patch
+maintainers-update-performance-events-f-patterns.patch
+maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+maintainers-wavelan-moved-to-staging.patch
+lib-stringc-simplify-stricmp.patch
+lib-stringc-simplify-strnstr.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
 
