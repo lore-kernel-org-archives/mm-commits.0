@@ -1,136 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hwmon-vt8231c-fix-continuation-line-formats.patch added to -mm tree
-Date: Wed, 03 Feb 2010 15:43:16 -0800
-Message-ID: <201002032343.o13NhGiM026768@imap1.linux-foundation.org>
+Subject: [to-be-updated] acpi-remove-old-blacklist-entries.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 15:43:51 -0800
+Message-ID: <201002032343.o13NhpaU026785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757932Ab0BCXnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:43:35 -0500
+	by vger.kernel.org with ESMTP id S1757779Ab0BCXrI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:47:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, khali@linux-fr.org, vt8231@hiddenengine.co.uk
+To: mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, lenb@kernel.org, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/hwmon/vt8231.c: fix continuation line formats
-has been added to the -mm tree.  Its filename is
-     drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
+     acpi: remove old blacklist entries
+has been removed from the -mm tree.  Its filename was
+     acpi-remove-old-blacklist-entries.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/vt8231.c: fix continuation line formats
-From: Joe Perches <joe@perches.com>
+Subject: acpi: remove old blacklist entries
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-String constants that are continued on subsequent lines with \ will cause
-spurios whitespace in the resulting output.
+The kernel has a set of blacklist entries that disable ACPI functionality
+on various machines.  These all seem to date from pre-git days and most
+have no indication of what they were meant to fix.  Let's work on the
+assumption that we've fixed whatever it was that was broken before and so
+remove most of the entries.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Roger Lucas <vt8231@hiddenengine.co.uk>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Dmitry Artamonow <mad_soft@inbox.ru>
+Cc: <flinco@libero.it>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/vt8231.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/acpi/boot.c |  147 ----------------------------------
+ 1 file changed, 147 deletions(-)
 
-diff -puN drivers/hwmon/vt8231.c~drivers-hwmon-vt8231c-fix-continuation-line-formats drivers/hwmon/vt8231.c
---- a/drivers/hwmon/vt8231.c~drivers-hwmon-vt8231c-fix-continuation-line-formats
-+++ a/drivers/hwmon/vt8231.c
-@@ -948,8 +948,7 @@ static int __devinit vt8231_pci_probe(st
+diff -puN arch/x86/kernel/acpi/boot.c~acpi-remove-old-blacklist-entries arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~acpi-remove-old-blacklist-entries
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -1256,35 +1256,6 @@ static int __init disable_acpi_pci(const
+ 	return 0;
+ }
  
- 	address = val & ~(VT8231_EXTENT - 1);
- 	if (address == 0) {
--		dev_err(&dev->dev, "base address not set -\
--				 upgrade BIOS or use force_addr=0xaddr\n");
-+		dev_err(&dev->dev, "base address not set - upgrade BIOS or use force_addr=0xaddr\n");
- 		return -ENODEV;
- 	}
+-static int __init dmi_disable_acpi(const struct dmi_system_id *d)
+-{
+-	if (!acpi_force) {
+-		printk(KERN_NOTICE "%s detected: acpi off\n", d->ident);
+-		disable_acpi();
+-	} else {
+-		printk(KERN_NOTICE
+-		       "Warning: DMI blacklist says broken, but acpi forced\n");
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Limit ACPI to CPU enumeration for HT
+- */
+-static int __init force_acpi_ht(const struct dmi_system_id *d)
+-{
+-	if (!acpi_force) {
+-		printk(KERN_NOTICE "%s detected: force use of acpi=ht\n",
+-		       d->ident);
+-		disable_acpi();
+-		acpi_ht = 1;
+-	} else {
+-		printk(KERN_NOTICE
+-		       "Warning: acpi=force overrules DMI blacklist: acpi=ht\n");
+-	}
+-	return 0;
+-}
+-
+ /*
+  * Force ignoring BIOS IRQ0 pin2 override
+  */
+@@ -1308,116 +1279,6 @@ static int __init dmi_ignore_irq0_timer_
+  * works for you, please contact linux-acpi@vger.kernel.org
+  */
+ static struct dmi_system_id __initdata acpi_dmi_table[] = {
+-	/*
+-	 * Boxes that need ACPI disabled
+-	 */
+-	{
+-	 .callback = dmi_disable_acpi,
+-	 .ident = "IBM Thinkpad",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "2629H1G"),
+-		     },
+-	 },
+-
+-	/*
+-	 * Boxes that need acpi=ht
+-	 */
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "FSC Primergy T850",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "PRIMERGY T850"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "HP VISUALIZE NT Workstation",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "HP VISUALIZE NT Workstation"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "Compaq Workstation W8000",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Compaq"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "Workstation W8000"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "ASUS P2B-DS",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		     DMI_MATCH(DMI_BOARD_NAME, "P2B-DS"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "ASUS CUR-DLS",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		     DMI_MATCH(DMI_BOARD_NAME, "CUR-DLS"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "ABIT i440BX-W83977",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ABIT <http://www.abit.com>"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "i440BX-W83977 (BP6)"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM Bladecenter",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "IBM eServer BladeCenter HS20"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM eServer xSeries 360",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "eServer xSeries 360"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM eserver xSeries 330",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "eserver xSeries 330"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+-	 .ident = "IBM eserver xSeries 440",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "eserver xSeries 440"),
+-		     },
+-	 },
+-
+-	/*
+-	 * Boxes that need ACPI PCI IRQ routing disabled
+-	 */
+-	{
+-	 .callback = disable_acpi_irq,
+-	 .ident = "ASUS A7V",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "<A7V>"),
+-		     /* newer BIOS, Revision 1011, does work */
+-		     DMI_MATCH(DMI_BIOS_VERSION,
+-			       "ASUS A7V ACPI BIOS Revision 1007"),
+-		     },
+-	 },
+ 	{
+ 		/*
+ 		 * Latest BIOS for IBM 600E (1.16) has bad pcinum
+@@ -1454,14 +1315,6 @@ static struct dmi_system_id __initdata a
+ 		     DMI_MATCH(DMI_BIOS_DATE, "03/21/2003")
+ 		     },
+ 	 },
+-	{
+-	 .callback = disable_acpi_pci,
+-	 .ident = "Acer TravelMate 36x Laptop",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
+-		     },
+-	 },
+ 	{}
+ };
  
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-origin.patch
-linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-arch-ia64-fix-continuation-line-formats.patch
-net-rds-remove-uses-of-nipquad-use-%pi4.patch
-drivers-net-davinci_emacc-fix-continuation-line-formats.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-staging-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
-scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
-drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
-drivers-video-via-fix-continuation-line-formats.patch
+acpi-remove-old-blacklist-entries.patch
 
