@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-davinci_emacc-fix-continuation-line-formats.patch added to -mm tree
-Date: Wed, 03 Feb 2010 15:42:39 -0800
-Message-ID: <201002032342.o13NgdCr026717@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch added to -mm tree
+Date: Wed, 03 Feb 2010 15:42:25 -0800
+Message-ID: <201002032342.o13NgPR0026700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757932Ab0BCXmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:42:44 -0500
+	by vger.kernel.org with ESMTP id S1757932Ab0BCXmn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:42:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, chaithrika@ti.com, davem@davemloft.net, khilman@deeprootsystems.com, srk@ti.com
+Cc: joe@perches.com, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     drivers/net/davinci_emac.c: fix continuation line formats
+     drivers/gpu/drm/i915/intel_bios.c: fix continuation line formats
 has been added to the -mm tree.  Its filename is
-     drivers-net-davinci_emacc-fix-continuation-line-formats.patch
+     drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/davinci_emac.c: fix continuation line formats
+Subject: drivers/gpu/drm/i915/intel_bios.c: fix continuation line formats
 From: Joe Perches <joe@perches.com>
 
-String constants that are continued on subsequent lineswill cause spurios
-whitespace in the resulting output.
+String constants that are continued on subsequent lines with \ will cause
+spurios whitespace in the resulting output.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Chaithrika U S <chaithrika@ti.com>
-Cc: Sriramakrishnan <srk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/davinci_emac.c |    3 +--
+ drivers/gpu/drm/i915/intel_bios.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/davinci_emac.c~drivers-net-davinci_emacc-fix-continuation-line-formats drivers/net/davinci_emac.c
---- a/drivers/net/davinci_emac.c~drivers-net-davinci_emacc-fix-continuation-line-formats
-+++ a/drivers/net/davinci_emac.c
-@@ -2683,8 +2683,7 @@ static int __devinit davinci_emac_probe(
- 	priv->emac_base_phys = res->start + pdata->ctrl_reg_offset;
- 	size = res->end - res->start + 1;
- 	if (!request_mem_region(res->start, size, ndev->name)) {
--		dev_err(emac_dev, "DaVinci EMAC: failed request_mem_region() \
--					 for regs\n");
-+		dev_err(emac_dev, "DaVinci EMAC: failed request_mem_region() for regs\n");
- 		rc = -ENXIO;
- 		goto probe_quit;
- 	}
+diff -puN drivers/gpu/drm/i915/intel_bios.c~drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats drivers/gpu/drm/i915/intel_bios.c
+--- a/drivers/gpu/drm/i915/intel_bios.c~drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats
++++ a/drivers/gpu/drm/i915/intel_bios.c
+@@ -416,8 +416,7 @@ parse_edp(struct drm_i915_private *dev_p
+ 	edp = find_section(bdb, BDB_EDP);
+ 	if (!edp) {
+ 		if (SUPPORTS_EDP(dev_priv->dev) && dev_priv->edp_support) {
+-			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported,\
+-				       assume 18bpp panel color depth.\n");
++			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported, assume 18bpp panel color depth.\n");
+ 			dev_priv->edp_bpp = 18;
+ 		}
+ 		return;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
