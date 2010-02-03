@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch added to -mm tree
-Date: Wed, 03 Feb 2010 14:29:54 -0800
-Message-ID: <201002032229.o13MTsYv023028@imap1.linux-foundation.org>
+Subject: + vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix.patch added to -mm tree
+Date: Wed, 03 Feb 2010 14:31:16 -0800
+Message-ID: <201002032231.o13MVGFC023145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756539Ab0BCWar (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:30:47 -0500
+	by vger.kernel.org with ESMTP id S1756539Ab0BCWcC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:32:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, benh@kernel.crashing.org, kosaki.motohiro@jp.fujitsu.com, maximlevitsky@gmail.com, sebott@linux.vnet.ibm.com
+Cc: travis@sgi.com, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de
 
 
 The patch titled
-     mm/pm: force GFP_NOIO during suspend/hibernation and resume
+     vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix
 has been added to the -mm tree.  Its filename is
-     mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+     vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,156 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/pm: force GFP_NOIO during suspend/hibernation and resume
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix
+From: Mike Travis <travis@sgi.com>
 
-There are quite a few GFP_KERNEL memory allocations made during
-suspend/hibernation and resume that may cause the system to hang, because
-the I/O operations they depend on cannot be completed due to the
-underlying devices being suspended.
+v2: simplify setting of MAX_USER_CARDS, revert back to original default of 16
 
-Avoid this problem by clearing the __GFP_IO and __GFP_FS bits in
-gfp_allowed_mask before suspend/hibernation and restoring the original
-values of these bits in gfp_allowed_mask durig the subsequent resume.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Robin Holt <holt@sgi.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h      |    8 ++++++++
- kernel/power/hibernate.c |    9 +++++++++
- kernel/power/suspend.c   |    3 +++
- 3 files changed, 20 insertions(+)
+ drivers/gpu/vga/Kconfig  |    2 +-
+ drivers/gpu/vga/vgaarb.c |    4 ----
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume include/linux/gfp.h
---- a/include/linux/gfp.h~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
-+++ a/include/linux/gfp.h
-@@ -83,6 +83,7 @@ struct vm_area_struct;
- #define GFP_HIGHUSER_MOVABLE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
- 				 __GFP_HARDWALL | __GFP_HIGHMEM | \
- 				 __GFP_MOVABLE)
-+#define GFP_IOFS	(__GFP_IO | __GFP_FS)
+diff -puN drivers/gpu/vga/Kconfig~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix drivers/gpu/vga/Kconfig
+--- a/drivers/gpu/vga/Kconfig~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix
++++ a/drivers/gpu/vga/Kconfig
+@@ -11,7 +11,7 @@ config VGA_ARB
  
- #ifdef CONFIG_NUMA
- #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
-@@ -342,4 +343,11 @@ static inline void set_gfp_allowed_mask(
- 	gfp_allowed_mask = mask;
- }
+ config VGA_ARB_MAX_GPUS
+ 	int "Maximum number of GPUs"
+-	default 64
++	default 16
+ 	depends on VGA_ARB
+ 	help
+ 	  Reserves space in the kernel to maintain resource locking for
+diff -puN drivers/gpu/vga/vgaarb.c~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix drivers/gpu/vga/vgaarb.c
+--- a/drivers/gpu/vga/vgaarb.c~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix
++++ a/drivers/gpu/vga/vgaarb.c
+@@ -688,11 +688,7 @@ EXPORT_SYMBOL(vga_client_register);
+  * the arbiter.
+  */
  
-+static inline gfp_t clear_gfp_allowed_mask(gfp_t mask)
-+{
-+	gfp_t ret = gfp_allowed_mask;
-+	gfp_allowed_mask &= ~mask;
-+	return ret;
-+}
-+
- #endif /* __LINUX_GFP_H */
-diff -puN kernel/power/hibernate.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume kernel/power/hibernate.c
---- a/kernel/power/hibernate.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
-+++ a/kernel/power/hibernate.c
-@@ -323,6 +323,7 @@ static int create_image(int platform_mod
- int hibernation_snapshot(int platform_mode)
- {
- 	int error;
-+	gfp_t saved_mask;
+-#ifdef CONFIG_VGA_ARB_MAX_GPUS
+ #define MAX_USER_CARDS         CONFIG_VGA_ARB_MAX_GPUS
+-#else
+-#define MAX_USER_CARDS         16
+-#endif
+ #define PCI_INVALID_CARD       ((struct pci_dev *)-1UL)
  
- 	error = platform_begin(platform_mode);
- 	if (error)
-@@ -334,6 +335,7 @@ int hibernation_snapshot(int platform_mo
- 		goto Close;
- 
- 	suspend_console();
-+	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
- 	error = dpm_suspend_start(PMSG_FREEZE);
- 	if (error)
- 		goto Recover_platform;
-@@ -351,6 +353,7 @@ int hibernation_snapshot(int platform_mo
- 
- 	dpm_resume_end(in_suspend ?
- 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
-+	set_gfp_allowed_mask(saved_mask);
- 	resume_console();
-  Close:
- 	platform_end(platform_mode);
-@@ -445,14 +448,17 @@ static int resume_target_kernel(bool pla
- int hibernation_restore(int platform_mode)
- {
- 	int error;
-+	gfp_t saved_mask;
- 
- 	pm_prepare_console();
- 	suspend_console();
-+	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
- 	error = dpm_suspend_start(PMSG_QUIESCE);
- 	if (!error) {
- 		error = resume_target_kernel(platform_mode);
- 		dpm_resume_end(PMSG_RECOVER);
- 	}
-+	set_gfp_allowed_mask(saved_mask);
- 	resume_console();
- 	pm_restore_console();
- 	return error;
-@@ -466,6 +472,7 @@ int hibernation_restore(int platform_mod
- int hibernation_platform_enter(void)
- {
- 	int error;
-+	gfp_t saved_mask;
- 
- 	if (!hibernation_ops)
- 		return -ENOSYS;
-@@ -481,6 +488,7 @@ int hibernation_platform_enter(void)
- 
- 	entering_platform_hibernation = true;
- 	suspend_console();
-+	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
- 	error = dpm_suspend_start(PMSG_HIBERNATE);
- 	if (error) {
- 		if (hibernation_ops->recover)
-@@ -518,6 +526,7 @@ int hibernation_platform_enter(void)
-  Resume_devices:
- 	entering_platform_hibernation = false;
- 	dpm_resume_end(PMSG_RESTORE);
-+	set_gfp_allowed_mask(saved_mask);
- 	resume_console();
- 
-  Close:
-diff -puN kernel/power/suspend.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume kernel/power/suspend.c
---- a/kernel/power/suspend.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
-+++ a/kernel/power/suspend.c
-@@ -189,6 +189,7 @@ static int suspend_enter(suspend_state_t
- int suspend_devices_and_enter(suspend_state_t state)
- {
- 	int error;
-+	gfp_t saved_mask;
- 
- 	if (!suspend_ops)
- 		return -ENOSYS;
-@@ -199,6 +200,7 @@ int suspend_devices_and_enter(suspend_st
- 			goto Close;
- 	}
- 	suspend_console();
-+	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
- 	suspend_test_start();
- 	error = dpm_suspend_start(PMSG_SUSPEND);
- 	if (error) {
-@@ -215,6 +217,7 @@ int suspend_devices_and_enter(suspend_st
- 	suspend_test_start();
- 	dpm_resume_end(PMSG_RESUME);
- 	suspend_test_finish("resume devices");
-+	set_gfp_allowed_mask(saved_mask);
- 	resume_console();
-  Close:
- 	if (suspend_ops->end)
+ /*
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from travis@sgi.com are
 
-linux-next.patch
-drivers-acpi-processor_idlec-add-two-laptops-to-the-c-state-dmi-table.patch
-acpi-remove-old-blacklist-entries.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch
+vgaarb-fix-vga-arbiter-to-accept-pci-domains-other-than-0.patch
+vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system.patch
+vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system-fix.patch
 
