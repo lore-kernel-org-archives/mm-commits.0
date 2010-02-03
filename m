@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-clean-up-vm-related-variable-declarations.patch added to -mm tree
-Date: Wed, 03 Feb 2010 14:36:45 -0800
-Message-ID: <201002032236.o13Maj2l023406@imap1.linux-foundation.org>
+Subject: + scripts-checkpatchpl-dramatically-improve-define-parse-times.patch added to -mm tree
+Date: Wed, 03 Feb 2010 14:40:17 -0800
+Message-ID: <201002032240.o13MeHCe023567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756539Ab0BCWhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:37:35 -0500
+	by vger.kernel.org with ESMTP id S1756295Ab0BCWlF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:41:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com
+Cc: joe@perches.com, apw@shadowen.org
 
 
 The patch titled
-     sysctl: clean up vm related variable declarations
+     scripts/checkpatch.pl: dramatically improve #define parse times
 has been added to the -mm tree.  Its filename is
-     sysctl-clean-up-vm-related-variable-declarations.patch
+     scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,194 +33,196 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: clean up vm related variable declarations
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: scripts/checkpatch.pl: dramatically improve #define parse times
+From: Joe Perches <joe@perches.com>
 
-Presently there are many "extern" declaration in kernel/sysctl.c. 
-"extern" declaration in *.c file is not appreciated in general.  And
-Hmm...it seems there are a few redundant declarations.
+#define macros currently take a _very_ long time to parse because the
+macro is being searched for multiple statements and unnecessary searching
+is being done when comments are replaced with unprintable characters.
 
-Because most of sysctl variables are defined in its own header file, they
-should be declared in the same style, be done in its own *.h file.
+For instance:
 
-This patch removes some VM(memory management) related sysctl's variable
-declaration from kernel/sysctl.c and move them to proper places.
+Without this patch:
+$ time perl ./scripts/checkpatch.pl -f include/linux/mfd/wm831x/irq.h > /dev/null
 
-[rientjes@google.com: #ifdef fixlet]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+real	3m43.229s
+user	3m42.254s
+sys	0m0.332s
+
+With this patch:
+$ time perl ./scripts/checkpatch.pl -f include/linux/mfd/wm831x/irq.h > /dev/null
+
+real	0m1.372s
+user	0m1.348s
+sys	0m0.020s
+
+A 160:1 improvement.
+
+I don't know if this is correct, but it seems to work for me.
+
+Maybe there's some reason why C comments aren't replaced with spaces but
+get unprintable characters.
+
+Changes:
+
+Replace comments with spaces.
+Do not call ctx_statement_block unless necessary
+Add a check to see if the macro could have multiple statements
+either with a \ line continuation or a ";".  This doesn't work with
+comma separated statements.
+Miscellaneous its -> it's typo corrections.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h     |    5 +++++
- include/linux/mmzone.h |    1 +
- include/linux/oom.h    |    5 +++++
- kernel/sysctl.c        |   16 ++--------------
- mm/mmap.c              |    5 +++++
- 5 files changed, 18 insertions(+), 14 deletions(-)
+ scripts/checkpatch.pl |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/mm.h~sysctl-clean-up-vm-related-variable-declarations include/linux/mm.h
---- a/include/linux/mm.h~sysctl-clean-up-vm-related-variable-declarations
-+++ a/include/linux/mm.h
-@@ -1433,6 +1433,7 @@ int in_gate_area_no_task(unsigned long a
- #define in_gate_area(task, addr) ({(void)task; in_gate_area_no_task(addr);})
- #endif	/* __HAVE_ARCH_GATE_AREA */
+diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-dramatically-improve-define-parse-times scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~scripts-checkpatchpl-dramatically-improve-define-parse-times
++++ a/scripts/checkpatch.pl
+@@ -384,18 +384,18 @@ sub sanitise_line {
+ 	for ($off = 1; $off < length($line); $off++) {
+ 		$c = substr($line, $off, 1);
  
-+extern int sysctl_drop_caches;
- int drop_caches_sysctl_handler(struct ctl_table *, int,
- 					void __user *, size_t *, loff_t *);
- unsigned long shrink_slab(unsigned long scanned, gfp_t gfp_mask,
-@@ -1477,5 +1478,9 @@ extern int soft_offline_page(struct page
+-		# Comments we are wacking completly including the begin
++		# Comments we are whacking completely including the begin
+ 		# and end, all to $;.
+ 		if ($sanitise_quote eq '' && substr($line, $off, 2) eq '/*') {
+ 			$sanitise_quote = '*/';
  
- extern void dump_page(struct page *page);
+-			substr($res, $off, 2, "$;$;");
++			substr($res, $off, 2, "  ");
+ 			$off++;
+ 			next;
+ 		}
+ 		if ($sanitise_quote eq '*/' && substr($line, $off, 2) eq '*/') {
+ 			$sanitise_quote = '';
+-			substr($res, $off, 2, "$;$;");
++			substr($res, $off, 2, "  ");
+ 			$off++;
+ 			next;
+ 		}
+@@ -428,9 +428,9 @@ sub sanitise_line {
  
-+#ifndef CONFIG_MMU
-+extern int sysctl_nr_trim_pages;
-+#endif
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
-diff -puN include/linux/mmzone.h~sysctl-clean-up-vm-related-variable-declarations include/linux/mmzone.h
---- a/include/linux/mmzone.h~sysctl-clean-up-vm-related-variable-declarations
-+++ a/include/linux/mmzone.h
-@@ -747,6 +747,7 @@ int min_free_kbytes_sysctl_handler(struc
- extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES-1];
- int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *, int,
- 					void __user *, size_t *, loff_t *);
-+extern int percpu_pagelist_fraction; /* for sysctl */
- int percpu_pagelist_fraction_sysctl_handler(struct ctl_table *, int,
- 					void __user *, size_t *, loff_t *);
- int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *, int,
-diff -puN include/linux/oom.h~sysctl-clean-up-vm-related-variable-declarations include/linux/oom.h
---- a/include/linux/oom.h~sysctl-clean-up-vm-related-variable-declarations
-+++ a/include/linux/oom.h
-@@ -43,5 +43,10 @@ static inline void oom_killer_enable(voi
- {
- 	oom_killer_disabled = false;
- }
-+/* for sysctl */
-+extern int sysctl_panic_on_oom;
-+extern int sysctl_oom_kill_allocating_task;
-+extern int sysctl_oom_dump_tasks;
-+
- #endif /* __KERNEL__*/
- #endif /* _INCLUDE_LINUX_OOM_H */
-diff -puN kernel/sysctl.c~sysctl-clean-up-vm-related-variable-declarations kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-clean-up-vm-related-variable-declarations
-+++ a/kernel/sysctl.c
-@@ -39,6 +39,8 @@
- #include <linux/hugetlb.h>
- #include <linux/initrd.h>
- #include <linux/key.h>
-+#include <linux/mman.h>
-+#include <linux/oom.h>
- #include <linux/times.h>
- #include <linux/limits.h>
- #include <linux/dcache.h>
-@@ -68,11 +70,6 @@
- /* External variables not in a header file. */
- extern int C_A_D;
- extern int print_fatal_signals;
--extern int sysctl_overcommit_memory;
--extern int sysctl_overcommit_ratio;
--extern int sysctl_panic_on_oom;
--extern int sysctl_oom_kill_allocating_task;
--extern int sysctl_oom_dump_tasks;
- extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
-@@ -81,14 +78,9 @@ extern unsigned int core_pipe_limit;
- extern int pid_max;
- extern int min_free_kbytes;
- extern int pid_max_min, pid_max_max;
--extern int sysctl_drop_caches;
--extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int latencytop_enabled;
- extern int sysctl_nr_open_min, sysctl_nr_open_max;
--#ifndef CONFIG_MMU
--extern int sysctl_nr_trim_pages;
--#endif
- #ifdef CONFIG_RCU_TORTURE_TEST
- extern int rcutorture_runnable;
- #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
-@@ -199,10 +191,6 @@ extern struct ctl_table inotify_table[];
- extern struct ctl_table epoll_table[];
- #endif
+ 		#print "c<$c> SQ<$sanitise_quote>\n";
+ 		if ($off != 0 && $sanitise_quote eq '*/' && $c ne "\t") {
+-			substr($res, $off, 1, $;);
++			substr($res, $off, 1, ' ');
+ 		} elsif ($off != 0 && $sanitise_quote eq '//' && $c ne "\t") {
+-			substr($res, $off, 1, $;);
++			substr($res, $off, 1, ' ');
+ 		} elsif ($off != 0 && $sanitise_quote && $c ne "\t") {
+ 			substr($res, $off, 1, 'X');
+ 		} else {
+@@ -518,7 +518,7 @@ sub ctx_statement_block {
+ 			last;
+ 		}
  
--#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
--int sysctl_legacy_va_layout;
--#endif
--
- extern int prove_locking;
- extern int lock_stat;
+-		# An else is really a conditional as long as its not else if
++		# An else is really a conditional as long as it's not else if
+ 		if ($level == 0 && $coff_set == 0 &&
+ 				(!defined($p) || $p =~ /(?:\s|\}|\+)/) &&
+ 				$remainder =~ /^(else)(?:\s|{)/ &&
+@@ -1454,7 +1454,9 @@ sub process {
+ # Check for potential 'bare' types
+ 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next,
+ 		    $realline_next);
+-		if ($realcnt && $line =~ /.\s*\S/) {
++		my $test = $line =~ /\+\s*(\S)/;
++		my $firstchar = $1;
++		if ($realcnt && $test && $firstchar ne "\#") {
+ 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
+ 				ctx_statement_block($linenr, $realcnt, 0);
+ 			$stat =~ s/\n./\n /g;
+@@ -1902,7 +1904,7 @@ sub process {
+ 			# cpp #elif statement condition may start with a (
+ 			} elsif ($ctx =~ /^.\s*\#\s*elif\s*$/) {
  
-diff -puN mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations mm/mmap.c
---- a/mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations
-+++ a/mm/mmap.c
-@@ -87,6 +87,11 @@ int sysctl_overcommit_ratio = 50;	/* def
- int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
- struct percpu_counter vm_committed_as;
+-			# If this whole things ends with a type its most
++			# If this whole things ends with a type it's most
+ 			# likely a typedef for a function.
+ 			} elsif ($ctx =~ /$Type$/) {
  
-+#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
-+/* Used by each architecture's private code and sysctl. */
-+int sysctl_legacy_va_layout;
-+#endif
-+
- /*
-  * Check that a process has enough memory to allocate a new virtual
-  * mapping. 0 means there is enough memory for the allocation to
+@@ -2304,10 +2306,11 @@ sub process {
+ 		}
+ 
+ # multi-statement macros should be enclosed in a do while loop, grab the
+-# first statement and ensure its the whole macro if its not enclosed
++# first statement and ensure it's the whole macro if it's not enclosed
+ # in a known good container
+ 		if ($realfile !~ m@/vmlinux.lds.h$@ &&
+-		    $line =~ /^.\s*\#\s*define\s*$Ident(\()?/) {
++		    $line =~ /^.\s*\#\s*define\s*$Ident(\()?/ &&
++		    ($line =~ /;/ || $line =~ /\\$/)) {
+ 			my $ln = $linenr;
+ 			my $cnt = $realcnt;
+ 			my ($off, $dstat, $dcond, $rest);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-get_scan_ratio-cleanup.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
-nodemaskh-remove-macro-any_online_node.patch
-resources-introduce-generic-page_is_ram.patch
-x86-remove-bios-data-range-from-e820.patch
-x86-use-the-generic-page_is_ram.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-loading-interface-fix.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-blkio-subsystem-as-module.patch
-cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
-sysctl-clean-up-vm-related-variable-declarations.patch
+linux-next.patch
+net-rds-remove-uses-of-nipquad-use-%pi4.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
+drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+maintainers-remove-hayes-esp-serial-driver.patch
+maintainers-update-performance-events-f-patterns.patch
+maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+maintainers-wavelan-moved-to-staging.patch
+lib-stringc-simplify-stricmp.patch
+lib-stringc-simplify-strnstr.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
+scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
 
