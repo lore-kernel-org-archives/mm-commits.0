@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-use-generic-ptrace_resume-code.patch added to -mm tree
-Date: Wed, 03 Feb 2010 14:08:58 -0800
-Message-ID: <201002032208.o13M8wLr022016@imap1.linux-foundation.org>
+Subject: + blackfin-use-generic-ptrace_resume-code.patch added to -mm tree
+Date: Wed, 03 Feb 2010 14:08:50 -0800
+Message-ID: <201002032208.o13M8oWm022004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756278Ab0BCWJ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:09:56 -0500
+	by vger.kernel.org with ESMTP id S1753139Ab0BCWMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:12:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, john.williams@petalogix.com, monstr@monstr.eu, oleg@redhat.com, roland@redhat.com
+Cc: hch@lst.de, cooloney@kernel.org, oleg@redhat.com, roland@redhat.com, vapier@gentoo.org
 
 
 The patch titled
-     microblaze: use generic ptrace_resume code
+     blackfin: use generic ptrace_resume code
 has been added to the -mm tree.  Its filename is
-     microblaze-use-generic-ptrace_resume-code.patch
+     blackfin-use-generic-ptrace_resume-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: microblaze: use generic ptrace_resume code
+Subject: blackfin: use generic ptrace_resume code
 From: Christoph Hellwig <hch@lst.de>
 
-Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT and
-PTRACE_KILL.  This also makes PTRACE_SINGLESTEP return -EIO while it
-previously succeeded despite not actually causing any kind of single
-stepping.
+Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
+PTRACE_KILL and PTRACE_SINGLESTEP.  This implies defining
+arch_has_single_step in <asm/ptrace.h> and implementing the
+user_enable_single_step and user_disable_single_step functions, which also
+causes the breakpoint information to be cleared on fork, which could be
+considered a bug fix.
 
 Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
 it previously wasn't which is consistent with all architectures using the
@@ -48,42 +50,79 @@ modern ptrace code.
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Acked-by: Michal Simek <monstr@monstr.eu>
-Cc: John Williams <john.williams@petalogix.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/ptrace.c |   37 ------------------------------
- 1 file changed, 37 deletions(-)
+ arch/blackfin/include/asm/ptrace.h |    2 
+ arch/blackfin/kernel/ptrace.c      |   59 ++++-----------------------
+ 2 files changed, 12 insertions(+), 49 deletions(-)
 
-diff -puN arch/microblaze/kernel/ptrace.c~microblaze-use-generic-ptrace_resume-code arch/microblaze/kernel/ptrace.c
---- a/arch/microblaze/kernel/ptrace.c~microblaze-use-generic-ptrace_resume-code
-+++ a/arch/microblaze/kernel/ptrace.c
-@@ -110,43 +110,6 @@ long arch_ptrace(struct task_struct *chi
- 		if (rval == 0 && request == PTRACE_PEEKUSR)
- 			rval = put_user(val, (unsigned long *)data);
+diff -puN arch/blackfin/include/asm/ptrace.h~blackfin-use-generic-ptrace_resume-code arch/blackfin/include/asm/ptrace.h
+--- a/arch/blackfin/include/asm/ptrace.h~blackfin-use-generic-ptrace_resume-code
++++ a/arch/blackfin/include/asm/ptrace.h
+@@ -97,6 +97,8 @@ struct pt_regs {
+ 
+ #ifdef __KERNEL__
+ 
++#define arch_has_single_step()	(1)
++
+ /* user_mode returns true if only one bit is set in IPEND, other than the
+    master interrupt enable.  */
+ #define user_mode(regs) (!(((regs)->ipend & ~0x10) & (((regs)->ipend & ~0x10) - 1)))
+diff -puN arch/blackfin/kernel/ptrace.c~blackfin-use-generic-ptrace_resume-code arch/blackfin/kernel/ptrace.c
+--- a/arch/blackfin/kernel/ptrace.c~blackfin-use-generic-ptrace_resume-code
++++ a/arch/blackfin/kernel/ptrace.c
+@@ -160,7 +160,15 @@ static inline int is_user_addr_valid(str
+ 	return -EIO;
+ }
+ 
+-void ptrace_enable(struct task_struct *child)
++void user_disable_single_step(struct task_struct *child)
++{
++	unsigned long tmp;
++	/* make sure the single step bit is not set. */
++	tmp = get_reg(child, PT_SYSCFG) & ~TRACE_BITS;
++	put_reg(child, PT_SYSCFG, tmp);
++}
++
++void user_enable_single_step(struct task_struct *child)
+ {
+ 	unsigned long tmp;
+ 	tmp = get_reg(child, PT_SYSCFG) | (TRACE_BITS);
+@@ -174,10 +182,7 @@ void ptrace_enable(struct task_struct *c
+  */
+ void ptrace_disable(struct task_struct *child)
+ {
+-	unsigned long tmp;
+-	/* make sure the single step bit is not set. */
+-	tmp = get_reg(child, PT_SYSCFG) & ~TRACE_BITS;
+-	put_reg(child, PT_SYSCFG, tmp);
++	user_disable_single_step(child);
+ }
+ 
+ long arch_ptrace(struct task_struct *child, long request, long addr, long data)
+@@ -354,50 +359,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = put_reg(child, addr, data);
  		break;
--	/* Continue and stop at next (return from) syscall */
--	case PTRACE_SYSCALL:
--		pr_debug("PTRACE_SYSCALL\n");
--	case PTRACE_SINGLESTEP:
--		pr_debug("PTRACE_SINGLESTEP\n");
--	/* Restart after a signal.  */
--	case PTRACE_CONT:
--		pr_debug("PTRACE_CONT\n");
--		rval = -EIO;
+ 
+-	case PTRACE_SYSCALL:	/* continue and stop at next (return from) syscall */
+-	case PTRACE_CONT:	/* restart after signal. */
+-		pr_debug("ptrace: syscall/cont\n");
+-
+-		ret = -EIO;
 -		if (!valid_signal(data))
 -			break;
--
 -		if (request == PTRACE_SYSCALL)
 -			set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
 -		else
 -			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--
 -		child->exit_code = data;
--		pr_debug("wakeup_process\n");
+-		ptrace_disable(child);
+-		pr_debug("ptrace: before wake_up_process\n");
 -		wake_up_process(child);
--		rval = 0;
+-		ret = 0;
 -		break;
 -
 -	/*
@@ -92,17 +131,29 @@ diff -puN arch/microblaze/kernel/ptrace.c~microblaze-use-generic-ptrace_resume-c
 -	 * exit.
 -	 */
 -	case PTRACE_KILL:
--		pr_debug("PTRACE_KILL\n");
--		rval = 0;
+-		ret = 0;
 -		if (child->exit_state == EXIT_ZOMBIE)	/* already dead */
 -			break;
 -		child->exit_code = SIGKILL;
+-		ptrace_disable(child);
 -		wake_up_process(child);
 -		break;
 -
- 	default:
- 		rval = ptrace_request(child, request, addr, data);
- 	}
+-	case PTRACE_SINGLESTEP:	/* set the trap flag. */
+-		pr_debug("ptrace: single step\n");
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
+-		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		ptrace_enable(child);
+-		child->exit_code = data;
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-
+ 	case PTRACE_GETREGS:
+ 		/* Get all gp regs from the child. */
+ 		ret = ptrace_getregs(child, datap);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
