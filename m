@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path.patch added to -mm tree
-Date: Wed, 03 Feb 2010 12:59:20 -0800
-Message-ID: <201002032059.o13KxKMh018761@imap1.linux-foundation.org>
+Subject: + add-generic-sys_old_select-fix.patch added to -mm tree
+Date: Wed, 03 Feb 2010 13:00:45 -0800
+Message-ID: <201002032100.o13L0je0018840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932343Ab0BCVAV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 16:00:21 -0500
+	by vger.kernel.org with ESMTP id S932667Ab0BCVBj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 16:01:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, Trond.Myklebust@netapp.com, bfields@fieldses.org, neilb@suse.de
+Cc: hch@lst.de, schwab@linux-m68k.org
 
 
 The patch titled
-     sunrpc/cache: fix module refcnt leak in a failure path
+     add-generic-sys_old_select-fix.txt
 has been added to the -mm tree.  Its filename is
-     sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path.patch
+     add-generic-sys_old_select-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc/cache: fix module refcnt leak in a failure path
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: add-generic-sys_old_select-fix.txt
+From: Christoph Hellwig <hch@lst.de>
 
-Don't forget to release the module refcnt if seq_open() returns failure.
+On Mon, Feb 01, 2010 at 11:40:29PM +0100, Andreas Schwab wrote:
+> > Index: linux-2.6/fs/compat.c
+> > ===================================================================
+> > --- linux-2.6.orig/fs/compat.c	2010-01-12 14:08:16.202003005 +0100
+> > +++ linux-2.6/fs/compat.c	2010-01-29 23:35:20.187003404 +0100
+> > @@ -1795,6 +1795,24 @@ asmlinkage long compat_sys_select(int n,
+> >  	return ret;
+> >  }
+> >
+> > +struct compat_sel_arg_struct {
+> > +	compat_ulong_t n;
+> > +	compat_ulong_t inp;
+> > +	compat_ulong_t outp;
+> > +	compat_ulong_t exp;
+> > +	compat_ulong_t tvp;
+> > +};
+>
+> Shouldn't the last four be compat_uptr_t?
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Strictly speaking yes, although it doesn't matter for the generated
+code.  The patch below makes it use the strictly correct type:
+
+Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/cache.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/compat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN net/sunrpc/cache.c~sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path
-+++ a/net/sunrpc/cache.c
-@@ -1233,8 +1233,10 @@ static int content_open(struct inode *in
- 	if (!cd || !try_module_get(cd->owner))
- 		return -EACCES;
- 	han = __seq_open_private(file, &cache_content_op, sizeof(*han));
--	if (han == NULL)
-+	if (han == NULL) {
-+		module_put(cd->owner);
- 		return -ENOMEM;
-+	}
+diff -puN fs/compat.c~add-generic-sys_old_select-fix fs/compat.c
+--- a/fs/compat.c~add-generic-sys_old_select-fix
++++ a/fs/compat.c
+@@ -1796,10 +1796,10 @@ asmlinkage long compat_sys_select(int n,
  
- 	han->cd = cd;
- 	return 0;
+ struct compat_sel_arg_struct {
+ 	compat_ulong_t n;
+-	compat_ulong_t inp;
+-	compat_ulong_t outp;
+-	compat_ulong_t exp;
+-	compat_ulong_t tvp;
++	compat_uptr_t inp;
++	compat_uptr_t outp;
++	compat_uptr_t exp;
++	compat_uptr_t tvp;
+ };
+ 
+ asmlinkage long compat_sys_old_select(struct compat_sel_arg_struct __user *arg)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-origin.patch
 linux-next.patch
-sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path.patch
-lib-stringc-simplify-strnstr.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-loading-interface-fix.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-blkio-subsystem-as-module.patch
-cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+add-generic-sys_old_select.patch
+add-generic-sys_old_select-fix.patch
+add-generic-sys_old_mmap.patch
+add-generic-sys_ipc-wrapper.patch
+add-generic-sys_ipc-wrapper-fix.patch
+improve-sys_personality-for-compat-architectures.patch
+improve-sys_newuname-for-compat-architectures.patch
+add-generic-sys_olduname.patch
+ptrace-use-ptrace_request-in-the-remaining-architectures.patch
 
