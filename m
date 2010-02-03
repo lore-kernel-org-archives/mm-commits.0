@@ -1,98 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] imxfb-correct-location-of-callbacks-in-suspend-and-resume.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 09:55:04 -0800
-Message-ID: <201002031755.o13Ht4v8008948@imap1.linux-foundation.org>
+Subject: [merged] mm-flush-dcache-before-writing-into-page-to-avoid-alias.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 09:54:46 -0800
+Message-ID: <201002031754.o13HskT5008921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932761Ab0BCSAF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 13:00:05 -0500
+	by vger.kernel.org with ESMTP id S932761Ab0BCSAw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 13:00:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, kernel@pengutronix.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: anfei.zhou@gmail.com, linux-arch@vger.kernel.org, miklos@szeredi.hu, nickpiggin@yahoo.com.au, rmk@arm.linux.org.uk, stable@kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     imxfb: correct location of callbacks in suspend and resume
+     mm: flush dcache before writing into page to avoid alias
 has been removed from the -mm tree.  Its filename was
-     imxfb-correct-location-of-callbacks-in-suspend-and-resume.patch
+     mm-flush-dcache-before-writing-into-page-to-avoid-alias.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: imxfb: correct location of callbacks in suspend and resume
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: mm: flush dcache before writing into page to avoid alias
+From: anfei zhou <anfei.zhou@gmail.com>
 
-The probe function passes a pointer to a struct fb_info to
-platform_set_drvdata(), so don't interpret the return value of
-platform_get_drvdata() as a pointer to struct imxfb_info.
+The cache alias problem will happen if the changes of user shared mapping
+is not flushed before copying, then user and kernel mapping may be mapped
+into two different cache line, it is impossible to guarantee the coherence
+after iov_iter_copy_from_user_atomic.  So the right steps should be:
 
-The original imxfb_info *fbi backlight_power was NULL but in imxfb_susp=
-end
-it was 4 resulting in an oops as imxfb_suspend calls
-imxfb_disable_controller(fbi) which in turn has
+	flush_dcache_page(page);
+	kmap_atomic(page);
+	write to page;
+	kunmap_atomic(page);
+	flush_dcache_page(page);
 
-	if (fbi->backlight_power)
-			fbi->backlight_power(0);
+More precisely, we might create two new APIs flush_dcache_user_page and
+flush_dcache_kern_page to replace the two flush_dcache_page accordingly.
 
-Signed-off-by: Uwe Kleine-K=F6nig  <u.kleine-koenig@pengutronix.de>
-Acked-by: Sascha Hauer <kernel@pengutronix.de>
+Here is a snippet tested on omap2430 with VIPT cache, and I think it is
+not ARM-specific:
+
+	int val = 0x11111111;
+	fd = open("abc", O_RDWR);
+	addr = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	*(addr+0) = 0x44444444;
+	tmp = *(addr+0);
+	*(addr+1) = 0x77777777;
+	write(fd, &val, sizeof(int));
+	close(fd);
+
+The results are not always 0x11111111 0x77777777 at the beginning as expected.  Sometimes we see 0x44444444 0x77777777.
+
+Signed-off-by: Anfei <anfei.zhou@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: <linux-arch@vger.kernel.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/imxfb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/fuse/file.c |    3 +++
+ mm/filemap.c   |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/video/imxfb.c~imxfb-correct-location-of-callbacks-in-=
-suspend-and-resume drivers/video/imxfb.c
---- a/drivers/video/imxfb.c~imxfb-correct-location-of-callbacks-in-susp=
-end-and-resume
-+++ a/drivers/video/imxfb.c
-@@ -593,7 +593,8 @@ static int imxfb_activate_var(struct fb_
-  */
- static int imxfb_suspend(struct platform_device *dev, pm_message_t sta=
-te)
- {
--	struct imxfb_info *fbi =3D platform_get_drvdata(dev);
-+	struct fb_info *info =3D platform_get_drvdata(dev);
-+	struct imxfb_info *fbi =3D info->par;
-=20
- 	pr_debug("%s\n", __func__);
-=20
-@@ -603,7 +604,8 @@ static int imxfb_suspend(struct platform
-=20
- static int imxfb_resume(struct platform_device *dev)
- {
--	struct imxfb_info *fbi =3D platform_get_drvdata(dev);
-+	struct fb_info *info =3D platform_get_drvdata(dev);
-+	struct imxfb_info *fbi =3D info->par;
-=20
- 	pr_debug("%s\n", __func__);
-=20
+diff -puN fs/fuse/file.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias fs/fuse/file.c
+--- a/fs/fuse/file.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias
++++ a/fs/fuse/file.c
+@@ -828,6 +828,9 @@ static ssize_t fuse_fill_write_pages(str
+ 		if (!page)
+ 			break;
+ 
++		if (mapping_writably_mapped(mapping))
++			flush_dcache_page(page);
++
+ 		pagefault_disable();
+ 		tmp = iov_iter_copy_from_user_atomic(page, ii, offset, bytes);
+ 		pagefault_enable();
+diff -puN mm/filemap.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias mm/filemap.c
+--- a/mm/filemap.c~mm-flush-dcache-before-writing-into-page-to-avoid-alias
++++ a/mm/filemap.c
+@@ -2232,6 +2232,9 @@ again:
+ 		if (unlikely(status))
+ 			break;
+ 
++		if (mapping_writably_mapped(mapping))
++			flush_dcache_page(page);
++
+ 		pagefault_disable();
+ 		copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
+ 		pagefault_enable();
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from anfei.zhou@gmail.com are
 
 origin.patch
-linux-next.patch
-mtd-nand-fix-build-failure-caused-by-typo.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
