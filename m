@@ -1,106 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-fixup-checkin-checkout-jnodes-for-entd.patch added to -mm tree
-Date: Wed, 03 Feb 2010 12:20:48 -0800
-Message-ID: <201002032020.o13KKmvg016772@imap1.linux-foundation.org>
+Subject: [obsolete] reiser4-disable.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 12:21:05 -0800
+Message-ID: <201002032021.o13KL5tv016780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932473Ab0BCUUu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:20:50 -0500
+	by vger.kernel.org with ESMTP id S932670Ab0BCUVI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:21:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: edward.shishkin@gmail.com
+To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: fixup checkin-checkout jnodes for entd
-has been added to the -mm tree.  Its filename is
-     reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
+     reiser4-disable
+has been removed from the -mm tree.  Its filename was
+     reiser4-disable.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: fixup checkin-checkout jnodes for entd
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: reiser4-disable
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The bug: reiser4_writeout() calls jput for jnode
-which is already destroyed:
+disable reiser4 until people stop changing generic_sync_sb_inodes().
 
-Fix up: take  the reference earler (at the point where the
-jnode is attached for entd work).
-
-Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file.c |    6 ++++--
- fs/reiser4/vfs_ops.c          |    4 +++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ fs/reiser4/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-fixup-checkin-checkout-jnodes-for-entd fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-fixup-checkin-checkout-jnodes-for-entd
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -824,14 +824,16 @@ int find_or_create_extent(struct page *p
- 
- 	BUG_ON(node->atom == NULL);
- 	JF_CLR(node, JNODE_WRITE_PREPARED);
--	jput(node);
- 
- 	if (get_current_context()->entd) {
- 		entd_context *ent = get_entd_context(node->tree->super);
- 
- 		if (ent->cur_request->page == page)
--			ent->cur_request->node = node;
-+			/* the following reference will be
-+			   dropped in reiser4_writeout */
-+			ent->cur_request->node = jref(node);
- 	}
-+	jput(node);
- 	return 0;
- }
- 
-diff -puN fs/reiser4/vfs_ops.c~reiser4-fixup-checkin-checkout-jnodes-for-entd fs/reiser4/vfs_ops.c
---- a/fs/reiser4/vfs_ops.c~reiser4-fixup-checkin-checkout-jnodes-for-entd
-+++ a/fs/reiser4/vfs_ops.c
-@@ -184,7 +184,7 @@ void reiser4_writeout(struct super_block
- 				 * requested page itself - start flush from
- 				 * that page
- 				 */
--				node = jref(ent->cur_request->node);
-+				node = ent->cur_request->node;
- 		}
- 
- 		result = flush_some_atom(node, &nr_submitted, wbc,
-@@ -192,6 +192,8 @@ void reiser4_writeout(struct super_block
- 		if (result != 0)
- 			warning("nikita-31001", "Flush failed: %i", result);
- 		if (node)
-+			/* drop the reference aquired
-+			   in find_or_create_extent() */
- 			jput(node);
- 		if (!nr_submitted)
- 			break;
+diff -puN fs/reiser4/Kconfig~reiser4-disable fs/reiser4/Kconfig
+--- a/fs/reiser4/Kconfig~reiser4-disable
++++ a/fs/reiser4/Kconfig
+@@ -1,6 +1,7 @@
+ config REISER4_FS
+ 	tristate "Reiser4 (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select LZO_COMPRESS
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-improve-writeback_inodes_wb.patch
-vfs-add-super-operation-writeback_inodes.patch
-vfs-take-2add-set_page_dirty_notag.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
+drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+resources-introduce-generic-page_is_ram-fix.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
-reiser4-writeback_inodes-implementation.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
