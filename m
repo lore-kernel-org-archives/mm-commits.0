@@ -1,224 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] acpi-remove-old-blacklist-entries.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 15:43:51 -0800
-Message-ID: <201002032343.o13NhpaU026785@imap1.linux-foundation.org>
+Subject: + libertas-if_spi-needs-linux-semaphoreh.patch added to -mm tree
+Date: Wed, 03 Feb 2010 15:48:08 -0800
+Message-ID: <201002032348.o13Nm8Fj027013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757779Ab0BCXrI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:47:08 -0500
+	by vger.kernel.org with ESMTP id S1757659Ab0BCXsh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:48:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, arekm@maven.pl, feng.tang@intel.com, flinco@libero.it, lenb@kernel.org, mad_soft@inbox.ru, mjg@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, andrey@cozybit.com, colin@cozybit.com, dcbw@redhat.com, linville@tuxdriver.com
 
 
 The patch titled
-     acpi: remove old blacklist entries
-has been removed from the -mm tree.  Its filename was
-     acpi-remove-old-blacklist-entries.patch
+     libertas/if_spi: needs linux/semaphore.h
+has been added to the -mm tree.  Its filename is
+     libertas-if_spi-needs-linux-semaphoreh.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove old blacklist entries
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: libertas/if_spi: needs linux/semaphore.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The kernel has a set of blacklist entries that disable ACPI functionality
-on various machines.  These all seem to date from pre-git days and most
-have no indication of what they were meant to fix.  Let's work on the
-assumption that we've fixed whatever it was that was broken before and so
-remove most of the entries.
+libertas/if_spi.c needs to #include linux/semaphore.h to fix build errors:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Dmitry Artamonow <mad_soft@inbox.ru>
-Cc: <flinco@libero.it>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
-Cc: Len Brown <lenb@kernel.org>
+drivers/net/wireless/libertas/if_spi.c:59: error: field 'spi_ready' has incomplete type
+drivers/net/wireless/libertas/if_spi.c:60: error: field 'spi_thread_terminated' has incomplete type
+drivers/net/wireless/libertas/if_spi.c:785: error: implicit declaration of function 'down_interruptible'
+drivers/net/wireless/libertas/if_spi.c:787: error: implicit declaration of function 'up'
+drivers/net/wireless/libertas/if_spi.c:834: error: implicit declaration of function 'down'
+drivers/net/wireless/libertas/if_spi.c:943: error: implicit declaration of function 'sema_init'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dan Williams <dcbw@redhat.com>
+Cc: Andrey Yurovsky <andrey@cozybit.com>
+Cc: Colin McCabe <colin@cozybit.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/boot.c |  147 ----------------------------------
- 1 file changed, 147 deletions(-)
+ drivers/net/wireless/libertas/if_spi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/acpi/boot.c~acpi-remove-old-blacklist-entries arch/x86/kernel/acpi/boot.c
---- a/arch/x86/kernel/acpi/boot.c~acpi-remove-old-blacklist-entries
-+++ a/arch/x86/kernel/acpi/boot.c
-@@ -1256,35 +1256,6 @@ static int __init disable_acpi_pci(const
- 	return 0;
- }
- 
--static int __init dmi_disable_acpi(const struct dmi_system_id *d)
--{
--	if (!acpi_force) {
--		printk(KERN_NOTICE "%s detected: acpi off\n", d->ident);
--		disable_acpi();
--	} else {
--		printk(KERN_NOTICE
--		       "Warning: DMI blacklist says broken, but acpi forced\n");
--	}
--	return 0;
--}
--
--/*
-- * Limit ACPI to CPU enumeration for HT
-- */
--static int __init force_acpi_ht(const struct dmi_system_id *d)
--{
--	if (!acpi_force) {
--		printk(KERN_NOTICE "%s detected: force use of acpi=ht\n",
--		       d->ident);
--		disable_acpi();
--		acpi_ht = 1;
--	} else {
--		printk(KERN_NOTICE
--		       "Warning: acpi=force overrules DMI blacklist: acpi=ht\n");
--	}
--	return 0;
--}
--
- /*
-  * Force ignoring BIOS IRQ0 pin2 override
-  */
-@@ -1308,116 +1279,6 @@ static int __init dmi_ignore_irq0_timer_
-  * works for you, please contact linux-acpi@vger.kernel.org
-  */
- static struct dmi_system_id __initdata acpi_dmi_table[] = {
--	/*
--	 * Boxes that need ACPI disabled
--	 */
--	{
--	 .callback = dmi_disable_acpi,
--	 .ident = "IBM Thinkpad",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
--		     DMI_MATCH(DMI_BOARD_NAME, "2629H1G"),
--		     },
--	 },
--
--	/*
--	 * Boxes that need acpi=ht
--	 */
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "FSC Primergy T850",
--	 .matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "PRIMERGY T850"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "HP VISUALIZE NT Workstation",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "HP VISUALIZE NT Workstation"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "Compaq Workstation W8000",
--	 .matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Compaq"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "Workstation W8000"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "ASUS P2B-DS",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
--		     DMI_MATCH(DMI_BOARD_NAME, "P2B-DS"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "ASUS CUR-DLS",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
--		     DMI_MATCH(DMI_BOARD_NAME, "CUR-DLS"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "ABIT i440BX-W83977",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "ABIT <http://www.abit.com>"),
--		     DMI_MATCH(DMI_BOARD_NAME, "i440BX-W83977 (BP6)"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "IBM Bladecenter",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
--		     DMI_MATCH(DMI_BOARD_NAME, "IBM eServer BladeCenter HS20"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "IBM eServer xSeries 360",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
--		     DMI_MATCH(DMI_BOARD_NAME, "eServer xSeries 360"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "IBM eserver xSeries 330",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
--		     DMI_MATCH(DMI_BOARD_NAME, "eserver xSeries 330"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
--	 .ident = "IBM eserver xSeries 440",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "IBM"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "eserver xSeries 440"),
--		     },
--	 },
--
--	/*
--	 * Boxes that need ACPI PCI IRQ routing disabled
--	 */
--	{
--	 .callback = disable_acpi_irq,
--	 .ident = "ASUS A7V",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC"),
--		     DMI_MATCH(DMI_BOARD_NAME, "<A7V>"),
--		     /* newer BIOS, Revision 1011, does work */
--		     DMI_MATCH(DMI_BIOS_VERSION,
--			       "ASUS A7V ACPI BIOS Revision 1007"),
--		     },
--	 },
- 	{
- 		/*
- 		 * Latest BIOS for IBM 600E (1.16) has bad pcinum
-@@ -1454,14 +1315,6 @@ static struct dmi_system_id __initdata a
- 		     DMI_MATCH(DMI_BIOS_DATE, "03/21/2003")
- 		     },
- 	 },
--	{
--	 .callback = disable_acpi_pci,
--	 .ident = "Acer TravelMate 36x Laptop",
--	 .matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
--		     },
--	 },
- 	{}
- };
+diff -puN drivers/net/wireless/libertas/if_spi.c~libertas-if_spi-needs-linux-semaphoreh drivers/net/wireless/libertas/if_spi.c
+--- a/drivers/net/wireless/libertas/if_spi.c~libertas-if_spi-needs-linux-semaphoreh
++++ a/drivers/net/wireless/libertas/if_spi.c
+@@ -23,6 +23,7 @@
+ #include <linux/kthread.h>
+ #include <linux/list.h>
+ #include <linux/netdevice.h>
++#include <linux/semaphore.h>
+ #include <linux/spi/libertas_spi.h>
+ #include <linux/spi/spi.h>
  
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-acpi-remove-old-blacklist-entries.patch
+origin.patch
+linux-next.patch
+msi-laptop-depends-on-rfkill.patch
+ati_pcigart-fix-printk-format-warning.patch
+radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
+libertas-if_spi-needs-linux-semaphoreh.patch
+mfgpt-move-clocksource-menu.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
