@@ -1,295 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-update-names-of-quota-methods.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 12:19:43 -0800
-Message-ID: <201002032019.o13KJhMs016676@imap1.linux-foundation.org>
+Subject: [folded] reiser4-use-set_page_dirty_notag.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 12:19:46 -0800
+Message-ID: <201002032019.o13KJkIa016681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757867Ab0BCUTs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:48 -0500
+	by vger.kernel.org with ESMTP id S1757894Ab0BCUTt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward.shishkin@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: update names of quota methods
+     reiser4: use set_page_dirty_notag()
 has been removed from the -mm tree.  Its filename was
-     reiser4-update-names-of-quota-methods.patch
+     reiser4-use-set_page_dirty_notag.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: update names of quota methods
+Subject: reiser4: use set_page_dirty_notag()
 From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Update names of quota methods
+Use the core library functions set_page_dirty_notag() and
+__set_page_dirty_nobuffers() instead of intenal reiser4_set_page_dirty().
 
 Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
-Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file_plugin_common.c   |    4 ++--
- fs/reiser4/plugin/inode_ops.c            |   20 ++++++++++----------
- fs/reiser4/plugin/item/cde.c             |    4 ++--
- fs/reiser4/plugin/item/extent_file_ops.c |   10 ++++++----
- fs/reiser4/plugin/item/extent_item_ops.c |    2 +-
- fs/reiser4/plugin/item/sde.c             |    4 ++--
- fs/reiser4/plugin/item/tail.c            |   16 ++++++++--------
- 7 files changed, 31 insertions(+), 29 deletions(-)
+ fs/reiser4/as_ops.c                      |   31 +++------------------
+ fs/reiser4/entd.c                        |    2 -
+ fs/reiser4/page_cache.c                  |   21 --------------
+ fs/reiser4/page_cache.h                  |    2 -
+ fs/reiser4/plugin/file/cryptcompress.c   |    6 ++--
+ fs/reiser4/plugin/file/file.c            |   12 +-------
+ fs/reiser4/plugin/item/extent_file_ops.c |    2 -
+ fs/reiser4/txnmgr.c                      |    2 -
+ fs/reiser4/wander.c                      |    9 +++---
+ 9 files changed, 18 insertions(+), 69 deletions(-)
 
-diff -puN fs/reiser4/plugin/file_plugin_common.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/file_plugin_common.c
---- a/fs/reiser4/plugin/file_plugin_common.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/file_plugin_common.c
-@@ -944,8 +944,8 @@ common_object_delete_no_reserve(struct i
- 	if (!reiser4_inode_get_flag(inode, REISER4_NO_SD)) {
- 		reiser4_key sd_key;
- 
--		DQUOT_FREE_INODE(inode);
--		DQUOT_DROP(inode);
-+		vfs_dq_free_inode(inode);
-+		vfs_dq_drop(inode);
- 
- 		build_sd_key(inode, &sd_key);
- 		result =
-diff -puN fs/reiser4/plugin/inode_ops.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/inode_ops.c
---- a/fs/reiser4/plugin/inode_ops.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/inode_ops.c
-@@ -453,7 +453,7 @@ int reiser4_setattr_common(struct dentry
- 		if ((attr->ia_valid & ATTR_UID && attr->ia_uid != inode->i_uid)
- 		    || (attr->ia_valid & ATTR_GID
- 			&& attr->ia_gid != inode->i_gid)) {
--			result = DQUOT_TRANSFER(inode, attr) ? -EDQUOT : 0;
-+			result = vfs_dq_transfer(inode, attr) ? -EDQUOT : 0;
- 			if (result) {
- 				context_set_commit_async(ctx);
- 				reiser4_exit_context(ctx);
-@@ -593,8 +593,8 @@ static int do_create_vfs_child(reiser4_o
- 	/* So that on error iput will be called. */
- 	*retobj = object;
- 
--	if (DQUOT_ALLOC_INODE(object)) {
--		DQUOT_DROP(object);
-+	if (vfs_dq_alloc_inode(object)) {
-+		vfs_dq_drop(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return RETERR(-EDQUOT);
- 	}
-@@ -608,7 +608,7 @@ static int do_create_vfs_child(reiser4_o
- 	if (result) {
- 		warning("nikita-431", "Cannot install plugin %i on %llx",
- 			data->id, (unsigned long long)get_inode_oid(object));
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return result;
- 	}
-@@ -617,7 +617,7 @@ static int do_create_vfs_child(reiser4_o
- 	obj_plug = inode_file_plugin(object);
- 
- 	if (obj_plug->create_object == NULL) {
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return RETERR(-EPERM);
- 	}
-@@ -636,7 +636,7 @@ static int do_create_vfs_child(reiser4_o
- 		warning("nikita-432", "Cannot inherit from %llx to %llx",
- 			(unsigned long long)get_inode_oid(parent),
- 			(unsigned long long)get_inode_oid(object));
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return result;
- 	}
-@@ -652,7 +652,7 @@ static int do_create_vfs_child(reiser4_o
- 	/* obtain directory plugin (if any) for new object. */
- 	obj_dir = inode_dir_plugin(object);
- 	if (obj_dir != NULL && obj_dir->init == NULL) {
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return RETERR(-EPERM);
- 	}
-@@ -661,7 +661,7 @@ static int do_create_vfs_child(reiser4_o
- 
- 	reserve = estimate_create_vfs_object(parent, object);
- 	if (reiser4_grab_space(reserve, BA_CAN_COMMIT)) {
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return RETERR(-ENOSPC);
- 	}
-@@ -692,7 +692,7 @@ static int do_create_vfs_child(reiser4_o
- 			warning("nikita-2219",
- 				"Failed to create sd for %llu",
- 				(unsigned long long)get_inode_oid(object));
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		return result;
- 	}
-@@ -735,7 +735,7 @@ static int do_create_vfs_child(reiser4_o
- 	 */
- 	reiser4_update_sd(object);
- 	if (result != 0) {
--		DQUOT_FREE_INODE(object);
-+		vfs_dq_free_inode(object);
- 		object->i_flags |= S_NOQUOTA;
- 		/* if everything was ok (result == 0), parent stat-data is
- 		 * already updated above (update_parent_dir()) */
-diff -puN fs/reiser4/plugin/item/cde.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/cde.c
---- a/fs/reiser4/plugin/item/cde.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/item/cde.c
-@@ -932,7 +932,7 @@ int add_entry_cde(struct inode *dir /* d
- 	data.length = estimate_cde(result ? coord : NULL, &data);
- 
- 	/* NOTE-NIKITA quota plugin? */
--	if (DQUOT_ALLOC_SPACE_NODIRTY(dir, cde_bytes(result, &data)))
-+	if (vfs_dq_alloc_space_nodirty(dir, cde_bytes(result, &data)))
- 		return RETERR(-EDQUOT);
- 
- 	if (result)
-@@ -983,7 +983,7 @@ int rem_entry_cde(struct inode *dir /* d
- 	    kill_node_content(coord, &shadow, NULL, NULL, NULL, NULL, NULL, 0);
- 	if (result == 0) {
- 		/* NOTE-NIKITA quota plugin? */
--		DQUOT_FREE_SPACE_NODIRTY(dir, length);
-+		vfs_dq_free_space_nodirty(dir, length);
- 	}
- 	return result;
+diff -puN fs/reiser4/as_ops.c~reiser4-use-set_page_dirty_notag fs/reiser4/as_ops.c
+--- a/fs/reiser4/as_ops.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/as_ops.c
+@@ -67,33 +67,12 @@ int reiser4_set_page_dirty(struct page *
+ 	assert("vs-1734", (page->mapping &&
+ 			   page->mapping->host &&
+ 			   reiser4_get_super_fake(page->mapping->host->i_sb) !=
+-			   page->mapping->host
+-			   && reiser4_get_cc_fake(page->mapping->host->i_sb) !=
+-			   page->mapping->host
+-			   && reiser4_get_bitmap_fake(page->mapping->host->i_sb) !=
++			   page->mapping->host &&
++			   reiser4_get_cc_fake(page->mapping->host->i_sb) !=
++			   page->mapping->host &&
++			   reiser4_get_bitmap_fake(page->mapping->host->i_sb) !=
+ 			   page->mapping->host));
+-
+-	if (!TestSetPageDirty(page)) {
+-		struct address_space *mapping = page->mapping;
+-
+-		if (mapping) {
+-			spin_lock_irq(&mapping->tree_lock);
+-
+-			/* check for race with truncate */
+-			if (page->mapping) {
+-				assert("vs-1652", page->mapping == mapping);
+-				if (mapping_cap_account_dirty(mapping))
+-					inc_zone_page_state(page,
+-							NR_FILE_DIRTY);
+-				radix_tree_tag_set(&mapping->page_tree,
+-						   page->index,
+-						   PAGECACHE_TAG_REISER4_MOVED);
+-			}
+-			spin_unlock_irq(&mapping->tree_lock);
+-			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+-		}
+-	}
+-	return 0;
++	return __set_page_dirty_nobuffers(page);
  }
-diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/extent_file_ops.c
---- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/item/extent_file_ops.c
-@@ -260,8 +260,8 @@ static int append_last_extent(uf_coord_t
  
- 	assert("", get_key_offset(key) == (loff_t)index_jnode(jnodes[0]) * PAGE_CACHE_SIZE);
- 
--	result = DQUOT_ALLOC_BLOCK_NODIRTY(mapping_jnode(jnodes[0])->host,
--					   count);
-+	result = vfs_dq_alloc_block_nodirty(mapping_jnode(jnodes[0])->host,
-+					    count);
- 	BUG_ON(result != 0);
- 
- 	switch (state_of_extent(ext)) {
-@@ -408,7 +408,8 @@ static int insert_first_extent(uf_coord_
- 	if (count == 0)
- 		return 0;
- 
--	result = DQUOT_ALLOC_BLOCK_NODIRTY(mapping_jnode(jnodes[0])->host, count);
-+	result = vfs_dq_alloc_block_nodirty(mapping_jnode(jnodes[0])->host,
-+					    count);
- 	BUG_ON(result != 0);
+ /* ->invalidatepage method for reiser4 */
+diff -puN fs/reiser4/entd.c~reiser4-use-set_page_dirty_notag fs/reiser4/entd.c
+--- a/fs/reiser4/entd.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/entd.c
+@@ -277,7 +277,7 @@ int write_page_by_ent(struct page *page,
+ 	 * page. Re-dirty page before unlocking so that if ent thread fails to
+ 	 * write it - it will remain dirty
+ 	 */
+-	reiser4_set_page_dirty_internal(page);
++	set_page_dirty_notag(page);
  
  	/*
-@@ -622,7 +623,8 @@ static int overwrite_one_block(uf_coord_
- 		break;
+ 	 * pin inode in memory, unlock page, entd_flush will iput. We can not
+diff -puN fs/reiser4/page_cache.c~reiser4-use-set_page_dirty_notag fs/reiser4/page_cache.c
+--- a/fs/reiser4/page_cache.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/page_cache.c
+@@ -458,27 +458,6 @@ static struct bio *page_bio(struct page 
+ 		return ERR_PTR(RETERR(-ENOMEM));
+ }
  
- 	case HOLE_EXTENT:
--		result = DQUOT_ALLOC_BLOCK_NODIRTY(mapping_jnode(node)->host, 1);
-+		result = vfs_dq_alloc_block_nodirty(mapping_jnode(node)->host,
-+						    1);
- 		BUG_ON(result != 0);
- 		result = plug_hole(uf_coord, key, &how);
- 		if (result)
-diff -puN fs/reiser4/plugin/item/extent_item_ops.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/extent_item_ops.c
---- a/fs/reiser4/plugin/item/extent_item_ops.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/item/extent_item_ops.c
-@@ -468,7 +468,7 @@ kill_hook_extent(const coord_t * coord, 
- 			length = to_off - offset;
+-/* this function is internally called by jnode_make_dirty() */
+-int reiser4_set_page_dirty_internal(struct page *page)
+-{
+-	struct address_space *mapping;
+-
+-	mapping = page->mapping;
+-	BUG_ON(mapping == NULL);
+-
+-	if (!TestSetPageDirty(page)) {
+-		if (mapping_cap_account_dirty(mapping))
+-			inc_zone_page_state(page, NR_FILE_DIRTY);
+-
+-		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+-	}
+-
+-	/* znode must be dirty ? */
+-	if (mapping->host == reiser4_get_super_fake(mapping->host->i_sb))
+-		assert("", JF_ISSET(jprivate(page), JNODE_DIRTY));
+-	return 0;
+-}
+-
+ #if 0
+ static int can_hit_entd(reiser4_context *ctx, struct super_block *s)
+ {
+diff -puN fs/reiser4/page_cache.h~reiser4-use-set_page_dirty_notag fs/reiser4/page_cache.h
+--- a/fs/reiser4/page_cache.h~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/page_cache.h
+@@ -18,8 +18,6 @@ extern void reiser4_done_formatted_fake(
+ 
+ extern reiser4_tree *reiser4_tree_by_page(const struct page *);
+ 
+-extern int reiser4_set_page_dirty_internal(struct page *);
+-
+ #define reiser4_submit_bio(rw, bio) submit_bio((rw), (bio))
+ 
+ extern void reiser4_wait_page_writeback(struct page *);
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-use-set_page_dirty_notag fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -1260,7 +1260,7 @@ static void set_cluster_pages_dirty(stru
+ 		assert("edward-968", pg != NULL);
+ 		lock_page(pg);
+ 		assert("edward-1065", PageUptodate(pg));
+-		reiser4_set_page_dirty_internal(pg);
++		set_page_dirty_notag(pg);
+ 		unlock_page(pg);
+ 		mark_page_accessed(pg);
+ 	}
+@@ -2027,7 +2027,7 @@ static int write_hole(struct inode *inod
+ 		lock_page(page);
+ 		zero_user(page, pg_off, to_pg);
+ 		SetPageUptodate(page);
+-		reiser4_set_page_dirty_internal(page);
++		set_page_dirty_notag(page);
+ 		mark_page_accessed(page);
+ 		unlock_page(page);
+ 
+@@ -2747,7 +2747,7 @@ static loff_t do_write_cryptcompress(str
+ 				goto err2;
+ 			}
+ 			SetPageUptodate(clust.pages[i]);
+-			reiser4_set_page_dirty_internal(clust.pages[i]);
++			set_page_dirty_notag(clust.pages[i]);
+ 			flush_dcache_page(clust.pages[i]);
+ 			mark_page_accessed(clust.pages[i]);
+ 			unlock_page(clust.pages[i]);
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-use-set_page_dirty_notag fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/plugin/file/file.c
+@@ -912,12 +912,9 @@ int write_end_unix_file(struct file *fil
+  *
+  * As a result of (3) ->writepage may be called on a dirty page without
+  * jnode. Such page is called "anonymous" in reiser4. Certain work-loads
+- * (iozone) generate huge number of anonymous pages. Emergency flush handles
+- * this situation by creating jnode for anonymous page, starting IO on the
+- * page, and marking jnode with JNODE_KEEPME bit so that it's not thrown out of
+- * memory. Such jnode is also called anonymous.
++ * (iozone) generate huge number of anonymous pages.
+  *
+- * reiser4_sync_sb() method tries to insert anonymous pages and jnodes into
++ * reiser4_sync_sb() method tries to insert anonymous pages into
+  * tree. This is done by capture_anonymous_*() functions below.
+  */
+ 
+@@ -996,11 +993,6 @@ capture_anonymous_pages(struct address_s
+ 	*index = pvec.pages[i - 1]->index + 1;
+ 
+ 	for (i = 0; i < pagevec_count(&pvec); i++) {
+-		/*
+-		 * tag PAGECACHE_TAG_REISER4_MOVED will be cleared by
+-		 * reiser4_set_page_dirty_internal which is called when jnode is
+-		 * captured
+-		 */
+ 		result = capture_anonymous_page(pvec.pages[i]);
+ 		if (result == 1)
+ 			nr++;
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-use-set_page_dirty_notag fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -1073,7 +1073,7 @@ ssize_t reiser4_write_extent(struct file
  		}
  
--		DQUOT_FREE_BLOCK_NODIRTY(inode, length);
-+		vfs_dq_free_block_nodirty(inode, length);
+ 		flush_dcache_page(page);
+-		reiser4_set_page_dirty_internal(page);
++		set_page_dirty_notag(page);
+ 		unlock_page(page);
+ 		nr_dirty++;
  
- 		if (state_of_extent(ext) == UNALLOCATED_EXTENT) {
- 			/* some jnodes corresponding to this unallocated extent */
-diff -puN fs/reiser4/plugin/item/sde.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/sde.c
---- a/fs/reiser4/plugin/item/sde.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/item/sde.c
-@@ -120,7 +120,7 @@ int add_entry_de(struct inode *dir /* di
- 	data.iplug = item_plugin_by_id(SIMPLE_DIR_ENTRY_ID);
+diff -puN fs/reiser4/txnmgr.c~reiser4-use-set_page_dirty_notag fs/reiser4/txnmgr.c
+--- a/fs/reiser4/txnmgr.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/txnmgr.c
+@@ -2426,7 +2426,7 @@ void znode_make_dirty(znode * z)
+ 		spin_unlock_jnode(node);
+ 		/* reiser4 file write code calls set_page_dirty for
+ 		 * unformatted nodes, for formatted nodes we do it here. */
+-		reiser4_set_page_dirty_internal(page);
++		set_page_dirty_notag(page);
+ 		page_cache_release(page);
+ 		/* bump version counter in znode */
+ 		z->version = znode_build_version(jnode_get_tree(node));
+diff -puN fs/reiser4/wander.c~reiser4-use-set_page_dirty_notag fs/reiser4/wander.c
+--- a/fs/reiser4/wander.c~reiser4-use-set_page_dirty_notag
++++ a/fs/reiser4/wander.c
+@@ -16,10 +16,11 @@
+    This code guarantees that those blocks that are defined to be part of an
+    atom either all take effect or none of them take effect.
  
- 	/* NOTE-NIKITA quota plugin */
--	if (DQUOT_ALLOC_SPACE_NODIRTY(dir, data.length))
-+	if (vfs_dq_alloc_space_nodirty(dir, data.length))
- 		return -EDQUOT;
+-   Relocate set nodes are submitted to write by the jnode_flush() routine, and
+-   the overwrite set is submitted by reiser4_write_log().  This is because with
+-   the overwrite set we seek to optimize writes, and with the relocate set we
+-   seek to cause disk order to correlate with the parent first pre-order.
++   The "relocate set" of nodes are submitted to write by the jnode_flush()
++   routine, and the "overwrite set" is submitted by reiser4_write_log().
++   This is because with the overwrite set we seek to optimize writes, and
++   with the relocate set we seek to cause disk order to correlate with the
++   "parent first order" (preorder).
  
- 	result = insert_by_coord(coord, &data, &entry->key, lh, 0 /*flags */ );
-@@ -168,7 +168,7 @@ int rem_entry_de(struct inode *dir /* di
- 	    kill_node_content(coord, &shadow, NULL, NULL, NULL, NULL, NULL, 0);
- 	if (result == 0) {
- 		/* NOTE-NIKITA quota plugin */
--		DQUOT_FREE_SPACE_NODIRTY(dir, length);
-+		vfs_dq_free_space_nodirty(dir, length);
- 	}
- 	return result;
- }
-diff -puN fs/reiser4/plugin/item/tail.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/tail.c
---- a/fs/reiser4/plugin/item/tail.c~reiser4-update-names-of-quota-methods
-+++ a/fs/reiser4/plugin/item/tail.c
-@@ -494,11 +494,11 @@ static ssize_t insert_first_tail(struct 
- 		 * were real data which are all zeros. Therefore we have to
- 		 * allocate quota here as well
- 		 */
--		if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
-+		if (vfs_dq_alloc_space_nodirty(inode, flow->length))
- 			return RETERR(-EDQUOT);
- 		result = reiser4_insert_flow(coord, lh, flow);
- 		if (flow->length)
--			DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
-+			vfs_dq_free_space_nodirty(inode, flow->length);
- 
- 		uf_info = unix_file_inode_data(inode);
- 
-@@ -518,13 +518,13 @@ static ssize_t insert_first_tail(struct 
- 	}
- 
- 	/* check quota before appending data */
--	if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
-+	if (vfs_dq_alloc_space_nodirty(inode, flow->length))
- 		return RETERR(-EDQUOT);
- 
- 	to_write = flow->length;
- 	result = reiser4_insert_flow(coord, lh, flow);
- 	if (flow->length)
--		DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
-+		vfs_dq_free_space_nodirty(inode, flow->length);
- 	return (to_write - flow->length) ? (to_write - flow->length) : result;
- }
- 
-@@ -553,22 +553,22 @@ static ssize_t append_tail(struct inode 
- 		 * were real data which are all zeros. Therefore we have to
- 		 * allocate quota here as well
- 		 */
--		if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
-+		if (vfs_dq_alloc_space_nodirty(inode, flow->length))
- 			return RETERR(-EDQUOT);
- 		result = reiser4_insert_flow(coord, lh, flow);
- 		if (flow->length)
--			DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
-+			vfs_dq_free_space_nodirty(inode, flow->length);
- 		return result;
- 	}
- 
- 	/* check quota before appending data */
--	if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
-+	if (vfs_dq_alloc_space_nodirty(inode, flow->length))
- 		return RETERR(-EDQUOT);
- 
- 	to_write = flow->length;
- 	result = reiser4_insert_flow(coord, lh, flow);
- 	if (flow->length)
--		DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
-+		vfs_dq_free_space_nodirty(inode, flow->length);
- 	return (to_write - flow->length) ? (to_write - flow->length) : result;
- }
- 
+    reiser4_write_log() allocates and writes wandered blocks and maintains
+    additional on-disk structures of the atom as wander records (each wander
 _
 
 Patches currently in -mm which might be from edward.shishkin@gmail.com are
@@ -298,7 +252,6 @@ vfs-improve-writeback_inodes_wb.patch
 vfs-add-super-operation-writeback_inodes.patch
 vfs-take-2add-set_page_dirty_notag.patch
 reiser4.patch
-reiser4-update-names-of-quota-methods.patch
 reiser4-use-set_page_dirty_notag.patch
 fs-reiser4-add-parenths-around-x-y.patch
 fs-reiser4-contextc-current_is_pdflush-got-removed.patch
