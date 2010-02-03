@@ -1,83 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] reiser4-vfs-add-super_operationssync_inodes-2.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 12:13:00 -0800
-Message-ID: <201002032013.o13KD01a016341@imap1.linux-foundation.org>
+Subject: + vfs-improve-writeback_inodes_wb.patch added to -mm tree
+Date: Wed, 03 Feb 2010 12:16:44 -0800
+Message-ID: <201002032016.o13KGix4016555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757783Ab0BCUNZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:13:25 -0500
+	by vger.kernel.org with ESMTP id S1757772Ab0BCURK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dedekind@yandex.ru, Artem.Bityutskiy@nokia.com, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: edward.shishkin@gmail.com, fengguang.wu@intel.com, jens.axboe@oracle.com
 
 
 The patch titled
-     reiser4: vfs: add super_operations.sync_inodes() (2)
-has been removed from the -mm tree.  Its filename was
-     reiser4-vfs-add-super_operationssync_inodes-2.patch
+     vfs: improve writeback_inodes_wb()
+has been added to the -mm tree.  Its filename is
+     vfs-improve-writeback_inodes_wb.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: vfs: add super_operations.sync_inodes() (2)
-From: Artem Bityutskiy <dedekind@yandex.ru>
+Subject: vfs: improve writeback_inodes_wb()
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-This patch adds new operation to struct super_operations - sync_inodes,
-generic implementaion and changes fs-writeback.c:sync_sb_inodes() to call
-filesystem's sync_inodes if it is defined or generic implementaion otherwise.
-This new operation allows filesystem to decide itself what to flush.
+Do not pin/unpin superblock for every inode in writeback_inodes_wb(), pin
+it for the whole group of inodes which belong to the same superblock and
+call writeback_sb_inodes() handler for them.
 
-Reiser4 flushes dirty pages on basic of atoms, not of inodes.  sync_sb_inodes
-used to call address space flushing method (writepages) for every dirty inode.
- For reiser4 it caused having to commit atoms unnecessarily often.  This
-turned into substantial slowdown.  Having this method helped to fix that
-problem.
-
-akpm: this patch needs to be chnaged to remove the `sb' arg.
-
-Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |    5 ++++-
- include/linux/fs.h |    2 ++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c         |  133 +++++++++++++++++++-----------------
+ include/linux/writeback.h |    3 
+ 2 files changed, 76 insertions(+), 60 deletions(-)
 
-diff -puN fs/fs-writeback.c~reiser4-vfs-add-super_operationssync_inodes-2 fs/fs-writeback.c
---- a/fs/fs-writeback.c~reiser4-vfs-add-super_operationssync_inodes-2
+diff -puN fs/fs-writeback.c~vfs-improve-writeback_inodes_wb fs/fs-writeback.c
+--- a/fs/fs-writeback.c~vfs-improve-writeback_inodes_wb
 +++ a/fs/fs-writeback.c
-@@ -1196,7 +1196,10 @@ EXPORT_SYMBOL(writeback_inodes_sb);
-  */
- void sync_inodes_sb(struct super_block *sb)
- {
--	bdi_sync_writeback(sb->s_bdi, sb);
-+	if (sb->s_op->sync_inodes)
-+		sb->s_op->sync_inodes(sb, NULL);
-+	else
-+		bdi_sync_writeback(sb->s_bdi, sb);
- 	wait_sb_inodes(sb);
+@@ -553,108 +553,85 @@ select_queue:
+ 	return ret;
  }
- EXPORT_SYMBOL(sync_inodes_sb);
-diff -puN include/linux/fs.h~reiser4-vfs-add-super_operationssync_inodes-2 include/linux/fs.h
---- a/include/linux/fs.h~reiser4-vfs-add-super_operationssync_inodes-2
-+++ a/include/linux/fs.h
-@@ -1574,6 +1574,8 @@ struct super_operations {
- 	void (*clear_inode) (struct inode *);
- 	void (*umount_begin) (struct super_block *);
  
-+	void (*sync_inodes)(struct super_block *sb,
-+				struct writeback_control *wbc);
- 	int (*show_options)(struct seq_file *, struct vfsmount *);
- 	int (*show_stats)(struct seq_file *, struct vfsmount *);
- #ifdef CONFIG_QUOTA
+-static void unpin_sb_for_writeback(struct super_block **psb)
++static void unpin_sb_for_writeback(struct super_block *sb)
+ {
+-	struct super_block *sb = *psb;
+-
+-	if (sb) {
+-		up_read(&sb->s_umount);
+-		put_super(sb);
+-		*psb = NULL;
+-	}
++	up_read(&sb->s_umount);
++	put_super(sb);
+ }
+ 
++enum sb_pin_state {
++	SB_PINNED,
++	SB_NOT_PINNED,
++	SB_PIN_FAILED
++};
++
+ /*
+  * For WB_SYNC_NONE writeback, the caller does not have the sb pinned
+  * before calling writeback. So make sure that we do pin it, so it doesn't
+  * go away while we are writing inodes from it.
+- *
+- * Returns 0 if the super was successfully pinned (or pinning wasn't needed),
+- * 1 if we failed.
+  */
+-static int pin_sb_for_writeback(struct writeback_control *wbc,
+-				struct inode *inode, struct super_block **psb)
++static enum sb_pin_state pin_sb_for_writeback(struct writeback_control *wbc,
++					      struct super_block *sb)
+ {
+-	struct super_block *sb = inode->i_sb;
+-
+-	/*
+-	 * If this sb is already pinned, nothing more to do. If not and
+-	 * *psb is non-NULL, unpin the old one first
+-	 */
+-	if (sb == *psb)
+-		return 0;
+-	else if (*psb)
+-		unpin_sb_for_writeback(psb);
+-
+ 	/*
+ 	 * Caller must already hold the ref for this
+ 	 */
+ 	if (wbc->sync_mode == WB_SYNC_ALL) {
+ 		WARN_ON(!rwsem_is_locked(&sb->s_umount));
+-		return 0;
++		return SB_NOT_PINNED;
+ 	}
+-
+ 	spin_lock(&sb_lock);
+ 	sb->s_count++;
+ 	if (down_read_trylock(&sb->s_umount)) {
+ 		if (sb->s_root) {
+ 			spin_unlock(&sb_lock);
+-			goto pinned;
++			return SB_PINNED;
+ 		}
+ 		/*
+ 		 * umounted, drop rwsem again and fall through to failure
+ 		 */
+ 		up_read(&sb->s_umount);
+ 	}
+-
+ 	sb->s_count--;
+ 	spin_unlock(&sb_lock);
+-	return 1;
+-pinned:
+-	*psb = sb;
+-	return 0;
++	return SB_PIN_FAILED;
+ }
+ 
+-static void writeback_inodes_wb(struct bdi_writeback *wb,
+-				struct writeback_control *wbc)
++/*
++ * Write a portion of b_io inodes which belong to @sb.
++ * If @wbc->sb != NULL, then find and write all such
++ * inodes. Otherwise write only ones which go sequentially
++ * in reverse order.
++ * Return 1, if the caller writeback routine should be
++ * interrupted. Otherwise return 0.
++ */
++static int writeback_sb_inodes(struct super_block *sb,
++			       struct bdi_writeback *wb,
++			       struct writeback_control *wbc)
+ {
+-	struct super_block *sb = wbc->sb, *pin_sb = NULL;
+-	const unsigned long start = jiffies;	/* livelock avoidance */
+-
+-	spin_lock(&inode_lock);
+-
+-	if (!wbc->for_kupdate || list_empty(&wb->b_io))
+-		queue_io(wb, wbc->older_than_this);
+-
+ 	while (!list_empty(&wb->b_io)) {
+-		struct inode *inode = list_entry(wb->b_io.prev,
+-						struct inode, i_list);
+ 		long pages_skipped;
+-
+-		/*
+-		 * super block given and doesn't match, skip this inode
+-		 */
+-		if (sb && sb != inode->i_sb) {
++		struct inode *inode = list_entry(wb->b_io.prev,
++						 struct inode, i_list);
++		if (wbc->sb && sb != inode->i_sb) {
++			/* super block given and doesn't
++			   match, skip this inode */
+ 			redirty_tail(inode);
+ 			continue;
+ 		}
+-
++		if (sb != inode->i_sb)
++			/* finish with this superblock */
++			return 0;
+ 		if (inode->i_state & (I_NEW | I_WILL_FREE)) {
+ 			requeue_io(inode);
+ 			continue;
+ 		}
+-
+ 		/*
+ 		 * Was this inode dirtied after sync_sb_inodes was called?
+ 		 * This keeps sync from extra jobs and livelock.
+ 		 */
+-		if (inode_dirtied_after(inode, start))
+-			break;
+-
+-		if (pin_sb_for_writeback(wbc, inode, &pin_sb)) {
+-			requeue_io(inode);
+-			continue;
+-		}
++		if (inode_dirtied_after(inode, wbc->wb_start))
++			return 1;
+ 
+ 		BUG_ON(inode->i_state & (I_FREEING | I_CLEAR));
+ 		__iget(inode);
+@@ -673,14 +650,50 @@ static void writeback_inodes_wb(struct b
+ 		spin_lock(&inode_lock);
+ 		if (wbc->nr_to_write <= 0) {
+ 			wbc->more_io = 1;
+-			break;
++			return 1;
+ 		}
+ 		if (!list_empty(&wb->b_more_io))
+ 			wbc->more_io = 1;
+ 	}
++	/* b_io is empty */
++	return 1;
++}
++
++static void writeback_inodes_wb(struct bdi_writeback *wb,
++				struct writeback_control *wbc)
++{
++	int ret = 0;
+ 
+-	unpin_sb_for_writeback(&pin_sb);
++	wbc->wb_start = jiffies; /* livelock avoidance */
++	spin_lock(&inode_lock);
++	if (!wbc->for_kupdate || list_empty(&wb->b_io))
++		queue_io(wb, wbc->older_than_this);
+ 
++	while (!list_empty(&wb->b_io)) {
++		struct inode *inode = list_entry(wb->b_io.prev,
++						 struct inode, i_list);
++		struct super_block *sb = inode->i_sb;
++		enum sb_pin_state state;
++
++		if (wbc->sb && sb != wbc->sb) {
++			/* super block given and doesn't
++			   match, skip this inode */
++			redirty_tail(inode);
++			continue;
++		}
++		state = pin_sb_for_writeback(wbc, sb);
++
++		if (state == SB_PIN_FAILED) {
++			requeue_io(inode);
++			continue;
++		}
++		ret = writeback_sb_inodes(sb, wb, wbc);
++
++		if (state == SB_PINNED)
++			unpin_sb_for_writeback(sb);
++		if (ret)
++			break;
++	}
+ 	spin_unlock(&inode_lock);
+ 	/* Leave any unwritten inodes on b_io */
+ }
+diff -puN include/linux/writeback.h~vfs-improve-writeback_inodes_wb include/linux/writeback.h
+--- a/include/linux/writeback.h~vfs-improve-writeback_inodes_wb
++++ a/include/linux/writeback.h
+@@ -34,6 +34,9 @@ struct writeback_control {
+ 	enum writeback_sync_modes sync_mode;
+ 	unsigned long *older_than_this;	/* If !NULL, only write back inodes
+ 					   older than this */
++	unsigned long wb_start;         /* Time writeback_inodes_wb was
++					   called. This is needed to avoid
++					   extra jobs and livelock */
+ 	long nr_to_write;		/* Write this many pages, and decrement
+ 					   this for each page written */
+ 	long pages_skipped;		/* Pages which were not written */
 _
 
-Patches currently in -mm which might be from dedekind@yandex.ru are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-reiser4-vfs-add-super_operationssync_inodes-2.patch
+vfs-improve-writeback_inodes_wb.patch
+vfs-take-2add-set_page_dirty_notag.patch
+reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+reiser4-update-names-of-quota-methods.patch
+reiser4-use-set_page_dirty_notag.patch
+fs-reiser4-add-parenths-around-x-y.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-rename-psched-to-dispatch.patch
+reiser4-drop-journal-info.patch
+reiser4-fix-compile-warnings.patch
+reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
+reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
+reiser4-some-changes-from-reiser4-2631-patch.patch
+reiser4-some-comments-were-still-mentioning-pdflush.patch
+vfs-add-super-operation-writeback_inodes.patch
+reiser4-writeback_inodes-implementation.patch
+reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 
