@@ -1,65 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fault-injection-correct-function-names-in-documentation.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 09:55:14 -0800
-Message-ID: <201002031755.o13HtEDA008966@imap1.linux-foundation.org>
+Subject: [merged] idr-fix-a-critical-misallocation-bug.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 09:54:33 -0800
+Message-ID: <201002031754.o13HsX6h008899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932778Ab0BCRzs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:55:48 -0500
+	by vger.kernel.org with ESMTP id S932778Ab0BCRz6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:55:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton@samba.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, eparis@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault injection: correct function names in documentation
+     idr: fix a critical misallocation bug
 has been removed from the -mm tree.  Its filename was
-     fault-injection-correct-function-names-in-documentation.patch
+     idr-fix-a-critical-misallocation-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fault injection: correct function names in documentation
-From: Anton Blanchard <anton@samba.org>
+Subject: idr: fix a critical misallocation bug
+From: Tejun Heo <tj@kernel.org>
 
-init_fault_attr_entries() should be init_fault_attr_dentries().
+Eric Paris located a bug in idr.  With IDR_BITS of 6, it grows to three
+layers when id 4096 is first allocated.  When that happens, idr wraps
+incorrectly and searches the idr array ignoring the high bits.  The
+following test code from Eric demonstrates the bug nicely.
 
-cleanup_fault_attr_entries() should be cleanup_fault_attr_dentries().
+#include <linux/idr.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
+static DEFINE_IDR(test_idr);
+
+int init_module(void)
+{
+	int ret, forty95, forty96;
+	void *addr;
+
+	/* add 2 entries both with 4095 as the start address */
+again1:
+	if (!idr_pre_get(&test_idr, GFP_KERNEL))
+		return -ENOMEM;
+	ret = idr_get_new_above(&test_idr, (void *)4095, 4095, &forty95);
+	if (ret) {
+		if (ret == -EAGAIN)
+			goto again1;
+		return ret;
+	}
+	if (forty95 != 4095)
+		printk(KERN_ERR "hmmm, forty95=%d\n", forty95);
+
+again2:
+	if (!idr_pre_get(&test_idr, GFP_KERNEL))
+		return -ENOMEM;
+	ret = idr_get_new_above(&test_idr, (void *)4096, 4095, &forty96);
+	if (ret) {
+		if (ret == -EAGAIN)
+			goto again2;
+		return ret;
+	}
+	if (forty96 != 4096)
+		printk(KERN_ERR "hmmm, forty96=%d\n", forty96);
+
+	/* try to find the 2 entries, noticing that 4096 broke */
+	addr = idr_find(&test_idr, forty95);
+	if ((int)addr != forty95)
+		printk(KERN_ERR "hmmm, after find forty95=%d addr=%d\n", forty95, (int)addr);
+	addr = idr_find(&test_idr, forty96);
+	if ((int)addr != forty96)
+		printk(KERN_ERR "hmmm, after find forty96=%d addr=%d\n", forty96, (int)addr);
+	/* really weird, the entry which should be at 4096 is actually at 0!! */
+	addr = idr_find(&test_idr, 0);
+	if ((int)addr)
+		printk(KERN_ERR "found an entry at id=0 for addr=%d\n", (int)addr);
+
+	idr_remove(&test_idr, forty95);
+	idr_remove(&test_idr, forty96);
+
+	return 0;
+}
+
+void cleanup_module(void)
+{
+}
+
+MODULE_AUTHOR("Eric Paris <eparis@redhat.com>");
+MODULE_DESCRIPTION("Simple idr test");
+MODULE_LICENSE("GPL");
+
+This happens because when sub_alloc() back tracks it doesn't always do it
+step-by-step while the over-the-limit detection assumes step-by-step
+backtracking.  The logic in sub_alloc() looks like the following.
+
+  restart:
+    clear pa[top level + 1] for end cond detection
+    l = top level
+    while (true) {
+	search for empty slot at this level
+	if (not found) {
+	    push id to the next possible value
+	    l++
+A:	    if (pa[l] is clear)
+	        failed, return asking caller to grow the tree
+	    if (going up 1 level gives more slots to search)
+	        continue the while loop above with the incremented l
+	    else
+C:	        goto restart
+	}
+	adjust id accordingly to the found slot
+	if (l == 0)
+	    return found id;
+	create lower level if not there yet
+	record pa[l] and l--
+    }
+
+Test A is the fail exit condition but this assumes that failure is
+propagated upwared one level at a time but the B optimization path breaks
+the assumption and restarts the whole thing with a start value which is
+above the possible limit with the current layers.  sub_alloc() assumes the
+start id value is inside the limit when called and test A is the only exit
+condition check, so it ends up searching for empty slot while ignoring
+high set bit.
+
+So, for 4095->4096 test, level0 search fails but pa[1] contains a valid
+pointer.  However, going up 1 level wouldn't give any more empty slot so
+it takes C and when the whole thing restarts nobody notices the high bit
+set beyond the top level.
+
+This patch fixes the bug by changing the fail exit condition check to full
+id limit check.
+
+Based-on-patch-from: Eric Paris <eparis@redhat.com>
+Reported-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/fault-injection.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/idr.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-correct-function-names-in-documentation Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-correct-function-names-in-documentation
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -143,8 +143,8 @@ o provide a way to configure fault attri
-   failslab, fail_page_alloc, and fail_make_request use this way.
-   Helper functions:
+diff -puN lib/idr.c~idr-fix-a-critical-misallocation-bug lib/idr.c
+--- a/lib/idr.c~idr-fix-a-critical-misallocation-bug
++++ a/lib/idr.c
+@@ -140,8 +140,7 @@ static int sub_alloc(struct idr *idp, in
+ 	id = *starting_id;
+  restart:
+ 	p = idp->top;
+-	l = idp->layers;
+-	pa[l--] = NULL;
++	l = p->layer;
+ 	while (1) {
+ 		/*
+ 		 * We run around this while until we reach the leaf node...
+@@ -155,8 +154,8 @@ static int sub_alloc(struct idr *idp, in
+ 			oid = id;
+ 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
  
--	init_fault_attr_entries(entries, attr, name);
--	void cleanup_fault_attr_entries(entries);
-+	init_fault_attr_dentries(entries, attr, name);
-+	void cleanup_fault_attr_dentries(entries);
- 
- - module parameters
- 
+-			/* if already at the top layer, we need to grow */
+-			if (!(p = pa[l])) {
++			/* did id go over the limit? */
++			if (id >= (1 << (idp->layers * IDR_BITS))) {
+ 				*starting_id = id;
+ 				return IDR_NEED_TO_GROW;
+ 			}
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
-percpu_counter-make-__percpu_counter_add-an-inline-function-on-up.patch
-sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
-panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch
-zlib-make-new-optimized-inflate-endian-independent.patch
+ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc.patch
 
