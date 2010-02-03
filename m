@@ -1,61 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-media-video-pmsc-needs-versionh.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 06:59:12 -0800
-Message-ID: <201002031459.o13ExCEx032099@imap1.linux-foundation.org>
+Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch added to -mm tree
+Date: Wed, 03 Feb 2010 09:53:44 -0800
+Message-ID: <201002031753.o13HriPb008880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753993Ab0BCO7x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 09:59:53 -0500
+	by vger.kernel.org with ESMTP id S932768Ab0BCRy3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:54:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     drivers/media/video/pms.c needs version.h
-has been removed from the -mm tree.  Its filename was
-     drivers-media-video-pmsc-needs-versionh.patch
+     bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
+has been added to the -mm tree.  Its filename is
+     bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/pms.c needs version.h
+Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allmodconfig:
-
-drivers/media/video/pms.c: In function 'pms_querycap':
-drivers/media/video/pms.c:682: error: implicit declaration of function 'KERNEL_VERSION'
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pms.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/sched_cpupri.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/pms.c~drivers-media-video-pmsc-needs-versionh drivers/media/video/pms.c
---- a/drivers/media/video/pms.c~drivers-media-video-pmsc-needs-versionh
-+++ a/drivers/media/video/pms.c
-@@ -24,6 +24,7 @@
- #include <linux/delay.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
-+#include <linux/version.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
+diff -puN kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2 kernel/sched_cpupri.c
+--- a/kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
++++ a/kernel/sched_cpupri.c
+@@ -47,7 +47,7 @@ static int convert_prio(int prio)
+ }
+ 
+ #define for_each_cpupri_active(array, idx)                    \
+-	for_each_bit(idx, array, CPUPRI_NR_PRIORITIES)
++	for_each_set_bit(idx, array, CPUPRI_NR_PRIORITIES)
+ 
+ /**
+  * cpupri_find - find the best (lowest-pri) CPU in the system
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memory-hotplug-fix-a-bug-on-dev-mem-for-64-bit-kernels.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
@@ -63,10 +68,10 @@ revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
 pci-update-pci_set_vga_state-to-call-arch-functions.patch
 cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
 drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
 radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
 drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
 drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
