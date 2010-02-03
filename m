@@ -1,143 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uartlite-fix-crash-when-using-as-console.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 09:55:07 -0800
-Message-ID: <201002031755.o13Ht7iX008956@imap1.linux-foundation.org>
+Subject: [merged] kernel-credc-use-kmem_cache_free.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 09:55:23 -0800
+Message-ID: <201002031755.o13HtNHG008980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932806Ab0BCR4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:56:40 -0500
+	by vger.kernel.org with ESMTP id S932806Ab0BCR4o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:56:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.rojfors@pelagicore.com, alan@lxorguk.ukuu.org.uk, jacmet@sunsite.dk, stable@kernel.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, dhowells@redhat.com, jmorris@namei.org, stable@kernel.org, steved@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uartlite: fix crash when using as console
+     kernel/cred.c: use kmem_cache_free
 has been removed from the -mm tree.  Its filename was
-     uartlite-fix-crash-when-using-as-console.patch
+     kernel-credc-use-kmem_cache_free.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uartlite: fix crash when using as console
-=46rom: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Subject: kernel/cred.c: use kmem_cache_free
+From: Julia Lawall <julia@diku.dk>
 
-Move the ulite_console_setup to the .devinit section since it might be
-called on probe, which is in devinit.  Fixes the crash below where the
-uartlite hw is probed after the .init section is freed from the kernel.
+Free memory allocated using kmem_cache_zalloc using kmem_cache_free rather
+than kfree.
 
-uartlite: ttyUL0 at MMIO 0xc8000100 (irq =3D 30) is a uartlite
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<c176720e>] ulite_console_setup+0x6f/0xa8
-*pdpt =3D 0000000036fb0001 *pde =3D 0000000000000000
-Oops: 0000 [#1] PREEMPT SMP
-last sysfs file: /sys/devices/pci0000:00/0000:00:1f.1/host0/uevent
-Modules linked in: puffin(+) serio_raw
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-Pid: 151, comm: modprobe Not tainted (2.6.31.5-1.0.b1-b1 #1) POULSBO
-EIP: 0060:[<c176720e>] EFLAGS: 00010246 CPU: 0
-EIP is at ulite_console_setup+0x6f/0xa8
-EAX: c16ec824 EBX: c16ec824 ECX: c176719f EDX: 00000000
-ESI: 00000000 EDI: c17b42c4 EBP: f6fd1cf0 ESP: f6fd1cd8
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process modprobe (pid: 151, ti=3Df6fd0000 task=3Df6fa1020 task.ti=3Df6f=
-d0000)
-Stack:
- c1031f51 00000000 00000000 00000246 c182237c f7742000 f6fd1d5c c11fd31=
-6
-<0> c16ec85c f77420d4 0000001e 00000000 00000000 c1633e78 4f494d4d 6378=
-3020
-<0> 30303038 00303031 f6fd1d3c c10e0786 f6fd1d48 00000000 f6fd1d48 0000=
-0000
-Call Trace:
- [<c1031f51>] ? register_console+0xf6/0x1fc
- [<c11fd316>] ? uart_add_one_port+0x237/0x2bb
- [<c10e0786>] ? sysfs_add_one+0x13/0xd3
- [<c10e142f>] ? sysfs_do_create_link+0xba/0xfc
- [<c146f200>] ? ulite_probe+0x198/0x1eb
- [<c12064ee>] ? platform_drv_probe+0xc/0xe
- [<c120597b>] ? driver_probe_device+0x79/0x105
- [<c1205a8e>] ? __device_attach+0x28/0x30
- [<c120511f>] ? bus_for_each_drv+0x3d/0x67
- [<c1205af9>] ? device_attach+0x44/0x58
- [<c1205a66>] ? __device_attach+0x0/0x30
- [<c1204fb8>] ? bus_probe_device+0x1f/0x34
- [<c1203e68>] ? device_add+0x385/0x4c0
- [<c148491f>] ? _write_unlock+0x8/0x1f
- [<c1206aac>] ? platform_device_add+0xd9/0x11c
- [<c120c685>] ? mfd_add_devices+0x165/0x1bc
- [<f831b378>] ? puffin_probe+0x2d0/0x390 [puffin]
- [<c11a08ef>] ? pci_match_device+0xa0/0xa7
- [<c11a07bc>] ? local_pci_probe+0xe/0x10
- [<c11a11db>] ? pci_device_probe+0x43/0x66
- [<c120597b>] ? driver_probe_device+0x79/0x105
- [<c1205a4a>] ? __driver_attach+0x43/0x5f
- [<c120535d>] ? bus_for_each_dev+0x3d/0x67
- [<c1205852>] ? driver_attach+0x14/0x16
- [<c1205a07>] ? __driver_attach+0x0/0x5f
- [<c1204dea>] ? bus_add_driver+0xf9/0x220
- [<c1205c8f>] ? driver_register+0x8b/0xeb
- [<c11a1518>] ? __pci_register_driver+0x43/0x9f
- [<c10477ef>] ? __blocking_notifier_call_chain+0x40/0x4c
- [<f831f000>] ? puffin_init+0x0/0x48 [puffin]
- [<f831f017>] ? puffin_init+0x17/0x48 [puffin]
- [<c1001139>] ? do_one_initcall+0x4c/0x131
- [<c105607b>] ? sys_init_module+0xa7/0x1b7
- [<c1002a61>] ? syscall_call+0x7/0xb
- Code: 6e 74 00 00 00 92 33 00 00 18 00 0e 01 73 79 6e 63 65 2d 72 65 6=
-7 69 73 74 72 79 0c 00 49 32
-00 00 14 00 09 01 61 6c 73 61 2d 69 <6e> 66 6f 00 00 00 42 37 00 00 10 =
-00 07 01 6b 69 6c 6c 61 6c 6c
-EIP: [<c176720e>] ulite_console_setup+0x6f/0xa8 SS:ESP 0068:f6fd1cd8
-CR2: 0000000000000000
+// <smpl>
+@@
+expression x,E,c;
+@@
 
-Signed-off-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+ x = \(kmem_cache_alloc\|kmem_cache_zalloc\|kmem_cache_alloc_node\)(c,...)
+ ... when != x = E
+     when != &x
+?-kfree(x)
++kmem_cache_free(c,x)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Steve Dickson <steved@redhat.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/uartlite.c |    2 +-
+ kernel/cred.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/uartlite.c~uartlite-fix-crash-when-using-as-co=
-nsole drivers/serial/uartlite.c
---- a/drivers/serial/uartlite.c~uartlite-fix-crash-when-using-as-consol=
-e
-+++ a/drivers/serial/uartlite.c
-@@ -394,7 +394,7 @@ static void ulite_console_write(struct c
- 		spin_unlock_irqrestore(&port->lock, flags);
- }
-=20
--static int __init ulite_console_setup(struct console *co, char *option=
-s)
-+static int __devinit ulite_console_setup(struct console *co, char *opt=
-ions)
- {
- 	struct uart_port *port;
- 	int baud =3D 9600;
+diff -puN kernel/cred.c~kernel-credc-use-kmem_cache_free kernel/cred.c
+--- a/kernel/cred.c~kernel-credc-use-kmem_cache_free
++++ a/kernel/cred.c
+@@ -224,7 +224,7 @@ struct cred *cred_alloc_blank(void)
+ #ifdef CONFIG_KEYS
+ 	new->tgcred = kzalloc(sizeof(*new->tgcred), GFP_KERNEL);
+ 	if (!new->tgcred) {
+-		kfree(new);
++		kmem_cache_free(cred_jar, new);
+ 		return NULL;
+ 	}
+ 	atomic_set(&new->tgcred->usage, 1);
 _
 
-Patches currently in -mm which might be from richard.rojfors@pelagicore=
-=2Ecom are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
-timbgpio-add-support-for-interrupt-triggering-on-both-flanks.patch
+drivers-scsi-sesc-eliminate-double-free.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+net-ipv4-correct-the-size-argument-to-kzalloc.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
+drivers-misc-iwmc3200top-mainc-eliminate-useless-code.patch
+rtc-at91sam9-correct-size-given-to-memset.patch
+drivers-edac-introduce-missing-kfree.patch
+drivers-char-mmtimerc-eliminate-useless-code.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
