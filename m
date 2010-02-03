@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch added to -mm tree
-Date: Wed, 03 Feb 2010 15:42:25 -0800
-Message-ID: <201002032342.o13NgPR0026700@imap1.linux-foundation.org>
+Subject: + drivers-staging-fix-continuation-line-formats.patch added to -mm tree
+Date: Wed, 03 Feb 2010 15:42:53 -0800
+Message-ID: <201002032342.o13Ngrj4026750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757932Ab0BCXmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:42:43 -0500
+	by vger.kernel.org with ESMTP id S1757932Ab0BCXm4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:42:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org
+Cc: joe@perches.com, greg@kroah.com
 
 
 The patch titled
-     drivers/gpu/drm/i915/intel_bios.c: fix continuation line formats
+     drivers/staging: fix continuation line formats
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+     drivers-staging-fix-continuation-line-formats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/intel_bios.c: fix continuation line formats
+Subject: drivers/staging: fix continuation line formats
 From: Joe Perches <joe@perches.com>
 
 String constants that are continued on subsequent lines with \ will cause
 spurios whitespace in the resulting output.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_bios.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/staging/rtl8192su/r8192S_phy.c |   16 ++++++++--------
+ drivers/staging/sep/sep_driver.c       |    5 +++--
+ drivers/staging/slicoss/slicoss.c      |    6 ++----
+ 3 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_bios.c~drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats drivers/gpu/drm/i915/intel_bios.c
---- a/drivers/gpu/drm/i915/intel_bios.c~drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats
-+++ a/drivers/gpu/drm/i915/intel_bios.c
-@@ -416,8 +416,7 @@ parse_edp(struct drm_i915_private *dev_p
- 	edp = find_section(bdb, BDB_EDP);
- 	if (!edp) {
- 		if (SUPPORTS_EDP(dev_priv->dev) && dev_priv->edp_support) {
--			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported,\
--				       assume 18bpp panel color depth.\n");
-+			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported, assume 18bpp panel color depth.\n");
- 			dev_priv->edp_bpp = 18;
+diff -puN drivers/staging/rtl8192su/r8192S_phy.c~drivers-staging-fix-continuation-line-formats drivers/staging/rtl8192su/r8192S_phy.c
+--- a/drivers/staging/rtl8192su/r8192S_phy.c~drivers-staging-fix-continuation-line-formats
++++ a/drivers/staging/rtl8192su/r8192S_phy.c
+@@ -2407,8 +2407,8 @@ void PHY_SetBWModeCallback8192S(struct n
+ 			break;
+ 
+ 		default:
+-			RT_TRACE(COMP_DBG, "SetBWModeCallback8190Pci():\
+-						unknown Bandwidth: %#X\n",priv->CurrentChannelBW);
++			RT_TRACE(COMP_DBG, "SetBWModeCallback8190Pci(): unknown Bandwidth: %#X\n",
++				 priv->CurrentChannelBW);
+ 			break;
+ 	}
+ 
+@@ -3398,8 +3398,8 @@ void SwChnlCallback8192SUsb(struct net_d
+ 	u32			delay;
+ //	bool			ret;
+ 
+-	RT_TRACE(COMP_SCAN, "==>SwChnlCallback8190Pci(), switch to channel\
+-				%d\n", priv->chan);
++	RT_TRACE(COMP_SCAN, "==>SwChnlCallback8190Pci(), switch to channel %d\n",
++		 priv->chan);
+ 
+ 
+ 	if(!priv->up)
+@@ -3525,8 +3525,8 @@ void SetBWModeCallback8192SUsb(struct ne
+ 			break;
+ 
+ 		default:
+-			RT_TRACE(COMP_DBG, "SetChannelBandwidth8190Pci():\
+-						unknown Bandwidth: %#X\n",priv->CurrentChannelBW);
++			RT_TRACE(COMP_DBG, "SetChannelBandwidth8190Pci(): unknown Bandwidth: %#X\n",
++				 priv->CurrentChannelBW);
+ 			break;
+ 	}
+ 
+@@ -3660,8 +3660,8 @@ void SetBWModeCallback8192SUsbWorkItem(s
+ 			break;
+ 
+ 		default:
+-			RT_TRACE(COMP_DBG, "SetBWModeCallback8192SUsbWorkItem():\
+-						unknown Bandwidth: %#X\n",priv->CurrentChannelBW);
++			RT_TRACE(COMP_DBG, "SetBWModeCallback8192SUsbWorkItem(): unknown Bandwidth: %#X\n",
++				 priv->CurrentChannelBW);
+ 			break;
+ 	}
+ 
+diff -puN drivers/staging/sep/sep_driver.c~drivers-staging-fix-continuation-line-formats drivers/staging/sep/sep_driver.c
+--- a/drivers/staging/sep/sep_driver.c~drivers-staging-fix-continuation-line-formats
++++ a/drivers/staging/sep/sep_driver.c
+@@ -944,8 +944,9 @@ static int sep_lock_user_pages(struct se
+ 			dbg("data_size is %lu\n", data_size);
+ 			while (1);
  		}
- 		return;
+-		edbg("lli_array[%lu].physical_address is %08lx, \
+-		lli_array[%lu].block_size is %lu\n", count, lli_array[count].physical_address, count, lli_array[count].block_size);
++		edbg("lli_array[%lu].physical_address is %08lx, lli_array[%lu].block_size is %lu\n",
++		     count, lli_array[count].physical_address,
++		     count, lli_array[count].block_size);
+ 	}
+ 
+ 	/* set output params */
+diff -puN drivers/staging/slicoss/slicoss.c~drivers-staging-fix-continuation-line-formats drivers/staging/slicoss/slicoss.c
+--- a/drivers/staging/slicoss/slicoss.c~drivers-staging-fix-continuation-line-formats
++++ a/drivers/staging/slicoss/slicoss.c
+@@ -658,8 +658,7 @@ static int slic_ioctl(struct net_device 
+ 
+ 			if (copy_from_user(data, rq->ifr_data, 28)) {
+ 				PRINT_ERROR
+-				    ("slic: copy_from_user FAILED getting \
+-				     initial simba param\n");
++				    ("slic: copy_from_user FAILED getting initial simba param\n");
+ 				return -EFAULT;
+ 			}
+ 
+@@ -674,8 +673,7 @@ static int slic_ioctl(struct net_device 
+ 				   (tracemon_request ==
+ 				    SLIC_DUMP_IN_PROGRESS)) {
+ 				PRINT_ERROR
+-				    ("ATK Diagnostic Trace Dump Requested but \
+-				     already in progress... ignore\n");
++				    ("ATK Diagnostic Trace Dump Requested but already in progress... ignore\n");
+ 			} else {
+ 				PRINT_ERROR
+ 				    ("ATK Diagnostic Trace Dump Requested\n");
 _
 
 Patches currently in -mm which might be from joe@perches.com are
