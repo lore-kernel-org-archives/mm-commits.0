@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-use-generic-ptrace_resume-code.patch added to -mm tree
-Date: Wed, 03 Feb 2010 14:09:19 -0800
-Message-ID: <201002032209.o13M9Jmg022049@imap1.linux-foundation.org>
+Subject: + h8300-use-generic-ptrace_resume-code.patch added to -mm tree
+Date: Wed, 03 Feb 2010 14:08:52 -0800
+Message-ID: <201002032208.o13M8rIf022007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754603Ab0BCWKX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:10:23 -0500
+	by vger.kernel.org with ESMTP id S1756306Ab0BCWKD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:10:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, oleg@redhat.com, roland@redhat.com, takata@linux-m32r.org
+Cc: hch@lst.de, oleg@redhat.com, roland@redhat.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     m32r: use generic ptrace_resume code
+     h8300: use generic ptrace_resume code
 has been added to the -mm tree.  Its filename is
-     m32r-use-generic-ptrace_resume-code.patch
+     h8300-use-generic-ptrace_resume-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: use generic ptrace_resume code
+Subject: h8300: use generic ptrace_resume code
 From: Christoph Hellwig <hch@lst.de>
 
 Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
@@ -44,151 +44,159 @@ causes the breakpoint information to be cleared on fork, which could be
 considered a bug fix.
 
 Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
-it previously wasn't, which is consistent with all architectures using the
+it previously wasn't which is consistent with all architectures using the
 modern ptrace code.
-
-The old code only disables the breakpoints on PTRACE_KILL, while after
-this patch this also happens for PTRACE_CONT and PTRACE_SYSCALL which
-matches the behaviour of the other architetures.  I think this is a
-bugfixes, but please double verify this is correct.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/ptrace.h |    2 
- arch/m32r/kernel/ptrace.c      |   97 +++++++++----------------------
- 2 files changed, 31 insertions(+), 68 deletions(-)
+ arch/h8300/include/asm/ptrace.h            |    2 
+ arch/h8300/kernel/ptrace.c                 |   52 ++-----------------
+ arch/h8300/platform/h8300h/ptrace_h8300h.c |    6 +-
+ arch/h8300/platform/h8s/ptrace_h8s.c       |    4 -
+ 4 files changed, 13 insertions(+), 51 deletions(-)
 
-diff -puN arch/m32r/include/asm/ptrace.h~m32r-use-generic-ptrace_resume-code arch/m32r/include/asm/ptrace.h
---- a/arch/m32r/include/asm/ptrace.h~m32r-use-generic-ptrace_resume-code
-+++ a/arch/m32r/include/asm/ptrace.h
-@@ -120,6 +120,8 @@ struct pt_regs {
+diff -puN arch/h8300/include/asm/ptrace.h~h8300-use-generic-ptrace_resume-code arch/h8300/include/asm/ptrace.h
+--- a/arch/h8300/include/asm/ptrace.h~h8300-use-generic-ptrace_resume-code
++++ a/arch/h8300/include/asm/ptrace.h
+@@ -55,6 +55,8 @@ struct pt_regs {
+ /* Find the stack offset for a register, relative to thread.esp0. */
+ #define PT_REG(reg)	((long)&((struct pt_regs *)0)->reg)
  
- #include <asm/m32r.h>		/* M32R_PSW_BSM, M32R_PSW_BPM */
- 
-+#define arch_has_single_step() (1)
++#define arch_has_single_step()	(1)
 +
- struct task_struct;
- extern void init_debug_traps(struct task_struct *);
- #define arch_ptrace_attach(child) \
-diff -puN arch/m32r/kernel/ptrace.c~m32r-use-generic-ptrace_resume-code arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~m32r-use-generic-ptrace_resume-code
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -580,6 +580,35 @@ init_debug_traps(struct task_struct *chi
- 	}
- }
- 
-+void user_enable_single_step(struct task_struct *child)
-+{
-+	unsigned long next_pc;
-+	unsigned long pc, insn;
+ #define user_mode(regs) (!((regs)->ccr & PS_S))
+ #define instruction_pointer(regs) ((regs)->pc)
+ #define profile_pc(regs) instruction_pointer(regs)
+diff -puN arch/h8300/kernel/ptrace.c~h8300-use-generic-ptrace_resume-code arch/h8300/kernel/ptrace.c
+--- a/arch/h8300/kernel/ptrace.c~h8300-use-generic-ptrace_resume-code
++++ a/arch/h8300/kernel/ptrace.c
+@@ -34,8 +34,11 @@
+ /* cpu depend functions */
+ extern long h8300_get_reg(struct task_struct *task, int regno);
+ extern int  h8300_put_reg(struct task_struct *task, int regno, unsigned long data);
+-extern void h8300_disable_trace(struct task_struct *child);
+-extern void h8300_enable_trace(struct task_struct *child);
 +
-+	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
-+
-+	/* Compute next pc.  */
-+	pc = get_stack_long(child, PT_BPC);
-+
-+	if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
-+	    != sizeof(insn))
-+		break;
-+
-+	compute_next_pc(insn, pc, &next_pc, child);
-+	if (next_pc & 0x80000000)
-+		break;
-+
-+	if (embed_debug_trap(child, next_pc))
-+		break;
-+
-+	invalidate_cache();
-+}
 +
 +void user_disable_single_step(struct task_struct *child)
 +{
-+	unregister_all_debug_traps(child);
-+	invalidate_cache();
 +}
  
  /*
-  * Called by kernel/ptrace.c when detaching..
-@@ -630,74 +659,6 @@ arch_ptrace(struct task_struct *child, l
- 		ret = ptrace_write_user(child, addr, data);
- 		break;
+  * does not yet catch signals sent when the child dies.
+@@ -44,7 +47,7 @@ extern void h8300_enable_trace(struct ta
  
--	/*
--	 * continue/restart and stop at next (return from) syscall
--	 */
--	case PTRACE_SYSCALL:
--	case PTRACE_CONT:
--		ret = -EIO;
--		if (!valid_signal(data))
+ void ptrace_disable(struct task_struct *child)
+ {
+-	h8300_disable_trace(child);
++	user_disable_single_step(child);
+ }
+ 
+ long arch_ptrace(struct task_struct *child, long request, long addr, long data)
+@@ -107,49 +110,6 @@ long arch_ptrace(struct task_struct *chi
+ 			}
+ 			ret = -EIO;
+ 			break ;
+-		case PTRACE_SYSCALL: /* continue and stop at next (return from) syscall */
+-		case PTRACE_CONT: { /* restart after signal. */
+-			ret = -EIO;
+-			if (!valid_signal(data))
+-				break ;
+-			if (request == PTRACE_SYSCALL)
+-				set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-			else
+-				clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-			child->exit_code = data;
+-			wake_up_process(child);
+-			/* make sure the single step bit is not set. */
+-			h8300_disable_trace(child);
+-			ret = 0;
+-		}
+-
+-/*
+- * make the child exit.  Best I can do is send it a sigkill. 
+- * perhaps it should be put in the status that it wants to 
+- * exit.
+- */
+-		case PTRACE_KILL: {
+-
+-			ret = 0;
+-			if (child->exit_state == EXIT_ZOMBIE) /* already dead */
+-				break;
+-			child->exit_code = SIGKILL;
+-			h8300_disable_trace(child);
+-			wake_up_process(child);
 -			break;
--		if (request == PTRACE_SYSCALL)
--			set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--		else
+-		}
+-
+-		case PTRACE_SINGLESTEP: {  /* set the trap flag. */
+-			ret = -EIO;
+-			if (!valid_signal(data))
+-				break;
 -			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--		child->exit_code = data;
--		wake_up_process(child);
--		ret = 0;
--		break;
--
--	/*
--	 * make the child exit.  Best I can do is send it a sigkill.
--	 * perhaps it should be put in the status that it wants to
--	 * exit.
--	 */
--	case PTRACE_KILL: {
--		ret = 0;
--		unregister_all_debug_traps(child);
--		invalidate_cache();
--		if (child->exit_state == EXIT_ZOMBIE)	/* already dead */
+-			child->exit_code = data;
+-			h8300_enable_trace(child);
+-			wake_up_process(child);
+-			ret = 0;
 -			break;
--		child->exit_code = SIGKILL;
--		wake_up_process(child);
--		break;
--	}
--
--	/*
--	 * execute single instruction.
--	 */
--	case PTRACE_SINGLESTEP: {
--		unsigned long next_pc;
--		unsigned long pc, insn;
--
--		ret = -EIO;
--		if (!valid_signal(data))
--			break;
--		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--
--		/* Compute next pc.  */
--		pc = get_stack_long(child, PT_BPC);
--
--		if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
--		    != sizeof(insn))
--			break;
--
--		compute_next_pc(insn, pc, &next_pc, child);
--		if (next_pc & 0x80000000)
--			break;
--
--		if (embed_debug_trap(child, next_pc))
--			break;
--
--		invalidate_cache();
--		child->exit_code = data;
--
--		/* give it a chance to run. */
--		wake_up_process(child);
--		ret = 0;
--		break;
--	}
--
- 	case PTRACE_GETREGS:
- 		ret = ptrace_getregs(child, (void __user *)data);
- 		break;
+-		}
+ 
+ 		case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 		  	int i;
+diff -puN arch/h8300/platform/h8300h/ptrace_h8300h.c~h8300-use-generic-ptrace_resume-code arch/h8300/platform/h8300h/ptrace_h8300h.c
+--- a/arch/h8300/platform/h8300h/ptrace_h8300h.c~h8300-use-generic-ptrace_resume-code
++++ a/arch/h8300/platform/h8300h/ptrace_h8300h.c
+@@ -60,7 +60,7 @@ int h8300_put_reg(struct task_struct *ta
+ }
+ 
+ /* disable singlestep */
+-void h8300_disable_trace(struct task_struct *child)
++void user_disable_single_step(struct task_struct *child)
+ {
+ 	if((long)child->thread.breakinfo.addr != -1L) {
+ 		*child->thread.breakinfo.addr = child->thread.breakinfo.inst;
+@@ -264,7 +264,7 @@ static unsigned short *getnextpc(struct 
+ 
+ /* Set breakpoint(s) to simulate a single step from the current PC.  */
+ 
+-void h8300_enable_trace(struct task_struct *child)
++void user_enable_single_step(struct task_struct *child)
+ {
+ 	unsigned short *nextpc;
+ 	nextpc = getnextpc(child,(unsigned short *)h8300_get_reg(child, PT_PC));
+@@ -276,7 +276,7 @@ void h8300_enable_trace(struct task_stru
+ asmlinkage void trace_trap(unsigned long bp)
+ {
+ 	if ((unsigned long)current->thread.breakinfo.addr == bp) {
+-		h8300_disable_trace(current);
++		user_disable_single_step(current);
+ 		force_sig(SIGTRAP,current);
+ 	} else
+ 	        force_sig(SIGILL,current);
+diff -puN arch/h8300/platform/h8s/ptrace_h8s.c~h8300-use-generic-ptrace_resume-code arch/h8300/platform/h8s/ptrace_h8s.c
+--- a/arch/h8300/platform/h8s/ptrace_h8s.c~h8300-use-generic-ptrace_resume-code
++++ a/arch/h8300/platform/h8s/ptrace_h8s.c
+@@ -65,13 +65,13 @@ int h8300_put_reg(struct task_struct *ta
+ }
+ 
+ /* disable singlestep */
+-void h8300_disable_trace(struct task_struct *child)
++void user_disable_single_step(struct task_struct *child)
+ {
+ 	*(unsigned short *)(child->thread.esp0 + h8300_register_offset[PT_EXR]) &= ~EXR_TRACE;
+ }
+ 
+ /* enable singlestep */
+-void h8300_enable_trace(struct task_struct *child)
++void user_enable_single_step(struct task_struct *child)
+ {
+ 	*(unsigned short *)(child->thread.esp0 + h8300_register_offset[PT_EXR]) |= EXR_TRACE;
+ }
 _
 
 Patches currently in -mm which might be from hch@lst.de are
