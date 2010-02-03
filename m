@@ -1,300 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: [folded] reiser4-drop-journal-info.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 12:20:01 -0800
-Message-ID: <201002032020.o13KK1r9016714@imap1.linux-foundation.org>
+Subject: [folded] reiser4-reduce-frame-size-of-reiser4_init_super_data.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 12:20:07 -0800
+Message-ID: <201002032020.o13KK7ll016720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932343Ab0BCUUE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:20:04 -0500
+	by vger.kernel.org with ESMTP id S932473Ab0BCUUK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:20:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: drop journal info
+     reiser4: reduce frame size of reiser4_init_super_data
 has been removed from the -mm tree.  Its filename was
-     reiser4-drop-journal-info.patch
+     reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: drop journal info
+Subject: reiser4: reduce frame size of reiser4_init_super_data
 From: Edward Shishkin <edward.shishkin@gmail.com>
 
-1. Fix up the problem:
-Reiser4 steps to the journal code of other journalling file systems:
+Address a gcc warning for x86_64 about large frame size.
+Add a new function push_sb_field_opts().
 
-EXT3 complaints: "called recursively, non-PF_MEMALLOC"
-Call Trace:
- [<c0535873>] ext3_write_inode+0x1e/0x3a
- [<c04b16bc>] __writeback_single_inode+0x193/0x2ad
- [<c0508d86>] ? flush_some_atom+0x427/0x44d
- [<c04b1bb5>] ? generic_sync_sb_inodes+0x27c/0x338
- [<c04b1b68>] generic_sync_sb_inodes+0x22f/0x338
- [<c04b1c8e>] sync_sb_inodes+0x1d/0x20
- [<c04b1e1e>] writeback_inodes+0x79/0xb9
- [<c047c76a>] balance_dirty_pages_ratelimited_nr+0x119/0x21d
- [<c0504803>] reiser4_exit_context+0x5f/0xf6
- [<c051e5a3>] reiser4_write_careful+0x3ba/0x3cc
- [<c049bc3c>] ? do_sync_read+0xab/0xe9
- [<c0613dae>] ? selinux_file_permission+0x44/0x48
- [<c060fea6>] ? security_file_permission+0xf/0x11
- [<c051e1e9>] ? reiser4_write_careful+0x0/0x3cc
- [<c049c494>] vfs_write+0x84/0xdf
- [<c049c588>] sys_write+0x3b/0x60
- [<c0403178>] sysenter_do_call+0x12/0x2d
+Signed-off-by Edward Shsihkin <edward.shishkin@gmail.com>
 
-Solution:
-Drop current->journal_info before calling
-balance_dirty_pages_ratelimited().
-
-2. Update comments in plugin_header.h
-
-Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/context.c                     |   13 +++---
- fs/reiser4/plugin/file/cryptcompress.c   |    3 -
- fs/reiser4/plugin/file/file.c            |    9 +---
- fs/reiser4/plugin/file/tail_conversion.c |   14 +++++--
- fs/reiser4/plugin/item/tail.h            |    2 -
- fs/reiser4/plugin/plugin_header.h        |   42 ++++++++-------------
- fs/reiser4/txnmgr.c                      |    3 +
- fs/reiser4/vfs_ops.c                     |   12 ++++--
- fs/reiser4/vfs_ops.h                     |    2 -
- 9 files changed, 49 insertions(+), 51 deletions(-)
+ fs/reiser4/init_super.c |  126 +++++++++++++++++++-------------------
+ 1 file changed, 66 insertions(+), 60 deletions(-)
 
-diff -puN fs/reiser4/context.c~reiser4-drop-journal-info fs/reiser4/context.c
---- a/fs/reiser4/context.c~reiser4-drop-journal-info
-+++ a/fs/reiser4/context.c
-@@ -37,8 +37,8 @@
- #include "debug.h"
- #include "super.h"
- #include "context.h"
-+#include "vfs_ops.h"	/* for reiser4_throttle_write() */
+diff -puN fs/reiser4/init_super.c~reiser4-reduce-frame-size-of-reiser4_init_super_data fs/reiser4/init_super.c
+--- a/fs/reiser4/init_super.c~reiser4-reduce-frame-size-of-reiser4_init_super_data
++++ a/fs/reiser4/init_super.c
+@@ -292,66 +292,6 @@ static int parse_options(char *opt_strin
  
--#include <linux/writeback.h>	/* balance_dirty_pages() */
- #include <linux/hardirq.h>
+ #define MAX_NR_OPTIONS (30)
  
- static void _reiser4_init_context(reiser4_context * context,
-@@ -139,7 +139,7 @@ int is_in_reiser4_context(void)
-  * because some important lock (like ->i_mutex on the parent directory) is
-  * held. To achieve this, ->nobalance flag can be set in the current context.
-  */
--static void balance_dirty_pages_at(reiser4_context *context)
-+static void reiser4_throttle_write_at(reiser4_context *context)
- {
- 	reiser4_super_info_data *sbinfo = get_super_private(context->super);
- 
-@@ -152,7 +152,8 @@ static void balance_dirty_pages_at(reise
- 	if (sbinfo != NULL && sbinfo->fake != NULL &&
- 	    context->nr_marked_dirty != 0 &&
- 	    !(current->flags & PF_MEMALLOC))
--		balance_dirty_pages_ratelimited(sbinfo->fake->i_mapping);
-+		/* FIXME-EDWARD: throttle with nr_marked_dirty? */
-+		reiser4_throttle_write(sbinfo->fake, 1);
- }
- 
- /* release resources associated with context.
-@@ -225,10 +226,8 @@ void reiser4_exit_context(reiser4_contex
- 	assert("nikita-3021", reiser4_schedulable());
- 
- 	if (context->nr_children == 0) {
--		if (!context->nobalance) {
--			reiser4_txn_restart(context);
--			balance_dirty_pages_at(context);
--		}
-+		if (!context->nobalance)
-+			reiser4_throttle_write_at(context);
- 
- 		/* if filesystem is mounted with -o sync or -o dirsync - commit
- 		   transaction.  FIXME: TXNH_DONT_COMMIT is used to avoid
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-drop-journal-info fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-drop-journal-info
-+++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -1973,8 +1973,7 @@ static int balance_dirty_page_cluster(st
- 	info = cryptcompress_inode_data(inode);
- 
- 	mutex_unlock(&info->checkin_mutex);
--	reiser4_txn_restart_current();
--	balance_dirty_pages_ratelimited_nr(inode->i_mapping, nr_dirtied);
-+	reiser4_throttle_write(inode, nr_dirtied);
- 	mutex_lock(&info->checkin_mutex);
- 	return 0;
- }
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-drop-journal-info fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-drop-journal-info
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -2227,16 +2227,13 @@ ssize_t write_unix_file(struct file *fil
- 		}
- 		drop_access(uf_info);
- 		ea = NEITHER_OBTAINED;
--		reiser4_txn_restart(ctx);
--		current->journal_info = NULL;
-+
- 		/*
- 		 * tell VM how many pages were dirtied. Maybe number of pages
- 		 * which were dirty already should not be counted
- 		 */
--		balance_dirty_pages_ratelimited_nr(inode->i_mapping,
--						   (written + PAGE_CACHE_SIZE - 1) / PAGE_CACHE_SIZE);
--		current->journal_info = ctx;
+-/**
+- * reiser4_init_super_data - initialize reiser4 private super block
+- * @super: super block to initialize
+- * @opt_string: list of reiser4 mount options
+- *
+- * Sets various reiser4 parameters to default values. Parses mount options and
+- * overwrites default settings.
+- */
+-int reiser4_init_super_data(struct super_block *super, char *opt_string)
+-{
+-	int result;
+-	struct opt_desc *opts, *p;
+-	reiser4_super_info_data *sbinfo = get_super_private(super);
 -
-+		reiser4_throttle_write(inode,
-+			     (written + PAGE_CACHE_SIZE - 1) / PAGE_CACHE_SIZE);
- 		left -= written;
- 		buf += written;
- 		*pos += written;
-diff -puN fs/reiser4/plugin/file/tail_conversion.c~reiser4-drop-journal-info fs/reiser4/plugin/file/tail_conversion.c
---- a/fs/reiser4/plugin/file/tail_conversion.c~reiser4-drop-journal-info
-+++ a/fs/reiser4/plugin/file/tail_conversion.c
-@@ -486,8 +486,10 @@ int tail2extent(struct unix_file_info *u
- 			 * on partially converted files.
- 			 */
- 			drop_exclusive_access(uf_info);
--			/* throttle the conversion */
--			reiser4_throttle_write(inode);
-+			/* throttle the conversion
-+			   FIXME-EDWARD: Pass the precise number of pages
-+			   that was dirtied */
-+			reiser4_throttle_write(inode, 1);
- 			get_exclusive_access(uf_info);
+-	/* initialize super, export, dentry operations */
+-	sbinfo->ops.super = reiser4_super_operations;
+-	sbinfo->ops.export = reiser4_export_operations;
+-	sbinfo->ops.dentry = reiser4_dentry_operations;
+-	super->s_op = &sbinfo->ops.super;
+-	super->s_export_op = &sbinfo->ops.export;
+-
+-	/* initialize transaction manager parameters to default values */
+-	sbinfo->tmgr.atom_max_size = totalram_pages / 4;
+-	sbinfo->tmgr.atom_max_age = REISER4_ATOM_MAX_AGE / HZ;
+-	sbinfo->tmgr.atom_min_size = 256;
+-	sbinfo->tmgr.atom_max_flushers = ATOM_MAX_FLUSHERS;
+-
+-	/* initialize cbk cache parameter */
+-	sbinfo->tree.cbk_cache.nr_slots = CBK_CACHE_SLOTS;
+-
+-	/* initialize flush parameters */
+-	sbinfo->flush.relocate_threshold = FLUSH_RELOCATE_THRESHOLD;
+-	sbinfo->flush.relocate_distance = FLUSH_RELOCATE_DISTANCE;
+-	sbinfo->flush.written_threshold = FLUSH_WRITTEN_THRESHOLD;
+-	sbinfo->flush.scan_maxnodes = FLUSH_SCAN_MAXNODES;
+-
+-	sbinfo->optimal_io_size = REISER4_OPTIMAL_IO_SIZE;
+-
+-	/* preliminary tree initializations */
+-	sbinfo->tree.super = super;
+-	sbinfo->tree.carry.new_node_flags = REISER4_NEW_NODE_FLAGS;
+-	sbinfo->tree.carry.new_extent_flags = REISER4_NEW_EXTENT_FLAGS;
+-	sbinfo->tree.carry.paste_flags = REISER4_PASTE_FLAGS;
+-	sbinfo->tree.carry.insert_flags = REISER4_INSERT_FLAGS;
+-	rwlock_init(&(sbinfo->tree.tree_lock));
+-	spin_lock_init(&(sbinfo->tree.epoch_lock));
+-
+-	/* initialize default readahead params */
+-	sbinfo->ra_params.max = num_physpages / 4;
+-	sbinfo->ra_params.flags = 0;
+-
+-	/* allocate memory for structure describing reiser4 mount options */
+-	opts = kmalloc(sizeof(struct opt_desc) * MAX_NR_OPTIONS,
+-		       reiser4_ctx_gfp_mask_get());
+-	if (opts == NULL)
+-		return RETERR(-ENOMEM);
+-
+-	/* initialize structure describing reiser4 mount options */
+-	p = opts;
+-
+ #if REISER4_DEBUG
+ #  define OPT_ARRAY_CHECK if ((p) > (opts) + MAX_NR_OPTIONS) {		\
+ 		warning("zam-1046", "opt array is overloaded"); break;	\
+@@ -370,6 +310,10 @@ do {						\
+ #define PUSH_SB_FIELD_OPT(field, format) PUSH_OPT(SB_FIELD_OPT(field, format))
+ #define PUSH_BIT_OPT(name, bit) PUSH_OPT(BIT_OPT(name, bit))
  
- 			/*
-@@ -685,8 +687,12 @@ int extent2tail(struct file * file, stru
- 		page_cache_release(page);
- 
- 		drop_exclusive_access(uf_info);
--		/* throttle the conversion */
--		reiser4_throttle_write(inode);
-+		/*
-+		 * throttle the conversion.
-+		 * FIXME-EDWARD: Calculate and pass the precise number
-+		 * of pages that was dirtied
-+		 */
-+		reiser4_throttle_write(inode, 1);
- 		get_exclusive_access(uf_info);
- 		/*
- 		 * nobody is allowed to complete conversion but a process which
-diff -puN fs/reiser4/plugin/item/tail.h~reiser4-drop-journal-info fs/reiser4/plugin/item/tail.h
---- a/fs/reiser4/plugin/item/tail.h~reiser4-drop-journal-info
-+++ a/fs/reiser4/plugin/item/tail.h
-@@ -40,8 +40,6 @@ int readpage_tail(void *vp, struct page 
- reiser4_key *append_key_tail(const coord_t *, reiser4_key *);
- void init_coord_extension_tail(uf_coord_t *, loff_t offset);
- int get_block_address_tail(const coord_t *, sector_t, sector_t *);
--int item_balance_dirty_pages(struct address_space *, const flow_t *,
--			     hint_t *, int back_to_dirty, int set_hint);
- 
- /* __REISER4_TAIL_H__ */
++static noinline void push_sb_field_opts(struct opt_desc *p,
++					struct opt_desc *opts,
++					reiser4_super_info_data *sbinfo)
++{
+ 	/*
+ 	 * tmgr.atom_max_size=N
+ 	 * Atoms containing more than N blocks will be forced to commit. N is
+@@ -435,7 +379,69 @@ do {						\
+ 	 */
+ 	PUSH_SB_FIELD_OPT(altsuper, "%lu");
  #endif
-diff -puN fs/reiser4/plugin/plugin_header.h~reiser4-drop-journal-info fs/reiser4/plugin/plugin_header.h
---- a/fs/reiser4/plugin/plugin_header.h~reiser4-drop-journal-info
-+++ a/fs/reiser4/plugin/plugin_header.h
-@@ -10,32 +10,24 @@
- #include "../debug.h"
- #include "../dformat.h"
- 
--/* Every plugin type can be considered as a class of virtual objects
--   {(type, i) | i = 0, 1, ...}, which has one the following categories
--   of virtualization:
--   A - no virtualization;
--   F - per-file virtualization;
--   S - per-superblock virtualization;
--   FIXME-EDWARD: Define every such category */
--
--/* Supported plugin types: (id, (virtualization category), short description) */
-+/* The list of Reiser4 interfaces */
- typedef enum {
--	REISER4_FILE_PLUGIN_TYPE,             /* (F) service VFS enry-points */
--	REISER4_DIR_PLUGIN_TYPE,              /* (F) service VFS enry-points */
--	REISER4_ITEM_PLUGIN_TYPE,             /* (F) manage items */
--	REISER4_NODE_PLUGIN_TYPE,             /* (S) manage formatted nodes */
--	REISER4_HASH_PLUGIN_TYPE,             /* (F) compute hash */
--	REISER4_FIBRATION_PLUGIN_TYPE,        /* (F) directory fibrations */
--	REISER4_FORMATTING_PLUGIN_TYPE,       /* (F) tail-packing policy */
--	REISER4_PERM_PLUGIN_TYPE,             /*       stub (vacancy)     */
--	REISER4_SD_EXT_PLUGIN_TYPE,           /* (A) stat-data extensions */
--	REISER4_FORMAT_PLUGIN_TYPE,           /* (S) specify disk format */
--	REISER4_JNODE_PLUGIN_TYPE,            /* (A) in-memory node headers */
--	REISER4_CIPHER_PLUGIN_TYPE,           /* (F) cipher transform algs */
--	REISER4_DIGEST_PLUGIN_TYPE,           /* (F) digest transform algs */
--	REISER4_COMPRESSION_PLUGIN_TYPE,      /* (F) compression tfm algs */
--	REISER4_COMPRESSION_MODE_PLUGIN_TYPE, /* (F) compression heuristic */
--	REISER4_CLUSTER_PLUGIN_TYPE,          /* (F) size of logical cluster */
-+	REISER4_FILE_PLUGIN_TYPE,             /* manage VFS objects */
-+	REISER4_DIR_PLUGIN_TYPE,              /* manage directories */
-+	REISER4_ITEM_PLUGIN_TYPE,             /* manage items */
-+	REISER4_NODE_PLUGIN_TYPE,             /* manage formatted nodes */
-+	REISER4_HASH_PLUGIN_TYPE,             /* hash methods */
-+	REISER4_FIBRATION_PLUGIN_TYPE,        /* directory fibrations */
-+	REISER4_FORMATTING_PLUGIN_TYPE,       /* dispatching policy */
-+	REISER4_PERM_PLUGIN_TYPE,             /* stub (vacancy) */
-+	REISER4_SD_EXT_PLUGIN_TYPE,           /* manage stat-data extensions */
-+	REISER4_FORMAT_PLUGIN_TYPE,           /* disk format specifications */
-+	REISER4_JNODE_PLUGIN_TYPE,            /* manage in-memory headers */
-+	REISER4_CIPHER_PLUGIN_TYPE,           /* cipher transform methods */
-+	REISER4_DIGEST_PLUGIN_TYPE,           /* digest transform methods */
-+	REISER4_COMPRESSION_PLUGIN_TYPE,      /* compression methods */
-+	REISER4_COMPRESSION_MODE_PLUGIN_TYPE, /* dispatching policies */
-+	REISER4_CLUSTER_PLUGIN_TYPE,          /* manage logical clusters */
- 	REISER4_PLUGIN_TYPES
- } reiser4_plugin_type;
- 
-diff -puN fs/reiser4/txnmgr.c~reiser4-drop-journal-info fs/reiser4/txnmgr.c
---- a/fs/reiser4/txnmgr.c~reiser4-drop-journal-info
-+++ a/fs/reiser4/txnmgr.c
-@@ -2328,7 +2328,8 @@ static void do_jnode_make_dirty(jnode * 
- 
- 	JF_SET(node, JNODE_DIRTY);
- 
--	get_current_context()->nr_marked_dirty++;
-+	if (!JF_ISSET(node, JNODE_CLUSTER_PAGE))
-+		get_current_context()->nr_marked_dirty++;
- 
- 	/* We grab2flush_reserve one additional block only if node was
- 	   not CREATED and jnode_flush did not sort it into neither
-diff -puN fs/reiser4/vfs_ops.c~reiser4-drop-journal-info fs/reiser4/vfs_ops.c
---- a/fs/reiser4/vfs_ops.c~reiser4-drop-journal-info
-+++ a/fs/reiser4/vfs_ops.c
-@@ -201,10 +201,16 @@ void reiser4_writeout(struct super_block
- 	} while (wbc->nr_to_write > 0);
- }
- 
--void reiser4_throttle_write(struct inode *inode)
-+/* tell VM how many pages were dirtied */
-+void reiser4_throttle_write(struct inode *inode, int nrpages)
- {
--	reiser4_txn_restart_current();
--	balance_dirty_pages_ratelimited(inode->i_mapping);
-+	reiser4_context *ctx;
++}
 +
-+	ctx = get_current_context();
-+	reiser4_txn_restart(ctx);
-+	current->journal_info = NULL;
-+	balance_dirty_pages_ratelimited_nr(inode->i_mapping, nrpages);
-+	current->journal_info = ctx;
- }
++/**
++ * reiser4_init_super_data - initialize reiser4 private super block
++ * @super: super block to initialize
++ * @opt_string: list of reiser4 mount options
++ *
++ * Sets various reiser4 parameters to default values. Parses mount options and
++ * overwrites default settings.
++ */
++int reiser4_init_super_data(struct super_block *super, char *opt_string)
++{
++	int result;
++	struct opt_desc *opts, *p;
++	reiser4_super_info_data *sbinfo = get_super_private(super);
++
++	/* initialize super, export, dentry operations */
++	sbinfo->ops.super = reiser4_super_operations;
++	sbinfo->ops.export = reiser4_export_operations;
++	sbinfo->ops.dentry = reiser4_dentry_operations;
++	super->s_op = &sbinfo->ops.super;
++	super->s_export_op = &sbinfo->ops.export;
++
++	/* initialize transaction manager parameters to default values */
++	sbinfo->tmgr.atom_max_size = totalram_pages / 4;
++	sbinfo->tmgr.atom_max_age = REISER4_ATOM_MAX_AGE / HZ;
++	sbinfo->tmgr.atom_min_size = 256;
++	sbinfo->tmgr.atom_max_flushers = ATOM_MAX_FLUSHERS;
++
++	/* initialize cbk cache parameter */
++	sbinfo->tree.cbk_cache.nr_slots = CBK_CACHE_SLOTS;
++
++	/* initialize flush parameters */
++	sbinfo->flush.relocate_threshold = FLUSH_RELOCATE_THRESHOLD;
++	sbinfo->flush.relocate_distance = FLUSH_RELOCATE_DISTANCE;
++	sbinfo->flush.written_threshold = FLUSH_WRITTEN_THRESHOLD;
++	sbinfo->flush.scan_maxnodes = FLUSH_SCAN_MAXNODES;
++
++	sbinfo->optimal_io_size = REISER4_OPTIMAL_IO_SIZE;
++
++	/* preliminary tree initializations */
++	sbinfo->tree.super = super;
++	sbinfo->tree.carry.new_node_flags = REISER4_NEW_NODE_FLAGS;
++	sbinfo->tree.carry.new_extent_flags = REISER4_NEW_EXTENT_FLAGS;
++	sbinfo->tree.carry.paste_flags = REISER4_PASTE_FLAGS;
++	sbinfo->tree.carry.insert_flags = REISER4_INSERT_FLAGS;
++	rwlock_init(&(sbinfo->tree.tree_lock));
++	spin_lock_init(&(sbinfo->tree.epoch_lock));
++
++	/* initialize default readahead params */
++	sbinfo->ra_params.max = num_physpages / 4;
++	sbinfo->ra_params.flags = 0;
++
++	/* allocate memory for structure describing reiser4 mount options */
++	opts = kmalloc(sizeof(struct opt_desc) * MAX_NR_OPTIONS,
++		       reiser4_ctx_gfp_mask_get());
++	if (opts == NULL)
++		return RETERR(-ENOMEM);
++
++	/* initialize structure describing reiser4 mount options */
++	p = opts;
  
- const char *REISER4_SUPER_MAGIC_STRING = "ReIsEr4";
-diff -puN fs/reiser4/vfs_ops.h~reiser4-drop-journal-info fs/reiser4/vfs_ops.h
---- a/fs/reiser4/vfs_ops.h~reiser4-drop-journal-info
-+++ a/fs/reiser4/vfs_ops.h
-@@ -30,7 +30,7 @@ extern int reiser4_add_nlink(struct inod
- extern int reiser4_del_nlink(struct inode *, struct inode *, int);
- 
- extern int reiser4_start_up_io(struct page *page);
--extern void reiser4_throttle_write(struct inode *);
-+extern void reiser4_throttle_write(struct inode *, int nrpages);
- extern int jnode_is_releasable(jnode *);
- 
- #define CAPTURE_APAGE_BURST (1024l)
++	push_sb_field_opts(p, opts, sbinfo);
+ 	/* turn on BSD-style gid assignment */
+ 	PUSH_BIT_OPT("bsdgroups", REISER4_BSD_GID);
+ 	/* turn on 32 bit times */
 _
 
 Patches currently in -mm which might be from edward.shishkin@gmail.com are
@@ -303,8 +196,6 @@ vfs-improve-writeback_inodes_wb.patch
 vfs-add-super-operation-writeback_inodes.patch
 vfs-take-2add-set_page_dirty_notag.patch
 reiser4.patch
-reiser4-drop-journal-info.patch
-reiser4-fix-compile-warnings.patch
 reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
 reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
 reiser4-some-changes-from-reiser4-2631-patch.patch
