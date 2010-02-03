@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-reiser4-contextc-current_is_pdflush-got-removed.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 12:19:52 -0800
-Message-ID: <201002032019.o13KJqwO016692@imap1.linux-foundation.org>
+Subject: [folded] reiser4-fix.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 12:19:55 -0800
+Message-ID: <201002032019.o13KJtAZ016699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932216Ab0BCUTz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:55 -0500
+	by vger.kernel.org with ESMTP id S932216Ab0BCUT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, edward.shishkin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/reiser4/context.c: current_is_pdflush() got removed
+     reiser4-fix
 has been removed from the -mm tree.  Its filename was
-     fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+     reiser4-fix.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/reiser4/context.c: current_is_pdflush() got removed
+Subject: reiser4-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-No longer in linux-next.
+generic_sync_sb_indeos() changed
 
 Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/context.c |    3 +--
- fs/reiser4/txnmgr.c  |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ fs/reiser4/entd.c      |    2 +-
+ fs/reiser4/super_ops.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/context.c~fs-reiser4-contextc-current_is_pdflush-got-removed fs/reiser4/context.c
---- a/fs/reiser4/context.c~fs-reiser4-contextc-current_is_pdflush-got-removed
-+++ a/fs/reiser4/context.c
-@@ -151,8 +151,7 @@ static void balance_dirty_pages_at(reise
+diff -puN fs/reiser4/entd.c~reiser4-fix fs/reiser4/entd.c
+--- a/fs/reiser4/entd.c~reiser4-fix
++++ a/fs/reiser4/entd.c
+@@ -241,7 +241,7 @@ static void entd_flush(struct super_bloc
+ 	if (rq->wbc->nr_to_write > 0) {
+ 		rq->wbc->range_start = 0;
+ 		rq->wbc->range_end = LLONG_MAX;
+-		generic_sync_sb_inodes(super, rq->wbc);
++		generic_sync_sb_inodes(rq->wbc);
+ 	}
+ 	rq->wbc->nr_to_write = ENTD_CAPTURE_APAGE_BURST;
+ 	reiser4_writeout(super, rq->wbc);
+diff -puN fs/reiser4/super_ops.c~reiser4-fix fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~reiser4-fix
++++ a/fs/reiser4/super_ops.c
+@@ -412,7 +412,7 @@ static void reiser4_sync_inodes(struct s
+ 	 * call reiser4_writepages for each of dirty inodes to turn dirty pages
+ 	 * into transactions if they were not yet.
  	 */
- 	if (sbinfo != NULL && sbinfo->fake != NULL &&
- 	    context->nr_marked_dirty != 0 &&
--	    !(current->flags & PF_MEMALLOC) &&
--	    !current_is_pdflush())
-+	    !(current->flags & PF_MEMALLOC))
- 		balance_dirty_pages_ratelimited(sbinfo->fake->i_mapping);
- }
+-	generic_sync_sb_inodes(super, wbc);
++	generic_sync_sb_inodes(wbc);
  
-diff -puN fs/reiser4/txnmgr.c~fs-reiser4-contextc-current_is_pdflush-got-removed fs/reiser4/txnmgr.c
---- a/fs/reiser4/txnmgr.c~fs-reiser4-contextc-current_is_pdflush-got-removed
-+++ a/fs/reiser4/txnmgr.c
-@@ -1410,7 +1410,7 @@ flush_some_atom(jnode * start, long *nr_
- 		 * Write throttling is case of no one atom can be
- 		 * flushed/committed.
- 		 */
--		if (!current_is_pdflush() && !wbc->nonblocking) {
-+		if (!wbc->nonblocking) {
- 			list_for_each_entry(atom, &tmgr->atoms_list, atom_link) {
- 				spin_lock_atom(atom);
- 				/* Repeat the check from the above. */
+ 	/* flush goes here */
+ 	wbc->nr_to_write = to_write;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +108,6 @@ memcg-implement-memory-thresholds-checkpatch-fixes.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
 reiser4-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
