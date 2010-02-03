@@ -1,88 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 12:19:37 -0800
-Message-ID: <201002032019.o13KJbpZ016667@imap1.linux-foundation.org>
+Subject: [folded] reiser4-update-names-of-quota-methods.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 12:19:43 -0800
+Message-ID: <201002032019.o13KJhMs016676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757867Ab0BCUTp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:45 -0500
+	by vger.kernel.org with ESMTP id S1757867Ab0BCUTs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 15:19:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: edward.shishkin@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-symlink-write_begin-allocation-context-fix: reiser4 fix
+     reiser4: update names of quota methods
 has been removed from the -mm tree.  Its filename was
-     fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+     reiser4-update-names-of-quota-methods.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-symlink-write_begin-allocation-context-fix: reiser4 fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: reiser4: update names of quota methods
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-build fix.
+Update names of quota methods
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Edward Shishkin<edward.shishkin@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file_conversion.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/reiser4/plugin/file_plugin_common.c   |    4 ++--
+ fs/reiser4/plugin/inode_ops.c            |   20 ++++++++++----------
+ fs/reiser4/plugin/item/cde.c             |    4 ++--
+ fs/reiser4/plugin/item/extent_file_ops.c |   10 ++++++----
+ fs/reiser4/plugin/item/extent_item_ops.c |    2 +-
+ fs/reiser4/plugin/item/sde.c             |    4 ++--
+ fs/reiser4/plugin/item/tail.c            |   16 ++++++++--------
+ 7 files changed, 31 insertions(+), 29 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/file_conversion.c~fs-symlink-write_begin-allocation-context-fix-reiser4-fix fs/reiser4/plugin/file/file_conversion.c
---- a/fs/reiser4/plugin/file/file_conversion.c~fs-symlink-write_begin-allocation-context-fix-reiser4-fix
-+++ a/fs/reiser4/plugin/file/file_conversion.c
-@@ -692,7 +692,8 @@ int reiser4_write_begin_careful(struct f
- 	start = pos & (PAGE_CACHE_SIZE - 1);
- 	end = start + len;
+diff -puN fs/reiser4/plugin/file_plugin_common.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/file_plugin_common.c
+--- a/fs/reiser4/plugin/file_plugin_common.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/file_plugin_common.c
+@@ -944,8 +944,8 @@ common_object_delete_no_reserve(struct i
+ 	if (!reiser4_inode_get_flag(inode, REISER4_NO_SD)) {
+ 		reiser4_key sd_key;
  
--	page = __grab_cache_page(mapping, index);
-+	page = grab_cache_page_write_begin(mapping, index,
-+					   flags & AOP_FLAG_NOFS);
- 	*pagep = page;
- 	if (!page)
- 		return -ENOMEM;
+-		DQUOT_FREE_INODE(inode);
+-		DQUOT_DROP(inode);
++		vfs_dq_free_inode(inode);
++		vfs_dq_drop(inode);
+ 
+ 		build_sd_key(inode, &sd_key);
+ 		result =
+diff -puN fs/reiser4/plugin/inode_ops.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/inode_ops.c
+--- a/fs/reiser4/plugin/inode_ops.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/inode_ops.c
+@@ -453,7 +453,7 @@ int reiser4_setattr_common(struct dentry
+ 		if ((attr->ia_valid & ATTR_UID && attr->ia_uid != inode->i_uid)
+ 		    || (attr->ia_valid & ATTR_GID
+ 			&& attr->ia_gid != inode->i_gid)) {
+-			result = DQUOT_TRANSFER(inode, attr) ? -EDQUOT : 0;
++			result = vfs_dq_transfer(inode, attr) ? -EDQUOT : 0;
+ 			if (result) {
+ 				context_set_commit_async(ctx);
+ 				reiser4_exit_context(ctx);
+@@ -593,8 +593,8 @@ static int do_create_vfs_child(reiser4_o
+ 	/* So that on error iput will be called. */
+ 	*retobj = object;
+ 
+-	if (DQUOT_ALLOC_INODE(object)) {
+-		DQUOT_DROP(object);
++	if (vfs_dq_alloc_inode(object)) {
++		vfs_dq_drop(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return RETERR(-EDQUOT);
+ 	}
+@@ -608,7 +608,7 @@ static int do_create_vfs_child(reiser4_o
+ 	if (result) {
+ 		warning("nikita-431", "Cannot install plugin %i on %llx",
+ 			data->id, (unsigned long long)get_inode_oid(object));
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return result;
+ 	}
+@@ -617,7 +617,7 @@ static int do_create_vfs_child(reiser4_o
+ 	obj_plug = inode_file_plugin(object);
+ 
+ 	if (obj_plug->create_object == NULL) {
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return RETERR(-EPERM);
+ 	}
+@@ -636,7 +636,7 @@ static int do_create_vfs_child(reiser4_o
+ 		warning("nikita-432", "Cannot inherit from %llx to %llx",
+ 			(unsigned long long)get_inode_oid(parent),
+ 			(unsigned long long)get_inode_oid(object));
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return result;
+ 	}
+@@ -652,7 +652,7 @@ static int do_create_vfs_child(reiser4_o
+ 	/* obtain directory plugin (if any) for new object. */
+ 	obj_dir = inode_dir_plugin(object);
+ 	if (obj_dir != NULL && obj_dir->init == NULL) {
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return RETERR(-EPERM);
+ 	}
+@@ -661,7 +661,7 @@ static int do_create_vfs_child(reiser4_o
+ 
+ 	reserve = estimate_create_vfs_object(parent, object);
+ 	if (reiser4_grab_space(reserve, BA_CAN_COMMIT)) {
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return RETERR(-ENOSPC);
+ 	}
+@@ -692,7 +692,7 @@ static int do_create_vfs_child(reiser4_o
+ 			warning("nikita-2219",
+ 				"Failed to create sd for %llu",
+ 				(unsigned long long)get_inode_oid(object));
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		return result;
+ 	}
+@@ -735,7 +735,7 @@ static int do_create_vfs_child(reiser4_o
+ 	 */
+ 	reiser4_update_sd(object);
+ 	if (result != 0) {
+-		DQUOT_FREE_INODE(object);
++		vfs_dq_free_inode(object);
+ 		object->i_flags |= S_NOQUOTA;
+ 		/* if everything was ok (result == 0), parent stat-data is
+ 		 * already updated above (update_parent_dir()) */
+diff -puN fs/reiser4/plugin/item/cde.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/cde.c
+--- a/fs/reiser4/plugin/item/cde.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/item/cde.c
+@@ -932,7 +932,7 @@ int add_entry_cde(struct inode *dir /* d
+ 	data.length = estimate_cde(result ? coord : NULL, &data);
+ 
+ 	/* NOTE-NIKITA quota plugin? */
+-	if (DQUOT_ALLOC_SPACE_NODIRTY(dir, cde_bytes(result, &data)))
++	if (vfs_dq_alloc_space_nodirty(dir, cde_bytes(result, &data)))
+ 		return RETERR(-EDQUOT);
+ 
+ 	if (result)
+@@ -983,7 +983,7 @@ int rem_entry_cde(struct inode *dir /* d
+ 	    kill_node_content(coord, &shadow, NULL, NULL, NULL, NULL, NULL, 0);
+ 	if (result == 0) {
+ 		/* NOTE-NIKITA quota plugin? */
+-		DQUOT_FREE_SPACE_NODIRTY(dir, length);
++		vfs_dq_free_space_nodirty(dir, length);
+ 	}
+ 	return result;
+ }
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -260,8 +260,8 @@ static int append_last_extent(uf_coord_t
+ 
+ 	assert("", get_key_offset(key) == (loff_t)index_jnode(jnodes[0]) * PAGE_CACHE_SIZE);
+ 
+-	result = DQUOT_ALLOC_BLOCK_NODIRTY(mapping_jnode(jnodes[0])->host,
+-					   count);
++	result = vfs_dq_alloc_block_nodirty(mapping_jnode(jnodes[0])->host,
++					    count);
+ 	BUG_ON(result != 0);
+ 
+ 	switch (state_of_extent(ext)) {
+@@ -408,7 +408,8 @@ static int insert_first_extent(uf_coord_
+ 	if (count == 0)
+ 		return 0;
+ 
+-	result = DQUOT_ALLOC_BLOCK_NODIRTY(mapping_jnode(jnodes[0])->host, count);
++	result = vfs_dq_alloc_block_nodirty(mapping_jnode(jnodes[0])->host,
++					    count);
+ 	BUG_ON(result != 0);
+ 
+ 	/*
+@@ -622,7 +623,8 @@ static int overwrite_one_block(uf_coord_
+ 		break;
+ 
+ 	case HOLE_EXTENT:
+-		result = DQUOT_ALLOC_BLOCK_NODIRTY(mapping_jnode(node)->host, 1);
++		result = vfs_dq_alloc_block_nodirty(mapping_jnode(node)->host,
++						    1);
+ 		BUG_ON(result != 0);
+ 		result = plug_hole(uf_coord, key, &how);
+ 		if (result)
+diff -puN fs/reiser4/plugin/item/extent_item_ops.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/extent_item_ops.c
+--- a/fs/reiser4/plugin/item/extent_item_ops.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/item/extent_item_ops.c
+@@ -468,7 +468,7 @@ kill_hook_extent(const coord_t * coord, 
+ 			length = to_off - offset;
+ 		}
+ 
+-		DQUOT_FREE_BLOCK_NODIRTY(inode, length);
++		vfs_dq_free_block_nodirty(inode, length);
+ 
+ 		if (state_of_extent(ext) == UNALLOCATED_EXTENT) {
+ 			/* some jnodes corresponding to this unallocated extent */
+diff -puN fs/reiser4/plugin/item/sde.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/sde.c
+--- a/fs/reiser4/plugin/item/sde.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/item/sde.c
+@@ -120,7 +120,7 @@ int add_entry_de(struct inode *dir /* di
+ 	data.iplug = item_plugin_by_id(SIMPLE_DIR_ENTRY_ID);
+ 
+ 	/* NOTE-NIKITA quota plugin */
+-	if (DQUOT_ALLOC_SPACE_NODIRTY(dir, data.length))
++	if (vfs_dq_alloc_space_nodirty(dir, data.length))
+ 		return -EDQUOT;
+ 
+ 	result = insert_by_coord(coord, &data, &entry->key, lh, 0 /*flags */ );
+@@ -168,7 +168,7 @@ int rem_entry_de(struct inode *dir /* di
+ 	    kill_node_content(coord, &shadow, NULL, NULL, NULL, NULL, NULL, 0);
+ 	if (result == 0) {
+ 		/* NOTE-NIKITA quota plugin */
+-		DQUOT_FREE_SPACE_NODIRTY(dir, length);
++		vfs_dq_free_space_nodirty(dir, length);
+ 	}
+ 	return result;
+ }
+diff -puN fs/reiser4/plugin/item/tail.c~reiser4-update-names-of-quota-methods fs/reiser4/plugin/item/tail.c
+--- a/fs/reiser4/plugin/item/tail.c~reiser4-update-names-of-quota-methods
++++ a/fs/reiser4/plugin/item/tail.c
+@@ -494,11 +494,11 @@ static ssize_t insert_first_tail(struct 
+ 		 * were real data which are all zeros. Therefore we have to
+ 		 * allocate quota here as well
+ 		 */
+-		if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
++		if (vfs_dq_alloc_space_nodirty(inode, flow->length))
+ 			return RETERR(-EDQUOT);
+ 		result = reiser4_insert_flow(coord, lh, flow);
+ 		if (flow->length)
+-			DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
++			vfs_dq_free_space_nodirty(inode, flow->length);
+ 
+ 		uf_info = unix_file_inode_data(inode);
+ 
+@@ -518,13 +518,13 @@ static ssize_t insert_first_tail(struct 
+ 	}
+ 
+ 	/* check quota before appending data */
+-	if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
++	if (vfs_dq_alloc_space_nodirty(inode, flow->length))
+ 		return RETERR(-EDQUOT);
+ 
+ 	to_write = flow->length;
+ 	result = reiser4_insert_flow(coord, lh, flow);
+ 	if (flow->length)
+-		DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
++		vfs_dq_free_space_nodirty(inode, flow->length);
+ 	return (to_write - flow->length) ? (to_write - flow->length) : result;
+ }
+ 
+@@ -553,22 +553,22 @@ static ssize_t append_tail(struct inode 
+ 		 * were real data which are all zeros. Therefore we have to
+ 		 * allocate quota here as well
+ 		 */
+-		if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
++		if (vfs_dq_alloc_space_nodirty(inode, flow->length))
+ 			return RETERR(-EDQUOT);
+ 		result = reiser4_insert_flow(coord, lh, flow);
+ 		if (flow->length)
+-			DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
++			vfs_dq_free_space_nodirty(inode, flow->length);
+ 		return result;
+ 	}
+ 
+ 	/* check quota before appending data */
+-	if (DQUOT_ALLOC_SPACE_NODIRTY(inode, flow->length))
++	if (vfs_dq_alloc_space_nodirty(inode, flow->length))
+ 		return RETERR(-EDQUOT);
+ 
+ 	to_write = flow->length;
+ 	result = reiser4_insert_flow(coord, lh, flow);
+ 	if (flow->length)
+-		DQUOT_FREE_SPACE_NODIRTY(inode, flow->length);
++		vfs_dq_free_space_nodirty(inode, flow->length);
+ 	return (to_write - flow->length) ? (to_write - flow->length) : result;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-linux-next.patch
-percpu_counter-make-__percpu_counter_add-an-inline-function-on-up.patch
-sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-vmscan-get_scan_ratio-cleanup.patch
-mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
-mm-page_allocc-remove-duplicate-call-to-trace_mm_page_free_direct.patch
-mm-page_allocc-adjust-a-call-site-to-trace_mm_page_free_direct.patch
-mm-remove-function-free_hot_page.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-fix-mbind-vma-merge-problem.patch
-mm-fix-mbind-vma-merge-problem-fix.patch
-mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch
-mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups.patch
-rmap-remove-obsolete-check-from-__page_check_anon_rmap.patch
-rmap-move-exclusively-owned-pages-to-own-anon_vma-in-do_wp_page.patch
-mm-remove-vm_lock_rmap-code.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-memcg-move-charges-of-anonymous-swap-fix-2.patch
+vfs-improve-writeback_inodes_wb.patch
+vfs-add-super-operation-writeback_inodes.patch
+vfs-take-2add-set_page_dirty_notag.patch
 reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-update-names-of-quota-methods.patch
+reiser4-use-set_page_dirty_notag.patch
+fs-reiser4-add-parenths-around-x-y.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-rename-psched-to-dispatch.patch
+reiser4-drop-journal-info.patch
+reiser4-fix-compile-warnings.patch
+reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
+reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
+reiser4-some-changes-from-reiser4-2631-patch.patch
+reiser4-some-comments-were-still-mentioning-pdflush.patch
+reiser4-writeback_inodes-implementation.patch
+reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 
