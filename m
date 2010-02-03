@@ -1,58 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] da9030_battery-fix-spelling-in-comment.patch removed from -mm tree
-Date: Wed, 03 Feb 2010 09:55:26 -0800
-Message-ID: <201002031755.o13HtQsF008983@imap1.linux-foundation.org>
+Subject: [merged] get_maintainerpl-teach-git-log-to-use-no-color.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 09:54:55 -0800
+Message-ID: <201002031754.o13HstpZ008933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932806Ab0BCR6n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:58:43 -0500
+	by vger.kernel.org with ESMTP id S932806Ab0BCR6k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:58:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weil@mail.berlios.de, cbouatmailru@gmail.com, mike@compulab.co.il, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     da9030_battery: fix spelling in comment
+     get_maintainer.pl: teach git log to use --no-color
 has been removed from the -mm tree.  Its filename was
-     da9030_battery-fix-spelling-in-comment.patch
+     get_maintainerpl-teach-git-log-to-use-no-color.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: da9030_battery: fix spelling in comment
-From: Stefan Weil <weil@mail.berlios.de>
+Subject: get_maintainer.pl: teach git log to use --no-color
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-platfrom -> platform
-monotor -> monitor
+When git has been set to always use color in .gitconfig then I get the
+warning message
 
-Signed-off-by: Stefan Weil <weil@mail.berlios.de>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Acked-by: Mike Rapoport <mike@compulab.co.il>
+        Bad divisor in main::vcs_assign: 0
+
+This is caused by vcs_file_signoffs not matching any commits due to the
+pattern not understand the colour codes.  Fix this by telling git log to
+never use colour.
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/da9030_battery.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/get_maintainer.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/power/da9030_battery.c~da9030_battery-fix-spelling-in-comment drivers/power/da9030_battery.c
---- a/drivers/power/da9030_battery.c~da9030_battery-fix-spelling-in-comment
-+++ a/drivers/power/da9030_battery.c
-@@ -509,7 +509,7 @@ static int da9030_battery_probe(struct p
- 
- 	charger->master = pdev->dev.parent;
- 
--	/* 10 seconds between monotor runs unless platfrom defines other
-+	/* 10 seconds between monitor runs unless platform defines other
- 	   interval */
- 	charger->interval = msecs_to_jiffies(
- 		(pdata->batmon_interval ? : 10) * 1000);
+diff -puN scripts/get_maintainer.pl~get_maintainerpl-teach-git-log-to-use-no-color scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerpl-teach-git-log-to-use-no-color
++++ a/scripts/get_maintainer.pl
+@@ -74,8 +74,8 @@ my %VCS_cmds;
+ my %VCS_cmds_git = (
+     "execute_cmd" => \&git_execute_cmd,
+     "available" => '(which("git") ne "") && (-d ".git")',
+-    "find_signers_cmd" => "git log --since=\$email_git_since -- \$file",
+-    "find_commit_signers_cmd" => "git log -1 \$commit",
++    "find_signers_cmd" => "git log --no-color --since=\$email_git_since -- \$file",
++    "find_commit_signers_cmd" => "git log --no-color -1 \$commit",
+     "blame_range_cmd" => "git blame -l -L \$diff_start,+\$diff_length \$file",
+     "blame_file_cmd" => "git blame -l \$file",
+     "commit_pattern" => "^commit [0-9a-f]{40,40}",
 _
 
-Patches currently in -mm which might be from weil@mail.berlios.de are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
+origin.patch
 linux-next.patch
+cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch
 
