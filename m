@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-use-generic-ptrace_resume-code.patch added to -mm tree
-Date: Wed, 03 Feb 2010 14:08:49 -0800
-Message-ID: <201002032208.o13M8nbj022001@imap1.linux-foundation.org>
+Subject: + xtensa-use-generic-ptrace_resume-code.patch added to -mm tree
+Date: Wed, 03 Feb 2010 14:09:09 -0800
+Message-ID: <201002032209.o13M9A8i022027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47390 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33013 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753277Ab0BCWJq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:09:46 -0500
+	by vger.kernel.org with ESMTP id S1756254Ab0BCWJ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 17:09:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, hskinnemoen@atmel.com, oleg@redhat.com, roland@redhat.com
+Cc: hch@lst.de, chris@zankel.net, oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     avr32: use generic ptrace_resume code
+     xtensa: use generic ptrace_resume code
 has been added to the -mm tree.  Its filename is
-     avr32-use-generic-ptrace_resume-code.patch
+     xtensa-use-generic-ptrace_resume-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avr32: use generic ptrace_resume code
+Subject: xtensa: use generic ptrace_resume code
 From: Christoph Hellwig <hch@lst.de>
 
 Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
@@ -47,68 +47,58 @@ Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
 it previously wasn't which is consistent with all architectures using the
 modern ptrace code.
 
-Currently avr32 doesn't implement any code to disable single stepping when
-one of the non-syscall requests is called which seems wrong, but I've left
-it as-is for now.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/ptrace.h |    2 +
- arch/avr32/kernel/ptrace.c      |   53 +++---------------------------
- 2 files changed, 9 insertions(+), 46 deletions(-)
+ arch/xtensa/include/asm/ptrace.h |    1 
+ arch/xtensa/kernel/ptrace.c      |   56 +++++------------------------
+ 2 files changed, 12 insertions(+), 45 deletions(-)
 
-diff -puN arch/avr32/include/asm/ptrace.h~avr32-use-generic-ptrace_resume-code arch/avr32/include/asm/ptrace.h
---- a/arch/avr32/include/asm/ptrace.h~avr32-use-generic-ptrace_resume-code
-+++ a/arch/avr32/include/asm/ptrace.h
-@@ -124,6 +124,8 @@ struct pt_regs {
+diff -puN arch/xtensa/include/asm/ptrace.h~xtensa-use-generic-ptrace_resume-code arch/xtensa/include/asm/ptrace.h
+--- a/arch/xtensa/include/asm/ptrace.h~xtensa-use-generic-ptrace_resume-code
++++ a/arch/xtensa/include/asm/ptrace.h
+@@ -113,6 +113,7 @@ struct pt_regs {
  
- #include <asm/ocd.h>
+ #include <variant/core.h>
  
-+#define arch_has_single_step()		(1)
++# define arch_has_single_step()	(1)
+ # define task_pt_regs(tsk) ((struct pt_regs*) \
+   (task_stack_page(tsk) + KERNEL_STACK_SIZE - (XCHAL_NUM_AREGS-16)*4) - 1)
+ # define user_mode(regs) (((regs)->ps & 0x00000020)!=0)
+diff -puN arch/xtensa/kernel/ptrace.c~xtensa-use-generic-ptrace_resume-code arch/xtensa/kernel/ptrace.c
+--- a/arch/xtensa/kernel/ptrace.c~xtensa-use-generic-ptrace_resume-code
++++ a/arch/xtensa/kernel/ptrace.c
+@@ -30,6 +30,17 @@
+ #include <asm/elf.h>
+ #include <asm/coprocessor.h>
+ 
 +
- #define arch_ptrace_attach(child)       ocd_enable(child)
- 
- #define user_mode(regs)                 (((regs)->sr & MODE_MASK) == MODE_USER)
-diff -puN arch/avr32/kernel/ptrace.c~avr32-use-generic-ptrace_resume-code arch/avr32/kernel/ptrace.c
---- a/arch/avr32/kernel/ptrace.c~avr32-use-generic-ptrace_resume-code
-+++ a/arch/avr32/kernel/ptrace.c
-@@ -28,9 +28,9 @@ static struct pt_regs *get_user_regs(str
- 				  THREAD_SIZE - sizeof(struct pt_regs));
- }
- 
--static void ptrace_single_step(struct task_struct *tsk)
-+static void user_enable_single_step(struct task_struct *tsk)
- {
--	pr_debug("ptrace_single_step: pid=%u, PC=0x%08lx, SR=0x%08lx\n",
-+	pr_debug("user_enable_single_step: pid=%u, PC=0x%08lx, SR=0x%08lx\n",
- 		 tsk->pid, task_pt_regs(tsk)->pc, task_pt_regs(tsk)->sr);
- 
- 	/*
-@@ -49,6 +49,11 @@ static void ptrace_single_step(struct ta
- 	set_tsk_thread_flag(tsk, TIF_SINGLE_STEP);
- }
- 
++void user_enable_single_step(struct task_struct *child)
++{
++	child->ptrace |= PT_SINGLESTEP;
++}
++
 +void user_disable_single_step(struct task_struct *child)
 +{
-+	/* XXX(hch): a no-op here seems wrong.. */
++	child->ptrace &= ~PT_SINGLESTEP;
 +}
 +
  /*
-  * Called by kernel/ptrace.c when detaching
-  *
-@@ -167,50 +172,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = ptrace_write_user(child, addr, data);
+  * Called by kernel/ptrace.c when detaching to disable single stepping.
+  */
+@@ -268,51 +279,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = ptrace_pokeusr(child, addr, data);
  		break;
  
 -	/* continue and stop at next (return from) syscall */
+-
 -	case PTRACE_SYSCALL:
--	/* restart after signal */
--	case PTRACE_CONT:
+-	case PTRACE_CONT: /* restart after signal. */
+-	{
 -		ret = -EIO;
 -		if (!valid_signal(data))
 -			break;
@@ -117,40 +107,40 @@ diff -puN arch/avr32/kernel/ptrace.c~avr32-use-generic-ptrace_resume-code arch/a
 -		else
 -			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
 -		child->exit_code = data;
--		/* XXX: Are we sure no breakpoints are active here? */
+-		/* Make sure the single step bit is not set. */
+-		child->ptrace &= ~PT_SINGLESTEP;
 -		wake_up_process(child);
 -		ret = 0;
 -		break;
+-	}
 -
 -	/*
--	 * Make the child exit. Best I can do is send it a
--	 * SIGKILL. Perhaps it should be put in the status that it
--	 * wants to exit.
+-	 * make the child exit.  Best I can do is send it a sigkill.
+-	 * perhaps it should be put in the status that it wants to
+-	 * exit.
 -	 */
 -	case PTRACE_KILL:
 -		ret = 0;
--		if (child->exit_state == EXIT_ZOMBIE)
+-		if (child->exit_state == EXIT_ZOMBIE)	/* already dead */
 -			break;
 -		child->exit_code = SIGKILL;
+-		child->ptrace &= ~PT_SINGLESTEP;
 -		wake_up_process(child);
 -		break;
 -
--	/*
--	 * execute single instruction.
--	 */
 -	case PTRACE_SINGLESTEP:
 -		ret = -EIO;
 -		if (!valid_signal(data))
 -			break;
 -		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--		ptrace_single_step(child);
+-		child->ptrace |= PT_SINGLESTEP;
 -		child->exit_code = data;
 -		wake_up_process(child);
 -		ret = 0;
 -		break;
 -
  	case PTRACE_GETREGS:
- 		ret = ptrace_getregs(child, (void __user *)data);
+ 		ret = ptrace_getregs(child, (void __user *) data);
  		break;
 _
 
