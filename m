@@ -1,115 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch added to -mm tree
-Date: Wed, 03 Feb 2010 09:53:44 -0800
-Message-ID: <201002031753.o13HriPb008880@imap1.linux-foundation.org>
+Subject: [merged] rtc-fm3130-add-missing-braces.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 09:54:40 -0800
+Message-ID: <201002031754.o13HsePw008908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932768Ab0BCRy3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:54:29 -0500
+	by vger.kernel.org with ESMTP id S932761Ab0BCRzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 12:55:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com, mingo@elte.hu
+To: geomatsi@gmail.com, a.zummo@towertech.it, slapin@ossfans.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
-has been added to the -mm tree.  Its filename is
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+     rtc-fm3130: add missing braces
+has been removed from the -mm tree.  Its filename was
+     rtc-fm3130-add-missing-braces.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-fm3130: add missing braces
+From: Sergey Matyukevich <geomatsi@gmail.com>
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Add missing braces for multiline 'if' statements in fm3130_probe.
+
+Signed-off-by: Sergey Matyukevich <geomatsi@gmail.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Sergey Lapin <slapin@ossfans.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_cpupri.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-fm3130.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2 kernel/sched_cpupri.c
---- a/kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
-+++ a/kernel/sched_cpupri.c
-@@ -47,7 +47,7 @@ static int convert_prio(int prio)
- }
+diff -puN drivers/rtc/rtc-fm3130.c~rtc-fm3130-add-missing-braces drivers/rtc/rtc-fm3130.c
+--- a/drivers/rtc/rtc-fm3130.c~rtc-fm3130-add-missing-braces
++++ a/drivers/rtc/rtc-fm3130.c
+@@ -376,20 +376,22 @@ static int __devinit fm3130_probe(struct
+ 	}
  
- #define for_each_cpupri_active(array, idx)                    \
--	for_each_bit(idx, array, CPUPRI_NR_PRIORITIES)
-+	for_each_set_bit(idx, array, CPUPRI_NR_PRIORITIES)
+ 	/* Disabling calibration mode */
+-	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_CAL)
++	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_CAL) {
+ 		i2c_smbus_write_byte_data(client, FM3130_RTC_CONTROL,
+ 			fm3130->regs[FM3130_RTC_CONTROL] &
+ 				~(FM3130_RTC_CONTROL_BIT_CAL));
+ 		dev_warn(&client->dev, "Disabling calibration mode!\n");
++	}
  
- /**
-  * cpupri_find - find the best (lowest-pri) CPU in the system
+ 	/* Disabling read and write modes */
+ 	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_WRITE ||
+-	    fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_READ)
++	    fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_READ) {
+ 		i2c_smbus_write_byte_data(client, FM3130_RTC_CONTROL,
+ 			fm3130->regs[FM3130_RTC_CONTROL] &
+ 				~(FM3130_RTC_CONTROL_BIT_READ |
+ 					FM3130_RTC_CONTROL_BIT_WRITE));
+ 		dev_warn(&client->dev, "Disabling READ or WRITE mode!\n");
++	}
+ 
+ 	/* oscillator off?  turn it on, so clock can tick. */
+ 	if (fm3130->regs[FM3130_CAL_CONTROL] & FM3130_CAL_CONTROL_BIT_nOSCEN)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geomatsi@gmail.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
-drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
-drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
-drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-drivers-bluetooth-btusbc-add-tdk-corp-integrated-bluetooth-support.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-resources-introduce-generic-page_is_ram-fix.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
