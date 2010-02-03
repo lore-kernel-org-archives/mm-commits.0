@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-ia64-fix-continuation-line-formats.patch added to -mm tree
-Date: Wed, 03 Feb 2010 15:42:33 -0800
-Message-ID: <201002032342.o13NgXTs026709@imap1.linux-foundation.org>
+Subject: + drivers-net-davinci_emacc-fix-continuation-line-formats.patch added to -mm tree
+Date: Wed, 03 Feb 2010 15:42:39 -0800
+Message-ID: <201002032342.o13NgdCr026717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757898Ab0BCXml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:42:41 -0500
+	by vger.kernel.org with ESMTP id S1757932Ab0BCXmo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 18:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, tony.luck@intel.com
+Cc: joe@perches.com, chaithrika@ti.com, davem@davemloft.net, khilman@deeprootsystems.com, srk@ti.com
 
 
 The patch titled
-     arch/ia64: fix continuation line formats
+     drivers/net/davinci_emac.c: fix continuation line formats
 has been added to the -mm tree.  Its filename is
-     arch-ia64-fix-continuation-line-formats.patch
+     drivers-net-davinci_emacc-fix-continuation-line-formats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/ia64: fix continuation line formats
+Subject: drivers/net/davinci_emac.c: fix continuation line formats
 From: Joe Perches <joe@perches.com>
 
-String constants that are continued on subsequent lines with \ will cause
-spurios whitespace in the resulting output.
+String constants that are continued on subsequent lineswill cause spurios
+whitespace in the resulting output.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Chaithrika U S <chaithrika@ti.com>
+Cc: Sriramakrishnan <srk@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/mmio.c |    4 ++--
- arch/ia64/kvm/vcpu.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/davinci_emac.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/ia64/kvm/mmio.c~arch-ia64-fix-continuation-line-formats arch/ia64/kvm/mmio.c
---- a/arch/ia64/kvm/mmio.c~arch-ia64-fix-continuation-line-formats
-+++ a/arch/ia64/kvm/mmio.c
-@@ -316,8 +316,8 @@ void emulate_io_inst(struct kvm_vcpu *vc
- 		return;
- 	} else {
- 		inst_type = -1;
--		panic_vm(vcpu, "Unsupported MMIO access instruction! \
--				Bunld[0]=0x%lx, Bundle[1]=0x%lx\n",
-+		panic_vm(vcpu, "Unsupported MMIO access instruction! "
-+				"Bunld[0]=0x%lx, Bundle[1]=0x%lx\n",
- 				bundle.i64[0], bundle.i64[1]);
+diff -puN drivers/net/davinci_emac.c~drivers-net-davinci_emacc-fix-continuation-line-formats drivers/net/davinci_emac.c
+--- a/drivers/net/davinci_emac.c~drivers-net-davinci_emacc-fix-continuation-line-formats
++++ a/drivers/net/davinci_emac.c
+@@ -2683,8 +2683,7 @@ static int __devinit davinci_emac_probe(
+ 	priv->emac_base_phys = res->start + pdata->ctrl_reg_offset;
+ 	size = res->end - res->start + 1;
+ 	if (!request_mem_region(res->start, size, ndev->name)) {
+-		dev_err(emac_dev, "DaVinci EMAC: failed request_mem_region() \
+-					 for regs\n");
++		dev_err(emac_dev, "DaVinci EMAC: failed request_mem_region() for regs\n");
+ 		rc = -ENXIO;
+ 		goto probe_quit;
  	}
- 
-diff -puN arch/ia64/kvm/vcpu.c~arch-ia64-fix-continuation-line-formats arch/ia64/kvm/vcpu.c
---- a/arch/ia64/kvm/vcpu.c~arch-ia64-fix-continuation-line-formats
-+++ a/arch/ia64/kvm/vcpu.c
-@@ -1639,8 +1639,8 @@ void vcpu_set_psr(struct kvm_vcpu *vcpu,
- 	 * Otherwise panic
- 	 */
- 	if (val & (IA64_PSR_PK | IA64_PSR_IS | IA64_PSR_VM))
--		panic_vm(vcpu, "Only support guests with vpsr.pk =0 \
--				& vpsr.is=0\n");
-+		panic_vm(vcpu, "Only support guests with vpsr.pk =0 "
-+				"& vpsr.is=0\n");
- 
- 	/*
- 	 * For those IA64_PSR bits: id/da/dd/ss/ed/ia
 _
 
 Patches currently in -mm which might be from joe@perches.com are
