@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-clean-up-vm-related-variable-declarations-fix.patch added to -mm tree
-Date: Thu, 04 Feb 2010 10:58:46 -0800
-Message-ID: <201002041858.o14IwkpY015484@imap1.linux-foundation.org>
+Subject: + idr-revert-misallocation-bug-fix.patch added to -mm tree
+Date: Thu, 04 Feb 2010 11:00:43 -0800
+Message-ID: <201002041900.o14J0hPB015595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757839Ab0BDS6z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:58:55 -0500
+	by vger.kernel.org with ESMTP id S1757798Ab0BDTBZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 14:01:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rdunlap@xenotime.net, rientjes@google.com
+Cc: tj@kernel.org
 
 
 The patch titled
-     sysctl-clean-up-vm-related-variable-declarations-fix
+     idr: revert misallocation bug fix
 has been added to the -mm tree.  Its filename is
-     sysctl-clean-up-vm-related-variable-declarations-fix.patch
+     idr-revert-misallocation-bug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-clean-up-vm-related-variable-declarations-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: idr: revert misallocation bug fix
+From: Tejun Heo <tj@kernel.org>
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Commit 859ddf09743a8cc680af33f7259ccd0fd36bfe9d ("idr: fix a critical
+misallocation bug") tried to fix misallocation bug but broke full bit
+marking by not clearing pa[idp->layers] and also is causing X failures due
+to lookup failure in drm code.  The cause of the latter hasn't been found
+yet.  Revert the fix for now.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/idr.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations-fix mm/mmap.c
---- a/mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations-fix
-+++ a/mm/mmap.c
-@@ -87,7 +87,7 @@ int sysctl_overcommit_ratio = 50;	/* def
- int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
- struct percpu_counter vm_committed_as;
+diff -puN lib/idr.c~idr-revert-misallocation-bug-fix lib/idr.c
+--- a/lib/idr.c~idr-revert-misallocation-bug-fix
++++ a/lib/idr.c
+@@ -140,7 +140,8 @@ static int sub_alloc(struct idr *idp, in
+ 	id = *starting_id;
+  restart:
+ 	p = idp->top;
+-	l = p->layer;
++	l = idp->layers;
++	pa[l--] = NULL;
+ 	while (1) {
+ 		/*
+ 		 * We run around this while until we reach the leaf node...
+@@ -154,8 +155,8 @@ static int sub_alloc(struct idr *idp, in
+ 			oid = id;
+ 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
  
--#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
-+#if defined(HAVE_ARCH_PICK_MMAP_LAYOUT) && defined(CONFIG_SYSCTL)
- /* Used by each architecture's private code and sysctl. */
- int sysctl_legacy_va_layout;
- #endif
+-			/* did id go over the limit? */
+-			if (id >= (1 << (idp->layers * IDR_BITS))) {
++			/* if already at the top layer, we need to grow */
++			if (!(p = pa[l])) {
+ 				*starting_id = id;
+ 				return IDR_NEED_TO_GROW;
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
+idr-revert-misallocation-bug-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+ata-call-flush_dcache_page-around-pio-data-transfers-in-libata-affc.patch
+core-workqueue-return-on-workqueue-recursion.patch
 
