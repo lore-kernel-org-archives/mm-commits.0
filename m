@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-add-init-function-to-usermodehelper-fix.patch added to -mm tree
-Date: Wed, 03 Feb 2010 17:13:50 -0800
-Message-ID: <201002040139.o141dK44032186@imap1.linux-foundation.org>
+Subject: + mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix.patch added to -mm tree
+Date: Wed, 03 Feb 2010 17:17:34 -0800
+Message-ID: <201002040143.o141h4UN032403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932991Ab0BDBju (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 20:39:50 -0500
+	by vger.kernel.org with ESMTP id S932983Ab0BDBnX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 20:43:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nhorman@tuxdriver.com, oleg@redhat.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, kosaki.motohiro@jp.fujitsu.com, maximlevitsky@gmail.com, rjw@sisk.pl, sebott@linux.vnet.ibm.com
 
 
 The patch titled
-     kmod-add-init-function-to-usermodehelper-fix
+     mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix
 has been added to the -mm tree.  Its filename is
-     kmod-add-init-function-to-usermodehelper-fix.patch
+     mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kmod-add-init-function-to-usermodehelper-fix
+Subject: mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
+mm/built-in.o: In function `clear_gfp_allowed_mask':
+: undefined reference to `pm_mutex'
+mm/built-in.o: In function `set_gfp_allowed_mask':
+: undefined reference to `pm_mutex'
+make: *** [.tmp_vmlinux1] Error 1
 
-In file included from include/linux/module.h:13,
-                 from include/linux/crypto.h:21,
-                 from arch/x86/kernel/asm-offsets_64.c:8,
-                 from arch/x86/kernel/asm-offsets.c:4:
-include/linux/kmod.h:55: error: field 'work' has incomplete type
 
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kmod.h~kmod-add-init-function-to-usermodehelper-fix include/linux/kmod.h
---- a/include/linux/kmod.h~kmod-add-init-function-to-usermodehelper-fix
-+++ a/include/linux/kmod.h
-@@ -23,6 +23,7 @@
- #include <linux/stddef.h>
- #include <linux/errno.h>
- #include <linux/compiler.h>
-+#include <linux/workqueue.h>
+diff -puN mm/page_alloc.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix
++++ a/mm/page_alloc.c
+@@ -77,6 +77,7 @@ unsigned long totalreserve_pages __read_
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
  
- #define KMOD_PATH_LEN 256
++#ifdef CONFIG_PM
+ /*
+  * The following functions are used by the suspend/hibernate code to temporarily
+  * change gfp_allowed_mask in order to avoid using I/O during memory allocations
+@@ -85,7 +86,6 @@ gfp_t gfp_allowed_mask __read_mostly = G
+  * only be modified with pm_mutex held, unless the suspend/hibernate code is
+  * guaranteed not to run in parallel with that modification).
+  */
+-
+ void set_gfp_allowed_mask(gfp_t mask)
+ {
+ 	WARN_ON(!mutex_is_locked(&pm_mutex));
+@@ -100,6 +100,7 @@ gfp_t clear_gfp_allowed_mask(gfp_t mask)
+ 	gfp_allowed_mask &= ~mask;
+ 	return ret;
+ }
++#endif		/* CONFIG_PM */
  
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+ int pageblock_order __read_mostly;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +115,7 @@ mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
 memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
 include-linux-fsh-convert-fmode_-constants-to-hex.patch
 mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 uml-linec-avoid-null-pointer-dereference-simplify.patch
 resources-introduce-generic-page_is_ram-fix.patch
