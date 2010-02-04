@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fscache-object-listc-fix-warning-on-32-bit.patch added to -mm tree
-Date: Wed, 03 Feb 2010 18:17:19 -0800
-Message-ID: <201002040242.o142gnIN002653@imap1.linux-foundation.org>
+Subject: + arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch added to -mm tree
+Date: Wed, 03 Feb 2010 18:37:11 -0800
+Message-ID: <201002040302.o1432fSS003497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52174 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752368Ab0BDCnI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 21:43:08 -0500
+	by vger.kernel.org with ESMTP id S1752667Ab0BDDCu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 22:02:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     fs/fscache/object-list.c: fix warning on 32-bit
+     arch/arm/include/asm/elf.h: forward-declare the task-struct
 has been added to the -mm tree.  Its filename is
-     fs-fscache-object-listc-fix-warning-on-32-bit.patch
+     arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/fscache/object-list.c: fix warning on 32-bit
+Subject: arch/arm/include/asm/elf.h: forward-declare the task-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/fscache/object-list.c: In function 'fscache_objlist_lookup':
-fs/fscache/object-list.c:105: warning: cast to pointer from integer of different size                                                                           
+iop32x_defconfig:
 
-Cc: David Howells <dhowells@redhat.com>
+In file included from include/linux/elf.h:7,
+                 from kernel/elfcore.c:1:
+/usr/src/devel/arch/arm/include/asm/elf.h:101: warning: "struct task_struct" declared inside parameter list
+/usr/src/devel/arch/arm/include/asm/elf.h:101: warning: its scope is only this definition or declaration, which is probably not what you want
+
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/object-list.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/include/asm/elf.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/fscache/object-list.c~fs-fscache-object-listc-fix-warning-on-32-bit fs/fscache/object-list.c
---- a/fs/fscache/object-list.c~fs-fscache-object-listc-fix-warning-on-32-bit
-+++ a/fs/fscache/object-list.c
-@@ -102,7 +102,7 @@ static struct fscache_object *fscache_ob
- 	/* banners (can't represent line 0 by pos 0 as that would involve
- 	 * returning a NULL pointer) */
- 	if (pos == 0)
--		return (struct fscache_object *) ++(*_pos);
-+		return (struct fscache_object *)(long)++(*_pos);
- 	if (pos < 3)
- 		return (struct fscache_object *)pos;
+diff -puN arch/arm/include/asm/elf.h~arch-arm-include-asm-elfh-forward-declare-the-task-struct arch/arm/include/asm/elf.h
+--- a/arch/arm/include/asm/elf.h~arch-arm-include-asm-elfh-forward-declare-the-task-struct
++++ a/arch/arm/include/asm/elf.h
+@@ -9,6 +9,8 @@
+ #include <asm/ptrace.h>
+ #include <asm/user.h>
+ 
++struct task_struct;
++
+ typedef unsigned long elf_greg_t;
+ typedef unsigned long elf_freg_t[3];
  
 _
 
@@ -112,4 +116,5 @@ put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 notify_change-callers-must-hold-i_mutex.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 
