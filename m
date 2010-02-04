@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-agp-fix-agp_amd64_init-module-initialization-regression.patch added to -mm tree
-Date: Thu, 04 Feb 2010 10:12:53 -0800
-Message-ID: <201002041812.o14ICrHZ013238@imap1.linux-foundation.org>
+Subject: + hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 04 Feb 2010 10:22:14 -0800
+Message-ID: <201002041822.o14IMEG6013737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756717Ab0BDSNx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:13:53 -0500
+	by vger.kernel.org with ESMTP id S1757313Ab0BDSWo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:22:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, airlied@linux.ie, mingo@elte.hu, mitov@issp.bas.bg
+Cc: akpm@linux-foundation.org, hjk@linutronix.de, khali@linux-fr.org, sfking@fdwdc.com, w.sang@pengutronix.de
 
 
 The patch titled
-     x86/agp: fix agp_amd64_init module initialization regression
+     hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     x86-agp-fix-agp_amd64_init-module-initialization-regression.patch
+     hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/agp: fix agp_amd64_init module initialization regression
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes the regression introduced by commit
-42590a75019a50012f25a962246498dead428433 ("x86/agp: Fix agp_amd64_init and
-agp_amd64_cleanup").
+WARNING: struct dev_pm_ops should normally be const
+#387: FILE: drivers/hwmon/tmp102.c:300:
++static struct dev_pm_ops tmp102_dev_pm_ops = {
 
-The commit 61684ceaad4f65d1a9832c722f7bd5e7fc714de9 ("x86/agp: Fix
-agp_amd64_init regression") fixed the above regression but there is still
-a problem in the module initialization; when apg_amd64 is built as a
-module, the GART IOMMU is not still initialized.
+total: 0 errors, 1 warnings, 395 lines checked
 
-Reported-by: Marin Mitov <mitov@issp.bas.bg>
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Tested-by: Marin Mitov <mitov@issp.bas.bg>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dave Airlie <airlied@linux.ie>
+./patches/hwmon-driver-for-ti-tmp102-temperature-sensor.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Hans J. Koch <hjk@linutronix.de>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Steven King <sfking@fdwdc.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd64-agp.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/hwmon/tmp102.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/amd64-agp.c~x86-agp-fix-agp_amd64_init-module-initialization-regression drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~x86-agp-fix-agp_amd64_init-module-initialization-regression
-+++ a/drivers/char/agp/amd64-agp.c
-@@ -767,16 +767,19 @@ int __init agp_amd64_init(void)
+diff -puN drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes drivers/hwmon/tmp102.c
+--- a/drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes
++++ a/drivers/hwmon/tmp102.c
+@@ -297,7 +297,7 @@ static int tmp102_resume(struct device *
+ 	return 0;
+ }
  
- static int __init agp_amd64_mod_init(void)
- {
-+#ifndef MODULE
- 	if (gart_iommu_aperture)
- 		return agp_bridges_found ? 0 : -ENODEV;
+-static struct dev_pm_ops tmp102_dev_pm_ops = {
++static const struct dev_pm_ops tmp102_dev_pm_ops = {
+ 	.suspend	= tmp102_suspend,
+ 	.resume		= tmp102_resume,
+ };
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
+
