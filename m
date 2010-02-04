@@ -1,576 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-generic-percpu-instead-of-private-implementation.patch added to -mm tree
-Date: Wed, 03 Feb 2010 16:16:13 -0800
-Message-ID: <201002040016.o140GE7O028472@imap1.linux-foundation.org>
+Subject: [withdrawn] mm-add-lowmem-detection-logic-fix.patch removed from -mm tree
+Date: Wed, 03 Feb 2010 16:17:18 -0800
+Message-ID: <201002040017.o140HI7e028488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757989Ab0BDAQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 19:16:32 -0500
+	by vger.kernel.org with ESMTP id S1757990Ab0BDARV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 19:17:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: use generic percpu instead of private implementation
-has been added to the -mm tree.  Its filename is
-     memcg-use-generic-percpu-instead-of-private-implementation.patch
+     mm-add-lowmem-detection-logic-fix
+has been removed from the -mm tree.  Its filename was
+     mm-add-lowmem-detection-logic-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use generic percpu instead of private implementation
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-add-lowmem-detection-logic-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When per-cpu counter for memcg was implemneted, dynamic percpu allocator
-was not very good.  But now, we have good one and useful macros.  This
-patch replaces memcg's private percpu counter implementation with generic
-dynamic percpu allocator.
+improve printk text
 
-The benefits are
-	- We can remove private implementation.
-	- The counters will be NUMA-aware. (Current one is not...)
-	- This patch makes sizeof struct mem_cgroup smaller. Then,
-	  struct mem_cgroup may be fit in page size on small config.
-        - About basic performance aspects, see below.
-
- [Before]
- # size mm/memcontrol.o
-   text    data     bss     dec     hex filename
-  24373    2528    4132   31033    7939 mm/memcontrol.o
-
- [page-fault-throuput test on 8cpu/SMP in root cgroup]
- # /root/bin/perf stat -a -e page-faults,cache-misses --repeat 5 ./multi-fault-fork 8
-
- Performance counter stats for './multi-fault-fork 8' (5 runs):
-
-       45878618  page-faults                ( +-   0.110% )
-      602635826  cache-misses               ( +-   0.105% )
-
-   61.005373262  seconds time elapsed   ( +-   0.004% )
-
- Then cache-miss/page fault = 13.14
-
- [After]
- #size mm/memcontrol.o
-   text    data     bss     dec     hex filename
-  23913    2528    4132   30573    776d mm/memcontrol.o
- # /root/bin/perf stat -a -e page-faults,cache-misses --repeat 5 ./multi-fault-fork 8
-
- Performance counter stats for './multi-fault-fork 8' (5 runs):
-
-       48179400  page-faults                ( +-   0.271% )
-      588628407  cache-misses               ( +-   0.136% )
-
-   61.004615021  seconds time elapsed   ( +-   0.004% )
-
-  Then cache-miss/page fault = 12.22
-
- Text size is reduced.
- This performance improvement is not big and will be invisible in real world
- applications. But this result shows this patch has some good effect even
- on (small) SMP.
-
-
-Here is a test program I used.
-
- 1. fork() processes on each cpus.
- 2. do page fault repeatedly on each process.
- 3. after 60secs, kill all childredn and exit.
-
-(3 is necessary for getting stable data, this is improvement from previous one.)
-
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <sched.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdlib.h>
-
-/*
- * For avoiding contention in page table lock, FAULT area is
- * sparse. If FAULT_LENGTH is too large for your cpus, decrease it.
- */
-#define FAULT_LENGTH	(2 * 1024 * 1024)
-#define PAGE_SIZE	4096
-#define MAXNUM		(128)
-
-void alarm_handler(int sig)
-{
-}
-
-void *worker(int cpu, int ppid)
-{
-	void *start, *end;
-	char *c;
-	cpu_set_t set;
-	int i;
-
-	CPU_ZERO(&set);
-	CPU_SET(cpu, &set);
-	sched_setaffinity(0, sizeof(set), &set);
-
-	start = mmap(NULL, FAULT_LENGTH, PROT_READ|PROT_WRITE,
-			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	if (start == MAP_FAILED) {
-		perror("mmap");
-		exit(1);
-	}
-	end = start + FAULT_LENGTH;
-
-	pause();
-	//fprintf(stderr, "run%d", cpu);
-	while (1) {
-		for (c = (char*)start; (void *)c < end; c += PAGE_SIZE)
-			*c = 0;
-		madvise(start, FAULT_LENGTH, MADV_DONTNEED);
-	}
-	return NULL;
-}
-
-int main(int argc, char *argv[])
-{
-	int num, i, ret, pid, status;
-	int pids[MAXNUM];
-
-	if (argc < 2)
-		return 0;
-
-	setpgid(0, 0);
-	signal(SIGALRM, alarm_handler);
-	num = atoi(argv[1]);	
-	pid = getpid();
-
-	for (i = 0; i < num; ++i) {
-		ret = fork();
-		if (!ret) {
-			worker(i, pid);
-			exit(0);
-		}
-		pids[i] = ret;
-	}
-	sleep(1);
-	kill(-pid, SIGALRM);
-	sleep(60);
-	for (i = 0; i < num; i++)
-		kill(pids[i], SIGKILL);
-	for (i = 0; i < num; i++)
-		waitpid(pids[i], &status, 0);
-	return 0;
-}
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  184 +++++++++++++++-------------------------------
- 1 file changed, 63 insertions(+), 121 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-use-generic-percpu-instead-of-private-implementation mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-generic-percpu-instead-of-private-implementation
-+++ a/mm/memcontrol.c
-@@ -89,54 +89,8 @@ enum mem_cgroup_stat_index {
- 
- struct mem_cgroup_stat_cpu {
- 	s64 count[MEM_CGROUP_STAT_NSTATS];
--} ____cacheline_aligned_in_smp;
--
--struct mem_cgroup_stat {
--	struct mem_cgroup_stat_cpu cpustat[0];
- };
- 
--static inline void
--__mem_cgroup_stat_set_safe(struct mem_cgroup_stat_cpu *stat,
--				enum mem_cgroup_stat_index idx, s64 val)
--{
--	stat->count[idx] = val;
--}
--
--static inline s64
--__mem_cgroup_stat_read_local(struct mem_cgroup_stat_cpu *stat,
--				enum mem_cgroup_stat_index idx)
--{
--	return stat->count[idx];
--}
--
--/*
-- * For accounting under irq disable, no need for increment preempt count.
-- */
--static inline void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat_cpu *stat,
--		enum mem_cgroup_stat_index idx, int val)
--{
--	stat->count[idx] += val;
--}
--
--static s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
--		enum mem_cgroup_stat_index idx)
--{
--	int cpu;
--	s64 ret = 0;
--	for_each_possible_cpu(cpu)
--		ret += stat->cpustat[cpu].count[idx];
--	return ret;
--}
--
--static s64 mem_cgroup_local_usage(struct mem_cgroup_stat *stat)
--{
--	s64 ret;
--
--	ret = mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_CACHE);
--	ret += mem_cgroup_read_stat(stat, MEM_CGROUP_STAT_RSS);
--	return ret;
--}
--
- /*
-  * per-zone information in memory controller.
-  */
-@@ -270,9 +224,9 @@ struct mem_cgroup {
- 	unsigned long 	move_charge_at_immigrate;
- 
- 	/*
--	 * statistics. This must be placed at the end of memcg.
-+	 * percpu counter.
- 	 */
--	struct mem_cgroup_stat stat;
-+	struct mem_cgroup_stat_cpu *stat;
- };
- 
- /* Stuffs for move charges at task migration. */
-@@ -441,19 +395,14 @@ mem_cgroup_remove_exceeded(struct mem_cg
- static bool mem_cgroup_soft_limit_check(struct mem_cgroup *mem)
- {
- 	bool ret = false;
--	int cpu;
- 	s64 val;
--	struct mem_cgroup_stat_cpu *cpustat;
- 
--	cpu = get_cpu();
--	cpustat = &mem->stat.cpustat[cpu];
--	val = __mem_cgroup_stat_read_local(cpustat, MEM_CGROUP_STAT_SOFTLIMIT);
-+	val = this_cpu_read(mem->stat->count[MEM_CGROUP_STAT_SOFTLIMIT]);
- 	if (unlikely(val < 0)) {
--		__mem_cgroup_stat_set_safe(cpustat, MEM_CGROUP_STAT_SOFTLIMIT,
-+		this_cpu_write(mem->stat->count[MEM_CGROUP_STAT_SOFTLIMIT],
- 				SOFTLIMIT_EVENTS_THRESH);
- 		ret = true;
- 	}
--	put_cpu();
- 	return ret;
- }
- 
-@@ -549,17 +498,31 @@ mem_cgroup_largest_soft_limit_node(struc
- 	return mz;
- }
- 
-+static s64 mem_cgroup_read_stat(struct mem_cgroup *mem,
-+		enum mem_cgroup_stat_index idx)
-+{
-+	int cpu;
-+	s64 val = 0;
-+
-+	for_each_possible_cpu(cpu)
-+		val += per_cpu(mem->stat->count[idx], cpu);
-+	return val;
-+}
-+
-+static s64 mem_cgroup_local_usage(struct mem_cgroup *mem)
-+{
-+	s64 ret;
-+
-+	ret = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_RSS);
-+	ret += mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_CACHE);
-+	return ret;
-+}
-+
- static void mem_cgroup_swap_statistics(struct mem_cgroup *mem,
- 					 bool charge)
- {
- 	int val = (charge) ? 1 : -1;
--	struct mem_cgroup_stat *stat = &mem->stat;
--	struct mem_cgroup_stat_cpu *cpustat;
--	int cpu = get_cpu();
--
--	cpustat = &stat->cpustat[cpu];
--	__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_SWAPOUT, val);
--	put_cpu();
-+	this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
- }
- 
- static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
-@@ -567,26 +530,22 @@ static void mem_cgroup_charge_statistics
- 					 bool charge)
- {
- 	int val = (charge) ? 1 : -1;
--	struct mem_cgroup_stat *stat = &mem->stat;
--	struct mem_cgroup_stat_cpu *cpustat;
--	int cpu = get_cpu();
- 
--	cpustat = &stat->cpustat[cpu];
-+	preempt_disable();
-+
- 	if (PageCgroupCache(pc))
--		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_CACHE, val);
-+		__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_CACHE], val);
+diff -puN mm/page_alloc.c~mm-add-lowmem-detection-logic-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-lowmem-detection-logic-fix
++++ a/mm/page_alloc.c
+@@ -2886,7 +2886,8 @@ void build_all_zonelists(void)
+ 		printk("LOWMEM zone is detected as %s\n",
+ 			zone_names[lowmem_zone]);
  	else
--		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_RSS, val);
-+		__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_RSS], val);
+-		printk("There are no special LOWMEM. The system seems flat\n");
++		printk("There are no special LOWMEM zones.  "
++			"The system seems flat\n");
  
- 	if (charge)
--		__mem_cgroup_stat_add_safe(cpustat,
--				MEM_CGROUP_STAT_PGPGIN_COUNT, 1);
-+		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGIN_COUNT]);
- 	else
--		__mem_cgroup_stat_add_safe(cpustat,
--				MEM_CGROUP_STAT_PGPGOUT_COUNT, 1);
--	__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_SOFTLIMIT, -1);
--	__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_THRESHOLDS, -1);
-+		__this_cpu_inc(mem->stat->count[MEM_CGROUP_STAT_PGPGOUT_COUNT]);
-+	__this_cpu_dec(mem->stat->count[MEM_CGROUP_STAT_SOFTLIMIT]);
-+	__this_cpu_dec(mem->stat->count[MEM_CGROUP_STAT_THRESHOLDS]);
- 
--	put_cpu();
-+	preempt_enable();
- }
- 
- static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
-@@ -1244,7 +1203,7 @@ static int mem_cgroup_hierarchical_recla
- 				}
- 			}
- 		}
--		if (!mem_cgroup_local_usage(&victim->stat)) {
-+		if (!mem_cgroup_local_usage(victim)) {
- 			/* this cgroup's local usage == 0 */
- 			css_put(&victim->css);
- 			continue;
-@@ -1310,9 +1269,6 @@ static void record_last_oom(struct mem_c
- void mem_cgroup_update_file_mapped(struct page *page, int val)
- {
- 	struct mem_cgroup *mem;
--	struct mem_cgroup_stat *stat;
--	struct mem_cgroup_stat_cpu *cpustat;
--	int cpu;
- 	struct page_cgroup *pc;
- 
- 	pc = lookup_page_cgroup(page);
-@@ -1328,13 +1284,10 @@ void mem_cgroup_update_file_mapped(struc
- 		goto done;
- 
- 	/*
--	 * Preemption is already disabled, we don't need get_cpu()
-+	 * Preemption is already disabled. We can use __this_cpu_xxx
- 	 */
--	cpu = smp_processor_id();
--	stat = &mem->stat;
--	cpustat = &stat->cpustat[cpu];
-+	__this_cpu_add(mem->stat->count[MEM_CGROUP_STAT_FILE_MAPPED], val);
- 
--	__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_FILE_MAPPED, val);
- done:
- 	unlock_page_cgroup(pc);
- }
-@@ -1761,9 +1714,6 @@ static void __mem_cgroup_move_account(st
- 	struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge)
- {
- 	struct page *page;
--	int cpu;
--	struct mem_cgroup_stat *stat;
--	struct mem_cgroup_stat_cpu *cpustat;
- 
- 	VM_BUG_ON(from == to);
- 	VM_BUG_ON(PageLRU(pc->page));
-@@ -1773,18 +1723,11 @@ static void __mem_cgroup_move_account(st
- 
- 	page = pc->page;
- 	if (page_mapped(page) && !PageAnon(page)) {
--		cpu = smp_processor_id();
--		/* Update mapped_file data for mem_cgroup "from" */
--		stat = &from->stat;
--		cpustat = &stat->cpustat[cpu];
--		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_FILE_MAPPED,
--						-1);
--
--		/* Update mapped_file data for mem_cgroup "to" */
--		stat = &to->stat;
--		cpustat = &stat->cpustat[cpu];
--		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_FILE_MAPPED,
--						1);
-+		/* Update mapped_file data for mem_cgroup */
-+		preempt_disable();
-+		__this_cpu_dec(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
-+		__this_cpu_inc(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
-+		preempt_enable();
- 	}
- 	mem_cgroup_charge_statistics(from, pc, false);
- 	if (uncharge)
-@@ -2885,7 +2828,7 @@ static int
- mem_cgroup_get_idx_stat(struct mem_cgroup *mem, void *data)
- {
- 	struct mem_cgroup_idx_data *d = data;
--	d->val += mem_cgroup_read_stat(&mem->stat, d->idx);
-+	d->val += mem_cgroup_read_stat(mem, d->idx);
- 	return 0;
- }
- 
-@@ -3126,18 +3069,18 @@ static int mem_cgroup_get_local_stat(str
- 	s64 val;
- 
- 	/* per cpu stat */
--	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_CACHE);
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_CACHE);
- 	s->stat[MCS_CACHE] += val * PAGE_SIZE;
--	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_RSS);
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_RSS);
- 	s->stat[MCS_RSS] += val * PAGE_SIZE;
--	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_FILE_MAPPED);
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_FILE_MAPPED);
- 	s->stat[MCS_FILE_MAPPED] += val * PAGE_SIZE;
--	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_PGPGIN_COUNT);
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_PGPGIN_COUNT);
- 	s->stat[MCS_PGPGIN] += val;
--	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_PGPGOUT_COUNT);
-+	val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_PGPGOUT_COUNT);
- 	s->stat[MCS_PGPGOUT] += val;
- 	if (do_swap_account) {
--		val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_SWAPOUT);
-+		val = mem_cgroup_read_stat(mem, MEM_CGROUP_STAT_SWAPOUT);
- 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
- 	}
- 
-@@ -3268,19 +3211,14 @@ static int mem_cgroup_swappiness_write(s
- static bool mem_cgroup_threshold_check(struct mem_cgroup *mem)
- {
- 	bool ret = false;
--	int cpu;
- 	s64 val;
--	struct mem_cgroup_stat_cpu *cpustat;
- 
--	cpu = get_cpu();
--	cpustat = &mem->stat.cpustat[cpu];
--	val = __mem_cgroup_stat_read_local(cpustat, MEM_CGROUP_STAT_THRESHOLDS);
-+	val = this_cpu_read(mem->stat->count[MEM_CGROUP_STAT_THRESHOLDS]);
- 	if (unlikely(val < 0)) {
--		__mem_cgroup_stat_set_safe(cpustat, MEM_CGROUP_STAT_THRESHOLDS,
-+		this_cpu_write(mem->stat->count[MEM_CGROUP_STAT_THRESHOLDS],
- 				THRESHOLDS_EVENTS_THRESH);
- 		ret = true;
- 	}
--	put_cpu();
- 	return ret;
- }
- 
-@@ -3668,17 +3606,12 @@ static void free_mem_cgroup_per_zone_inf
- 	kfree(mem->info.nodeinfo[node]);
- }
- 
--static int mem_cgroup_size(void)
--{
--	int cpustat_size = nr_cpu_ids * sizeof(struct mem_cgroup_stat_cpu);
--	return sizeof(struct mem_cgroup) + cpustat_size;
--}
--
- static struct mem_cgroup *mem_cgroup_alloc(void)
- {
- 	struct mem_cgroup *mem;
--	int size = mem_cgroup_size();
-+	int size = sizeof(struct mem_cgroup);
- 
-+	/* Can be very big if MAX_NUMNODES is very big */
- 	if (size < PAGE_SIZE)
- 		mem = kmalloc(size, GFP_KERNEL);
- 	else
-@@ -3686,6 +3619,14 @@ static struct mem_cgroup *mem_cgroup_all
- 
- 	if (mem)
- 		memset(mem, 0, size);
-+	mem->stat = alloc_percpu(struct mem_cgroup_stat_cpu);
-+	if (!mem->stat) {
-+		if (size < PAGE_SIZE)
-+			kfree(mem);
-+		else
-+			vfree(mem);
-+		mem = NULL;
-+	}
- 	return mem;
- }
- 
-@@ -3710,7 +3651,8 @@ static void __mem_cgroup_free(struct mem
- 	for_each_node_state(node, N_POSSIBLE)
- 		free_mem_cgroup_per_zone_info(mem, node);
- 
--	if (mem_cgroup_size() < PAGE_SIZE)
-+	free_percpu(mem->stat);
-+	if (sizeof(struct mem_cgroup) < PAGE_SIZE)
- 		kfree(mem);
- 	else
- 		vfree(mem);
+ #ifdef CONFIG_NUMA
+ 	printk("Policy zone: %s\n", zone_names[policy_zone]);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
+drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
+drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
 mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage.patch
 mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic.patch
 mm-add-lowmem-detection-logic-fix.patch
-vmscan-get_scan_ratio-cleanup.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
-nodemaskh-remove-macro-any_online_node.patch
-resources-introduce-generic-page_is_ram.patch
-x86-remove-bios-data-range-from-e820.patch
-x86-use-the-generic-page_is_ram.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-loading-interface-fix.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-blkio-subsystem-as-module.patch
-cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+resources-introduce-generic-page_is_ram-fix.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
-memcg-use-generic-percpu-instead-of-private-implementation.patch
-sysctl-clean-up-vm-related-variable-declarations.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
