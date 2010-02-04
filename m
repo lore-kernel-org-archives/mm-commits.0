@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-interrupt-handlers-for-8bit-wakeup-and-click-events.patch added to -mm tree
-Date: Thu, 04 Feb 2010 10:56:20 -0800
-Message-ID: <201002041856.o14IuKPB015392@imap1.linux-foundation.org>
+Subject: + sysctl-clean-up-vm-related-variable-declarations-fix.patch added to -mm tree
+Date: Thu, 04 Feb 2010 10:58:46 -0800
+Message-ID: <201002041858.o14IwkpY015484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757747Ab0BDS5D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:57:03 -0500
+	by vger.kernel.org with ESMTP id S1757839Ab0BDS6z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:58:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rdunlap@xenotime.net, rientjes@google.com
 
 
 The patch titled
-     lis3: interrupt handlers for 8bit wakeup and click events
+     sysctl-clean-up-vm-related-variable-declarations-fix
 has been added to the -mm tree.  Its filename is
-     lis3-interrupt-handlers-for-8bit-wakeup-and-click-events.patch
+     sysctl-clean-up-vm-related-variable-declarations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,205 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: interrupt handlers for 8bit wakeup and click events
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: sysctl-clean-up-vm-related-variable-declarations-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Content for the 8bit device threaded interrupt handlers.  Depending on the
-interrupt line and chip configuration, either click or wakeup / freefall
-handler is called.  In case of click, BTN_ event is sent via input device.
- In case of wakeup or freefall, input device ABS_ events are updated
-immediatelly.
-
-It is still possible to configure interrupt line 1 for fast freefall
-detection and use the second line either for click or threshold based
-interrupts.  Or both lines can be used for click / threshold interrupts.
-
-Polled input device can be set to stopped state and still get coordinate
-updates via input device using interrupt based method.  Polled mode and
-interrupt mode can also be used parallel.
-
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   90 ++++++++++++++++++++++++++++++------
- include/linux/lis3lv02d.h |    2 
- 2 files changed, 79 insertions(+), 13 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -121,11 +121,9 @@ static void lis3lv02d_get_xyz(struct lis
- 	int position[3];
- 	int i;
+diff -puN mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations-fix mm/mmap.c
+--- a/mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations-fix
++++ a/mm/mmap.c
+@@ -87,7 +87,7 @@ int sysctl_overcommit_ratio = 50;	/* def
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
+ struct percpu_counter vm_committed_as;
  
--	mutex_lock(&lis3->mutex);
- 	position[0] = lis3->read_data(lis3, OUTX);
- 	position[1] = lis3->read_data(lis3, OUTY);
- 	position[2] = lis3->read_data(lis3, OUTZ);
--	mutex_unlock(&lis3->mutex);
- 
- 	for (i = 0; i < 3; i++)
- 		position[i] = (position[i] * lis3->scale) / LIS3_ACCURACY;
-@@ -274,6 +272,19 @@ static void lis3lv02d_joystick_close(str
- 	lis3lv02d_remove_users(&lis3_dev);
- }
- 
-+static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
-+{
-+	int x, y, z;
-+
-+	mutex_lock(&lis3_dev.mutex);
-+	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
-+	input_report_abs(pidev->input, ABS_X, x);
-+	input_report_abs(pidev->input, ABS_Y, y);
-+	input_report_abs(pidev->input, ABS_Z, z);
-+	input_sync(pidev->input);
-+	mutex_unlock(&lis3_dev.mutex);
-+}
-+
- static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
- {
- 	if (!test_bit(0, &lis3_dev.misc_opened))
-@@ -295,13 +306,71 @@ out:
- 	return IRQ_HANDLED;
- }
- 
-+static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
-+{
-+	struct input_dev *dev = lis3->idev->input;
-+	u8 click_src;
-+
-+	mutex_lock(&lis3->mutex);
-+	lis3->read(lis3, CLICK_SRC, &click_src);
-+
-+	if (click_src & CLICK_SINGLE_X) {
-+		input_report_key(dev, BTN_X, 1);
-+		input_report_key(dev, BTN_X, 0);
-+	}
-+
-+	if (click_src & CLICK_SINGLE_Y) {
-+		input_report_key(dev, BTN_Y, 1);
-+		input_report_key(dev, BTN_Y, 0);
-+	}
-+
-+	if (click_src & CLICK_SINGLE_Z) {
-+		input_report_key(dev, BTN_Z, 1);
-+		input_report_key(dev, BTN_Z, 0);
-+	}
-+	input_sync(dev);
-+	mutex_unlock(&lis3->mutex);
-+}
-+
-+static void lis302dl_interrupt_handle_ff_wu(struct lis3lv02d *lis3)
-+{
-+	u8 wu1_src;
-+	u8 wu2_src;
-+
-+	lis3->read(lis3, FF_WU_SRC_1, &wu1_src);
-+	lis3->read(lis3, FF_WU_SRC_2, &wu2_src);
-+
-+	wu1_src = wu1_src & FF_WU_SRC_IA ? wu1_src : 0;
-+	wu2_src = wu2_src & FF_WU_SRC_IA ? wu2_src : 0;
-+
-+	/* joystick poll is internally protected by the lis3->mutex. */
-+	if (wu1_src || wu2_src)
-+		lis3lv02d_joystick_poll(lis3_dev.idev);
-+}
-+
- static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
- {
-+
-+	struct lis3lv02d *lis3 = data;
-+
-+	if ((lis3->pdata->irq_cfg & LIS3_IRQ1_MASK) == LIS3_IRQ1_CLICK)
-+		lis302dl_interrupt_handle_click(lis3);
-+	else
-+		lis302dl_interrupt_handle_ff_wu(lis3);
-+
- 	return IRQ_HANDLED;
- }
- 
- static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
- {
-+
-+	struct lis3lv02d *lis3 = data;
-+
-+	if ((lis3->pdata->irq_cfg & LIS3_IRQ2_MASK) == LIS3_IRQ2_CLICK)
-+		lis302dl_interrupt_handle_click(lis3);
-+	else
-+		lis302dl_interrupt_handle_ff_wu(lis3);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -401,17 +470,6 @@ static struct miscdevice lis3lv02d_misc_
- 	.fops    = &lis3lv02d_misc_fops,
- };
- 
--static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
--{
--	int x, y, z;
--
--	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
--	input_report_abs(pidev->input, ABS_X, x);
--	input_report_abs(pidev->input, ABS_Y, y);
--	input_report_abs(pidev->input, ABS_Z, z);
--	input_sync(pidev->input);
--}
--
- int lis3lv02d_joystick_enable(void)
- {
- 	struct input_dev *input_dev;
-@@ -445,6 +503,10 @@ int lis3lv02d_joystick_enable(void)
- 	input_set_abs_params(input_dev, ABS_Y, -max_val, max_val, fuzz, flat);
- 	input_set_abs_params(input_dev, ABS_Z, -max_val, max_val, fuzz, flat);
- 
-+	input_set_capability(input_dev, EV_KEY, BTN_X);
-+	input_set_capability(input_dev, EV_KEY, BTN_Y);
-+	input_set_capability(input_dev, EV_KEY, BTN_Z);
-+
- 	err = input_register_polled_device(lis3_dev.idev);
- 	if (err) {
- 		input_free_polled_device(lis3_dev.idev);
-@@ -493,7 +555,9 @@ static ssize_t lis3lv02d_position_show(s
- 	if (lis3_dev.active == 0)
- 		return -ENODATA;
- 
-+	mutex_lock(&lis3_dev.mutex);
- 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
-+	mutex_unlock(&lis3_dev.mutex);
- 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
- }
- 
-diff -puN include/linux/lis3lv02d.h~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events include/linux/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events
-+++ a/include/linux/lis3lv02d.h
-@@ -25,12 +25,14 @@ struct lis3lv02d_platform_data {
- #define LIS3_IRQ1_FF_WU_12	(3 << 0)
- #define LIS3_IRQ1_DATA_READY	(4 << 0)
- #define LIS3_IRQ1_CLICK		(7 << 0)
-+#define LIS3_IRQ1_MASK		(7 << 0)
- #define LIS3_IRQ2_DISABLE	(0 << 3)
- #define LIS3_IRQ2_FF_WU_1	(1 << 3)
- #define LIS3_IRQ2_FF_WU_2	(2 << 3)
- #define LIS3_IRQ2_FF_WU_12	(3 << 3)
- #define LIS3_IRQ2_DATA_READY	(4 << 3)
- #define LIS3_IRQ2_CLICK		(7 << 3)
-+#define LIS3_IRQ2_MASK		(7 << 3)
- #define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
- #define LIS3_IRQ_ACTIVE_LOW	(1 << 7)
- 	unsigned char irq_cfg;
+-#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
++#if defined(HAVE_ARCH_PICK_MMAP_LAYOUT) && defined(CONFIG_SYSCTL)
+ /* Used by each architecture's private code and sysctl. */
+ int sysctl_legacy_va_layout;
+ #endif
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lis3-add-missing-constants-for-8bit-device.patch
-lis3-separate-configuration-function-for-8-bit-device.patch
-lis3-introduce-platform-data-for-second-ff-wu-unit.patch
-lis3-power-control-for-the-chip.patch
-lis3-add-skeletons-for-interrupt-handlers.patch
-lis3-interrupt-handlers-for-8bit-wakeup-and-click-events.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume-rev-3-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
