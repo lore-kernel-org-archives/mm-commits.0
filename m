@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-mpc85xx-mask-ecc-syndrome-correctly.patch added to -mm tree
-Date: Thu, 04 Feb 2010 10:43:48 -0800
-Message-ID: <201002041843.o14Ihm83014783@imap1.linux-foundation.org>
+Subject: + lis3-separate-configuration-function-for-8-bit-device.patch added to -mm tree
+Date: Thu, 04 Feb 2010 10:54:20 -0800
+Message-ID: <201002041854.o14IsK3O015248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757441Ab0BDSnx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:43:53 -0500
+	by vger.kernel.org with ESMTP id S1757877Ab0BDSzF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ptyser@xes-inc.com, djiang@mvista.com, dougthompson@xmission.com, galak@gate.crashing.org
+Cc: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     edac: mpc85xx mask ecc syndrome correctly
+     lis3: separate configuration function for 8 bit device
 has been added to the -mm tree.  Its filename is
-     edac-mpc85xx-mask-ecc-syndrome-correctly.patch
+     lis3-separate-configuration-function-for-8-bit-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: mpc85xx mask ecc syndrome correctly
-From: Peter Tyser <ptyser@xes-inc.com>
+Subject: lis3: separate configuration function for 8 bit device
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-With a 64-bit wide data bus only the lowest 8-bits of the ECC syndrome are
-relevant.  With a 32-bit wide data bus only the lowest 16-bits are
-relevant on most architectures.
+Separate configuration function for 8 bit version of the chip.  This way
+generic part of the init function stays little bit more readable.
 
-Without this change, the ECC syndrome displayed can be mildly confusing,
-eg:
-
-  EDAC MPC85xx MC1: syndrome: 0x25252525
-
-When in reality the ECC syndrome is 0x25.
-
-A variety of Freescale manuals say a variety of different things about how
-to decode the CAPTURE_ECC (syndrome) register.  I don't have a system with
-a 32-bit bus to test on, but I believe the change is correct.  It'd be
-good to get an ACK from someone at Freescale about this change though.
-
-Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |   12 +++++++++++-
- drivers/edac/mpc85xx_edac.h |    3 +++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/hwmon/lis3lv02d.c |   45 ++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
 
-diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-mask-ecc-syndrome-correctly drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-mask-ecc-syndrome-correctly
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -672,6 +672,7 @@ static void mpc85xx_mc_check(struct mem_
- {
- 	struct mpc85xx_mc_pdata *pdata = mci->pvt_info;
- 	struct csrow_info *csrow;
-+	u32 bus_width;
- 	u32 err_detect;
- 	u32 syndrome;
- 	u32 err_addr;
-@@ -692,6 +693,15 @@ static void mpc85xx_mc_check(struct mem_
- 	}
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-separate-configuration-function-for-8-bit-device drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-separate-configuration-function-for-8-bit-device
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -521,6 +521,30 @@ int lis3lv02d_remove_fs(struct lis3lv02d
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
  
- 	syndrome = in_be32(pdata->mc_vbase + MPC85XX_MC_CAPTURE_ECC);
++static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
++				struct lis3lv02d_platform_data *p)
++{
++	if (p->click_flags) {
++		dev->write(dev, CLICK_CFG, p->click_flags);
++		dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
++		dev->write(dev, CLICK_LATENCY, p->click_latency);
++		dev->write(dev, CLICK_WINDOW, p->click_window);
++		dev->write(dev, CLICK_THSZ, p->click_thresh_z & 0xf);
++		dev->write(dev, CLICK_THSY_X,
++			(p->click_thresh_x & 0xf) |
++			(p->click_thresh_y << 4));
++	}
 +
-+	/* Mask off appropriate bits of syndrome based on bus width */
-+	bus_width = (in_be32(pdata->mc_vbase + MPC85XX_MC_DDR_SDRAM_CFG) &
-+			DSC_DBW_MASK) ? 32 : 64;
-+	if (bus_width == 64)
-+		syndrome &= 0xff;
-+	else
-+		syndrome &= 0xffff;
++	if (p->wakeup_flags) {
++		dev->write(dev, FF_WU_CFG_1, p->wakeup_flags);
++		dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
++		/* default to 2.5ms for now */
++		dev->write(dev, FF_WU_DURATION_1, 1);
++		/* enable high pass filter for both free-fall units */
++		dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
++	}
++}
 +
- 	err_addr = in_be32(pdata->mc_vbase + MPC85XX_MC_CAPTURE_ADDRESS);
- 	pfn = err_addr >> PAGE_SHIFT;
+ /*
+  * Initialise the accelerometer and the various subsystems.
+  * Should be rather independent of the bus system.
+@@ -567,25 +591,8 @@ int lis3lv02d_init_device(struct lis3lv0
+ 	if (dev->pdata) {
+ 		struct lis3lv02d_platform_data *p = dev->pdata;
  
-@@ -707,7 +717,7 @@ static void mpc85xx_mc_check(struct mem_
- 	mpc85xx_mc_printk(mci, KERN_ERR, "Capture Data Low: %#8.8x\n",
- 			  in_be32(pdata->mc_vbase +
- 				  MPC85XX_MC_CAPTURE_DATA_LO));
--	mpc85xx_mc_printk(mci, KERN_ERR, "syndrome: %#8.8x\n", syndrome);
-+	mpc85xx_mc_printk(mci, KERN_ERR, "syndrome: %#2.2x\n", syndrome);
- 	mpc85xx_mc_printk(mci, KERN_ERR, "err addr: %#8.8x\n", err_addr);
- 	mpc85xx_mc_printk(mci, KERN_ERR, "PFN: %#8.8x\n", pfn);
- 
-diff -puN drivers/edac/mpc85xx_edac.h~edac-mpc85xx-mask-ecc-syndrome-correctly drivers/edac/mpc85xx_edac.h
---- a/drivers/edac/mpc85xx_edac.h~edac-mpc85xx-mask-ecc-syndrome-correctly
-+++ a/drivers/edac/mpc85xx_edac.h
-@@ -48,6 +48,9 @@
- #define DSC_MEM_EN	0x80000000
- #define DSC_ECC_EN	0x20000000
- #define DSC_RD_EN	0x10000000
-+#define DSC_DBW_MASK	0x00180000
-+#define DSC_DBW_32	0x00080000
-+#define DSC_DBW_64	0x00000000
- 
- #define DSC_SDTYPE_MASK		0x07000000
- 
-_
-
-Patches currently in -mm which might be from ptyser@xes-inc.com are
-
-edac-mpc85xx-fix-bad-page-calculation.patch
-edac-mpc85xx-fix-build-regression-by-removing-unused-debug-code.patch
-linux-next.patch
-edac-mpc85xx-mask-ecc-syndrome-correctly.patch
-edac-mpc85xx-improve-sdram-error-reporting.patch
-edac-mpc85xx-use-resource_size-instead-of-raw-math.patch
-edac-e752x-fsb-ecc.patch
-edac-e752x-add-dram-scrubbing-support.patch
-
+-		if (p->click_flags && (dev->whoami == WAI_8B)) {
+-			dev->write(dev, CLICK_CFG, p->click_flags);
+-			dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
+-			dev->write(dev, CLICK_LATENCY, p->click_latency);
+-			dev->write(dev, CLICK_WINDOW, p->click_window);
+-			dev->write(dev, CLICK_THSZ, p->click_thresh_z & 0xf);
+-			dev->write(dev, CLICK_THSY_X,
+-					(p->click_thresh_x & 0xf) |
+-					(p->click_thresh_y << 4));
+-		}
