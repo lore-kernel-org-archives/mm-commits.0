@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + dma-apitxt-add-dma_sync_single-sg-api-description.patch added to -mm tree
-Date: Thu, 04 Feb 2010 10:28:39 -0800
-Message-ID: <201002041828.o14ISd2V014027@imap1.linux-foundation.org>
+Subject: + dma-apitxt-remove-dma_sync_single_range-description.patch added to -mm tree
+Date: Thu, 04 Feb 2010 10:28:41 -0800
+Message-ID: <201002041828.o14ISf3E014030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757282Ab0BDS3F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:29:05 -0500
+	by vger.kernel.org with ESMTP id S1757313Ab0BDS3G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:29:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@suse.de, davem@davemloft.net
 
 
 The patch titled
-     DMA-API.txt: add dma_sync_single/sg API description
+     DMA-API.txt: remove dma_sync_single_range description
 has been added to the -mm tree.  Its filename is
-     dma-apitxt-add-dma_sync_single-sg-api-description.patch
+     dma-apitxt-remove-dma_sync_single_range-description.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DMA-API.txt: add dma_sync_single/sg API description
+Subject: DMA-API.txt: remove dma_sync_single_range description
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-This adds the description of the following eight function:
+dma_sync_single_for_cpu/for_device supports a partial sync so there is no
+point to have dma_sync_single_range (also dma_sync_single was obsoleted
+long ago, replaced with dma_sync_single_for_cpu/for_device).
 
-dma_sync_single_for_cpu
-pci_dma_sync_single_for_cpu
-dma_sync_single_for_device
-pci_dma_sync_single_for_device
-dma_sync_sg_for_cpu
-pci_dma_sync_sg_for_cpu
-dma_sync_sg_for_device
-pci_dma_sync_sg_for_device
-
-It was unclear that the API permits a partial sync (some network drivers
-already do though).  I made it clear that the sync_single API can do a
-partial sync but the sync_sg API can't.
-
-We could do a partial sync with the sync_sg API too, however, it's
-difficult for driver writers to correctly use the sync_sg API for a
-partial sync since the scatterlists passed in to the mapping API can't be
-modified.  It's unlikely that driver writers want to do a partial sync
-with the sync_sg API (because the sync_sg API are usually used for block
-drivers).  So I think that it's better to forbid a partial sync with the
-sync_sg API.
+There is no user of dma_sync_single_range() in mainline and only Alpha
+architecture supports dma_sync_single_range().  So it's unlikely that
+someone out of the tree uses it.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Acked-by: David Miller <davem@davemloft.net>
@@ -65,73 +50,21 @@ Acked-by: James Bottomley <James.Bottomley@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt |   42 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ Documentation/DMA-API.txt |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN Documentation/DMA-API.txt~dma-apitxt-add-dma_sync_single-sg-api-description Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~dma-apitxt-add-dma_sync_single-sg-api-description
+diff -puN Documentation/DMA-API.txt~dma-apitxt-remove-dma_sync_single_range-description Documentation/DMA-API.txt
+--- a/Documentation/DMA-API.txt~dma-apitxt-remove-dma_sync_single_range-description
 +++ a/Documentation/DMA-API.txt
-@@ -364,6 +364,48 @@ API.
- Note: <nents> must be the number you passed in, *not* the number of
- physical entries returned.
+@@ -528,16 +528,6 @@ into the width returned by this call.  I
+ of two for easy alignment.
  
-+void
-+dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
-+			enum dma_data_direction direction)
-+void
-+pci_dma_sync_single_for_cpu(struct pci_dev *hwdev, dma_addr_t dma_handle,
-+			    size_t size, int direction)
-+void
-+dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
-+			   enum dma_data_direction direction)
-+void
-+pci_dma_sync_single_for_device(struct pci_dev *hwdev, dma_addr_t dma_handle,
-+			       size_t size, int direction)
-+void
-+dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
-+		    enum dma_data_direction direction)
-+void
-+pci_dma_sync_sg_for_cpu(struct pci_dev *hwdev, struct scatterlist *sg,
-+		        int nelems, int direction)
-+void
-+dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
-+		       enum dma_data_direction direction)
-+void
-+pci_dma_sync_sg_for_device(struct pci_dev *hwdev, struct scatterlist *sg,
-+		           int nelems, int direction)
-+
-+Synchronise a single contiguous or scatter/gather mapping for the cpu
-+and device. With the sync_sg API, all the parameters must be the same
-+as those passed into the single mapping API. With the sync_single API,
-+you can use dma_handle and size parameters that aren't identical to
-+those passed into the single mapping API to do a partial sync.
-+
-+Notes:  You must do this:
-+
-+- Before reading values that have been written by DMA from the device
-+  (use the DMA_FROM_DEVICE direction)
-+- After writing values that will be written to the device using DMA
-+  (use the DMA_TO_DEVICE) direction
-+- before *and* after handing memory to the device if the memory is
-+  DMA_BIDIRECTIONAL
-+
-+See also dma_map_single().
-+
- dma_addr_t
- dma_map_single_attrs(struct device *dev, void *cpu_addr, size_t size,
- 		     enum dma_data_direction dir,
-_
-
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
-
-origin.patch
-linux-next.patch
-x86-agp-fix-agp_amd64_init-module-initialization-regression.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch
-documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
-dma-apitxt-add-dma_sync_single-sg-api-description.patch
-dma-apitxt-remove-dma_sync_single_range-description.patch
-alpha-remove-dma_sync_single_range.patch
-um-remove-dma_sync_single_range.patch
-
+ void
+-dma_sync_single_range(struct device *dev, dma_addr_t dma_handle,
+-		      unsigned long offset, size_t size,
+-		      enum dma_data_direction direction)
+-
+-Does a partial sync, starting at offset and continuing for size.  You
+-must be careful to observe the cache alignment and width when doing
+-anything like this.  You must also be extra careful about accessing
+-memory you intend to sync partially.
