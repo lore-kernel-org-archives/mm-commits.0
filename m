@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-writeback_inodes-implementation-fix.patch added to -mm tree
-Date: Wed, 03 Feb 2010 17:46:25 -0800
-Message-ID: <201002040211.o142BtJs001189@imap1.linux-foundation.org>
+Subject: + fs-fscache-object-listc-fix-warning-on-32-bit.patch added to -mm tree
+Date: Wed, 03 Feb 2010 18:17:19 -0800
+Message-ID: <201002040242.o142gnIN002653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44499 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755929Ab0BDCMP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 21:12:15 -0500
+	by vger.kernel.org with ESMTP id S1752368Ab0BDCnI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2010 21:43:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
+Cc: akpm@linux-foundation.org, dhowells@redhat.com
 
 
 The patch titled
-     reiser4-writeback_inodes-implementation-fix
+     fs/fscache/object-list.c: fix warning on 32-bit
 has been added to the -mm tree.  Its filename is
-     reiser4-writeback_inodes-implementation-fix.patch
+     fs-fscache-object-listc-fix-warning-on-32-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-writeback_inodes-implementation-fix
+Subject: fs/fscache/object-list.c: fix warning on 32-bit
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "inode_lock" [fs/reiser4/reiser4.ko] undefined!
+fs/fscache/object-list.c: In function 'fscache_objlist_lookup':
+fs/fscache/object-list.c:105: warning: cast to pointer from integer of different size                                                                           
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fscache/object-list.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inode.c~reiser4-writeback_inodes-implementation-fix fs/inode.c
---- a/fs/inode.c~reiser4-writeback_inodes-implementation-fix
-+++ a/fs/inode.c
-@@ -84,6 +84,7 @@ static struct hlist_head *inode_hashtabl
-  * the i_state of an inode while it is in use..
-  */
- DEFINE_SPINLOCK(inode_lock);
-+EXPORT_SYMBOL_GPL(inode_lock);
+diff -puN fs/fscache/object-list.c~fs-fscache-object-listc-fix-warning-on-32-bit fs/fscache/object-list.c
+--- a/fs/fscache/object-list.c~fs-fscache-object-listc-fix-warning-on-32-bit
++++ a/fs/fscache/object-list.c
+@@ -102,7 +102,7 @@ static struct fscache_object *fscache_ob
+ 	/* banners (can't represent line 0 by pos 0 as that would involve
+ 	 * returning a NULL pointer) */
+ 	if (pos == 0)
+-		return (struct fscache_object *) ++(*_pos);
++		return (struct fscache_object *)(long)++(*_pos);
+ 	if (pos < 3)
+ 		return (struct fscache_object *)pos;
  
- /*
-  * iprune_sem provides exclusion between the kswapd or try_to_free_pages
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +78,7 @@ radio-add-the-saa7706h-car-radio-dsp-to-v4l2-chip-identh.patch
 drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
 drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised.patch
 drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
 3x59x-fix-pci-resource-management.patch
