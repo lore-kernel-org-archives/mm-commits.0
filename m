@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] resources-introduce-generic-page_is_ram-fix.patch removed from -mm tree
-Date: Thu, 04 Feb 2010 09:49:33 -0800
-Message-ID: <201002041749.o14HnXrl012055@imap1.linux-foundation.org>
+Subject: [merged] drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch removed from -mm tree
+Date: Thu, 04 Feb 2010 09:49:16 -0800
+Message-ID: <201002041749.o14HnGlE012021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755609Ab0BDRty (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 12:49:54 -0500
+	by vger.kernel.org with ESMTP id S1755463Ab0BDRto (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 12:49:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, awalls@radix.net, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     resources-introduce-generic-page_is_ram-fix
+     drivers/media/video/cx18/cx18-alsa-pcm.c: fix printk warning
 has been removed from the -mm tree.  Its filename was
-     resources-introduce-generic-page_is_ram-fix.patch
+     drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: resources-introduce-generic-page_is_ram-fix
+Subject: drivers/media/video/cx18/cx18-alsa-pcm.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use __weak.
+drivers/media/video/cx18/cx18-alsa-pcm.c: In function 'cx18_alsa_announce_pcm_data':
+drivers/media/video/cx18/cx18-alsa-pcm.c:82: warning: format '%d' expects type 'int', but argument 5 has type 'size_t'
 
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 +-
+ drivers/media/video/cx18/cx18-alsa-pcm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/resource.c~resources-introduce-generic-page_is_ram-fix kernel/resource.c
---- a/kernel/resource.c~resources-introduce-generic-page_is_ram-fix
-+++ a/kernel/resource.c
-@@ -335,7 +335,7 @@ static int __is_ram(unsigned long pfn, u
-  * This generic page_is_ram() returns true if specified address is
-  * registered as "System RAM" in iomem_resource list.
-  */
--int __attribute__((weak)) page_is_ram(unsigned long pfn)
-+int __weak page_is_ram(unsigned long pfn)
- {
- 	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
- }
+diff -puN drivers/media/video/cx18/cx18-alsa-pcm.c~drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning drivers/media/video/cx18/cx18-alsa-pcm.c
+--- a/drivers/media/video/cx18/cx18-alsa-pcm.c~drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning
++++ a/drivers/media/video/cx18/cx18-alsa-pcm.c
+@@ -79,7 +79,7 @@ void cx18_alsa_announce_pcm_data(struct 
+ 	int period_elapsed = 0;
+ 	int length;
+ 
+-	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%d\n", cxsc,
++	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%zd\n", cxsc,
+ 		pcm_data, num_bytes);
+ 
+ 	substream = cxsc->capture_pcm_substream;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
