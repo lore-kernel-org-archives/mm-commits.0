@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 04 Feb 2010 10:22:14 -0800
-Message-ID: <201002041822.o14IMEG6013737@imap1.linux-foundation.org>
+Subject: + hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch added to -mm tree
+Date: Thu, 04 Feb 2010 10:22:15 -0800
+Message-ID: <201002041822.o14IMFHb013740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757313Ab0BDSWo (ORCPT
+	by vger.kernel.org with ESMTP id S1757222Ab0BDSWo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 13:22:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, hjk@linutronix.de, khali@linux-fr.org, sfking@fdw
 
 
 The patch titled
-     hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes
+     hwmon-driver-for-ti-tmp102-temperature-sensor-fix
 has been added to the -mm tree.  Its filename is
-     hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+     hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,20 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes
+Subject: hwmon-driver-for-ti-tmp102-temperature-sensor-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: struct dev_pm_ops should normally be const
-#387: FILE: drivers/hwmon/tmp102.c:300:
-+static struct dev_pm_ops tmp102_dev_pm_ops = {
-
-total: 0 errors, 1 warnings, 395 lines checked
-
-./patches/hwmon-driver-for-ti-tmp102-temperature-sensor.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Use conventional array-walk loop.
 
 Cc: Hans J. Koch <hjk@linutronix.de>
 Cc: Jean Delvare <khali@linux-fr.org>
@@ -55,21 +45,30 @@ Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/tmp102.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/tmp102.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes drivers/hwmon/tmp102.c
---- a/drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes
+diff -puN drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix drivers/hwmon/tmp102.c
+--- a/drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix
 +++ a/drivers/hwmon/tmp102.c
-@@ -297,7 +297,7 @@ static int tmp102_resume(struct device *
- 	return 0;
- }
+@@ -91,13 +91,14 @@ static struct tmp102 *tmp102_update_devi
  
--static struct dev_pm_ops tmp102_dev_pm_ops = {
-+static const struct dev_pm_ops tmp102_dev_pm_ops = {
- 	.suspend	= tmp102_suspend,
- 	.resume		= tmp102_resume,
- };
+ 	mutex_lock(&tmp102->lock);
+ 	if (time_after(jiffies, tmp102->last_update + HZ / 4)) {
+-		int i = 0;
+-		do {
++		int i;
++
++		for (i = 0; i < ARRAY_SIZE(tmp102->temp); i++) {
+ 			int status = tmp102_read_reg(client, tmp102_reg[i]);
+ 			if (status > -1)
+ 				tmp102->temp[i] = tmp102_reg_to_mC(status);
+ 
+-		} while (++i < ARRAY_SIZE(tmp102->temp));
++		}
+ 		tmp102->last_update = jiffies;
+ 	}
+ 	mutex_unlock(&tmp102->lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
