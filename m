@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-move-i2c_omaps-probe-function-to-devinittext.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:14:27 -0800
-Message-ID: <201002052014.o15KER9u018657@imap1.linux-foundation.org>
+Subject: + net-move-am79c961s-probe-function-to-devinittext.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:14:37 -0800
+Message-ID: <201002052014.o15KEcrW018669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753561Ab0BEUOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:14:55 -0500
+	by vger.kernel.org with ESMTP id S1755125Ab0BEUPD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:15:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, ext-kalle.jokiniemi@nokia.com, greg@kroah.com, jarkko.nikula@nokia.com, jason.marini@gmail.com, juha.yrjola@solidboot.com, paul@pwsan.com, r-woodruff2@ti.com, tony@atomide.com, x0044955@ti.com, x0khasim@ti.com
+Cc: u.kleine-koenig@pengutronix.de, 12o3l@tiscali.nl, greg@kroah.com, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     i2c: move i2c_omap's probe function to .devinit.text
+     net: move am79c961's probe function to .devinit.text
 has been added to the -mm tree.  Its filename is
-     i2c-move-i2c_omaps-probe-function-to-devinittext.patch
+     net-move-am79c961s-probe-function-to-devinittext.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,10 +38,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: i2c: move i2c_omap's probe function to .devinit.text
+Subject: net: move am79c961's probe function to .devinit.text
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-A pointer to omap_i2c_probe is passed to the core via
+A pointer to am79c961_probe is passed to the core via
 platform_driver_register and so the function must not disappear when th=
 e
 =2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
@@ -55,36 +55,29 @@ n
 from the struct platform_driver.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: chandra shekhar <x0044955@ti.com>
-Cc: Jason P Marini <jason.marini@gmail.com>
-Cc: Syed Mohammed Khasim  <x0khasim@ti.com>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>
+Cc: Roel Kluin <12o3l@tiscali.nl>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-omap.c |    2 +-
+ drivers/net/arm/am79c961a.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/i2c/busses/i2c-omap.c~i2c-move-i2c_omaps-probe-functi=
-on-to-devinittext drivers/i2c/busses/i2c-omap.c
---- a/drivers/i2c/busses/i2c-omap.c~i2c-move-i2c_omaps-probe-function-t=
-o-devinittext
-+++ a/drivers/i2c/busses/i2c-omap.c
-@@ -849,7 +849,7 @@ static const struct i2c_algorithm omap_i
- 	.functionality	=3D omap_i2c_func,
+diff -puN drivers/net/arm/am79c961a.c~net-move-am79c961s-probe-function=
+-to-devinittext drivers/net/arm/am79c961a.c
+--- a/drivers/net/arm/am79c961a.c~net-move-am79c961s-probe-function-to-=
+devinittext
++++ a/drivers/net/arm/am79c961a.c
+@@ -680,7 +680,7 @@ static const struct net_device_ops am79c
+ #endif
  };
 =20
--static int __init
-+static int __devinit
- omap_i2c_probe(struct platform_device *pdev)
+-static int __init am79c961_probe(struct platform_device *pdev)
++static int __devinit am79c961_probe(struct platform_device *pdev)
  {
- 	struct omap_i2c_dev	*dev;
+ 	struct resource *res;
+ 	struct net_device *dev;
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
