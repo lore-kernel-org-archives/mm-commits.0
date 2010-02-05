@@ -1,126 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-net-davinci_emacc-fix-continuation-line-formats.patch removed from -mm tree
-Date: Fri, 05 Feb 2010 11:59:03 -0800
-Message-ID: <201002051959.o15Jx3pL017927@imap1.linux-foundation.org>
+Subject: [merged] futex_lock_pi-key-refcnt-fix.patch removed from -mm tree
+Date: Fri, 05 Feb 2010 11:58:17 -0800
+Message-ID: <201002051958.o15JwHUa017862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933851Ab0BET7K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:59:10 -0500
+	by vger.kernel.org with ESMTP id S933774Ab0BET7k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:59:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, chaithrika@ti.com, davem@davemloft.net, khilman@deeprootsystems.com, srk@ti.com, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, a.p.zijlstra@chello.nl, dvhltc@us.ibm.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/davinci_emac.c: fix continuation line formats
+     futex_lock_pi() key refcnt fix
 has been removed from the -mm tree.  Its filename was
-     drivers-net-davinci_emacc-fix-continuation-line-formats.patch
+     futex_lock_pi-key-refcnt-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/davinci_emac.c: fix continuation line formats
-From: Joe Perches <joe@perches.com>
+Subject: futex_lock_pi() key refcnt fix
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-String constants that are continued on subsequent lineswill cause spurious
-whitespace in the resulting output.
+This fixes a futex key reference count bug in futex_lock_pi(), where a
+key's reference count is incremented twice but decremented only once,
+causing the backing object to not be released.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Chaithrika U S <chaithrika@ti.com>
-Cc: Sriramakrishnan <srk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+If the futex is created in a temporary file in an ext3 file system, this
+bug causes the file's inode to become an "undead" orphan, which causes an
+oops from a BUG_ON() in ext3_put_super() when the file system is
+unmounted.  glibc's test suite is known to trigger this, see
+<http://bugzilla.kernel.org/show_bug.cgi?id=14256>.
+
+The bug is a regression from 2.6.28-git3, namely Peter Zijlstra's
+38d47c1b7075bd7ec3881141bb3629da58f88dab "[PATCH] futex: rely on
+get_user_pages() for shared futexes".  That commit made get_futex_key()
+also increment the reference count of the futex key, and updated its
+callers to decrement the key's reference count before returning. 
+Unfortunately the normal exit path in futex_lock_pi() wasn't corrected:
+the reference count is incremented by get_futex_key() and queue_lock(),
+but the normal exit path only decrements once, via unqueue_me_pi().  The
+fix is to put_futex_key() after unqueue_me_pi(), since 2.6.31 this is
+easily done by 'goto out_put_key' rather than 'goto out'.
+
+This patch also works for backports to 2.6.32 and 2.6.31, but 2.6.30 and
+2.6.29 need a "put_futex_key(fshared, &q.key);" after "unqueue_me_pi(&q);"
+instead.  I can supply patches for these older kernels if necessary.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Acked-by: Darren Hart <dvhltc@us.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/davinci_emac.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/futex.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/davinci_emac.c~drivers-net-davinci_emacc-fix-continuation-line-formats drivers/net/davinci_emac.c
---- a/drivers/net/davinci_emac.c~drivers-net-davinci_emacc-fix-continuation-line-formats
-+++ a/drivers/net/davinci_emac.c
-@@ -2683,8 +2683,7 @@ static int __devinit davinci_emac_probe(
- 	priv->emac_base_phys = res->start + pdata->ctrl_reg_offset;
- 	size = res->end - res->start + 1;
- 	if (!request_mem_region(res->start, size, ndev->name)) {
--		dev_err(emac_dev, "DaVinci EMAC: failed request_mem_region() \
--					 for regs\n");
-+		dev_err(emac_dev, "DaVinci EMAC: failed request_mem_region() for regs\n");
- 		rc = -ENXIO;
- 		goto probe_quit;
- 	}
+diff -puN kernel/futex.c~futex_lock_pi-key-refcnt-fix kernel/futex.c
+--- a/kernel/futex.c~futex_lock_pi-key-refcnt-fix
++++ a/kernel/futex.c
+@@ -1971,7 +1971,7 @@ retry_private:
+ 	/* Unqueue and drop the lock */
+ 	unqueue_me_pi(&q);
+ 
+-	goto out;
++	goto out_put_key;
+ 
+ out_unlock_put_key:
+ 	queue_unlock(&q, hb);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
 origin.patch
 linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-arch-ia64-fix-continuation-line-formats.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-staging-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
-scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
-drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
-drivers-video-via-fix-continuation-line-formats.patch
 
