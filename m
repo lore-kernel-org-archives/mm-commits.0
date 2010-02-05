@@ -1,73 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-revert-misallocation-bug-fix.patch removed from -mm tree
-Date: Fri, 05 Feb 2010 11:58:14 -0800
-Message-ID: <201002051958.o15JwEoI017858@imap1.linux-foundation.org>
+Subject: [merged] usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch removed from -mm tree
+Date: Fri, 05 Feb 2010 11:58:39 -0800
+Message-ID: <201002051958.o15Jwdw6017884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933832Ab0BET64 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:58:56 -0500
+	by vger.kernel.org with ESMTP id S933836Ab0BET65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:58:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: linux@rainbow-software.org, daniel.ritz@gmx.ch, ddstreet@ieee.org, dmitry.torokhov@gmail.com, floe@butterbrot.org, greg@kroah.com, jim-linux@nurd.se, oliver@neukum.org, mm-commits@vger
 
 
 The patch titled
-     idr: revert misallocation bug fix
+     usbtouchscreen: fix NEXIO ACK and USB disconnect
 has been removed from the -mm tree.  Its filename was
-     idr-revert-misallocation-bug-fix.patch
+     usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: revert misallocation bug fix
-From: Tejun Heo <tj@kernel.org>
+Subject: usbtouchscreen: fix NEXIO ACK and USB disconnect
+From: Ondrej Zary <linux@rainbow-software.org>
 
-Commit 859ddf09743a8cc680af33f7259ccd0fd36bfe9d ("idr: fix a critical
-misallocation bug") tried to fix misallocation bug but broke full bit
-marking by not clearing pa[idp->layers] and also is causing X failures due
-to lookup failure in drm code.  The cause of the latter hasn't been found
-yet.  Revert the fix for now.
+Fix sending ACK urbs and oops on USB disconnecting NEXIO touchscreen.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jim Persson <jim-linux@nurd.se>
+Cc: Florian Echtler <floe@butterbrot.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/input/touchscreen/usbtouchscreen.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN lib/idr.c~idr-revert-misallocation-bug-fix lib/idr.c
---- a/lib/idr.c~idr-revert-misallocation-bug-fix
-+++ a/lib/idr.c
-@@ -140,7 +140,8 @@ static int sub_alloc(struct idr *idp, in
- 	id = *starting_id;
-  restart:
- 	p = idp->top;
--	l = p->layer;
-+	l = idp->layers;
-+	pa[l--] = NULL;
- 	while (1) {
- 		/*
- 		 * We run around this while until we reach the leaf node...
-@@ -154,8 +155,8 @@ static int sub_alloc(struct idr *idp, in
- 			oid = id;
- 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-nexio-ack-and-usb-disconnect drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-nexio-ack-and-usb-disconnect
++++ a/drivers/input/touchscreen/usbtouchscreen.c
+@@ -728,6 +728,10 @@ struct nexio_touch_packet {
+ static unsigned char nexio_ack_pkt[2] = { 0xaa, 0x02 };
+ static unsigned char nexio_init_pkt[4] = { 0x82, 0x04, 0x0a, 0x0f };
  
--			/* did id go over the limit? */
--			if (id >= (1 << (idp->layers * IDR_BITS))) {
-+			/* if already at the top layer, we need to grow */
-+			if (!(p = pa[l])) {
- 				*starting_id = id;
- 				return IDR_NEED_TO_GROW;
- 			}
++static void nexio_ack_complete(struct urb *urb)
++{
++}
++
+ static int nexio_init(struct usbtouch_usb *usbtouch)
+ {
+ 	struct usb_device *dev = interface_to_usbdev(usbtouch->interface);
+@@ -811,8 +815,8 @@ static int nexio_init(struct usbtouch_us
+ 		goto err_ack_buf;
+ 	}
+ 	usb_fill_bulk_urb(priv->ack, dev, usb_sndbulkpipe(dev, output_ep),
+-			  priv->ack_buf, sizeof(priv->ack_buf), NULL,
+-			  usbtouch);
++			  priv->ack_buf, sizeof(nexio_ack_pkt),
++			  nexio_ack_complete, usbtouch);
+ 	ret = 0;
+ 	goto out_buf;
+ err_ack_buf:
+@@ -1227,6 +1231,7 @@ static void usbtouch_irq(struct urb *urb
+ 	case -ECONNRESET:
+ 	case -ENOENT:
+ 	case -ESHUTDOWN:
++	case -EPIPE:
+ 		/* this urb is terminated, clean up */
+ 		dbg("%s - urb shutting down with status: %d",
+ 		    __func__, urb->status);
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-origin.patch
 linux-next.patch
-core-workqueue-return-on-workqueue-recursion.patch
+g_ncr5380-remove-misleading-pnp-error-message.patch
+g_ncr5380-fix-broken-mmio-compilation.patch
+g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch
 
