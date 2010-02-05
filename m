@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + obsolete-config-in-kernel-source-hso_autopm.patch added to -mm tree
-Date: Fri, 05 Feb 2010 14:20:43 -0800
-Message-ID: <201002052220.o15MKh8o024580@imap1.linux-foundation.org>
+Subject: + obsolete-config-in-kernel-source-lwmon5.patch added to -mm tree
+Date: Fri, 05 Feb 2010 14:21:53 -0800
+Message-ID: <201002052221.o15MLrgK024673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933910Ab0BEWVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 17:21:20 -0500
+	by vger.kernel.org with ESMTP id S933791Ab0BEWWc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 17:22:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: siccegge@stud.informatik.uni-erlangen.de, davem@davemloft.net
+Cc: siccegge@stud.informatik.uni-erlangen.de
 
 
 The patch titled
-     obsolete config in kernel source: HSO_AUTOPM
+     obsolete config in kernel source: LWMON5
 has been added to the -mm tree.  Its filename is
-     obsolete-config-in-kernel-source-hso_autopm.patch
+     obsolete-config-in-kernel-source-lwmon5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: obsolete config in kernel source: HSO_AUTOPM
+Subject: obsolete config in kernel source: LWMON5
 From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
 
-CONFIG_HSO_AUTOPM is set by KConfig / set in the Kernel source, makefiles
-and won't be ever set this way, therefor simply removing the protected
-code.
+There was some conditionalizing for the LWMON5 boards in kernel source. 
+However infrastructure for enabling this isn't here so probably the
+special case code can go as well.
 
 Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/hso.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/video/mb862xx/mb862xxfb.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN drivers/net/usb/hso.c~obsolete-config-in-kernel-source-hso_autopm drivers/net/usb/hso.c
---- a/drivers/net/usb/hso.c~obsolete-config-in-kernel-source-hso_autopm
-+++ a/drivers/net/usb/hso.c
-@@ -1155,9 +1155,6 @@ static void _hso_serial_set_termios(stru
- static void hso_resubmit_rx_bulk_urb(struct hso_serial *serial, struct urb *urb)
- {
- 	int result;
--#ifdef CONFIG_HSO_AUTOPM
--	usb_mark_last_busy(urb->dev);
+diff -puN drivers/video/mb862xx/mb862xxfb.c~obsolete-config-in-kernel-source-lwmon5 drivers/video/mb862xx/mb862xxfb.c
+--- a/drivers/video/mb862xx/mb862xxfb.c~obsolete-config-in-kernel-source-lwmon5
++++ a/drivers/video/mb862xx/mb862xxfb.c
+@@ -31,15 +31,6 @@
+ #define CARMINE_MEM_SIZE	0x8000000
+ #define DRV_NAME		"mb862xxfb"
+ 
+-#if defined(CONFIG_LWMON5)
+-static struct mb862xx_gc_mode lwmon5_gc_mode = {
+-	/* Mode for Sharp LQ104V1DG61 TFT LCD Panel */
+-	{ "640x480", 60, 640, 480, 40000, 48, 16, 32, 11, 96, 2, 0, 0, 0 },
+-	/* 16 bits/pixel, 32MB, 100MHz, SDRAM memory mode value */
+-	16, 0x2000000, GC_CCF_COT_100, 0x414fb7f2
+-};
 -#endif
- 	/* We are done with this URB, resubmit it. Prep the USB to wait for
- 	 * another frame */
- 	usb_fill_bulk_urb(urb, serial->parent->usb,
-_
-
-Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
-
-linux-next.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-obsolete-config-in-kernel-source-hso_autopm.patch
-fbdev-remove-obsolete-config_fb_soft_cursor.patch
-obsolete-config-in-kernel-source-lwmon5.patch
-obsolete-config-in-kernel-source-buffer_debug.patch
-
+-
+ #if defined(CONFIG_SOCRATES)
+ static struct mb862xx_gc_mode socrates_gc_mode = {
+ 	/* Mode for Prime View PM070WL4 TFT LCD Panel */
+@@ -600,10 +591,6 @@ static int __devinit of_platform_mb862xx
+ 		goto irqdisp;
+ 	}
+ 
+-#if defined(CONFIG_LWMON5)
+-	par->gc_mode = &lwmon5_gc_mode;
+-#endif
