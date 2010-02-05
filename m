@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + obsolete-config-in-kernel-source-use_internal_timer.patch added to -mm tree
-Date: Fri, 05 Feb 2010 14:20:12 -0800
-Message-ID: <201002052220.o15MKCR4024552@imap1.linux-foundation.org>
+Subject: + obsolete-config-in-kernel-source-hso_autopm.patch added to -mm tree
+Date: Fri, 05 Feb 2010 14:20:43 -0800
+Message-ID: <201002052220.o15MKh8o024580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933923Ab0BEWU7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 17:20:59 -0500
+	by vger.kernel.org with ESMTP id S933910Ab0BEWVU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 17:21:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: siccegge@stud.informatik.uni-erlangen.de, davem@davemloft.net, roel.kluin@gmail.com
+Cc: siccegge@stud.informatik.uni-erlangen.de, davem@davemloft.net
 
 
 The patch titled
-     obsolete config in kernel source: USE_INTERNAL_TIMER
+     obsolete config in kernel source: HSO_AUTOPM
 has been added to the -mm tree.  Its filename is
-     obsolete-config-in-kernel-source-use_internal_timer.patch
+     obsolete-config-in-kernel-source-hso_autopm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: obsolete config in kernel source: USE_INTERNAL_TIMER
+Subject: obsolete config in kernel source: HSO_AUTOPM
 From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
 
-CONFIG_USE_INTERNAL_TIMER seems to be the remainings of some experiment. 
-It is explicitely #undef-ed as not working, only referenced from one
-source file and rather aged.
-
-Hereby cleaning it from the kernel tree.
+CONFIG_HSO_AUTOPM is set by KConfig / set in the Kernel source, makefiles
+and won't be ever set this way, therefor simply removing the protected
+code.
 
 Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Acked-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/w83977af_ir.c |   36 -------------------------------
- 1 file changed, 36 deletions(-)
+ drivers/net/usb/hso.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/net/irda/w83977af_ir.c~obsolete-config-in-kernel-source-use_internal_timer drivers/net/irda/w83977af_ir.c
---- a/drivers/net/irda/w83977af_ir.c~obsolete-config-in-kernel-source-use_internal_timer
-+++ a/drivers/net/irda/w83977af_ir.c
-@@ -65,7 +65,6 @@
- #undef  CONFIG_NETWINDER_TX_DMA_PROBLEMS /* Not needed */
- #define CONFIG_NETWINDER_RX_DMA_PROBLEMS /* Must have this one! */
- #endif
--#undef  CONFIG_USE_INTERNAL_TIMER  /* Just cannot make that timer work */
- #define CONFIG_USE_W977_PNP        /* Currently needed */
- #define PIO_MAX_SPEED       115200 
- 
-@@ -533,25 +532,6 @@ static netdev_tx_t w83977af_hard_xmit(st
- 		self->tx_buff.len = skb->len;
- 		
- 		mtt = irda_get_mtt(skb);
--#ifdef CONFIG_USE_INTERNAL_TIMER
--	        if (mtt > 50) {
--			/* Adjust for timer resolution */
--			mtt /= 1000+1;
--
--			/* Setup timer */
--			switch_bank(iobase, SET4);
--			outb(mtt & 0xff, iobase+TMRL);
--			outb((mtt >> 8) & 0x0f, iobase+TMRH);
--			
--			/* Start timer */
--			outb(IR_MSL_EN_TMR, iobase+IR_MSL);
--			self->io.direction = IO_XMIT;
--			
--			/* Enable timer interrupt */
--			switch_bank(iobase, SET0);
--			outb(ICR_ETMRI, iobase+ICR);
--		} else {
+diff -puN drivers/net/usb/hso.c~obsolete-config-in-kernel-source-hso_autopm drivers/net/usb/hso.c
+--- a/drivers/net/usb/hso.c~obsolete-config-in-kernel-source-hso_autopm
++++ a/drivers/net/usb/hso.c
+@@ -1155,9 +1155,6 @@ static void _hso_serial_set_termios(stru
+ static void hso_resubmit_rx_bulk_urb(struct hso_serial *serial, struct urb *urb)
+ {
+ 	int result;
+-#ifdef CONFIG_HSO_AUTOPM
+-	usb_mark_last_busy(urb->dev);
 -#endif
- 			IRDA_DEBUG(4, "%s(%ld), mtt=%d\n", __func__ , jiffies, mtt);
- 			if (mtt)
- 				udelay(mtt);
-@@ -560,9 +540,6 @@ static netdev_tx_t w83977af_hard_xmit(st
- 			switch_bank(iobase, SET0);
- 	 		outb(ICR_EDMAI, iobase+ICR);
- 	     		w83977af_dma_write(self, iobase);
--#ifdef CONFIG_USE_INTERNAL_TIMER
--		}
--#endif
- 	} else {
- 		self->tx_buff.data = self->tx_buff.head;
- 		self->tx_buff.len = async_wrap_skb(skb, self->tx_buff.data, 
-@@ -876,20 +853,7 @@ static int w83977af_dma_receive_complete
- 			/* Check if we have transferred all data to memory */
- 			switch_bank(iobase, SET0);
- 			if (inb(iobase+USR) & USR_RDR) {
--#ifdef CONFIG_USE_INTERNAL_TIMER
--				/* Put this entry back in fifo */
--				st_fifo->head--;
--				st_fifo->len++;
--				st_fifo->entries[st_fifo->head].status = status;
--				st_fifo->entries[st_fifo->head].len = len;
--				
--				/* Restore set register */
--				outb(set, iobase+SSR);
--			
--				return FALSE; 	/* I'll be back! */
--#else
- 				udelay(80); /* Should be enough!? */
--#endif
- 			}
- 						
- 			skb = dev_alloc_skb(len+1);
+ 	/* We are done with this URB, resubmit it. Prep the USB to wait for
+ 	 * another frame */
+ 	usb_fill_bulk_urb(urb, serial->parent->usb,
 _
 
 Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
