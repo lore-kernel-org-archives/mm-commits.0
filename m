@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + net-move-am79c961s-probe-function-to-devinittext.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:14:37 -0800
-Message-ID: <201002052014.o15KEcrW018669@imap1.linux-foundation.org>
+Subject: + platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:14:14 -0800
+Message-ID: <201002052014.o15KEEmV018646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755125Ab0BEUPD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:15:03 -0500
+	by vger.kernel.org with ESMTP id S1753770Ab0BEUPC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:15:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, 12o3l@tiscali.nl, greg@kroah.com, rmk+kernel@arm.linux.org.uk
+Cc: u.kleine-koenig@pengutronix.de, James.Bottomley@HansenPartnership.com, dbrownell@users.sourceforge.net, dmitri.vorobiev@movial.fi, greg@kroah.com, henne@nachtwindheim.de, kay.sievers@vrfy.org, post@pfrst.de, ralf@linux-mips.org, tsbogend@alpha.franken.de
 
 
 The patch titled
-     net: move am79c961's probe function to .devinit.text
+     platform-drivers: move probe to .devinit.text in drivers/scsi
 has been added to the -mm tree.  Its filename is
-     net-move-am79c961s-probe-function-to-devinittext.patch
+     platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,10 +38,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: net: move am79c961's probe function to .devinit.text
+Subject: platform-drivers: move probe to .devinit.text in drivers/scsi
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-A pointer to am79c961_probe is passed to the core via
+A pointer to a probe callback is passed to the core via
 platform_driver_register and so the function must not disappear when th=
 e
 =2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
@@ -55,29 +55,50 @@ n
 from the struct platform_driver.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Roel Kluin <12o3l@tiscali.nl>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Dmitri Vorobiev <dmitri.vorobiev@movial.fi>
+Cc: Henrik Kretzschmar <henne@nachtwindheim.de>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: peter fuerst <post@pfrst.de>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/arm/am79c961a.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/sgiwd93.c    |    2 +-
+ drivers/scsi/sni_53c710.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/arm/am79c961a.c~net-move-am79c961s-probe-function=
--to-devinittext drivers/net/arm/am79c961a.c
---- a/drivers/net/arm/am79c961a.c~net-move-am79c961s-probe-function-to-=
-devinittext
-+++ a/drivers/net/arm/am79c961a.c
-@@ -680,7 +680,7 @@ static const struct net_device_ops am79c
- #endif
+diff -puN drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinit=
+text-in-drivers-scsi drivers/scsi/sgiwd93.c
+--- a/drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinittext=
+-in-drivers-scsi
++++ a/drivers/scsi/sgiwd93.c
+@@ -226,7 +226,7 @@ static struct scsi_host_template sgiwd93
+ 	.use_clustering		=3D DISABLE_CLUSTERING,
  };
 =20
--static int __init am79c961_probe(struct platform_device *pdev)
-+static int __devinit am79c961_probe(struct platform_device *pdev)
+-static int __init sgiwd93_probe(struct platform_device *pdev)
++static int __devinit sgiwd93_probe(struct platform_device *pdev)
  {
- 	struct resource *res;
- 	struct net_device *dev;
+ 	struct sgiwd93_platform_data *pd =3D pdev->dev.platform_data;
+ 	unsigned char *wdregs =3D pd->wdregs;
+diff -puN drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devi=
+nittext-in-drivers-scsi drivers/scsi/sni_53c710.c
+--- a/drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devinitt=
+ext-in-drivers-scsi
++++ a/drivers/scsi/sni_53c710.c
+@@ -64,7 +64,7 @@ static struct scsi_host_template snirm71
+ 	.module		=3D THIS_MODULE,
+ };
+=20
+-static int __init snirm710_probe(struct platform_device *dev)
++static int __devinit snirm710_probe(struct platform_device *dev)
+ {
+ 	unsigned long base;
+ 	struct NCR_700_Host_Parameters *hostdata;
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
