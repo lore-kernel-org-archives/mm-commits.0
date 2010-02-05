@@ -1,106 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch removed from -mm tree
-Date: Fri, 05 Feb 2010 11:58:22 -0800
-Message-ID: <201002051958.o15JwMAi017865@imap1.linux-foundation.org>
+Subject: [merged] ati_pcigart-fix-printk-format-warning.patch removed from -mm tree
+Date: Fri, 05 Feb 2010 11:58:24 -0800
+Message-ID: <201002051958.o15JwODO017868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933823Ab0BET60 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:58:26 -0500
+	by vger.kernel.org with ESMTP id S933832Ab0BET6d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:58:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, airlied@linux.ie, zhenyuw@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/radeon/radeon_combios.c: fix warning
+     ati_pcigart: fix printk format warning
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+     ati_pcigart-fix-printk-format-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/radeon/radeon_combios.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ati_pcigart: fix printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-drivers/gpu/drm/radeon/radeon_combios.c: In function 'radeon_combios_get_lvds_info':
-drivers/gpu/drm/radeon/radeon_combios.c:893: warning: comparison is always false due to limited range of data type
+Fix ati_pcigart printk format warning:
 
+drivers/gpu/drm/ati_pcigart.c:115: warning: format '%Lx' expects type 'long long unsigned int', but argument 3 has type 'dma_addr_t'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
 Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/radeon_combios.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/ati_pcigart.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/radeon/radeon_combios.c~drivers-gpu-drm-radeon-radeon_combiosc-fix-warning drivers/gpu/drm/radeon/radeon_combios.c
---- a/drivers/gpu/drm/radeon/radeon_combios.c~drivers-gpu-drm-radeon-radeon_combiosc-fix-warning
-+++ a/drivers/gpu/drm/radeon/radeon_combios.c
-@@ -971,8 +971,7 @@ struct radeon_encoder_lvds *radeon_combi
- 			 lvds->native_mode.vdisplay);
+diff -puN drivers/gpu/drm/ati_pcigart.c~ati_pcigart-fix-printk-format-warning drivers/gpu/drm/ati_pcigart.c
+--- a/drivers/gpu/drm/ati_pcigart.c~ati_pcigart-fix-printk-format-warning
++++ a/drivers/gpu/drm/ati_pcigart.c
+@@ -113,7 +113,7 @@ int drm_ati_pcigart_init(struct drm_devi
  
- 		lvds->panel_vcc_delay = RBIOS16(lcd_info + 0x2c);
--		if (lvds->panel_vcc_delay > 2000 || lvds->panel_vcc_delay < 0)
--			lvds->panel_vcc_delay = 2000;
-+		lvds->panel_vcc_delay = min_t(u16, lvds->panel_vcc_delay, 2000);
- 
- 		lvds->panel_pwr_delay = RBIOS8(lcd_info + 0x24);
- 		lvds->panel_digon_delay = RBIOS16(lcd_info + 0x38) & 0xf;
+ 		if (pci_set_dma_mask(dev->pdev, gart_info->table_mask)) {
+ 			DRM_ERROR("fail to set dma mask to 0x%Lx\n",
+-				  gart_info->table_mask);
++				  (unsigned long long)gart_info->table_mask);
+ 			ret = 1;
+ 			goto done;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+msi-laptop-depends-on-rfkill.patch
+libertas-if_spi-needs-linux-semaphoreh.patch
+mfgpt-move-clocksource-menu.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
