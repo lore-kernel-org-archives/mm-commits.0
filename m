@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-compat_ioctlc-suppress-two-warnings.patch added to -mm tree
-Date: Fri, 05 Feb 2010 14:03:59 -0800
-Message-ID: <201002052203.o15M3xwU023927@imap1.linux-foundation.org>
+Subject: + obsolete-config-in-kernel-source-use_internal_timer.patch added to -mm tree
+Date: Fri, 05 Feb 2010 14:20:12 -0800
+Message-ID: <201002052220.o15MKCR4024552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933910Ab0BEWEV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 17:04:21 -0500
+	by vger.kernel.org with ESMTP id S933923Ab0BEWU7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 17:20:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amwang@redhat.com, arnd@arndb.de, viro@zeniv.linux.org.uk
+Cc: siccegge@stud.informatik.uni-erlangen.de, davem@davemloft.net, roel.kluin@gmail.com
 
 
 The patch titled
-     fs/compat_ioctl.c: suppress two warnings
+     obsolete config in kernel source: USE_INTERNAL_TIMER
 has been added to the -mm tree.  Its filename is
-     fs-compat_ioctlc-suppress-two-warnings.patch
+     obsolete-config-in-kernel-source-use_internal_timer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/compat_ioctl.c: suppress two warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: obsolete config in kernel source: USE_INTERNAL_TIMER
+From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
 
-fs/compat_ioctl.c: In function 'do_ioctl_trans':
-fs/compat_ioctl.c:534: warning: 'karg' may be used uninitialized in this function
-fs/compat_ioctl.c:533: warning: 'kcmd' may be used uninitialized in this function
-fs/compat_ioctl.c:656: warning: 'ret' may be used uninitialized in this function
+CONFIG_USE_INTERNAL_TIMER seems to be the remainings of some experiment. 
+It is explicitely #undef-ed as not working, only referenced from one
+source file and rather aged.
 
-Reduces text size by 44 bytes.
+Hereby cleaning it from the kernel tree.
 
-If someone calls one of these functions with an unexpected argument, the
-code's buggy as-is.
-
-Amerigo Wang <amwang@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Acked-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/irda/w83977af_ir.c |   36 -------------------------------
+ 1 file changed, 36 deletions(-)
 
-diff -puN fs/compat_ioctl.c~fs-compat_ioctlc-suppress-two-warnings fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~fs-compat_ioctlc-suppress-two-warnings
-+++ a/fs/compat_ioctl.c
-@@ -539,7 +539,7 @@ static int mt_ioctl_trans(unsigned int f
- 		kcmd = MTIOCPOS;
- 		karg = &pos;
- 		break;
--	case MTIOCGET32:
-+	default:	/* MTIOCGET32 */
- 		kcmd = MTIOCGET;
- 		karg = &get;
- 		break;
-@@ -657,7 +657,7 @@ static int raw_ioctl(unsigned fd, unsign
+diff -puN drivers/net/irda/w83977af_ir.c~obsolete-config-in-kernel-source-use_internal_timer drivers/net/irda/w83977af_ir.c
+--- a/drivers/net/irda/w83977af_ir.c~obsolete-config-in-kernel-source-use_internal_timer
++++ a/drivers/net/irda/w83977af_ir.c
+@@ -65,7 +65,6 @@
+ #undef  CONFIG_NETWINDER_TX_DMA_PROBLEMS /* Not needed */
+ #define CONFIG_NETWINDER_RX_DMA_PROBLEMS /* Must have this one! */
+ #endif
+-#undef  CONFIG_USE_INTERNAL_TIMER  /* Just cannot make that timer work */
+ #define CONFIG_USE_W977_PNP        /* Currently needed */
+ #define PIO_MAX_SPEED       115200 
  
-         switch (cmd) {
-         case RAW_SETBIND:
--        case RAW_GETBIND: {
-+        default: {	/* RAW_GETBIND */
-                 struct raw_config_request req;
-                 mm_segment_t oldfs = get_fs();
- 
+@@ -533,25 +532,6 @@ static netdev_tx_t w83977af_hard_xmit(st
+ 		self->tx_buff.len = skb->len;
+ 		
+ 		mtt = irda_get_mtt(skb);
+-#ifdef CONFIG_USE_INTERNAL_TIMER
+-	        if (mtt > 50) {
+-			/* Adjust for timer resolution */
+-			mtt /= 1000+1;
+-
+-			/* Setup timer */
+-			switch_bank(iobase, SET4);
+-			outb(mtt & 0xff, iobase+TMRL);
+-			outb((mtt >> 8) & 0x0f, iobase+TMRH);
+-			
+-			/* Start timer */
+-			outb(IR_MSL_EN_TMR, iobase+IR_MSL);
+-			self->io.direction = IO_XMIT;
+-			
+-			/* Enable timer interrupt */
+-			switch_bank(iobase, SET0);
+-			outb(ICR_ETMRI, iobase+ICR);
+-		} else {
+-#endif
+ 			IRDA_DEBUG(4, "%s(%ld), mtt=%d\n", __func__ , jiffies, mtt);
+ 			if (mtt)
+ 				udelay(mtt);
+@@ -560,9 +540,6 @@ static netdev_tx_t w83977af_hard_xmit(st
+ 			switch_bank(iobase, SET0);
+ 	 		outb(ICR_EDMAI, iobase+ICR);
+ 	     		w83977af_dma_write(self, iobase);
+-#ifdef CONFIG_USE_INTERNAL_TIMER
+-		}
+-#endif
+ 	} else {
+ 		self->tx_buff.data = self->tx_buff.head;
+ 		self->tx_buff.len = async_wrap_skb(skb, self->tx_buff.data, 
+@@ -876,20 +853,7 @@ static int w83977af_dma_receive_complete
+ 			/* Check if we have transferred all data to memory */
+ 			switch_bank(iobase, SET0);
+ 			if (inb(iobase+USR) & USR_RDR) {
+-#ifdef CONFIG_USE_INTERNAL_TIMER
+-				/* Put this entry back in fifo */
+-				st_fifo->head--;
+-				st_fifo->len++;
+-				st_fifo->entries[st_fifo->head].status = status;
+-				st_fifo->entries[st_fifo->head].len = len;
+-				
+-				/* Restore set register */
+-				outb(set, iobase+SSR);
+-			
+-				return FALSE; 	/* I'll be back! */
+-#else
+ 				udelay(80); /* Should be enough!? */
+-#endif
+ 			}
+ 						
+ 			skb = dev_alloc_skb(len+1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-qti-directemp-usb-thermometer-hygrometer-driver-support-fix.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+obsolete-config-in-kernel-source-hso_autopm.patch
+fbdev-remove-obsolete-config_fb_soft_cursor.patch
+obsolete-config-in-kernel-source-lwmon5.patch
+obsolete-config-in-kernel-source-buffer_debug.patch
 
