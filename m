@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + w1-move-omap_hdqs-probe-function-to-devinittext.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:14:29 -0800
-Message-ID: <201002052014.o15KEU3B018660@imap1.linux-foundation.org>
+Subject: + i2c-fix-xiic-build-error.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:19:19 -0800
+Message-ID: <201002052019.o15KJJI3018935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754051Ab0BEURh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:17:37 -0500
+	by vger.kernel.org with ESMTP id S1754051Ab0BEUTh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:19:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, felipe.balbi@nokia.com, greg@kroah.com, madhu.cr@ti.com, stanley.miao@windriver.com, zbr@ioremap.net
+Cc: randy.dunlap@oracle.com, khali@linux-fr.org
 
 
 The patch titled
-     w1: move omap_hdq's probe function to .devinit.text
+     i2c: fix xiic build error
 has been added to the -mm tree.  Its filename is
-     w1-move-omap_hdqs-probe-function-to-devinittext.patch
+     i2c-fix-xiic-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,93 +25,58 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: move omap_hdq's probe function to .devinit.text
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: i2c: fix xiic build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-A pointer to omap_hdq_probe is passed to the core via
-platform_driver_register and so the function must not disappear when th=
-e
-=2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
-unbinding and binding a device to the driver via sysfs will result in a=
-n
-oops as does a device being registered late.
+Add header file to fix build error:
 
-An alternative to this patch is using platform_driver_probe instead of
-platform_driver_register plus removing the pointer to the probe functio=
-n
-from the struct platform_driver.
+drivers/i2c/busses/i2c-xiic.c:493: error: implicit declaration of function 'mdelay'
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Stanley.Miao <stanley.miao@windriver.com>
-Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/omap_hdq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-xiic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/w1/masters/omap_hdq.c~w1-move-omap_hdqs-probe-functio=
-n-to-devinittext drivers/w1/masters/omap_hdq.c
---- a/drivers/w1/masters/omap_hdq.c~w1-move-omap_hdqs-probe-function-to=
--devinittext
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -72,7 +72,7 @@ struct hdq_data {
- 	int			init_trans;
- };
-=20
--static int __init omap_hdq_probe(struct platform_device *pdev);
-+static int __devinit omap_hdq_probe(struct platform_device *pdev);
- static int omap_hdq_remove(struct platform_device *pdev);
-=20
- static struct platform_driver omap_hdq_driver =3D {
-@@ -558,7 +558,7 @@ static void omap_w1_write_byte(void *_hd
- 	return;
- }
-=20
--static int __init omap_hdq_probe(struct platform_device *pdev)
-+static int __devinit omap_hdq_probe(struct platform_device *pdev)
- {
- 	struct hdq_data *hdq_data;
- 	struct resource *res;
+diff -puN drivers/i2c/busses/i2c-xiic.c~i2c-fix-xiic-build-error drivers/i2c/busses/i2c-xiic.c
+--- a/drivers/i2c/busses/i2c-xiic.c~i2c-fix-xiic-build-error
++++ a/drivers/i2c/busses/i2c-xiic.c
+@@ -31,6 +31,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
++#include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-mtd-nand-fix-build-failure-caused-by-typo.patch
-mx1-mx2-einval-overwritten-in-second-iteration-in-mxc_gpio_setup_multip=
-le_pins.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
-platform-drivers-move-probe-to-devinittext-in-arch-arm.patch
-platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
-platform-drivers-move-probe-to-devinittext-in-drivers-video.patch
-x86-move-hp-wmis-probe-function-to-devinittext.patch
-i2c-move-i2c_omaps-probe-function-to-devinittext.patch
-w1-move-omap_hdqs-probe-function-to-devinittext.patch
-media-move-omap24xxcams-probe-function-to-devinittext.patch
-auxdisplay-move-cfag12864bfbs-probe-function-to-devinittext.patch
-net-move-am79c961s-probe-function-to-devinittext.patch
+msi-laptop-depends-on-rfkill.patch
+i2c-fix-xiic-build-error.patch
+libertas-if_spi-needs-linux-semaphoreh.patch
+mfgpt-move-clocksource-menu.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
