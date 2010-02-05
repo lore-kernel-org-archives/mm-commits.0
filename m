@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-pca953xc-add-interrupt-handling-capability-fix.patch added to -mm tree
-Date: Thu, 04 Feb 2010 12:08:43 -0800
-Message-ID: <201002042008.o14K8hPM019093@imap1.linux-foundation.org>
+Subject: + mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch added to -mm tree
+Date: Thu, 04 Feb 2010 16:10:04 -0800
+Message-ID: <201002050010.o150A4Vi031113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933156Ab0BDUJA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 15:09:00 -0500
+	by vger.kernel.org with ESMTP id S933467Ab0BEALL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2010 19:11:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, maz@misterjones.org, ncase@xes-inc.com
+Cc: maximlevitsky@gmail.com, dwmw2@infradead.org, ext-jorg.2.schummer@nokia.com, linux-mmc@vger.kernel.org, rjw@sisk.pl, stable@kernel.org
 
 
 The patch titled
-     gpio-pca953xc-add-interrupt-handling-capability-fix
+     mmc: fix hang if card was removed during suspend and unsafe resume was enabled
 has been added to the -mm tree.  Its filename is
-     gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+     mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-pca953xc-add-interrupt-handling-capability-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: fix hang if card was removed during suspend and unsafe resume was enabled
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-The compiler does inlining for us nowadays.
+Currently removal of the card leads to del_disk called indirectly by mmc
+core.  This function expects userspace to be running, which isn't when
+.resume is called
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Nate Case <ncase@xes-inc.com>
+Fix that by removing the code that did that in mmc_resume_host.  It is
+possible because card detection logic will kick it later and remove the
+card.
+
+Also make mtd workqueue freezeable, so it won't attempt to add/remove the
+card while userspace is frozen.
+
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jorg Schummer <ext-jorg.2.schummer@nokia.com>
+Cc: <linux-mmc@vger.kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/core/core.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/gpio/pca953x.c~gpio-pca953xc-add-interrupt-handling-capability-fix drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-pca953xc-add-interrupt-handling-capability-fix
-+++ a/drivers/gpio/pca953x.c
-@@ -289,7 +289,7 @@ static struct irq_chip pca953x_irq_chip 
- 	.set_type		= pca953x_irq_set_type,
- };
+diff -puN drivers/mmc/core/core.c~mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled
++++ a/drivers/mmc/core/core.c
+@@ -1257,7 +1257,6 @@ int mmc_suspend_host(struct mmc_host *ho
+ 	if (host->caps & MMC_CAP_DISABLE)
+ 		cancel_delayed_work(&host->disable);
+ 	cancel_delayed_work(&host->detect);
+-	mmc_flush_scheduled_work();
  
--static inline uint16_t pca953x_irq_pending(struct pca953x_chip *chip)
-+static uint16_t pca953x_irq_pending(struct pca953x_chip *chip)
+ 	mmc_bus_get(host);
+ 	if (host->bus_ops && !host->bus_dead) {
+@@ -1300,15 +1299,11 @@ int mmc_resume_host(struct mmc_host *hos
+ 		mmc_select_voltage(host, host->ocr);
+ 		BUG_ON(!host->bus_ops->resume);
+ 		err = host->bus_ops->resume(host);
++
+ 		if (err) {
+ 			printk(KERN_WARNING "%s: error %d during resume "
+ 					    "(card was removed?)\n",
+ 					    mmc_hostname(host), err);
+-			if (host->bus_ops->remove)
+-				host->bus_ops->remove(host);
+-			mmc_claim_host(host);
+-			mmc_detach_bus(host);
+-			mmc_release_host(host);
+ 			/* no need to bother upper layers */
+ 			err = 0;
+ 		}
+@@ -1332,7 +1327,7 @@ static int __init mmc_init(void)
  {
- 	uint16_t cur_stat;
- 	uint16_t old_stat;
+ 	int ret;
+ 
+-	workqueue = create_singlethread_workqueue("kmmcd");
++	workqueue = create_freezeable_workqueue("kmmcd");
+ 	if (!workqueue)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from maximlevitsky@gmail.com are
 
-origin.patch
+mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
 mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+ricoh_mmc-port-from-driver-to-pci-quirk.patch
+ricoh_mmc-port-from-driver-to-pci-quirk-update.patch
 
