@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-fix-xiic-build-error.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:19:19 -0800
-Message-ID: <201002052019.o15KJJI3018935@imap1.linux-foundation.org>
+Subject: + pci-hotplug-fix-ibmphp-build-error.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:20:19 -0800
+Message-ID: <201002052020.o15KKJBa018980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754051Ab0BEUTh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:19:37 -0500
+	by vger.kernel.org with ESMTP id S1755443Ab0BEUU0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:20:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, khali@linux-fr.org
+Cc: randy.dunlap@oracle.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     i2c: fix xiic build error
+     pci hotplug: fix ibmphp build error
 has been added to the -mm tree.  Its filename is
-     i2c-fix-xiic-build-error.patch
+     pci-hotplug-fix-ibmphp-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: fix xiic build error
+Subject: pci hotplug: fix ibmphp build error
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
 Add header file to fix build error:
 
-drivers/i2c/busses/i2c-xiic.c:493: error: implicit declaration of function 'mdelay'
+drivers/pci/hotplug/ibmphp_hpc.c:135: error: implicit declaration of function 'init_MUTEX'
+drivers/pci/hotplug/ibmphp_hpc.c:136: error: implicit declaration of function 'init_MUTEX_LOCKED'
+drivers/pci/hotplug/ibmphp_hpc.c:797: error: implicit declaration of function 'down'
+drivers/pci/hotplug/ibmphp_hpc.c:807: error: implicit declaration of function 'up'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-xiic.c |    1 +
+ drivers/pci/hotplug/ibmphp_hpc.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/i2c/busses/i2c-xiic.c~i2c-fix-xiic-build-error drivers/i2c/busses/i2c-xiic.c
---- a/drivers/i2c/busses/i2c-xiic.c~i2c-fix-xiic-build-error
-+++ a/drivers/i2c/busses/i2c-xiic.c
-@@ -31,6 +31,7 @@
- #include <linux/module.h>
+diff -puN drivers/pci/hotplug/ibmphp_hpc.c~pci-hotplug-fix-ibmphp-build-error drivers/pci/hotplug/ibmphp_hpc.c
+--- a/drivers/pci/hotplug/ibmphp_hpc.c~pci-hotplug-fix-ibmphp-build-error
++++ a/drivers/pci/hotplug/ibmphp_hpc.c
+@@ -35,6 +35,7 @@
  #include <linux/init.h>
- #include <linux/errno.h>
-+#include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
++#include <linux/semaphore.h>
+ #include <linux/kthread.h>
+ #include "ibmphp.h"
+ 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -67,6 +70,7 @@ origin.patch
 linux-next.patch
 msi-laptop-depends-on-rfkill.patch
 i2c-fix-xiic-build-error.patch
+pci-hotplug-fix-ibmphp-build-error.patch
 libertas-if_spi-needs-linux-semaphoreh.patch
 mfgpt-move-clocksource-menu.patch
 elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
