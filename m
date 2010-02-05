@@ -1,84 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] futex_lock_pi-key-refcnt-fix.patch removed from -mm tree
-Date: Fri, 05 Feb 2010 11:58:17 -0800
-Message-ID: <201002051958.o15JwHUa017862@imap1.linux-foundation.org>
+Subject: + auxdisplay-move-cfag12864bfbs-probe-function-to-devinittext.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:14:35 -0800
+Message-ID: <201002052014.o15KEaJ4018666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933774Ab0BET7k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 14:59:40 -0500
+	by vger.kernel.org with ESMTP id S1753561Ab0BEUOr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, a.p.zijlstra@chello.nl, dvhltc@us.ibm.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: u.kleine-koenig@pengutronix.de, avuton@gmail.com, greg@kroah.com, miguel.ojeda.sandonis@gmail.com
 
 
 The patch titled
-     futex_lock_pi() key refcnt fix
-has been removed from the -mm tree.  Its filename was
-     futex_lock_pi-key-refcnt-fix.patch
+     auxdisplay: move cfag12864bfb's probe function to .devinit.text
+has been added to the -mm tree.  Its filename is
+     auxdisplay-move-cfag12864bfbs-probe-function-to-devinittext.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: futex_lock_pi() key refcnt fix
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: auxdisplay: move cfag12864bfb's probe function to .devinit.tex=
+t
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-This fixes a futex key reference count bug in futex_lock_pi(), where a
-key's reference count is incremented twice but decremented only once,
-causing the backing object to not be released.
+A pointer to cfag12864bfb_probe is passed to the core via
+platform_driver_register and so the function must not disappear when th=
+e
+=2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
+unbinding and binding a device to the driver via sysfs will result in a=
+n
+oops as does a device being registered late.
 
-If the futex is created in a temporary file in an ext3 file system, this
-bug causes the file's inode to become an "undead" orphan, which causes an
-oops from a BUG_ON() in ext3_put_super() when the file system is
-unmounted.  glibc's test suite is known to trigger this, see
-<http://bugzilla.kernel.org/show_bug.cgi?id=14256>.
+An alternative to this patch is using platform_driver_probe instead of
+platform_driver_register plus removing the pointer to the probe functio=
+n
+from the struct platform_driver.
 
-The bug is a regression from 2.6.28-git3, namely Peter Zijlstra's
-38d47c1b7075bd7ec3881141bb3629da58f88dab "[PATCH] futex: rely on
-get_user_pages() for shared futexes".  That commit made get_futex_key()
-also increment the reference count of the futex key, and updated its
-callers to decrement the key's reference count before returning. 
-Unfortunately the normal exit path in futex_lock_pi() wasn't corrected:
-the reference count is incremented by get_futex_key() and queue_lock(),
-but the normal exit path only decrements once, via unqueue_me_pi().  The
-fix is to put_futex_key() after unqueue_me_pi(), since 2.6.31 this is
-easily done by 'goto out_put_key' rather than 'goto out'.
-
-This patch also works for backports to 2.6.32 and 2.6.31, but 2.6.30 and
-2.6.29 need a "put_futex_key(fshared, &q.key);" after "unqueue_me_pi(&q);"
-instead.  I can supply patches for these older kernels if necessary.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Acked-by: Darren Hart <dvhltc@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Avuton Olrich <avuton@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    2 +-
+ drivers/auxdisplay/cfag12864bfb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/futex.c~futex_lock_pi-key-refcnt-fix kernel/futex.c
---- a/kernel/futex.c~futex_lock_pi-key-refcnt-fix
-+++ a/kernel/futex.c
-@@ -1971,7 +1971,7 @@ retry_private:
- 	/* Unqueue and drop the lock */
- 	unqueue_me_pi(&q);
- 
--	goto out;
-+	goto out_put_key;
- 
- out_unlock_put_key:
- 	queue_unlock(&q, hb);
+diff -puN drivers/auxdisplay/cfag12864bfb.c~auxdisplay-move-cfag12864bf=
+bs-probe-function-to-devinittext drivers/auxdisplay/cfag12864bfb.c
+--- a/drivers/auxdisplay/cfag12864bfb.c~auxdisplay-move-cfag12864bfbs-p=
+robe-function-to-devinittext
++++ a/drivers/auxdisplay/cfag12864bfb.c
+@@ -81,7 +81,7 @@ static struct fb_ops cfag12864bfb_ops =3D=20
+ 	.fb_mmap =3D cfag12864bfb_mmap,
+ };
+=20
+-static int __init cfag12864bfb_probe(struct platform_device *device)
++static int __devinit cfag12864bfb_probe(struct platform_device *device=
+)
+ {
+ 	int ret =3D -EINVAL;
+  	struct fb_info *info =3D framebuffer_alloc(0, &device->dev);
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 origin.patch
 linux-next.patch
+mtd-nand-fix-build-failure-caused-by-typo.patch
+mx1-mx2-einval-overwritten-in-second-iteration-in-mxc_gpio_setup_multip=
+le_pins.patch
+hrtimer-correct-a-few-numbers-in-comments.patch
+clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
+platform-drivers-move-probe-to-devinittext-in-arch-arm.patch
+platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
+platform-drivers-move-probe-to-devinittext-in-drivers-video.patch
+x86-move-hp-wmis-probe-function-to-devinittext.patch
+i2c-move-i2c_omaps-probe-function-to-devinittext.patch
+w1-move-omap_hdqs-probe-function-to-devinittext.patch
+media-move-omap24xxcams-probe-function-to-devinittext.patch
+auxdisplay-move-cfag12864bfbs-probe-function-to-devinittext.patch
+net-move-am79c961s-probe-function-to-devinittext.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
