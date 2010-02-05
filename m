@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:14:14 -0800
-Message-ID: <201002052014.o15KEEmV018646@imap1.linux-foundation.org>
+Subject: + platform-drivers-move-probe-to-devinittext-in-arch-arm.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:14:08 -0800
+Message-ID: <201002052014.o15KE8K1018642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753770Ab0BEUPC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:15:02 -0500
+	by vger.kernel.org with ESMTP id S1754051Ab0BEUPD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:15:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, James.Bottomley@HansenPartnership.com, dbrownell@users.sourceforge.net, dmitri.vorobiev@movial.fi, greg@kroah.com, henne@nachtwindheim.de, kay.sievers@vrfy.org, post@pfrst.de, ralf@linux-mips.org, tsbogend@alpha.franken.de
+Cc: u.kleine-koenig@pengutronix.de, arnaud.patard@rtp-net.org, ben-linux@fluff.org, dbaryshkov@gmail.com, eric.miao@marvell.com, greg@kroah.com, kristoffer.ericson@gmail.com, liam.girdwood@wolfsonmicro.com, pmiscml@gmail.com, rmk+kernel@arm.linux.org.uk, rpurdie@rpsys.net
 
 
 The patch titled
-     platform-drivers: move probe to .devinit.text in drivers/scsi
+     platform-drivers: move probe to .devinit.text in arch/arm
 has been added to the -mm tree.  Its filename is
-     platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
+     platform-drivers-move-probe-to-devinittext-in-arch-arm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,7 +38,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: platform-drivers: move probe to .devinit.text in drivers/scsi
+Subject: platform-drivers: move probe to .devinit.text in arch/arm
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
 A pointer to a probe callback is passed to the core via
@@ -55,50 +55,82 @@ n
 from the struct platform_driver.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Dmitri Vorobiev <dmitri.vorobiev@movial.fi>
-Cc: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: peter fuerst <post@pfrst.de>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Acked-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Acked-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Acked-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
+Cc: Paul Sokolovsky <pmiscml@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sgiwd93.c    |    2 +-
- drivers/scsi/sni_53c710.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-pxa/corgi_ssp.c           |    2 +-
+ arch/arm/mach-pxa/sharpsl_pm.c          |    2 +-
+ arch/arm/mach-s3c2410/h1940-bluetooth.c |    2 +-
+ arch/arm/mach-sa1100/jornada720_ssp.c   |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinit=
-text-in-drivers-scsi drivers/scsi/sgiwd93.c
---- a/drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinittext=
--in-drivers-scsi
-+++ a/drivers/scsi/sgiwd93.c
-@@ -226,7 +226,7 @@ static struct scsi_host_template sgiwd93
- 	.use_clustering		=3D DISABLE_CLUSTERING,
+diff -puN arch/arm/mach-pxa/corgi_ssp.c~platform-drivers-move-probe-to-=
+devinittext-in-arch-arm arch/arm/mach-pxa/corgi_ssp.c
+--- a/arch/arm/mach-pxa/corgi_ssp.c~platform-drivers-move-probe-to-devi=
+nittext-in-arch-arm
++++ a/arch/arm/mach-pxa/corgi_ssp.c
+@@ -204,7 +204,7 @@ void __init corgi_ssp_set_machinfo(struc
+ 	ssp_machinfo =3D machinfo;
+ }
+=20
+-static int __init corgi_ssp_probe(struct platform_device *dev)
++static int __devinit corgi_ssp_probe(struct platform_device *dev)
+ {
+ 	int ret;
+=20
+diff -puN arch/arm/mach-pxa/sharpsl_pm.c~platform-drivers-move-probe-to=
+-devinittext-in-arch-arm arch/arm/mach-pxa/sharpsl_pm.c
+--- a/arch/arm/mach-pxa/sharpsl_pm.c~platform-drivers-move-probe-to-dev=
+inittext-in-arch-arm
++++ a/arch/arm/mach-pxa/sharpsl_pm.c
+@@ -900,7 +900,7 @@ static struct platform_suspend_ops sharp
+ };
+ #endif
+=20
+-static int __init sharpsl_pm_probe(struct platform_device *pdev)
++static int __devinit sharpsl_pm_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+=20
+diff -puN arch/arm/mach-s3c2410/h1940-bluetooth.c~platform-drivers-move=
+-probe-to-devinittext-in-arch-arm arch/arm/mach-s3c2410/h1940-bluetooth=
+=2Ec
+--- a/arch/arm/mach-s3c2410/h1940-bluetooth.c~platform-drivers-move-pro=
+be-to-devinittext-in-arch-arm
++++ a/arch/arm/mach-s3c2410/h1940-bluetooth.c
+@@ -56,7 +56,7 @@ static const struct rfkill_ops h1940bt_r
+ 	.set_block =3D h1940bt_set_block,
  };
 =20
--static int __init sgiwd93_probe(struct platform_device *pdev)
-+static int __devinit sgiwd93_probe(struct platform_device *pdev)
+-static int __init h1940bt_probe(struct platform_device *pdev)
++static int __devinit h1940bt_probe(struct platform_device *pdev)
  {
- 	struct sgiwd93_platform_data *pd =3D pdev->dev.platform_data;
- 	unsigned char *wdregs =3D pd->wdregs;
-diff -puN drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devi=
-nittext-in-drivers-scsi drivers/scsi/sni_53c710.c
---- a/drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devinitt=
-ext-in-drivers-scsi
-+++ a/drivers/scsi/sni_53c710.c
-@@ -64,7 +64,7 @@ static struct scsi_host_template snirm71
- 	.module		=3D THIS_MODULE,
+ 	struct rfkill *rfk;
+ 	int ret =3D 0;
+diff -puN arch/arm/mach-sa1100/jornada720_ssp.c~platform-drivers-move-p=
+robe-to-devinittext-in-arch-arm arch/arm/mach-sa1100/jornada720_ssp.c
+--- a/arch/arm/mach-sa1100/jornada720_ssp.c~platform-drivers-move-probe=
+-to-devinittext-in-arch-arm
++++ a/arch/arm/mach-sa1100/jornada720_ssp.c
+@@ -130,7 +130,7 @@ void jornada_ssp_end(void)
  };
+ EXPORT_SYMBOL(jornada_ssp_end);
 =20
--static int __init snirm710_probe(struct platform_device *dev)
-+static int __devinit snirm710_probe(struct platform_device *dev)
+-static int __init jornada_ssp_probe(struct platform_device *dev)
++static int __devinit jornada_ssp_probe(struct platform_device *dev)
  {
- 	unsigned long base;
- 	struct NCR_700_Host_Parameters *hostdata;
+ 	int ret;
+=20
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
