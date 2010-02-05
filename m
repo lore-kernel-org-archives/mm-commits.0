@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-qti-directemp-usb-thermometer-hygrometer-driver-support.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:40:46 -0800
-Message-ID: <201002052040.o15KekwD019958@imap1.linux-foundation.org>
+Subject: + maintainers-document-and-add-q-patchwork-queue-entries.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:42:48 -0800
+Message-ID: <201002052042.o15KgmT9020103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755558Ab0BEUlV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:41:21 -0500
+	by vger.kernel.org with ESMTP id S1752939Ab0BEUnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:43:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chrisv@cyberswitching.com, greg@kroah.com
+Cc: joe@perches.com
 
 
 The patch titled
-     usb: QTI DirecTEMP USB thermometer/hygrometer driver support
+     MAINTAINERS: document and add "Q" patchwork queue entries
 has been added to the -mm tree.  Its filename is
-     usb-qti-directemp-usb-thermometer-hygrometer-driver-support.patch
+     maintainers-document-and-add-q-patchwork-queue-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,421 +33,286 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: QTI DirecTEMP USB thermometer/hygrometer driver support
-From: "Chris Verges" <chrisv@cyberswitching.com>
+Subject: MAINTAINERS: document and add "Q" patchwork queue entries
+From: Joe Perches <joe@perches.com>
 
-A driver for the QTI DirecTEMP USB thermometer & thermometer/hygrometer
-sensors.  Functionality has been verified against both hardware variants
-listed in the driver (0x0002 and 0x0006), as both monolithic and modular.
+Patchwork queues show the acceptance/rejection state of submitted patches
+for various MAINTAINER trees.  Document their existence.
 
-When the QTI DirecTEMP sensor is connected to a system, the directemp
-driver adds appropriate sysfs entries for the sensor type(s) supported. 
-Examples:
-
-   # PID 0x0002 (temp only)
-   /sys/bus/usb/devices/.../temp
-
-   # PID 0x0006 (temp + relative humidity)
-   /sys/bus/usb/devices/.../temp
-   /sys/bus/usb/devices/.../rh
-
-Using a standard "cat" will display the value.
-
-An additional "raw" sysfs entry has been added to aid in debugging.  If
-used, an "echo" will send the data specified in the string to the USB
-device, and print back the results.  It is not recommended for customer
-use except by expert users.
-
-Signed-off-by: Chris Verges <chrisv@cyberswitching.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/Kconfig     |   11 -
- drivers/usb/misc/Makefile    |    1 
- drivers/usb/misc/directemp.c |  335 +++++++++++++++++++++++++++++++++
- 3 files changed, 346 insertions(+), 1 deletion(-)
+ MAINTAINERS |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/misc/Kconfig~usb-qti-directemp-usb-thermometer-hygrometer-driver-support drivers/usb/misc/Kconfig
---- a/drivers/usb/misc/Kconfig~usb-qti-directemp-usb-thermometer-hygrometer-driver-support
-+++ a/drivers/usb/misc/Kconfig
-@@ -124,6 +124,16 @@ config USB_CYTHERM
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called cytherm.
+diff -puN MAINTAINERS~maintainers-document-and-add-q-patchwork-queue-entries MAINTAINERS
+--- a/MAINTAINERS~maintainers-document-and-add-q-patchwork-queue-entries
++++ a/MAINTAINERS
+@@ -71,6 +71,7 @@ Descriptions of section entries:
+ 	M: Mail patches to: FullName <address@domain>
+ 	L: Mailing list that is relevant to this area
+ 	W: Web-page with status/info
++	Q: Patchwork web based patch tracking system site
+ 	T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit.
+ 	S: Status, one of the following:
+ 	   Supported:	Someone is actually paid to look after this.
+@@ -182,6 +183,7 @@ M:	Ron Minnich <rminnich@sandia.gov>
+ M:	Latchesar Ionkov <lucho@ionkov.net>
+ L:	v9fs-developer@lists.sourceforge.net
+ W:	http://swik.net/v9fs
++Q:	http://patchwork.kernel.org/project/v9fs-devel/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ericvh/v9fs.git
+ S:	Maintained
+ F:	Documentation/filesystems/9p.txt
+@@ -236,6 +238,7 @@ ACPI
+ M:	Len Brown <lenb@kernel.org>
+ L:	linux-acpi@vger.kernel.org
+ W:	http://www.lesswatts.org/projects/acpi/
++Q:	http://patchwork.kernel.org/project/linux-acpi/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
+ S:	Supported
+ F:	drivers/acpi/
+@@ -1335,6 +1338,7 @@ BTRFS FILE SYSTEM
+ M:	Chris Mason <chris.mason@oracle.com>
+ L:	linux-btrfs@vger.kernel.org
+ W:	http://btrfs.wiki.kernel.org/
++Q:	http://patchwork.kernel.org/project/linux-btrfs/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mason/btrfs-unstable.git
+ S:	Maintained
+ F:	Documentation/filesystems/btrfs.txt
+@@ -1507,6 +1511,7 @@ M:	Steve French <sfrench@samba.org>
+ L:	linux-cifs-client@lists.samba.org (moderated for non-subscribers)
+ L:	samba-technical@lists.samba.org (moderated for non-subscribers)
+ W:	http://linux-cifs.samba.org/
++Q:	http://patchwork.ozlabs.org/project/linux-cifs-client/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6.git
+ S:	Supported
+ F:	Documentation/filesystems/cifs.txt
+@@ -1792,6 +1797,7 @@ DEVICE-MAPPER  (LVM)
+ P:	Alasdair Kergon
+ L:	dm-devel@redhat.com
+ W:	http://sources.redhat.com/dm
++Q:	http://patchwork.kernel.org/project/dm-devel/list/
+ S:	Maintained
+ F:	Documentation/device-mapper/
+ F:	drivers/md/dm*
+@@ -2135,6 +2141,7 @@ M:	"Theodore Ts'o" <tytso@mit.edu>
+ M:	Andreas Dilger <adilger@sun.com>
+ L:	linux-ext4@vger.kernel.org
+ W:	http://ext4.wiki.kernel.org
++Q:	http://patchwork.ozlabs.org/project/linux-ext4/list/
+ S:	Maintained
+ F:	Documentation/filesystems/ext4.txt
+ F:	fs/ext4/
+@@ -2698,6 +2705,7 @@ F:	drivers/scsi/ips.*
+ IDE SUBSYSTEM
+ M:	"David S. Miller" <davem@davemloft.net>
+ L:	linux-ide@vger.kernel.org
++Q:	http://patchwork.ozlabs.org/project/linux-ide/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davem/ide-2.6.git
+ S:	Maintained
+ F:	Documentation/ide/
+@@ -2752,6 +2760,7 @@ M:	Sean Hefty <sean.hefty@intel.com>
+ M:	Hal Rosenstock <hal.rosenstock@gmail.com>
+ L:	linux-rdma@vger.kernel.org
+ W:	http://www.openib.org/
++Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git
+ S:	Supported
+ F:	Documentation/infiniband/
+@@ -2771,6 +2780,7 @@ INPUT (KEYBOARD, MOUSE, JOYSTICK, TOUCHS
+ M:	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+ M:	Dmitry Torokhov <dtor@mail.ru>
+ L:	linux-input@vger.kernel.org
++Q:	http://patchwork.kernel.org/project/linux-input/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input.git
+ S:	Maintained
+ F:	drivers/input/
+@@ -3093,6 +3103,7 @@ F:	drivers/hwmon/k8temp.c
+ KCONFIG
+ M:	Roman Zippel <zippel@linux-m68k.org>
+ L:	linux-kbuild@vger.kernel.org
++Q:	http://patchwork.kernel.org/project/linux-kbuild/list/
+ S:	Maintained
+ F:	Documentation/kbuild/kconfig-language.txt
+ F:	scripts/kconfig/
+@@ -3311,6 +3322,7 @@ M:	Benjamin Herrenschmidt <benh@kernel.c
+ M:	Paul Mackerras <paulus@samba.org>
+ W:	http://www.penguinppc.org/
+ L:	linuxppc-dev@ozlabs.org
++Q:	http://patchwork.ozlabs.org/project/linuxppc-dev/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc.git
+ S:	Supported
+ F:	Documentation/powerpc/
+@@ -3572,6 +3584,7 @@ M:	Mauro Carvalho Chehab <mchehab@infrad
+ P:	LinuxTV.org Project
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org
++Q:	http://patchwork.kernel.org/project/linux-media/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ S:	Maintained
+ F:	Documentation/dvb/
+@@ -3607,8 +3620,9 @@ F:	mm/memcontrol.c
  
-+config USB_DIRECTEMP
-+	tristate "QTI DirecTEMP USB thermometer/hygrometer driver support"
-+	depends on USB
-+	help
-+	  Say Y here if you want to connect a QTI DirecTEMP USB
-+	  thermometer/hygrometer device to your computer's USB port.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called directemp.
-+
- config USB_IDMOUSE
- 	tristate "Siemens ID USB Mouse Fingerprint sensor support"
- 	depends on USB
-@@ -244,4 +254,3 @@ config USB_VST
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called vstusb.
+ MEMORY TECHNOLOGY DEVICES (MTD)
+ M:	David Woodhouse <dwmw2@infradead.org>
+-W:	http://www.linux-mtd.infradead.org/
+ L:	linux-mtd@lists.infradead.org
++W:	http://www.linux-mtd.infradead.org/
++Q:	http://patchwork.ozlabs.org/project/linux-mtd/list/
+ T:	git git://git.infradead.org/mtd-2.6.git
+ S:	Maintained
+ F:	drivers/mtd/
+@@ -3866,6 +3880,7 @@ S:	Maintained
+ NETWORKING [WIRELESS]
+ M:	"John W. Linville" <linville@tuxdriver.com>
+ L:	linux-wireless@vger.kernel.org
++Q:	http://patchwork.kernel.org/project/linux-wireless/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-2.6.git
+ S:	Maintained
+ F:	net/mac80211/
+@@ -3957,6 +3972,7 @@ M:	Tony Lindgren <tony@atomide.com>
+ L:	linux-omap@vger.kernel.org
+ W:	http://www.muru.com/linux/omap/
+ W:	http://linux.omap.com/
++Q:	http://patchwork.kernel.org/project/linux-omap/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+ S:	Maintained
+ F:	arch/arm/*omap*/
+@@ -4182,6 +4198,7 @@ M:	Helge Deller <deller@gmx.de>
+ M:	"James E.J. Bottomley" <jejb@parisc-linux.org>
+ L:	linux-parisc@vger.kernel.org
+ W:	http://www.parisc-linux.org/
++Q:	http://patchwork.kernel.org/project/linux-parisc/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kyle/parisc-2.6.git
+ S:	Maintained
+ F:	arch/parisc/
+@@ -4224,6 +4241,7 @@ F:	Documentation/powerpc/eeh-pci-error-r
+ PCI SUBSYSTEM
+ M:	Jesse Barnes <jbarnes@virtuousgeek.org>
+ L:	linux-pci@vger.kernel.org
++Q:	http://patchwork.kernel.org/project/linux-pci/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jbarnes/pci-2.6.git
+ S:	Supported
+ F:	Documentation/PCI/
+@@ -4601,6 +4619,7 @@ F:	include/linux/rtc.h
+ REAL TIME CLOCK (RTC) SUBSYSTEM
+ M:	Alessandro Zummo <a.zummo@towertech.it>
+ L:	rtc-linux@googlegroups.com
++Q:	http://patchwork.ozlabs.org/project/rtc-linux/list/
+ S:	Maintained
+ F:	Documentation/rtc.txt
+ F:	drivers/rtc/
+@@ -4965,6 +4984,7 @@ F:	drivers/*/*/*s3c2410*
+ TI DAVINCI MACHINE SUPPORT
+ P:	Kevin Hilman
+ M:	davinci-linux-open-source@linux.davincidsp.com
++Q:	http://patchwork.kernel.org/project/linux-davinci/list/
+ S:	Supported
+ F:	arch/arm/mach-davinci
  
--
-diff -puN drivers/usb/misc/Makefile~usb-qti-directemp-usb-thermometer-hygrometer-driver-support drivers/usb/misc/Makefile
---- a/drivers/usb/misc/Makefile~usb-qti-directemp-usb-thermometer-hygrometer-driver-support
-+++ a/drivers/usb/misc/Makefile
-@@ -7,6 +7,7 @@ obj-$(CONFIG_USB_ADUTUX)	+= adutux.o
- obj-$(CONFIG_USB_APPLEDISPLAY)	+= appledisplay.o
- obj-$(CONFIG_USB_CYPRESS_CY7C63)+= cypress_cy7c63.o
- obj-$(CONFIG_USB_CYTHERM)	+= cytherm.o
-+obj-$(CONFIG_USB_DIRECTEMP)	+= directemp.o
- obj-$(CONFIG_USB_EMI26)		+= emi26.o
- obj-$(CONFIG_USB_EMI62)		+= emi62.o
- obj-$(CONFIG_USB_FTDI_ELAN)	+= ftdi-elan.o
-diff -puN /dev/null drivers/usb/misc/directemp.c
---- /dev/null
-+++ a/drivers/usb/misc/directemp.c
-@@ -0,0 +1,335 @@
-+/*
-+ * QTI DirecTEMP USB thermometer/hygrometer driver
-+ *
-+ * Copyright (c) 2010 Cyber Switching, Inc.
-+ *    Chris Verges <chrisv@cyberswitching.com>
-+ *
-+ * Copyright (c) 2010 Quality Thermistor, Inc.
-+ *
-+ * Using code from:
-+ *  - directemp.c
-+ *      Copyright (c) 2004 Erik Rigtorp <erkki@linux.nu> <erik@rigtorp.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation, version 2.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/ctype.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/usb.h>
-+
-+#define QTI_VENDOR_ID		(0x1DFD)
-+
-+#define DIRECTEMP_STREAM_DATA	(0x31)
-+#define DIRECTEMP_SINGLE_POINT	(0x32)
-+#define DIRECTEMP_INFO		(0x33)
-+#define DIRECTEMP_BOARD_VER	(0x42)
-+#define DIRECTEMP_HUMIDITY	(0x48)
-+#define DIRECTEMP_SERIAL_NUM	(0x53)
-+#define DIRECTEMP_TEMPERATURE	(0x54)
-+#define DIRECTEMP_FIRMWARE_REV	(0x56)
-+
-+#define DIRECTEMP_MSG_SIZE	(16)
-+#define DIRECTEMP_TIMEOUT	(1000)
-+#define DIRECTEMP_MAX_RETRIES	(3)
-+
-+struct usb_directemp {
-+	struct usb_device	*udev;
-+	struct usb_interface	*interface;
-+	uint16_t		pid;
-+
-+	uint8_t			read_temp;
-+};
-+
-+static int directemp_read(struct usb_device *dev, void *data, int len)
-+{
-+	int actual_len;
-+	int err;
-+
-+	err = usb_interrupt_msg(dev, usb_rcvintpipe(dev, 1),
-+			data, len, &actual_len,	DIRECTEMP_TIMEOUT);
-+	if (err)
-+		return err;
-+
-+	return actual_len;
-+}
-+
-+static int directemp_write(struct usb_device *dev, void *data, int len)
-+{
-+	int actual_len;
-+	int err;
-+
-+	err = usb_interrupt_msg(dev, usb_sndintpipe(dev, 2),
-+			data, len, &actual_len,	DIRECTEMP_TIMEOUT);
-+	if (err)
-+		return err;
-+
-+	return actual_len;
-+}
-+
-+static ssize_t show_helper(struct device *dev,
-+				struct device_attribute *attr,
-+				char *tx, char *rx, int len)
-+{
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct usb_directemp *directemp = usb_get_intfdata(intf);
-+	int err;
-+
-+	/* Send the command request */
-+	dev_dbg(dev, "sending command\n");
-+	err = directemp_write(directemp->udev, tx, DIRECTEMP_MSG_SIZE);
-+	if (err < 0) {
-+		dev_err(dev, "error %d during communication\n", err);
-+		return err;
-+	} else {
-+		dev_dbg(dev, "transferred %d bytes\n", err);
-+	}
-+
-+	/* Read the response */
-+	memset(rx, 0, DIRECTEMP_MSG_SIZE * sizeof(char));
-+	dev_dbg(dev, "reading response\n");
-+	err = directemp_read(directemp->udev, rx, DIRECTEMP_MSG_SIZE);
-+	if (err < 0) {
-+		dev_err(dev, "error %d during communication\n", err);
-+		return err;
-+	} else {
-+		dev_dbg(dev, "transferred %d bytes\n", err);
-+	}
-+
-+	return err;
-+}
-+
-+static ssize_t show_temp(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct usb_directemp *directemp = usb_get_intfdata(intf);
-+	char data[DIRECTEMP_MSG_SIZE + 1];
-+	int err;
-+	int i;
-+
-+	/* Read twice due to a buffer issue on the DirecTEMP */
-+	for (i = 0; i < DIRECTEMP_MAX_RETRIES; i++) {
-+		memset(data, 0, (DIRECTEMP_MSG_SIZE + 1) * sizeof(char));
-+		data[0] = directemp->read_temp;
-+		err = show_helper(dev, attr, data, data, DIRECTEMP_MSG_SIZE);
-+		if (err < 0)
-+			continue;
-+		if (data[0] == directemp->read_temp)
-+			break;
-+	}
-+
-+	if (i >= DIRECTEMP_MAX_RETRIES) {
-+		dev_err(dev, "exceeded maximum retry count\n");
-+		return sprintf(buf, "--.- C\n");
-+	}
-+
-+	/* Sanitize the output */
-+	for (i = 1; i < DIRECTEMP_MSG_SIZE; i++)
-+		if (!isdigit(data[i]) && data[i] != '.') {
-+			data[i] = '\0';
-+			break;
-+		}
-+
-+	/* Convert for the user */
-+	err = snprintf(buf, DIRECTEMP_MSG_SIZE, "%s C\n", &data[1]);
-+	if (err < 0) {
-+		dev_err(dev, "unable to convert received output");
-+		err = 0;
-+	}
-+
-+	return err;
-+}
-+
-+static DEVICE_ATTR(temp, S_IRUGO, show_temp, NULL);
-+
-+static ssize_t show_rh(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	char data[DIRECTEMP_MSG_SIZE + 1];
-+	int err;
-+	int i;
-+
-+	/* Read twice due to a buffer issue on the DirecTEMP */
-+	for (i = 0; i < DIRECTEMP_MAX_RETRIES; i++) {
-+		memset(data, 0, (DIRECTEMP_MSG_SIZE + 1) * sizeof(char));
-+		data[0] = DIRECTEMP_HUMIDITY;
-+		err = show_helper(dev, attr, data, data, DIRECTEMP_MSG_SIZE);
-+		if (err < 0)
-+			continue;
-+		if (data[0] == DIRECTEMP_HUMIDITY)
-+			break;
-+	}
-+
-+	if (i >= DIRECTEMP_MAX_RETRIES) {
-+		dev_err(dev, "exceeded maximum retry count\n");
-+		return sprintf(buf, "--.-%%\n");
-+	}
-+
-+	/* Sanitize the output */
-+	for (i = 1; i < DIRECTEMP_MSG_SIZE; i++)
-+		if (!isdigit(data[i]) && data[i] != '.') {
-+			data[i] = '\0';
-+			break;
-+		}
-+
-+	/* Convert for the user */
-+	err = snprintf(buf, DIRECTEMP_MSG_SIZE, "%s%%\n", &data[1]);
-+	if (err < 0) {
-+		dev_err(dev, "unable to convert received output");
-+		err = 0;
-+	}
-+
-+	return err;
-+}
-+
-+static DEVICE_ATTR(rh, S_IRUGO, show_rh, NULL);
-+
-+static ssize_t set_raw(struct device *dev, struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	char data[DIRECTEMP_MSG_SIZE + 1];
-+	int err;
-+	int i;
-+
-+	if (count > DIRECTEMP_MSG_SIZE)
-+		count = DIRECTEMP_MSG_SIZE;
-+
-+	memset(data, 0, (DIRECTEMP_MSG_SIZE + 1) * sizeof(char));
-+	memcpy(data, buf, count);
-+
-+	printk("Request:\n");
-+	for (i = 0; i < DIRECTEMP_MSG_SIZE; i++)
-+		printk("  [%02x] 0x%02X %2u %c\n", i,
-+				data[i], data[i], data[i]);
-+
-+	err = show_helper(dev, attr, data, data, DIRECTEMP_MSG_SIZE);
-+	if (err < 0)
-+		return 0;
-+
-+	printk("Response:\n");
-+	for (i = 0; i < DIRECTEMP_MSG_SIZE; i++)
-+		printk("  [%02x] 0x%02X %2u %c\n", i,
-+				data[i], data[i], data[i]);
-+
-+	return 0;
-+}
-+
-+static DEVICE_ATTR(raw, S_IWUGO, NULL, set_raw);
-+
-+static int directemp_probe(struct usb_interface *interface,
-+			 const struct usb_device_id *id)
-+{
-+	struct usb_device *udev = interface_to_usbdev(interface);
-+	struct usb_directemp *dev;
-+	int err;
-+
-+	dev = kzalloc(sizeof(struct usb_directemp), GFP_KERNEL);
-+	if (!dev)
-+		return -ENOMEM;
-+
-+	dev->udev = usb_get_dev(udev);
-+	usb_set_intfdata(interface, dev);
-+	dev->pid = id->idProduct;
-+
-+	dev_dbg(&interface->dev, "Product:       %s (ID 0x%04X)\n",
-+			udev->product, dev->pid);
-+	dev_dbg(&interface->dev, "Manufacturer:  %s\n",
-+			udev->manufacturer);
-+	dev_dbg(&interface->dev, "Serial Number: %s\n",
-+			udev->serial);
-+
-+	/* raw access to USB protocol via sysfs -- debugging only! */
-+	err = device_create_file(&interface->dev, &dev_attr_raw);
-+	if (err)
-+		goto exit_free_sysfs;
-+
-+	/* sysfs temperature & humidity value */
-+	err = device_create_file(&interface->dev, &dev_attr_temp);
-+	if (err)
-+		goto exit_free_sysfs;
-+
-+	switch (dev->pid) {
-+	case 0x0002:
-+		dev->read_temp = '2';
-+		break;
-+	case 0x0006:
-+		dev->read_temp = 'T';
-+		err = device_create_file(&interface->dev, &dev_attr_rh);
-+		if (err)
-+			goto exit_free_sysfs;
-+		break;
-+	}
-+
-+	dev_info(&interface->dev, "DirecTEMP USB now attached\n");
-+	return 0;
-+
-+exit_free_sysfs:
-+	dev_err(&interface->dev, "error while initializing driver\n");
-+	device_remove_file(&interface->dev, &dev_attr_temp);
-+	device_remove_file(&interface->dev, &dev_attr_rh);
-+	usb_set_intfdata(interface, NULL);
-+	usb_put_dev(dev->udev);
-+	kfree(dev);
-+	return err;
-+}
-+
-+static void directemp_disconnect(struct usb_interface *interface)
-+{
-+	struct usb_directemp *dev = usb_get_intfdata(interface);
-+
-+	device_remove_file(&interface->dev, &dev_attr_temp);
-+	device_remove_file(&interface->dev, &dev_attr_rh);
-+
-+	/* first remove the files, then NULL the pointer */
-+	usb_set_intfdata(interface, NULL);
-+	usb_put_dev(dev->udev);
-+
-+	kfree(dev);
-+
-+	dev_info(&interface->dev, "disconnected\n");
-+}
-+
-+static struct usb_device_id id_table[] = {
-+	{ USB_DEVICE(QTI_VENDOR_ID, 0x0002) }, /* Thermometer only */
-+	{ USB_DEVICE(QTI_VENDOR_ID, 0x0006) }, /* Thermo- and Hygrometer */
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(usb, id_table);
-+
-+static struct usb_driver directemp_driver = {
-+	.name		= "directemp",
-+	.probe		= directemp_probe,
-+	.disconnect	= directemp_disconnect,
-+	.id_table	= id_table,
-+};
-+
-+static int __init usb_directemp_init(void)
-+{
-+	int result;
-+
-+	result = usb_register(&directemp_driver);
-+	if (result) {
-+		printk(KERN_ERR KBUILD_MODNAME ": usb_register failed! "
-+				"Error number: %d\n", result);
-+		return result;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit usb_directemp_exit(void)
-+{
-+	usb_deregister(&directemp_driver);
-+}
-+
-+module_init(usb_directemp_init);
-+module_exit(usb_directemp_exit);
-+
-+MODULE_AUTHOR("Chris Verges <chrisv@cyberswitching.com>");
-+MODULE_DESCRIPTION("QTI DirecTEMP USB thermometer/hygrometer driver");
-+MODULE_LICENSE("GPL");
+@@ -5130,6 +5150,7 @@ F:	include/sound/soc*
+ SPARC + UltraSPARC (sparc/sparc64)
+ M:	"David S. Miller" <davem@davemloft.net>
+ L:	sparclinux@vger.kernel.org
++Q:	http://patchwork.ozlabs.org/project/sparclinux/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc-2.6.git
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc-next-2.6.git
+ S:	Maintained
+@@ -5145,6 +5166,7 @@ SPI SUBSYSTEM
+ M:	David Brownell <dbrownell@users.sourceforge.net>
+ M:	Grant Likely <grant.likely@secretlab.ca>
+ L:	spi-devel-general@lists.sourceforge.net
++Q:	http://patchwork.kernel.org/project/spi-devel-general/list/
+ S:	Maintained
+ F:	Documentation/spi/
+ F:	drivers/spi/
+@@ -5221,6 +5243,7 @@ SUPERH
+ M:	Paul Mundt <lethal@linux-sh.org>
+ L:	linux-sh@vger.kernel.org
+ W:	http://www.linux-sh.org
++Q:	http://patchwork.kernel.org/project/linux-sh/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lethal/sh-2.6.git
+ S:	Supported
+ F:	Documentation/sh/
+@@ -6187,6 +6210,7 @@ F:	drivers/serial/zs.*
+ THE REST
+ M:	Linus Torvalds <torvalds@linux-foundation.org>
+ L:	linux-kernel@vger.kernel.org
++Q:	http://patchwork.kernel.org/project/LKML/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+ S:	Buried alive in reporters
+ F:	*
 _
 
-Patches currently in -mm which might be from chrisv@cyberswitching.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-usb-qti-directemp-usb-thermometer-hygrometer-driver-support.patch
-usb-qti-directemp-usb-thermometer-hygrometer-driver-support-fix.patch
-rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
+origin.patch
+linux-next.patch
+drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+arch-ia64-fix-continuation-line-formats.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
+drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-staging-fix-continuation-line-formats.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+maintainers-remove-hayes-esp-serial-driver.patch
+maintainers-update-performance-events-f-patterns.patch
+maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+maintainers-wavelan-moved-to-staging.patch
+maintainers-document-and-add-q-patchwork-queue-entries.patch
+lib-stringc-simplify-stricmp.patch
+lib-stringc-simplify-strnstr.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
+scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
+drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
+drivers-video-via-fix-continuation-line-formats.patch
 
