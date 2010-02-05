@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + media-move-omap24xxcams-probe-function-to-devinittext.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:14:32 -0800
-Message-ID: <201002052014.o15KEXvl018663@imap1.linux-foundation.org>
+Subject: + x86-move-hp-wmis-probe-function-to-devinittext.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:14:23 -0800
+Message-ID: <201002052014.o15KEOYL018654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50736 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753561Ab0BEUPq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:15:46 -0500
+	by vger.kernel.org with ESMTP id S1753561Ab0BEUQB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:16:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, greg@kroah.com, hverkuil@xs4all.nl, mchehab@redhat.com, sakari.ailus@maxwell.research.nokia.com, soni.trilok@gmail.com
+Cc: u.kleine-koenig@pengutronix.de, Larry.Finger@lwfinger.net, deller@gmx.de, elendil@planet.nl, greg@kroah.com, lenb@kernel.org, mjg@redhat.com
 
 
 The patch titled
-     media: move omap24xxcam's probe function to .devinit.text
+     x86: move hp-wmi's probe function to .devinit.text
 has been added to the -mm tree.  Its filename is
-     media-move-omap24xxcams-probe-function-to-devinittext.patch
+     x86-move-hp-wmis-probe-function-to-devinittext.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,10 +38,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: media: move omap24xxcam's probe function to .devinit.text
+Subject: x86: move hp-wmi's probe function to .devinit.text
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-A pointer to omap24xxcam_probe is passed to the core via
+A pointer to hp_wmi_bios_setup is passed to the core via
 platform_driver_register and so the function must not disappear when th=
 e
 =2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
@@ -55,31 +55,43 @@ n
 from the struct platform_driver.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Acked-by: Trilok Soni <soni.trilok@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Frans Pop <elendil@planet.nl>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Greg KH <greg@kroah.com>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/omap24xxcam.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/hp-wmi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/omap24xxcam.c~media-move-omap24xxcams-pro=
-be-function-to-devinittext drivers/media/video/omap24xxcam.c
---- a/drivers/media/video/omap24xxcam.c~media-move-omap24xxcams-probe-f=
-unction-to-devinittext
-+++ a/drivers/media/video/omap24xxcam.c
-@@ -1735,7 +1735,7 @@ static struct v4l2_int_device omap24xxca
-  *
-  */
+diff -puN drivers/platform/x86/hp-wmi.c~x86-move-hp-wmis-probe-function=
+-to-devinittext drivers/platform/x86/hp-wmi.c
+--- a/drivers/platform/x86/hp-wmi.c~x86-move-hp-wmis-probe-function-to-=
+devinittext
++++ a/drivers/platform/x86/hp-wmi.c
+@@ -57,7 +57,7 @@ enum hp_wmi_radio {
+ 	HPWMI_WWAN =3D 2,
+ };
 =20
--static int __init omap24xxcam_probe(struct platform_device *pdev)
-+static int __devinit omap24xxcam_probe(struct platform_device *pdev)
+-static int __init hp_wmi_bios_setup(struct platform_device *device);
++static int __devinit hp_wmi_bios_setup(struct platform_device *device)=
+;
+ static int __exit hp_wmi_bios_remove(struct platform_device *device);
+ static int hp_wmi_resume_handler(struct device *device);
+=20
+@@ -446,7 +446,7 @@ static void cleanup_sysfs(struct platfor
+ 	device_remove_file(&device->dev, &dev_attr_tablet);
+ }
+=20
+-static int __init hp_wmi_bios_setup(struct platform_device *device)
++static int __devinit hp_wmi_bios_setup(struct platform_device *device)
  {
- 	struct omap24xxcam_device *cam;
- 	struct resource *mem;
+ 	int err;
+ 	int wireless =3D hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
