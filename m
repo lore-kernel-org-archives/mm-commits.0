@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + x86-move-hp-wmis-probe-function-to-devinittext.patch added to -mm tree
-Date: Fri, 05 Feb 2010 12:14:23 -0800
-Message-ID: <201002052014.o15KEOYL018654@imap1.linux-foundation.org>
+Subject: + w1-move-omap_hdqs-probe-function-to-devinittext.patch added to -mm tree
+Date: Fri, 05 Feb 2010 12:14:29 -0800
+Message-ID: <201002052014.o15KEU3B018660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49400 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753561Ab0BEUQB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:16:01 -0500
+	by vger.kernel.org with ESMTP id S1754051Ab0BEURh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2010 15:17:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, Larry.Finger@lwfinger.net, deller@gmx.de, elendil@planet.nl, greg@kroah.com, lenb@kernel.org, mjg@redhat.com
+Cc: u.kleine-koenig@pengutronix.de, felipe.balbi@nokia.com, greg@kroah.com, madhu.cr@ti.com, stanley.miao@windriver.com, zbr@ioremap.net
 
 
 The patch titled
-     x86: move hp-wmi's probe function to .devinit.text
+     w1: move omap_hdq's probe function to .devinit.text
 has been added to the -mm tree.  Its filename is
-     x86-move-hp-wmis-probe-function-to-devinittext.patch
+     w1-move-omap_hdqs-probe-function-to-devinittext.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,10 +38,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: x86: move hp-wmi's probe function to .devinit.text
+Subject: w1: move omap_hdq's probe function to .devinit.text
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-A pointer to hp_wmi_bios_setup is passed to the core via
+A pointer to omap_hdq_probe is passed to the core via
 platform_driver_register and so the function must not disappear when th=
 e
 =2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
@@ -55,43 +55,40 @@ n
 from the struct platform_driver.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Stanley.Miao <stanley.miao@windriver.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: Greg KH <greg@kroah.com>
-Acked-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/hp-wmi.c |    4 ++--
+ drivers/w1/masters/omap_hdq.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/hp-wmi.c~x86-move-hp-wmis-probe-function=
--to-devinittext drivers/platform/x86/hp-wmi.c
---- a/drivers/platform/x86/hp-wmi.c~x86-move-hp-wmis-probe-function-to-=
-devinittext
-+++ a/drivers/platform/x86/hp-wmi.c
-@@ -57,7 +57,7 @@ enum hp_wmi_radio {
- 	HPWMI_WWAN =3D 2,
+diff -puN drivers/w1/masters/omap_hdq.c~w1-move-omap_hdqs-probe-functio=
+n-to-devinittext drivers/w1/masters/omap_hdq.c
+--- a/drivers/w1/masters/omap_hdq.c~w1-move-omap_hdqs-probe-function-to=
+-devinittext
++++ a/drivers/w1/masters/omap_hdq.c
+@@ -72,7 +72,7 @@ struct hdq_data {
+ 	int			init_trans;
  };
 =20
--static int __init hp_wmi_bios_setup(struct platform_device *device);
-+static int __devinit hp_wmi_bios_setup(struct platform_device *device)=
-;
- static int __exit hp_wmi_bios_remove(struct platform_device *device);
- static int hp_wmi_resume_handler(struct device *device);
+-static int __init omap_hdq_probe(struct platform_device *pdev);
++static int __devinit omap_hdq_probe(struct platform_device *pdev);
+ static int omap_hdq_remove(struct platform_device *pdev);
 =20
-@@ -446,7 +446,7 @@ static void cleanup_sysfs(struct platfor
- 	device_remove_file(&device->dev, &dev_attr_tablet);
+ static struct platform_driver omap_hdq_driver =3D {
+@@ -558,7 +558,7 @@ static void omap_w1_write_byte(void *_hd
+ 	return;
  }
 =20
--static int __init hp_wmi_bios_setup(struct platform_device *device)
-+static int __devinit hp_wmi_bios_setup(struct platform_device *device)
+-static int __init omap_hdq_probe(struct platform_device *pdev)
++static int __devinit omap_hdq_probe(struct platform_device *pdev)
  {
- 	int err;
- 	int wireless =3D hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+ 	struct hdq_data *hdq_data;
+ 	struct resource *res;
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
