@@ -1,116 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch removed from -mm tree
-Date: Mon, 08 Feb 2010 11:52:32 -0800
-Message-ID: <201002081952.o18JqW2v031424@imap1.linux-foundation.org>
+Subject: + driver-core-fix-race-condition-in-get_device_parent.patch added to -mm tree
+Date: Mon, 08 Feb 2010 12:51:04 -0800
+Message-ID: <201002082051.o18Kp6RE002032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754397Ab0BHTzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:55:15 -0500
+	by vger.kernel.org with ESMTP id S1752320Ab0BHUwe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 15:52:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, benh@kernel.crashing.org, kyle@mcmartin.ca, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tj@kernel.org, cguthrie@mandriva.org, gregkh@suse.de, kay.sievers@vrfy.org
 
 
 The patch titled
-     kbuild: move -fno-dwarf2-cfi-asm to powerpc only
-has been removed from the -mm tree.  Its filename was
-     kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
+     driver-core: fix race condition in get_device_parent()
+has been added to the -mm tree.  Its filename is
+     driver-core-fix-race-condition-in-get_device_parent.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: move -fno-dwarf2-cfi-asm to powerpc only
-From: Andi Kleen <andi@firstfloor.org>
+Subject: driver-core: fix race condition in get_device_parent()
+From: Tejun Heo <tj@kernel.org>
 
-Better dwarf2 unwind information is a good thing, it allows better
-debugging with kgdb and crash and helps systemtap.
+sysfs is creating several devices in cuse class concurrently and with
+CONFIG_SYSFS_DEPRECATED turned off, it triggers the following oops.
 
-Commit 003086497f07f7f1e67c0c295e261740f822b377 ("Build with
--fno-dwarf2-cfi-asm") disabled some CFI information globally to work
-around a module loader bug on powerpc.
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000038
+ IP: [<ffffffff81158b0a>] sysfs_addrm_start+0x4a/0xf0
+ PGD 75bb067 PUD 75be067 PMD 0
+ Oops: 0000 [#1] PREEMPT SMP
+ last sysfs file: /sys/devices/system/cpu/cpu7/topology/core_siblings
+ CPU 1
+ Modules linked in: cuse fuse
+ Pid: 4737, comm: osspd Not tainted 2.6.31-work #77
+ RIP: 0010:[<ffffffff81158b0a>]  [<ffffffff81158b0a>] sysfs_addrm_start+0x4a/0xf0
+ RSP: 0018:ffff88000042f8f8  EFLAGS: 00010296
+ RAX: ffff88000042ffd8 RBX: 0000000000000000 RCX: 0000000000000000
+ RDX: 0000000000000000 RSI: ffff880007eef660 RDI: 0000000000000001
+ RBP: ffff88000042f918 R08: 0000000000000000 R09: 0000000000000000
+ R10: 0000000000000001 R11: ffffffff81158b0a R12: ffff88000042f928
+ R13: 00000000fffffff4 R14: 0000000000000000 R15: ffff88000042f9a0
+ FS:  00007fe93905a950(0000) GS:ffff880008600000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+ CR2: 0000000000000038 CR3: 00000000077c9000 CR4: 00000000000006e0
+ DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+ Process osspd (pid: 4737, threadinfo ffff88000042e000, task ffff880007eef040)
+ Stack:
+  ffff880005da10e8 0000000011cc8d6e ffff88000042f928 ffff880003d28a28
+ <0> ffff88000042f988 ffffffff811592d7 0000000000000000 0000000000000000
+ <0> 0000000000000000 0000000000000000 ffff88000042f958 0000000011cc8d6e
+ Call Trace:
+  [<ffffffff811592d7>] create_dir+0x67/0xe0
+  [<ffffffff811593a8>] sysfs_create_dir+0x58/0xb0
+  [<ffffffff8128ca7c>] ? kobject_add_internal+0xcc/0x220
+  [<ffffffff812942e1>] ? vsnprintf+0x3c1/0xb90
+  [<ffffffff8128cab7>] kobject_add_internal+0x107/0x220
+  [<ffffffff8128cd37>] kobject_add_varg+0x47/0x80
+  [<ffffffff8128ce53>] kobject_add+0x53/0x90
+  [<ffffffff81357d84>] device_add+0xd4/0x690
+  [<ffffffff81356c2b>] ? dev_set_name+0x4b/0x70
+  [<ffffffffa001a884>] cuse_process_init_reply+0x2b4/0x420 [cuse]
+  ...
 
-But this disables the better unwind tables for all architectures, not just
-powerpc.  Move the workaround to powerpc and also add a suitable comment
-that's it really a workaround.
+The problem is that kobject_add_internal() first adds a kobject to the
+kset and then try to create sysfs directory for it.  If the creation
+fails, it remove the kobject from the kset.  get_device_parent() accesses
+class_dirs kset while only holding class_dirs.list_lock to see whether the
+cuse class dir exists.  But when it exists, it may not have finished
+initialization yet or may fail and get removed soon.  In the above case,
+the former happened so the second one ends up trying to create
+subdirectory under NULL sysfs_dirent.
 
-This improves dwarf2 unwind tables on x86 at least.
+Fix it by grabbing a mutex in get_device_parent().
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Colin Guthrie <cguthrie@mandriva.org>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile              |    3 ---
- arch/powerpc/Makefile |    5 +++++
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/base/core.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only Makefile
---- a/Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only
-+++ a/Makefile
-@@ -579,9 +579,6 @@ KBUILD_CFLAGS += $(call cc-option,-Wno-p
- # disable invalid "can't wrap" optimizations for signed / pointers
- KBUILD_CFLAGS	+= $(call cc-option,-fno-strict-overflow)
+diff -puN drivers/base/core.c~driver-core-fix-race-condition-in-get_device_parent drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-fix-race-condition-in-get_device_parent
++++ a/drivers/base/core.c
+@@ -601,6 +601,7 @@ static struct kobject *get_device_parent
+ 	int retval;
  
--# revert to pre-gcc-4.4 behaviour of .eh_frame
--KBUILD_CFLAGS	+= $(call cc-option,-fno-dwarf2-cfi-asm)
--
- # conserve stack if available
- KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
+ 	if (dev->class) {
++		static DEFINE_MUTEX(gdp_mutex);
+ 		struct kobject *kobj = NULL;
+ 		struct kobject *parent_kobj;
+ 		struct kobject *k;
+@@ -617,6 +618,8 @@ static struct kobject *get_device_parent
+ 		else
+ 			parent_kobj = &parent->kobj;
  
-diff -puN arch/powerpc/Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only arch/powerpc/Makefile
---- a/arch/powerpc/Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only
-+++ a/arch/powerpc/Makefile
-@@ -112,6 +112,11 @@ KBUILD_CFLAGS += $(call cc-option,-mspe=
- # kernel considerably.
- KBUILD_CFLAGS += $(call cc-option,-funit-at-a-time)
- 
-+# FIXME: the module load should be taught about the additional relocs
-+# generated by this.
-+# revert to pre-gcc-4.4 behaviour of .eh_frame
-+KBUILD_CFLAGS	+= $(call cc-option,-fno-dwarf2-cfi-asm)
++		mutex_lock(&gdp_mutex);
 +
- # Never use string load/store instructions as they are
- # often slow when they are implemented at all
- KBUILD_CFLAGS		+= -mno-string
+ 		/* find our class-directory at the parent and reference it */
+ 		spin_lock(&dev->class->p->class_dirs.list_lock);
+ 		list_for_each_entry(k, &dev->class->p->class_dirs.list, entry)
+@@ -625,20 +628,26 @@ static struct kobject *get_device_parent
+ 				break;
+ 			}
+ 		spin_unlock(&dev->class->p->class_dirs.list_lock);
+-		if (kobj)
++		if (kobj) {
++			mutex_unlock(&gdp_mutex);
+ 			return kobj;
++		}
+ 
+ 		/* or create a new class-directory at the parent device */
+ 		k = kobject_create();
+-		if (!k)
++		if (!k) {
++			mutex_unlock(&gdp_mutex);
+ 			return NULL;
++		}
+ 		k->kset = &dev->class->p->class_dirs;
+ 		retval = kobject_add(k, parent_kobj, "%s", dev->class->name);
+ 		if (retval < 0) {
++			mutex_unlock(&gdp_mutex);
+ 			kobject_put(k);
+ 			return NULL;
+ 		}
+ 		/* do not emit an uevent for this simple "glue" directory */
++		mutex_unlock(&gdp_mutex);
+ 		return k;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
 linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-mm-add-swap-slot-free-callback-to-block_device_operations.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-readahead-introduce-fmode_random-for-posix_fadv_random.patch
-lib-more-scalable-list_sort.patch
-lib-more-scalable-list_sort-fix.patch
-lib-revise-list_sort-header-comment.patch
-lib-build-list_sort-only-if-needed.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-rcu-add-rcustring-adt-for-rcu-protected-strings.patch
-add-a-kernel_address-that-works-for-data-too.patch
-sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
-sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
-sysctl-add-call_usermodehelper_cleanup.patch
-sysctl-convert-modprobe_path-to-proc_rcu_string.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
+driver-core-fix-race-condition-in-get_device_parent.patch
+core-workqueue-return-on-workqueue-recursion.patch
 
