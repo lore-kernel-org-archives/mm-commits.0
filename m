@@ -1,223 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [failures] scripts-checkpatchpl-dramatically-improve-define-parse-times.patch removed from -mm tree
-Date: Mon, 08 Feb 2010 15:15:58 -0800
-Message-ID: <201002082315.o18NFwlb009180@imap1.linux-foundation.org>
+Subject: + coredump-set-group_exit_code-for-other-clone_vm-tasks-too.patch added to -mm tree
+Date: Mon, 08 Feb 2010 15:46:13 -0800
+Message-ID: <201002082346.o18NkDX9010574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800Ab0BHXQK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 18:16:10 -0500
+	by vger.kernel.org with ESMTP id S1753348Ab0BHXr3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 18:47:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@shadowen.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, f.heckenbach@fh-soft.de, nhorman@tuxdriver.com, roland@redhat.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     scripts/checkpatch.pl: dramatically improve #define parse times
-has been removed from the -mm tree.  Its filename was
-     scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
+     coredump: set ->group_exit_code for other CLONE_VM tasks too
+has been added to the -mm tree.  Its filename is
+     coredump-set-group_exit_code-for-other-clone_vm-tasks-too.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/checkpatch.pl: dramatically improve #define parse times
-From: Joe Perches <joe@perches.com>
+Subject: coredump: set ->group_exit_code for other CLONE_VM tasks too
+From: Oleg Nesterov <oleg@redhat.com>
 
-#define macros currently take a _very_ long time to parse because the
-macro is being searched for multiple statements and unnecessary searching
-is being done when comments are replaced with unprintable characters.
+User visible change.
 
-For instance:
+do_coredump() kills all threads which share the same ->mm but only the
+coredumping process gets the proper exit_code.  Other tasks which share
+the same ->mm die "silently" and return status == 0 to parent.
 
-Without this patch:
-$ time perl ./scripts/checkpatch.pl -f include/linux/mfd/wm831x/irq.h > /dev/null
+This is historical behaviour, not actually a bug.  But I think Frank
+Heckenbach rightly dislikes the current behaviour.  Simple test-case:
 
-real	3m43.229s
-user	3m42.254s
-sys	0m0.332s
+	#include <stdio.h>
+	#include <unistd.h>
+	#include <signal.h>
+	#include <sys/wait.h>
 
-With this patch:
-$ time perl ./scripts/checkpatch.pl -f include/linux/mfd/wm831x/irq.h > /dev/null
+	int main(void)
+	{
+		int stat;
 
-real	0m1.372s
-user	0m1.348s
-sys	0m0.020s
+		if (!fork()) {
+			if (!vfork())
+				kill(getpid(), SIGQUIT);
+		}
 
-A 160:1 improvement.
+		wait(&stat);
+		printf("stat=%x\n", stat);
+		return 0;
+	}
 
-I don't know if this is correct, but it seems to work for me.
+Before this patch it prints "stat=0" despite the fact the child was killed
+by SIGQUIT.  After this patch the output is "stat=3" which obviously makes
+more sense.
 
-Maybe there's some reason why C comments aren't replaced with spaces but
-get unprintable characters.
+Even with this patch, only the task which originates the coredumping gets
+"|= 0x80" if the core was actually dumped, but at least the coredumping
+signal is visible to do_wait/etc.
 
-Changes:
-
-Replace comments with spaces.
-Do not call ctx_statement_block unless necessary
-Add a check to see if the macro could have multiple statements
-either with a \ line continuation or a ";".  This doesn't work with
-comma separated statements.
-Miscellaneous its -> it's typo corrections.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Reported-by: Frank Heckenbach <f.heckenbach@fh-soft.de>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ fs/exec.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-dramatically-improve-define-parse-times scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~scripts-checkpatchpl-dramatically-improve-define-parse-times
-+++ a/scripts/checkpatch.pl
-@@ -384,18 +384,18 @@ sub sanitise_line {
- 	for ($off = 1; $off < length($line); $off++) {
- 		$c = substr($line, $off, 1);
+diff -puN fs/exec.c~coredump-set-group_exit_code-for-other-clone_vm-tasks-too fs/exec.c
+--- a/fs/exec.c~coredump-set-group_exit_code-for-other-clone_vm-tasks-too
++++ a/fs/exec.c
+@@ -1547,12 +1547,13 @@ out:
+ 	return ispipe;
+ }
  
--		# Comments we are wacking completly including the begin
-+		# Comments we are whacking completely including the begin
- 		# and end, all to $;.
- 		if ($sanitise_quote eq '' && substr($line, $off, 2) eq '/*') {
- 			$sanitise_quote = '*/';
+-static int zap_process(struct task_struct *start)
++static int zap_process(struct task_struct *start, int exit_code)
+ {
+ 	struct task_struct *t;
+ 	int nr = 0;
  
--			substr($res, $off, 2, "$;$;");
-+			substr($res, $off, 2, "  ");
- 			$off++;
- 			next;
- 		}
- 		if ($sanitise_quote eq '*/' && substr($line, $off, 2) eq '*/') {
- 			$sanitise_quote = '';
--			substr($res, $off, 2, "$;$;");
-+			substr($res, $off, 2, "  ");
- 			$off++;
- 			next;
- 		}
-@@ -428,9 +428,9 @@ sub sanitise_line {
+ 	start->signal->flags = SIGNAL_GROUP_EXIT;
++	start->signal->group_exit_code = exit_code;
+ 	start->signal->group_stop_count = 0;
  
- 		#print "c<$c> SQ<$sanitise_quote>\n";
- 		if ($off != 0 && $sanitise_quote eq '*/' && $c ne "\t") {
--			substr($res, $off, 1, $;);
-+			substr($res, $off, 1, ' ');
- 		} elsif ($off != 0 && $sanitise_quote eq '//' && $c ne "\t") {
--			substr($res, $off, 1, $;);
-+			substr($res, $off, 1, ' ');
- 		} elsif ($off != 0 && $sanitise_quote && $c ne "\t") {
- 			substr($res, $off, 1, 'X');
- 		} else {
-@@ -518,7 +518,7 @@ sub ctx_statement_block {
- 			last;
- 		}
- 
--		# An else is really a conditional as long as its not else if
-+		# An else is really a conditional as long as it's not else if
- 		if ($level == 0 && $coff_set == 0 &&
- 				(!defined($p) || $p =~ /(?:\s|\}|\+)/) &&
- 				$remainder =~ /^(else)(?:\s|{)/ &&
-@@ -1454,7 +1454,9 @@ sub process {
- # Check for potential 'bare' types
- 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next,
- 		    $realline_next);
--		if ($realcnt && $line =~ /.\s*\S/) {
-+		my $test = $line =~ /\+\s*(\S)/;
-+		my $firstchar = $1;
-+		if ($realcnt && $test && $firstchar ne "\#") {
- 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
- 				ctx_statement_block($linenr, $realcnt, 0);
- 			$stat =~ s/\n./\n /g;
-@@ -1902,7 +1904,7 @@ sub process {
- 			# cpp #elif statement condition may start with a (
- 			} elsif ($ctx =~ /^.\s*\#\s*elif\s*$/) {
- 
--			# If this whole things ends with a type its most
-+			# If this whole things ends with a type it's most
- 			# likely a typedef for a function.
- 			} elsif ($ctx =~ /$Type$/) {
- 
-@@ -2304,10 +2306,11 @@ sub process {
- 		}
- 
- # multi-statement macros should be enclosed in a do while loop, grab the
--# first statement and ensure its the whole macro if its not enclosed
-+# first statement and ensure it's the whole macro if it's not enclosed
- # in a known good container
- 		if ($realfile !~ m@/vmlinux.lds.h$@ &&
--		    $line =~ /^.\s*\#\s*define\s*$Ident(\()?/) {
-+		    $line =~ /^.\s*\#\s*define\s*$Ident(\()?/ &&
-+		    ($line =~ /;/ || $line =~ /\\$/)) {
- 			my $ln = $linenr;
- 			my $cnt = $realcnt;
- 			my ($off, $dstat, $dcond, $rest);
+ 	t = start;
+@@ -1577,8 +1578,7 @@ static inline int zap_threads(struct tas
+ 	spin_lock_irq(&tsk->sighand->siglock);
+ 	if (!signal_group_exit(tsk->signal)) {
+ 		mm->core_state = core_state;
+-		tsk->signal->group_exit_code = exit_code;
+-		nr = zap_process(tsk);
++		nr = zap_process(tsk, exit_code);
+ 	}
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+ 	if (unlikely(nr < 0))
+@@ -1627,7 +1627,7 @@ static inline int zap_threads(struct tas
+ 			if (p->mm) {
+ 				if (unlikely(p->mm == mm)) {
+ 					lock_task_sighand(p, &flags);
+-					nr += zap_process(p);
++					nr += zap_process(p, exit_code);
+ 					unlock_task_sighand(p, &flags);
+ 				}
+ 				break;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-arch-ia64-fix-continuation-line-formats.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-staging-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-maintainers-document-and-add-q-patchwork-queue-entries.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
-scripts-checkpatchpl-dramatically-improve-define-parse-times.patch
-drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
-drivers-video-via-fix-continuation-line-formats.patch
+posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+prctl-add-pr_set_proctitle_area-option-for-prctl.patch
+core-workqueue-return-on-workqueue-recursion.patch
+coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
+coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
+elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
+elf-coredump-add-extended-numbering-support.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+coredump-set-group_exit_code-for-other-clone_vm-tasks-too.patch
+ptrace-use-ptrace_request-in-the-remaining-architectures.patch
+ptrace-move-user_enable_single_step-co-prototypes-to-linux-ptraceh.patch
+alpha-use-generic-ptrace_resume-code.patch
+arm-use-generic-ptrace_resume-code.patch
+avr32-use-generic-ptrace_resume-code.patch
+blackfin-use-generic-ptrace_resume-code.patch
+h8300-use-generic-ptrace_resume-code.patch
+m68knommu-use-generic-ptrace_resume-code.patch
+microblaze-use-generic-ptrace_resume-code.patch
+mips-use-generic-ptrace_resume-code.patch
+um-use-generic-ptrace_resume-code.patch
+xtensa-use-generic-ptrace_resume-code.patch
+cris-arch-v10-use-generic-ptrace_resume-code.patch
+cris-arch-v32-use-generic-ptrace_resume-code.patch
+m32r-use-generic-ptrace_resume-code.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
+utrace-core-utrace-fix-utrace_maybe_reap-vs-find_matching_engine-race.patch
+copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
+copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
+copy_signal-cleanup-clean-thread_group_cputime_init.patch
+copy_signal-cleanup-clean-tty_audit_fork.patch
+kmod-add-init-function-to-usermodehelper.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+kmod-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
 
