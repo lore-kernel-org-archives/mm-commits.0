@@ -1,87 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-i915-intel_displayc-disable-sr-when-more-than-one-pipe-is-enabled.patch removed from -mm tree
-Date: Mon, 08 Feb 2010 11:52:26 -0800
-Message-ID: <201002081952.o18JqQ0f031418@imap1.linux-foundation.org>
+Subject: [merged] kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch removed from -mm tree
+Date: Mon, 08 Feb 2010 11:52:32 -0800
+Message-ID: <201002081952.o18JqW2v031424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49789 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754691Ab0BHTxY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:53:24 -0500
+	by vger.kernel.org with ESMTP id S1754397Ab0BHTzP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:55:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidjon@xenontk.org, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org, stable@kernel.org, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, benh@kernel.crashing.org, kyle@mcmartin.ca, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/i915/intel_display.c: disable SR when more than one pipe is enabled
+     kbuild: move -fno-dwarf2-cfi-asm to powerpc only
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-i915-intel_displayc-disable-sr-when-more-than-one-pipe-is-enabled.patch
+     kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/intel_display.c: disable SR when more than one pipe is enabled
-From: David John <davidjon@xenontk.org>
+Subject: kbuild: move -fno-dwarf2-cfi-asm to powerpc only
+From: Andi Kleen <andi@firstfloor.org>
 
-Self Refresh should be disabled on dual plane configs.  Otherwise, as the
-SR watermark is not calculated for such configs, switching to non VGA mode
-causes FIFO underrun and display flicker.
+Better dwarf2 unwind information is a good thing, it allows better
+debugging with kgdb and crash and helps systemtap.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14897
+Commit 003086497f07f7f1e67c0c295e261740f822b377 ("Build with
+-fno-dwarf2-cfi-asm") disabled some CFI information globally to work
+around a module loader bug on powerpc.
 
-Signed-off-by: David John <davidjon@xenontk.org>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: ykzhao <yakui.zhao@intel.com>
-Cc: <stable@kernel.org>
+But this disables the better unwind tables for all architectures, not just
+powerpc.  Move the workaround to powerpc and also add a suitable comment
+that's it really a workaround.
+
+This improves dwarf2 unwind tables on x86 at least.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_display.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Makefile              |    3 ---
+ arch/powerpc/Makefile |    5 +++++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_display.c~drivers-gpu-drm-i915-intel_displayc-disable-sr-when-more-than-one-pipe-is-enabled drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~drivers-gpu-drm-i915-intel_displayc-disable-sr-when-more-than-one-pipe-is-enabled
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -2622,6 +2622,10 @@ static void g4x_update_wm(struct drm_dev
- 		sr_entries = roundup(sr_entries / cacheline_size, 1);
- 		DRM_DEBUG("self-refresh entries: %d\n", sr_entries);
- 		I915_WRITE(FW_BLC_SELF, FW_BLC_SELF_EN);
-+	} else {
-+		/* Turn off self refresh if both pipes are enabled */
-+		I915_WRITE(FW_BLC_SELF, I915_READ(FW_BLC_SELF)
-+					& ~FW_BLC_SELF_EN);
- 	}
+diff -puN Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only Makefile
+--- a/Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only
++++ a/Makefile
+@@ -579,9 +579,6 @@ KBUILD_CFLAGS += $(call cc-option,-Wno-p
+ # disable invalid "can't wrap" optimizations for signed / pointers
+ KBUILD_CFLAGS	+= $(call cc-option,-fno-strict-overflow)
  
- 	DRM_DEBUG("Setting FIFO watermarks - A: %d, B: %d, SR %d\n",
-@@ -2665,6 +2669,10 @@ static void i965_update_wm(struct drm_de
- 			srwm = 1;
- 		srwm &= 0x3f;
- 		I915_WRITE(FW_BLC_SELF, FW_BLC_SELF_EN);
-+	} else {
-+		/* Turn off self refresh if both pipes are enabled */
-+		I915_WRITE(FW_BLC_SELF, I915_READ(FW_BLC_SELF)
-+					& ~FW_BLC_SELF_EN);
- 	}
+-# revert to pre-gcc-4.4 behaviour of .eh_frame
+-KBUILD_CFLAGS	+= $(call cc-option,-fno-dwarf2-cfi-asm)
+-
+ # conserve stack if available
+ KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
  
- 	DRM_DEBUG_KMS("Setting FIFO watermarks - A: 8, B: 8, C: 8, SR %d\n",
-@@ -2733,6 +2741,10 @@ static void i9xx_update_wm(struct drm_de
- 		if (srwm < 0)
- 			srwm = 1;
- 		I915_WRITE(FW_BLC_SELF, FW_BLC_SELF_EN | (srwm & 0x3f));
-+	} else {
-+		/* Turn off self refresh if both pipes are enabled */
-+		I915_WRITE(FW_BLC_SELF, I915_READ(FW_BLC_SELF)
-+					& ~FW_BLC_SELF_EN);
- 	}
+diff -puN arch/powerpc/Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only arch/powerpc/Makefile
+--- a/arch/powerpc/Makefile~kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only
++++ a/arch/powerpc/Makefile
+@@ -112,6 +112,11 @@ KBUILD_CFLAGS += $(call cc-option,-mspe=
+ # kernel considerably.
+ KBUILD_CFLAGS += $(call cc-option,-funit-at-a-time)
  
- 	DRM_DEBUG_KMS("Setting FIFO watermarks - A: %d, B: %d, C: %d, SR %d\n",
++# FIXME: the module load should be taught about the additional relocs
++# generated by this.
++# revert to pre-gcc-4.4 behaviour of .eh_frame
++KBUILD_CFLAGS	+= $(call cc-option,-fno-dwarf2-cfi-asm)
++
+ # Never use string load/store instructions as they are
+ # often slow when they are implemented at all
+ KBUILD_CFLAGS		+= -mno-string
 _
 
-Patches currently in -mm which might be from davidjon@xenontk.org are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
+linux-next.patch
+hardware-latency-detector-remove-default-m.patch
+mm-add-swap-slot-free-callback-to-block_device_operations.patch
+modpost-support-objects-with-more-than-64k-sections.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+readahead-introduce-fmode_random-for-posix_fadv_random.patch
+lib-more-scalable-list_sort.patch
+lib-more-scalable-list_sort-fix.patch
+lib-revise-list_sort-header-comment.patch
+lib-build-list_sort-only-if-needed.patch
+coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
+coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
+elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
+elf-coredump-add-extended-numbering-support.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
+rcu-add-rcustring-adt-for-rcu-protected-strings.patch
+add-a-kernel_address-that-works-for-data-too.patch
+sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
+sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
+sysctl-add-call_usermodehelper_cleanup.patch
+sysctl-convert-modprobe_path-to-proc_rcu_string.patch
+sysctl-convert-poweroff_command-to-proc_rcu_string.patch
+sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
+sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
 
