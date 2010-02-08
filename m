@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-o_-bit-numbers-uniqueness-check.patch added to -mm tree
-Date: Mon, 08 Feb 2010 14:56:07 -0800
-Message-ID: <201002082256.o18Mu7UX008247@imap1.linux-foundation.org>
+Subject: + devmem-dont-allow-seek-to-last-page.patch added to -mm tree
+Date: Mon, 08 Feb 2010 14:57:43 -0800
+Message-ID: <201002082257.o18MvhY9008386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751341Ab0BHW5C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 17:57:02 -0500
+	by vger.kernel.org with ESMTP id S1752283Ab0BHW5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 17:57:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, davem@davemloft.net, eparis@redhat.com, hch@infradead.org, jamie@shareable.org, rdreier@cisco.com, schwab@linux-m68k.org, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk
+Cc: fengguang.wu@intel.com, hirofumi@mail.parknet.co.jp, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     vfs: O_* bit numbers uniqueness check
+     /dev/mem: dont allow seek to last page
 has been added to the -mm tree.  Its filename is
-     vfs-o_-bit-numbers-uniqueness-check.patch
+     devmem-dont-allow-seek-to-last-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: O_* bit numbers uniqueness check
+Subject: /dev/mem: dont allow seek to last page
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-The O_* bit numbers are defined in 20+ arch/*, and can silently overlap. 
-Add a compile time check to ensure the uniqueness as suggested by David
-Miller.
+So as to return a uniform error -EOVERFLOW instead of a random one:
 
+# kmem-seek 0xfffffffffffffff0
+seek /dev/kmem: Device or resource busy
+# kmem-seek 0xfffffffffffffff1
+seek /dev/kmem: Block device required
+
+Suggested by OGAWA Hirofumi.
+
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: Jamie Lokier <jamie@shareable.org>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fcntl.c                  |   14 ++++++++++++--
- include/asm-generic/fcntl.h |    2 ++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/char/mem.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN fs/fcntl.c~vfs-o_-bit-numbers-uniqueness-check fs/fcntl.c
---- a/fs/fcntl.c~vfs-o_-bit-numbers-uniqueness-check
-+++ a/fs/fcntl.c
-@@ -739,11 +739,21 @@ void kill_fasync(struct fasync_struct **
- }
- EXPORT_SYMBOL(kill_fasync);
+diff -puN drivers/char/mem.c~devmem-dont-allow-seek-to-last-page drivers/char/mem.c
+--- a/drivers/char/mem.c~devmem-dont-allow-seek-to-last-page
++++ a/drivers/char/mem.c
+@@ -708,16 +708,23 @@ static loff_t memory_lseek(struct file *
  
--static int __init fasync_init(void)
-+static int __init fcntl_init(void)
- {
-+	/* please add new bits here to ensure allocation uniqueness */
-+	BUILD_BUG_ON(17 != HWEIGHT32(
-+		O_RDONLY	| O_WRONLY	| O_RDWR	|
-+		O_CREAT		| O_EXCL	| O_NOCTTY	|
-+		O_TRUNC		| O_APPEND	| O_NONBLOCK	|
-+		__O_SYNC	| O_DSYNC	| FASYNC	|
-+		O_DIRECT	| O_LARGEFILE	| O_DIRECTORY	|
-+		O_NOFOLLOW	| O_NOATIME	| O_CLOEXEC
-+		));
-+
- 	fasync_cache = kmem_cache_create("fasync_cache",
- 		sizeof(struct fasync_struct), 0, SLAB_PANIC, NULL);
- 	return 0;
- }
- 
--module_init(fasync_init)
-+module_init(fcntl_init)
-diff -puN include/asm-generic/fcntl.h~vfs-o_-bit-numbers-uniqueness-check include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~vfs-o_-bit-numbers-uniqueness-check
-+++ a/include/asm-generic/fcntl.h
-@@ -4,6 +4,8 @@
- #include <linux/types.h>
- 
- /*
-+ * When introducing new O_* bits, please check its uniqueness in fcntl_init().
-+ *
-  * FMODE_EXEC is 0x20
-  * FMODE_NONOTIFY is 0x1000000
-  * These cannot be used by userspace O_* until internal and external open
+ 	mutex_lock(&file->f_path.dentry->d_inode->i_mutex);
+ 	switch (orig) {
+-		case 0:
++		case SEEK_CUR:
++			offset += file->f_pos;
++			if ((unsigned long long)offset <
++			    (unsigned long long)file->f_pos) {
++				ret = -EOVERFLOW;
++				break;
++			}
++		case SEEK_SET:
++			/* to avoid userland mistaking f_pos=-9 as -EBADF=-9 */
++			if ((unsigned long long)offset >= ~0xFFFULL) {
++				ret = -EOVERFLOW;
++				break;
++			}
+ 			file->f_pos = offset;
+ 			ret = file->f_pos;
+ 			force_successful_syscall_return();
+ 			break;
+-		case 1:
+-			file->f_pos += offset;
+-			ret = file->f_pos;
+-			force_successful_syscall_return();
+-			break;
+ 		default:
+ 			ret = -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -116,6 +108,6 @@ vfs-take-f_lock-on-modifying-f_mode-after-open-time.patch
 readahead-introduce-fmode_random-for-posix_fadv_random.patch
 readahead-introduce-fmode_random-for-posix_fadv_random-fix.patch
 include-linux-fsh-convert-fmode_-constants-to-hex.patch
-vfs-add-super-operation-writeback_inodes.patch
 devmem-dont-allow-seek-to-last-page.patch
+vfs-add-super-operation-writeback_inodes.patch
 
