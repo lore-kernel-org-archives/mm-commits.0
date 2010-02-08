@@ -1,121 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 08 Feb 2010 11:49:43 -0800
-Message-ID: <201002081949.o18JnhQ8031260@imap1.linux-foundation.org>
+Subject: [obsolete] bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch removed from -mm tree
+Date: Mon, 08 Feb 2010 11:50:16 -0800
+Message-ID: <201002081950.o18JoGJS031288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751131Ab0BHTuO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:50:14 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o18JnhfM007460
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 8 Feb 2010 11:49:45 -0800
+	by vger.kernel.org with ESMTP id S1751131Ab0BHTut (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:50:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     bitops-rename-for_each_bit-to-for_each_set_bit-fix
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c    |   28 ----------------------------
- fs/gfs2/lock_dlm.c |    4 ----
- fs/gfs2/super.c    |    3 ---
- 3 files changed, 35 deletions(-)
+ drivers/mfd/max8925-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/gfs2/glock.c~linux-next-git-rejects fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~linux-next-git-rejects
-+++ a/fs/gfs2/glock.c
-@@ -1510,36 +1510,8 @@ void gfs2_gl_hash_clear(struct gfs2_sbd 
- {
- 	unsigned int x;
+diff -puN drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix drivers/mfd/max8925-core.c
+--- a/drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix
++++ a/drivers/mfd/max8925-core.c
+@@ -235,7 +235,7 @@ static irqreturn_t max8925_irq_thread(in
+ 		goto out;
+ 	}
  
--<<<<<<< HEAD:fs/gfs2/glock.c
--	t = jiffies;
--
--	for (;;) {
--		cont = 0;
--		for (x = 0; x < GFS2_GL_HASH_SIZE; x++) {
--			if (examine_bucket(clear_glock, sdp, x))
--				cont = 1;
--		}
--
--		if (!cont)
--			break;
--
--		if (time_after_eq(jiffies,
--				  t + gfs2_tune_get(sdp, gt_stall_secs) * HZ)) {
--			fs_warn(sdp, "Unmount seems to be stalled. "
--				     "Dumping lock state...\n");
--			gfs2_dump_lockstate(sdp);
--			t = jiffies;
--		}
--
--		down_write(&gfs2_umount_flush_sem);
--		invalidate_inodes(sdp->sd_vfs);
--		up_write(&gfs2_umount_flush_sem);
--		msleep(10);
--	}
--=======
- 	for (x = 0; x < GFS2_GL_HASH_SIZE; x++)
- 		examine_bucket(clear_glock, sdp, x);
-->>>>>>> FETCH_HEAD:fs/gfs2/glock.c
- 	flush_workqueue(glock_workqueue);
- 	wait_event(sdp->sd_glock_wait, atomic_read(&sdp->sd_glock_disposal) == 0);
- 	gfs2_dump_lockstate(sdp);
-diff -puN fs/gfs2/lock_dlm.c~linux-next-git-rejects fs/gfs2/lock_dlm.c
---- a/fs/gfs2/lock_dlm.c~linux-next-git-rejects
-+++ a/fs/gfs2/lock_dlm.c
-@@ -30,14 +30,10 @@ static void gdlm_ast(void *arg)
+-	for_each_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
++	for_each_set_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
+ 		clear_bit(i, irq_status);
+ 		dev_dbg(chip->dev, "Servicing IRQ #%d in %s\n", i, chip->name);
  
- 	switch (gl->gl_lksb.sb_status) {
- 	case -DLM_EUNLOCK: /* Unlocked, so glock can be freed */
--<<<<<<< HEAD:fs/gfs2/lock_dlm.c
--		kmem_cache_free(gfs2_glock_cachep, gl);
--=======
- 		if (gl->gl_ops->go_flags & GLOF_ASPACE)
- 			kmem_cache_free(gfs2_glock_aspace_cachep, gl);
- 		else
- 			kmem_cache_free(gfs2_glock_cachep, gl);
-->>>>>>> FETCH_HEAD:fs/gfs2/lock_dlm.c
- 		if (atomic_dec_and_test(&sdp->sd_glock_disposal))
- 			wake_up(&sdp->sd_glock_wait);
- 		return;
-diff -puN fs/gfs2/super.c~linux-next-git-rejects fs/gfs2/super.c
---- a/fs/gfs2/super.c~linux-next-git-rejects
-+++ a/fs/gfs2/super.c
-@@ -21,10 +21,7 @@
- #include <linux/gfs2_ondisk.h>
- #include <linux/crc32.h>
- #include <linux/time.h>
--<<<<<<< HEAD:fs/gfs2/super.c
--=======
- #include <linux/writeback.h>
-->>>>>>> FETCH_HEAD:fs/gfs2/super.c
- #include <linux/wait.h>
- 
- #include "gfs2.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
