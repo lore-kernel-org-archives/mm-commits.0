@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch added to -mm tree
-Date: Mon, 08 Feb 2010 13:03:00 -0800
-Message-ID: <201002082103.o18L301a002796@imap1.linux-foundation.org>
+Subject: + of-gpio-implement-gpiolib-notifier-hooks-fix.patch added to -mm tree
+Date: Mon, 08 Feb 2010 13:03:05 -0800
+Message-ID: <201002082103.o18L35gn002804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283Ab0BHVDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 16:03:42 -0500
+	by vger.kernel.org with ESMTP id S1753283Ab0BHVDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 16:03:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, benh@kernel.crashing.org, bgat@billgatliff.com, dbaryshkov@gmail.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca, khali@linux-fr.org
+Cc: akpm@linux-foundation.org, avorontsov@ru.mvista.com, benh@kernel.crashing.org, bgat@billgatliff.com, dbaryshkov@gmail.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca, khali@linux-fr.org
 
 
 The patch titled
-     of/gpio: add support for two-stage registration for the of_gpio_chips
+     of-gpio-implement-gpiolib-notifier-hooks-fix
 has been added to the -mm tree.  Its filename is
-     of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
+     of-gpio-implement-gpiolib-notifier-hooks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,121 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: of/gpio: add support for two-stage registration for the of_gpio_chips
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: of-gpio-implement-gpiolib-notifier-hooks-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I2C/SPI drivers allocate gpio_chip structure already, so we don't need
-'struct gpio_chip gc' in the OF GPIO subsystem, instead we need to store
-just a pointer, and then attach the already allocated gpio_chip to the
-of_gpio_chip structure.
+WARN_ON cleanups.
 
-With this patch there are two ways to register OF GPIO controllers:
-
-1. Allocating the of_gpio_chip structure and passing the
-   &of_gc->gc pointer to the gpiochip_add. (Can use container_of
-   to convert the gpio_chip to the of_gpio_chip.)
-
-2. Allocating and registering the gpio_chip structure separately
-   from the of_gpio_chip. (Since two allocations are separate,
-   container_of won't work.)
-
-As time goes by we'll kill the first option.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Bill Gatliff <bgat@billgatliff.com>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Bill Gatliff <bgat@billgatliff.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c |    1 
- drivers/of/gpio.c                              |   23 +++++++++++++--
- include/linux/of_gpio.h                        |    3 +
- 3 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/of/gpio.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c~of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c
---- a/arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c~of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips
-+++ a/arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c
-@@ -93,6 +93,7 @@ static int mcu_gpiochip_add(struct mcu *
- 	gc->base = -1;
- 	gc->set = mcu_gpio_set;
- 	gc->direction_output = mcu_gpio_dir_out;
-+	of_gc->chip = gc;
- 	of_gc->gpio_cells = 2;
- 	of_gc->xlate = of_gpio_simple_xlate;
- 
-diff -puN drivers/of/gpio.c~of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips drivers/of/gpio.c
---- a/drivers/of/gpio.c~of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips
+diff -puN drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix drivers/of/gpio.c
+--- a/drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix
 +++ a/drivers/of/gpio.c
-@@ -70,7 +70,7 @@ int of_get_gpio_flags(struct device_node
- 	if (ret < 0)
- 		goto err1;
+@@ -255,10 +255,8 @@ static int of_gpiochip_register_simple(s
+ {
+ 	struct of_gpio_chip *of_gc;
  
--	ret += of_gc->gc.base;
-+	ret += of_gc->chip->base;
- err1:
- 	of_node_put(gc);
- err0:
-@@ -140,7 +140,7 @@ int of_gpio_simple_xlate(struct of_gpio_
+-	if (np->data) {
+-		WARN_ON(1);
++	if (WARN_ON(np->data))
+ 		return -EBUSY;
+-	}
+ 
+ 	of_gc = kzalloc(sizeof(*of_gc), GFP_KERNEL);
+ 	if (!of_gc)
+@@ -287,10 +285,8 @@ static int of_gpiochip_unregister(struct
+ {
+ 	struct of_gpio_chip *of_gc = np->data;
+ 
+-	if (!of_gc || of_gc->chip != chip) {
+-		WARN_ON(1);
++	if (WARN_ON(!of_gc || of_gc->chip != chip))
  		return -EINVAL;
- 	}
+-	}
  
--	if (*gpio > of_gc->gc.ngpio)
-+	if (*gpio > of_gc->chip->ngpio)
- 		return -EINVAL;
- 
- 	if (flags)
-@@ -178,6 +178,25 @@ int of_mm_gpiochip_add(struct device_nod
- 	struct of_gpio_chip *of_gc = &mm_gc->of_gc;
- 	struct gpio_chip *gc = &of_gc->gc;
- 
-+	/*
-+	 * Currently there are two ways to register OF GPIO controllers:
-+	 *
-+	 * 1. Allocating the of_gpio_chip structure and passing the
-+	 *    &of_gc->gc pointer to the gpiochip_add. (Can use container_of
-+	 *    to convert the gpio_chip to the of_gpio_chip.)
-+	 *
-+	 * 2. Allocating and registering the gpio_chip structure separately
-+	 *    from the of_gpio_chip. (Since two allocations are separate,
-+	 *    container_of won't work.)
-+	 *
-+	 * As time goes by we'll kill the first option. For now just check
-+	 * if it's the new-style registration or the old-style.
-+	 */
-+	if (!of_gc->chip)
-+		of_gc->chip = gc;
-+	else
-+		gc = of_gc->chip;
-+
- 	gc->label = kstrdup(np->full_name, GFP_KERNEL);
- 	if (!gc->label)
- 		goto err0;
-diff -puN include/linux/of_gpio.h~of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips include/linux/of_gpio.h
---- a/include/linux/of_gpio.h~of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips
-+++ a/include/linux/of_gpio.h
-@@ -36,7 +36,8 @@ enum of_gpio_flags {
-  * Generic OF GPIO chip
-  */
- struct of_gpio_chip {
--	struct gpio_chip gc;
-+	struct gpio_chip gc; /* legacy, don't use for a new code */
-+	struct gpio_chip *chip;
- 	int gpio_cells;
- 	int (*xlate)(struct of_gpio_chip *of_gc, struct device_node *np,
- 		     const void *gpio_spec, enum of_gpio_flags *flags);
+ 	np->data = NULL;
+ 	kfree(of_gc);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-gpiolib-introduce-chip-addition-removal-notifier.patch
-of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
 of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
+broadsheetfb-support-storing-waveform-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
