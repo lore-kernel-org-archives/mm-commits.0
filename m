@@ -1,101 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch removed from -mm tree
-Date: Mon, 08 Feb 2010 11:50:16 -0800
-Message-ID: <201002081950.o18JoGJS031288@imap1.linux-foundation.org>
+Subject: [merged] dmaengine-correct-onstack-wait_queue_head-declaration.patch removed from -mm tree
+Date: Mon, 08 Feb 2010 11:52:30 -0800
+Message-ID: <201002081952.o18JqU2b031421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751131Ab0BHTut (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:50:49 -0500
+	by vger.kernel.org with ESMTP id S1754354Ab0BHTwc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 14:52:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: yong.zhang0@gmail.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix
+     dmaengine: correct onstack wait_queue_head declaration
 has been removed from the -mm tree.  Its filename was
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
+     dmaengine-correct-onstack-wait_queue_head-declaration.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dmaengine: correct onstack wait_queue_head declaration
+From: Yong Zhang <yong.zhang0@gmail.com>
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Use DECLARE_WAIT_QUEUE_HEAD_ONSTACK() to make lockdep happy.
+
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/max8925-core.c |    2 +-
+ drivers/dma/dmatest.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix drivers/mfd/max8925-core.c
---- a/drivers/mfd/max8925-core.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix
-+++ a/drivers/mfd/max8925-core.c
-@@ -235,7 +235,7 @@ static irqreturn_t max8925_irq_thread(in
- 		goto out;
- 	}
+diff -puN drivers/dma/dmatest.c~dmaengine-correct-onstack-wait_queue_head-declaration drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmaengine-correct-onstack-wait_queue_head-declaration
++++ a/drivers/dma/dmatest.c
+@@ -467,7 +467,7 @@ err_srcs:
  
--	for_each_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
-+	for_each_set_bit(i, &irq_status[0], MAX8925_NUM_IRQ) {
- 		clear_bit(i, irq_status);
- 		dev_dbg(chip->dev, "Servicing IRQ #%d in %s\n", i, chip->name);
+ 	if (iterations > 0)
+ 		while (!kthread_should_stop()) {
+-			DECLARE_WAIT_QUEUE_HEAD(wait_dmatest_exit);
++			DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wait_dmatest_exit);
+ 			interruptible_sleep_on(&wait_dmatest_exit);
+ 		}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yong.zhang0@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
