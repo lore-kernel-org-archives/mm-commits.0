@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-introduce-chip-addition-removal-notifier.patch added to -mm tree
-Date: Mon, 08 Feb 2010 13:02:56 -0800
-Message-ID: <201002082102.o18L2v53002791@imap1.linux-foundation.org>
+Subject: + powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch added to -mm tree
+Date: Mon, 08 Feb 2010 13:03:07 -0800
+Message-ID: <201002082103.o18L37fS002812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37174 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283Ab0BHVDn (ORCPT
+	by vger.kernel.org with ESMTP id S1753274Ab0BHVDn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 16:03:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: avorontsov@ru.mvista.com, benh@kernel.crashing.org, bgat@billgatliff.com, db
 
 
 The patch titled
-     gpiolib: introduce chip addition/removal notifier
+     powerpc/mcu_mpc8349emitx: remove OF GPIO handling stuff
 has been added to the -mm tree.  Its filename is
-     gpiolib-introduce-chip-addition-removal-notifier.patch
+     powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: introduce chip addition/removal notifier
+Subject: powerpc/mcu_mpc8349emitx: remove OF GPIO handling stuff
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Some platforms (e.g.  OpenFirmware) want to know when a particular chip
-added or removed, so that the platforms could add their specifics for
-non-platform devices, like I2C or SPI GPIO chips.
-
-This patch implements the notifier for chip addition and removal events.
+With the new OF GPIO infrastructure it's much easier to handle I2C GPIO
+controllers, i.e.  now drivers don't have to deal with the OF-specific
+bits.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
@@ -52,78 +50,124 @@ Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c     |   14 ++++++++++++++
- include/asm-generic/gpio.h |    8 ++++++++
- 2 files changed, 22 insertions(+)
+ arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c |   68 +++------------
+ 1 file changed, 14 insertions(+), 54 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-introduce-chip-addition-removal-notifier drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-introduce-chip-addition-removal-notifier
-+++ a/drivers/gpio/gpiolib.c
-@@ -9,6 +9,7 @@
- #include <linux/seq_file.h>
+diff -puN arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c~powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c
+--- a/arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c~powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff
++++ a/arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c
+@@ -18,8 +18,6 @@
+ #include <linux/mutex.h>
+ #include <linux/i2c.h>
  #include <linux/gpio.h>
- #include <linux/idr.h>
-+#include <linux/notifier.h>
+-#include <linux/of.h>
+-#include <linux/of_gpio.h>
+ #include <asm/prom.h>
+ #include <asm/machdep.h>
  
+@@ -36,7 +34,7 @@ struct mcu {
+ 	struct mutex lock;
+ 	struct device_node *np;
+ 	struct i2c_client *client;
+-	struct of_gpio_chip of_gc;
++	struct gpio_chip gc;
+ 	u8 reg_ctrl;
+ };
  
- /* Optional implementation infrastructure for GPIO interfaces.
-@@ -1033,6 +1034,9 @@ static inline void gpiochip_unexport(str
+@@ -55,8 +53,7 @@ static void mcu_power_off(void)
  
- #endif /* CONFIG_GPIO_SYSFS */
+ static void mcu_gpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
+ {
+-	struct of_gpio_chip *of_gc = to_of_gpio_chip(gc);
+-	struct mcu *mcu = container_of(of_gc, struct mcu, of_gc);
++	struct mcu *mcu = container_of(gc, struct mcu, gc);
+ 	u8 bit = 1 << (4 + gpio);
  
-+BLOCKING_NOTIFIER_HEAD(gpio_notifier);
-+EXPORT_SYMBOL_GPL(gpio_notifier);
-+
- /**
-  * gpiochip_add() - register a gpio_chip
-  * @chip: the chip to register, with chip->base initialized
-@@ -1107,6 +1111,9 @@ fail:
- 		pr_err("gpiochip_add: gpios %d..%d (%s) not registered\n",
- 			chip->base, chip->base + chip->ngpio - 1,
- 			chip->label ? : "generic");
-+	else
-+		blocking_notifier_call_chain(&gpio_notifier,
-+					     GPIO_NOTIFY_CHIP_ADDED, chip);
- 	return status;
+ 	mutex_lock(&mcu->lock);
+@@ -75,53 +72,6 @@ static int mcu_gpio_dir_out(struct gpio_
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(gpiochip_add);
-@@ -1123,6 +1130,13 @@ int gpiochip_remove(struct gpio_chip *ch
- 	int		status = 0;
- 	unsigned	id;
  
-+	/* Ask external subsystems to release the chip. */
-+	status = blocking_notifier_call_chain(&gpio_notifier,
-+					      GPIO_NOTIFY_CHIP_REMOVE, chip);
-+	status = notifier_to_errno(status);
-+	if (status)
-+		return status;
+-static int mcu_gpiochip_add(struct mcu *mcu)
+-{
+-	struct device_node *np;
+-	struct of_gpio_chip *of_gc = &mcu->of_gc;
+-	struct gpio_chip *gc = &of_gc->gc;
+-	int ret;
+-
+-	np = of_find_compatible_node(NULL, NULL, "fsl,mcu-mpc8349emitx");
+-	if (!np)
+-		return -ENODEV;
+-
+-	gc->owner = THIS_MODULE;
+-	gc->label = np->full_name;
+-	gc->can_sleep = 1;
+-	gc->ngpio = MCU_NUM_GPIO;
+-	gc->base = -1;
+-	gc->set = mcu_gpio_set;
+-	gc->direction_output = mcu_gpio_dir_out;
+-	of_gc->chip = gc;
+-	of_gc->gpio_cells = 2;
+-	of_gc->xlate = of_gpio_simple_xlate;
+-
+-	np->data = of_gc;
+-	mcu->np = np;
+-
+-	/*
+-	 * We don't want to lose the node, its ->data and ->full_name...
+-	 * So, if succeeded, we don't put the node here.
+-	 */
+-	ret = gpiochip_add(gc);
+-	if (ret)
+-		of_node_put(np);
+-	return ret;
+-}
+-
+-static int mcu_gpiochip_remove(struct mcu *mcu)
+-{
+-	int ret;
+-
+-	ret = gpiochip_remove(&mcu->of_gc.gc);
+-	if (ret)
+-		return ret;
+-	of_node_put(mcu->np);
+-
+-	return 0;
+-}
+-
+ static int __devinit mcu_probe(struct i2c_client *client,
+ 			       const struct i2c_device_id *id)
+ {
+@@ -141,7 +91,16 @@ static int __devinit mcu_probe(struct i2
+ 		goto err;
+ 	mcu->reg_ctrl = ret;
+ 
+-	ret = mcu_gpiochip_add(mcu);
++	mcu->gc.dev = &client->dev;
++	mcu->gc.owner = THIS_MODULE;
++	mcu->gc.label = dev_name(&client->dev);
++	mcu->gc.can_sleep = 1;
++	mcu->gc.ngpio = MCU_NUM_GPIO;
++	mcu->gc.base = -1;
++	mcu->gc.set = mcu_gpio_set;
++	mcu->gc.direction_output = mcu_gpio_dir_out;
 +
- 	spin_lock_irqsave(&gpio_lock, flags);
++	ret = gpiochip_add(&mcu->gc);
+ 	if (ret)
+ 		goto err;
  
- 	for (id = chip->base; id < chip->base + chip->ngpio; id++) {
-diff -puN include/asm-generic/gpio.h~gpiolib-introduce-chip-addition-removal-notifier include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-introduce-chip-addition-removal-notifier
-+++ a/include/asm-generic/gpio.h
-@@ -4,6 +4,7 @@
- #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/errno.h>
-+#include <linux/notifier.h>
+@@ -168,9 +127,10 @@ static int __devexit mcu_remove(struct i
+ 		glob_mcu = NULL;
+ 	}
  
- #ifdef CONFIG_GPIOLIB
- 
-@@ -234,4 +235,11 @@ static inline void gpio_unexport(unsigne
- }
- #endif	/* CONFIG_GPIO_SYSFS */
- 
-+enum gpio_notify_msg {
-+	GPIO_NOTIFY_CHIP_ADDED = 0,
-+	GPIO_NOTIFY_CHIP_REMOVE = 1,
-+};
+-	ret = mcu_gpiochip_remove(mcu);
++	ret = gpiochip_remove(&mcu->gc);
+ 	if (ret)
+ 		return ret;
 +
-+extern struct blocking_notifier_head gpio_notifier;
-+
- #endif /* _ASM_GENERIC_GPIO_H */
+ 	i2c_set_clientdata(client, NULL);
+ 	kfree(mcu);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
