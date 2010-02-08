@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-set-group_exit_code-for-other-clone_vm-tasks-too.patch added to -mm tree
-Date: Mon, 08 Feb 2010 15:46:13 -0800
-Message-ID: <201002082346.o18NkDX9010574@imap1.linux-foundation.org>
+Subject: + thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch added to -mm tree
+Date: Mon, 08 Feb 2010 15:51:07 -0800
+Message-ID: <201002082351.o18Np718010716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34760 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753348Ab0BHXr3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 18:47:29 -0500
+	by vger.kernel.org with ESMTP id S1752445Ab0BHXvy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 18:51:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, f.heckenbach@fh-soft.de, nhorman@tuxdriver.com, roland@redhat.com, xiyou.wangcong@gmail.com
+Cc: cascardo@holoscopio.com, hmh@hmh.eng.br, lenb@kernel.org
 
 
 The patch titled
-     coredump: set ->group_exit_code for other CLONE_VM tasks too
+     thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
 has been added to the -mm tree.  Its filename is
-     coredump-set-group_exit_code-for-other-clone_vm-tasks-too.patch
+     thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,142 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: set ->group_exit_code for other CLONE_VM tasks too
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-User visible change.
+Brightness notification does not work until the user writes to hotkey_mask
+attribute.  That's because the polling thread will only run if
+hotkey_user_mask is set and someone is reading the input device or if
+hotkey_driver_mask is set.  In this second case, this condition is not
+tested after the mask is changed, because the brightness and volume
+drivers are started after the hotkey drivers.
 
-do_coredump() kills all threads which share the same ->mm but only the
-coredumping process gets the proper exit_code.  Other tasks which share
-the same ->mm die "silently" and return status == 0 to parent.
+This fixes the test for the polling condition that ends up starting the
+polling thread after hotkey_driver_mask is set in brightness and volume
+init functions.
 
-This is historical behaviour, not actually a bug.  But I think Frank
-Heckenbach rightly dislikes the current behaviour.  Simple test-case:
-
-	#include <stdio.h>
-	#include <unistd.h>
-	#include <signal.h>
-	#include <sys/wait.h>
-
-	int main(void)
-	{
-		int stat;
-
-		if (!fork()) {
-			if (!vfork())
-				kill(getpid(), SIGQUIT);
-		}
-
-		wait(&stat);
-		printf("stat=%x\n", stat);
-		return 0;
-	}
-
-Before this patch it prints "stat=0" despite the fact the child was killed
-by SIGQUIT.  After this patch the output is "stat=3" which obviously makes
-more sense.
-
-Even with this patch, only the task which originates the coredumping gets
-"|= 0x80" if the core was actually dumped, but at least the coredumping
-signal is visible to do_wait/etc.
-
-Reported-by: Frank Heckenbach <f.heckenbach@fh-soft.de>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/exec.c~coredump-set-group_exit_code-for-other-clone_vm-tasks-too fs/exec.c
---- a/fs/exec.c~coredump-set-group_exit_code-for-other-clone_vm-tasks-too
-+++ a/fs/exec.c
-@@ -1547,12 +1547,13 @@ out:
- 	return ispipe;
+diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -6272,6 +6272,11 @@ static int __init brightness_init(struct
+ 	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
+ 				| TP_ACPI_HKEY_BRGHTUP_MASK
+ 				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
++
++#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
++	hotkey_poll_setup(true);
++#endif
++
+ 	return 0;
  }
  
--static int zap_process(struct task_struct *start)
-+static int zap_process(struct task_struct *start, int exit_code)
- {
- 	struct task_struct *t;
- 	int nr = 0;
+@@ -6903,6 +6908,10 @@ static int __init volume_init(struct ibm
+ 			| TP_ACPI_HKEY_VOLDWN_MASK
+ 			| TP_ACPI_HKEY_MUTE_MASK);
  
- 	start->signal->flags = SIGNAL_GROUP_EXIT;
-+	start->signal->group_exit_code = exit_code;
- 	start->signal->group_stop_count = 0;
++#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
++	hotkey_poll_setup(true);
++#endif
++
+ 	return 0;
+ }
  
- 	t = start;
-@@ -1577,8 +1578,7 @@ static inline int zap_threads(struct tas
- 	spin_lock_irq(&tsk->sighand->siglock);
- 	if (!signal_group_exit(tsk->signal)) {
- 		mm->core_state = core_state;
--		tsk->signal->group_exit_code = exit_code;
--		nr = zap_process(tsk);
-+		nr = zap_process(tsk, exit_code);
- 	}
- 	spin_unlock_irq(&tsk->sighand->siglock);
- 	if (unlikely(nr < 0))
-@@ -1627,7 +1627,7 @@ static inline int zap_threads(struct tas
- 			if (p->mm) {
- 				if (unlikely(p->mm == mm)) {
- 					lock_task_sighand(p, &flags);
--					nr += zap_process(p);
-+					nr += zap_process(p, exit_code);
- 					unlock_task_sighand(p, &flags);
- 				}
- 				break;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
 linux-next.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-core-workqueue-return-on-workqueue-recursion.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-coredump-set-group_exit_code-for-other-clone_vm-tasks-too.patch
-ptrace-use-ptrace_request-in-the-remaining-architectures.patch
-ptrace-move-user_enable_single_step-co-prototypes-to-linux-ptraceh.patch
-alpha-use-generic-ptrace_resume-code.patch
-arm-use-generic-ptrace_resume-code.patch
-avr32-use-generic-ptrace_resume-code.patch
-blackfin-use-generic-ptrace_resume-code.patch
-h8300-use-generic-ptrace_resume-code.patch
-m68knommu-use-generic-ptrace_resume-code.patch
-microblaze-use-generic-ptrace_resume-code.patch
-mips-use-generic-ptrace_resume-code.patch
-um-use-generic-ptrace_resume-code.patch
-xtensa-use-generic-ptrace_resume-code.patch
-cris-arch-v10-use-generic-ptrace_resume-code.patch
-cris-arch-v32-use-generic-ptrace_resume-code.patch
-m32r-use-generic-ptrace_resume-code.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-utrace-core-utrace-fix-utrace_maybe_reap-vs-find_matching_engine-race.patch
-copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
-copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
-copy_signal-cleanup-clean-thread_group_cputime_init.patch
-copy_signal-cleanup-clean-tty_audit_fork.patch
-kmod-add-init-function-to-usermodehelper.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-kmod-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
+thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix.patch
+eisa-fix-coding-style-for-eisa-bus-code.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
 
