@@ -1,102 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch removed from -mm tree
-Date: Tue, 09 Feb 2010 15:30:17 -0800
-Message-ID: <201002092330.o19NUHYT008132@imap1.linux-foundation.org>
+Subject: + fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub.patch added to -mm tree
+Date: Tue, 09 Feb 2010 15:34:32 -0800
+Message-ID: <201002092334.o19NYWVu008334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751987Ab0BIXbN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:31:13 -0500
+	by vger.kernel.org with ESMTP id S1751762Ab0BIXfY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:35:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cascardo@holoscopio.com, hmh@hmh.eng.br, lenb@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: richard@rsk.demon.co.uk, jens.axboe@oracle.com, npiggin@suse.de, riel@redhat.com, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
-has been removed from the -mm tree.  Its filename was
-     thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
+     fs: buffer_head: remove kmem_cache constructor to reduce memory usage under slub
+has been added to the -mm tree.  Its filename is
+     fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: fs: buffer_head: remove kmem_cache constructor to reduce memory usage under slub
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-Brightness notification does not work until the user writes to hotkey_mask
-attribute.  That's because the polling thread will only run if
-hotkey_user_mask is set and someone is reading the input device or if
-hotkey_driver_mask is set.  In this second case, this condition is not
-tested after the mask is changed, because the brightness and volume
-drivers are started after the hotkey drivers.
+When using slub, having a kmem_cache constructor forces slub to add a free
+pointer to the size of the cached object, which can have a significant
+impact to the number of small objects that can fit into a slab.
 
-This fixes the test for the polling condition that ends up starting the
-polling thread after hotkey_driver_mask is set in brightness and volume
-init functions.
+As buffer_head is relatively small and we can have large numbers of them,
+removing the constructor is a definite win.
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>
+On x86_64 removing the constructor gives me 39 objects/slab, 3 more than
+without the patch.  And on x86_32 73 objects/slab, which is 9 more.
+
+As alloc_buffer_head() already initializes each new object there is very
+little difference in actual code run.
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/buffer.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -2597,6 +2597,10 @@ static void hotkey_poll_set_freq(unsigne
- 
- #else /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
- 
-+static void hotkey_poll_setup(bool __unused)
-+{
-+}
-+
- static void hotkey_poll_setup_safe(bool __unused)
+diff -puN fs/buffer.c~fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub fs/buffer.c
+--- a/fs/buffer.c~fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub
++++ a/fs/buffer.c
+@@ -3265,7 +3265,7 @@ static void recalc_bh_state(void)
+ 	
+ struct buffer_head *alloc_buffer_head(gfp_t gfp_flags)
  {
+-	struct buffer_head *ret = kmem_cache_alloc(bh_cachep, gfp_flags);
++	struct buffer_head *ret = kmem_cache_zalloc(bh_cachep, gfp_flags);
+ 	if (ret) {
+ 		INIT_LIST_HEAD(&ret->b_assoc_buffers);
+ 		get_cpu_var(bh_accounting).nr++;
+@@ -3352,15 +3352,6 @@ int bh_submit_read(struct buffer_head *b
  }
-@@ -2694,9 +2698,7 @@ static ssize_t hotkey_mask_store(struct 
+ EXPORT_SYMBOL(bh_submit_read);
  
- 	res = hotkey_user_mask_set(t);
- 
--#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
- 	hotkey_poll_setup(true);
--#endif
- 
- 	mutex_unlock(&hotkey_mutex);
- 
-@@ -6272,6 +6274,9 @@ static int __init brightness_init(struct
- 	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
- 				| TP_ACPI_HKEY_BRGHTUP_MASK
- 				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
-+
-+	hotkey_poll_setup_safe(true);
-+
- 	return 0;
- }
- 
-@@ -6903,6 +6908,10 @@ static int __init volume_init(struct ibm
- 			| TP_ACPI_HKEY_VOLDWN_MASK
- 			| TP_ACPI_HKEY_MUTE_MASK);
- 
-+#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-+	hotkey_poll_setup(true);
-+#endif
-+
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from cascardo@holoscopio.com are
-
-linux-next.patch
-thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
-eisa-fix-coding-style-for-eisa-bus-code.patch
-doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
-
+-static void
+-init_buffer_head(void *data)
+-{
+-	struct buffer_head *bh = data;
+-
+-	memset(bh, 0, sizeof(*bh));
+-	INIT_LIST_HEAD(&bh->b_assoc_buffers);
+-}
