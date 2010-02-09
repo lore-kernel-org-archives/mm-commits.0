@@ -1,93 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dnotify-move-dir_notify_enable-declaration.patch removed from -mm tree
-Date: Tue, 09 Feb 2010 11:09:45 -0800
-Message-ID: <201002091909.o19J9jKS028425@imap1.linux-foundation.org>
+Subject: [merged] libertas-if_spi-needs-linux-semaphoreh.patch removed from -mm tree
+Date: Tue, 09 Feb 2010 11:09:48 -0800
+Message-ID: <201002091909.o19J9mSn028428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751482Ab0BITKD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 14:10:03 -0500
+	by vger.kernel.org with ESMTP id S1751482Ab0BITKW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 14:10:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, eparis@redhat.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, andrey@cozybit.com, colin@cozybit.com, dcbw@redhat.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dnotify: move dir_notify_enable declaration
+     libertas/if_spi: needs linux/semaphore.h
 has been removed from the -mm tree.  Its filename was
-     dnotify-move-dir_notify_enable-declaration.patch
+     libertas-if_spi-needs-linux-semaphoreh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dnotify: move dir_notify_enable declaration
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: libertas/if_spi: needs linux/semaphore.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Move dir_notify_enable() declaration to where it belongs: dnotify.h.
+libertas/if_spi.c needs to #include linux/semaphore.h to fix build errors:
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Paris <eparis@redhat.com>
+drivers/net/wireless/libertas/if_spi.c:59: error: field 'spi_ready' has incomplete type
+drivers/net/wireless/libertas/if_spi.c:60: error: field 'spi_thread_terminated' has incomplete type
+drivers/net/wireless/libertas/if_spi.c:785: error: implicit declaration of function 'down_interruptible'
+drivers/net/wireless/libertas/if_spi.c:787: error: implicit declaration of function 'up'
+drivers/net/wireless/libertas/if_spi.c:834: error: implicit declaration of function 'down'
+drivers/net/wireless/libertas/if_spi.c:943: error: implicit declaration of function 'sema_init'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dan Williams <dcbw@redhat.com>
+Cc: Andrey Yurovsky <andrey@cozybit.com>
+Cc: Colin McCabe <colin@cozybit.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dnotify.h |    1 +
- include/linux/fs.h      |    3 ---
- kernel/sysctl.c         |    1 +
- 3 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/wireless/libertas/if_spi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/dnotify.h~dnotify-move-dir_notify_enable-declaration include/linux/dnotify.h
---- a/include/linux/dnotify.h~dnotify-move-dir_notify_enable-declaration
-+++ a/include/linux/dnotify.h
-@@ -28,6 +28,7 @@ struct dnotify_struct {
- 			    FS_CREATE | FS_DN_RENAME |\
- 			    FS_MOVED_FROM | FS_MOVED_TO)
+diff -puN drivers/net/wireless/libertas/if_spi.c~libertas-if_spi-needs-linux-semaphoreh drivers/net/wireless/libertas/if_spi.c
+--- a/drivers/net/wireless/libertas/if_spi.c~libertas-if_spi-needs-linux-semaphoreh
++++ a/drivers/net/wireless/libertas/if_spi.c
+@@ -23,6 +23,7 @@
+ #include <linux/kthread.h>
+ #include <linux/list.h>
+ #include <linux/netdevice.h>
++#include <linux/semaphore.h>
+ #include <linux/spi/libertas_spi.h>
+ #include <linux/spi/spi.h>
  
-+extern int dir_notify_enable;
- extern void dnotify_flush(struct file *, fl_owner_t);
- extern int fcntl_dirnotify(int, struct file *, unsigned long);
- 
-diff -puN include/linux/fs.h~dnotify-move-dir_notify_enable-declaration include/linux/fs.h
---- a/include/linux/fs.h~dnotify-move-dir_notify_enable-declaration
-+++ a/include/linux/fs.h
-@@ -407,9 +407,6 @@ extern int get_max_files(void);
- extern int sysctl_nr_open;
- extern struct inodes_stat_t inodes_stat;
- extern int leases_enable, lease_break_time;
--#ifdef CONFIG_DNOTIFY
--extern int dir_notify_enable;
--#endif
- 
- struct buffer_head;
- typedef int (get_block_t)(struct inode *inode, sector_t iblock,
-diff -puN kernel/sysctl.c~dnotify-move-dir_notify_enable-declaration kernel/sysctl.c
---- a/kernel/sysctl.c~dnotify-move-dir_notify_enable-declaration
-+++ a/kernel/sysctl.c
-@@ -42,6 +42,7 @@
- #include <linux/times.h>
- #include <linux/limits.h>
- #include <linux/dcache.h>
-+#include <linux/dnotify.h>
- #include <linux/syscalls.h>
- #include <linux/vmstat.h>
- #include <linux/nfs_fs.h>
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-mpt-fusion-convert-to-seq_file.patch
-proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
-proc-warn-on-non-existing-proc-entries.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
+msi-laptop-depends-on-rfkill.patch
+i2c-fix-xiic-build-error.patch
+pci-hotplug-fix-ibmphp-build-error.patch
+mfgpt-move-clocksource-menu.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
