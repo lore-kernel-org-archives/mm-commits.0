@@ -1,74 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-changed-ltp-maintainership-responsibilities.patch added to -mm tree
-Date: Mon, 08 Feb 2010 16:03:02 -0800
-Message-ID: <201002090003.o19032Gc011287@imap1.linux-foundation.org>
+Subject: [obsolete] mtd-nand-fix-build-failure-caused-by-typo.patch removed from -mm tree
+Date: Tue, 09 Feb 2010 11:01:53 -0800
+Message-ID: <201002091901.o19J1rT1028093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752573Ab0BIADe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2010 19:03:34 -0500
+	by vger.kernel.org with ESMTP id S1751169Ab0BITCc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 14:02:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: risrajak@linux.vnet.ibm.com, subrata@linux.vnet.ibm.com, vapier@gentoo.org, yanegomi@gmail.com
+To: peterhuewe@gmx.de, dedekind1@gmail.com, dwmw2@infradead.org, hsweeten@visionengravers.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: changed LTP maintainership responsibilities
-has been added to the -mm tree.  Its filename is
-     maintainers-changed-ltp-maintainership-responsibilities.patch
+     mtd/nand: fix build failure caused by typo
+has been removed from the -mm tree.  Its filename was
+     mtd-nand-fix-build-failure-caused-by-typo.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: changed LTP maintainership responsibilities
-From: Rishikesh <risrajak@linux.vnet.ibm.com>
+Subject: mtd/nand: fix build failure caused by typo
+=46rom: Peter Huewe <peterhuewe@gmx.de>
 
-Change the LTP maintainer responsibities from 2010.
+=46ix a build failure introduced by the patch
 
-Ref: http://marc.info/?l=ltp-list&m=126502242912536&w=2
+    mtd: orion_nand.c: add error handling and use resource_size()
 
-Signed-off-by : Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
-Cc: Subrata Modak <subrata@linux.vnet.ibm.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Garrett Cooper <yanegomi@gmail.com>
+The patch assigns something to a undeclared variable 'err', whereas the
+rest of the code uses 'ret' for this task.
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/orion_nand.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-changed-ltp-maintainership-responsibilities MAINTAINERS
---- a/MAINTAINERS~maintainers-changed-ltp-maintainership-responsibilities
-+++ a/MAINTAINERS
-@@ -3472,8 +3472,10 @@ S:	Maintained
- F:	drivers/scsi/sym53c8xx_2/
- 
- LTP (Linux Test Project)
--M:	Subrata Modak <subrata@linux.vnet.ibm.com>
--M:	Mike Frysinger <vapier@gentoo.org>
-+M:	Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
-+M:	Garrett Cooper <yanegomi@gmail.com>
-+M:     Mike Frysinger <vapier@gentoo.org>
-+M:     Subrata Modak <subrata@linux.vnet.ibm.com>
- L:	ltp-list@lists.sourceforge.net (subscribers-only)
- W:	http://ltp.sourceforge.net/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/galak/ltp.git
+diff -puN drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caus=
+ed-by-typo drivers/mtd/nand/orion_nand.c
+--- a/drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caused-b=
+y-typo
++++ a/drivers/mtd/nand/orion_nand.c
+@@ -92,7 +92,7 @@ static int __init orion_nand_probe(struc
+=20
+ 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+-		err =3D -ENODEV;
++		ret =3D -ENODEV;
+ 		goto no_res;
+ 	}
+=20
 _
 
-Patches currently in -mm which might be from risrajak@linux.vnet.ibm.com are
+Patches currently in -mm which might be from peterhuewe@gmx.de are
 
-maintainers-changed-ltp-maintainership-responsibilities.patch
+mtd-nand-fix-build-failure-caused-by-typo.patch
+linux-next.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
