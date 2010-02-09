@@ -1,47 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix.patch removed from -mm tree
-Date: Tue, 09 Feb 2010 15:29:55 -0800
-Message-ID: <201002092329.o19NTtjR008115@imap1.linux-foundation.org>
+Subject: [to-be-updated] thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch removed from -mm tree
+Date: Tue, 09 Feb 2010 15:30:17 -0800
+Message-ID: <201002092330.o19NUHYT008132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751585Ab0BIXa6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:30:58 -0500
+	by vger.kernel.org with ESMTP id S1751987Ab0BIXbN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:31:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cascardo@holoscopio.com, hmh@hmh.eng.br, lenb@kernel.org, mm-commits@vger.kernel.org
+To: cascardo@holoscopio.com, hmh@hmh.eng.br, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix
+     thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
 has been removed from the -mm tree.  Its filename was
-     thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix.patch
+     thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
 
-This patch was dropped because it was folded into thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thinkpad-acpi: setup hotkey polling after changing hotkey_driver_mask
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-- Avoid ifdefs
+Brightness notification does not work until the user writes to hotkey_mask
+attribute.  That's because the polling thread will only run if
+hotkey_user_mask is set and someone is reading the input device or if
+hotkey_driver_mask is set.  In this second case, this condition is not
+tested after the mask is changed, because the brightness and volume
+drivers are started after the hotkey drivers.
 
-- Make sure that hotkey_mutex is held when calling hotkey_poll_setup:
-  use hotkey_poll_setup_safe.  Doesn't matter much in __init code.
+This fixes the test for the polling condition that ends up starting the
+polling thread after hotkey_driver_mask is set in brightness and volume
+init functions.
 
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix
+diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask
 +++ a/drivers/platform/x86/thinkpad_acpi.c
 @@ -2597,6 +2597,10 @@ static void hotkey_poll_set_freq(unsigne
  
@@ -64,74 +70,33 @@ diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-setup-hotkey-pollin
  
  	mutex_unlock(&hotkey_mutex);
  
-@@ -6273,9 +6275,7 @@ static int __init brightness_init(struct
+@@ -6272,6 +6274,9 @@ static int __init brightness_init(struct
+ 	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
  				| TP_ACPI_HKEY_BRGHTUP_MASK
  				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
- 
--#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
--	hotkey_poll_setup(true);
--#endif
++
 +	hotkey_poll_setup_safe(true);
- 
++
  	return 0;
  }
+ 
+@@ -6903,6 +6908,10 @@ static int __init volume_init(struct ibm
+ 			| TP_ACPI_HKEY_VOLDWN_MASK
+ 			| TP_ACPI_HKEY_MUTE_MASK);
+ 
++#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
++	hotkey_poll_setup(true);
++#endif
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
 thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask.patch
-thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+eisa-fix-coding-style-for-eisa-bus-code.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
 
