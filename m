@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup.patch added to -mm tree
-Date: Tue, 09 Feb 2010 13:21:52 -0800
-Message-ID: <201002092121.o19LLqOk002529@imap1.linux-foundation.org>
+Subject: + score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch added to -mm tree
+Date: Tue, 09 Feb 2010 13:54:13 -0800
+Message-ID: <201002092154.o19LsDv0003950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33642 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401Ab0BIVXe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 16:23:34 -0500
+	by vger.kernel.org with ESMTP id S1754392Ab0BIVyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 16:54:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anton@samba.org, benh@kernel.crashing.org, jmorris@namei.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, oleg@redhat.com, serue@us.ibm.com, stable@kernel.org, xiyou.wangcong@gmail.com
+Cc: roel.kluin@gmail.com, arnd@arndb.de, lennox.wu@gmail.com, liqin.chen@sunplusct.com
 
 
 The patch titled
-     fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup
+     score: fix dereference of NULL pointer in local_flush_tlb_page()
 has been added to the -mm tree.  Its filename is
-     fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup.patch
+     score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: score: fix dereference of NULL pointer in local_flush_tlb_page()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Cc: <stable@kernel.org>
-Cc: Americo Wang <xiyou.wangcong@gmail.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Morris <jmorris@namei.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Don't dereference vma if it's NULL.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ arch/score/mm/tlb-score.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup fs/exec.c
---- a/fs/exec.c~fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup
-+++ a/fs/exec.c
-@@ -637,20 +637,17 @@ int setup_arg_pages(struct linux_binprm 
- 	 * will align it up.
- 	 */
- 	rlim_stack = rlimit(RLIMIT_STACK) & PAGE_MASK;
--	if (rlim_stack < stack_size)
--		rlim_stack = stack_size;
-+	rlim_stack = min(rlim_stack, stack_size);
- #ifdef CONFIG_STACK_GROWSUP
--	if (stack_size + stack_expand > rlim_stack) {
-+	if (stack_size + stack_expand > rlim_stack)
- 		stack_base = vma->vm_start + rlim_stack;
--	} else {
-+	else
- 		stack_base = vma->vm_end + stack_expand;
--	}
- #else
--	if (stack_size + stack_expand > rlim_stack) {
-+	if (stack_size + stack_expand > rlim_stack)
- 		stack_base = vma->vm_end - rlim_stack;
--	} else {
-+	else
- 		stack_base = vma->vm_start - stack_expand;
--	}
- #endif
- 	ret = expand_stack(vma, stack_base);
- 	if (ret)
+diff -puN arch/score/mm/tlb-score.c~score-fix-dereference-of-null-pointer-in-local_flush_tlb_page arch/score/mm/tlb-score.c
+--- a/arch/score/mm/tlb-score.c~score-fix-dereference-of-null-pointer-in-local_flush_tlb_page
++++ a/arch/score/mm/tlb-score.c
+@@ -158,7 +158,7 @@ void local_flush_tlb_kernel_range(unsign
+ 
+ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
+ {
+-	if (!vma || vma->vm_mm->context != 0) {
++	if (vma && vma->vm_mm->context != 0) {
+ 		unsigned long flags;
+ 		int oldpid, newpid, idx;
+ 		unsigned long vma_ASID = vma->vm_mm->context;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-thinkpad-acpi-setup-hotkey-polling-after-changing-hotkey_driver_mask-fix.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+mx1-mx2-einval-overwritten-in-second-iteration-in-mxc_gpio_setup_multiple_pins.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
+mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
+lpfc-positive-error-return-into-negative.patch
+qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+paride-fix-off-by-one-test.patch
+musb-test-always-evaluates-to-false.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+cris-v32-typo-in-crisv32_arbiter_unwatch.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
