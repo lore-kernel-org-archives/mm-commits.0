@@ -1,90 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] fanotify-fix-fmode_nonotify-bit-number.patch removed from -mm tree
-Date: Tue, 09 Feb 2010 11:04:50 -0800
-Message-ID: <201002091904.o19J4o1b028194@imap1.linux-foundation.org>
+Subject: [merged] dnotify-move-dir_notify_enable-declaration.patch removed from -mm tree
+Date: Tue, 09 Feb 2010 11:09:45 -0800
+Message-ID: <201002091909.o19J9jKS028425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751065Ab0BITF0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 14:05:26 -0500
+	by vger.kernel.org with ESMTP id S1751482Ab0BITKD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 14:10:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, eparis@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, eparis@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fanotify: fix FMODE_NONOTIFY bit number
+     dnotify: move dir_notify_enable declaration
 has been removed from the -mm tree.  Its filename was
-     fanotify-fix-fmode_nonotify-bit-number.patch
+     dnotify-move-dir_notify_enable-declaration.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fanotify: fix FMODE_NONOTIFY bit number
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: dnotify: move dir_notify_enable declaration
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-FMODE_NONOTIFY=0x800000 collides with __O_SYNC in sparc, so change it to
-0x1000000.
+Move dir_notify_enable() declaration to where it belongs: dnotify.h.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/fcntl.h |    2 +-
- include/linux/fs.h          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/dnotify.h |    1 +
+ include/linux/fs.h      |    3 ---
+ kernel/sysctl.c         |    1 +
+ 3 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/fcntl.h~fanotify-fix-fmode_nonotify-bit-number include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~fanotify-fix-fmode_nonotify-bit-number
-+++ a/include/asm-generic/fcntl.h
-@@ -5,7 +5,7 @@
+diff -puN include/linux/dnotify.h~dnotify-move-dir_notify_enable-declaration include/linux/dnotify.h
+--- a/include/linux/dnotify.h~dnotify-move-dir_notify_enable-declaration
++++ a/include/linux/dnotify.h
+@@ -28,6 +28,7 @@ struct dnotify_struct {
+ 			    FS_CREATE | FS_DN_RENAME |\
+ 			    FS_MOVED_FROM | FS_MOVED_TO)
  
- /*
-  * FMODE_EXEC is 0x20
-- * FMODE_NONOTIFY is 0x800000
-+ * FMODE_NONOTIFY is 0x1000000
-  * These cannot be used by userspace O_* until internal and external open
-  * flags are split.
-  * -Eric Paris
-diff -puN include/linux/fs.h~fanotify-fix-fmode_nonotify-bit-number include/linux/fs.h
---- a/include/linux/fs.h~fanotify-fix-fmode_nonotify-bit-number
++extern int dir_notify_enable;
+ extern void dnotify_flush(struct file *, fl_owner_t);
+ extern int fcntl_dirnotify(int, struct file *, unsigned long);
+ 
+diff -puN include/linux/fs.h~dnotify-move-dir_notify_enable-declaration include/linux/fs.h
+--- a/include/linux/fs.h~dnotify-move-dir_notify_enable-declaration
 +++ a/include/linux/fs.h
-@@ -88,7 +88,7 @@ struct inodes_stat_t {
- #define FMODE_NOCMTIME		((__force fmode_t)2048)
+@@ -407,9 +407,6 @@ extern int get_max_files(void);
+ extern int sysctl_nr_open;
+ extern struct inodes_stat_t inodes_stat;
+ extern int leases_enable, lease_break_time;
+-#ifdef CONFIG_DNOTIFY
+-extern int dir_notify_enable;
+-#endif
  
- /* File was opened by fanotify and shouldn't generate fanotify events */
--#define FMODE_NONOTIFY		((__force fmode_t)8388608)
-+#define FMODE_NONOTIFY		((__force fmode_t)0x1000000)
- 
- /*
-  * The below are the various read and write types that we support. Some of
+ struct buffer_head;
+ typedef int (get_block_t)(struct inode *inode, sector_t iblock,
+diff -puN kernel/sysctl.c~dnotify-move-dir_notify_enable-declaration kernel/sysctl.c
+--- a/kernel/sysctl.c~dnotify-move-dir_notify_enable-declaration
++++ a/kernel/sysctl.c
+@@ -42,6 +42,7 @@
+ #include <linux/times.h>
+ #include <linux/limits.h>
+ #include <linux/dcache.h>
++#include <linux/dnotify.h>
+ #include <linux/syscalls.h>
+ #include <linux/vmstat.h>
+ #include <linux/nfs_fs.h>
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 linux-next.patch
-fanotify-fix-fmode_nonotify-bit-number.patch
-vfs-improve-writeback_inodes_wb.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-vfs-take-f_lock-on-modifying-f_mode-after-open-time.patch
-readahead-introduce-fmode_random-for-posix_fadv_random.patch
-readahead-introduce-fmode_random-for-posix_fadv_random-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-devmem-dont-allow-seek-to-last-page.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-vfs-add-super-operation-writeback_inodes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+mpt-fusion-convert-to-seq_file.patch
+proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
+proc-warn-on-non-existing-proc-entries.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
 
