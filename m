@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch added to -mm tree
-Date: Tue, 09 Feb 2010 15:41:03 -0800
-Message-ID: <201002092341.o19Nf3wQ008559@imap1.linux-foundation.org>
+Subject: + fs-ufs-recognize-solaris-specific-file-system-state.patch added to -mm tree
+Date: Tue, 09 Feb 2010 15:52:43 -0800
+Message-ID: <201002092352.o19NqhE6009089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753144Ab0BIXlj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:41:39 -0500
+	by vger.kernel.org with ESMTP id S1751672Ab0BIXww (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:52:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
+Cc: viskovatoff@imap.cc, dushistov@mail.ru
 
 
 The patch titled
-     viafb: make viafb_set_par more dual framebuffer compatible
+     fs/ufs: recognize Solaris-specific file system state
 has been added to the -mm tree.  Its filename is
-     viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch
+     fs-ufs-recognize-solaris-specific-file-system-state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: make viafb_set_par more dual framebuffer compatible
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: fs/ufs: recognize Solaris-specific file system state
+From: Alex Viskovatoff <viskovatoff@imap.cc>
 
-This patch is an attempt to make viafb_set_par work correctly with more
-than one framebuffer.  As modesetting is not (yet/easily) possible for
-each individual IGA it uses the (normally to be avoided) global variables
-viafbinfo{,1} to ensure that each function is called with the correct
-values.
+Recent releases of Solaris set the fs_clean state of an unmounted UFS file
+system as FSLOG ("logging fs").  However, the Linux kernel currently does
+not recognize the value which represents this state.  Thus, attempting to
+mount such a file system rw produces the message
 
-This patch (finally) allows usable dual framebuffer setups and should not
-affect non dual fb ones.  It works in some (most?) configurations as
-sometimes the driver still gets device connections wrong.  It can be worth
-to try the devices in reverse order (in viafb_active_dev).
+kernel: ufs_read_super: can't grok fs_clean 0xfffffffd
 
-The user experience is still not very nice as:
+and the file system is mounted read-only.  This patch makes the kernel
+recognize that value.
 
-- on the second fb you'll normally have a garbled picture as long as
-  no application draws to it
-  goal: auto on/off devices depending on reference counting
-- as the whole machinery is always done you can see mode changes also
-  in an unaffected framebuffer
-  goal: split modesetting up for each individual IGA
-
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
+Signed-off-by: Alex Viskovatoff <viskovatoff@imap.cc>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ fs/ufs/super.c  |    3 +++
+ fs/ufs/ufs_fs.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-make-viafb_set_par-more-dual-framebuffer-compatible drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-make-viafb_set_par-more-dual-framebuffer-compatible
-+++ a/drivers/video/via/viafbdev.c
-@@ -160,11 +160,17 @@ static int viafb_set_par(struct fb_info 
- 	DEBUG_MSG(KERN_INFO "viafb_set_par!\n");
+diff -puN fs/ufs/super.c~fs-ufs-recognize-solaris-specific-file-system-state fs/ufs/super.c
+--- a/fs/ufs/super.c~fs-ufs-recognize-solaris-specific-file-system-state
++++ a/fs/ufs/super.c
+@@ -1016,6 +1016,9 @@ magic_found:
+ 		case UFS_FSSTABLE:
+ 			UFSD("fs is stable\n");
+ 			break;
++		case UFS_FSLOG:
++			UFSD("fs is logging fs\n");
++			break;
+ 		case UFS_FSOSF1:
+ 			UFSD("fs is DEC OSF/1\n");
+ 			break;
+diff -puN fs/ufs/ufs_fs.h~fs-ufs-recognize-solaris-specific-file-system-state fs/ufs/ufs_fs.h
+--- a/fs/ufs/ufs_fs.h~fs-ufs-recognize-solaris-specific-file-system-state
++++ a/fs/ufs/ufs_fs.h
+@@ -138,6 +138,7 @@ typedef __u16 __bitwise __fs16;
  
- 	viapar->depth = fb_get_color_depth(&info->var, &info->fix);
--	viafb_update_device_setting(info->var.xres, info->var.yres,
--			      info->var.bits_per_pixel, viafb_refresh, 0);
-+	viafb_update_device_setting(viafbinfo->var.xres, viafbinfo->var.yres,
-+		viafbinfo->var.bits_per_pixel, viafb_refresh, 0);
+ #define UFS_USEEFT  ((__u16)65535)
  
--	vmode_entry = viafb_get_mode(info->var.xres, info->var.yres);
--	if (viafb_SAMM_ON == 1) {
-+	vmode_entry = viafb_get_mode(viafbinfo->var.xres, viafbinfo->var.yres);
-+	if (viafb_dual_fb) {
-+		vmode_entry1 = viafb_get_mode(viafbinfo1->var.xres,
-+			viafbinfo1->var.yres);
-+		viafb_update_device_setting(viafbinfo1->var.xres,
-+			viafbinfo1->var.yres, viafbinfo1->var.bits_per_pixel,
-+			viafb_refresh1, 1);
-+	} else if (viafb_SAMM_ON == 1) {
- 		DEBUG_MSG(KERN_INFO
- 		"viafb_second_xres = %d, viafb_second_yres = %d, bpp = %d\n",
- 			  viafb_second_xres, viafb_second_yres, viafb_bpp1);
-@@ -177,7 +183,11 @@ static int viafb_set_par(struct fb_info 
++/* fs_clean values */
+ #define UFS_FSOK      0x7c269d38
+ #define UFS_FSACTIVE  ((__s8)0x00)
+ #define UFS_FSCLEAN   ((__s8)0x01)
+@@ -145,6 +146,11 @@ typedef __u16 __bitwise __fs16;
+ #define UFS_FSOSF1    ((__s8)0x03)	/* is this correct for DEC OSF/1? */
+ #define UFS_FSBAD     ((__s8)0xff)
  
- 	if (vmode_entry) {
- 		viafb_update_fix(info);
--		viafb_bpp = info->var.bits_per_pixel;
-+		if (viafb_dual_fb && viapar->iga_path == IGA2)
-+			viafb_bpp1 = info->var.bits_per_pixel;
-+		else
-+			viafb_bpp = info->var.bits_per_pixel;
++/* Solaris-specific fs_clean values */
++#define UFS_FSSUSPEND ((__s8)0xfe)	/* temporarily suspended */
++#define UFS_FSLOG     ((__s8)0xfd)	/* logging fs */
++#define UFS_FSFIX     ((__s8)0xfc)	/* being repaired while mounted */
 +
- 		if (info->var.accel_flags & FB_ACCELF_TEXT)
- 			info->flags &= ~FBINFO_HWACCEL_DISABLED;
- 		else
+ /* From here to next blank line, s_flags for ufs_sb_info */
+ /* directory entry encoding */
+ #define UFS_DE_MASK		0x00000010	/* mask for the following */
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from viskovatoff@imap.cc are
 
-viafb-deprecate-private-ioctls.patch
-viafb-remove-dead-code.patch
-viafb-split-global-index-up.patch
-viafb-split-global-index-up-fix.patch
-viafb-remove-the-remaining-via_res_-uses.patch
-viafb-some-dvi-cleanup.patch
-viafb-yet-another-dead-code-removal.patch
-viafb-reorder-initialization-for-dual-framebuffer-mode.patch
-viafb-video-address-setting-revisited.patch
-viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch
-drivers-video-via-fix-continuation-line-formats.patch
+fs-ufs-recognize-solaris-specific-file-system-state.patch
 
