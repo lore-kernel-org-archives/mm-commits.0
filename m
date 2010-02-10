@@ -1,89 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-fix-build-failure-caused-by-typo.patch added to -mm tree
-Date: Wed, 10 Feb 2010 10:05:48 -0800
-Message-ID: <201002101805.o1AI5m43023084@imap1.linux-foundation.org>
+Subject: [merged] iwmc3200wifi-test-of-wrong-pointer-after-kzalloc-in-iwm_mlme_update_bss_table.patch removed from -mm tree
+Date: Wed, 10 Feb 2010 11:26:39 -0800
+Message-ID: <201002101926.o1AJQdhL026828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755589Ab0BJSGj (ORCPT
+	by vger.kernel.org with ESMTP id S1751965Ab0BJT1W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Feb 2010 13:06:39 -0500
+	Wed, 10 Feb 2010 14:27:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: peterhuewe@gmx.de, dedekind1@gmail.com, dwmw2@infradead.org, hsweeten@visionengravers.com, u.kleine-koenig@pengutronix.de
+To: roel.kluin@gmail.com, linville@tuxdriver.com, sameo@linux.intel.com, yi.zhu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd/nand: fix build failure caused by typo
-has been added to the -mm tree.  Its filename is
-     mtd-nand-fix-build-failure-caused-by-typo.patch
+     iwmc3200wifi: test of wrong pointer after kzalloc in iwm_mlme_update_bss_table()
+has been removed from the -mm tree.  Its filename was
+     iwmc3200wifi-test-of-wrong-pointer-after-kzalloc-in-iwm_mlme_update_bss_table.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/nand: fix build failure caused by typo
-=46rom: Peter Huewe <peterhuewe@gmx.de>
+Subject: iwmc3200wifi: test of wrong pointer after kzalloc in iwm_mlme_update_bss_table()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-=46ix a build failure introduced by the patch
+The wrong pointer was tested.
 
-    mtd: orion_nand.c: add error handling and use resource_size()
-
-The patch assigns something to a undeclared variable 'err', whereas the
-rest of the code uses 'ret' for this task.
-
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/orion_nand.c |    2 +-
+ drivers/net/wireless/iwmc3200wifi/rx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caus=
-ed-by-typo drivers/mtd/nand/orion_nand.c
---- a/drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caused-b=
-y-typo
-+++ a/drivers/mtd/nand/orion_nand.c
-@@ -92,7 +92,7 @@ static int __init orion_nand_probe(struc
-=20
- 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
--		err =3D -ENODEV;
-+		ret =3D -ENODEV;
- 		goto no_res;
+diff -puN drivers/net/wireless/iwmc3200wifi/rx.c~iwmc3200wifi-test-of-wrong-pointer-after-kzalloc-in-iwm_mlme_update_bss_table drivers/net/wireless/iwmc3200wifi/rx.c
+--- a/drivers/net/wireless/iwmc3200wifi/rx.c~iwmc3200wifi-test-of-wrong-pointer-after-kzalloc-in-iwm_mlme_update_bss_table
++++ a/drivers/net/wireless/iwmc3200wifi/rx.c
+@@ -794,7 +794,7 @@ static int iwm_mlme_update_bss_table(str
  	}
-=20
+ 
+ 	bss->bss = kzalloc(bss_len, GFP_KERNEL);
+-	if (!bss) {
++	if (!bss->bss) {
+ 		kfree(bss);
+ 		IWM_ERR(iwm, "Couldn't allocate bss\n");
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-mtd-nand-fix-build-failure-caused-by-typo.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
+mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
+lpfc-positive-error-return-into-negative.patch
+qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+paride-fix-off-by-one-test.patch
+musb-test-always-evaluates-to-false.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+cris-v32-typo-in-crisv32_arbiter_unwatch.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
