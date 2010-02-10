@@ -1,100 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] obsolete-config-in-kernel-source-buffer_debug.patch removed from -mm tree
-Date: Wed, 10 Feb 2010 11:26:42 -0800
-Message-ID: <201002101926.o1AJQg0N026831@imap1.linux-foundation.org>
+Subject: + kernel-core-use-helpers-for-rlimits-fix.patch added to -mm tree
+Date: Wed, 10 Feb 2010 12:10:59 -0800
+Message-ID: <201002102010.o1AKAx08028708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753179Ab0BJT1a (ORCPT
+	by vger.kernel.org with ESMTP id S1750701Ab0BJULm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Feb 2010 14:27:30 -0500
+	Wed, 10 Feb 2010 15:11:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: siccegge@stud.informatik.uni-erlangen.de, jack@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jslaby@suse.cz, mingo@elte.hu
 
 
 The patch titled
-     obsolete config in kernel source: BUFFER_DEBUG
-has been removed from the -mm tree.  Its filename was
-     obsolete-config-in-kernel-source-buffer_debug.patch
+     kernel-core-use-helpers-for-rlimits-fix
+has been added to the -mm tree.  Its filename is
+     kernel-core-use-helpers-for-rlimits-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: obsolete config in kernel source: BUFFER_DEBUG
-From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Subject: kernel-core-use-helpers-for-rlimits-fix
+From: Jiri Slaby <jslaby@suse.cz>
 
-CONFIG_BUFFER_DEBUG seems to have been removed from the documentation
-somewhere around 2.4.15 and seemingly hasn't been available even longer. 
-It is, however, still referenced at one place from the jbd code (one is a
-copy of the other header).  Time to clean it up
+Make sure compiler won't do weird things with limits. E.g. fetching
+them twice may return 2 different values after writable limits are
+implemented.
 
-Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
+I.e. either use rlimit helpers added in
+3e10e716abf3c71bdb5d86b8f507f9e72236c9cd
+or ACCESS_ONCE if not applicable.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jbd.h  |   11 -----------
- include/linux/jbd2.h |   11 -----------
- 2 files changed, 22 deletions(-)
+ kernel/fork.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/jbd.h~obsolete-config-in-kernel-source-buffer_debug include/linux/jbd.h
---- a/include/linux/jbd.h~obsolete-config-in-kernel-source-buffer_debug
-+++ a/include/linux/jbd.h
-@@ -246,19 +246,8 @@ typedef struct journal_superblock_s
+diff -puN kernel/fork.c~kernel-core-use-helpers-for-rlimits-fix kernel/fork.c
+--- a/kernel/fork.c~kernel-core-use-helpers-for-rlimits-fix
++++ a/kernel/fork.c
+@@ -827,6 +827,8 @@ void __cleanup_sighand(struct sighand_st
+  */
+ static void posix_cpu_timers_init_group(struct signal_struct *sig)
+ {
++	unsigned long cpu_limit;
++
+ 	/* Thread group counters. */
+ 	thread_group_cputime_init(sig);
  
- #define J_ASSERT(assert)	BUG_ON(!(assert))
+@@ -841,9 +843,9 @@ static void posix_cpu_timers_init_group(
+ 	sig->cputime_expires.virt_exp = cputime_zero;
+ 	sig->cputime_expires.sched_exp = 0;
  
--#if defined(CONFIG_BUFFER_DEBUG)
--void buffer_assertion_failure(struct buffer_head *bh);
--#define J_ASSERT_BH(bh, expr)						\
--	do {								\
--		if (!(expr))						\
--			buffer_assertion_failure(bh);			\
--		J_ASSERT(expr);						\
--	} while (0)
--#define J_ASSERT_JH(jh, expr)	J_ASSERT_BH(jh2bh(jh), expr)
--#else
- #define J_ASSERT_BH(bh, expr)	J_ASSERT(expr)
- #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
--#endif
+-	if (sig->rlim[RLIMIT_CPU].rlim_cur != RLIM_INFINITY) {
+-		sig->cputime_expires.prof_exp =
+-			secs_to_cputime(sig->rlim[RLIMIT_CPU].rlim_cur);
++	cpu_limit = ACCESS_ONCE(sig->rlim[RLIMIT_CPU].rlim_cur);
++	if (cpu_limit != RLIM_INFINITY) {
++		sig->cputime_expires.prof_exp = secs_to_cputime(cpu_limit);
+ 		sig->cputimer.running = 1;
+ 	}
  
- #if defined(JBD_PARANOID_IOFAIL)
- #define J_EXPECT(expr, why...)		J_ASSERT(expr)
-diff -puN include/linux/jbd2.h~obsolete-config-in-kernel-source-buffer_debug include/linux/jbd2.h
---- a/include/linux/jbd2.h~obsolete-config-in-kernel-source-buffer_debug
-+++ a/include/linux/jbd2.h
-@@ -277,19 +277,8 @@ typedef struct journal_superblock_s
- 
- #define J_ASSERT(assert)	BUG_ON(!(assert))
- 
--#if defined(CONFIG_BUFFER_DEBUG)
--void buffer_assertion_failure(struct buffer_head *bh);
--#define J_ASSERT_BH(bh, expr)						\
--	do {								\
--		if (!(expr))						\
--			buffer_assertion_failure(bh);			\
--		J_ASSERT(expr);						\
--	} while (0)
--#define J_ASSERT_JH(jh, expr)	J_ASSERT_BH(jh2bh(jh), expr)
--#else
- #define J_ASSERT_BH(bh, expr)	J_ASSERT(expr)
- #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
--#endif
- 
- #if defined(JBD2_PARANOID_IOFAIL)
- #define J_EXPECT(expr, why...)		J_ASSERT(expr)
 _
 
-Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 linux-next.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-obsolete-config-in-kernel-source-hso_autopm.patch
-fbdev-remove-obsolete-config_fb_soft_cursor.patch
-obsolete-config-in-kernel-source-lwmon5.patch
+gpu-drm-i915-fix-potential-null-dereference.patch
+infiniband-use-rlimit-helpers.patch
+mtd-chips-cfi-remove-unneeded-null-checks.patch
+video-backlight-progear-fix-pci-device-refcounting.patch
+mm-use-rlimit-helpers.patch
+bootmem-avoid-dma32-zone-by-default.patch
+fs-use-rlimit-helpers.patch
+posix-cpu-timers-cleanup-rlimits-usage.patch
+kernel-core-use-helpers-for-rlimits.patch
+kernel-core-use-helpers-for-rlimits-fix.patch
+ipc-use-rlimit-helpers.patch
+edac-add-__init-to-i7core_xeon_pci_fixup.patch
 
