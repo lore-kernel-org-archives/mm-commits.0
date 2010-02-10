@@ -1,122 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mx1-mx2-einval-overwritten-in-second-iteration-in-mxc_gpio_setup_multiple_pins.patch removed from -mm tree
-Date: Wed, 10 Feb 2010 11:26:35 -0800
-Message-ID: <201002101926.o1AJQZwa026825@imap1.linux-foundation.org>
+Subject: [merged] obsolete-config-in-kernel-source-buffer_debug.patch removed from -mm tree
+Date: Wed, 10 Feb 2010 11:26:42 -0800
+Message-ID: <201002101926.o1AJQg0N026831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753179Ab0BJT1Z (ORCPT
+	by vger.kernel.org with ESMTP id S1753179Ab0BJT1a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Feb 2010 14:27:25 -0500
+	Wed, 10 Feb 2010 14:27:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, rmk@arm.linux.org.uk, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: siccegge@stud.informatik.uni-erlangen.de, jack@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: mx1/mx2: -EINVAL overwritten in second iteration in mxc_gpio_=
-setup_multiple_pins()
+     obsolete config in kernel source: BUFFER_DEBUG
 has been removed from the -mm tree.  Its filename was
-     mx1-mx2-einval-overwritten-in-second-iteration-in-mxc_gpio_setup_m=
-ultiple_pins.patch
+     obsolete-config-in-kernel-source-buffer_debug.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: mx1/mx2: -EINVAL overwritten in second iteration in mxc_g=
-pio_setup_multiple_pins()
-=46rom: Roel Kluin <roel.kluin@gmail.com>
+Subject: obsolete config in kernel source: BUFFER_DEBUG
+From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
 
-Due to the `ret =3D gpio_request()' below in the loop, the initial -EIN=
-VAL
-value of ret is overwritten.
+CONFIG_BUFFER_DEBUG seems to have been removed from the documentation
+somewhere around 2.4.15 and seemingly hasn't been available even longer. 
+It is, however, still referenced at one place from the jbd code (one is a
+copy of the other header).  Time to clean it up
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-mxc/iomux-mx1-mx2.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/jbd.h  |   11 -----------
+ include/linux/jbd2.h |   11 -----------
+ 2 files changed, 22 deletions(-)
 
-diff -puN arch/arm/plat-mxc/iomux-mx1-mx2.c~mx1-mx2-einval-overwritten-=
-in-second-iteration-in-mxc_gpio_setup_multiple_pins arch/arm/plat-mxc/i=
-omux-mx1-mx2.c
---- a/arch/arm/plat-mxc/iomux-mx1-mx2.c~mx1-mx2-einval-overwritten-in-s=
-econd-iteration-in-mxc_gpio_setup_multiple_pins
-+++ a/arch/arm/plat-mxc/iomux-mx1-mx2.c
-@@ -116,14 +116,16 @@ int mxc_gpio_setup_multiple_pins(const i
- 	int i;
- 	unsigned gpio;
- 	unsigned mode;
--	int ret =3D -EINVAL;
-+	int ret;
-=20
- 	for (i =3D 0; i < count; i++) {
- 		gpio =3D *p & (GPIO_PIN_MASK | GPIO_PORT_MASK);
- 		mode =3D *p & ~(GPIO_PIN_MASK | GPIO_PORT_MASK);
-=20
--		if (gpio >=3D (GPIO_PORT_MAX + 1) * 32)
-+		if (gpio >=3D (GPIO_PORT_MAX + 1) * 32) {
-+			ret =3D -EINVAL;
- 			goto setup_error;
-+		}
-=20
- 		ret =3D gpio_request(gpio, label);
- 		if (ret)
+diff -puN include/linux/jbd.h~obsolete-config-in-kernel-source-buffer_debug include/linux/jbd.h
+--- a/include/linux/jbd.h~obsolete-config-in-kernel-source-buffer_debug
++++ a/include/linux/jbd.h
+@@ -246,19 +246,8 @@ typedef struct journal_superblock_s
+ 
+ #define J_ASSERT(assert)	BUG_ON(!(assert))
+ 
+-#if defined(CONFIG_BUFFER_DEBUG)
+-void buffer_assertion_failure(struct buffer_head *bh);
+-#define J_ASSERT_BH(bh, expr)						\
+-	do {								\
+-		if (!(expr))						\
+-			buffer_assertion_failure(bh);			\
+-		J_ASSERT(expr);						\
+-	} while (0)
+-#define J_ASSERT_JH(jh, expr)	J_ASSERT_BH(jh2bh(jh), expr)
+-#else
+ #define J_ASSERT_BH(bh, expr)	J_ASSERT(expr)
+ #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
+-#endif
+ 
+ #if defined(JBD_PARANOID_IOFAIL)
+ #define J_EXPECT(expr, why...)		J_ASSERT(expr)
+diff -puN include/linux/jbd2.h~obsolete-config-in-kernel-source-buffer_debug include/linux/jbd2.h
+--- a/include/linux/jbd2.h~obsolete-config-in-kernel-source-buffer_debug
++++ a/include/linux/jbd2.h
+@@ -277,19 +277,8 @@ typedef struct journal_superblock_s
+ 
+ #define J_ASSERT(assert)	BUG_ON(!(assert))
+ 
+-#if defined(CONFIG_BUFFER_DEBUG)
+-void buffer_assertion_failure(struct buffer_head *bh);
+-#define J_ASSERT_BH(bh, expr)						\
+-	do {								\
+-		if (!(expr))						\
+-			buffer_assertion_failure(bh);			\
+-		J_ASSERT(expr);						\
+-	} while (0)
+-#define J_ASSERT_JH(jh, expr)	J_ASSERT_BH(jh2bh(jh), expr)
+-#else
+ #define J_ASSERT_BH(bh, expr)	J_ASSERT(expr)
+ #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
+-#endif
+ 
+ #if defined(JBD2_PARANOID_IOFAIL)
+ #define J_EXPECT(expr, why...)		J_ASSERT(expr)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
 
-origin.patch
 linux-next.patch
-thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit.pat=
-ch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
-gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
-mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
-mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
 obsolete-config-in-kernel-source-use_internal_timer.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.pat=
-ch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.p=
-atch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
-lpfc-positive-error-return-into-negative.patch
-qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-paride-fix-off-by-one-test.patch
-musb-test-always-evaluates-to-false.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-cris-v32-typo-in-crisv32_arbiter_unwatch.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+obsolete-config-in-kernel-source-hso_autopm.patch
+fbdev-remove-obsolete-config_fb_soft_cursor.patch
+obsolete-config-in-kernel-source-lwmon5.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
