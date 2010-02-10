@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ufs-recognize-solaris-specific-file-system-state.patch added to -mm tree
-Date: Tue, 09 Feb 2010 15:52:43 -0800
-Message-ID: <201002092352.o19NqhE6009089@imap1.linux-foundation.org>
+Subject: + mtd-nand-fix-build-failure-caused-by-typo.patch added to -mm tree
+Date: Wed, 10 Feb 2010 10:05:48 -0800
+Message-ID: <201002101805.o1AI5m43023084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751672Ab0BIXww (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2010 18:52:52 -0500
+	by vger.kernel.org with ESMTP id S1755589Ab0BJSGj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Feb 2010 13:06:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viskovatoff@imap.cc, dushistov@mail.ru
+Cc: peterhuewe@gmx.de, dedekind1@gmail.com, dwmw2@infradead.org, hsweeten@visionengravers.com, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     fs/ufs: recognize Solaris-specific file system state
+     mtd/nand: fix build failure caused by typo
 has been added to the -mm tree.  Its filename is
-     fs-ufs-recognize-solaris-specific-file-system-state.patch
+     mtd-nand-fix-build-failure-caused-by-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,75 +29,61 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fs/ufs: recognize Solaris-specific file system state
-From: Alex Viskovatoff <viskovatoff@imap.cc>
+Subject: mtd/nand: fix build failure caused by typo
+=46rom: Peter Huewe <peterhuewe@gmx.de>
 
-Recent releases of Solaris set the fs_clean state of an unmounted UFS file
-system as FSLOG ("logging fs").  However, the Linux kernel currently does
-not recognize the value which represents this state.  Thus, attempting to
-mount such a file system rw produces the message
+=46ix a build failure introduced by the patch
 
-kernel: ufs_read_super: can't grok fs_clean 0xfffffffd
+    mtd: orion_nand.c: add error handling and use resource_size()
 
-and the file system is mounted read-only.  This patch makes the kernel
-recognize that value.
+The patch assigns something to a undeclared variable 'err', whereas the
+rest of the code uses 'ret' for this task.
 
-Signed-off-by: Alex Viskovatoff <viskovatoff@imap.cc>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c  |    3 +++
- fs/ufs/ufs_fs.h |    6 ++++++
- 2 files changed, 9 insertions(+)
+ drivers/mtd/nand/orion_nand.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ufs/super.c~fs-ufs-recognize-solaris-specific-file-system-state fs/ufs/super.c
---- a/fs/ufs/super.c~fs-ufs-recognize-solaris-specific-file-system-state
-+++ a/fs/ufs/super.c
-@@ -1016,6 +1016,9 @@ magic_found:
- 		case UFS_FSSTABLE:
- 			UFSD("fs is stable\n");
- 			break;
-+		case UFS_FSLOG:
-+			UFSD("fs is logging fs\n");
-+			break;
- 		case UFS_FSOSF1:
- 			UFSD("fs is DEC OSF/1\n");
- 			break;
-diff -puN fs/ufs/ufs_fs.h~fs-ufs-recognize-solaris-specific-file-system-state fs/ufs/ufs_fs.h
---- a/fs/ufs/ufs_fs.h~fs-ufs-recognize-solaris-specific-file-system-state
-+++ a/fs/ufs/ufs_fs.h
-@@ -138,6 +138,7 @@ typedef __u16 __bitwise __fs16;
- 
- #define UFS_USEEFT  ((__u16)65535)
- 
-+/* fs_clean values */
- #define UFS_FSOK      0x7c269d38
- #define UFS_FSACTIVE  ((__s8)0x00)
- #define UFS_FSCLEAN   ((__s8)0x01)
-@@ -145,6 +146,11 @@ typedef __u16 __bitwise __fs16;
- #define UFS_FSOSF1    ((__s8)0x03)	/* is this correct for DEC OSF/1? */
- #define UFS_FSBAD     ((__s8)0xff)
- 
-+/* Solaris-specific fs_clean values */
-+#define UFS_FSSUSPEND ((__s8)0xfe)	/* temporarily suspended */
-+#define UFS_FSLOG     ((__s8)0xfd)	/* logging fs */
-+#define UFS_FSFIX     ((__s8)0xfc)	/* being repaired while mounted */
-+
- /* From here to next blank line, s_flags for ufs_sb_info */
- /* directory entry encoding */
- #define UFS_DE_MASK		0x00000010	/* mask for the following */
+diff -puN drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caus=
+ed-by-typo drivers/mtd/nand/orion_nand.c
+--- a/drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caused-b=
+y-typo
++++ a/drivers/mtd/nand/orion_nand.c
+@@ -92,7 +92,7 @@ static int __init orion_nand_probe(struc
+=20
+ 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+-		err =3D -ENODEV;
++		ret =3D -ENODEV;
+ 		goto no_res;
+ 	}
+=20
 _
 
-Patches currently in -mm which might be from viskovatoff@imap.cc are
+Patches currently in -mm which might be from peterhuewe@gmx.de are
 
-fs-ufs-recognize-solaris-specific-file-system-state.patch
+linux-next.patch
+mtd-nand-fix-build-failure-caused-by-typo.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
