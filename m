@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-memc-cleanups-fix-fix.patch added to -mm tree
-Date: Wed, 10 Feb 2010 13:50:40 -0800
-Message-ID: <201002102216.o1AMGIxU002234@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 10 Feb 2010 15:20:13 -0800
+Message-ID: <201002102345.o1ANjqj6006419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755133Ab0BJWQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755431Ab0BJXp6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Feb 2010 17:16:59 -0500
+	Wed, 10 Feb 2010 18:45:58 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o1ANjuD7001862
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 10 Feb 2010 15:45:57 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, hirofumi@mail.parknet.co.jp, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     drivers-char-memc-cleanups-fix-fix
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     drivers-char-memc-cleanups-fix-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +38,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-memc-cleanups-fix-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-uninlining revealed:
-
-drivers/char/mem.c:53: warning: 'uncached_access' defined but not used
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   65 +++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-tiny-usb.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/char/mem.c~drivers-char-memc-cleanups-fix-fix drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-memc-cleanups-fix-fix
-+++ a/drivers/char/mem.c
-@@ -44,38 +44,6 @@ static inline unsigned long size_inside_
- 	return min(sz, size);
- }
+diff -puN drivers/i2c/busses/i2c-tiny-usb.c~linux-next-git-rejects drivers/i2c/busses/i2c-tiny-usb.c
+--- a/drivers/i2c/busses/i2c-tiny-usb.c~linux-next-git-rejects
++++ a/drivers/i2c/busses/i2c-tiny-usb.c
+@@ -31,13 +31,6 @@
+ #define CMD_I2C_IO_BEGIN	(1<<0)
+ #define CMD_I2C_IO_END		(1<<1)
  
--/*
-- * Architectures vary in how they handle caching for addresses
-- * outside of main memory.
-- *
-- */
--static int uncached_access(struct file *file, unsigned long addr)
--{
--#if defined(CONFIG_IA64)
--	/*
--	 * On ia64, we ignore O_DSYNC because we cannot tolerate memory
--	 * attribute aliases.
--	 */
--	return !(efi_mem_attributes(addr) & EFI_MEMORY_WB);
--#elif defined(CONFIG_MIPS)
--	{
--		extern int __uncached_access(struct file *file,
--					     unsigned long addr);
--
--		return __uncached_access(file, addr);
--	}
--#else
--	/*
--	 * Accessing memory above the top the kernel knows about or through a
--	 * file pointer
--	 * that was marked O_DSYNC will be done non-cached.
--	 */
--	if (file->f_flags & O_DSYNC)
--		return 1;
--	return addr >= __pa(high_memory);
--#endif
--}
--
- #ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
- static inline int valid_phys_addr_range(unsigned long addr, size_t count)
- {
-@@ -251,6 +219,39 @@ int __weak phys_mem_access_prot_allowed(
- }
+-<<<<<<< HEAD:drivers/i2c/busses/i2c-tiny-usb.c
+-/* i2c bit delay, default is 10us -> 100kHz */
+-static unsigned short delay = 10;
+-module_param(delay, ushort, 0);
+-MODULE_PARM_DESC(delay, "bit delay in microseconds, "
+-		 "e.g. 10 for 100kHz (default is 100kHz)");
+-=======
+ /* i2c bit delay, default is 10us -> 100kHz max
+    (in practice, due to additional delays in the i2c bitbanging
+    code this results in a i2c clock of about 50kHz) */
+@@ -45,7 +38,6 @@ static unsigned short delay = 10;
+ module_param(delay, ushort, 0);
+ MODULE_PARM_DESC(delay, "bit delay in microseconds "
+ 		 "(default is 10us for 100kHz max)");
+->>>>>>> FETCH_HEAD:drivers/i2c/busses/i2c-tiny-usb.c
  
- #ifndef __HAVE_PHYS_MEM_ACCESS_PROT
-+
-+/*
-+ * Architectures vary in how they handle caching for addresses
-+ * outside of main memory.
-+ *
-+ */
-+static int uncached_access(struct file *file, unsigned long addr)
-+{
-+#if defined(CONFIG_IA64)
-+	/*
-+	 * On ia64, we ignore O_DSYNC because we cannot tolerate memory
-+	 * attribute aliases.
-+	 */
-+	return !(efi_mem_attributes(addr) & EFI_MEMORY_WB);
-+#elif defined(CONFIG_MIPS)
-+	{
-+		extern int __uncached_access(struct file *file,
-+					     unsigned long addr);
-+
-+		return __uncached_access(file, addr);
-+	}
-+#else
-+	/*
-+	 * Accessing memory above the top the kernel knows about or through a
-+	 * file pointer
-+	 * that was marked O_DSYNC will be done non-cached.
-+	 */
-+	if (file->f_flags & O_DSYNC)
-+		return 1;
-+	return addr >= __pa(high_memory);
-+#endif
-+}
-+
- static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 				     unsigned long size, pgprot_t vma_prot)
- {
+ static int usb_read(struct i2c_adapter *adapter, int cmd,
+ 		    int value, int index, void *data, int len);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-execc-restrict-initial-stack-space-expansion-to-rlimit-cleanup-cleanup.patch
+fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
