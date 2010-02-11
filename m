@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-sdhci-support-for-suspend-mode-pm-features.patch added to -mm tree
-Date: Thu, 11 Feb 2010 12:33:17 -0800
-Message-ID: <201002112033.o1BKXHBR026962__5417.37070675499$1265920438$gmane$org@imap1.linux-foundation.org>
+Subject: + sdio-put-active-devices-into-1-bit-mode-during-suspend.patch added to -mm tree
+Date: Thu, 11 Feb 2010 12:33:23 -0800
+Message-ID: <201002112033.o1BKXNA4026971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36556 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755734Ab0BKUdv (ORCPT
+	by vger.kernel.org with ESMTP id S1756365Ab0BKUdz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Feb 2010 15:33:51 -0500
+	Thu, 11 Feb 2010 15:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nico@fluxnic.net, linux-mmc@vger.kernel.org, nico@marvell.com
+Cc: dsd@laptop.org, linux-mmc@vger.kernel.org, nico@marvell.com
 
 
 The patch titled
-     sdio: sdhci support for suspend mode PM features
+     sdio: put active devices into 1-bit mode during suspend
 has been added to the -mm tree.  Its filename is
-     sdio-sdhci-support-for-suspend-mode-pm-features.patch
+     sdio-put-active-devices-into-1-bit-mode-during-suspend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: sdhci support for suspend mode PM features
-From: Nicolas Pitre <nico@fluxnic.net>
+Subject: sdio: put active devices into 1-bit mode during suspend
+From: Daniel Drake <dsd@laptop.org>
 
-Tested with an XO v1.5 from OLPC.
+And bring them back to 4-bit mode during resume.
 
+Signed-off-by: Daniel Drake <dsd@laptop.org>
 Signed-off-by: Nicolas Pitre <nico@marvell.com>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-pci.c |   17 ++++++++++++++---
- drivers/mmc/host/sdhci.c     |   26 +++++++++++++++++---------
- 2 files changed, 31 insertions(+), 12 deletions(-)
+ drivers/mmc/core/sdio.c  |   43 +++++++++++++++++++++++++++++++++++++
+ include/linux/mmc/sdio.h |    2 +
+ 2 files changed, 45 insertions(+)
 
-diff -puN drivers/mmc/host/sdhci-pci.c~sdio-sdhci-support-for-suspend-mode-pm-features drivers/mmc/host/sdhci-pci.c
---- a/drivers/mmc/host/sdhci-pci.c~sdio-sdhci-support-for-suspend-mode-pm-features
-+++ a/drivers/mmc/host/sdhci-pci.c
-@@ -501,6 +501,7 @@ static int sdhci_pci_suspend (struct pci
- {
- 	struct sdhci_pci_chip *chip;
- 	struct sdhci_pci_slot *slot;
-+	mmc_pm_flag_t pm_flags = 0;
- 	int i, ret;
+diff -puN drivers/mmc/core/sdio.c~sdio-put-active-devices-into-1-bit-mode-during-suspend drivers/mmc/core/sdio.c
+--- a/drivers/mmc/core/sdio.c~sdio-put-active-devices-into-1-bit-mode-during-suspend
++++ a/drivers/mmc/core/sdio.c
+@@ -188,6 +188,40 @@ static int sdio_disable_cd(struct mmc_ca
+ }
  
- 	chip = pci_get_drvdata(pdev);
-@@ -519,6 +520,8 @@ static int sdhci_pci_suspend (struct pci
- 				sdhci_resume_host(chip->slots[i]->host);
- 			return ret;
+ /*
++ * Devices that remain active during a system suspend are
++ * put back into 1-bit mode.
++ */
++static int sdio_disable_wide(struct mmc_card *card)
++{
++	int ret;
++	u8 ctrl;
++
++	if (!(card->host->caps & MMC_CAP_4_BIT_DATA))
++		return 0;
++
++	if (card->cccr.low_speed && !card->cccr.wide_bus)
++		return 0;
++
++	ret = mmc_io_rw_direct(card, 0, 0, SDIO_CCCR_IF, 0, &ctrl);
++	if (ret)
++		return ret;
++
++	if (!(ctrl & SDIO_BUS_WIDTH_4BIT))
++		return 0;
++
++	ctrl &= ~SDIO_BUS_WIDTH_4BIT;
++	ctrl |= SDIO_BUS_ASYNC_INT;
++
++	ret = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_IF, ctrl, NULL);
++	if (ret)
++		return ret;
++
++	mmc_set_bus_width(card->host, MMC_BUS_WIDTH_1);
++
++	return 0;
++}
++
++/*
+  * Test if the card supports high-speed mode and, if so, switch to it.
+  */
+ static int sdio_enable_hs(struct mmc_card *card)
+@@ -427,6 +461,12 @@ static int mmc_sdio_suspend(struct mmc_h
  		}
-+
-+		pm_flags |= slot->host->mmc->pm_flags;
  	}
  
- 	if (chip->fixes && chip->fixes->suspend) {
-@@ -531,9 +534,15 @@ static int sdhci_pci_suspend (struct pci
- 	}
- 
- 	pci_save_state(pdev);
--	pci_enable_wake(pdev, pci_choose_state(pdev, state), 0);
--	pci_disable_device(pdev);
--	pci_set_power_state(pdev, pci_choose_state(pdev, state));
-+	if (pm_flags & MMC_PM_KEEP_POWER) {
-+		if (pm_flags & MMC_PM_WAKE_SDIO_IRQ)
-+			pci_enable_wake(pdev, PCI_D3hot, 1);
-+		pci_set_power_state(pdev, PCI_D3hot);
-+	} else {
-+		pci_enable_wake(pdev, pci_choose_state(pdev, state), 0);
-+		pci_disable_device(pdev);
-+		pci_set_power_state(pdev, pci_choose_state(pdev, state));
++	if (!err && host->pm_flags & MMC_PM_KEEP_POWER) {
++		mmc_claim_host(host);
++		sdio_disable_wide(host->card);
++		mmc_release_host(host);
 +	}
- 
- 	return 0;
- }
-@@ -653,6 +662,8 @@ static struct sdhci_pci_slot * __devinit
- 			goto unmap;
- 	}
- 
-+	host->mmc->pm_caps = MMC_PM_KEEP_POWER | MMC_PM_WAKE_SDIO_IRQ;
 +
- 	ret = sdhci_add_host(host);
- 	if (ret)
- 		goto remove;
-diff -puN drivers/mmc/host/sdhci.c~sdio-sdhci-support-for-suspend-mode-pm-features drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdio-sdhci-support-for-suspend-mode-pm-features
-+++ a/drivers/mmc/host/sdhci.c
-@@ -174,20 +174,31 @@ static void sdhci_reset(struct sdhci_hos
- 		sdhci_clear_set_irqs(host, SDHCI_INT_ALL_MASK, ier);
+ 	return err;
  }
  
--static void sdhci_init(struct sdhci_host *host)
-+static void sdhci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios);
+@@ -441,6 +481,9 @@ static int mmc_sdio_resume(struct mmc_ho
+ 	mmc_claim_host(host);
+ 	err = mmc_sdio_init_card(host, host->ocr, host->card,
+ 				 (host->pm_flags & MMC_PM_KEEP_POWER));
++	if (!err)
++		/* We may have switched to 1-bit mode during suspend. */
++		err = sdio_enable_wide(host->card);
+ 	if (!err && host->sdio_irqs)
+ 		mmc_signal_sdio_irq(host);
+ 	mmc_release_host(host);
+diff -puN include/linux/mmc/sdio.h~sdio-put-active-devices-into-1-bit-mode-during-suspend include/linux/mmc/sdio.h
+--- a/include/linux/mmc/sdio.h~sdio-put-active-devices-into-1-bit-mode-during-suspend
++++ a/include/linux/mmc/sdio.h
+@@ -95,6 +95,8 @@
+ #define  SDIO_BUS_WIDTH_1BIT	0x00
+ #define  SDIO_BUS_WIDTH_4BIT	0x02
+ 
++#define  SDIO_BUS_ASYNC_INT	0x20
 +
-+static void sdhci_init(struct sdhci_host *host, int soft)
- {
--	sdhci_reset(host, SDHCI_RESET_ALL);
-+	if (soft)
-+		sdhci_reset(host, SDHCI_RESET_CMD|SDHCI_RESET_DATA);
-+	else
-+		sdhci_reset(host, SDHCI_RESET_ALL);
+ #define  SDIO_BUS_CD_DISABLE     0x80	/* disable pull-up on DAT3 (pin 1) */
  
- 	sdhci_clear_set_irqs(host, SDHCI_INT_ALL_MASK,
- 		SDHCI_INT_BUS_POWER | SDHCI_INT_DATA_END_BIT |
- 		SDHCI_INT_DATA_CRC | SDHCI_INT_DATA_TIMEOUT | SDHCI_INT_INDEX |
- 		SDHCI_INT_END_BIT | SDHCI_INT_CRC | SDHCI_INT_TIMEOUT |
- 		SDHCI_INT_DATA_END | SDHCI_INT_RESPONSE);
-+
-+	if (soft) {
-+		/* force clock reconfiguration */
-+		host->clock = 0;
-+		sdhci_set_ios(host->mmc, &host->mmc->ios);
-+	}
- }
- 
- static void sdhci_reinit(struct sdhci_host *host)
- {
--	sdhci_init(host);
-+	sdhci_init(host, 0);
- 	sdhci_enable_card_detection(host);
- }
- 
-@@ -1600,16 +1611,13 @@ int sdhci_resume_host(struct sdhci_host 
- 	if (ret)
- 		return ret;
- 
--	sdhci_init(host);
-+	sdhci_init(host, (host->mmc->pm_flags & MMC_PM_KEEP_POWER));
- 	mmiowb();
- 
- 	ret = mmc_resume_host(host->mmc);
--	if (ret)
--		return ret;
--
- 	sdhci_enable_card_detection(host);
- 
--	return 0;
-+	return ret;
- }
- 
- EXPORT_SYMBOL_GPL(sdhci_resume_host);
-@@ -1864,7 +1872,7 @@ int sdhci_add_host(struct sdhci_host *ho
- 	if (ret)
- 		goto untasklet;
- 
--	sdhci_init(host);
-+	sdhci_init(host, 0);
- 
- #ifdef CONFIG_MMC_DEBUG
- 	sdhci_dumpregs(host);
+ #define SDIO_CCCR_CAPS		0x08
 _
 
-Patches currently in -mm which might be from nico@fluxnic.net are
+Patches currently in -mm which might be from dsd@laptop.org are
 
-mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch
-sdio-introduce-api-for-special-power-management-features.patch
-sdio-sdhci-support-for-suspend-mode-pm-features.patch
-sdio-kick-the-interrupt-thread-upon-a-resume.patch
+linux-next.patch
+sdio-put-active-devices-into-1-bit-mode-during-suspend.patch
 
