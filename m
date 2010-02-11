@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-dma-arm-use-include-linux-pci-dmah.patch added to -mm tree
-Date: Thu, 11 Feb 2010 12:40:08 -0800
-Message-ID: <201002112040.o1BKe8Jr027268@imap1.linux-foundation.org>
+Subject: + pci-dma-powerpc-use-include-linux-pci-dmah.patch added to -mm tree
+Date: Thu, 11 Feb 2010 12:40:18 -0800
+Message-ID: <201002112040.o1BKeIKS027308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756977Ab0BKUkT (ORCPT
+	by vger.kernel.org with ESMTP id S1757025Ab0BKUkW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Feb 2010 15:40:19 -0500
+	Thu, 11 Feb 2010 15:40:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, jbarnes@virtuousgeek.org, linux@arm.linux.org.uk
+Cc: fujita.tomonori@lab.ntt.co.jp, benh@kernel.crashing.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     pci-dma: arm: use include/linux/pci-dma.h
+     pci-dma: powerpc: use include/linux/pci-dma.h
 has been added to the -mm tree.  Its filename is
-     pci-dma-arm-use-include-linux-pci-dmah.patch
+     pci-dma-powerpc-use-include-linux-pci-dmah.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-dma: arm: use include/linux/pci-dma.h
+Subject: pci-dma: powerpc: use include/linux/pci-dma.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig           |    3 +++
- arch/arm/include/asm/pci.h |   11 +----------
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ arch/powerpc/Kconfig           |    3 ++
+ arch/powerpc/include/asm/pci.h |   32 -------------------------------
+ 2 files changed, 4 insertions(+), 31 deletions(-)
 
-diff -puN arch/arm/Kconfig~pci-dma-arm-use-include-linux-pci-dmah arch/arm/Kconfig
---- a/arch/arm/Kconfig~pci-dma-arm-use-include-linux-pci-dmah
-+++ a/arch/arm/Kconfig
-@@ -155,6 +155,9 @@ config ARCH_MAY_HAVE_PC_FDC
- config ZONE_DMA
+diff -puN arch/powerpc/Kconfig~pci-dma-powerpc-use-include-linux-pci-dmah arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~pci-dma-powerpc-use-include-linux-pci-dmah
++++ a/arch/powerpc/Kconfig
+@@ -645,6 +645,9 @@ config ZONE_DMA
  	bool
+ 	default y
  
 +config NEED_DMA_MAP_STATE
-+       def_bool y
++	def_bool (PPC64 || NOT_COHERENT_CACHE)
 +
  config GENERIC_ISA_DMA
  	bool
+ 	depends on PPC64 || POWER4 || 6xx && !CPM2
+diff -puN arch/powerpc/include/asm/pci.h~pci-dma-powerpc-use-include-linux-pci-dmah arch/powerpc/include/asm/pci.h
+--- a/arch/powerpc/include/asm/pci.h~pci-dma-powerpc-use-include-linux-pci-dmah
++++ a/arch/powerpc/include/asm/pci.h
+@@ -141,37 +141,7 @@ extern int pci_mmap_legacy_page_range(st
  
-diff -puN arch/arm/include/asm/pci.h~pci-dma-arm-use-include-linux-pci-dmah arch/arm/include/asm/pci.h
---- a/arch/arm/include/asm/pci.h~pci-dma-arm-use-include-linux-pci-dmah
-+++ a/arch/arm/include/asm/pci.h
-@@ -30,16 +30,7 @@ static inline void pcibios_penalize_isa_
-  */
- #define PCI_DMA_BUS_IS_PHYS     (1)
+ #define HAVE_PCI_LEGACY	1
  
+-#if defined(CONFIG_PPC64) || defined(CONFIG_NOT_COHERENT_CACHE)
 -/*
-- * Whether pci_unmap_{single,page} is a nop depends upon the
-- * configuration.
+- * For 64-bit kernels, pci_unmap_{single,page} is not a nop.
+- * For 32-bit non-coherent kernels, pci_dma_sync_single_for_cpu() and
+- * so on are not nops.
+- * and thus...
 - */
--#define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)	dma_addr_t ADDR_NAME;
--#define DECLARE_PCI_UNMAP_LEN(LEN_NAME)		__u32 LEN_NAME;
--#define pci_unmap_addr(PTR, ADDR_NAME)		((PTR)->ADDR_NAME)
--#define pci_unmap_addr_set(PTR, ADDR_NAME, VAL)	(((PTR)->ADDR_NAME) = (VAL))
--#define pci_unmap_len(PTR, LEN_NAME)		((PTR)->LEN_NAME)
--#define pci_unmap_len_set(PTR, LEN_NAME, VAL)	(((PTR)->LEN_NAME) = (VAL))
+-#define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)	\
+-	dma_addr_t ADDR_NAME;
+-#define DECLARE_PCI_UNMAP_LEN(LEN_NAME)		\
+-	__u32 LEN_NAME;
+-#define pci_unmap_addr(PTR, ADDR_NAME)			\
+-	((PTR)->ADDR_NAME)
+-#define pci_unmap_addr_set(PTR, ADDR_NAME, VAL)		\
+-	(((PTR)->ADDR_NAME) = (VAL))
+-#define pci_unmap_len(PTR, LEN_NAME)			\
+-	((PTR)->LEN_NAME)
+-#define pci_unmap_len_set(PTR, LEN_NAME, VAL)		\
+-	(((PTR)->LEN_NAME) = (VAL))
+-
+-#else /* 32-bit && coherent */
+-
+-/* pci_unmap_{page,single} is a nop so... */
+-#define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)
+-#define DECLARE_PCI_UNMAP_LEN(LEN_NAME)
+-#define pci_unmap_addr(PTR, ADDR_NAME)		(0)
+-#define pci_unmap_addr_set(PTR, ADDR_NAME, VAL)	do { } while (0)
+-#define pci_unmap_len(PTR, LEN_NAME)		(0)
+-#define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
+-
+-#endif /* CONFIG_PPC64 || CONFIG_NOT_COHERENT_CACHE */
 +#include <linux/pci-dma.h>
  
- #ifdef CONFIG_PCI
- static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ #ifdef CONFIG_PPC64
+ 
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
