@@ -1,79 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-nand-fix-build-failure-caused-by-typo.patch removed from -mm tree
-Date: Thu, 11 Feb 2010 13:07:14 -0800
-Message-ID: <201002112107.o1BL7EUY028698@imap1.linux-foundation.org>
+Subject: [merged] ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch removed from -mm tree
+Date: Thu, 11 Feb 2010 13:07:17 -0800
+Message-ID: <201002112107.o1BL7Hac028703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757197Ab0BKVIH (ORCPT
+	by vger.kernel.org with ESMTP id S1757230Ab0BKVIj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Feb 2010 16:08:07 -0500
+	Thu, 11 Feb 2010 16:08:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterhuewe@gmx.de, dedekind1@gmail.com, dwmw2@infradead.org, hsweeten@visionengravers.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chandru@in.ibm.com, chandru@linux.vnet.ibm.com, jbarnes@virtuousgeek.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd/nand: fix build failure caused by typo
+     drivers/pci/hotplug/ibmphp_ebda.c: check ioremap() return value
 has been removed from the -mm tree.  Its filename was
-     mtd-nand-fix-build-failure-caused-by-typo.patch
+     ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/nand: fix build failure caused by typo
-=46rom: Peter Huewe <peterhuewe@gmx.de>
+Subject: drivers/pci/hotplug/ibmphp_ebda.c: check ioremap() return value
+From: Andrew Morton <akpm@linux-foundation.org>
 
-=46ix a build failure introduced by the patch
+check ioremap() return value.
 
-    mtd: orion_nand.c: add error handling and use resource_size()
-
-The patch assigns something to a undeclared variable 'err', whereas the
-rest of the code uses 'ret' for this task.
-
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Chandru Siddalingappa <chandru@linux.vnet.ibm.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/orion_nand.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/ibmphp_ebda.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caus=
-ed-by-typo drivers/mtd/nand/orion_nand.c
---- a/drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caused-b=
-y-typo
-+++ a/drivers/mtd/nand/orion_nand.c
-@@ -92,7 +92,7 @@ static int __init orion_nand_probe(struc
-=20
- 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
--		err =3D -ENODEV;
-+		ret =3D -ENODEV;
- 		goto no_res;
- 	}
-=20
+diff -puN drivers/pci/hotplug/ibmphp_ebda.c~ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix drivers/pci/hotplug/ibmphp_ebda.c
+--- a/drivers/pci/hotplug/ibmphp_ebda.c~ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix
++++ a/drivers/pci/hotplug/ibmphp_ebda.c
+@@ -261,6 +261,8 @@ int __init ibmphp_access_ebda (void)
+ 	debug ("returned ebda segment: %x\n", ebda_seg);
+ 	
+ 	io_mem = ioremap(ebda_seg<<4, 1);
++	if (!io_mem)
++		return -ENOMEM;
+ 	ebda_sz = readb(io_mem);
+ 	iounmap(io_mem);
+ 	debug("ebda size: %d(KiB)\n", ebda_sz);
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
+fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
