@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-avoid-warning-when-config_printk-is-disabled.patch added to -mm tree
-Date: Thu, 11 Feb 2010 13:19:32 -0800
-Message-ID: <201002112119.o1BLJW82029240@imap1.linux-foundation.org>
+Subject: + memcg-check-if-first-threshold-crossed.patch added to -mm tree
+Date: Thu, 11 Feb 2010 13:53:27 -0800
+Message-ID: <201002112153.o1BLrR5G030810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757111Ab0BKVTm (ORCPT
+	by vger.kernel.org with ESMTP id S1757027Ab0BKVxg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Feb 2010 16:19:42 -0500
+	Thu, 11 Feb 2010 16:53:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: padovan@profusion.mobi, mingo@elte.hu
+Cc: kirill@shutemov.name, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, xemul@openvz.org
 
 
 The patch titled
-     printk: avoid warning when CONFIG_PRINTK is disabled
+     memcg: check if first threshold crossed
 has been added to the -mm tree.  Its filename is
-     printk-avoid-warning-when-config_printk-is-disabled.patch
+     memcg-check-if-first-threshold-crossed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: avoid warning when CONFIG_PRINTK is disabled
-From: "Gustavo F. Padovan" <padovan@profusion.mobi>
+Subject: memcg: check if first threshold crossed
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 
-kernel/printk.c:72: warning: `saved_console_loglevel' defined but not used
+There is a bug in memory thresholds code.  We don't check if first
+threshold (array index 0) was crossed down.  This patch fixes it.
 
-Signed-off-by: Gustavo F. Padovan <padovan@profusion.mobi>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~printk-avoid-warning-when-config_printk-is-disabled kernel/printk.c
---- a/kernel/printk.c~printk-avoid-warning-when-config_printk-is-disabled
-+++ a/kernel/printk.c
-@@ -71,8 +71,6 @@ int console_printk[4] = {
- 	DEFAULT_CONSOLE_LOGLEVEL,	/* default_console_loglevel */
- };
+diff -puN mm/memcontrol.c~memcg-check-if-first-threshold-crossed mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-check-if-first-threshold-crossed
++++ a/mm/memcontrol.c
+@@ -3252,7 +3252,7 @@ static void __mem_cgroup_threshold(struc
+ 	 * If none of thresholds below usage is crossed, we read
+ 	 * only one element of the array here.
+ 	 */
+-	for (; i > 0 && unlikely(t->entries[i].threshold > usage); i--)
++	for (; i >= 0 && unlikely(t->entries[i].threshold > usage); i--)
+ 		eventfd_signal(t->entries[i].eventfd, 1);
  
--static int saved_console_loglevel = -1;
+ 	/* i = current_threshold + 1 */
+_
+
+Patches currently in -mm which might be from kirill@shutemov.name are
+
+cgroups-fix-contents-in-cgroups-documentation.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-check-if-first-threshold-crossed.patch
+
