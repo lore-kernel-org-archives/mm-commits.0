@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-dma-mips-use-include-linux-pci-dmah.patch added to -mm tree
-Date: Thu, 11 Feb 2010 12:40:14 -0800
-Message-ID: <201002112040.o1BKeEv5027278@imap1.linux-foundation.org>
+Subject: + pci-dma-parisc-use-include-linux-pci-dmah.patch added to -mm tree
+Date: Thu, 11 Feb 2010 12:40:16 -0800
+Message-ID: <201002112040.o1BKeGDP027303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757025Ab0BKUk2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757057Ab0BKUke (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Feb 2010 15:40:28 -0500
+	Thu, 11 Feb 2010 15:40:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, jbarnes@virtuousgeek.org, ralf@linux-mips.org
+Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@suse.de, deller@gmx.de, jbarnes@virtuousgeek.org, kyle@mcmartin.ca
 
 
 The patch titled
-     pci-dma: mips: use include/linux/pci-dma.h
+     pci-dma: parisc: use include/linux/pci-dma.h
 has been added to the -mm tree.  Its filename is
-     pci-dma-mips-use-include-linux-pci-dmah.patch
+     pci-dma-parisc-use-include-linux-pci-dmah.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-dma: mips: use include/linux/pci-dma.h
+Subject: pci-dma: parisc: use include/linux/pci-dma.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Bottomley <James.Bottomley@suse.de>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig           |    4 ++--
- arch/mips/include/asm/pci.h |   22 +---------------------
- 2 files changed, 3 insertions(+), 23 deletions(-)
+ arch/parisc/Kconfig           |    3 +++
+ arch/parisc/include/asm/pci.h |   14 +-------------
+ 2 files changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN arch/mips/Kconfig~pci-dma-mips-use-include-linux-pci-dmah arch/mips/Kconfig
---- a/arch/mips/Kconfig~pci-dma-mips-use-include-linux-pci-dmah
-+++ a/arch/mips/Kconfig
-@@ -812,9 +812,9 @@ config DMA_COHERENT
+diff -puN arch/parisc/Kconfig~pci-dma-parisc-use-include-linux-pci-dmah arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~pci-dma-parisc-use-include-linux-pci-dmah
++++ a/arch/parisc/Kconfig
+@@ -96,6 +96,9 @@ config PM
+ config STACKTRACE_SUPPORT
+ 	def_bool y
  
- config DMA_NONCOHERENT
- 	bool
--	select DMA_NEED_PCI_MAP_STATE
-+	select NEED_DMA_MAP_STATE
- 
--config DMA_NEED_PCI_MAP_STATE
 +config NEED_DMA_MAP_STATE
++	def_bool y
++
+ config ISA_DMA_API
  	bool
  
- config SYS_HAS_EARLY_PRINTK
-diff -puN arch/mips/include/asm/pci.h~pci-dma-mips-use-include-linux-pci-dmah arch/mips/include/asm/pci.h
---- a/arch/mips/include/asm/pci.h~pci-dma-mips-use-include-linux-pci-dmah
-+++ a/arch/mips/include/asm/pci.h
-@@ -102,27 +102,7 @@ struct pci_dev;
-  */
- extern unsigned int PCI_DMA_BUS_IS_PHYS;
+diff -puN arch/parisc/include/asm/pci.h~pci-dma-parisc-use-include-linux-pci-dmah arch/parisc/include/asm/pci.h
+--- a/arch/parisc/include/asm/pci.h~pci-dma-parisc-use-include-linux-pci-dmah
++++ a/arch/parisc/include/asm/pci.h
+@@ -183,19 +183,7 @@ struct pci_bios_ops {
+ 	void (*fixup_bus)(struct pci_bus *bus);
+ };
  
--#ifdef CONFIG_DMA_NEED_PCI_MAP_STATE
--
 -/* pci_unmap_{single,page} is not a nop, thus... */
--#define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)	dma_addr_t ADDR_NAME;
--#define DECLARE_PCI_UNMAP_LEN(LEN_NAME)		__u32 LEN_NAME;
--#define pci_unmap_addr(PTR, ADDR_NAME)		((PTR)->ADDR_NAME)
--#define pci_unmap_addr_set(PTR, ADDR_NAME, VAL)	(((PTR)->ADDR_NAME) = (VAL))
--#define pci_unmap_len(PTR, LEN_NAME)		((PTR)->LEN_NAME)
--#define pci_unmap_len_set(PTR, LEN_NAME, VAL)	(((PTR)->LEN_NAME) = (VAL))
--
--#else /* CONFIG_DMA_NEED_PCI_MAP_STATE  */
--
--/* pci_unmap_{page,single} is a nop so... */
--#define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)
--#define DECLARE_PCI_UNMAP_LEN(LEN_NAME)
--#define pci_unmap_addr(PTR, ADDR_NAME)		(0)
--#define pci_unmap_addr_set(PTR, ADDR_NAME, VAL)	do { } while (0)
--#define pci_unmap_len(PTR, LEN_NAME)		(0)
--#define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
--
--#endif /* CONFIG_DMA_NEED_PCI_MAP_STATE  */
+-#define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)	\
+-	dma_addr_t ADDR_NAME;
+-#define DECLARE_PCI_UNMAP_LEN(LEN_NAME)		\
+-	__u32 LEN_NAME;
+-#define pci_unmap_addr(PTR, ADDR_NAME)			\
+-	((PTR)->ADDR_NAME)
+-#define pci_unmap_addr_set(PTR, ADDR_NAME, VAL)		\
+-	(((PTR)->ADDR_NAME) = (VAL))
+-#define pci_unmap_len(PTR, LEN_NAME)			\
+-	((PTR)->LEN_NAME)
+-#define pci_unmap_len_set(PTR, LEN_NAME, VAL)		\
+-	(((PTR)->LEN_NAME) = (VAL))
 +#include <linux/pci-dma.h>
  
- #ifdef CONFIG_PCI
- static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ /*
+ ** Stuff declared in arch/parisc/kernel/pci.c
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
