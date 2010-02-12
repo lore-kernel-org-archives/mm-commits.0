@@ -1,81 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-mpc85xx-fix-bad-page-calculation.patch removed from -mm tree
-Date: Fri, 12 Feb 2010 11:03:10 -0800
-Message-ID: <201002121903.o1CJ3AkM021089@imap1.linux-foundation.org>
+Subject: [merged] tpm_infineon-fix-suspend-resume-handler-for-pnp_driver-2.patch removed from -mm tree
+Date: Fri, 12 Feb 2010 11:03:03 -0800
+Message-ID: <201002121903.o1CJ33Um021076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757241Ab0BLTES (ORCPT
+	by vger.kernel.org with ESMTP id S1757246Ab0BLTES (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 12 Feb 2010 14:04:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ptyser@xes-inc.com, dougthompson@xmission.com, galak@gate.crashing.org, iws@ovro.caltech.edu, mm-commits@vger.kernel.org
+To: m.selhorst@sirrix.com, debora@linux.vnet.ibm.com, hirofumi@mail.parknet.co.jp, srajiv@linux.vnet.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: mpc85xx fix bad page calculation
+     tpm_infineon: fix suspend/resume handler for pnp_driver
 has been removed from the -mm tree.  Its filename was
-     edac-mpc85xx-fix-bad-page-calculation.patch
+     tpm_infineon-fix-suspend-resume-handler-for-pnp_driver-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: mpc85xx fix bad page calculation
-From: Peter Tyser <ptyser@xes-inc.com>
+Subject: tpm_infineon: fix suspend/resume handler for pnp_driver
+From: Marcel Selhorst <m.selhorst@sirrix.com>
 
-Commit b4846251727a38a7f248e41308c060995371dd05 ("edac: mpc85xx add
-mpc83xx support") accidentally broke how a chip select's first and last
-page addresses are calculated.  The page addresses are being shifted too
-far right by PAGE_SHIFT.  This results in errors such as:
+When suspending, tpm_infineon calls the generic suspend function of the
+TPM framework.  However, the TPM framework does not return and the system
+hangs upon suspend.  When sending the necessary command "TPM_SaveState"
+directly within the driver, suspending and resuming works fine.
 
-  EDAC MPC85xx MC1: Err addr: 0x003075c0
-  EDAC MPC85xx MC1: PFN: 0x00000307
-  EDAC MPC85xx MC1: PFN out of range!
-  EDAC MC1: INTERNAL ERROR: row out of range (4 >= 4)
-  EDAC MC1: CE - no information available: INTERNAL ERROR
-
-The vaule of PAGE_SHIFT is already being taken into consideration during
-the calculation of the 'start' and 'end' variables, thus it is not
-necessary to account for it again when setting a chip select's first and
-last page address.
-
-Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Ira W. Snyder <iws@ovro.caltech.edu>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: Marcel Selhorst <m.selhorst@sirrix.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>		[2.6.32.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/tpm/tpm_infineon.c |   79 +++++++++++++++++++++---------
+ 1 file changed, 57 insertions(+), 22 deletions(-)
 
-diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-bad-page-calculation drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-bad-page-calculation
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -804,8 +804,8 @@ static void __devinit mpc85xx_init_csrow
- 		end   <<= (24 - PAGE_SHIFT);
- 		end    |= (1 << (24 - PAGE_SHIFT)) - 1;
+diff -puN drivers/char/tpm/tpm_infineon.c~tpm_infineon-fix-suspend-resume-handler-for-pnp_driver-2 drivers/char/tpm/tpm_infineon.c
+--- a/drivers/char/tpm/tpm_infineon.c~tpm_infineon-fix-suspend-resume-handler-for-pnp_driver-2
++++ a/drivers/char/tpm/tpm_infineon.c
+@@ -39,12 +39,12 @@
+ struct tpm_inf_dev {
+ 	int iotype;
  
--		csrow->first_page = start >> PAGE_SHIFT;
--		csrow->last_page = end >> PAGE_SHIFT;
-+		csrow->first_page = start;
-+		csrow->last_page = end;
- 		csrow->nr_pages = end + 1 - start;
- 		csrow->grain = 8;
- 		csrow->mtype = mtype;
+-	void __iomem *mem_base;		/* MMIO ioremap'd addr */
+-	unsigned long map_base;		/* phys MMIO base */
+-	unsigned long map_size;		/* MMIO region size */
+-	unsigned int index_off;		/* index register offset */
++	void __iomem *mem_base;	/* MMIO ioremap'd addr */
++	unsigned long map_base;	/* phys MMIO base */
++	unsigned long map_size;	/* MMIO region size */
++	unsigned int index_off;	/* index register offset */
+ 
+-	unsigned int data_regs;		/* Data registers */
++	unsigned int data_regs;	/* Data registers */
+ 	unsigned int data_size;
+ 
+ 	unsigned int config_port;	/* IO Port config index reg */
+@@ -406,14 +406,14 @@ static const struct tpm_vendor_specific 
+ 	.miscdev = {.fops = &inf_ops,},
+ };
+ 
+-static const struct pnp_device_id tpm_pnp_tbl[] = {
++static const struct pnp_device_id tpm_inf_pnp_tbl[] = {
+ 	/* Infineon TPMs */
+ 	{"IFX0101", 0},
+ 	{"IFX0102", 0},
+ 	{"", 0}
+ };
+ 
+-MODULE_DEVICE_TABLE(pnp, tpm_pnp_tbl);
++MODULE_DEVICE_TABLE(pnp, tpm_inf_pnp_tbl);
+ 
+ static int __devinit tpm_inf_pnp_probe(struct pnp_dev *dev,
+ 				       const struct pnp_device_id *dev_id)
+@@ -430,7 +430,7 @@ static int __devinit tpm_inf_pnp_probe(s
+ 	if (pnp_port_valid(dev, 0) && pnp_port_valid(dev, 1) &&
+ 	    !(pnp_port_flags(dev, 0) & IORESOURCE_DISABLED)) {
+ 
+-	    	tpm_dev.iotype = TPM_INF_IO_PORT;
++		tpm_dev.iotype = TPM_INF_IO_PORT;
+ 
+ 		tpm_dev.config_port = pnp_port_start(dev, 0);
+ 		tpm_dev.config_size = pnp_port_len(dev, 0);
+@@ -459,9 +459,9 @@ static int __devinit tpm_inf_pnp_probe(s
+ 			goto err_last;
+ 		}
+ 	} else if (pnp_mem_valid(dev, 0) &&
+-	           !(pnp_mem_flags(dev, 0) & IORESOURCE_DISABLED)) {
++		   !(pnp_mem_flags(dev, 0) & IORESOURCE_DISABLED)) {
+ 
+-	    	tpm_dev.iotype = TPM_INF_IO_MEM;
++		tpm_dev.iotype = TPM_INF_IO_MEM;
+ 
+ 		tpm_dev.map_base = pnp_mem_start(dev, 0);
+ 		tpm_dev.map_size = pnp_mem_len(dev, 0);
+@@ -563,11 +563,11 @@ static int __devinit tpm_inf_pnp_probe(s
+ 			 "product id 0x%02x%02x"
+ 			 "%s\n",
+ 			 tpm_dev.iotype == TPM_INF_IO_PORT ?
+-				tpm_dev.config_port :
+-				tpm_dev.map_base + tpm_dev.index_off,
++			 tpm_dev.config_port :
++			 tpm_dev.map_base + tpm_dev.index_off,
+ 			 tpm_dev.iotype == TPM_INF_IO_PORT ?
+-				tpm_dev.data_regs :
+-				tpm_dev.map_base + tpm_dev.data_regs,
++			 tpm_dev.data_regs :
++			 tpm_dev.map_base + tpm_dev.data_regs,
+ 			 version[0], version[1],
+ 			 vendorid[0], vendorid[1],
+ 			 productid[0], productid[1], chipname);
+@@ -607,20 +607,55 @@ static __devexit void tpm_inf_pnp_remove
+ 			iounmap(tpm_dev.mem_base);
+ 			release_mem_region(tpm_dev.map_base, tpm_dev.map_size);
+ 		}
++		tpm_dev_vendor_release(chip);
+ 		tpm_remove_hardware(chip->dev);
+ 	}
+ }
+ 
++static int tpm_inf_pnp_suspend(struct pnp_dev *dev, pm_message_t pm_state)
++{
++	struct tpm_chip *chip = pnp_get_drvdata(dev);
++	int rc;
++	if (chip) {
++		u8 savestate[] = {
++			0, 193,	/* TPM_TAG_RQU_COMMAND */
++			0, 0, 0, 10,	/* blob length (in bytes) */
++			0, 0, 0, 152	/* TPM_ORD_SaveState */
++		};
++		dev_info(&dev->dev, "saving TPM state\n");
++		rc = tpm_inf_send(chip, savestate, sizeof(savestate));
++		if (rc < 0) {
++			dev_err(&dev->dev, "error while saving TPM state\n");
++			return rc;
++		}
++	}
++	return 0;
++}
++
++static int tpm_inf_pnp_resume(struct pnp_dev *dev)
++{
++	/* Re-configure TPM after suspending */
++	tpm_config_out(ENABLE_REGISTER_PAIR, TPM_INF_ADDR);
++	tpm_config_out(IOLIMH, TPM_INF_ADDR);
++	tpm_config_out((tpm_dev.data_regs >> 8) & 0xff, TPM_INF_DATA);
++	tpm_config_out(IOLIML, TPM_INF_ADDR);
++	tpm_config_out((tpm_dev.data_regs & 0xff), TPM_INF_DATA);
++	/* activate register */
++	tpm_config_out(TPM_DAR, TPM_INF_ADDR);
++	tpm_config_out(0x01, TPM_INF_DATA);
++	tpm_config_out(DISABLE_REGISTER_PAIR, TPM_INF_ADDR);
++	/* disable RESET, LP and IRQC */
++	tpm_data_out(RESET_LP_IRQC_DISABLE, CMD);
++	return tpm_pm_resume(&dev->dev);
++}
++
+ static struct pnp_driver tpm_inf_pnp_driver = {
+ 	.name = "tpm_inf_pnp",
+-	.driver = {
+-		.owner = THIS_MODULE,
+-		.suspend = tpm_pm_suspend,
+-		.resume = tpm_pm_resume,
+-	},
+-	.id_table = tpm_pnp_tbl,
++	.id_table = tpm_inf_pnp_tbl,
+ 	.probe = tpm_inf_pnp_probe,
+-	.remove = __devexit_p(tpm_inf_pnp_remove),
++	.suspend = tpm_inf_pnp_suspend,
++	.resume = tpm_inf_pnp_resume,
++	.remove = __devexit_p(tpm_inf_pnp_remove)
+ };
+ 
+ static int __init init_inf(void)
+@@ -638,5 +673,5 @@ module_exit(cleanup_inf);
+ 
+ MODULE_AUTHOR("Marcel Selhorst <m.selhorst@sirrix.com>");
+ MODULE_DESCRIPTION("Driver for Infineon TPM SLD 9630 TT 1.1 / SLB 9635 TT 1.2");
+-MODULE_VERSION("1.9");
++MODULE_VERSION("1.9.2");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from ptyser@xes-inc.com are
+Patches currently in -mm which might be from m.selhorst@sirrix.com are
 
 origin.patch
-linux-next.patch
-edac-mpc85xx-mask-ecc-syndrome-correctly.patch
-edac-mpc85xx-improve-sdram-error-reporting.patch
-edac-mpc85xx-use-resource_size-instead-of-raw-math.patch
-edac-e752x-fsb-ecc.patch
-edac-e752x-add-dram-scrubbing-support.patch
 
