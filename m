@@ -1,166 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-make-some-variables-a-bit-less-global.patch added to -mm tree
-Date: Thu, 11 Feb 2010 15:05:57 -0800
-Message-ID: <201002112305.o1BN5veV001549@imap1.linux-foundation.org>
+Subject: [to-be-updated] drivers-gpio-max7301c-depends-on-gpiolib.patch removed from -mm tree
+Date: Thu, 11 Feb 2010 16:36:50 -0800
+Message-ID: <201002120036.o1C0aoFA005895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751690Ab0BKXGB (ORCPT
+	by vger.kernel.org with ESMTP id S1757627Ab0BLAhg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Feb 2010 18:06:01 -0500
+	Thu, 11 Feb 2010 19:37:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
+To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, g.liakhovetski@pengutronix.de, info@mocean-labs.com, j.beisert@pengutronix.de, randy.dunlap@oracle.com, rmk@arm.linux.org.u
 
 
 The patch titled
-     viafb: make some variables a bit less global
-has been added to the -mm tree.  Its filename is
-     viafb-make-some-variables-a-bit-less-global.patch
+     drivers/gpio/max7301.c: depends on GPIOLIB
+has been removed from the -mm tree.  Its filename was
+     drivers-gpio-max7301c-depends-on-gpiolib.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: make some variables a bit less global
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: drivers/gpio/max7301.c: depends on GPIOLIB
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Move some variables closer to their usage.
+When CONFIG_GPIOLIB is not enabled:
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
+  CC      drivers/mfd/timberdale.o
+In file included from drivers/mfd/timberdale.c:37:
+include/linux/spi/max7301.h:14: error: field 'chip' has incomplete type
+
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mocean Laboratories <info@mocean-labs.com>
+Cc: Juergen Beisert <j.beisert@pengutronix.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/global.c   |    4 ----
- drivers/video/via/global.h   |    2 --
- drivers/video/via/hw.h       |    2 --
- drivers/video/via/viafbdev.c |    9 +++++++--
- drivers/video/via/viafbdev.h |    2 --
- 5 files changed, 7 insertions(+), 12 deletions(-)
+ drivers/gpio/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/global.c~viafb-make-some-variables-a-bit-less-global drivers/video/via/global.c
---- a/drivers/video/via/global.c~viafb-make-some-variables-a-bit-less-global
-+++ a/drivers/video/via/global.c
-@@ -29,8 +29,6 @@ int viafb_refresh = 60;
- int viafb_refresh1 = 60;
- int viafb_lcd_dsp_method = LCD_EXPANDSION;
- int viafb_lcd_mode = LCD_OPENLDI;
--int viafb_bpp = 32;
--int viafb_bpp1 = 32;
- int viafb_CRT_ON = 1;
- int viafb_DVI_ON;
- int viafb_LCD_ON ;
-@@ -41,8 +39,6 @@ int viafb_hotplug_Xres = 640;
- int viafb_hotplug_Yres = 480;
- int viafb_hotplug_bpp = 32;
- int viafb_hotplug_refresh = 60;
--unsigned int viafb_second_offset;
--int viafb_second_size;
- int viafb_primary_dev = None_Device;
- unsigned int viafb_second_xres = 640;
- unsigned int viafb_second_yres = 480;
-diff -puN drivers/video/via/global.h~viafb-make-some-variables-a-bit-less-global drivers/video/via/global.h
---- a/drivers/video/via/global.h~viafb-make-some-variables-a-bit-less-global
-+++ a/drivers/video/via/global.h
-@@ -67,8 +67,6 @@ extern int viafb_refresh;
- extern int viafb_refresh1;
- extern int viafb_lcd_dsp_method;
- extern int viafb_lcd_mode;
--extern int viafb_bpp;
--extern int viafb_bpp1;
+diff -puN drivers/gpio/Kconfig~drivers-gpio-max7301c-depends-on-gpiolib drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~drivers-gpio-max7301c-depends-on-gpiolib
++++ a/drivers/gpio/Kconfig
+@@ -256,7 +256,7 @@ comment "SPI GPIO expanders:"
  
- extern int viafb_CRT_ON;
- extern int viafb_hotplug_Xres;
-diff -puN drivers/video/via/hw.h~viafb-make-some-variables-a-bit-less-global drivers/video/via/hw.h
---- a/drivers/video/via/hw.h~viafb-make-some-variables-a-bit-less-global
-+++ a/drivers/video/via/hw.h
-@@ -863,8 +863,6 @@ struct pci_device_id_info {
- };
- 
- extern unsigned int viafb_second_virtual_xres;
--extern unsigned int viafb_second_offset;
--extern int viafb_second_size;
- extern int viafb_SAMM_ON;
- extern int viafb_dual_fb;
- extern int viafb_LCD2_ON;
-diff -puN drivers/video/via/viafbdev.c~viafb-make-some-variables-a-bit-less-global drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-make-some-variables-a-bit-less-global
-+++ a/drivers/video/via/viafbdev.c
-@@ -26,13 +26,17 @@
- 
- #include "global.h"
- 
--static struct fb_var_screeninfo default_var;
- static char *viafb_name = "Via";
- static u32 pseudo_pal[17];
- 
- /* video mode */
- static char *viafb_mode;
- static char *viafb_mode1;
-+static int viafb_bpp = 32;
-+static int viafb_bpp1 = 32;
-+
-+static unsigned int viafb_second_offset;
-+static int viafb_second_size;
- 
- static int viafb_accel = 1;
- 
-@@ -1849,10 +1853,11 @@ static int __devinit via_pci_probe(struc
- {
- 	u32 default_xres, default_yres;
- 	struct VideoModeTable *vmode_entry;
-+	struct fb_var_screeninfo default_var;
- 	u32 viafb_par_length;
- 
- 	DEBUG_MSG(KERN_INFO "VIAFB PCI Probe!!\n");
--
-+	memset(&default_var, 0, sizeof(default_var));
- 	viafb_par_length = ALIGN(sizeof(struct viafb_par), BITS_PER_LONG/8);
- 
- 	/* Allocate fb_info and ***_par here, also including some other needed
-diff -puN drivers/video/via/viafbdev.h~viafb-make-some-variables-a-bit-less-global drivers/video/via/viafbdev.h
---- a/drivers/video/via/viafbdev.h~viafb-make-some-variables-a-bit-less-global
-+++ a/drivers/video/via/viafbdev.h
-@@ -83,8 +83,6 @@ struct viafb_par {
- 
- extern unsigned int viafb_second_virtual_yres;
- extern unsigned int viafb_second_virtual_xres;
--extern unsigned int viafb_second_offset;
--extern int viafb_second_size;
- extern int viafb_SAMM_ON;
- extern int viafb_dual_fb;
- extern int viafb_LCD2_ON;
+ config GPIO_MAX7301
+ 	tristate "Maxim MAX7301 GPIO expander"
+-	depends on SPI_MASTER
++	depends on SPI_MASTER && GPIO_LIB
+ 	select GPIO_MAX730X
+ 	help
+ 	  GPIO driver for Maxim MAX7301 SPI-based GPIO expander.
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-viafb-deprecate-private-ioctls.patch
-viafb-remove-dead-code.patch
-viafb-split-global-index-up.patch
-viafb-split-global-index-up-fix.patch
-viafb-remove-the-remaining-via_res_-uses.patch
-viafb-some-dvi-cleanup.patch
-viafb-yet-another-dead-code-removal.patch
-viafb-reorder-initialization-for-dual-framebuffer-mode.patch
-viafb-video-address-setting-revisited.patch
-viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch
-viafb-introduce-strict-parameter-checking.patch
-viafb-split-color-mode-setting-up.patch
-viafb-remove-dead-code-due-to-iga1_iga2.patch
-viafb-make-some-variables-a-bit-less-global.patch
-drivers-video-via-fix-continuation-line-formats.patch
+fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+drivers-gpio-max7301c-depends-on-gpiolib.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
