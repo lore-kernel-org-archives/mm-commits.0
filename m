@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch added to -mm tree
-Date: Fri, 12 Feb 2010 12:08:05 -0800
-Message-ID: <201002122008.o1CK86Wf024054@imap1.linux-foundation.org>
+Subject: + dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch added to -mm tree
+Date: Fri, 12 Feb 2010 12:08:03 -0800
+Message-ID: <201002122008.o1CK83JT024049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757088Ab0BLUIn (ORCPT
+	by vger.kernel.org with ESMTP id S1757458Ab0BLUIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Feb 2010 15:08:43 -0500
+	Fri, 12 Feb 2010 15:08:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@suse.de, benh@kernel.crashing
 
 
 The patch titled
-     dma-mapping: dma-mapping.h: add dma_set_coherent_mask
+     dma-mapping: pci: convert pci_set_dma_mask to call dma_set_mask
 has been added to the -mm tree.  Its filename is
-     dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
+     dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: dma-mapping.h: add dma_set_coherent_mask
+Subject: dma-mapping: pci: convert pci_set_dma_mask to call dma_set_mask
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-dma_set_coherent_mask corresponds to pci_set_consistent_dma_mask.  This is
-necessary to move to the generic device model DMA API from the PCI bus
-specific API in the long term.
+This changes pci_set_dma_mask to call the generic DMA API, dma_set_mask.
 
-dma_set_coherent_mask works in the exact same way that
-pci_set_consistent_dma_mask does.  So this patch also changes
-pci_set_consistent_dma_mask to call dma_set_coherent_mask.
+pci_set_dma_mask (in drivers/pci/pci.c) does the same things that
+dma_set_mask does on all the architectures that use pci_set_dma_mask;
+calls dma_supprted and sets dev->dma_mask.  So we safely change
+pci_set_dma_mask to simply call dma_set_mask.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: James Bottomley <James.Bottomley@suse.de>
@@ -56,68 +55,32 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt   |   10 ++++++++++
- drivers/pci/pci.c           |    7 +++----
- include/linux/dma-mapping.h |    8 ++++++++
- 3 files changed, 21 insertions(+), 4 deletions(-)
+ drivers/pci/pci.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/DMA-API.txt~dma-mapping-dma-mappingh-add-dma_set_coherent_mask Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~dma-mapping-dma-mappingh-add-dma_set_coherent_mask
-+++ a/Documentation/DMA-API.txt
-@@ -167,6 +167,16 @@ parameters if it is.
- 
- Returns: 0 if successful and a negative error if not.
- 
-+int
-+dma_set_coherent_mask(struct device *dev, u64 mask)
-+int
-+pci_set_consistent_dma_mask(struct pci_device *dev, u64 mask)
-+
-+Checks to see if the mask is possible and updates the device
-+parameters if it is.
-+
-+Returns: 0 if successful and a negative error if not.
-+
- u64
- dma_get_required_mask(struct device *dev)
- 
-diff -puN drivers/pci/pci.c~dma-mapping-dma-mappingh-add-dma_set_coherent_mask drivers/pci/pci.c
---- a/drivers/pci/pci.c~dma-mapping-dma-mappingh-add-dma_set_coherent_mask
+diff -puN drivers/pci/pci.c~dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask drivers/pci/pci.c
+--- a/drivers/pci/pci.c~dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask
 +++ a/drivers/pci/pci.c
-@@ -2271,12 +2271,11 @@ pci_set_dma_mask(struct pci_dev *dev, u6
+@@ -2261,15 +2261,13 @@ void pci_msi_off(struct pci_dev *dev)
  int
- pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
+ pci_set_dma_mask(struct pci_dev *dev, u64 mask)
  {
 -	if (!pci_dma_supported(dev, mask))
 -		return -EIO;
-+	int ret = dma_set_coherent_mask(&dev->dev, mask);
+-
+-	dev->dma_mask = mask;
++	int ret = dma_set_mask(&dev->dev, mask);
 +	if (ret)
 +		return ret;
- 
--	dev->dev.coherent_dma_mask = mask;
- 	dev_dbg(&dev->dev, "using %dbit consistent DMA mask\n", fls64(mask));
+ 	dev_dbg(&dev->dev, "using %dbit DMA mask\n", fls64(mask));
 -
  	return 0;
  }
- #endif
-diff -puN include/linux/dma-mapping.h~dma-mapping-dma-mappingh-add-dma_set_coherent_mask include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-dma-mappingh-add-dma_set_coherent_mask
-+++ a/include/linux/dma-mapping.h
-@@ -127,6 +127,14 @@ static inline u64 dma_get_mask(struct de
- 	return DMA_BIT_MASK(32);
- }
- 
-+static inline int dma_set_coherent_mask(struct device *dev, u64 mask)
-+{
-+	if (!dma_supported(dev, mask))
-+		return -EIO;
-+	dev->coherent_dma_mask = mask;
-+	return 0;
-+}
+-    
 +
- extern u64 dma_get_required_mask(struct device *dev);
- 
- static inline unsigned int dma_get_max_seg_size(struct device *dev)
+ int
+ pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
+ {
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
