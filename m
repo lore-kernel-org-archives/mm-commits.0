@@ -1,108 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-backlight-progear-fix-pci-device-refcounting.patch removed from -mm tree
-Date: Fri, 12 Feb 2010 11:03:45 -0800
-Message-ID: <201002121903.o1CJ3jCr021141@imap1.linux-foundation.org>
+Subject: [merged] fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch removed from -mm tree
+Date: Fri, 12 Feb 2010 11:03:24 -0800
+Message-ID: <201002121903.o1CJ3OVe021120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49810 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757290Ab0BLTE3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757231Ab0BLTFO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Feb 2010 14:04:29 -0500
+	Fri, 12 Feb 2010 14:05:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, jbarnes@virtuousgeek.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mikey@neuling.org, anton@samba.org, benh@kernel.crashing.org, jmorris@namei.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, oleg@redhat.com, serue@us.ibm.com, stable@kernel.org, x
 
 
 The patch titled
-     video: backlight/progear, fix pci device refcounting
+     fs/exec.c: restrict initial stack space expansion to rlimit
 has been removed from the -mm tree.  Its filename was
-     video-backlight-progear-fix-pci-device-refcounting.patch
+     fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: backlight/progear, fix pci device refcounting
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: fs/exec.c: restrict initial stack space expansion to rlimit
+From: Michael Neuling <mikey@neuling.org>
 
-Stanse found an ommitted pci_dev_puts on error path in progearbl_probe. 
-pmu_dev and sb_dev are gotten, but never put when
-backlight_device_register fails.
+When reserving stack space for a new process, make sure we're not
+attempting to expand the stack by more than rlimit allows.
 
-So unify fail paths and put the devs when the failure occurs.
+This fixes a bug caused by b6a2fea39318e43fee84fa7b0b90d68bed92d2ba ("mm:
+variable length argument support") and unmasked by
+fc63cf237078c86214abcb2ee9926d8ad289da9b ("exec: setup_arg_pages() fails
+to return errors").
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+This bug means that when limiting the stack to less the 20*PAGE_SIZE (eg. 
+80K on 4K pages or 'ulimit -s 79') all processes will be killed before
+they start.  This is particularly bad with 64K pages, where a ulimit below
+1280K will kill every process.
+
+
+
+To test, do:
+
+  'ulimit -s 15; ls'
+
+before and after the patch is applied.  Before it's applied, 'ls' should
+be killed.  After the patch is applied, 'ls' should no longer be killed.
+
+A stack limit of 15KB since it's small enough to trigger 20*PAGE_SIZE. 
+Also 15KB not a multiple of PAGE_SIZE, which is a trickier case to handle
+correctly with this code.
+
+4K pages should be fine to test with.
+
+[kosaki.motohiro@jp.fujitsu.com: cleanup]
+[akpm@linux-foundation.org: cleanup cleanup]
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Americo Wang <xiyou.wangcong@gmail.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/progear_bl.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ fs/exec.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/progear_bl.c~video-backlight-progear-fix-pci-device-refcounting drivers/video/backlight/progear_bl.c
---- a/drivers/video/backlight/progear_bl.c~video-backlight-progear-fix-pci-device-refcounting
-+++ a/drivers/video/backlight/progear_bl.c
-@@ -63,6 +63,7 @@ static int progearbl_probe(struct platfo
- {
- 	u8 temp;
- 	struct backlight_device *progear_backlight_device;
-+	int ret;
+diff -puN fs/exec.c~fs-execc-restrict-initial-stack-space-expansion-to-rlimit fs/exec.c
+--- a/fs/exec.c~fs-execc-restrict-initial-stack-space-expansion-to-rlimit
++++ a/fs/exec.c
+@@ -571,6 +571,9 @@ int setup_arg_pages(struct linux_binprm 
+ 	struct vm_area_struct *prev = NULL;
+ 	unsigned long vm_flags;
+ 	unsigned long stack_base;
++	unsigned long stack_size;
++	unsigned long stack_expand;
++	unsigned long rlim_stack;
  
- 	pmu_dev = pci_get_device(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M7101, NULL);
- 	if (!pmu_dev) {
-@@ -73,8 +74,8 @@ static int progearbl_probe(struct platfo
- 	sb_dev = pci_get_device(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M1533, NULL);
- 	if (!sb_dev) {
- 		printk("ALI 1533 SB not found.\n");
--		pci_dev_put(pmu_dev);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto put_pmu;
+ #ifdef CONFIG_STACK_GROWSUP
+ 	/* Limit stack size to 1GB */
+@@ -627,10 +630,24 @@ int setup_arg_pages(struct linux_binprm 
+ 			goto out_unlock;
  	}
  
- 	/*     Set SB_MPS1 to enable brightness control. */
-@@ -84,8 +85,10 @@ static int progearbl_probe(struct platfo
- 	progear_backlight_device = backlight_device_register("progear-bl",
- 							     &pdev->dev, NULL,
- 							     &progearbl_ops);
--	if (IS_ERR(progear_backlight_device))
--		return PTR_ERR(progear_backlight_device);
-+	if (IS_ERR(progear_backlight_device)) {
-+		ret = PTR_ERR(progear_backlight_device);
-+		goto put_sb;
-+	}
- 
- 	platform_set_drvdata(pdev, progear_backlight_device);
- 
-@@ -95,6 +98,11 @@ static int progearbl_probe(struct platfo
- 	progearbl_set_intensity(progear_backlight_device);
- 
- 	return 0;
-+put_sb:
-+	pci_dev_put(sb_dev);
-+put_pmu:
-+	pci_dev_put(pmu_dev);
-+	return ret;
- }
- 
- static int progearbl_remove(struct platform_device *pdev)
++	stack_expand = EXTRA_STACK_VM_PAGES * PAGE_SIZE;
++	stack_size = vma->vm_end - vma->vm_start;
++	/*
++	 * Align this down to a page boundary as expand_stack
++	 * will align it up.
++	 */
++	rlim_stack = rlimit(RLIMIT_STACK) & PAGE_MASK;
++	rlim_stack = min(rlim_stack, stack_size);
+ #ifdef CONFIG_STACK_GROWSUP
+-	stack_base = vma->vm_end + EXTRA_STACK_VM_PAGES * PAGE_SIZE;
++	if (stack_size + stack_expand > rlim_stack)
++		stack_base = vma->vm_start + rlim_stack;
++	else
++		stack_base = vma->vm_end + stack_expand;
+ #else
+-	stack_base = vma->vm_start - EXTRA_STACK_VM_PAGES * PAGE_SIZE;
++	if (stack_size + stack_expand > rlim_stack)
++		stack_base = vma->vm_end - rlim_stack;
++	else
++		stack_base = vma->vm_start - stack_expand;
+ #endif
+ 	ret = expand_stack(vma, stack_base);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from mikey@neuling.org are
 
+origin.patch
 linux-next.patch
-gpu-drm-i915-fix-potential-null-dereference.patch
-infiniband-use-rlimit-helpers.patch
-mtd-chips-cfi-remove-unneeded-null-checks.patch
-mm-use-rlimit-helpers.patch
-bootmem-avoid-dma32-zone-by-default.patch
-fs-use-rlimit-helpers.patch
-posix-cpu-timers-cleanup-rlimits-usage.patch
-kernel-core-use-helpers-for-rlimits.patch
-kernel-core-use-helpers-for-rlimits-fix.patch
-ipc-use-rlimit-helpers.patch
-edac-add-__init-to-i7core_xeon_pci_fixup.patch
 
