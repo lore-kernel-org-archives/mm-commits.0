@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-suppress-pfn-range-output-for-zones-without-pages.patch added to -mm tree
-Date: Fri, 12 Feb 2010 11:38:16 -0800
-Message-ID: <201002121938.o1CJcHQb022641@imap1.linux-foundation.org>
+Subject: + memcg-fix-oom-killing-a-child-process-in-an-other-cgroup.patch added to -mm tree
+Date: Fri, 12 Feb 2010 11:41:56 -0800
+Message-ID: <201002121941.o1CJfuTQ022818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756568Ab0BLTjN (ORCPT
+	by vger.kernel.org with ESMTP id S1756634Ab0BLTnT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Feb 2010 14:39:13 -0500
+	Fri, 12 Feb 2010 14:43:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, cl@linux-foundation.org, mel@csn.ul.ie
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, stable@kernel.org
 
 
 The patch titled
-     mm: suppress pfn range output for zones without pages
+     memcg: fix oom killing a child process in an other cgroup
 has been added to the -mm tree.  Its filename is
-     mm-suppress-pfn-range-output-for-zones-without-pages.patch
+     memcg-fix-oom-killing-a-child-process-in-an-other-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: suppress pfn range output for zones without pages
-From: David Rientjes <rientjes@google.com>
+Subject: memcg: fix oom killing a child process in an other cgroup
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-free_area_init_nodes() emits pfn ranges for all zones on the system. 
-There may be no pages on a higher zone, however, due to memory limitations
-or the use of the mem= kernel parameter.  For example:
+Presently the oom-killer is memcg aware and it finds the worst process from
+processes under memcg(s) in oom. Then, it kills victim's child first.
 
-Zone PFN ranges:
-  DMA      0x00000001 -> 0x00001000
-  DMA32    0x00001000 -> 0x00100000
-  Normal   0x00100000 -> 0x00100000
+It may kill a child in another cgroup and may not be any help for
+recovery.  And it will break the assumption users have.
 
-The implementation copies the previous zone's highest pfn, if any, as the
-next zone's lowest pfn.  If its highest pfn is then greater than the
-amount of addressable memory, the upper memory limit is used instead. 
-Thus, both the lowest and highest possible pfn for higher zones without
-memory may be the same.
+This patch fixes it.
 
-The pfn range for zones without memory is now shown as "empty" instead.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-suppress-pfn-range-output-for-zones-without-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-suppress-pfn-range-output-for-zones-without-pages
-+++ a/mm/page_alloc.c
-@@ -4356,8 +4356,12 @@ void __init free_area_init_nodes(unsigne
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
- 		if (i == ZONE_MOVABLE)
+diff -puN mm/oom_kill.c~memcg-fix-oom-killing-a-child-process-in-an-other-cgroup mm/oom_kill.c
+--- a/mm/oom_kill.c~memcg-fix-oom-killing-a-child-process-in-an-other-cgroup
++++ a/mm/oom_kill.c
+@@ -459,6 +459,8 @@ static int oom_kill_process(struct task_
+ 	list_for_each_entry(c, &p->children, sibling) {
+ 		if (c->mm == p->mm)
  			continue;
--		printk("  %-8s %0#10lx -> %0#10lx\n",
--				zone_names[i],
-+		printk("  %-8s ", zone_names[i]);
-+		if (arch_zone_lowest_possible_pfn[i] ==
-+				arch_zone_highest_possible_pfn[i])
-+			printk("empty\n");
-+		else
-+			printk("%0#10lx -> %0#10lx\n",
- 				arch_zone_lowest_possible_pfn[i],
- 				arch_zone_highest_possible_pfn[i]);
++		if (mem && !task_in_mem_cgroup(c, mem))
++			continue;
+ 		if (!oom_kill_task(c))
+ 			return 0;
  	}
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+memcg-fix-oom-killing-a-child-process-in-an-other-cgroup.patch
 linux-next.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
 mm-clean-up-mm_counter.patch
 mm-avoid-false-sharing-of-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
 mm-count-swap-usage.patch
 mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-get_scan_ratio-cleanup.patch
 mm-restore-zone-all_unreclaimable-to-independence-word.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-suppress-pfn-range-output-for-zones-without-pages.patch
+mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
 nodemaskh-remove-macro-any_online_node.patch
+devmem-dont-allow-seek-to-last-page.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
+cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
 sysctl-clean-up-vm-related-variable-declarations.patch
 sysctl-clean-up-vm-related-variable-declarations-fix.patch
 
