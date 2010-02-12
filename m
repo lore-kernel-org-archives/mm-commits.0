@@ -1,122 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch removed from -mm tree
-Date: Fri, 12 Feb 2010 11:03:24 -0800
-Message-ID: <201002121903.o1CJ3OVe021120@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch removed from -mm tree
+Date: Fri, 12 Feb 2010 11:03:42 -0800
+Message-ID: <201002121903.o1CJ3gGL021136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757231Ab0BLTFO (ORCPT
+	by vger.kernel.org with ESMTP id S1757244Ab0BLTGw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Feb 2010 14:05:14 -0500
+	Fri, 12 Feb 2010 14:06:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikey@neuling.org, anton@samba.org, benh@kernel.crashing.org, jmorris@namei.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, oleg@redhat.com, serue@us.ibm.com, stable@kernel.org, x
+To: julia@diku.dk, gregkh@suse.de, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/exec.c: restrict initial stack space expansion to rlimit
+     drivers/staging/tm6000/tm6000-video.c: correct NULL test
 has been removed from the -mm tree.  Its filename was
-     fs-execc-restrict-initial-stack-space-expansion-to-rlimit.patch
+     drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: restrict initial stack space expansion to rlimit
-From: Michael Neuling <mikey@neuling.org>
+Subject: drivers/staging/tm6000/tm6000-video.c: correct NULL test
+From: Julia Lawall <julia@diku.dk>
 
-When reserving stack space for a new process, make sure we're not
-attempting to expand the stack by more than rlimit allows.
+Test the just-allocated value for NULL rather than some other value.
 
-This fixes a bug caused by b6a2fea39318e43fee84fa7b0b90d68bed92d2ba ("mm:
-variable length argument support") and unmasked by
-fc63cf237078c86214abcb2ee9926d8ad289da9b ("exec: setup_arg_pages() fails
-to return errors").
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-This bug means that when limiting the stack to less the 20*PAGE_SIZE (eg. 
-80K on 4K pages or 'ulimit -s 79') all processes will be killed before
-they start.  This is particularly bad with 64K pages, where a ulimit below
-1280K will kill every process.
+// <smpl>
+@@
+expression x,y;
+statement S;
+@@
 
+x = \(kmalloc\|kcalloc\|kzalloc\)(...);
+(
+if ((x) == NULL) S
+|
+if (
+-   y
++   x
+       == NULL)
+ S
+)
+// </smpl>
 
-
-To test, do:
-
-  'ulimit -s 15; ls'
-
-before and after the patch is applied.  Before it's applied, 'ls' should
-be killed.  After the patch is applied, 'ls' should no longer be killed.
-
-A stack limit of 15KB since it's small enough to trigger 20*PAGE_SIZE. 
-Also 15KB not a multiple of PAGE_SIZE, which is a trickier case to handle
-correctly with this code.
-
-4K pages should be fine to test with.
-
-[kosaki.motohiro@jp.fujitsu.com: cleanup]
-[akpm@linux-foundation.org: cleanup cleanup]
-Signed-off-by: Michael Neuling <mikey@neuling.org>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Americo Wang <xiyou.wangcong@gmail.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ drivers/staging/tm6000/tm6000-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~fs-execc-restrict-initial-stack-space-expansion-to-rlimit fs/exec.c
---- a/fs/exec.c~fs-execc-restrict-initial-stack-space-expansion-to-rlimit
-+++ a/fs/exec.c
-@@ -571,6 +571,9 @@ int setup_arg_pages(struct linux_binprm 
- 	struct vm_area_struct *prev = NULL;
- 	unsigned long vm_flags;
- 	unsigned long stack_base;
-+	unsigned long stack_size;
-+	unsigned long stack_expand;
-+	unsigned long rlim_stack;
+diff -puN drivers/staging/tm6000/tm6000-video.c~drivers-staging-tm6000-tm6000-videoc-correct-null-test drivers/staging/tm6000/tm6000-video.c
+--- a/drivers/staging/tm6000/tm6000-video.c~drivers-staging-tm6000-tm6000-videoc-correct-null-test
++++ a/drivers/staging/tm6000/tm6000-video.c
+@@ -642,7 +642,7 @@ static int tm6000_prepare_isoc(struct tm
  
- #ifdef CONFIG_STACK_GROWSUP
- 	/* Limit stack size to 1GB */
-@@ -627,10 +630,24 @@ int setup_arg_pages(struct linux_binprm 
- 			goto out_unlock;
- 	}
- 
-+	stack_expand = EXTRA_STACK_VM_PAGES * PAGE_SIZE;
-+	stack_size = vma->vm_end - vma->vm_start;
-+	/*
-+	 * Align this down to a page boundary as expand_stack
-+	 * will align it up.
-+	 */
-+	rlim_stack = rlimit(RLIMIT_STACK) & PAGE_MASK;
-+	rlim_stack = min(rlim_stack, stack_size);
- #ifdef CONFIG_STACK_GROWSUP
--	stack_base = vma->vm_end + EXTRA_STACK_VM_PAGES * PAGE_SIZE;
-+	if (stack_size + stack_expand > rlim_stack)
-+		stack_base = vma->vm_start + rlim_stack;
-+	else
-+		stack_base = vma->vm_end + stack_expand;
- #else
--	stack_base = vma->vm_start - EXTRA_STACK_VM_PAGES * PAGE_SIZE;
-+	if (stack_size + stack_expand > rlim_stack)
-+		stack_base = vma->vm_end - rlim_stack;
-+	else
-+		stack_base = vma->vm_start - stack_expand;
- #endif
- 	ret = expand_stack(vma, stack_base);
- 	if (ret)
+ 	dev->isoc_ctl.transfer_buffer = kmalloc(sizeof(void *)*num_bufs,
+ 				   GFP_KERNEL);
+-	if (!dev->isoc_ctl.urb) {
++	if (!dev->isoc_ctl.transfer_buffer) {
+ 		tm6000_err("cannot allocate memory for usbtransfer\n");
+ 		kfree(dev->isoc_ctl.urb);
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from mikey@neuling.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
+drivers-scsi-sesc-eliminate-double-free.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+net-ipv4-correct-the-size-argument-to-kzalloc.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-misc-iwmc3200top-mainc-eliminate-useless-code.patch
+rtc-at91sam9-correct-size-given-to-memset.patch
+drivers-edac-introduce-missing-kfree.patch
+drivers-char-mmtimerc-eliminate-useless-code.patch
 
