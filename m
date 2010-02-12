@@ -1,56 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-mpc85xx-fix-build-regression-by-removing-unused-debug-code.patch removed from -mm tree
-Date: Fri, 12 Feb 2010 11:03:14 -0800
-Message-ID: <201002121903.o1CJ3E7B021098@imap1.linux-foundation.org>
+Subject: [merged] maintainers-changed-ltp-maintainership-responsibilities.patch removed from -mm tree
+Date: Fri, 12 Feb 2010 11:03:17 -0800
+Message-ID: <201002121903.o1CJ3Hl7021110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757033Ab0BLTDq (ORCPT
+	by vger.kernel.org with ESMTP id S1757023Ab0BLTDv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Feb 2010 14:03:46 -0500
+	Fri, 12 Feb 2010 14:03:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ptyser@xes-inc.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: risrajak@linux.vnet.ibm.com, subrata@linux.vnet.ibm.com, vapier@gentoo.org, yanegomi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: mpc85xx fix build regression by removing unused debug code
+     MAINTAINERS: changed LTP maintainership responsibilities
 has been removed from the -mm tree.  Its filename was
-     edac-mpc85xx-fix-build-regression-by-removing-unused-debug-code.patch
+     maintainers-changed-ltp-maintainership-responsibilities.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: mpc85xx fix build regression by removing unused debug code
-From: Peter Tyser <ptyser@xes-inc.com>
+Subject: MAINTAINERS: changed LTP maintainership responsibilities
+From: Rishikesh <risrajak@linux.vnet.ibm.com>
 
-Some unused, unsupported debug code existed in the mpc85xx EDAC driver
-that resulted in a build failure when CONFIG_EDAC_DEBUG was defined:
+Change the LTP maintainer responsibities from 2010.
 
-  drivers/edac/mpc85xx_edac.c: In function 'mpc85xx_mc_err_probe':
-  drivers/edac/mpc85xx_edac.c:1031: error: implicit declaration of function 'edac_mc_register_mcidev_debug'
-  drivers/edac/mpc85xx_edac.c:1031: error: 'debug_attr' undeclared (first use in this function)
-  drivers/edac/mpc85xx_edac.c:1031: error: (Each undeclared identifier is reported only once
-  drivers/edac/mpc85xx_edac.c:1031: error: for each function it appears in.)
+Ref: http://marc.info/?l=ltp-list&m=126502242912536&w=2
 
-Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com
+Signed-off-by : Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
+Cc: Subrata Modak <subrata@linux.vnet.ibm.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Garrett Cooper <yanegomi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |    4 ----
- 1 file changed, 4 deletions(-)
+ MAINTAINERS |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-build-regression-by-removing-unused-debug-code drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-build-regression-by-removing-unused-debug-code
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -892,10 +892,6 @@ static int __devinit mpc85xx_mc_err_prob
+diff -puN MAINTAINERS~maintainers-changed-ltp-maintainership-responsibilities MAINTAINERS
+--- a/MAINTAINERS~maintainers-changed-ltp-maintainership-responsibilities
++++ a/MAINTAINERS
+@@ -3411,8 +3411,10 @@ S:	Maintained
+ F:	drivers/scsi/sym53c8xx_2/
  
- 	mpc85xx_init_csrows(mci);
- 
--#ifdef CONFIG_EDAC_DEBUG
--	edac_mc_register_mcidev_debug((struct attribute **)debug_attr);
--#endif
+ LTP (Linux Test Project)
+-M:	Subrata Modak <subrata@linux.vnet.ibm.com>
+-M:	Mike Frysinger <vapier@gentoo.org>
++M:	Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
++M:	Garrett Cooper <yanegomi@gmail.com>
++M:     Mike Frysinger <vapier@gentoo.org>
++M:     Subrata Modak <subrata@linux.vnet.ibm.com>
+ L:	ltp-list@lists.sourceforge.net (subscribers-only)
+ W:	http://ltp.sourceforge.net/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/galak/ltp.git
+_
+
+Patches currently in -mm which might be from risrajak@linux.vnet.ibm.com are
+
+origin.patch
+
