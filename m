@@ -1,108 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: + delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch added to -mm tree
-Date: Fri, 12 Feb 2010 10:24:20 -0800
-Message-ID: <201002121824.o1CIOL74019303@imap1.linux-foundation.org>
+Subject: [withdrawn] mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch removed from -mm tree
+Date: Fri, 12 Feb 2010 11:01:16 -0800
+Message-ID: <201002121901.o1CJ1GTH021008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755059Ab0BLSY6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751829Ab0BLTCp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Feb 2010 13:24:58 -0500
+	Fri, 12 Feb 2010 14:02:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, balbir@in.ibm.com
+To: maximlevitsky@gmail.com, dwmw2@infradead.org, ext-jorg.2.schummer@nokia.com, linux-mmc@vger.kernel.org, nico@fluxnic.net, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     delayacct: align to 8 byte boundary on 64-bit systems
-has been added to the -mm tree.  Its filename is
-     delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
+     mmc: fix hang if card was removed during suspend and unsafe resume was enabled
+has been removed from the -mm tree.  Its filename was
+     mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: delayacct: align to 8 byte boundary on 64-bit systems
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: mmc: fix hang if card was removed during suspend and unsafe resume was enabled
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-prepare_reply() sets up an skb for the response.  The payload contains:
+Presently the following operations lead to a hang:
 
- +--------------------------------+
- | genlmsghdr - 4 bytes           |
- +--------------------------------+
- | NLA header - 4 bytes           | /* Aggregate header */
- +-+------------------------------+
- | | NLA header - 4 bytes         | /* PID header */
- | +------------------------------+
- | | pid/tgid   - 4 bytes         |
- | +------------------------------+
- | | NLA header - 4 bytes         | /* stats header */
- | + -----------------------------+ <- oops. aligned on 4 byte boundary
- | | struct taskstats - 328 bytes |
- +-+------------------------------+
+-> Have a kernel with CONFIG_MMC_UNSAFE_RESUME
+-> Insert MMC/SD card
+-> Suspend/hibernate the system
+-> While system is hibernated/suspended pull the card off
+-> Resume the system
+-> Hang
 
-The start of the taskstats struct must be 8 byte aligned on IA64 (and
-other systems with 8 byte alignment rules for 64-bit types) or runtime
-alignment warnings will be issued.
+[<ffffffff8106620a>] ? prepare_to_wait+0x2a/0x90
+[<ffffffff810790bd>] ? trace_hardirqs_on+0xd/0x10
+[<ffffffff8140db12>] ? _raw_spin_unlock_irqrestore+0x42/0x80
+[<ffffffff8112a390>] ? bdi_sched_wait+0x0/0x20
+[<ffffffff8112a39e>] bdi_sched_wait+0xe/0x20
+[<ffffffff8140af6f>] __wait_on_bit+0x5f/0x90
+[<ffffffff8112a390>] ? bdi_sched_wait+0x0/0x20
+[<ffffffff8140b018>] out_of_line_wait_on_bit+0x78/0x90
+[<ffffffff81065fd0>] ? wake_bit_function+0x0/0x40
+[<ffffffff8112a2d3>] ? bdi_queue_work+0xa3/0xe0
+[<ffffffff8112a37f>] bdi_sync_writeback+0x6f/0x80
+[<ffffffff8112a3d2>] sync_inodes_sb+0x22/0x120
+[<ffffffff8112f1d2>] __sync_filesystem+0x82/0x90
+[<ffffffff8112f3db>] sync_filesystem+0x4b/0x70
+[<ffffffff811391de>] fsync_bdev+0x2e/0x60
+[<ffffffff812226be>] invalidate_partition+0x2e/0x50
+[<ffffffff8116b92f>] del_gendisk+0x3f/0x140
+[<ffffffffa00c0233>] mmc_blk_remove+0x33/0x60 [mmc_block]
+[<ffffffff81338977>] mmc_bus_remove+0x17/0x20
+[<ffffffff812ce746>] __device_release_driver+0x66/0xc0
+[<ffffffff812ce89d>] device_release_driver+0x2d/0x40
+[<ffffffff812cd9b5>] bus_remove_device+0xb5/0x120
+[<ffffffff812cb46f>] device_del+0x12f/0x1a0
+[<ffffffff81338a5b>] mmc_remove_card+0x5b/0x90
+[<ffffffff8133ac27>] mmc_sd_remove+0x27/0x50
+[<ffffffff81337d8c>] mmc_resume_host+0x10c/0x140
+[<ffffffffa00850e9>] sdhci_resume_host+0x69/0xa0 [sdhci]
+[<ffffffffa0bdc39e>] sdhci_pci_resume+0x8e/0xb0 [sdhci_pci]
 
-This patch pads the pid/tgid field out to sizeof(long), which forces the
-alignment of taskstats.  The getdelays userspace code is ok with this
-since it assumes 32-bit pid/tgid and then honors that header's length
-field.
+because del_gendisk() tries to perform writeout when some devices are in
+the suspended state.
 
-An array is used to avoid exposing kernel memory contents to userspace in
-the response.
+If CONFIG_MMC_UNSAFE_RESUME is set, mmc core allows the user to
+suspend/resume the card normally assuming he won't change the card or
+modify it in another system.  The former case is actually handled quite
+well.
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+If CONFIG_MMC_UNSAFE_RESUME isn't set, it removes the card during suspend,
+and I now think (and will test) that this will still hang the system this
+time on suspend.
+
+
+Fix that by removing the code that did that in mmc_resume_host.  It is
+possible because card detection logic will kick it later and remove the
+card.
+
+Also make mtd workqueue freezeable, so it won't attempt to add/remove the
+card while userspace is frozen.
+
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jorg Schummer <ext-jorg.2.schummer@nokia.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>
+Cc: <linux-mmc@vger.kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/mmc/core/core.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN kernel/taskstats.c~delayacct-align-to-8-byte-boundary-on-64-bit-systems kernel/taskstats.c
---- a/kernel/taskstats.c~delayacct-align-to-8-byte-boundary-on-64-bit-systems
-+++ a/kernel/taskstats.c
-@@ -361,6 +361,12 @@ static struct taskstats *mk_reply(struct
- 	struct nlattr *na, *ret;
- 	int aggr;
+diff -puN drivers/mmc/core/core.c~mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled
++++ a/drivers/mmc/core/core.c
+@@ -1257,7 +1257,6 @@ int mmc_suspend_host(struct mmc_host *ho
+ 	if (host->caps & MMC_CAP_DISABLE)
+ 		cancel_delayed_work(&host->disable);
+ 	cancel_delayed_work(&host->detect);
+-	mmc_flush_scheduled_work();
  
-+	/* If we don't pad, we end up with alignment on a 4 byte boundary.
-+	 * This causes lots of runtime warnings on systems requiring 8 byte
-+	 * alignment */
-+	u32 pids[2] = { pid, 0 };
-+	int pid_size = ALIGN(sizeof(pid), sizeof(long));
+ 	mmc_bus_get(host);
+ 	if (host->bus_ops && !host->bus_dead) {
+@@ -1300,15 +1299,11 @@ int mmc_resume_host(struct mmc_host *hos
+ 		mmc_select_voltage(host, host->ocr);
+ 		BUG_ON(!host->bus_ops->resume);
+ 		err = host->bus_ops->resume(host);
 +
- 	aggr = (type == TASKSTATS_TYPE_PID)
- 			? TASKSTATS_TYPE_AGGR_PID
- 			: TASKSTATS_TYPE_AGGR_TGID;
-@@ -368,7 +374,7 @@ static struct taskstats *mk_reply(struct
- 	na = nla_nest_start(skb, aggr);
- 	if (!na)
- 		goto err;
--	if (nla_put(skb, type, sizeof(pid), &pid) < 0)
-+	if (nla_put(skb, type, pid_size, pids) < 0)
- 		goto err;
- 	ret = nla_reserve(skb, TASKSTATS_TYPE_STATS, sizeof(struct taskstats));
- 	if (!ret)
+ 		if (err) {
+ 			printk(KERN_WARNING "%s: error %d during resume "
+ 					    "(card was removed?)\n",
+ 					    mmc_hostname(host), err);
+-			if (host->bus_ops->remove)
+-				host->bus_ops->remove(host);
+-			mmc_claim_host(host);
+-			mmc_detach_bus(host);
+-			mmc_release_host(host);
+ 			/* no need to bother upper layers */
+ 			err = 0;
+ 		}
+@@ -1332,7 +1327,7 @@ static int __init mmc_init(void)
+ {
+ 	int ret;
+ 
+-	workqueue = create_singlethread_workqueue("kmmcd");
++	workqueue = create_freezeable_workqueue("kmmcd");
+ 	if (!workqueue)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from maximlevitsky@gmail.com are
 
+mmc-fix-hang-if-card-was-removed-during-suspend-and-unsafe-resume-was-enabled.patch
 linux-next.patch
-drivers-scsi-hpsac-fix-section-mismatch.patch
-delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+ricoh_mmc-port-from-driver-to-pci-quirk.patch
+ricoh_mmc-port-from-driver-to-pci-quirk-update.patch
 
