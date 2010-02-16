@@ -1,69 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] core-workqueue-return-on-workqueue-recursion.patch removed from -mm tree
-Date: Tue, 16 Feb 2010 10:35:09 -0800
-Message-ID: <201002161835.o1GIZ9Et030412@imap1.linux-foundation.org>
+Subject: [merged] net-move-am79c961s-probe-function-to-devinittext.patch removed from -mm tree
+Date: Tue, 16 Feb 2010 10:35:05 -0800
+Message-ID: <201002161835.o1GIZ5Fk030407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47996 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933208Ab0BPSgu (ORCPT
+	by vger.kernel.org with ESMTP id S1757051Ab0BPSgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Feb 2010 13:36:50 -0500
+	Tue, 16 Feb 2010 13:36:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: simon.kagstrom@netinsight.net, mingo@elte.hu, oleg@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, 12o3l@tiscali.nl, greg@kroah.com, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ] core: workqueue: return on workqueue recursion
+     net: move am79c961's probe function to .devinit.text
 has been removed from the -mm tree.  Its filename was
-     core-workqueue-return-on-workqueue-recursion.patch
+     net-move-am79c961s-probe-function-to-devinittext.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ] core: workqueue: return on workqueue recursion
-From: Simon Kagstrom <simon.kagstrom@netinsight.net>
+Subject: net: move am79c961's probe function to .devinit.text
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-When the workqueue is flushed from workqueue context (recursively), the
-system enters a strange state where things at random (dependent on the
-global workqueue) start misbehaving.  For example, for us the console and
-logins locks up while the web server continues running.
+A pointer to am79c961_probe is passed to the core via
+platform_driver_register and so the function must not disappear when th=
+e
+=2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
+unbinding and binding a device to the driver via sysfs will result in a=
+n
+oops as does a device being registered late.
 
-The system becomes unstable since the workqueue barrier locks the
-workqueue.  This patch instead returns if the workqueue is flushed
-recursively, which keeps the workqueue alive but warns.
+An alternative to this patch is using platform_driver_probe instead of
+platform_driver_register plus removing the pointer to the probe functio=
+n
+from the struct platform_driver.
 
-Signed-off-by: Simon Kagstrom <simon.kagstrom@netinsight.net>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Roel Kluin <12o3l@tiscali.nl>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/arm/am79c961a.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~core-workqueue-return-on-workqueue-recursion kernel/workqueue.c
---- a/kernel/workqueue.c~core-workqueue-return-on-workqueue-recursion
-+++ a/kernel/workqueue.c
-@@ -482,7 +482,8 @@ static int flush_cpu_workqueue(struct cp
- 	int active = 0;
- 	struct wq_barrier barr;
- 
--	WARN_ON(cwq->thread == current);
-+	if (WARN_ON(cwq->thread == current))
-+		return 1;
- 
- 	spin_lock_irq(&cwq->lock);
- 	if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
+diff -puN drivers/net/arm/am79c961a.c~net-move-am79c961s-probe-function=
+-to-devinittext drivers/net/arm/am79c961a.c
+--- a/drivers/net/arm/am79c961a.c~net-move-am79c961s-probe-function-to-=
+devinittext
++++ a/drivers/net/arm/am79c961a.c
+@@ -680,7 +680,7 @@ static const struct net_device_ops am79c
+ #endif
+ };
+=20
+-static int __init am79c961_probe(struct platform_device *pdev)
++static int __devinit am79c961_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+ 	struct net_device *dev;
 _
 
-Patches currently in -mm which might be from simon.kagstrom@netinsight.net are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 linux-next.patch
-lkdtm-add-debugfs-access-and-loosen-kprobe-ties.patch
+x86-move-hp-wmis-probe-function-to-devinittext.patch
+platform-drivers-move-probe-to-devinittext-in-arch-arm.patch
+media-move-omap24xxcams-probe-function-to-devinittext.patch
+i2c-move-i2c_omaps-probe-function-to-devinittext.patch
+hrtimer-correct-a-few-numbers-in-comments.patch
+clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
+rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
+rtc-hctosys-only-claim-the-rtc-provided-the-system-time-if-it-did.patch
+platform-drivers-move-probe-to-devinittext-in-drivers-video.patch
+auxdisplay-move-cfag12864bfbs-probe-function-to-devinittext.patch
+w1-move-omap_hdqs-probe-function-to-devinittext.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
