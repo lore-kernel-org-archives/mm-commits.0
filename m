@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-some-virtual_xres-handling-fixes.patch added to -mm tree
-Date: Tue, 16 Feb 2010 11:59:13 -0800
-Message-ID: <201002161959.o1GJxDux001921@imap1.linux-foundation.org>
+Subject: + memcg-update-memcg_testtxt.patch added to -mm tree
+Date: Tue, 16 Feb 2010 13:35:01 -0800
+Message-ID: <201002162135.o1GLZ1B6006357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50566 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756966Ab0BPT7R (ORCPT
+	by vger.kernel.org with ESMTP id S933090Ab0BPVfP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Feb 2010 14:59:17 -0500
+	Tue, 16 Feb 2010 16:35:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name
 
 
 The patch titled
-     viafb: some virtual_xres handling fixes
+     memcg: update memcg_test.txt
 has been added to the -mm tree.  Its filename is
-     viafb-some-virtual_xres-handling-fixes.patch
+     memcg-update-memcg_testtxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: some virtual_xres handling fixes
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: memcg: update memcg_test.txt
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Do not require the virtual_xres to be aligned as line length is for such
-purposes.  Calculate always the smallest line length required.
+Update memcg_test.txt to describe how to test the move-charge feature.
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ Documentation/cgroups/memcg_test.txt |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-some-virtual_xres-handling-fixes drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-some-virtual_xres-handling-fixes
-+++ a/drivers/video/via/viafbdev.c
-@@ -107,8 +107,7 @@ static void viafb_update_fix(struct fb_i
+diff -puN Documentation/cgroups/memcg_test.txt~memcg-update-memcg_testtxt Documentation/cgroups/memcg_test.txt
+--- a/Documentation/cgroups/memcg_test.txt~memcg-update-memcg_testtxt
++++ a/Documentation/cgroups/memcg_test.txt
+@@ -1,6 +1,6 @@
+ Memory Resource Controller(Memcg)  Implementation Memo.
+-Last Updated: 2009/1/20
+-Base Kernel Version: based on 2.6.29-rc2.
++Last Updated: 2010/2
++Base Kernel Version: based on 2.6.33-rc7-mm(candidate for 34).
  
- 	info->fix.visual =
- 		bpp == 8 ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
--	info->fix.line_length =
--		((info->var.xres_virtual + 7) & ~7) * bpp / 8;
-+	info->fix.line_length = (info->var.xres_virtual * bpp / 8 + 7) & ~7;
- }
- 
- static void viafb_setup_fixinfo(struct fb_fix_screeninfo *fix,
-@@ -148,7 +147,7 @@ static int viafb_check_var(struct fb_var
- 	int htotal, vtotal, depth;
- 	struct VideoModeTable *vmode_entry;
- 	struct viafb_par *ppar = info->par;
--	u32 long_refresh;
-+	u32 long_refresh, line;
- 
- 	DEBUG_MSG(KERN_INFO "viafb_check_var!\n");
- 	/* Sanity check */
-@@ -180,11 +179,8 @@ static int viafb_check_var(struct fb_var
- 		depth = 24;
- 
- 	viafb_fill_var_color_info(var, depth);
--	if ((var->xres_virtual * (var->bits_per_pixel >> 3)) & 0x1F)
--		/*32 pixel alignment */
--		var->xres_virtual = (var->xres_virtual + 31) & ~31;
--	if (var->xres_virtual * var->yres_virtual * var->bits_per_pixel / 8 >
--		ppar->memsize)
-+	line = (var->xres_virtual * var->bits_per_pixel / 8 + 7) & ~7;
-+	if (line * var->yres_virtual > ppar->memsize)
- 		return -EINVAL;
- 
- 	/* Based on var passed in to calculate the refresh,
+ Because VM is getting complex (one of reasons is memcg...), memcg's behavior
+ is complex. This is a document for memcg's internal behavior.
+@@ -378,3 +378,21 @@ Under below explanation, we assume CONFI
+ 	#echo 50M > memory.limit_in_bytes
+ 	#echo 50M > memory.memsw.limit_in_bytes
+ 	run 51M of malloc
++
++ 9.9 Move charges at task migration
++	Charges associated with a task can be moved along with task migration.
++
++	(Shell-A)
++	#mkdir /cgroup/A
++	#echo $$ >/cgroup/A/tasks
++	run some programs which uses some amount of memory in /cgroup/A.
++
++	(Shell-B)
++	#mkdir /cgroup/B
++	#echo 1 >/cgroup/B/memory.move_charge_at_immigrate
++	#echo "pid of the program running in group A" >/cgroup/B/tasks
++
++	You can see charges have been moved by reading *.usage_in_bytes or
++	memory.stat of both A and B.
++	See 8.2 of Documentation/cgroups/memory.txt to see what value should be
++	written to move_charge_at_immigrate.
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-viafb-deprecate-private-ioctls.patch
-viafb-remove-dead-code.patch
-viafb-split-global-index-up.patch
-viafb-split-global-index-up-fix.patch
-viafb-remove-the-remaining-via_res_-uses.patch
-viafb-some-dvi-cleanup.patch
-viafb-yet-another-dead-code-removal.patch
-viafb-reorder-initialization-for-dual-framebuffer-mode.patch
-viafb-video-address-setting-revisited.patch
-viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch
-viafb-introduce-strict-parameter-checking.patch
-viafb-split-color-mode-setting-up.patch
-viafb-remove-dead-code-due-to-iga1_iga2.patch
-viafb-make-some-variables-a-bit-less-global.patch
-viafb-rework-color-checking.patch
-viafb-some-virtual_xres-handling-fixes.patch
-viafb-rework-color-setting.patch
-viafb-support-color-depth-15-and-30.patch
-drivers-video-via-fix-continuation-line-formats.patch
+memcg-fix-oom-killing-a-child-process-in-an-other-cgroup.patch
+mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
+memcg-update-threshold-and-softlimit-at-commit-v2.patch
+memcg-share-event-counter-rather-than-duplicate-v2.patch
+memcg-update-memcg_testtxt.patch
 
