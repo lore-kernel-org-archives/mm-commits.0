@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-fs-fix-initial-stack-reservation.patch added to -mm tree
-Date: Tue, 16 Feb 2010 14:28:49 -0800
-Message-ID: <201002162228.o1GMSnVQ008829@imap1.linux-foundation.org>
+Subject: + fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub.patch added to -mm tree
+Date: Tue, 16 Feb 2010 14:45:42 -0800
+Message-ID: <201002162245.o1GMjgxe009526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933126Ab0BPWaP (ORCPT
+	by vger.kernel.org with ESMTP id S933181Ab0BPWqS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Feb 2010 17:30:15 -0500
+	Tue, 16 Feb 2010 17:46:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikey@neuling.org, anton@samba.org, benh@kernel.crashing.org, j@w1.fi, jmorris@namei.org, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, serue@us.ibm.com, stable@kernel.org, xiyou.wangcong@gmail.com
+Cc: richard@rsk.demon.co.uk, hch@lst.de, jack@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fs/exec.c: fix initial stack reservation
+     fs: inode - remove 8 bytes of padding on 64bits allowing 1 more objects/slab under slub
 has been added to the -mm tree.  Its filename is
-     exec-fs-fix-initial-stack-reservation.patch
+     fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: fix initial stack reservation
-From: Michael Neuling <mikey@neuling.org>
+Subject: fs: inode - remove 8 bytes of padding on 64bits allowing 1 more objects/slab under slub
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-803bf5ec259941936262d10ecc84511b76a20921 ("fs/exec.c: restrict initial
-stack space expansion to rlimit") attempts to limit the initial stack to
-20*PAGE_SIZE.  Unfortunately, in attempting ensure the stack is not
-reduced in size, we ended up not changing the stack at all.
+This removes 8 bytes of padding from struct inode on 64bit builds, and so
+allows 1 more object/slab in the inode_cache when using slub.
 
-This size reduction check is not necessary as the expand_stack call does
-this already.
-
-This caused a regression in UML resulting in most guest processes being
-killed.
-
-Signed-off-by: Michael Neuling <mikey@neuling.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jouni Malinen <j@w1.fi>
-Cc: <stable@kernel.org>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-fs-fix-initial-stack-reservation fs/exec.c
---- a/fs/exec.c~exec-fs-fix-initial-stack-reservation
-+++ a/fs/exec.c
-@@ -637,7 +637,6 @@ int setup_arg_pages(struct linux_binprm 
- 	 * will align it up.
- 	 */
- 	rlim_stack = rlimit(RLIMIT_STACK) & PAGE_MASK;
--	rlim_stack = min(rlim_stack, stack_size);
- #ifdef CONFIG_STACK_GROWSUP
- 	if (stack_size + stack_expand > rlim_stack)
- 		stack_base = vma->vm_start + rlim_stack;
+diff -puN include/linux/fs.h~fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub include/linux/fs.h
+--- a/include/linux/fs.h~fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub
++++ a/include/linux/fs.h
+@@ -729,6 +729,7 @@ struct inode {
+ 	uid_t			i_uid;
+ 	gid_t			i_gid;
+ 	dev_t			i_rdev;
++	unsigned int		i_blkbits;
+ 	u64			i_version;
+ 	loff_t			i_size;
+ #ifdef __NEED_I_SIZE_ORDERED
+@@ -738,7 +739,6 @@ struct inode {
+ 	struct timespec		i_mtime;
+ 	struct timespec		i_ctime;
+ 	blkcnt_t		i_blocks;
+-	unsigned int		i_blkbits;
+ 	unsigned short          i_bytes;
+ 	umode_t			i_mode;
+ 	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
 _
 
-Patches currently in -mm which might be from mikey@neuling.org are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 linux-next.patch
-exec-fs-fix-initial-stack-reservation.patch
-exec-create-initial-stack-independent-of-page_size.patch
+fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub.patch
+cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch
+fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub.patch
 
