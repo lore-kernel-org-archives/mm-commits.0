@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch added to -mm tree
-Date: Tue, 16 Feb 2010 13:40:37 -0800
-Message-ID: <201002162140.o1GLebnO006611@imap1.linux-foundation.org>
+Subject: + b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch added to -mm tree
+Date: Tue, 16 Feb 2010 13:40:35 -0800
+Message-ID: <201002162140.o1GLeZh3006607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933090Ab0BPVlK (ORCPT
+	by vger.kernel.org with ESMTP id S933311Ab0BPVlL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Feb 2010 16:41:10 -0500
+	Tue, 16 Feb 2010 16:41:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, linville@tuxdriver.com, stefano.brivio@polimi.it
+Cc: fujita.tomonori@lab.ntt.co.jp, Larry.Finger@lwfinger.net, linville@tuxdriver.com, stefano.brivio@polimi.it
 
 
 The patch titled
-     b43: replace the ssb_dma API with the generic DMA API
+     b43legacy: replace the ssb_dma API with the generic DMA API
 has been added to the -mm tree.  Its filename is
-     b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+     b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b43: replace the ssb_dma API with the generic DMA API
+Subject: b43legacy: replace the ssb_dma API with the generic DMA API
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
 Cc: Stefano Brivio <stefano.brivio@polimi.it>
 Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/dma.c |   65 ++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 31 deletions(-)
+ drivers/net/wireless/b43legacy/dma.c |   49 +++++++++++++------------
+ 1 file changed, 26 insertions(+), 23 deletions(-)
 
-diff -puN drivers/net/wireless/b43/dma.c~b43-replace-the-ssb_dma-api-with-the-generic-dma-api drivers/net/wireless/b43/dma.c
---- a/drivers/net/wireless/b43/dma.c~b43-replace-the-ssb_dma-api-with-the-generic-dma-api
-+++ a/drivers/net/wireless/b43/dma.c
-@@ -332,11 +332,11 @@ static inline
+diff -puN drivers/net/wireless/b43legacy/dma.c~b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api drivers/net/wireless/b43legacy/dma.c
+--- a/drivers/net/wireless/b43legacy/dma.c~b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api
++++ a/drivers/net/wireless/b43legacy/dma.c
+@@ -393,11 +393,11 @@ dma_addr_t map_descbuffer(struct b43lega
  	dma_addr_t dmaaddr;
  
- 	if (tx) {
+ 	if (tx)
 -		dmaaddr = ssb_dma_map_single(ring->dev->dev,
--					     buf, len, DMA_TO_DEVICE);
 +		dmaaddr = dma_map_single(ring->dev->dev->dma_dev,
-+					 buf, len, DMA_TO_DEVICE);
- 	} else {
+ 					     buf, len,
+ 					     DMA_TO_DEVICE);
+ 	else
 -		dmaaddr = ssb_dma_map_single(ring->dev->dev,
--					     buf, len, DMA_FROM_DEVICE);
 +		dmaaddr = dma_map_single(ring->dev->dev->dma_dev,
-+					 buf, len, DMA_FROM_DEVICE);
- 	}
+ 					     buf, len,
+ 					     DMA_FROM_DEVICE);
  
- 	return dmaaddr;
-@@ -347,11 +347,11 @@ static inline
- 			  dma_addr_t addr, size_t len, int tx)
+@@ -411,11 +411,11 @@ void unmap_descbuffer(struct b43legacy_d
+ 		      int tx)
  {
- 	if (tx) {
+ 	if (tx)
 -		ssb_dma_unmap_single(ring->dev->dev,
--				     addr, len, DMA_TO_DEVICE);
 +		dma_unmap_single(ring->dev->dev->dma_dev,
-+				 addr, len, DMA_TO_DEVICE);
- 	} else {
+ 				     addr, len,
+ 				     DMA_TO_DEVICE);
+ 	else
 -		ssb_dma_unmap_single(ring->dev->dev,
--				     addr, len, DMA_FROM_DEVICE);
 +		dma_unmap_single(ring->dev->dev->dma_dev,
-+				 addr, len, DMA_FROM_DEVICE);
- 	}
+ 				     addr, len,
+ 				     DMA_FROM_DEVICE);
  }
- 
-@@ -360,7 +360,7 @@ static inline
- 				 dma_addr_t addr, size_t len)
+@@ -427,8 +427,8 @@ void sync_descbuffer_for_cpu(struct b43l
  {
- 	B43_WARN_ON(ring->tx);
+ 	B43legacy_WARN_ON(ring->tx);
+ 
 -	ssb_dma_sync_single_for_cpu(ring->dev->dev,
+-				    addr, len, DMA_FROM_DEVICE);
 +	dma_sync_single_for_cpu(ring->dev->dev->dma_dev,
- 				    addr, len, DMA_FROM_DEVICE);
++				addr, len, DMA_FROM_DEVICE);
  }
  
-@@ -369,8 +369,8 @@ static inline
- 				    dma_addr_t addr, size_t len)
+ static inline
+@@ -438,8 +438,8 @@ void sync_descbuffer_for_device(struct b
  {
- 	B43_WARN_ON(ring->tx);
+ 	B43legacy_WARN_ON(ring->tx);
+ 
 -	ssb_dma_sync_single_for_device(ring->dev->dev,
 -				       addr, len, DMA_FROM_DEVICE);
 +	dma_sync_single_for_device(ring->dev->dev->dma_dev,
@@ -101,83 +100,73 @@ diff -puN drivers/net/wireless/b43/dma.c~b43-replace-the-ssb_dma-api-with-the-ge
  }
  
  static inline
-@@ -400,9 +400,9 @@ static int alloc_ringmemory(struct b43_d
- 	 */
- 	if (ring->type == B43_DMA_64BIT)
- 		flags |= GFP_DMA;
+@@ -459,10 +459,10 @@ void free_descriptor_buffer(struct b43le
+ static int alloc_ringmemory(struct b43legacy_dmaring *ring)
+ {
+ 	/* GFP flags must match the flags in free_ringmemory()! */
 -	ring->descbase = ssb_dma_alloc_consistent(ring->dev->dev,
--						  B43_DMA_RINGMEMSIZE,
--						  &(ring->dmabase), flags);
+-						  B43legacy_DMA_RINGMEMSIZE,
+-						  &(ring->dmabase),
+-						  GFP_KERNEL);
 +	ring->descbase = dma_alloc_coherent(ring->dev->dev->dma_dev,
-+					    B43_DMA_RINGMEMSIZE,
-+					    &(ring->dmabase), flags);
++					    B43legacy_DMA_RINGMEMSIZE,
++					    &(ring->dmabase),
++					    GFP_KERNEL);
  	if (!ring->descbase) {
- 		b43err(ring->dev->wl, "DMA ringmemory allocation failed\n");
- 		return -ENOMEM;
-@@ -419,8 +419,8 @@ static void free_ringmemory(struct b43_d
- 	if (ring->type == B43_DMA_64BIT)
- 		flags |= GFP_DMA;
+ 		b43legacyerr(ring->dev->wl, "DMA ringmemory allocation"
+ 			     " failed\n");
+@@ -475,8 +475,8 @@ static int alloc_ringmemory(struct b43le
  
--	ssb_dma_free_consistent(ring->dev->dev, B43_DMA_RINGMEMSIZE,
--				ring->descbase, ring->dmabase, flags);
-+	dma_free_coherent(ring->dev->dev->dma_dev, B43_DMA_RINGMEMSIZE,
+ static void free_ringmemory(struct b43legacy_dmaring *ring)
+ {
+-	ssb_dma_free_consistent(ring->dev->dev, B43legacy_DMA_RINGMEMSIZE,
+-				ring->descbase, ring->dmabase, GFP_KERNEL);
++	dma_free_coherent(ring->dev->dev->dma_dev, B43legacy_DMA_RINGMEMSIZE,
 +			  ring->descbase, ring->dmabase);
  }
  
  /* Reset the RX DMA channel */
-@@ -527,7 +527,7 @@ static bool b43_dma_mapping_error(struct
- 				  dma_addr_t addr,
- 				  size_t buffersize, bool dma_to_device)
+@@ -588,7 +588,7 @@ static bool b43legacy_dma_mapping_error(
+ 					 size_t buffersize,
+ 					 bool dma_to_device)
  {
 -	if (unlikely(ssb_dma_mapping_error(ring->dev->dev, addr)))
 +	if (unlikely(dma_mapping_error(ring->dev->dev->dma_dev, addr)))
  		return 1;
  
  	switch (ring->type) {
-@@ -873,10 +873,10 @@ struct b43_dmaring *b43_setup_dmaring(st
+@@ -905,7 +905,7 @@ struct b43legacy_dmaring *b43legacy_setu
  			goto err_kfree_meta;
  
  		/* test for ability to dma to txhdr_cache */
--		dma_test = ssb_dma_map_single(dev->dev,
--					      ring->txhdr_cache,
--					      b43_txhdr_size(dev),
--					      DMA_TO_DEVICE);
-+		dma_test = dma_map_single(dev->dev->dma_dev,
-+					  ring->txhdr_cache,
-+					  b43_txhdr_size(dev),
-+					  DMA_TO_DEVICE);
+-		dma_test = ssb_dma_map_single(dev->dev, ring->txhdr_cache,
++		dma_test = dma_map_single(dev->dev->dma_dev, ring->txhdr_cache,
+ 					      sizeof(struct b43legacy_txhdr_fw3),
+ 					      DMA_TO_DEVICE);
  
- 		if (b43_dma_mapping_error(ring, dma_test,
- 					  b43_txhdr_size(dev), 1)) {
-@@ -888,10 +888,10 @@ struct b43_dmaring *b43_setup_dmaring(st
+@@ -919,7 +919,7 @@ struct b43legacy_dmaring *b43legacy_setu
  			if (!ring->txhdr_cache)
  				goto err_kfree_meta;
  
 -			dma_test = ssb_dma_map_single(dev->dev,
--						      ring->txhdr_cache,
--						      b43_txhdr_size(dev),
--						      DMA_TO_DEVICE);
 +			dma_test = dma_map_single(dev->dev->dma_dev,
-+						  ring->txhdr_cache,
-+						  b43_txhdr_size(dev),
-+						  DMA_TO_DEVICE);
- 
- 			if (b43_dma_mapping_error(ring, dma_test,
- 						  b43_txhdr_size(dev), 1)) {
-@@ -902,9 +902,9 @@ struct b43_dmaring *b43_setup_dmaring(st
- 			}
+ 					ring->txhdr_cache,
+ 					sizeof(struct b43legacy_txhdr_fw3),
+ 					DMA_TO_DEVICE);
+@@ -929,9 +929,9 @@ struct b43legacy_dmaring *b43legacy_setu
+ 				goto err_kfree_txhdr_cache;
  		}
  
--		ssb_dma_unmap_single(dev->dev,
--				     dma_test, b43_txhdr_size(dev),
+-		ssb_dma_unmap_single(dev->dev, dma_test,
+-				     sizeof(struct b43legacy_txhdr_fw3),
 -				     DMA_TO_DEVICE);
-+		dma_unmap_single(dev->dev->dma_dev,
-+				 dma_test, b43_txhdr_size(dev),
++		dma_unmap_single(dev->dev->dma_dev, dma_test,
++				 sizeof(struct b43legacy_txhdr_fw3),
 +				 DMA_TO_DEVICE);
  	}
  
- 	err = alloc_ringmemory(ring);
-@@ -1017,9 +1017,12 @@ static int b43_dma_set_mask(struct b43_w
+ 	ring->nr_slots = nr_slots;
+@@ -1039,9 +1039,12 @@ static int b43legacy_dma_set_mask(struct
  	/* Try to set the DMA mask. If it fails, try falling back to a
  	 * lower mask, as we can always also support a lower one. */
  	while (1) {
