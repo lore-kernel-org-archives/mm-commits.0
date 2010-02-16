@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub.patch added to -mm tree
-Date: Tue, 16 Feb 2010 14:45:42 -0800
-Message-ID: <201002162245.o1GMjgxe009526@imap1.linux-foundation.org>
+Subject: + tmio_mmc-use-100ms-mmc_detect_change-delay.patch added to -mm tree
+Date: Tue, 16 Feb 2010 14:51:34 -0800
+Message-ID: <201002162251.o1GMpYsV009935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933181Ab0BPWqS (ORCPT
+	by vger.kernel.org with ESMTP id S933312Ab0BPWvo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Feb 2010 17:46:18 -0500
+	Tue, 16 Feb 2010 17:51:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, hch@lst.de, jack@suse.cz, viro@zeniv.linux.org.uk
+Cc: damm@opensource.se, ian@mnementh.co.uk, lethal@linux-sh.org, linux-mmc@vger.kernel.org, philipp.zabel@gmail.com, pierre@ossman.eu
 
 
 The patch titled
-     fs: inode - remove 8 bytes of padding on 64bits allowing 1 more objects/slab under slub
+     tmio_mmc: use 100ms mmc_detect_change() delay
 has been added to the -mm tree.  Its filename is
-     fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub.patch
+     tmio_mmc-use-100ms-mmc_detect_change-delay.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: inode - remove 8 bytes of padding on 64bits allowing 1 more objects/slab under slub
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: tmio_mmc: use 100ms mmc_detect_change() delay
+From: Magnus Damm <damm@opensource.se>
 
-This removes 8 bytes of padding from struct inode on 64bit builds, and so
-allows 1 more object/slab in the inode_cache when using slub.
+Change the tmio_mmc driver to wait 100ms before checking the card detect
+status.  This type of delay is quite common among mmc drivers, it seems
+that most hardware platforms need to give the hardware some time to settle
+before checking card availabilty.
 
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Hotplug is half-broken without this patch on the sh7724 Ecovec board.  Hot
+plugging seems ok but eject is never detected without this patch.
+
+Signed-off-by: Magnus Damm <damm@opensource.se>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    2 +-
+ drivers/mmc/host/tmio_mmc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub include/linux/fs.h
---- a/include/linux/fs.h~fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub
-+++ a/include/linux/fs.h
-@@ -729,6 +729,7 @@ struct inode {
- 	uid_t			i_uid;
- 	gid_t			i_gid;
- 	dev_t			i_rdev;
-+	unsigned int		i_blkbits;
- 	u64			i_version;
- 	loff_t			i_size;
- #ifdef __NEED_I_SIZE_ORDERED
-@@ -738,7 +739,6 @@ struct inode {
- 	struct timespec		i_mtime;
- 	struct timespec		i_ctime;
- 	blkcnt_t		i_blocks;
--	unsigned int		i_blkbits;
- 	unsigned short          i_bytes;
- 	umode_t			i_mode;
- 	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
+diff -puN drivers/mmc/host/tmio_mmc.c~tmio_mmc-use-100ms-mmc_detect_change-delay drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~tmio_mmc-use-100ms-mmc_detect_change-delay
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -332,7 +332,7 @@ static irqreturn_t tmio_mmc_irq(int irq,
+ 		if (ireg & (TMIO_STAT_CARD_INSERT | TMIO_STAT_CARD_REMOVE)) {
+ 			ack_mmc_irqs(host, TMIO_STAT_CARD_INSERT |
+ 				TMIO_STAT_CARD_REMOVE);
+-			mmc_detect_change(host->mmc, 0);
++			mmc_detect_change(host->mmc, msecs_to_jiffies(100));
+ 		}
+ 
+ 		/* CRC and other errors */
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from damm@opensource.se are
 
 linux-next.patch
-fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub.patch
-cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch
-fs-inode-remove-8-bytes-of-padding-on-64bits-allowing-1-more-objects-slab-under-slub.patch
+clocksource-add-argument-to-resume-callback.patch
+clocksource-start-cmt-at-clocksource-resume.patch
+clocksource-add-suspend-callback.patch
+mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
+mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
+tmio_mmc-use-100ms-mmc_detect_change-delay.patch
+tmio_mmc-keep-card-detect-interrupts-enabled.patch
 
