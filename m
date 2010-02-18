@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] musb-test-always-evaluates-to-false.patch removed from -mm tree
-Date: Thu, 18 Feb 2010 12:46:17 -0800
-Message-ID: <201002182046.o1IKkHtB002872@imap1.linux-foundation.org>
+Subject: [merged] qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch removed from -mm tree
+Date: Thu, 18 Feb 2010 12:46:08 -0800
+Message-ID: <201002182046.o1IKk880002793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755850Ab0BRUrW (ORCPT
+	by vger.kernel.org with ESMTP id S1755850Ab0BRUrZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Feb 2010 15:47:22 -0500
+	Thu, 18 Feb 2010 15:47:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dbrownell@users.sourceforge.net, felipe.balbi@nokia.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, giridhar.malavali@qlogic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     musb: test always evaluates to false
+     qla2xxx: negative error return in qla2x00_change_queue_depth()
 has been removed from the -mm tree.  Its filename was
-     musb-test-always-evaluates-to-false.patch
+     qla2xxx-negative-error-return-in-qla2x00_change_queue_depth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: musb: test always evaluates to false
+Subject: qla2xxx: negative error return in qla2x00_change_queue_depth()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The removed part always evaluates to false.
+The *change_queue_depth functions usually return a negative error return.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Acked-by: Giridhar Malavali <giridhar.malavali@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/musb_gadget.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/qla2xxx/qla_os.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/musb/musb_gadget.c~musb-test-always-evaluates-to-false drivers/usb/musb/musb_gadget.c
---- a/drivers/usb/musb/musb_gadget.c~musb-test-always-evaluates-to-false
-+++ a/drivers/usb/musb/musb_gadget.c
-@@ -1710,8 +1710,7 @@ int usb_gadget_register_driver(struct us
- 		return -EINVAL;
- 
- 	/* driver must be initialized to support peripheral mode */
--	if (!musb || !(musb->board_mode == MUSB_OTG
--				|| musb->board_mode != MUSB_OTG)) {
-+	if (!musb) {
- 		DBG(1, "%s, no dev??\n", __func__);
- 		return -ENODEV;
+diff -puN drivers/scsi/qla2xxx/qla_os.c~qla2xxx-negative-error-return-in-qla2x00_change_queue_depth drivers/scsi/qla2xxx/qla_os.c
+--- a/drivers/scsi/qla2xxx/qla_os.c~qla2xxx-negative-error-return-in-qla2x00_change_queue_depth
++++ a/drivers/scsi/qla2xxx/qla_os.c
+@@ -1258,7 +1258,7 @@ qla2x00_change_queue_depth(struct scsi_d
+ 		qla2x00_adjust_sdev_qdepth_up(sdev, qdepth);
+ 		break;
+ 	default:
+-		return EOPNOTSUPP;
++		return -EOPNOTSUPP;
  	}
+ 
+ 	return sdev->queue_depth;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
