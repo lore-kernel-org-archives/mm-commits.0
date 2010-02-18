@@ -1,110 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info.patch removed from -mm tree
-Date: Thu, 18 Feb 2010 12:45:33 -0800
-Message-ID: <201002182045.o1IKjXh7002748@imap1.linux-foundation.org>
+Subject: [merged] drivers-acpi-processor_idlec-add-two-laptops-to-the-c-state-dmi-table.patch removed from -mm tree
+Date: Thu, 18 Feb 2010 12:45:23 -0800
+Message-ID: <201002182045.o1IKjNEQ002731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755850Ab0BRUqr (ORCPT
+	by vger.kernel.org with ESMTP id S1753619Ab0BRUqq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Feb 2010 15:46:47 -0500
+	Thu, 18 Feb 2010 15:46:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bzolnier@gmail.com, corbet@lwn.net, error27@gmail.com, eteo@redhat.com, lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, achiang@hp.com, akwatts@ymail.com, bjorn.helgaas@hp.com, jimis@gmx.net, lenb@kernel.org, ming.m.lin@intel.com, rjw@sisk.pl, stable@kernel.org, venkatesh.pallipa
 
 
 The patch titled
-     acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
+     drivers/acpi/processor_idle.c: add two laptops to the C-state DMI table
 has been removed from the -mm tree.  Its filename was
-     acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info.patch
+     drivers-acpi-processor_idlec-add-two-laptops-to-the-c-state-dmi-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: drivers/acpi/processor_idle.c: add two laptops to the C-state DMI table
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Dan's list contains:
+Since the rewrite of the CPU idle governor in 2.6.32, two laptops have
+surfaced where the BIOS advertises a C2 power state, but for some reason
+this state is not functioning (as verified in both cases by powertop
+before the patch in .32).
 
-drivers/acpi/processor_throttling.c +1139 acpi_processor_get_throttling_info(11) warning: variable derefenced before check 'pr'
+The old governor had the accidental behavior that if a non-working state
+was chosen too many times, it would end up falling back to C1.  The new
+governor works differently and this accidental behavior is no longer
+there; the result is a high temperature on these two machines.
 
-acpi_processor_get_throttling_info() is never called with pr == NULL.
+This patch adds these 2 machines to the DMI table for C state anomalies;
+by just not using C2 both these machines are better off (the TSC can be
+used instead of the pm timer, giving a performance boost for example).
 
-[ bart: the potential NULL pointer dereference was finally fixed in
-  (much later than mine) commit 5cfa245 but my patch is still valid ]
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14742
 
-Reported-by: Dan Carpenter <error27@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Eugene Teo <eteo@redhat.com>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Reported-by: <akwatts@ymail.com>
+Cc: Dimitrios Apostolou <jimis@gmx.net>
+Cc: Alex Chiang <achiang@hp.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/acpi/processor_idle.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/acpi/processor_throttling.c~acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info
-+++ a/drivers/acpi/processor_throttling.c
-@@ -1133,9 +1133,6 @@ int acpi_processor_get_throttling_info(s
- 	int result = 0;
- 	struct acpi_processor_throttling *pthrottling;
+diff -puN drivers/acpi/processor_idle.c~drivers-acpi-processor_idlec-add-two-laptops-to-the-c-state-dmi-table drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~drivers-acpi-processor_idlec-add-two-laptops-to-the-c-state-dmi-table
++++ a/drivers/acpi/processor_idle.c
+@@ -110,6 +110,14 @@ static struct dmi_system_id __cpuinitdat
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
+ 	 (void *)2},
++	{ set_max_cstate, "Pavilion zv5000", {
++	  DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"Pavilion zv5000 (DS502A#ABA)")},
++	 (void *)1},
++	{ set_max_cstate, "Asus L8400B", {
++	  DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"L8400B series Notebook PC")},
++	 (void *)1},
+ 	{},
+ };
  
--	if (!pr)
--		return -EINVAL;
--
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
- 			  pr->throttling.address,
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
+origin.patch
 linux-next.patch
-acpica-fix-acpi_ex_release_mutex-comment.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-staging-rt2860-correct-onstack-wait_queue_head-declaration.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+timers-introduce-the-concept-of-timer-slack-for-legacy-timers.patch
+cpuidle-menu-remove-8-bytes-of-padding-on-64-bit-builds.patch
 
