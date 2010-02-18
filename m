@@ -1,90 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch removed from -mm tree
-Date: Thu, 18 Feb 2010 12:46:05 -0800
-Message-ID: <201002182046.o1IKk5WR002785@imap1.linux-foundation.org>
+Subject: [merged] platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch removed from -mm tree
+Date: Thu, 18 Feb 2010 12:46:11 -0800
+Message-ID: <201002182046.o1IKkBJm002864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755850Ab0BRUr4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755850Ab0BRUsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Feb 2010 15:47:56 -0500
+	Thu, 18 Feb 2010 15:48:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, james.smart@emulex.com, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, James.Bottomley@HansenPartnership.com, dbrownell@users.sourceforge.net, dmitri.vorobiev@movial.fi, greg@kroah.com, henne@nachtwindheim.de, kay.sievers@
 
 
 The patch titled
-     lpfc: two branches the same in lpfc_decode_firmware_rev()
+     platform-drivers: move probe to .devinit.text in drivers/scsi
 has been removed from the -mm tree.  Its filename was
-     lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
+     platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: lpfc: two branches the same in lpfc_decode_firmware_rev()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: platform-drivers: move probe to .devinit.text in drivers/scsi
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Regardless of the flag state, the branches execute the same code
+A pointer to a probe callback is passed to the core via
+platform_driver_register and so the function must not disappear when th=
+e
+=2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
+unbinding and binding a device to the driver via sysfs will result in a=
+n
+oops as does a device being registered late.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: James Smart <james.smart@emulex.com>
+An alternative to this patch is using platform_driver_probe instead of
+platform_driver_register plus removing the pointer to the probe functio=
+n
+from the struct platform_driver.
+
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Dmitri Vorobiev <dmitri.vorobiev@movial.fi>
+Cc: Henrik Kretzschmar <henne@nachtwindheim.de>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: peter fuerst <post@pfrst.de>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_ct.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/scsi/sgiwd93.c    |    2 +-
+ drivers/scsi/sni_53c710.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_ct.c~lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev drivers/scsi/lpfc/lpfc_ct.c
---- a/drivers/scsi/lpfc/lpfc_ct.c~lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev
-+++ a/drivers/scsi/lpfc/lpfc_ct.c
-@@ -1843,12 +1843,7 @@ lpfc_decode_firmware_rev(struct lpfc_hba
- 		c  = (rev & 0x0000ff00) >> 8;
- 		b4 = (rev & 0x000000ff);
- 
--		if (flag)
--			sprintf(fwrevision, "%d.%d%d%c%d ", b1,
--				b2, b3, c, b4);
--		else
--			sprintf(fwrevision, "%d.%d%d%c%d ", b1,
--				b2, b3, c, b4);
-+		sprintf(fwrevision, "%d.%d%d%c%d", b1, b2, b3, c, b4);
- 	}
- 	return;
- }
+diff -puN drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinit=
+text-in-drivers-scsi drivers/scsi/sgiwd93.c
+--- a/drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinittext=
+-in-drivers-scsi
++++ a/drivers/scsi/sgiwd93.c
+@@ -226,7 +226,7 @@ static struct scsi_host_template sgiwd93
+ 	.use_clustering		=3D DISABLE_CLUSTERING,
+ };
+=20
+-static int __init sgiwd93_probe(struct platform_device *pdev)
++static int __devinit sgiwd93_probe(struct platform_device *pdev)
+ {
+ 	struct sgiwd93_platform_data *pd =3D pdev->dev.platform_data;
+ 	unsigned char *wdregs =3D pd->wdregs;
+diff -puN drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devi=
+nittext-in-drivers-scsi drivers/scsi/sni_53c710.c
+--- a/drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devinitt=
+ext-in-drivers-scsi
++++ a/drivers/scsi/sni_53c710.c
+@@ -64,7 +64,7 @@ static struct scsi_host_template snirm71
+ 	.module		=3D THIS_MODULE,
+ };
+=20
+-static int __init snirm710_probe(struct platform_device *dev)
++static int __devinit snirm710_probe(struct platform_device *dev)
+ {
+ 	unsigned long base;
+ 	struct NCR_700_Host_Parameters *hostdata;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 origin.patch
 linux-next.patch
-gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
-mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
-mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-paride-fix-off-by-one-test.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-cris-v32-typo-in-crisv32_arbiter_unwatch.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+hrtimer-correct-a-few-numbers-in-comments.patch
+clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
+rtc-hctosys-only-claim-the-rtc-provided-the-system-time-if-it-did.patch
+w1-mxc_w1-move-probe-and-remove-to-the-dev-text-area.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
