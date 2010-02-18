@@ -1,111 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch removed from -mm tree
-Date: Thu, 18 Feb 2010 12:46:11 -0800
-Message-ID: <201002182046.o1IKkBJm002864@imap1.linux-foundation.org>
+Subject: [merged] net-ipv4-correct-the-size-argument-to-kzalloc.patch removed from -mm tree
+Date: Thu, 18 Feb 2010 12:45:59 -0800
+Message-ID: <201002182045.o1IKjx5u002776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755850Ab0BRUsL (ORCPT
+	by vger.kernel.org with ESMTP id S1751749Ab0BRUsb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Feb 2010 15:48:11 -0500
+	Thu, 18 Feb 2010 15:48:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, James.Bottomley@HansenPartnership.com, dbrownell@users.sourceforge.net, dmitri.vorobiev@movial.fi, greg@kroah.com, henne@nachtwindheim.de, kay.sievers@
+To: julia@diku.dk, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     platform-drivers: move probe to .devinit.text in drivers/scsi
+     net/ipv4/netfilter/nf_nat_snmp_basic.c: correct the size argument to kzalloc
 has been removed from the -mm tree.  Its filename was
-     platform-drivers-move-probe-to-devinittext-in-drivers-scsi.patch
+     net-ipv4-correct-the-size-argument-to-kzalloc.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: platform-drivers: move probe to .devinit.text in drivers/scsi
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: net/ipv4/netfilter/nf_nat_snmp_basic.c: correct the size argument to kzalloc
+From: Julia Lawall <julia@diku.dk>
 
-A pointer to a probe callback is passed to the core via
-platform_driver_register and so the function must not disappear when th=
-e
-=2Einit sections are discarded.  Otherwise (if also having HOTPLUG=3Dy)
-unbinding and binding a device to the driver via sysfs will result in a=
-n
-oops as does a device being registered late.
+obj has type struct snmp_object **, not struct snmp_object *.  But indeed
+it is not even clear why kmalloc is needed.  The memory is freed by the
+end of the function, so the local variable of pointer type should be
+sufficient.
 
-An alternative to this patch is using platform_driver_probe instead of
-platform_driver_register plus removing the pointer to the probe functio=
-n
-from the struct platform_driver.
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Dmitri Vorobiev <dmitri.vorobiev@movial.fi>
-Cc: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: peter fuerst <post@pfrst.de>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Greg KH <greg@kroah.com>
+// <smpl>
+@disable sizeof_type_expr@
+type T;
+T **x;
+@@
+
+  x =
+  <+...sizeof(
+- T
++ *x
+  )...+>
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sgiwd93.c    |    2 +-
- drivers/scsi/sni_53c710.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nf_nat_snmp_basic.c |   31 ++++++++---------------
+ 1 file changed, 11 insertions(+), 20 deletions(-)
 
-diff -puN drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinit=
-text-in-drivers-scsi drivers/scsi/sgiwd93.c
---- a/drivers/scsi/sgiwd93.c~platform-drivers-move-probe-to-devinittext=
--in-drivers-scsi
-+++ a/drivers/scsi/sgiwd93.c
-@@ -226,7 +226,7 @@ static struct scsi_host_template sgiwd93
- 	.use_clustering		=3D DISABLE_CLUSTERING,
- };
-=20
--static int __init sgiwd93_probe(struct platform_device *pdev)
-+static int __devinit sgiwd93_probe(struct platform_device *pdev)
- {
- 	struct sgiwd93_platform_data *pd =3D pdev->dev.platform_data;
- 	unsigned char *wdregs =3D pd->wdregs;
-diff -puN drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devi=
-nittext-in-drivers-scsi drivers/scsi/sni_53c710.c
---- a/drivers/scsi/sni_53c710.c~platform-drivers-move-probe-to-devinitt=
-ext-in-drivers-scsi
-+++ a/drivers/scsi/sni_53c710.c
-@@ -64,7 +64,7 @@ static struct scsi_host_template snirm71
- 	.module		=3D THIS_MODULE,
- };
-=20
--static int __init snirm710_probe(struct platform_device *dev)
-+static int __devinit snirm710_probe(struct platform_device *dev)
- {
- 	unsigned long base;
- 	struct NCR_700_Host_Parameters *hostdata;
+diff -puN net/ipv4/netfilter/nf_nat_snmp_basic.c~net-ipv4-correct-the-size-argument-to-kzalloc net/ipv4/netfilter/nf_nat_snmp_basic.c
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c~net-ipv4-correct-the-size-argument-to-kzalloc
++++ a/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -1038,7 +1038,7 @@ static int snmp_parse_mangle(unsigned ch
+ 	unsigned int cls, con, tag, vers, pdutype;
+ 	struct asn1_ctx ctx;
+ 	struct asn1_octstr comm;
+-	struct snmp_object **obj;
++	struct snmp_object *obj;
+ 
+ 	if (debug > 1)
+ 		hex_dump(msg, len);
+@@ -1148,43 +1148,34 @@ static int snmp_parse_mangle(unsigned ch
+ 	if (cls != ASN1_UNI || con != ASN1_CON || tag != ASN1_SEQ)
+ 		return 0;
+ 
+-	obj = kmalloc(sizeof(struct snmp_object), GFP_ATOMIC);
+-	if (obj == NULL) {
+-		if (net_ratelimit())
+-			printk(KERN_WARNING "OOM in bsalg(%d)\n", __LINE__);
+-		return 0;
+-	}
+-
+ 	while (!asn1_eoc_decode(&ctx, eoc)) {
+ 		unsigned int i;
+ 
+-		if (!snmp_object_decode(&ctx, obj)) {
+-			if (*obj) {
+-				kfree((*obj)->id);
+-				kfree(*obj);
++		if (!snmp_object_decode(&ctx, &obj)) {
++			if (obj) {
++				kfree(obj->id);
++				kfree(obj);
+ 			}
+-			kfree(obj);
+ 			return 0;
+ 		}
+ 
+ 		if (debug > 1) {
+ 			printk(KERN_DEBUG "bsalg: object: ");
+-			for (i = 0; i < (*obj)->id_len; i++) {
++			for (i = 0; i < obj->id_len; i++) {
+ 				if (i > 0)
+ 					printk(".");
+-				printk("%lu", (*obj)->id[i]);
++				printk("%lu", obj->id[i]);
+ 			}
+-			printk(": type=%u\n", (*obj)->type);
++			printk(": type=%u\n", obj->type);
+ 
+ 		}
+ 
+-		if ((*obj)->type == SNMP_IPADDR)
++		if (obj->type == SNMP_IPADDR)
+ 			mangle_address(ctx.begin, ctx.pointer - 4 , map, check);
+ 
+-		kfree((*obj)->id);
+-		kfree(*obj);
++		kfree(obj->id);
++		kfree(obj);
+ 	}
+-	kfree(obj);
+ 
+ 	if (!asn1_eoc_decode(&ctx, eoc))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
-origin.patch
 linux-next.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-rtc-pcf2123-move-pcf2123_remove-to-devexittext.patch
-rtc-hctosys-only-claim-the-rtc-provided-the-system-time-if-it-did.patch
-w1-mxc_w1-move-probe-and-remove-to-the-dev-text-area.patch
+drivers-scsi-sesc-eliminate-double-free.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-misc-iwmc3200top-mainc-eliminate-useless-code.patch
+rtc-at91sam9-correct-size-given-to-memset.patch
+drivers-edac-introduce-missing-kfree.patch
+drivers-char-mmtimerc-eliminate-useless-code.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
