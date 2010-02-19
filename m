@@ -1,72 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysdev-fix-missing-s390-conversion.patch removed from -mm tree
-Date: Fri, 19 Feb 2010 10:54:49 -0800
-Message-ID: <201002191854.o1JIsn8f030014@imap1.linux-foundation.org>
+Subject: + mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch added to -mm tree
+Date: Fri, 19 Feb 2010 13:09:24 -0800
+Message-ID: <201002192109.o1JL9PUo004393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753987Ab0BSS4q (ORCPT
+	by vger.kernel.org with ESMTP id S1751346Ab0BSVKQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Feb 2010 13:56:46 -0500
+	Fri, 19 Feb 2010 16:10:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, ak@linux.intel.com, greg@kroah.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ben@decadent.org.uk
 
 
 The patch titled
-     sysdev: fix missing s390 conversion
-has been removed from the -mm tree.  Its filename was
-     sysdev-fix-missing-s390-conversion.patch
+     mptscsih: fix first line of kernel-doc for a few functions
+has been added to the -mm tree.  Its filename is
+     mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysdev: fix missing s390 conversion
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mptscsih: fix first line of kernel-doc for a few functions
+From: Ben Hutchings <ben@decadent.org.uk>
 
-In linux-next "sysdev: Pass attribute in sysdev_class attributes show/store"
-forgot to convert one place in s390 code. Here is the missing part.
+The function name must be followed by a space, hypen, space, and a short
+description.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/smp.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/message/fusion/mptscsih.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/s390/kernel/smp.c~sysdev-fix-missing-s390-conversion arch/s390/kernel/smp.c
---- a/arch/s390/kernel/smp.c~sysdev-fix-missing-s390-conversion
-+++ a/arch/s390/kernel/smp.c
-@@ -1033,7 +1033,9 @@ static ssize_t __ref rescan_store(struct
- static SYSDEV_CLASS_ATTR(rescan, 0200, NULL, rescan_store);
- #endif /* CONFIG_HOTPLUG_CPU */
+diff -puN drivers/message/fusion/mptscsih.c~mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions
++++ a/drivers/message/fusion/mptscsih.c
+@@ -2560,9 +2560,7 @@ mptscsih_getclear_scsi_lookup(MPT_ADAPTE
+ }
  
--static ssize_t dispatching_show(struct sysdev_class *class, char *buf)
-+static ssize_t dispatching_show(struct sysdev_class *class,
-+				struct sysdev_class_attribute *attr,
-+				char *buf)
- {
- 	ssize_t count;
+ /**
+- * mptscsih_set_scsi_lookup
+- *
+- * writes a scmd entry into the ScsiLookup[] array list
++ * mptscsih_set_scsi_lookup - write a scmd entry into the ScsiLookup[] array list
+  *
+  * @ioc: Pointer to MPT_ADAPTER structure
+  * @i: index into the array
+@@ -2725,7 +2723,7 @@ mptscsih_scandv_complete(MPT_ADAPTER *io
  
+ 
+ /**
+- *	mptscsih_get_completion_code -
++ *	mptscsih_get_completion_code - get completion code from MPT request
+  *	@ioc: Pointer to MPT_ADAPTER structure
+  *	@req: Pointer to original MPT request frame
+  *	@reply: Pointer to MPT reply frame (NULL if TurboReply)
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
-origin.patch
 linux-next.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-cpumask-let-num__cpus-function-always-return-unsigned-values.patch
-add-generic-sys_old_select.patch
-add-generic-sys_old_mmap.patch
-add-generic-sys_ipc-wrapper.patch
-add-generic-sys_ipc-wrapper-fix.patch
-improve-sys_personality-for-compat-architectures.patch
-improve-sys_newuname-for-compat-architectures.patch
-add-generic-sys_olduname.patch
+mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch
+lib-fix-first-line-of-kernel-doc-for-a-few-functions.patch
+video-fix-first-line-of-kernel-doc-for-a-few-functions.patch
 
