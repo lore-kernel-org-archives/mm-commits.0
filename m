@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-core-fix-memory-leak.patch added to -mm tree
-Date: Fri, 19 Feb 2010 13:13:25 -0800
-Message-ID: <201002192113.o1JLDPLl004580@imap1.linux-foundation.org>
+Subject: + dmatest-correct-raid6-pq-test.patch added to -mm tree
+Date: Fri, 19 Feb 2010 13:15:06 -0800
+Message-ID: <201002192115.o1JLF6BH004627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753137Ab0BSVON (ORCPT
+	by vger.kernel.org with ESMTP id S1753137Ab0BSVPP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Feb 2010 16:14:13 -0500
+	Fri, 19 Feb 2010 16:15:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aaro.koskinen@nokia.com, a.zummo@towertech.it, stable@kernel.org
+Cc: agust@denx.de, dan.j.williams@intel.com, maciej.sosnowski@intel.com
 
 
 The patch titled
-     rtc-core: fix memory leak
+     dmatest: correct raid6 PQ test
 has been added to the -mm tree.  Its filename is
-     rtc-core-fix-memory-leak.patch
+     dmatest-correct-raid6-pq-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-core: fix memory leak
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: dmatest: correct raid6 PQ test
+From: Anatolij Gustschin <agust@denx.de>
 
-The idr should be destroyed when the module is unloaded. Found with
-kmemleak.
+The number of PQ sources specified by module parameter "pq_sources" is
+always forced odd to fit into dmatest's destination verificaton scheme. 
+But number of PQ sources and coefficients as passed to the driver's
+prep_dma_pq() is not adjusted accordingly.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: stable <stable@kernel.org>
+Fix it now to get correct PQ testing results in the case passed
+"pq_sources" parameter is even.
+
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma/dmatest.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-core-fix-memory-leak drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-core-fix-memory-leak
-+++ a/drivers/rtc/class.c
-@@ -226,6 +226,7 @@ static void __exit rtc_exit(void)
- {
- 	rtc_dev_exit();
- 	class_destroy(rtc_class);
-+	idr_destroy(&rtc_idr);
- }
+diff -puN drivers/dma/dmatest.c~dmatest-correct-raid6-pq-test drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmatest-correct-raid6-pq-test
++++ a/drivers/dma/dmatest.c
+@@ -237,7 +237,7 @@ static int dmatest_func(void *data)
+ 	dma_cookie_t		cookie;
+ 	enum dma_status		status;
+ 	enum dma_ctrl_flags 	flags;
+-	u8			pq_coefs[pq_sources];
++	u8			pq_coefs[pq_sources + 1];
+ 	int			ret;
+ 	int			src_cnt;
+ 	int			dst_cnt;
+@@ -257,7 +257,7 @@ static int dmatest_func(void *data)
+ 	} else if (thread->type == DMA_PQ) {
+ 		src_cnt = pq_sources | 1; /* force odd to ensure dst = src */
+ 		dst_cnt = 2;
+-		for (i = 0; i < pq_sources; i++)
++		for (i = 0; i < src_cnt; i++)
+ 			pq_coefs[i] = 1;
+ 	} else
+ 		goto err_srcs;
+@@ -355,7 +355,7 @@ static int dmatest_func(void *data)
+ 			for (i = 0; i < dst_cnt; i++)
+ 				dma_pq[i] = dma_dsts[i] + dst_off;
+ 			tx = dev->device_prep_dma_pq(chan, dma_pq, dma_srcs,
+-						     pq_sources, pq_coefs,
++						     src_cnt, pq_coefs,
+ 						     len, flags);
+ 		}
  
- subsys_initcall(rtc_init);
 _
 
-Patches currently in -mm which might be from aaro.koskinen@nokia.com are
+Patches currently in -mm which might be from agust@denx.de are
 
 linux-next.patch
-rtc-core-fix-memory-leak.patch
+dmatest-correct-raid6-pq-test.patch
 
