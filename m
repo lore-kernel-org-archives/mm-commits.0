@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-misplaced-parenthesis-in-pof_handle_data.patch added to -mm tree
-Date: Fri, 19 Feb 2010 13:15:53 -0800
-Message-ID: <201002192115.o1JLFrkF004659@imap1.linux-foundation.org>
+Subject: + dvb-usb-opera1-misplaced-parenthesis.patch added to -mm tree
+Date: Fri, 19 Feb 2010 13:18:56 -0800
+Message-ID: <201002192118.o1JLIup7004840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35130 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346Ab0BSVQB (ORCPT
+	by vger.kernel.org with ESMTP id S1751417Ab0BSVTG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Feb 2010 16:16:01 -0500
+	Fri, 19 Feb 2010 16:19:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
+Cc: roel.kluin@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     isdn: misplaced parenthesis in pof_handle_data()
+     dvb-usb/opera1: misplaced parenthesis
 has been added to the -mm tree.  Its filename is
-     isdn-misplaced-parenthesis-in-pof_handle_data.patch
+     dvb-usb-opera1-misplaced-parenthesis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: misplaced parenthesis in pof_handle_data()
+Subject: dvb-usb/opera1: misplaced parenthesis
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The parenthesis was misplaced.
+The parenthesis was misplaced, tmp is set to 0 or break occurs,
+while debugging opera1_usb_i2c_msgxfer() retval was not shown.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_boot.c |    2 +-
+ drivers/media/dvb/dvb-usb/opera1.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_boot.c~isdn-misplaced-parenthesis-in-pof_handle_data drivers/isdn/hysdn/hysdn_boot.c
---- a/drivers/isdn/hysdn/hysdn_boot.c~isdn-misplaced-parenthesis-in-pof_handle_data
-+++ a/drivers/isdn/hysdn/hysdn_boot.c
-@@ -143,7 +143,7 @@ pof_handle_data(hysdn_card * card, int d
- 					     (boot->pof_recid == TAG_CABSDATA) ? "CABSDATA" : "ABSDATA",
- 					     datlen, boot->pof_recoffset);
- 
--			if ((boot->last_error = card->writebootseq(card, boot->buf.BootBuf, datlen) < 0))
-+			if ((boot->last_error = card->writebootseq(card, boot->buf.BootBuf, datlen)) < 0)
- 				return (boot->last_error);	/* error writing data */
- 
- 			if (boot->pof_recoffset + datlen >= boot->pof_reclen)
+diff -puN drivers/media/dvb/dvb-usb/opera1.c~dvb-usb-opera1-misplaced-parenthesis drivers/media/dvb/dvb-usb/opera1.c
+--- a/drivers/media/dvb/dvb-usb/opera1.c~dvb-usb-opera1-misplaced-parenthesis
++++ a/drivers/media/dvb/dvb-usb/opera1.c
+@@ -138,7 +138,7 @@ static int opera1_i2c_xfer(struct i2c_ad
+ 					(msg[i].addr<<1)|(msg[i].flags&I2C_M_RD?0x01:0),
+ 					msg[i].buf,
+ 					msg[i].len
+-					)!= msg[i].len)) {
++					)) != msg[i].len) {
+ 			break;
+ 		}
+ 		if (dvb_usb_opera1_debug & 0x10)
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -67,6 +68,7 @@ origin.patch
 linux-next.patch
 gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+dvb-usb-opera1-misplaced-parenthesis.patch
 ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
 mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
 mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
