@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2.patch added to -mm tree
-Date: Fri, 19 Feb 2010 13:26:27 -0800
-Message-ID: <201002192126.o1JLQRuq005240@imap1.linux-foundation.org>
+Subject: + ldisc-new-dcd_change-method-for-line-disciplines.patch added to -mm tree
+Date: Fri, 19 Feb 2010 13:54:07 -0800
+Message-ID: <201002192154.o1JLs7H3006535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752296Ab0BSV0e (ORCPT
+	by vger.kernel.org with ESMTP id S1755351Ab0BSVy3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Feb 2010 16:26:34 -0500
+	Fri, 19 Feb 2010 16:54:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: d.hatayama@jp.fujitsu.com
+Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su
 
 
 The patch titled
-     elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2
+     ldisc: new dcd_change() method for line disciplines
 has been added to the -mm tree.  Its filename is
-     elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2.patch
+     ldisc-new-dcd_change-method-for-line-disciplines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2
-From: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
+Subject: ldisc: new dcd_change() method for line disciplines
+From: Rodolfo Giometti <giometti@linux.it>
 
-compat_binfmt_elf.c: Use 32-bit section header, not 64-bit one
-
-I found that the previous fix patch of mine was insufficient for
-fixing the problem relevant to EL32. It was necessary that one should
-use the 32-bit datatype for section headers instead of the 64-bit one.
-Here is a patch complementing it.
-
-I made a runtime test for this fix patch, confirming that the
-functionality works well.
-
-Signed-off-by: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_binfmt_elf.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/serial/tty.txt |    4 ++++
+ include/linux/tty_ldisc.h    |    8 ++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN fs/compat_binfmt_elf.c~elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2 fs/compat_binfmt_elf.c
---- a/fs/compat_binfmt_elf.c~elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2
-+++ a/fs/compat_binfmt_elf.c
-@@ -28,10 +28,12 @@
+diff -puN Documentation/serial/tty.txt~ldisc-new-dcd_change-method-for-line-disciplines Documentation/serial/tty.txt
+--- a/Documentation/serial/tty.txt~ldisc-new-dcd_change-method-for-line-disciplines
++++ a/Documentation/serial/tty.txt
+@@ -105,6 +105,10 @@ write_wakeup()	-	May be called at any po
+ 			is permitted to call the driver write method from
+ 			this function. In such a situation defer it.
  
- #undef	elfhdr
- #undef	elf_phdr
-+#undef	elf_shdr
- #undef	elf_note
- #undef	elf_addr_t
- #define elfhdr		elf32_hdr
- #define elf_phdr	elf32_phdr
-+#define elf_shdr	elf32_shdr
- #define elf_note	elf32_note
- #define elf_addr_t	Elf32_Addr
++dcd_change()	-	Report to the tty line the current DCD pin status
++			changes and the relative timestamp. The timestamp
++			can be NULL.
++
  
+ Driver Access
+ 
+diff -puN include/linux/tty_ldisc.h~ldisc-new-dcd_change-method-for-line-disciplines include/linux/tty_ldisc.h
+--- a/include/linux/tty_ldisc.h~ldisc-new-dcd_change-method-for-line-disciplines
++++ a/include/linux/tty_ldisc.h
+@@ -99,6 +99,12 @@
+  *	cease I/O to the tty driver. Can sleep. The driver should
+  *	seek to perform this action quickly but should wait until
+  *	any pending driver I/O is completed.
++ *
++ * void (*dcd_change)(struct tty_struct *tty, unsigned int status,
++ * 			struct timespec *ts)
++ *
++ *	Tells the discipline that the DCD pin has changed its status and
++ *	the relative timestamp. Pointer ts can be NULL.
+  */
+ 
+ #include <linux/fs.h>
+@@ -136,6 +142,8 @@ struct tty_ldisc_ops {
+ 	void	(*receive_buf)(struct tty_struct *, const unsigned char *cp,
+ 			       char *fp, int count);
+ 	void	(*write_wakeup)(struct tty_struct *);
++	void	(*dcd_change)(struct tty_struct *, unsigned int,
++				struct timespec *);
+ 
+ 	struct  module *owner;
+ 	
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
+linux-next.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
+pps-serial-clients-support.patch
+pps-serial-clients-support-fix.patch
+serial-8250-enable-pps-support.patch
+serial-amba-pl010-enable-pps-support.patch
 
