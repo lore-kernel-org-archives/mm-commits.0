@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkincludes-fix-perlcritic-warnings.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:12 -0800
-Message-ID: <201002222317.o1MNHC5L029585@imap1.linux-foundation.org>
+Subject: + namespace-perlcritic-warnings.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:18 -0800
+Message-ID: <201002222317.o1MNHIsK029600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754858Ab0BVXRc (ORCPT
+	by vger.kernel.org with ESMTP id S1754858Ab0BVXRi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:32 -0500
+	Mon, 22 Feb 2010 18:17:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, teawater@gmail.com
 
 
 The patch titled
-     checkincludes: fix perlcritic warnings
+     namespace: perlcritic warnings
 has been added to the -mm tree.  Its filename is
-     checkincludes-fix-perlcritic-warnings.patch
+     namespace-perlcritic-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkincludes: fix perlcritic warnings
+Subject: namespace: perlcritic warnings
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Turn on strict checking.
-Use local file handles.
-Use three argument open.
+Use local file handle not global.
+Make loop and other variables local in scope.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Hui Zhu <teawater@gmail.com>
 Cc: Cong Wang <amwang@redhat.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkincludes.pl |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ scripts/namespace.pl |   65 ++++++++++++++++++++---------------------
+ 1 file changed, 33 insertions(+), 32 deletions(-)
 
-diff -puN scripts/checkincludes.pl~checkincludes-fix-perlcritic-warnings scripts/checkincludes.pl
---- a/scripts/checkincludes.pl~checkincludes-fix-perlcritic-warnings
-+++ a/scripts/checkincludes.pl
-@@ -11,6 +11,8 @@
- # you do have real dups and do not have them under #ifdef's. You
- # could also just review the results.
- 
-+use strict;
+diff -puN scripts/namespace.pl~namespace-perlcritic-warnings scripts/namespace.pl
+--- a/scripts/namespace.pl~namespace-perlcritic-warnings
++++ a/scripts/namespace.pl
+@@ -175,12 +175,11 @@ sub do_nm
+ 	}
+ 	if (! -e "$source.c" && ! -e "$source.S") {
+ 		# No obvious source, exclude the object if it is conglomerate
+-		if (! open(OBJDUMPDATA, "$objdump $basename|")) {
+-			printf STDERR "$objdump $fullname failed $!\n";
+-			return;
+-		}
++	        open(my $objdumpdata, "$objdump $basename|")
++		    or die "$objdump $fullname failed $!\n";
 +
- sub usage {
- 	print "Usage: checkincludes.pl [-r]\n";
- 	print "By default we just warn of duplicates\n";
-@@ -35,23 +37,24 @@ if ($#ARGV >= 1) {
- 	}
- }
- 
--foreach $file (@ARGV) {
--	open(FILE, $file) or die "Cannot open $file: $!.\n";
-+foreach my $file (@ARGV) {
-+	open(my $f, '<', $file)
-+	    or die "Cannot open $file: $!.\n";
- 
- 	my %includedfiles = ();
- 	my @file_lines = ();
- 
--	while (<FILE>) {
-+	while (<$f>) {
- 		if (m/^\s*#\s*include\s*[<"](\S*)[>"]/o) {
- 			++$includedfiles{$1};
+ 		my $comment;
+-		while (<OBJDUMPDATA>) {
++		while (<$objdumpdata>) {
+ 			chomp();
+ 			if (/^In archive/) {
+ 				# Archives are always conglomerate
+@@ -190,18 +189,18 @@ sub do_nm
+ 			next if (! /^[ 0-9a-f]{5,} /);
+ 			$comment .= substr($_, 43);
  		}
- 		push(@file_lines, $_);
+-		close(OBJDUMPDATA);
++		close($objdumpdata);
++
+ 		if (!defined($comment) || $comment !~ /GCC\:.*GCC\:/m) {
+ 			printf STDERR "No source file found for $fullname\n";
+ 		}
+ 		return;
  	}
- 
--	close(FILE);
-+	close($f);
- 
- 	if (!$remove) {
--		foreach $filename (keys %includedfiles) {
-+		foreach my $filename (keys %includedfiles) {
- 			if ($includedfiles{$filename} > 1) {
- 				print "$file: $filename is included more than once.\n";
+-	if (! open(NMDATA, "$nm $basename|")) {
+-		printf STDERR "$nm $fullname failed $!\n";
+-		return;
+-	}
++	open (my $nmdata, "$nm $basename|")
++	    or die "$nm $fullname failed $!\n";
++
+ 	my @nmdata;
+-	while (<NMDATA>) {
++	while (<$nmdata>) {
+ 		chop;
+ 		($type, $name) = (split(/ +/, $_, 3))[1..2];
+ 		# Expected types
+@@ -268,7 +267,8 @@ sub do_nm
  			}
-@@ -59,27 +62,28 @@ foreach $file (@ARGV) {
- 		next;
+ 		}
  	}
+-	close(NMDATA);
++	close($nmdata);
++
+ 	if ($#nmdata < 0) {
+ 		if (
+ 			$fullname ne "lib/brlock.o"
+@@ -316,8 +316,7 @@ sub drop_def
  
--	open(FILE,">$file") || die("Cannot write to $file: $!");
-+	open($f, '>', $file)
-+	    or die("Cannot write to $file: $!");
+ sub list_multiply_defined
+ {
+-	my ($name, $module);
+-	foreach $name (keys(%def)) {
++	foreach my $name (keys(%def)) {
+ 		if ($#{$def{$name}} > 0) {
+ 			# Special case for cond_syscall
+ 			if ($#{$def{$name}} == 1 && $name =~ /^sys_/ &&
+@@ -333,8 +332,9 @@ sub list_multiply_defined
+ 				&drop_def("arch/x86/kernel/vsyscall-sysenter_32.o", $name);
+ 				next;
+ 			}
++
+ 			printf "$name is multiply defined in :-\n";
+-			foreach $module (@{$def{$name}}) {
++			foreach my $module (@{$def{$name}}) {
+ 				printf "\t$module\n";
+ 			}
+ 		}
+@@ -343,12 +343,13 @@ sub list_multiply_defined
  
- 	my $dups = 0;
- 	foreach (@file_lines) {
- 		if (m/^\s*#\s*include\s*[<"](\S*)[>"]/o) {
--			foreach $filename (keys %includedfiles) {
-+			foreach my $filename (keys %includedfiles) {
- 				if ($1 eq $filename) {
- 					if ($includedfiles{$filename} > 1) {
- 						$includedfiles{$filename}--;
- 						$dups++;
- 					} else {
--						print FILE $_;
-+						print {$f} $_;
- 					}
+ sub resolve_external_references
+ {
+-	my ($object, $type, $name, $i, $j, $kstrtab, $ksymtab, $export);
++	my ($kstrtab, $ksymtab, $export);
++
+ 	printf "\n";
+-	foreach $object (keys(%nmdata)) {
++	foreach my $object (keys(%nmdata)) {
+ 		my $nmdata = $nmdata{$object};
+-		for ($i = 0; $i <= $#{$nmdata}; ++$i) {
+-			($type, $name) = split(' ', $nmdata->[$i], 2);
++		for (my $i = 0; $i <= $#{$nmdata}; ++$i) {
++			my ($type, $name) = split(' ', $nmdata->[$i], 2);
+ 			if ($type eq "U" || $type eq "w") {
+ 				if (exists($def{$name}) || exists($ksymtab{$name})) {
+ 					# add the owning object to the nmdata
+@@ -357,7 +358,7 @@ sub resolve_external_references
+ 					$kstrtab = "R __kstrtab_$name";
+ 					$ksymtab = "R __ksymtab_$name";
+ 					$export = 0;
+-					for ($j = 0; $j <= $#{$nmdata}; ++$j) {
++					for (my $j = 0; $j <= $#{$nmdata}; ++$j) {
+ 						if ($nmdata->[$j] eq $kstrtab ||
+ 						    $nmdata->[$j] eq $ksymtab) {
+ 							$export = 1;
+@@ -424,11 +425,11 @@ sub resolve_external_references
+ sub list_extra_externals
+ {
+ 	my %noref = ();
+-	my ($name, @module, $module, $export);
+-	foreach $name (keys(%def)) {
++
++	foreach my $name (keys(%def)) {
+ 		if (! exists($ref{$name})) {
+-			@module = @{$def{$name}};
+-			foreach $module (@module) {
++			my @module = @{$def{$name}};
++			foreach my $module (@module) {
+ 				if (! exists($noref{$module})) {
+ 					$noref{$module} = [];
  				}
+@@ -438,16 +439,16 @@ sub list_extra_externals
+ 	}
+ 	if (%noref) {
+ 		printf "\nExternally defined symbols with no external references\n";
+-		foreach $module (sort(keys(%noref))) {
++		foreach my $module (sort(keys(%noref))) {
+ 			printf "  $module\n";
+ 			foreach (sort(@{$noref{$module}})) {
+-				if (exists($export{$_})) {
+-					$export = " (export only)";
+-				}
+-				else {
+-					$export = "";
+-				}
+-				printf "    $_$export\n";
++			    my $export;
++			    if (exists($export{$_})) {
++				$export = " (export only)";
++			    } else {
++				$export = "";
++			    }
++			    printf "    $_$export\n";
  			}
- 		} else {
--			print FILE $_;
-+			print {$f} $_;
  		}
  	}
- 	if ($dups > 0) {
- 		print "$file: removed $dups duplicate includes\n";
- 	}
--	close(FILE);
-+	close($f);
- }
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
