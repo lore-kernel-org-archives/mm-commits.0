@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + namespace-perlcritic-warnings.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:18 -0800
-Message-ID: <201002222317.o1MNHIsK029600@imap1.linux-foundation.org>
+Subject: + export_report-fix-perl-warnings.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:22 -0800
+Message-ID: <201002222317.o1MNHMwi029607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754858Ab0BVXRi (ORCPT
+	by vger.kernel.org with ESMTP id S1754858Ab0BVXRk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:38 -0500
+	Mon, 22 Feb 2010 18:17:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, teawater@gmail.com
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
 
 
 The patch titled
-     namespace: perlcritic warnings
+     export_report: fix perl warnings
 has been added to the -mm tree.  Its filename is
-     namespace-perlcritic-warnings.patch
+     export_report-fix-perl-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,166 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: namespace: perlcritic warnings
+Subject: export_report: fix perl warnings
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Use local file handle not global.
-Make loop and other variables local in scope.
+Use local file handles, use three argument open.
+Don't modify arguments in perl grep (use sed instead)
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Hui Zhu <teawater@gmail.com>
-Cc: Cong Wang <amwang@redhat.com>
+Acked-by: WANG Cong <amwang@redhat.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/namespace.pl |   65 ++++++++++++++++++++---------------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ scripts/export_report.pl |   37 ++++++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
-diff -puN scripts/namespace.pl~namespace-perlcritic-warnings scripts/namespace.pl
---- a/scripts/namespace.pl~namespace-perlcritic-warnings
-+++ a/scripts/namespace.pl
-@@ -175,12 +175,11 @@ sub do_nm
- 	}
- 	if (! -e "$source.c" && ! -e "$source.S") {
- 		# No obvious source, exclude the object if it is conglomerate
--		if (! open(OBJDUMPDATA, "$objdump $basename|")) {
--			printf STDERR "$objdump $fullname failed $!\n";
--			return;
--		}
-+	        open(my $objdumpdata, "$objdump $basename|")
-+		    or die "$objdump $fullname failed $!\n";
-+
- 		my $comment;
--		while (<OBJDUMPDATA>) {
-+		while (<$objdumpdata>) {
- 			chomp();
- 			if (/^In archive/) {
- 				# Archives are always conglomerate
-@@ -190,18 +189,18 @@ sub do_nm
- 			next if (! /^[ 0-9a-f]{5,} /);
- 			$comment .= substr($_, 43);
- 		}
--		close(OBJDUMPDATA);
-+		close($objdumpdata);
-+
- 		if (!defined($comment) || $comment !~ /GCC\:.*GCC\:/m) {
- 			printf STDERR "No source file found for $fullname\n";
- 		}
- 		return;
- 	}
--	if (! open(NMDATA, "$nm $basename|")) {
--		printf STDERR "$nm $fullname failed $!\n";
--		return;
+diff -puN scripts/export_report.pl~export_report-fix-perl-warnings scripts/export_report.pl
+--- a/scripts/export_report.pl~export_report-fix-perl-warnings
++++ a/scripts/export_report.pl
+@@ -49,10 +49,10 @@ sub usage {
+ }
+ 
+ sub collectcfiles {
+-        my @file = `cat .tmp_versions/*.mod | grep '.*\.ko\$'`;
+-        @file = grep {s/\.ko/.mod.c/} @file;
+-	chomp @file;
+-        return @file;
++    my @file
++	= `cat .tmp_versions/*.mod | grep '.*\.ko\$' | sed s/\.ko$/.mod.c/`;
++    chomp @file;
++    return @file;
+ }
+ 
+ my (%SYMBOL, %MODULE, %opt, @allcfiles);
+@@ -71,37 +71,40 @@ if (not defined $opt{'k'}) {
+ 	$opt{'k'} = "Module.symvers";
+ }
+ 
+-unless (open(MODULE_SYMVERS, $opt{'k'})) {
+-	die "Sorry, cannot open $opt{'k'}: $!\n";
+-}
++open (my $module_symvers, '<', $opt{'k'})
++    or die "Sorry, cannot open $opt{'k'}: $!\n";
+ 
+ if (defined $opt{'o'}) {
+-	unless (open(OUTPUT_HANDLE, ">$opt{'o'}")) {
+-		die "Sorry, cannot open $opt{'o'} $!\n";
 -	}
-+	open (my $nmdata, "$nm $basename|")
-+	    or die "$nm $fullname failed $!\n";
+-	select OUTPUT_HANDLE;
++    open (my $out, '>', $opt{'o'})
++	or die "Sorry, cannot open $opt{'o'} $!\n";
 +
- 	my @nmdata;
--	while (<NMDATA>) {
-+	while (<$nmdata>) {
- 		chop;
- 		($type, $name) = (split(/ +/, $_, 3))[1..2];
- 		# Expected types
-@@ -268,7 +267,8 @@ sub do_nm
- 			}
- 		}
- 	}
--	close(NMDATA);
-+	close($nmdata);
++    select $out;
+ }
 +
- 	if ($#nmdata < 0) {
- 		if (
- 			$fullname ne "lib/brlock.o"
-@@ -316,8 +316,7 @@ sub drop_def
+ #
+ # collect all the symbols and their attributes from the
+ # Module.symvers file
+ #
+-while ( <MODULE_SYMVERS> ) {
++while ( <$module_symvers> ) {
+ 	chomp;
+ 	my (undef, $symbol, $module, $gpl) = split;
+ 	$SYMBOL { $symbol } =  [ $module , "0" , $symbol, $gpl];
+ }
+-close(MODULE_SYMVERS);
++close($module_symvers);
  
- sub list_multiply_defined
- {
--	my ($name, $module);
--	foreach $name (keys(%def)) {
-+	foreach my $name (keys(%def)) {
- 		if ($#{$def{$name}} > 0) {
- 			# Special case for cond_syscall
- 			if ($#{$def{$name}} == 1 && $name =~ /^sys_/ &&
-@@ -333,8 +332,9 @@ sub list_multiply_defined
- 				&drop_def("arch/x86/kernel/vsyscall-sysenter_32.o", $name);
- 				next;
- 			}
+ #
+ # collect the usage count of each symbol.
+ #
+ foreach my $thismod (@allcfiles) {
+-	unless (open(MODULE_MODULE, $thismod)) {
+-		print "Sorry, cannot open $thismod: $!\n";
++	my $module;
 +
- 			printf "$name is multiply defined in :-\n";
--			foreach $module (@{$def{$name}}) {
-+			foreach my $module (@{$def{$name}}) {
- 				printf "\t$module\n";
- 			}
- 		}
-@@ -343,12 +343,13 @@ sub list_multiply_defined
++	unless (open ($module, '<', $thismod)) {
++		warn "Sorry, cannot open $thismod: $!\n";
+ 		next;
+ 	}
++
+ 	my $state=0;
+-	while ( <MODULE_MODULE> ) {
++	while ( <$module> ) {
+ 		chomp;
+ 		if ($state == 0) {
+ 			$state = 1 if ($_ =~ /static const struct modversion_info/);
+@@ -124,7 +127,7 @@ foreach my $thismod (@allcfiles) {
+ 	if ($state != 2) {
+ 		print "WARNING:$thismod is not built with CONFIG_MODVERSION enabled\n";
+ 	}
+-	close(MODULE_MODULE);
++	close($module);
+ }
  
- sub resolve_external_references
- {
--	my ($object, $type, $name, $i, $j, $kstrtab, $ksymtab, $export);
-+	my ($kstrtab, $ksymtab, $export);
-+
- 	printf "\n";
--	foreach $object (keys(%nmdata)) {
-+	foreach my $object (keys(%nmdata)) {
- 		my $nmdata = $nmdata{$object};
--		for ($i = 0; $i <= $#{$nmdata}; ++$i) {
--			($type, $name) = split(' ', $nmdata->[$i], 2);
-+		for (my $i = 0; $i <= $#{$nmdata}; ++$i) {
-+			my ($type, $name) = split(' ', $nmdata->[$i], 2);
- 			if ($type eq "U" || $type eq "w") {
- 				if (exists($def{$name}) || exists($ksymtab{$name})) {
- 					# add the owning object to the nmdata
-@@ -357,7 +358,7 @@ sub resolve_external_references
- 					$kstrtab = "R __kstrtab_$name";
- 					$ksymtab = "R __ksymtab_$name";
- 					$export = 0;
--					for ($j = 0; $j <= $#{$nmdata}; ++$j) {
-+					for (my $j = 0; $j <= $#{$nmdata}; ++$j) {
- 						if ($nmdata->[$j] eq $kstrtab ||
- 						    $nmdata->[$j] eq $ksymtab) {
- 							$export = 1;
-@@ -424,11 +425,11 @@ sub resolve_external_references
- sub list_extra_externals
- {
- 	my %noref = ();
--	my ($name, @module, $module, $export);
--	foreach $name (keys(%def)) {
-+
-+	foreach my $name (keys(%def)) {
- 		if (! exists($ref{$name})) {
--			@module = @{$def{$name}};
--			foreach $module (@module) {
-+			my @module = @{$def{$name}};
-+			foreach my $module (@module) {
- 				if (! exists($noref{$module})) {
- 					$noref{$module} = [];
- 				}
-@@ -438,16 +439,16 @@ sub list_extra_externals
- 	}
- 	if (%noref) {
- 		printf "\nExternally defined symbols with no external references\n";
--		foreach $module (sort(keys(%noref))) {
-+		foreach my $module (sort(keys(%noref))) {
- 			printf "  $module\n";
- 			foreach (sort(@{$noref{$module}})) {
--				if (exists($export{$_})) {
--					$export = " (export only)";
--				}
--				else {
--					$export = "";
--				}
--				printf "    $_$export\n";
-+			    my $export;
-+			    if (exists($export{$_})) {
-+				$export = " (export only)";
-+			    } else {
-+				$export = "";
-+			    }
-+			    printf "    $_$export\n";
- 			}
- 		}
- 	}
+ print "\tThis file reports the exported symbols usage patterns by in-tree\n",
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
