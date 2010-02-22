@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + headers_check-fix-perl-warnings.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:24 -0800
-Message-ID: <201002222317.o1MNHOlZ029612@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:18:56 -0800
+Message-ID: <201002222318.o1MNIuTv029746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754927Ab0BVXRn (ORCPT
+	by vger.kernel.org with ESMTP id S1754978Ab0BVXUg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:43 -0500
+	Mon, 22 Feb 2010 18:20:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
+Cc: akataria@vmware.com, dhecht@vmware.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     headers_check: fix perl warnings
+     arch/x86/kernel/hpet.c: fix bug in RTC emulation
 has been added to the -mm tree.  Its filename is
-     headers_check-fix-perl-warnings.patch
+     arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: headers_check: fix perl warnings
-From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: arch/x86/kernel/hpet.c: fix bug in RTC emulation
+From: Alok Kataria <akataria@vmware.com>
 
-According to PBP; best way practice is to use local reference for file
-handle and three argument open. Also perl prototypes are a mistake.
+We think there exists a bug in the HPET code that emulates the RTC.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: WANG Cong <amwang@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>
+In the normal case, when the RTC frequency is set, the rtc driver tells
+the hpet code about it here:
+
+int hpet_set_periodic_freq(unsigned long freq)
+{
+        uint64_t clc;
+
+        if (!is_hpet_enabled())
+                return 0;
+
+        if (freq <= DEFAULT_RTC_INT_FREQ)
+                hpet_pie_limit = DEFAULT_RTC_INT_FREQ / freq;
+        else {
+                clc = (uint64_t) hpet_clockevent.mult * NSEC_PER_SEC;
+                do_div(clc, freq);
+                clc >>= hpet_clockevent.shift;
+                hpet_pie_delta = (unsigned long) clc;
+        }
+        return 1;
+}
+
+If freq is set to 64Hz (DEFAULT_RTC_INT_FREQ) or lower, then
+hpet_pie_limit (a static) is set to non-zero.  Then, on every one-shot
+HPET interrupt, hpet_rtc_timer_reinit is called to compute the next
+timeout.  Well, that function has this logic:
+
+        if (!(hpet_rtc_flags & RTC_PIE) || hpet_pie_limit)
+                delta = hpet_default_delta;
+        else
+                delta = hpet_pie_delta;
+
+Since hpet_pie_limit is not 0, hpet_default_delta is used.  That
+corresponds to 64Hz.
+
+Now, if you set a different rtc frequency, you'll take the else path
+through hpet_set_periodic_freq, but unfortunately no one resets
+hpet_pie_limit back to 0.
+
+Boom....now you are stuck with 64Hz RTC interrupts forever.
+
+The patch below just resets the hpet_pie_limit value when requested freq
+is greater than DEFAULT_RTC_INT_FREQ, which we think fixes this problem.
+
+Signed-off-by: Alok N Kataria <akataria@vmware.com>
+Signed-off-by: Daniel Hecht <dhecht@vmware.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headers_check.pl |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/x86/kernel/hpet.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/headers_check.pl~headers_check-fix-perl-warnings scripts/headers_check.pl
---- a/scripts/headers_check.pl~headers_check-fix-perl-warnings
-+++ a/scripts/headers_check.pl
-@@ -28,11 +28,12 @@ my $lineno = 0;
- my $filename;
- 
- foreach my $file (@files) {
--	local *FH;
- 	$filename = $file;
--	open(FH, "<$filename") or die "$filename: $!\n";
-+
-+	open(my $fh, '<', $filename)
-+		or die "$filename: $!\n";
- 	$lineno = 0;
--	while ($line = <FH>) {
-+	while ($line = <$fh>) {
- 		$lineno++;
- 		&check_include();
- 		&check_asm_types();
-@@ -40,7 +41,7 @@ foreach my $file (@files) {
- 		&check_declarations();
- 		# Dropped for now. Too much noise &check_config();
+diff -puN arch/x86/kernel/hpet.c~arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation arch/x86/kernel/hpet.c
+--- a/arch/x86/kernel/hpet.c~arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation
++++ a/arch/x86/kernel/hpet.c
+@@ -1143,6 +1143,7 @@ int hpet_set_periodic_freq(unsigned long
+ 		do_div(clc, freq);
+ 		clc >>= hpet_clockevent.shift;
+ 		hpet_pie_delta = clc;
++		hpet_pie_limit = 0;
  	}
--	close FH;
-+	close $fh;
+ 	return 1;
  }
- exit $ret;
- 
-@@ -78,7 +79,7 @@ sub check_config
- }
- 
- my $linux_asm_types;
--sub check_asm_types()
-+sub check_asm_types
- {
- 	if ($filename =~ /types.h|int-l64.h|int-ll64.h/o) {
- 		return;
 _
 
-Patches currently in -mm which might be from shemminger@vyatta.com are
+Patches currently in -mm which might be from akataria@vmware.com are
 
-origin.patch
 linux-next.patch
-scripts-improve-checkstack.patch
-checkincludes-fix-perlcritic-warnings.patch
-checkversion-perl-cleanup.patch
-namespace-perlcritic-warnings.patch
-profile2linkerlist-fix-perl-warnings.patch
-export_report-fix-perl-warnings.patch
-headers_check-fix-perl-warnings.patch
-headers_install-use-local-file-handles.patch
-markup_oops-fix-perlcritic-warnings.patch
-headerdep-perlcritic-warning.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-get_maintainer-fix-perlcritic-warnings.patch
-get_maintainer-quote-email-address-with-period.patch
+arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
 
