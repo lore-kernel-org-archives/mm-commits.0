@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:53:16 -0800
-Message-ID: <201002222353.o1MNrGWC031496@imap1.linux-foundation.org>
+Subject: + m68km68knommu-missing-asterisk.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:53:57 -0800
+Message-ID: <201002222353.o1MNrvL7031505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46304 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750820Ab0BVXyA (ORCPT
+	by vger.kernel.org with ESMTP id S1750820Ab0BVXyi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:54:00 -0500
+	Mon, 22 Feb 2010 18:54:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, balbir@linux.vnet.ibm.com, dan@embeddedalley.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
+Cc: roel.kluin@gmail.com, geert@linux-m68k.org, gerg@snapgear.com
 
 
 The patch titled
-     memcg: update memcg_test.txt to describe memory thresholds
+     m68k,m68knommu: missing asterisk
 has been added to the -mm tree.  Its filename is
-     memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+     m68km68knommu-missing-asterisk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: update memcg_test.txt to describe memory thresholds
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: m68k,m68knommu: missing asterisk
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: Kirill A.  Shutemov <kirill@shutemov.name>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Dan Malek <dan@embeddedalley.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+An asterisk was missing.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memcg_test.txt |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ arch/m68k/include/asm/apollohw.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/memcg_test.txt~memcg-update-memcg_testtxt-to-describe-memory-thresholds Documentation/cgroups/memcg_test.txt
---- a/Documentation/cgroups/memcg_test.txt~memcg-update-memcg_testtxt-to-describe-memory-thresholds
-+++ a/Documentation/cgroups/memcg_test.txt
-@@ -396,3 +396,24 @@ Under below explanation, we assume CONFI
- 	memory.stat of both A and B.
- 	See 8.2 of Documentation/cgroups/memory.txt to see what value should be
- 	written to move_charge_at_immigrate.
-+
-+ 9.10 Memory thresholds
-+	Memory controler implements memory thresholds using cgroups notification
-+	API. You can use Documentation/cgroups/cgroup_event_listener.c to test
-+	it.
-+
-+	(Shell-A) Create cgroup and run event listener
-+	# mkdir /cgroup/A
-+	# ./cgroup_event_listener /cgroup/A/memory.usage_in_bytes 5M
-+
-+	(Shell-B) Add task to cgroup and try to allocate and free memory
-+	# echo $$ >/cgroup/A/tasks
-+	# a="$(dd if=/dev/zero bs=1M count=10)"
-+	# a=
-+
-+	You will see message from cgroup_event_listener every time you cross
-+	the thresholds.
-+
-+	Use /cgroup/A/memory.memsw.usage_in_bytes to test memsw thresholds.
-+
-+	It's good idea to test root cgroup as well.
+diff -puN arch/m68k/include/asm/apollohw.h~m68km68knommu-missing-asterisk arch/m68k/include/asm/apollohw.h
+--- a/arch/m68k/include/asm/apollohw.h~m68km68knommu-missing-asterisk
++++ a/arch/m68k/include/asm/apollohw.h
+@@ -94,7 +94,7 @@ extern u_long timer_physaddr;
+ 
+ #define sio01 ((*(volatile struct SCN2681 *)(IO_BASE + sio01_physaddr)))
+ #define sio23 ((*(volatile struct SCN2681 *)(IO_BASE + sio23_physaddr)))
+-#define rtc (((volatile struct mc146818 *)(IO_BASE + rtc_physaddr)))
++#define rtc ((*(volatile struct mc146818 *)(IO_BASE + rtc_physaddr)))
+ #define cpuctrl (*(volatile unsigned int *)(IO_BASE + cpuctrl_physaddr))
+ #define pica (IO_BASE + pica_physaddr)
+ #define picb (IO_BASE + picb_physaddr)
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-cgroups-fix-contents-in-cgroups-documentation.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
-memcg-update-threshold-and-softlimit-at-commit-v2.patch
-memcg-share-event-counter-rather-than-duplicate-v2.patch
-memcg-update-memcg_testtxt.patch
-cgroups-fix-race-between-userspace-and-kernelspace.patch
-cgroups-remove-events-before-destroying-subsystem-state-objects.patch
-cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
-memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+origin.patch
+linux-next.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+dvb-usb-opera1-misplaced-parenthesis.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
+mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+isdn-misplaced-parenthesis-in-pof_handle_data.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+paride-fix-off-by-one-test.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
+m68km68knommu-missing-asterisk.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+cris-v32-typo-in-crisv32_arbiter_unwatch.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
