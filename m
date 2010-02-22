@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-quote-email-address-with-period.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:08:16 -0800
-Message-ID: <201002222308.o1MN8Gpf029187@imap1.linux-foundation.org>
+Subject: + checkincludes-fix-perlcritic-warnings.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:12 -0800
+Message-ID: <201002222317.o1MNHC5L029585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758Ab0BVXIU (ORCPT
+	by vger.kernel.org with ESMTP id S1754858Ab0BVXRc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:08:20 -0500
+	Mon, 22 Feb 2010 18:17:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, joe@perches.com
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
 
 
 The patch titled
-     get_maintainer: quote email address with period
+     checkincludes: fix perlcritic warnings
 has been added to the -mm tree.  Its filename is
-     get_maintainer-quote-email-address-with-period.patch
+     checkincludes-fix-perlcritic-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get_maintainer: quote email address with period
+Subject: checkincludes: fix perlcritic warnings
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Picky mail systems won't accept email addresses where recipient has period
-in name; ie.  David S.  Miller <davemloft.net> will not work.
+Turn on strict checking.
+Use local file handles.
+Use three argument open.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: Joe Perches <joe@perches.com>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkincludes.pl |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-quote-email-address-with-period scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-quote-email-address-with-period
-+++ a/scripts/get_maintainer.pl
-@@ -605,7 +605,7 @@ sub parse_email {
-     $name =~ s/^\"|\"$//g;
-     $address =~ s/^\s+|\s+$//g;
+diff -puN scripts/checkincludes.pl~checkincludes-fix-perlcritic-warnings scripts/checkincludes.pl
+--- a/scripts/checkincludes.pl~checkincludes-fix-perlcritic-warnings
++++ a/scripts/checkincludes.pl
+@@ -11,6 +11,8 @@
+ # you do have real dups and do not have them under #ifdef's. You
+ # could also just review the results.
  
--    if ($name =~ /[^a-z0-9 \.\-]/i) {    ##has "must quote" chars
-+    if ($name =~ /[^\w \-]/i) {  	 ##has "must quote" chars
- 	$name =~ s/(?<!\\)"/\\"/g;       ##escape quotes
- 	$name = "\"$name\"";
-     }
-@@ -622,7 +622,7 @@ sub format_email {
-     $name =~ s/^\"|\"$//g;
-     $address =~ s/^\s+|\s+$//g;
++use strict;
++
+ sub usage {
+ 	print "Usage: checkincludes.pl [-r]\n";
+ 	print "By default we just warn of duplicates\n";
+@@ -35,23 +37,24 @@ if ($#ARGV >= 1) {
+ 	}
+ }
  
--    if ($name =~ /[^a-z0-9 \.\-]/i) {    ##has "must quote" chars
-+    if ($name =~ /[^\w \-]/i) {          ##has "must quote" chars
- 	$name =~ s/(?<!\\)"/\\"/g;       ##escape quotes
- 	$name = "\"$name\"";
-     }
+-foreach $file (@ARGV) {
+-	open(FILE, $file) or die "Cannot open $file: $!.\n";
++foreach my $file (@ARGV) {
++	open(my $f, '<', $file)
++	    or die "Cannot open $file: $!.\n";
+ 
+ 	my %includedfiles = ();
+ 	my @file_lines = ();
+ 
+-	while (<FILE>) {
++	while (<$f>) {
+ 		if (m/^\s*#\s*include\s*[<"](\S*)[>"]/o) {
+ 			++$includedfiles{$1};
+ 		}
+ 		push(@file_lines, $_);
+ 	}
+ 
+-	close(FILE);
++	close($f);
+ 
+ 	if (!$remove) {
+-		foreach $filename (keys %includedfiles) {
++		foreach my $filename (keys %includedfiles) {
+ 			if ($includedfiles{$filename} > 1) {
+ 				print "$file: $filename is included more than once.\n";
+ 			}
+@@ -59,27 +62,28 @@ foreach $file (@ARGV) {
+ 		next;
+ 	}
+ 
+-	open(FILE,">$file") || die("Cannot write to $file: $!");
++	open($f, '>', $file)
++	    or die("Cannot write to $file: $!");
+ 
+ 	my $dups = 0;
+ 	foreach (@file_lines) {
+ 		if (m/^\s*#\s*include\s*[<"](\S*)[>"]/o) {
+-			foreach $filename (keys %includedfiles) {
++			foreach my $filename (keys %includedfiles) {
+ 				if ($1 eq $filename) {
+ 					if ($includedfiles{$filename} > 1) {
+ 						$includedfiles{$filename}--;
+ 						$dups++;
+ 					} else {
+-						print FILE $_;
++						print {$f} $_;
+ 					}
+ 				}
+ 			}
+ 		} else {
+-			print FILE $_;
++			print {$f} $_;
+ 		}
+ 	}
+ 	if ($dups > 0) {
+ 		print "$file: removed $dups duplicate includes\n";
+ 	}
+-	close(FILE);
++	close($f);
+ }
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
 
 origin.patch
 linux-next.patch
+scripts-improve-checkstack.patch
+checkincludes-fix-perlcritic-warnings.patch
+checkversion-perl-cleanup.patch
+namespace-perlcritic-warnings.patch
+profile2linkerlist-fix-perl-warnings.patch
+export_report-fix-perl-warnings.patch
+headers_check-fix-perl-warnings.patch
+headers_install-use-local-file-handles.patch
+markup_oops-fix-perlcritic-warnings.patch
+headerdep-perlcritic-warning.patch
 drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
 drivers-block-floppyc-define-space-and-column-neatening.patch
 drivers-block-floppyc-use-pr_level.patch
