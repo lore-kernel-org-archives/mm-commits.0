@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-cosmetic-improvements-for-error-handling-in-gpiochip_add.patch added to -mm tree
-Date: Mon, 22 Feb 2010 14:26:07 -0800
-Message-ID: <201002222226.o1MMQ7TU027062@imap1.linux-foundation.org>
+Subject: + add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch added to -mm tree
+Date: Mon, 22 Feb 2010 14:56:53 -0800
+Message-ID: <201002222256.o1MMurjI028547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754687Ab0BVW0L (ORCPT
+	by vger.kernel.org with ESMTP id S1754807Ab0BVXBq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 17:26:11 -0500
+	Mon, 22 Feb 2010 18:01:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, david-b@pacbell.net, grant.likely@secretlab.ca
+Cc: atrigent@ccs.neu.edu, alan@linux.intel.com
 
 
 The patch titled
-     gpiolib: cosmetic improvements for error handling in gpiochip_add()
+     vt: add a new VT mode which is like VT_PROCESS but doesn't require a VT_RELDISP ioctl call
 has been added to the -mm tree.  Its filename is
-     gpiolib-cosmetic-improvements-for-error-handling-in-gpiochip_add.patch
+     add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: cosmetic improvements for error handling in gpiochip_add()
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: vt: add a new VT mode which is like VT_PROCESS but doesn't require a VT_RELDISP ioctl call
+From: Ari Entlich <atrigent@ccs.neu.edu>
 
-Hopefully it makes the code look nicer and makes it easier to extend
-this function.
+This new VT mode (VT_PROCESS_AUTO) does everything that VT_PROCESS does
+except that it doesn't wait for a VT_RELDISP ioctl before switching away
+from a VT with that mode.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Suggested-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Brownell <david-b@pacbell.net>
+If the X server eventually uses this new mode, debugging and crash
+recovery should become easier.  This is because even when currently in the
+VT of a frozen X server it would still be possible to switch out by doing
+SysRq-r and then CTRL-<number of a text vt>, sshing in and doing chvt
+<number of a text vt>, or any other method of VT switching.  The general
+concensus on #xorg-devel seems to be that it should be safe to use this
+with X now that we have KMS.
+
+This also moves the VT_ACKACQ define to a more appropriate place, for
+clarity's sake.
+
+Signed-off-by: Ari Entlich <atrigent@ccs.neu.edu>
+Acked-by: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ drivers/char/vt_ioctl.c |   39 +++++++++++++++++++-------------------
+ include/linux/vt.h      |    3 +-
+ 2 files changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-cosmetic-improvements-for-error-handling-in-gpiochip_add drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-cosmetic-improvements-for-error-handling-in-gpiochip_add
-+++ a/drivers/gpio/gpiolib.c
-@@ -1103,17 +1103,23 @@ int gpiochip_add(struct gpio_chip *chip)
+diff -puN drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call drivers/char/vt_ioctl.c
+--- a/drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call
++++ a/drivers/char/vt_ioctl.c
+@@ -888,7 +888,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 			ret = -EFAULT;
+ 			goto out;
+ 		}
+-		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS) {
++		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS && tmp.mode != VT_PROCESS_AUTO) {
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+@@ -1622,7 +1622,7 @@ static void complete_change_console(stru
+ 	 * telling it that it has acquired. Also check if it has died and
+ 	 * clean up (similar to logic employed in change_console())
+ 	 */
+-	if (vc->vt_mode.mode == VT_PROCESS) {
++	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
+ 		/*
+ 		 * Send the signal as privileged - kill_pid() will
+ 		 * tell us if the process has gone or something else
+@@ -1682,7 +1682,7 @@ void change_console(struct vc_data *new_
+ 	 * vt to auto control.
+ 	 */
+ 	vc = vc_cons[fg_console].d;
+-	if (vc->vt_mode.mode == VT_PROCESS) {
++	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
+ 		/*
+ 		 * Send the signal as privileged - kill_pid() will
+ 		 * tell us if the process has gone or something else
+@@ -1693,27 +1693,28 @@ void change_console(struct vc_data *new_
+ 		 */
+ 		vc->vt_newvt = new_vc->vc_num;
+ 		if (kill_pid(vc->vt_pid, vc->vt_mode.relsig, 1) == 0) {
++			if(vc->vt_mode.mode == VT_PROCESS)
++				/*
++				 * It worked. Mark the vt to switch to and
++				 * return. The process needs to send us a
++				 * VT_RELDISP ioctl to complete the switch.
++				 */
++				return;
++		} else {
+ 			/*
+-			 * It worked. Mark the vt to switch to and
+-			 * return. The process needs to send us a
+-			 * VT_RELDISP ioctl to complete the switch.
++			 * The controlling process has died, so we revert back to
++			 * normal operation. In this case, we'll also change back
++			 * to KD_TEXT mode. I'm not sure if this is strictly correct
++			 * but it saves the agony when the X server dies and the screen
++			 * remains blanked due to KD_GRAPHICS! It would be nice to do
++			 * this outside of VT_PROCESS but there is no single process
++			 * to account for and tracking tty count may be undesirable.
+ 			 */
+-			return;
++			reset_vc(vc);
+ 		}
  
- unlock:
- 	spin_unlock_irqrestore(&gpio_lock, flags);
--	if (status == 0)
--		status = gpiochip_export(chip);
-+
-+	if (status)
-+		goto fail;
-+
-+	status = gpiochip_export(chip);
-+	if (status)
-+		goto fail;
-+
-+	blocking_notifier_call_chain(&gpio_notifier, GPIO_NOTIFY_CHIP_ADDED,
-+				     chip);
-+
-+	return 0;
- fail:
- 	/* failures here can mean systems won't boot... */
--	if (status)
--		pr_err("gpiochip_add: gpios %d..%d (%s) not registered\n",
--			chip->base, chip->base + chip->ngpio - 1,
--			chip->label ? : "generic");
--	else
--		blocking_notifier_call_chain(&gpio_notifier,
--					     GPIO_NOTIFY_CHIP_ADDED, chip);
-+	pr_err("gpiochip_add: gpios %d..%d (%s) not registered\n",
-+		chip->base, chip->base + chip->ngpio - 1,
-+		chip->label ? : "generic");
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpiochip_add);
+ 		/*
+-		 * The controlling process has died, so we revert back to
+-		 * normal operation. In this case, we'll also change back
+-		 * to KD_TEXT mode. I'm not sure if this is strictly correct
+-		 * but it saves the agony when the X server dies and the screen
+-		 * remains blanked due to KD_GRAPHICS! It would be nice to do
+-		 * this outside of VT_PROCESS but there is no single process
+-		 * to account for and tracking tty count may be undesirable.
+-		 */
+-		reset_vc(vc);
+-
+-		/*
+-		 * Fall through to normal (VT_AUTO) handling of the switch...
++		 * Fall through to normal (VT_AUTO and VT_PROCESS_AUTO) handling of the switch...
+ 		 */
+ 	}
+ 
+diff -puN include/linux/vt.h~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call include/linux/vt.h
+--- a/include/linux/vt.h~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call
++++ a/include/linux/vt.h
+@@ -27,7 +27,7 @@ struct vt_mode {
+ #define VT_SETMODE	0x5602	/* set mode of active vt */
+ #define		VT_AUTO		0x00	/* auto vt switching */
+ #define		VT_PROCESS	0x01	/* process controls switching */
+-#define		VT_ACKACQ	0x02	/* acknowledge switch */
++#define		VT_PROCESS_AUTO 0x02	/* process is notified of switching */
+ 
+ struct vt_stat {
+ 	unsigned short v_active;	/* active vt */
+@@ -38,6 +38,7 @@ struct vt_stat {
+ #define VT_SENDSIG	0x5604	/* signal to send to bitmask of vts */
+ 
+ #define VT_RELDISP	0x5605	/* release display */
++#define		VT_ACKACQ	0x02	/* acknowledge switch */
+ 
+ #define VT_ACTIVATE	0x5606	/* make vt active */
+ #define VT_WAITACTIVE	0x5607	/* wait for vt active */
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from atrigent@ccs.neu.edu are
 
-origin.patch
-linux-next.patch
-leds-gpio-fix-default-state-handling-on-of-platforms.patch
-adcxx-fix-for-single-channel-adcs.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-gpiolib-introduce-chip-addition-removal-notifier.patch
-of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
-gpiolib-cosmetic-improvements-for-error-handling-in-gpiochip_add.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch
 
