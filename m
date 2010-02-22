@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmwgfx-depends-on-fb.patch added to -mm tree
-Date: Mon, 22 Feb 2010 12:46:31 -0800
-Message-ID: <201002222046.o1MKkVQG022088@imap1.linux-foundation.org>
+Subject: + doc-submitchecklist-add-rule-1.patch added to -mm tree
+Date: Mon, 22 Feb 2010 12:47:15 -0800
+Message-ID: <201002222047.o1MKlFIV022121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753638Ab0BVUqp (ORCPT
+	by vger.kernel.org with ESMTP id S1754405Ab0BVUr2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 15:46:45 -0500
+	Mon, 22 Feb 2010 15:47:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, airlied@linux.ie
+Cc: randy.dunlap@oracle.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     vmwgfx: depends on FB
+     Documentation/SubmitChecklist: add rule #1
 has been added to the -mm tree.  Its filename is
-     vmwgfx-depends-on-fb.patch
+     doc-submitchecklist-add-rule-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmwgfx: depends on FB
+Subject: Documentation/SubmitChecklist: add rule #1
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-vmwfgx uses framebuffer interfaces, so it should depend on FB.
-Otherwise it has these build errors (e.g., when CONFIG_FB=m):
+Add header file requirements.  Compliments of Stephen Rothwell.
 
-drivers/built-in.o: In function `vmw_fb_close':
-(.text+0x97713): undefined reference to `unregister_framebuffer'
-drivers/built-in.o: In function `vmw_fb_close':
-(.text+0x97754): undefined reference to `framebuffer_release'
-drivers/built-in.o: In function `vmw_fb_init':
-(.text+0x97e1c): undefined reference to `framebuffer_alloc'
-drivers/built-in.o: In function `vmw_fb_init':
-(.text+0x9838d): undefined reference to `register_framebuffer'
-drivers/built-in.o: In function `vmw_fb_init':
-(.text+0x9842a): undefined reference to `framebuffer_release'
+Stephen calls this Rule #1, so I put it there, but I didn't want to demote
+any of the others in the list, so I made one of them number 2b.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Airlie <airlied@linux.ie>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/SubmitChecklist |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/vmwgfx/Kconfig~vmwgfx-depends-on-fb drivers/gpu/drm/vmwgfx/Kconfig
---- a/drivers/gpu/drm/vmwgfx/Kconfig~vmwgfx-depends-on-fb
-+++ a/drivers/gpu/drm/vmwgfx/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_VMWGFX
- 	tristate "DRM driver for VMware Virtual GPU"
--	depends on DRM && PCI
-+	depends on DRM && PCI && FB
- 	select FB_DEFERRED_IO
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
+diff -puN Documentation/SubmitChecklist~doc-submitchecklist-add-rule-1 Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~doc-submitchecklist-add-rule-1
++++ a/Documentation/SubmitChecklist
+@@ -9,10 +9,14 @@ Documentation/SubmittingPatches and else
+ kernel patches.
+ 
+ 
+-1: Builds cleanly with applicable or modified CONFIG options =y, =m, and
++1: If you use a facility then #include the file that defines/declares
++   that facility.  Don't depend on other header files pulling in ones
++   that you use.
++
++2: Builds cleanly with applicable or modified CONFIG options =y, =m, and
+    =n.  No gcc warnings/errors, no linker warnings/errors.
+ 
+-2: Passes allnoconfig, allmodconfig
++2b: Passes allnoconfig, allmodconfig
+ 
+ 3: Builds on multiple CPU architectures by using local cross-compile tools
+    or some other build farm.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -88,6 +88,7 @@ documentation-timers-split-txt-and-source-files.patch
 documentation-laptop-split-txt-and-source-files.patch
 documentation-fs-split-txt-and-source-files.patch
 documentation-vm-split-txt-and-source-files.patch
+doc-submitchecklist-add-rule-1.patch
 cgroups-subsystem-module-unloading-fix.patch
 memcg-move-charges-of-anonymous-swap-fix.patch
 memcg-improve-performance-in-moving-swap-charge-fix.patch
