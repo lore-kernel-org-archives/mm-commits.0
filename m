@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch added to -mm tree
-Date: Mon, 22 Feb 2010 13:03:07 -0800
-Message-ID: <201002222103.o1ML37tK022989@imap1.linux-foundation.org>
+Subject: + leds-add-dell-business-class-netbook-led-driver.patch added to -mm tree
+Date: Mon, 22 Feb 2010 13:24:21 -0800
+Message-ID: <201002222124.o1MLOL0X024037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753153Ab0BVVD6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754489Ab0BVV0F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:03:58 -0500
+	Mon, 22 Feb 2010 16:26:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, fujita.tomonori@lab.ntt.co.jp
+Cc: Robert_Rodgers@dell.com, Jim_Dailey@dell.com, Louis_Davis@dell.com, dtor@mail.ru, mjg@redhat.com, rpurdie@rpsys.net
 
 
 The patch titled
-     mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix
+     leds: add Dell Business Class Netbook LED driver
 has been added to the -mm tree.  Its filename is
-     mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+     leds-add-dell-business-class-netbook-led-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,264 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds: add Dell Business Class Netbook LED driver
+From: Bob Rodgers <Robert_Rodgers@dell.com>
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Add an LED driver to support the Dell Activity LED on the Dell Latitude
+2100 netbook and future products to come.  The Activity LED is visible
+externally in the lid so classroom instructors can observe it from a
+distance.  The driver uses the sysfs led_class and provides a standard LED
+interface.  This driver is ready for submission upstream.
+
+Signed-off by: Bob Rodgers <Robert_Rodgers@dell.com>
+Signed-off-by: Louis Davis <Louis_Davis@dell.com>
+Signed-off-by: Jim Dailey <Jim_Dailey@dell.com>, Developers
+Acked-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/dma-mapping.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/leds/Kconfig    |    7 +
+ drivers/leds/Makefile   |    1 
+ drivers/leds/dell-led.c |  200 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 208 insertions(+)
 
-diff -puN arch/mn10300/include/asm/dma-mapping.h~mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix arch/mn10300/include/asm/dma-mapping.h
---- a/arch/mn10300/include/asm/dma-mapping.h~mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix
-+++ a/arch/mn10300/include/asm/dma-mapping.h
-@@ -17,6 +17,11 @@
- #include <asm/cache.h>
- #include <asm/io.h>
+diff -puN drivers/leds/Kconfig~leds-add-dell-business-class-netbook-led-driver drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-add-dell-business-class-netbook-led-driver
++++ a/drivers/leds/Kconfig
+@@ -287,6 +287,13 @@ config LEDS_TRIGGERS
  
+ if LEDS_TRIGGERS
+ 
++config LEDS_DELL_NETBOOKS
++	tristate "External LED on Dell Business Netbooks"
++	depends on LEDS_CLASS && X86 && ACPI_WMI
++	help
++	  This adds support for the Latitude 2100 and similar
++	  notebooks that have an external LED.
++
+ comment "LED Triggers"
+ 
+ config LEDS_TRIGGER_TIMER
+diff -puN drivers/leds/Makefile~leds-add-dell-business-class-netbook-led-driver drivers/leds/Makefile
+--- a/drivers/leds/Makefile~leds-add-dell-business-class-netbook-led-driver
++++ a/drivers/leds/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_LEDS_REGULATOR)		+= leds-re
+ obj-$(CONFIG_LEDS_INTEL_SS4200)		+= leds-ss4200.o
+ obj-$(CONFIG_LEDS_LT3593)		+= leds-lt3593.o
+ obj-$(CONFIG_LEDS_ADP5520)		+= leds-adp5520.o
++obj-$(CONFIG_LEDS_DELL_NETBOOKS)	+= dell-led.o
+ 
+ # LED SPI Drivers
+ obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
+diff -puN /dev/null drivers/leds/dell-led.c
+--- /dev/null
++++ a/drivers/leds/dell-led.c
+@@ -0,0 +1,200 @@
 +/*
-+ * See Documentation/DMA-API.txt for the description of how the
-+ * following DMA API should work.
++ * dell_led.c - Dell LED Driver
++ *
++ * Copyright (C) 2010 Dell Inc.
++ * Louis Davis <louis_davis@dell.com>
++ * Jim Dailey <jim_dailey@dell.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
 + */
 +
- extern void *dma_alloc_coherent(struct device *dev, size_t size,
- 				dma_addr_t *dma_handle, int flag);
- 
++#include <linux/acpi.h>
++#include <linux/leds.h>
++
++MODULE_AUTHOR("Louis Davis/Jim Dailey");
++MODULE_DESCRIPTION("Dell LED Control Driver");
++MODULE_LICENSE("GPL");
++
++#define DELL_LED_BIOS_GUID "F6E4FE6E-909D-47cb-8BAB-C9F6F2F8D396"
++MODULE_ALIAS("wmi:" DELL_LED_BIOS_GUID);
++
++/* Error Result Codes: */
++#define INVALID_DEVICE_ID	250
++#define INVALID_PARAMETER	251
++#define INVALID_BUFFER		252
++#define INTERFACE_ERROR		253
++#define UNSUPPORTED_COMMAND	254
++#define UNSPECIFIED_ERROR	255
++
++/* Device ID */
++#define DEVICE_ID_PANEL_BACK	1
++
++/* LED Commands */
++#define CMD_LED_ON	16
++#define CMD_LED_OFF	17
++#define CMD_LED_BLINK	18
++
++struct bios_args {
++	unsigned char length;
++	unsigned char result_code;
++	unsigned char device_id;
++	unsigned char command;
++	unsigned char on_time;
++	unsigned char off_time;
++};
++
++static int dell_led_perform_fn(u8 length,
++		u8 result_code,
++		u8 device_id,
++		u8 command,
++		u8 on_time,
++		u8 off_time)
++{
++	struct bios_args *bios_return;
++	u8 return_code;
++	union acpi_object *obj;
++	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_buffer input;
++	acpi_status status;
++
++	struct bios_args args;
++	args.length = length;
++	args.result_code = result_code;
++	args.device_id = device_id;
++	args.command = command;
++	args.on_time = on_time;
++	args.off_time = off_time;
++
++	input.length = sizeof(struct bios_args);
++	input.pointer = &args;
++
++	status = wmi_evaluate_method(DELL_LED_BIOS_GUID,
++		1,
++		1,
++		&input,
++		&output);
++
++	if (ACPI_FAILURE(status))
++		return status;
++
++	obj = output.pointer;
++
++	if (!obj)
++		return -EINVAL;
++	else if (obj->type != ACPI_TYPE_BUFFER) {
++		kfree(obj);
++		return -EINVAL;
++	}
++
++	bios_return = ((struct bios_args *)obj->buffer.pointer);
++	return_code = bios_return->result_code;
++
++	kfree(obj);
++
++	return return_code;
++}
++
++static int led_on(void)
++{
++	return dell_led_perform_fn(3,	/* Length of command */
++		INTERFACE_ERROR,	/* Init to  INTERFACE_ERROR */
++		DEVICE_ID_PANEL_BACK,	/* Device ID */
++		CMD_LED_ON,		/* Command */
++		0,			/* not used */
++		0);			/* not used */
++}
++
++static int led_off(void)
++{
++	return dell_led_perform_fn(3,	/* Length of command */
++		INTERFACE_ERROR,	/* Init to  INTERFACE_ERROR */
++		DEVICE_ID_PANEL_BACK,	/* Device ID */
++		CMD_LED_OFF,		/* Command */
++		0,			/* not used */
++		0);			/* not used */
++}
++
++static int led_blink(unsigned char on_eighths,
++		unsigned char off_eighths)
++{
++	return dell_led_perform_fn(5,	/* Length of command */
++		INTERFACE_ERROR,	/* Init to  INTERFACE_ERROR */
++		DEVICE_ID_PANEL_BACK,	/* Device ID */
++		CMD_LED_BLINK,		/* Command */
++		on_eighths,		/* blink on in eigths of a second */
++		off_eighths);		/* blink off in eights of a second */
++}
++
++static void dell_led_set(struct led_classdev *led_cdev,
++		enum led_brightness value)
++{
++	if (value == LED_OFF)
++		led_off();
++	else
++		led_on();
++}
++
++static int dell_led_blink(struct led_classdev *led_cdev,
++		unsigned long *delay_on,
++		unsigned long *delay_off)
++{
++	unsigned long on_eighths;
++	unsigned long off_eighths;
++
++	/* The Dell LED delay is based on 125ms intervals.
++	   Need to round up to next interval. */
++
++	on_eighths = (*delay_on + 124) / 125;
++	if (0 == on_eighths)
++		on_eighths = 1;
++	if (on_eighths > 255)
++		on_eighths = 255;
++	*delay_on = on_eighths * 125;
++
++	off_eighths = (*delay_off + 124) / 125;
++	if (0 == off_eighths)
++		off_eighths = 1;
++	if (off_eighths > 255)
++		off_eighths = 255;
++	*delay_off = off_eighths * 125;
++
++	led_blink(on_eighths, off_eighths);
++
++	return 0;
++}
++
++static struct led_classdev dell_led = {
++	.name		= "dell::lid",
++	.brightness	= LED_OFF,
++	.max_brightness = 1,
++	.brightness_set = dell_led_set,
++	.blink_set	= dell_led_blink,
++	.flags		= LED_CORE_SUSPENDRESUME,
++};
++
++static int __init dell_led_init(void)
++{
++	int error = 0;
++
++	if (!wmi_has_guid(DELL_LED_BIOS_GUID))
++		return -ENODEV;
++
++	error = led_off();
++	if (error != 0)
++		return -ENODEV;
++
++	return led_classdev_register(NULL, &dell_led);
++}
++
++static void __exit dell_led_exit(void)
++{
++	led_classdev_unregister(&dell_led);
++
++	led_off();
++}
++
++module_init(dell_led_init);
++module_exit(dell_led_exit);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Robert_Rodgers@dell.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-serial-clients-support-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+leds-add-dell-business-class-netbook-led-driver.patch
 
