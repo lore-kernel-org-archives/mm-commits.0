@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + headers_install-use-local-file-handles.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:26 -0800
-Message-ID: <201002222317.o1MNHQYl029615@imap1.linux-foundation.org>
+Subject: + checkversion-perl-cleanup.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:14 -0800
+Message-ID: <201002222317.o1MNHEr4029590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755150Ab0BVXRo (ORCPT
+	by vger.kernel.org with ESMTP id S1754927Ab0BVXRl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:44 -0500
+	Mon, 22 Feb 2010 18:17:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, ralf@linux-mips.org
 
 
 The patch titled
-     headers_install: use local file handles
+     checkversion: perl cleanup
 has been added to the -mm tree.  Its filename is
-     headers_install-use-local-file-handles.patch
+     checkversion-perl-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: headers_install: use local file handles
+Subject: checkversion: perl cleanup
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Better practice to use 3 arg open and local file handles.
+Turn on strict checking.
+Use three arguement open
+Standard practice in perl is to use undef not zero for false
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: WANG Cong <amwang@redhat.com>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headers_install.pl |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ scripts/checkversion.pl |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN scripts/headers_install.pl~headers_install-use-local-file-handles scripts/headers_install.pl
---- a/scripts/headers_install.pl~headers_install-use-local-file-handles
-+++ a/scripts/headers_install.pl
-@@ -23,13 +23,13 @@ my ($readdir, $installdir, $arch, @files
- my $unifdef = "scripts/unifdef -U__KERNEL__ -D__EXPORTED_HEADERS__";
+diff -puN scripts/checkversion.pl~checkversion-perl-cleanup scripts/checkversion.pl
+--- a/scripts/checkversion.pl~checkversion-perl-cleanup
++++ a/scripts/checkversion.pl
+@@ -5,23 +5,22 @@
+ # including <linux/version.h> that don't need it.
+ # Copyright (C) 2003, Randy Dunlap <rdunlap@xenotime.net>
  
- foreach my $file (@files) {
--	local *INFILE;
--	local *OUTFILE;
- 	my $tmpfile = "$installdir/$file.tmp";
--	open(INFILE, "<$readdir/$file")
--		or die "$readdir/$file: $!\n";
--	open(OUTFILE, ">$tmpfile") or die "$tmpfile: $!\n";
--	while (my $line = <INFILE>) {
++use strict;
 +
-+	open(my $in, '<', "$readdir/$file")
-+	    or die "$readdir/$file: $!\n";
-+	open(my $out, '>', $tmpfile)
-+	    or die "$tmpfile: $!\n";
-+	while (my $line = <$in>) {
- 		$line =~ s/([\s(])__user\s/$1/g;
- 		$line =~ s/([\s(])__force\s/$1/g;
- 		$line =~ s/([\s(])__iomem\s/$1/g;
-@@ -39,10 +39,11 @@ foreach my $file (@files) {
- 		$line =~ s/(^|\s)(inline)\b/$1__$2__/g;
- 		$line =~ s/(^|\s)(asm)\b(\s|[(]|$)/$1__$2__$3/g;
- 		$line =~ s/(^|\s|[(])(volatile)\b(\s|[(]|$)/$1__$2__$3/g;
--		printf OUTFILE "%s", $line;
-+		printf {$out} "%s", $line;
- 	}
--	close OUTFILE;
--	close INFILE;
-+	close $out;
-+	close $in;
-+
- 	system $unifdef . " $tmpfile > $installdir/$file";
- 	unlink $tmpfile;
+ $| = 1;
+ 
+-my $debugging = 0;
++my $debugging;
+ 
+-foreach $file (@ARGV)
+-{
++foreach my $file (@ARGV) {
+     # Open this file.
+-    open(FILE, $file) || die "Can't open $file: $!\n";
++    open( my $f, '<', $file )
++      or die "Can't open $file: $!\n";
+ 
+     # Initialize variables.
+-    my $fInComment   = 0;
+-    my $fInString    = 0;
+-    my $fUseVersion   = 0;
++    my ($fInComment, $fInString, $fUseVersion);
+     my $iLinuxVersion = 0;
+ 
+-    LINE: while ( <FILE> )
+-    {
++    while (<$f>) {
+ 	# Strip comments.
+ 	$fInComment && (s+^.*?\*/+ +o ? ($fInComment = 0) : next);
+ 	m+/\*+o && (s+/\*.*?\*/+ +go, (s+/\*.*$+ +o && ($fInComment = 1)));
+@@ -43,8 +42,8 @@ foreach $file (@ARGV)
+ 	# Look for uses: LINUX_VERSION_CODE, KERNEL_VERSION, UTS_RELEASE
+ 	if (($_ =~ /LINUX_VERSION_CODE/) || ($_ =~ /\WKERNEL_VERSION/)) {
+ 	    $fUseVersion = 1;
+-	    last LINE if $iLinuxVersion;
+-	}
++            last if $iLinuxVersion;
++        }
+     }
+ 
+     # Report used version IDs without include?
+@@ -67,5 +66,5 @@ foreach $file (@ARGV)
+         }
+     }
+ 
+-    close(FILE);
++    close($f);
  }
 _
 
