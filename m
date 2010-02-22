@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkversion-perl-cleanup.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:14 -0800
-Message-ID: <201002222317.o1MNHEr4029590@imap1.linux-foundation.org>
+Subject: + profile2linkerlist-fix-perl-warnings.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:20 -0800
+Message-ID: <201002222317.o1MNHKep029604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754927Ab0BVXRl (ORCPT
+	by vger.kernel.org with ESMTP id S1754858Ab0BVXRj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:41 -0500
+	Mon, 22 Feb 2010 18:17:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, ralf@linux-mips.org
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
 
 
 The patch titled
-     checkversion: perl cleanup
+     profile2linkerlist: fix perl warnings
 has been added to the -mm tree.  Its filename is
-     checkversion-perl-cleanup.patch
+     profile2linkerlist-fix-perl-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkversion: perl cleanup
+Subject: profile2linkerlist: fix perl warnings
 From: Stephen Hemminger <shemminger@vyatta.com>
 
 Turn on strict checking.
-Use three arguement open
-Standard practice in perl is to use undef not zero for false
+Simplify code by using "unless" statement.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Cong Wang <amwang@redhat.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: WANG Cong <amwang@redhat.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkversion.pl |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ scripts/profile2linkerlist.pl |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkversion.pl~checkversion-perl-cleanup scripts/checkversion.pl
---- a/scripts/checkversion.pl~checkversion-perl-cleanup
-+++ a/scripts/checkversion.pl
-@@ -5,23 +5,22 @@
- # including <linux/version.h> that don't need it.
- # Copyright (C) 2003, Randy Dunlap <rdunlap@xenotime.net>
- 
+diff -puN scripts/profile2linkerlist.pl~profile2linkerlist-fix-perl-warnings scripts/profile2linkerlist.pl
+--- a/scripts/profile2linkerlist.pl~profile2linkerlist-fix-perl-warnings
++++ a/scripts/profile2linkerlist.pl
+@@ -7,15 +7,13 @@
+ # usage:
+ #	 readprofile | sort -rn | perl profile2linkerlist.pl > functionlist
+ #
 +use strict;
-+
- $| = 1;
  
--my $debugging = 0;
-+my $debugging;
+ while (<>) {
+   my $line = $_;
  
--foreach $file (@ARGV)
--{
-+foreach my $file (@ARGV) {
-     # Open this file.
--    open(FILE, $file) || die "Can't open $file: $!\n";
-+    open( my $f, '<', $file )
-+      or die "Can't open $file: $!\n";
+   $_ =~ /\W*[0-9]+\W*([a-zA-Z\_0-9]+)\W*[0-9]+/;
  
-     # Initialize variables.
--    my $fInComment   = 0;
--    my $fInString    = 0;
--    my $fUseVersion   = 0;
-+    my ($fInComment, $fInString, $fUseVersion);
-     my $iLinuxVersion = 0;
- 
--    LINE: while ( <FILE> )
--    {
-+    while (<$f>) {
- 	# Strip comments.
- 	$fInComment && (s+^.*?\*/+ +o ? ($fInComment = 0) : next);
- 	m+/\*+o && (s+/\*.*?\*/+ +go, (s+/\*.*$+ +o && ($fInComment = 1)));
-@@ -43,8 +42,8 @@ foreach $file (@ARGV)
- 	# Look for uses: LINUX_VERSION_CODE, KERNEL_VERSION, UTS_RELEASE
- 	if (($_ =~ /LINUX_VERSION_CODE/) || ($_ =~ /\WKERNEL_VERSION/)) {
- 	    $fUseVersion = 1;
--	    last LINE if $iLinuxVersion;
--	}
-+            last if $iLinuxVersion;
-+        }
-     }
- 
-     # Report used version IDs without include?
-@@ -67,5 +66,5 @@ foreach $file (@ARGV)
-         }
-     }
- 
--    close(FILE);
-+    close($f);
+-  if ( ($line =~ /unknown/) || ($line =~ /total/)) {
+-
+-  } else {
+-    print "*(.text.$1)\n";
+-  }
++  print "*(.text.$1)\n"
++      unless ($line =~ /unknown/) || ($line =~ /total/);
  }
 _
 
