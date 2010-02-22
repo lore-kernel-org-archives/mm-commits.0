@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + profile2linkerlist-fix-perl-warnings.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:20 -0800
-Message-ID: <201002222317.o1MNHKep029604@imap1.linux-foundation.org>
+Subject: + markup_oops-fix-perlcritic-warnings.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:28 -0800
+Message-ID: <201002222317.o1MNHSGg029618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754858Ab0BVXRj (ORCPT
+	by vger.kernel.org with ESMTP id S1754894Ab0BVXRt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:39 -0500
+	Mon, 22 Feb 2010 18:17:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
+Cc: shemminger@vyatta.com, amwang@redhat.com, arjan@infradead.org, mmarek@suse.cz
 
 
 The patch titled
-     profile2linkerlist: fix perl warnings
+     markup_oops: fix perlcritic warnings
 has been added to the -mm tree.  Its filename is
-     profile2linkerlist-fix-perl-warnings.patch
+     markup_oops-fix-perlcritic-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: profile2linkerlist: fix perl warnings
+Subject: markup_oops: fix perlcritic warnings
 From: Stephen Hemminger <shemminger@vyatta.com>
 
 Turn on strict checking.
-Simplify code by using "unless" statement.
+Use local file handles and 3 argument open.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Acked-by: WANG Cong <amwang@redhat.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/profile2linkerlist.pl |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ scripts/markup_oops.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN scripts/profile2linkerlist.pl~profile2linkerlist-fix-perl-warnings scripts/profile2linkerlist.pl
---- a/scripts/profile2linkerlist.pl~profile2linkerlist-fix-perl-warnings
-+++ a/scripts/profile2linkerlist.pl
-@@ -7,15 +7,13 @@
- # usage:
- #	 readprofile | sort -rn | perl profile2linkerlist.pl > functionlist
- #
+diff -puN scripts/markup_oops.pl~markup_oops-fix-perlcritic-warnings scripts/markup_oops.pl
+--- a/scripts/markup_oops.pl~markup_oops-fix-perlcritic-warnings
++++ a/scripts/markup_oops.pl
+@@ -1,5 +1,7 @@
+ #!/usr/bin/perl
+ 
 +use strict;
++
+ use File::Basename;
+ use Math::BigInt;
+ use Getopt::Long;
+@@ -126,7 +128,7 @@ sub process_x86_regs
+ 		$clobber = "";
+ 	}
  
- while (<>) {
-   my $line = $_;
- 
-   $_ =~ /\W*[0-9]+\W*([a-zA-Z\_0-9]+)\W*[0-9]+/;
- 
--  if ( ($line =~ /unknown/) || ($line =~ /total/)) {
--
--  } else {
--    print "*(.text.$1)\n";
--  }
-+  print "*(.text.$1)\n"
-+      unless ($line =~ /unknown/) || ($line =~ /total/);
+-	foreach $reg (keys(%regs)) {
++	foreach my $reg (keys(%regs)) {
+ 		my $clobberprime = reg_name($clobber);
+ 		my $lastwordprime = reg_name($lastword);
+ 		my $val = $regs{$reg};
+@@ -263,7 +265,7 @@ while (<FILE>) {
+ 	}
  }
+ 
+-close(FILE);
++close($file);
+ 
+ if ($counter == 0) {
+ 	print "No matching code found \n";
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
