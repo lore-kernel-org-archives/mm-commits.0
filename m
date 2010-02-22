@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-dell-business-class-netbook-led-driver.patch added to -mm tree
-Date: Mon, 22 Feb 2010 13:24:21 -0800
-Message-ID: <201002222124.o1MLOL0X024037@imap1.linux-foundation.org>
+Subject: + cciss-remove-c99-style-comments.patch added to -mm tree
+Date: Mon, 22 Feb 2010 14:08:09 -0800
+Message-ID: <201002222208.o1MM8903026275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754489Ab0BVV0F (ORCPT
+	by vger.kernel.org with ESMTP id S1754729Ab0BVWI1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:26:05 -0500
+	Mon, 22 Feb 2010 17:08:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Robert_Rodgers@dell.com, Jim_Dailey@dell.com, Louis_Davis@dell.com, dtor@mail.ru, mjg@redhat.com, rpurdie@rpsys.net
+Cc: dannf@hp.com, jens.axboe@oracle.com, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     leds: add Dell Business Class Netbook LED driver
+     cciss: remove C99-style comments
 has been added to the -mm tree.  Its filename is
-     leds-add-dell-business-class-netbook-led-driver.patch
+     cciss-remove-c99-style-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,264 +34,510 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: add Dell Business Class Netbook LED driver
-From: Bob Rodgers <Robert_Rodgers@dell.com>
+Subject: cciss: remove C99-style comments
+From: dann frazier <dannf@hp.com>
 
-Add an LED driver to support the Dell Activity LED on the Dell Latitude
-2100 netbook and future products to come.  The Activity LED is visible
-externally in the lid so classroom instructors can observe it from a
-distance.  The driver uses the sysfs led_class and provides a standard LED
-interface.  This driver is ready for submission upstream.
+Some cleanup before the header file split-out so we don't propagate this style
+into new files.
 
-Signed-off by: Bob Rodgers <Robert_Rodgers@dell.com>
-Signed-off-by: Louis Davis <Louis_Davis@dell.com>
-Signed-off-by: Jim Dailey <Jim_Dailey@dell.com>, Developers
-Acked-by: Matthew Garrett <mjg@redhat.com>
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: dann frazier <dannf@hp.com>
+Acked-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig    |    7 +
- drivers/leds/Makefile   |    1 
- drivers/leds/dell-led.c |  200 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 208 insertions(+)
+ drivers/block/cciss.c       |   37 ++++++++++----------
+ drivers/block/cciss.h       |    9 ++---
+ drivers/block/cciss_cmd.h   |   61 ++++++++++++++++------------------
+ drivers/block/cciss_scsi.h  |   18 +++++-----
+ include/linux/cciss_ioctl.h |   33 +++++++++---------
+ 5 files changed, 78 insertions(+), 80 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-add-dell-business-class-netbook-led-driver drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-add-dell-business-class-netbook-led-driver
-+++ a/drivers/leds/Kconfig
-@@ -287,6 +287,13 @@ config LEDS_TRIGGERS
+diff -puN drivers/block/cciss.c~cciss-remove-c99-style-comments drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-remove-c99-style-comments
++++ a/drivers/block/cciss.c
+@@ -1344,26 +1344,27 @@ static int cciss_ioctl(struct block_devi
+ 				kfree(buff);
+ 				return -ENOMEM;
+ 			}
+-			// Fill in the command type
++			/* Fill in the command type */
+ 			c->cmd_type = CMD_IOCTL_PEND;
+-			// Fill in Command Header
+-			c->Header.ReplyQueue = 0;	// unused in simple mode
+-			if (iocommand.buf_size > 0)	// buffer to fill
++			/* Fill in Command Header */
++			c->Header.ReplyQueue = 0;   /* unused in simple mode */
++			if (iocommand.buf_size > 0) /* buffer to fill */
+ 			{
+ 				c->Header.SGList = 1;
+ 				c->Header.SGTotal = 1;
+-			} else	// no buffers to fill
++			} else /* no buffers to fill */
+ 			{
+ 				c->Header.SGList = 0;
+ 				c->Header.SGTotal = 0;
+ 			}
+ 			c->Header.LUN = iocommand.LUN_info;
+-			c->Header.Tag.lower = c->busaddr;	// use the kernel address the cmd block for tag
++			/* use the kernel address the cmd block for tag */
++			c->Header.Tag.lower = c->busaddr;
  
- if LEDS_TRIGGERS
+-			// Fill in Request block
++			/* Fill in Request block */
+ 			c->Request = iocommand.Request;
  
-+config LEDS_DELL_NETBOOKS
-+	tristate "External LED on Dell Business Netbooks"
-+	depends on LEDS_CLASS && X86 && ACPI_WMI
-+	help
-+	  This adds support for the Latitude 2100 and similar
-+	  notebooks that have an external LED.
-+
- comment "LED Triggers"
+-			// Fill in the scatter gather information
++			/* Fill in the scatter gather information */
+ 			if (iocommand.buf_size > 0) {
+ 				temp64.val = pci_map_single(host->pdev, buff,
+ 					iocommand.buf_size,
+@@ -1371,7 +1372,7 @@ static int cciss_ioctl(struct block_devi
+ 				c->SG[0].Addr.lower = temp64.val32.lower;
+ 				c->SG[0].Addr.upper = temp64.val32.upper;
+ 				c->SG[0].Len = iocommand.buf_size;
+-				c->SG[0].Ext = 0;	// we are not chaining
++				c->SG[0].Ext = 0;  /* we are not chaining */
+ 			}
+ 			c->waiting = &wait;
  
- config LEDS_TRIGGER_TIMER
-diff -puN drivers/leds/Makefile~leds-add-dell-business-class-netbook-led-driver drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-add-dell-business-class-netbook-led-driver
-+++ a/drivers/leds/Makefile
-@@ -34,6 +34,7 @@ obj-$(CONFIG_LEDS_REGULATOR)		+= leds-re
- obj-$(CONFIG_LEDS_INTEL_SS4200)		+= leds-ss4200.o
- obj-$(CONFIG_LEDS_LT3593)		+= leds-lt3593.o
- obj-$(CONFIG_LEDS_ADP5520)		+= leds-adp5520.o
-+obj-$(CONFIG_LEDS_DELL_NETBOOKS)	+= dell-led.o
+@@ -2425,7 +2426,7 @@ static int fill_cmd(CommandList_struct *
+ 			c->Request.Type.Direction = XFER_READ;
+ 			c->Request.Timeout = 0;
+ 			c->Request.CDB[0] = cmd;
+-			c->Request.CDB[6] = (size >> 24) & 0xFF;	//MSB
++			c->Request.CDB[6] = (size >> 24) & 0xFF; /* MSB */
+ 			c->Request.CDB[7] = (size >> 16) & 0xFF;
+ 			c->Request.CDB[8] = (size >> 8) & 0xFF;
+ 			c->Request.CDB[9] = size & 0xFF;
+@@ -2694,7 +2695,7 @@ static void cciss_geometry_inquiry(int c
+ 			       "cciss: reading geometry failed, volume "
+ 			       "does not support reading geometry\n");
+ 			drv->heads = 255;
+-			drv->sectors = 32;	// Sectors per track
++			drv->sectors = 32;	/* Sectors per track */
+ 			drv->cylinders = total_size + 1;
+ 			drv->raid_level = RAID_UNKNOWN;
+ 		} else {
+@@ -3112,19 +3113,19 @@ static void do_cciss_request(struct requ
  
- # LED SPI Drivers
- obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
-diff -puN /dev/null drivers/leds/dell-led.c
---- /dev/null
-+++ a/drivers/leds/dell-led.c
-@@ -0,0 +1,200 @@
-+/*
-+ * dell_led.c - Dell LED Driver
-+ *
-+ * Copyright (C) 2010 Dell Inc.
-+ * Louis Davis <louis_davis@dell.com>
-+ * Jim Dailey <jim_dailey@dell.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/leds.h>
-+
-+MODULE_AUTHOR("Louis Davis/Jim Dailey");
-+MODULE_DESCRIPTION("Dell LED Control Driver");
-+MODULE_LICENSE("GPL");
-+
-+#define DELL_LED_BIOS_GUID "F6E4FE6E-909D-47cb-8BAB-C9F6F2F8D396"
-+MODULE_ALIAS("wmi:" DELL_LED_BIOS_GUID);
-+
-+/* Error Result Codes: */
-+#define INVALID_DEVICE_ID	250
-+#define INVALID_PARAMETER	251
-+#define INVALID_BUFFER		252
-+#define INTERFACE_ERROR		253
-+#define UNSUPPORTED_COMMAND	254
-+#define UNSPECIFIED_ERROR	255
-+
-+/* Device ID */
-+#define DEVICE_ID_PANEL_BACK	1
-+
-+/* LED Commands */
-+#define CMD_LED_ON	16
-+#define CMD_LED_OFF	17
-+#define CMD_LED_BLINK	18
-+
-+struct bios_args {
-+	unsigned char length;
-+	unsigned char result_code;
-+	unsigned char device_id;
-+	unsigned char command;
-+	unsigned char on_time;
-+	unsigned char off_time;
-+};
-+
-+static int dell_led_perform_fn(u8 length,
-+		u8 result_code,
-+		u8 device_id,
-+		u8 command,
-+		u8 on_time,
-+		u8 off_time)
-+{
-+	struct bios_args *bios_return;
-+	u8 return_code;
-+	union acpi_object *obj;
-+	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_buffer input;
-+	acpi_status status;
-+
-+	struct bios_args args;
-+	args.length = length;
-+	args.result_code = result_code;
-+	args.device_id = device_id;
-+	args.command = command;
-+	args.on_time = on_time;
-+	args.off_time = off_time;
-+
-+	input.length = sizeof(struct bios_args);
-+	input.pointer = &args;
-+
-+	status = wmi_evaluate_method(DELL_LED_BIOS_GUID,
-+		1,
-+		1,
-+		&input,
-+		&output);
-+
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	obj = output.pointer;
-+
-+	if (!obj)
-+		return -EINVAL;
-+	else if (obj->type != ACPI_TYPE_BUFFER) {
-+		kfree(obj);
-+		return -EINVAL;
-+	}
-+
-+	bios_return = ((struct bios_args *)obj->buffer.pointer);
-+	return_code = bios_return->result_code;
-+
-+	kfree(obj);
-+
-+	return return_code;
-+}
-+
-+static int led_on(void)
-+{
-+	return dell_led_perform_fn(3,	/* Length of command */
-+		INTERFACE_ERROR,	/* Init to  INTERFACE_ERROR */
-+		DEVICE_ID_PANEL_BACK,	/* Device ID */
-+		CMD_LED_ON,		/* Command */
-+		0,			/* not used */
-+		0);			/* not used */
-+}
-+
-+static int led_off(void)
-+{
-+	return dell_led_perform_fn(3,	/* Length of command */
-+		INTERFACE_ERROR,	/* Init to  INTERFACE_ERROR */
-+		DEVICE_ID_PANEL_BACK,	/* Device ID */
-+		CMD_LED_OFF,		/* Command */
-+		0,			/* not used */
-+		0);			/* not used */
-+}
-+
-+static int led_blink(unsigned char on_eighths,
-+		unsigned char off_eighths)
-+{
-+	return dell_led_perform_fn(5,	/* Length of command */
-+		INTERFACE_ERROR,	/* Init to  INTERFACE_ERROR */
-+		DEVICE_ID_PANEL_BACK,	/* Device ID */
-+		CMD_LED_BLINK,		/* Command */
-+		on_eighths,		/* blink on in eigths of a second */
-+		off_eighths);		/* blink off in eights of a second */
-+}
-+
-+static void dell_led_set(struct led_classdev *led_cdev,
-+		enum led_brightness value)
-+{
-+	if (value == LED_OFF)
-+		led_off();
-+	else
-+		led_on();
-+}
-+
-+static int dell_led_blink(struct led_classdev *led_cdev,
-+		unsigned long *delay_on,
-+		unsigned long *delay_off)
-+{
-+	unsigned long on_eighths;
-+	unsigned long off_eighths;
-+
-+	/* The Dell LED delay is based on 125ms intervals.
-+	   Need to round up to next interval. */
-+
-+	on_eighths = (*delay_on + 124) / 125;
-+	if (0 == on_eighths)
-+		on_eighths = 1;
-+	if (on_eighths > 255)
-+		on_eighths = 255;
-+	*delay_on = on_eighths * 125;
-+
-+	off_eighths = (*delay_off + 124) / 125;
-+	if (0 == off_eighths)
-+		off_eighths = 1;
-+	if (off_eighths > 255)
-+		off_eighths = 255;
-+	*delay_off = off_eighths * 125;
-+
-+	led_blink(on_eighths, off_eighths);
-+
-+	return 0;
-+}
-+
-+static struct led_classdev dell_led = {
-+	.name		= "dell::lid",
-+	.brightness	= LED_OFF,
-+	.max_brightness = 1,
-+	.brightness_set = dell_led_set,
-+	.blink_set	= dell_led_blink,
-+	.flags		= LED_CORE_SUSPENDRESUME,
-+};
-+
-+static int __init dell_led_init(void)
-+{
-+	int error = 0;
-+
-+	if (!wmi_has_guid(DELL_LED_BIOS_GUID))
-+		return -ENODEV;
-+
-+	error = led_off();
-+	if (error != 0)
-+		return -ENODEV;
-+
-+	return led_classdev_register(NULL, &dell_led);
-+}
-+
-+static void __exit dell_led_exit(void)
-+{
-+	led_classdev_unregister(&dell_led);
-+
-+	led_off();
-+}
-+
-+module_init(dell_led_init);
-+module_exit(dell_led_exit);
+ 	/* fill in the request */
+ 	drv = creq->rq_disk->private_data;
+-	c->Header.ReplyQueue = 0;	// unused in simple mode
++	c->Header.ReplyQueue = 0;	/* unused in simple mode */
+ 	/* got command from pool, so use the command block index instead */
+ 	/* for direct lookups. */
+ 	/* The first 2 bits are reserved for controller error reporting. */
+ 	c->Header.Tag.lower = (c->cmdindex << 3);
+ 	c->Header.Tag.lower |= 0x04;	/* flag for direct lookup. */
+ 	memcpy(&c->Header.LUN, drv->LunID, sizeof(drv->LunID));
+-	c->Request.CDBLen = 10;	// 12 byte commands not in FW yet;
+-	c->Request.Type.Type = TYPE_CMD;	// It is a command.
++	c->Request.CDBLen = 10;	/* 12 byte commands not in FW yet; */
++	c->Request.Type.Type = TYPE_CMD;	/* It is a command. */
+ 	c->Request.Type.Attribute = ATTR_SIMPLE;
+ 	c->Request.Type.Direction =
+ 	    (rq_data_dir(creq) == READ) ? XFER_READ : XFER_WRITE;
+-	c->Request.Timeout = 0;	// Don't time out
++	c->Request.Timeout = 0;	/* Don't time out */
+ 	c->Request.CDB[0] =
+ 	    (rq_data_dir(creq) == READ) ? h->cciss_read : h->cciss_write;
+ 	start_blk = blk_rq_pos(creq);
+@@ -3209,11 +3210,11 @@ static void do_cciss_request(struct requ
+ 	if (likely(blk_fs_request(creq))) {
+ 		if(h->cciss_read == CCISS_READ_10) {
+ 			c->Request.CDB[1] = 0;
+-			c->Request.CDB[2] = (start_blk >> 24) & 0xff;	//MSB
++			c->Request.CDB[2] = (start_blk >> 24) & 0xff; /* MSB */
+ 			c->Request.CDB[3] = (start_blk >> 16) & 0xff;
+ 			c->Request.CDB[4] = (start_blk >> 8) & 0xff;
+ 			c->Request.CDB[5] = start_blk & 0xff;
+-			c->Request.CDB[6] = 0;	// (sect >> 24) & 0xff; MSB
++			c->Request.CDB[6] = 0; /* (sect >> 24) & 0xff; MSB */
+ 			c->Request.CDB[7] = (blk_rq_sectors(creq) >> 8) & 0xff;
+ 			c->Request.CDB[8] = blk_rq_sectors(creq) & 0xff;
+ 			c->Request.CDB[9] = c->Request.CDB[11] = c->Request.CDB[12] = 0;
+@@ -3222,7 +3223,7 @@ static void do_cciss_request(struct requ
+ 
+ 			c->Request.CDBLen = 16;
+ 			c->Request.CDB[1]= 0;
+-			c->Request.CDB[2]= (upper32 >> 24) & 0xff;	//MSB
++			c->Request.CDB[2]= (upper32 >> 24) & 0xff; /* MSB */
+ 			c->Request.CDB[3]= (upper32 >> 16) & 0xff;
+ 			c->Request.CDB[4]= (upper32 >>  8) & 0xff;
+ 			c->Request.CDB[5]= upper32 & 0xff;
+diff -puN drivers/block/cciss.h~cciss-remove-c99-style-comments drivers/block/cciss.h
+--- a/drivers/block/cciss.h~cciss-remove-c99-style-comments
++++ a/drivers/block/cciss.h
+@@ -66,7 +66,7 @@ struct ctlr_info
+ 	int	ctlr;
+ 	char	devname[8];
+ 	char    *product_name;
+-	char	firm_ver[4]; // Firmware version 
++	char	firm_ver[4]; /* Firmware version */
+ 	struct pci_dev *pdev;
+ 	__u32	board_id;
+ 	void __iomem *vaddr;
+@@ -103,7 +103,7 @@ struct ctlr_info
+ 	BYTE	cciss_write;
+ 	BYTE	cciss_read_capacity;
+ 
+-	// information about each logical volume
++	/* information about each logical volume */
+ 	drive_info_struct *drv[CISS_MAX_LUN];
+ 
+ 	struct access_method access;
+@@ -116,7 +116,7 @@ struct ctlr_info
+ 	unsigned int maxSG;
+ 	spinlock_t lock;
+ 
+-	//* pointers to command and error info pool */ 
++	/* pointers to command and error info pool */
+ 	CommandList_struct 	*cmd_pool;
+ 	dma_addr_t		cmd_pool_dhandle; 
+ 	ErrorInfo_struct 	*errinfo_pool;
+@@ -134,7 +134,7 @@ struct ctlr_info
+ 	*/
+ 	int			next_to_run;
+ 
+-	// Disk structures we need to pass back
++	/* Disk structures we need to pass back */
+ 	struct gendisk   *gendisk[CISS_MAX_LUN];
+ #ifdef CONFIG_CISS_SCSI_TAPE
+ 	void *scsi_ctlr; /* ptr to structure containing scsi related stuff */
+@@ -315,4 +315,3 @@ struct board_type {
+ #define CCISS_LOCK(i)	(&hba[i]->lock)
+ 
+ #endif /* CCISS_H */
+-
+diff -puN drivers/block/cciss_cmd.h~cciss-remove-c99-style-comments drivers/block/cciss_cmd.h
+--- a/drivers/block/cciss_cmd.h~cciss-remove-c99-style-comments
++++ a/drivers/block/cciss_cmd.h
+@@ -1,17 +1,16 @@
+ #ifndef CCISS_CMD_H
+ #define CCISS_CMD_H
+-//###########################################################################
+-//DEFINES
+-//###########################################################################
++/* DEFINES */
+ #define CISS_VERSION "1.00"
+ 
+-//general boundary definitions
+-#define SENSEINFOBYTES          32//note that this value may vary between host implementations
++/* general boundary definitions */
++#define SENSEINFOBYTES          32 /* note that this value may vary
++				      between host implementations */
+ #define MAXSGENTRIES            32
+ #define CCISS_SG_CHAIN          0x80000000
+ #define MAXREPLYQS              256
+ 
+-//Command Status value
++/* Command Status value */
+ #define CMD_SUCCESS             0x0000
+ #define CMD_TARGET_STATUS       0x0001
+ #define CMD_DATA_UNDERRUN       0x0002
+@@ -49,30 +48,30 @@
+ #define ASYM_ACCESS_CHANGED		0x06
+ #define LUN_CAPACITY_CHANGED		0x09
+ 
+-//transfer direction
++/* transfer direction */
+ #define XFER_NONE               0x00
+ #define XFER_WRITE              0x01
+ #define XFER_READ               0x02
+ #define XFER_RSVD               0x03
+ 
+-//task attribute
++/* task attribute */
+ #define ATTR_UNTAGGED           0x00
+ #define ATTR_SIMPLE             0x04
+ #define ATTR_HEADOFQUEUE        0x05
+ #define ATTR_ORDERED            0x06
+ #define ATTR_ACA                0x07
+ 
+-//cdb type
++/* cdb type */
+ #define TYPE_CMD				0x00
+ #define TYPE_MSG				0x01
+ 
+-//config space register offsets
++/* config space register offsets */
+ #define CFG_VENDORID            0x00
+ #define CFG_DEVICEID            0x02
+ #define CFG_I2OBAR              0x10
+ #define CFG_MEM1BAR             0x14
+ 
+-//i2o space register offsets
++/* i2o space register offsets */
+ #define I2O_IBDB_SET            0x20
+ #define I2O_IBDB_CLEAR          0x70
+ #define I2O_INT_STATUS          0x30
+@@ -81,7 +80,7 @@
+ #define I2O_OBPOST_Q            0x44
+ #define I2O_DMA1_CFG		0x214
+ 
+-//Configuration Table
++/* Configuration Table */
+ #define CFGTBL_ChangeReq        0x00000001l
+ #define CFGTBL_AccCmds          0x00000001l
+ 
+@@ -103,24 +102,22 @@ typedef union _u64bit
+    __u64	val;
+ } u64bit;
+ 
+-// Type defs used in the following structs
++/* Type defs used in the following structs */
+ #define BYTE __u8
+ #define WORD __u16
+ #define HWORD __u16
+ #define DWORD __u32
+ #define QWORD vals32 
+ 
+-//###########################################################################
+-//STRUCTURES
+-//###########################################################################
++/* STRUCTURES */
+ #define CISS_MAX_LUN	1024
+ #define CISS_MAX_PHYS_LUN	1024
+-// SCSI-3 Cmmands 
++/* SCSI-3 Cmmands */
+ 
+ #pragma pack(1)	
+ 
+ #define CISS_INQUIRY 0x12
+-//Date returned
++/* Date returned */
+ typedef struct _InquiryData_struct
+ {
+   BYTE data_byte[36];
+@@ -128,7 +125,7 @@ typedef struct _InquiryData_struct
+ 
+ #define CISS_REPORT_LOG 0xc2    /* Report Logical LUNs */
+ #define CISS_REPORT_PHYS 0xc3   /* Report Physical LUNs */
+-// Data returned
++/* Data returned */
+ typedef struct _ReportLUNdata_struct
+ {
+   BYTE LUNListLength[4];
+@@ -139,8 +136,8 @@ typedef struct _ReportLUNdata_struct
+ #define CCISS_READ_CAPACITY 0x25 /* Read Capacity */ 
+ typedef struct _ReadCapdata_struct
+ {
+-  BYTE total_size[4];	// Total size in blocks
+-  BYTE block_size[4];	// Size of blocks in bytes
++  BYTE total_size[4];	/* Total size in blocks */
++  BYTE block_size[4];	/* Size of blocks in bytes */
+ } ReadCapdata_struct;
+ 
+ #define CCISS_READ_CAPACITY_16 0x9e /* Read Capacity 16 */
+@@ -172,29 +169,29 @@ typedef struct _ReadCapdata_struct_16
+ #define CDB_LEN10	10
+ #define CDB_LEN16	16
+ 
+-// BMIC commands 
++/* BMIC commands */
+ #define BMIC_READ 0x26
+ #define BMIC_WRITE 0x27
+ #define BMIC_CACHE_FLUSH 0xc2
+-#define CCISS_CACHE_FLUSH 0x01	//C2 was already being used by CCISS
++#define CCISS_CACHE_FLUSH 0x01	/* C2 was already being used by CCISS */
+ 
+-//Command List Structure
++/* Command List Structure */
+ typedef union _SCSI3Addr_struct {
+    struct {
+     BYTE Dev;
+     BYTE Bus:6;
+-    BYTE Mode:2;        // b00
++    BYTE Mode:2;        /* b00 */
+   } PeripDev;
+    struct {
+     BYTE DevLSB;
+     BYTE DevMSB:6;
+-    BYTE Mode:2;        // b01
++    BYTE Mode:2;        /* b01 */
+   } LogDev;
+    struct {
+     BYTE Dev:5;
+     BYTE Bus:3;
+     BYTE Targ:6;
+-    BYTE Mode:2;        // b10
++    BYTE Mode:2;        /* b10 */
+   } LogUnit;
+ } SCSI3Addr_struct;
+ 
+@@ -202,7 +199,7 @@ typedef struct _PhysDevAddr_struct {
+   DWORD             TargetId:24;
+   DWORD             Bus:6;
+   DWORD             Mode:2;
+-  SCSI3Addr_struct  Target[2]; //2 level target device addr
++  SCSI3Addr_struct  Target[2]; /* 2 level target device addr */
+ } PhysDevAddr_struct;
+   
+ typedef struct _LogDevAddr_struct {
+@@ -255,8 +252,8 @@ typedef union _MoreErrInfo_struct{
+   }Common_Info;
+   struct{
+     BYTE  Reserved[2];
+-    BYTE  offense_size;//size of offending entry
+-    BYTE  offense_num; //byte # of offense 0-base
++    BYTE  offense_size; /* size of offending entry */
++    BYTE  offense_num;  /* byte # of offense 0-base */
+     DWORD offense_value;
+   }Invalid_Cmd;
+ }MoreErrInfo_struct;
+@@ -300,7 +297,7 @@ typedef struct _CommandList_struct {
+   char   pad[PADSIZE];
+ } CommandList_struct;
+ 
+-//Configuration Table Structure
++/* Configuration Table Structure */
+ typedef struct _HostWrite_struct {
+   DWORD TransportRequest;
+   DWORD Reserved;
+@@ -326,4 +323,4 @@ typedef struct _CfgTable_struct {
+   DWORD            MaxPhysicalDrivesPerLogicalUnit;
+ } CfgTable_struct;
+ #pragma pack()	 
+-#endif // CCISS_CMD_H
++#endif /* CCISS_CMD_H */
+diff -puN drivers/block/cciss_scsi.h~cciss-remove-c99-style-comments drivers/block/cciss_scsi.h
+--- a/drivers/block/cciss_scsi.h~cciss-remove-c99-style-comments
++++ a/drivers/block/cciss_scsi.h
+@@ -25,16 +25,16 @@
+ 
+ #include <scsi/scsicam.h> /* possibly irrelevant, since we don't show disks */
+ 
+-		// the scsi id of the adapter...
++		/* the scsi id of the adapter... */
+ #define SELF_SCSI_ID 15
+-		// 15 is somewhat arbitrary, since the scsi-2 bus
+-		// that's presented by the driver to the OS is
+-		// fabricated.  The "real" scsi-3 bus the 
+-		// hardware presents is fabricated too.
+-		// The actual, honest-to-goodness physical
+-		// bus that the devices are attached to is not 
+-		// addressible natively, and may in fact turn
+-		// out to be not scsi at all.
++		/* 15 is somewhat arbitrary, since the scsi-2 bus
++		   that's presented by the driver to the OS is
++		   fabricated.  The "real" scsi-3 bus the
++		   hardware presents is fabricated too.
++		   The actual, honest-to-goodness physical
++		   bus that the devices are attached to is not
++		   addressible natively, and may in fact turn
++		   out to be not scsi at all. */
+ 
+ #define SCSI_CCISS_CAN_QUEUE 2
+ 
+diff -puN include/linux/cciss_ioctl.h~cciss-remove-c99-style-comments include/linux/cciss_ioctl.h
+--- a/include/linux/cciss_ioctl.h~cciss-remove-c99-style-comments
++++ a/include/linux/cciss_ioctl.h
+@@ -37,12 +37,13 @@ typedef __u32 DriverVer_type;
+ #define MAX_KMALLOC_SIZE 128000
+ 
+ #ifndef CCISS_CMD_H
+-// This defines are duplicated in cciss_cmd.h in the driver directory 
++/* This defines are duplicated in cciss_cmd.h in the driver directory */
+ 
+-//general boundary definitions
+-#define SENSEINFOBYTES          32//note that this value may vary between host implementations
++/* general boundary definitions */
++#define SENSEINFOBYTES          32 /* note that this value may vary
++				      between host implementations */
+ 
+-//Command Status value
++/* Command Status value */
+ #define CMD_SUCCESS             0x0000
+ #define CMD_TARGET_STATUS       0x0001
+ #define CMD_DATA_UNDERRUN       0x0002
+@@ -57,24 +58,24 @@ typedef __u32 DriverVer_type;
+ #define CMD_TIMEOUT             0x000B
+ #define CMD_UNABORTABLE		0x000C
+ 
+-//transfer direction
++/* transfer direction */
+ #define XFER_NONE               0x00
+ #define XFER_WRITE              0x01
+ #define XFER_READ               0x02
+ #define XFER_RSVD               0x03
+ 
+-//task attribute
++/* task attribute */
+ #define ATTR_UNTAGGED           0x00
+ #define ATTR_SIMPLE             0x04
+ #define ATTR_HEADOFQUEUE        0x05
+ #define ATTR_ORDERED            0x06
+ #define ATTR_ACA                0x07
+ 
+-//cdb type
++/* cdb type */
+ #define TYPE_CMD				0x00
+ #define TYPE_MSG				0x01
+ 
+-// Type defs used in the following structs
++/* Type defs used in the following structs */
+ #define BYTE __u8
+ #define WORD __u16
+ #define HWORD __u16
+@@ -82,28 +83,28 @@ typedef __u32 DriverVer_type;
+ 
+ #define CISS_MAX_LUN	1024
+ 
+-#define LEVEL2LUN   1   // index into Target(x) structure, due to byte swapping
++#define LEVEL2LUN   1 /* index into Target(x) structure, due to byte swapping */
+ #define LEVEL3LUN   0
+ 
+ #pragma pack(1)
+ 
+-//Command List Structure
++/* Command List Structure */
+ typedef union _SCSI3Addr_struct {
+    struct {
+     BYTE Dev;
+     BYTE Bus:6;
+-    BYTE Mode:2;        // b00
++    BYTE Mode:2;        /* b00 */
+   } PeripDev;
+    struct {
+     BYTE DevLSB;
+     BYTE DevMSB:6;
+-    BYTE Mode:2;        // b01
++    BYTE Mode:2;        /* b01 */
+   } LogDev;
+    struct {
+     BYTE Dev:5;
+     BYTE Bus:3;
+     BYTE Targ:6;
+-    BYTE Mode:2;        // b10
++    BYTE Mode:2;        /* b10 */
+   } LogUnit;
+ } SCSI3Addr_struct;
+ 
+@@ -111,7 +112,7 @@ typedef struct _PhysDevAddr_struct {
+   DWORD             TargetId:24;
+   DWORD             Bus:6;
+   DWORD             Mode:2;
+-  SCSI3Addr_struct  Target[2]; //2 level target device addr
++  SCSI3Addr_struct  Target[2]; /* 2 level target device addr */
+ } PhysDevAddr_struct;
+   
+ typedef struct _LogDevAddr_struct {
+@@ -146,8 +147,8 @@ typedef union _MoreErrInfo_struct{
+   }Common_Info;
+   struct{
+     BYTE  Reserved[2];
+-    BYTE  offense_size;//size of offending entry
+-    BYTE  offense_num; //byte # of offense 0-base
++    BYTE  offense_size; /* size of offending entry */
++    BYTE  offense_num;  /* byte # of offense 0-base */
+     DWORD offense_value;
+   }Invalid_Cmd;
+ }MoreErrInfo_struct;
 _
 
-Patches currently in -mm which might be from Robert_Rodgers@dell.com are
+Patches currently in -mm which might be from dannf@hp.com are
 
-leds-add-dell-business-class-netbook-led-driver.patch
+cciss-remove-c99-style-comments.patch
+cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh.patch
 
