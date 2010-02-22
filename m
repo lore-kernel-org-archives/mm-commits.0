@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + markup_oops-fix-perlcritic-warnings.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:28 -0800
-Message-ID: <201002222317.o1MNHSGg029618@imap1.linux-foundation.org>
+Subject: + headers_check-fix-perl-warnings.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:24 -0800
+Message-ID: <201002222317.o1MNHOlZ029612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754894Ab0BVXRt (ORCPT
+	by vger.kernel.org with ESMTP id S1754927Ab0BVXRn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:49 -0500
+	Mon, 22 Feb 2010 18:17:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, arjan@infradead.org, mmarek@suse.cz
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
 
 
 The patch titled
-     markup_oops: fix perlcritic warnings
+     headers_check: fix perl warnings
 has been added to the -mm tree.  Its filename is
-     markup_oops-fix-perlcritic-warnings.patch
+     headers_check-fix-perl-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markup_oops: fix perlcritic warnings
+Subject: headers_check: fix perl warnings
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Turn on strict checking.
-Use local file handles and 3 argument open.
+According to PBP; best way practice is to use local reference for file
+handle and three argument open. Also perl prototypes are a mistake.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Acked-by: WANG Cong <amwang@redhat.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/markup_oops.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/headers_check.pl |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN scripts/markup_oops.pl~markup_oops-fix-perlcritic-warnings scripts/markup_oops.pl
---- a/scripts/markup_oops.pl~markup_oops-fix-perlcritic-warnings
-+++ a/scripts/markup_oops.pl
-@@ -1,5 +1,7 @@
- #!/usr/bin/perl
+diff -puN scripts/headers_check.pl~headers_check-fix-perl-warnings scripts/headers_check.pl
+--- a/scripts/headers_check.pl~headers_check-fix-perl-warnings
++++ a/scripts/headers_check.pl
+@@ -28,11 +28,12 @@ my $lineno = 0;
+ my $filename;
  
-+use strict;
+ foreach my $file (@files) {
+-	local *FH;
+ 	$filename = $file;
+-	open(FH, "<$filename") or die "$filename: $!\n";
 +
- use File::Basename;
- use Math::BigInt;
- use Getopt::Long;
-@@ -126,7 +128,7 @@ sub process_x86_regs
- 		$clobber = "";
++	open(my $fh, '<', $filename)
++		or die "$filename: $!\n";
+ 	$lineno = 0;
+-	while ($line = <FH>) {
++	while ($line = <$fh>) {
+ 		$lineno++;
+ 		&check_include();
+ 		&check_asm_types();
+@@ -40,7 +41,7 @@ foreach my $file (@files) {
+ 		&check_declarations();
+ 		# Dropped for now. Too much noise &check_config();
  	}
+-	close FH;
++	close $fh;
+ }
+ exit $ret;
  
--	foreach $reg (keys(%regs)) {
-+	foreach my $reg (keys(%regs)) {
- 		my $clobberprime = reg_name($clobber);
- 		my $lastwordprime = reg_name($lastword);
- 		my $val = $regs{$reg};
-@@ -263,7 +265,7 @@ while (<FILE>) {
- 	}
+@@ -78,7 +79,7 @@ sub check_config
  }
  
--close(FILE);
-+close($file);
- 
- if ($counter == 0) {
- 	print "No matching code found \n";
+ my $linux_asm_types;
+-sub check_asm_types()
++sub check_asm_types
+ {
+ 	if ($filename =~ /types.h|int-l64.h|int-ll64.h/o) {
+ 		return;
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
