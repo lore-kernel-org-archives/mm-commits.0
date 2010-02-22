@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-fix-perlcritic-warnings.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:08:13 -0800
-Message-ID: <201002222308.o1MN8D0W029183@imap1.linux-foundation.org>
+Subject: + get_maintainer-quote-email-address-with-period.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:08:16 -0800
+Message-ID: <201002222308.o1MN8Gpf029187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758Ab0BVXIS (ORCPT
+	by vger.kernel.org with ESMTP id S1754758Ab0BVXIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:08:18 -0500
+	Mon, 22 Feb 2010 18:08:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: shemminger@vyatta.com, joe@perches.com
 
 
 The patch titled
-     get_maintainer: fix perlcritic warnings
+     get_maintainer: quote email address with period
 has been added to the -mm tree.  Its filename is
-     get_maintainer-fix-perlcritic-warnings.patch
+     get_maintainer-quote-email-address-with-period.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get_maintainer: fix perlcritic warnings
+Subject: get_maintainer: quote email address with period
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-perlcritic is a standard checker for Perl Best Practices.  This patch
-fixes most of the warnings in the get_maintainer script.  If kernel
-programmers are going to have checkpatch they should write clean scripts
-as well...
-
-Bareword file handle opened at line 176, column 1.  See pages 202,204 of PBP.  (Severity: 5)
-Two-argument "open" used at line 176, column 1.  See page 207 of PBP.  (Severity: 5)
-Bareword file handle opened at line 207, column 5.  See pages 202,204 of PBP.  (Severity: 5)
-Two-argument "open" used at line 207, column 5.  See page 207 of PBP.  (Severity: 5)
-Bareword file handle opened at line 246, column 6.  See pages 202,204 of PBP.  (Severity: 5)
-Two-argument "open" used at line 246, column 6.  See page 207 of PBP.  (Severity: 5)
-Bareword file handle opened at line 258, column 2.  See pages 202,204 of PBP.  (Severity: 5)
-Two-argument "open" used at line 258, column 2.  See page 207 of PBP.  (Severity: 5)
-Expression form of "eval" at line 983, column 17.  See page 161 of PBP.  (Severity: 5)
-Expression form of "eval" at line 985, column 17.  See page 161 of PBP.  (Severity: 5)
-Subroutine prototypes used at line 1186, column 1.  See page 194 of PBP.  (Severity: 5)
-Subroutine prototypes used at line 1206, column 1.  See page 194 of PBP.  (Severity: 5)
+Picky mail systems won't accept email addresses where recipient has period
+in name; ie.  David S.  Miller <davemloft.net> will not work.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ scripts/get_maintainer.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-fix-perlcritic-warnings scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-fix-perlcritic-warnings
+diff -puN scripts/get_maintainer.pl~get_maintainer-quote-email-address-with-period scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-quote-email-address-with-period
 +++ a/scripts/get_maintainer.pl
-@@ -185,8 +185,9 @@ if (!top_of_kernel_tree($lk_path)) {
- my @typevalue = ();
- my %keyword_hash;
+@@ -605,7 +605,7 @@ sub parse_email {
+     $name =~ s/^\"|\"$//g;
+     $address =~ s/^\s+|\s+$//g;
  
--open(MAINT, "<${lk_path}MAINTAINERS") || die "$P: Can't open MAINTAINERS\n";
--while (<MAINT>) {
-+open (my $maint, '<', "${lk_path}MAINTAINERS")
-+    or die "$P: Can't open MAINTAINERS: $!\n";
-+while (<$maint>) {
-     my $line = $_;
- 
-     if ($line =~ m/^(\C):\s*(.*)/) {
-@@ -211,13 +212,14 @@ while (<MAINT>) {
- 	push(@typevalue, $line);
+-    if ($name =~ /[^a-z0-9 \.\-]/i) {    ##has "must quote" chars
++    if ($name =~ /[^\w \-]/i) {  	 ##has "must quote" chars
+ 	$name =~ s/(?<!\\)"/\\"/g;       ##escape quotes
+ 	$name = "\"$name\"";
      }
- }
--close(MAINT);
-+close($maint);
+@@ -622,7 +622,7 @@ sub format_email {
+     $name =~ s/^\"|\"$//g;
+     $address =~ s/^\s+|\s+$//g;
  
- my %mailmap;
- 
- if ($email_remove_duplicates) {
--    open(MAILMAP, "<${lk_path}.mailmap") || warn "$P: Can't open .mailmap\n";
--    while (<MAILMAP>) {
-+    open(my $mailmap, '<', "${lk_path}.mailmap")
-+	or warn "$P: Can't open .mailmap: $!\n";
-+    while (<$mailmap>) {
- 	my $line = $_;
- 
- 	next if ($line =~ m/^\s*#/);
-@@ -236,7 +238,7 @@ if ($email_remove_duplicates) {
- 	    $mailmap{$name} = \@arr;
- 	}
+-    if ($name =~ /[^a-z0-9 \.\-]/i) {    ##has "must quote" chars
++    if ($name =~ /[^\w \-]/i) {          ##has "must quote" chars
+ 	$name =~ s/(?<!\\)"/\\"/g;       ##escape quotes
+ 	$name = "\"$name\"";
      }
--    close(MAILMAP);
-+    close($mailmap);
- }
- 
- ## use the filenames on the command line or find the filenames in the patchfiles
-@@ -262,9 +264,10 @@ foreach my $file (@ARGV) {
-     if ($from_filename) {
- 	push(@files, $file);
- 	if (-f $file && ($keywords || $file_emails)) {
--	    open(FILE, "<$file") or die "$P: Can't open ${file}\n";
--	    my $text = do { local($/) ; <FILE> };
--	    close(FILE);
-+	    open(my $f, '<', $file)
-+		or die "$P: Can't open $file: $!\n";
-+	    my $text = do { local($/) ; <$f> };
-+	    close($f);
- 	    if ($keywords) {
- 		foreach my $line (keys %keyword_hash) {
- 		    if ($text =~ m/$keyword_hash{$line}/x) {
-@@ -280,8 +283,10 @@ foreach my $file (@ARGV) {
-     } else {
- 	my $file_cnt = @files;
- 	my $lastfile;
--	open(PATCH, "<$file") or die "$P: Can't open ${file}\n";
--	while (<PATCH>) {
-+
-+	open(my $patch, '<', $file)
-+	    or die "$P: Can't open $file: $!\n";
-+	while (<$patch>) {
- 	    my $patch_line = $_;
- 	    if (m/^\+\+\+\s+(\S+)/) {
- 		my $filename = $1;
-@@ -301,7 +306,8 @@ foreach my $file (@ARGV) {
- 		}
- 	    }
- 	}
--	close(PATCH);
-+	close($patch);
-+
- 	if ($file_cnt == @files) {
- 	    warn "$P: file '${file}' doesn't appear to be a patch.  "
- 		. "Add -f to options?\n";
-@@ -1286,7 +1292,7 @@ sub rfc822_strip_comments {
- 
- #   valid: returns true if the parameter is an RFC822 valid address
- #
--sub rfc822_valid ($) {
-+sub rfc822_valid {
-     my $s = rfc822_strip_comments(shift);
- 
-     if (!$rfc822re) {
-@@ -1306,7 +1312,7 @@ sub rfc822_valid ($) {
- #              from success with no addresses found, because an empty string is
- #              a valid list.
- 
--sub rfc822_validlist ($) {
-+sub rfc822_validlist {
-     my $s = rfc822_strip_comments(shift);
- 
-     if (!$rfc822re) {
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
