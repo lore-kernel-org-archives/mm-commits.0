@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-improve-checkstack.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:09 -0800
-Message-ID: <201002222317.o1MNH97H029582@imap1.linux-foundation.org>
+Subject: + headerdep-perlcritic-warning.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:30 -0800
+Message-ID: <201002222317.o1MNHURJ029621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754920Ab0BVXRj (ORCPT
+	by vger.kernel.org with ESMTP id S1754894Ab0BVXRs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:39 -0500
+	Mon, 22 Feb 2010 18:17:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, amwang@redhat.com, arjan@infradead.org, mmarek@suse.cz, rostedt@goodmis.org
+Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
 
 
 The patch titled
-     scripts: improve checkstack
+     headerdep: perlcritic warning
 has been added to the -mm tree.  Its filename is
-     scripts-improve-checkstack.patch
+     headerdep-perlcritic-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: improve checkstack
+Subject: headerdep: perlcritic warning
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Cleanup checkstack script:
-  * Turn on strict checking
-  * Fix resulting error message because the declaration syntax
-    was incorrect.
-  * Remove incorrect and misleading use of prototype
-     - prototype not required for this type of sort function
-       because $a and $b are being used in this contex
-     - if prototype was being used it should be for both arguments
-  * Use closure for sort function
+Minor perlcritic warning:
+headerdep.pl: "return" statement with explicit "undef" at line 84, column 2.  See page 199 of PBP.  (Severity: 5)
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Cong Wang <amwang@redhat.com>
+Acked-by: WANG Cong <amwang@redhat.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkstack.pl |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ scripts/headerdep.pl |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN scripts/checkstack.pl~scripts-improve-checkstack scripts/checkstack.pl
---- a/scripts/checkstack.pl~scripts-improve-checkstack
-+++ a/scripts/checkstack.pl
-@@ -21,6 +21,8 @@
- #
- #	TODO :	Port to all architectures (one regex per arch)
- 
-+use strict;
-+
- # check for arch
- #
- # $re is used for two matches:
-@@ -104,19 +106,11 @@ my (@stack, $re, $dre, $x, $xs);
+diff -puN scripts/headerdep.pl~headerdep-perlcritic-warning scripts/headerdep.pl
+--- a/scripts/headerdep.pl~headerdep-perlcritic-warning
++++ a/scripts/headerdep.pl
+@@ -80,8 +80,7 @@ sub search {
+ 		my $path = "$i/$filename";
+ 		return $path if -f $path;
  	}
- }
- 
--sub bysize($) {
--	my ($asize, $bsize);
--	($asize = $a) =~ s/.*:	*(.*)$/$1/;
--	($bsize = $b) =~ s/.*:	*(.*)$/$1/;
--	$bsize <=> $asize
--}
 -
- #
- # main()
- #
- my $funcre = qr/^$x* <(.*)>:$/;
--my $func;
--my $file, $lastslash;
-+my ($func, $file, $lastslash);
- 
- while (my $line = <STDIN>) {
- 	if ($line =~ m/$funcre/) {
-@@ -173,4 +167,6 @@ while (my $line = <STDIN>) {
- 	}
+-	return undef;
++	# not found returns undefined
  }
  
--print sort bysize @stack;
-+# Sort output by size (last field)
-+print sort { ($b =~ /:\t*(\d+)$/)[0] <=> ($a =~ /:\t*(\d+)$/)[0] } @stack;
-+
+ sub parse_all {
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
