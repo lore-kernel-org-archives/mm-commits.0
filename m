@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + headerdep-perlcritic-warning.patch added to -mm tree
-Date: Mon, 22 Feb 2010 15:17:30 -0800
-Message-ID: <201002222317.o1MNHURJ029621@imap1.linux-foundation.org>
+Subject: + headers_install-use-local-file-handles.patch added to -mm tree
+Date: Mon, 22 Feb 2010 15:17:26 -0800
+Message-ID: <201002222317.o1MNHQYl029615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754894Ab0BVXRs (ORCPT
+	by vger.kernel.org with ESMTP id S1755150Ab0BVXRo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:17:48 -0500
+	Mon, 22 Feb 2010 18:17:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz
 
 
 The patch titled
-     headerdep: perlcritic warning
+     headers_install: use local file handles
 has been added to the -mm tree.  Its filename is
-     headerdep-perlcritic-warning.patch
+     headers_install-use-local-file-handles.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: headerdep: perlcritic warning
+Subject: headers_install: use local file handles
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Minor perlcritic warning:
-headerdep.pl: "return" statement with explicit "undef" at line 84, column 2.  See page 199 of PBP.  (Severity: 5)
+Better practice to use 3 arg open and local file handles.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Acked-by: WANG Cong <amwang@redhat.com>
@@ -46,22 +45,47 @@ Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headerdep.pl |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ scripts/headers_install.pl |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN scripts/headerdep.pl~headerdep-perlcritic-warning scripts/headerdep.pl
---- a/scripts/headerdep.pl~headerdep-perlcritic-warning
-+++ a/scripts/headerdep.pl
-@@ -80,8 +80,7 @@ sub search {
- 		my $path = "$i/$filename";
- 		return $path if -f $path;
- 	}
--
--	return undef;
-+	# not found returns undefined
- }
+diff -puN scripts/headers_install.pl~headers_install-use-local-file-handles scripts/headers_install.pl
+--- a/scripts/headers_install.pl~headers_install-use-local-file-handles
++++ a/scripts/headers_install.pl
+@@ -23,13 +23,13 @@ my ($readdir, $installdir, $arch, @files
+ my $unifdef = "scripts/unifdef -U__KERNEL__ -D__EXPORTED_HEADERS__";
  
- sub parse_all {
+ foreach my $file (@files) {
+-	local *INFILE;
+-	local *OUTFILE;
+ 	my $tmpfile = "$installdir/$file.tmp";
+-	open(INFILE, "<$readdir/$file")
+-		or die "$readdir/$file: $!\n";
+-	open(OUTFILE, ">$tmpfile") or die "$tmpfile: $!\n";
+-	while (my $line = <INFILE>) {
++
++	open(my $in, '<', "$readdir/$file")
++	    or die "$readdir/$file: $!\n";
++	open(my $out, '>', $tmpfile)
++	    or die "$tmpfile: $!\n";
++	while (my $line = <$in>) {
+ 		$line =~ s/([\s(])__user\s/$1/g;
+ 		$line =~ s/([\s(])__force\s/$1/g;
+ 		$line =~ s/([\s(])__iomem\s/$1/g;
+@@ -39,10 +39,11 @@ foreach my $file (@files) {
+ 		$line =~ s/(^|\s)(inline)\b/$1__$2__/g;
+ 		$line =~ s/(^|\s)(asm)\b(\s|[(]|$)/$1__$2__$3/g;
+ 		$line =~ s/(^|\s|[(])(volatile)\b(\s|[(]|$)/$1__$2__$3/g;
+-		printf OUTFILE "%s", $line;
++		printf {$out} "%s", $line;
+ 	}
+-	close OUTFILE;
+-	close INFILE;
++	close $out;
++	close $in;
++
+ 	system $unifdef . " $tmpfile > $installdir/$file";
+ 	unlink $tmpfile;
+ }
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
