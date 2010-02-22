@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh.patch added to -mm tree
-Date: Mon, 22 Feb 2010 14:08:12 -0800
-Message-ID: <201002222208.o1MM8CaE026278@imap1.linux-foundation.org>
+Subject: + documentation-remove-obsolete-voyagertxt-file.patch added to -mm tree
+Date: Mon, 22 Feb 2010 14:08:41 -0800
+Message-ID: <201002222208.o1MM8fds026304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754729Ab0BVWIX (ORCPT
+	by vger.kernel.org with ESMTP id S1754365Ab0BVWIu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 17:08:23 -0500
+	Mon, 22 Feb 2010 17:08:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dannf@hp.com, jens.axboe@oracle.com, scameron@beardog.cce.hp.com
+Cc: bzolnier@gmail.com, James.Bottomley@HansenPartnership.com, corbet@lwn.net
 
 
 The patch titled
-     cciss: consolidate duplicate bits in cciss_cmd.h & cciss_ioctl.h
+     Documentation: remove obsolete voyager.txt file
 has been added to the -mm tree.  Its filename is
-     cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh.patch
+     documentation-remove-obsolete-voyagertxt-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,466 +34,163 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: consolidate duplicate bits in cciss_cmd.h & cciss_ioctl.h
-From: dann frazier <dannf@hp.com>
+Subject: Documentation: remove obsolete voyager.txt file
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-There are several duplicate definitions in cciss_cmd.h and cciss_ioctl.h. 
-Consolidate these into the new cciss_defs.h file.  This patch doesn't
-change the definitions exposed under include/linux, so userspace apps
-shouldn't be affected.
+x86/Voyager support has been removed a year ago.
 
-Signed-off-by: dann frazier <dannf@hp.com>
-Acked-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Inspired-by: Jonathan Corbet <corbet@lwn.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss_cmd.h   |  113 -----------------------------
- include/linux/cciss_defs.h  |  130 ++++++++++++++++++++++++++++++++++
- include/linux/cciss_ioctl.h |  129 ---------------------------------
- 3 files changed, 134 insertions(+), 238 deletions(-)
+ Documentation/voyager.txt |   95 ------------------------------------
+ 1 file changed, 95 deletions(-)
 
-diff -puN drivers/block/cciss_cmd.h~cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh drivers/block/cciss_cmd.h
---- a/drivers/block/cciss_cmd.h~cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh
-+++ a/drivers/block/cciss_cmd.h
-@@ -1,30 +1,16 @@
- #ifndef CCISS_CMD_H
- #define CCISS_CMD_H
-+
-+#include <linux/cciss_defs.h>
-+
- /* DEFINES */
- #define CISS_VERSION "1.00"
- 
- /* general boundary definitions */
--#define SENSEINFOBYTES          32 /* note that this value may vary
--				      between host implementations */
- #define MAXSGENTRIES            32
- #define CCISS_SG_CHAIN          0x80000000
- #define MAXREPLYQS              256
- 
--/* Command Status value */
--#define CMD_SUCCESS             0x0000
--#define CMD_TARGET_STATUS       0x0001
--#define CMD_DATA_UNDERRUN       0x0002
--#define CMD_DATA_OVERRUN        0x0003
--#define CMD_INVALID             0x0004
--#define CMD_PROTOCOL_ERR        0x0005
--#define CMD_HARDWARE_ERR        0x0006
--#define CMD_CONNECTION_LOST     0x0007
--#define CMD_ABORTED             0x0008
--#define CMD_ABORT_FAILED        0x0009
--#define CMD_UNSOLICITED_ABORT   0x000A
--#define CMD_TIMEOUT             0x000B
--#define CMD_UNABORTABLE		0x000C
+diff -puN Documentation/voyager.txt~documentation-remove-obsolete-voyagertxt-file /dev/null
+--- a/Documentation/voyager.txt
++++ /dev/null
+@@ -1,95 +0,0 @@
+-Running Linux on the Voyager Architecture
+-=========================================
 -
- /* Unit Attentions ASC's as defined for the MSA2012sa */
- #define POWER_OR_RESET			0x29
- #define STATE_CHANGED			0x2a
-@@ -48,23 +34,6 @@
- #define ASYM_ACCESS_CHANGED		0x06
- #define LUN_CAPACITY_CHANGED		0x09
- 
--/* transfer direction */
--#define XFER_NONE               0x00
--#define XFER_WRITE              0x01
--#define XFER_READ               0x02
--#define XFER_RSVD               0x03
+-For full details and current project status, see
 -
--/* task attribute */
--#define ATTR_UNTAGGED           0x00
--#define ATTR_SIMPLE             0x04
--#define ATTR_HEADOFQUEUE        0x05
--#define ATTR_ORDERED            0x06
--#define ATTR_ACA                0x07
+-http://www.hansenpartnership.com/voyager
 -
--/* cdb type */
--#define TYPE_CMD				0x00
--#define TYPE_MSG				0x01
+-The voyager architecture was designed by NCR in the mid 80s to be a
+-fully SMP capable RAS computing architecture built around intel's 486
+-chip set.  The voyager came in three levels of architectural
+-sophistication: 3,4 and 5 --- 1 and 2 never made it out of prototype.
+-The linux patches support only the Level 5 voyager architecture (any
+-machine class 3435 and above).
 -
- /* config space register offsets */
- #define CFG_VENDORID            0x00
- #define CFG_DEVICEID            0x02
-@@ -103,14 +72,9 @@ typedef union _u64bit
- } u64bit;
- 
- /* Type defs used in the following structs */
--#define BYTE __u8
--#define WORD __u16
--#define HWORD __u16
--#define DWORD __u32
- #define QWORD vals32 
- 
- /* STRUCTURES */
--#define CISS_MAX_LUN	1024
- #define CISS_MAX_PHYS_LUN	1024
- /* SCSI-3 Cmmands */
- 
-@@ -176,45 +140,6 @@ typedef struct _ReadCapdata_struct_16
- #define CCISS_CACHE_FLUSH 0x01	/* C2 was already being used by CCISS */
- 
- /* Command List Structure */
--typedef union _SCSI3Addr_struct {
--   struct {
--    BYTE Dev;
--    BYTE Bus:6;
--    BYTE Mode:2;        /* b00 */
--  } PeripDev;
--   struct {
--    BYTE DevLSB;
--    BYTE DevMSB:6;
--    BYTE Mode:2;        /* b01 */
--  } LogDev;
--   struct {
--    BYTE Dev:5;
--    BYTE Bus:3;
--    BYTE Targ:6;
--    BYTE Mode:2;        /* b10 */
--  } LogUnit;
--} SCSI3Addr_struct;
+-The Voyager Architecture
+-------------------------
 -
--typedef struct _PhysDevAddr_struct {
--  DWORD             TargetId:24;
--  DWORD             Bus:6;
--  DWORD             Mode:2;
--  SCSI3Addr_struct  Target[2]; /* 2 level target device addr */
--} PhysDevAddr_struct;
--  
--typedef struct _LogDevAddr_struct {
--  DWORD            VolId:30;
--  DWORD            Mode:2;
--  BYTE             reserved[4];
--} LogDevAddr_struct;
+-Voyager machines consist of a Baseboard with a 386 diagnostic
+-processor, a Power Supply Interface (PSI) a Primary and possibly
+-Secondary Microchannel bus and between 2 and 20 voyager slots.  The
+-voyager slots can be populated with memory and cpu cards (up to 4GB
+-memory and from 1 486 to 32 Pentium Pro processors).  Internally, the
+-voyager has a dual arbitrated system bus and a configuration and test
+-bus (CAT).  The voyager bus speed is 40MHz.  Therefore (since all
+-voyager cards are dual ported for each system bus) the maximum
+-transfer rate is 320Mb/s but only if you have your slot configuration
+-tuned (only memory cards can communicate with both busses at once, CPU
+-cards utilise them one at a time).
 -
--typedef union _LUNAddr_struct {
--  BYTE               LunAddrBytes[8];
--  SCSI3Addr_struct   SCSI3Lun[4];
--  PhysDevAddr_struct PhysDev;
--  LogDevAddr_struct  LogDev;
--} LUNAddr_struct;
+-Voyager SMP
+------------
 -
- #define CTLR_LUNID "\0\0\0\0\0\0\0\0"
- 
- typedef struct _CommandListHeader_struct {
-@@ -224,16 +149,6 @@ typedef struct _CommandListHeader_struct
-   QWORD             Tag;
-   LUNAddr_struct    LUN;
- } CommandListHeader_struct;
--typedef struct _RequestBlock_struct {
--  BYTE   CDBLen;
--  struct {
--    BYTE Type:3;
--    BYTE Attribute:3;
--    BYTE Direction:2;
--  } Type;
--  HWORD  Timeout;
--  BYTE   CDB[16];
--} RequestBlock_struct;
- typedef struct _ErrDescriptor_struct {
-   QWORD  Addr;
-   DWORD  Len;
-@@ -244,28 +159,6 @@ typedef struct _SGDescriptor_struct {
-   DWORD  Ext;
- } SGDescriptor_struct;
- 
--typedef union _MoreErrInfo_struct{
--  struct {
--    BYTE  Reserved[3];
--    BYTE  Type;
--    DWORD ErrorInfo;
--  }Common_Info;
--  struct{
--    BYTE  Reserved[2];
--    BYTE  offense_size; /* size of offending entry */
--    BYTE  offense_num;  /* byte # of offense 0-base */
--    DWORD offense_value;
--  }Invalid_Cmd;
--}MoreErrInfo_struct;
--typedef struct _ErrorInfo_struct {
--  BYTE               ScsiStatus;
--  BYTE               SenseLen;
--  HWORD              CommandStatus;
--  DWORD              ResidualCnt;
--  MoreErrInfo_struct MoreErrInfo;
--  BYTE               SenseInfo[SENSEINFOBYTES];
--} ErrorInfo_struct;
+-Since voyager was the first intel based SMP system, it is slightly
+-more primitive than the Intel IO-APIC approach to SMP.  Voyager allows
+-arbitrary interrupt routing (including processor affinity routing) of
+-all 16 PC type interrupts.  However it does this by using a modified
+-5259 master/slave chip set instead of an APIC bus.  Additionally,
+-voyager supports Cross Processor Interrupts (CPI) equivalent to the
+-APIC IPIs.  There are two routed voyager interrupt lines provided to
+-each slot.
 -
- /* Command types */
- #define CMD_RWREQ       0x00
- #define CMD_IOCTL_PEND  0x01
-diff -puN /dev/null include/linux/cciss_defs.h
---- /dev/null
-+++ a/include/linux/cciss_defs.h
-@@ -0,0 +1,130 @@
-+#ifndef CCISS_DEFS_H
-+#define CCISS_DEFS_H
-+
-+#include <linux/types.h>
-+
-+/* general boundary definitions */
-+#define SENSEINFOBYTES          32 /* note that this value may vary
-+				      between host implementations */
-+
-+/* Command Status value */
-+#define CMD_SUCCESS             0x0000
-+#define CMD_TARGET_STATUS       0x0001
-+#define CMD_DATA_UNDERRUN       0x0002
-+#define CMD_DATA_OVERRUN        0x0003
-+#define CMD_INVALID             0x0004
-+#define CMD_PROTOCOL_ERR        0x0005
-+#define CMD_HARDWARE_ERR        0x0006
-+#define CMD_CONNECTION_LOST     0x0007
-+#define CMD_ABORTED             0x0008
-+#define CMD_ABORT_FAILED        0x0009
-+#define CMD_UNSOLICITED_ABORT   0x000A
-+#define CMD_TIMEOUT             0x000B
-+#define CMD_UNABORTABLE		0x000C
-+
-+/* transfer direction */
-+#define XFER_NONE               0x00
-+#define XFER_WRITE              0x01
-+#define XFER_READ               0x02
-+#define XFER_RSVD               0x03
-+
-+/* task attribute */
-+#define ATTR_UNTAGGED           0x00
-+#define ATTR_SIMPLE             0x04
-+#define ATTR_HEADOFQUEUE        0x05
-+#define ATTR_ORDERED            0x06
-+#define ATTR_ACA                0x07
-+
-+/* cdb type */
-+#define TYPE_CMD				0x00
-+#define TYPE_MSG				0x01
-+
-+/* Type defs used in the following structs */
-+#define BYTE __u8
-+#define WORD __u16
-+#define HWORD __u16
-+#define DWORD __u32
-+
-+#define CISS_MAX_LUN	1024
-+
-+#define LEVEL2LUN   1 /* index into Target(x) structure, due to byte swapping */
-+#define LEVEL3LUN   0
-+
-+#pragma pack(1)
-+
-+/* Command List Structure */
-+typedef union _SCSI3Addr_struct {
-+   struct {
-+    BYTE Dev;
-+    BYTE Bus:6;
-+    BYTE Mode:2;        /* b00 */
-+  } PeripDev;
-+   struct {
-+    BYTE DevLSB;
-+    BYTE DevMSB:6;
-+    BYTE Mode:2;        /* b01 */
-+  } LogDev;
-+   struct {
-+    BYTE Dev:5;
-+    BYTE Bus:3;
-+    BYTE Targ:6;
-+    BYTE Mode:2;        /* b10 */
-+  } LogUnit;
-+} SCSI3Addr_struct;
-+
-+typedef struct _PhysDevAddr_struct {
-+  DWORD             TargetId:24;
-+  DWORD             Bus:6;
-+  DWORD             Mode:2;
-+  SCSI3Addr_struct  Target[2]; /* 2 level target device addr */
-+} PhysDevAddr_struct;
-+
-+typedef struct _LogDevAddr_struct {
-+  DWORD            VolId:30;
-+  DWORD            Mode:2;
-+  BYTE             reserved[4];
-+} LogDevAddr_struct;
-+
-+typedef union _LUNAddr_struct {
-+  BYTE               LunAddrBytes[8];
-+  SCSI3Addr_struct   SCSI3Lun[4];
-+  PhysDevAddr_struct PhysDev;
-+  LogDevAddr_struct  LogDev;
-+} LUNAddr_struct;
-+
-+typedef struct _RequestBlock_struct {
-+  BYTE   CDBLen;
-+  struct {
-+    BYTE Type:3;
-+    BYTE Attribute:3;
-+    BYTE Direction:2;
-+  } Type;
-+  HWORD  Timeout;
-+  BYTE   CDB[16];
-+} RequestBlock_struct;
-+
-+typedef union _MoreErrInfo_struct{
-+  struct {
-+    BYTE  Reserved[3];
-+    BYTE  Type;
-+    DWORD ErrorInfo;
-+  } Common_Info;
-+  struct{
-+    BYTE  Reserved[2];
-+    BYTE  offense_size; /* size of offending entry */
-+    BYTE  offense_num;  /* byte # of offense 0-base */
-+    DWORD offense_value;
-+  } Invalid_Cmd;
-+} MoreErrInfo_struct;
-+typedef struct _ErrorInfo_struct {
-+  BYTE               ScsiStatus;
-+  BYTE               SenseLen;
-+  HWORD              CommandStatus;
-+  DWORD              ResidualCnt;
-+  MoreErrInfo_struct MoreErrInfo;
-+  BYTE               SenseInfo[SENSEINFOBYTES];
-+} ErrorInfo_struct;
-+
-+#pragma pack()
-+
-+#endif /* CCISS_DEFS_H */
-diff -puN include/linux/cciss_ioctl.h~cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh include/linux/cciss_ioctl.h
---- a/include/linux/cciss_ioctl.h~cciss-consolidate-duplicate-bits-in-cciss_cmdh-cciss_ioctlh
-+++ a/include/linux/cciss_ioctl.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/types.h>
- #include <linux/ioctl.h>
-+#include <linux/cciss_defs.h>
- 
- #define CCISS_IOC_MAGIC 'B'
- 
-@@ -36,134 +37,6 @@ typedef __u32 DriverVer_type;
- 
- #define MAX_KMALLOC_SIZE 128000
- 
--#ifndef CCISS_CMD_H
--/* This defines are duplicated in cciss_cmd.h in the driver directory */
+-Processor Cards
+----------------
 -
--/* general boundary definitions */
--#define SENSEINFOBYTES          32 /* note that this value may vary
--				      between host implementations */
+-These come in single, dyadic and quad configurations (the quads are
+-problematic--see later).  The maximum configuration is 8 quad cards
+-for 32 way SMP.
 -
--/* Command Status value */
--#define CMD_SUCCESS             0x0000
--#define CMD_TARGET_STATUS       0x0001
--#define CMD_DATA_UNDERRUN       0x0002
--#define CMD_DATA_OVERRUN        0x0003
--#define CMD_INVALID             0x0004
--#define CMD_PROTOCOL_ERR        0x0005
--#define CMD_HARDWARE_ERR        0x0006
--#define CMD_CONNECTION_LOST     0x0007
--#define CMD_ABORTED             0x0008
--#define CMD_ABORT_FAILED        0x0009
--#define CMD_UNSOLICITED_ABORT   0x000A
--#define CMD_TIMEOUT             0x000B
--#define CMD_UNABORTABLE		0x000C
+-Quad Processors
+----------------
 -
--/* transfer direction */
--#define XFER_NONE               0x00
--#define XFER_WRITE              0x01
--#define XFER_READ               0x02
--#define XFER_RSVD               0x03
+-Because voyager only supplies two interrupt lines to each Processor
+-card, the Quad processors have to be configured (and Bootstrapped) in
+-as a pair of Master/Slave processors.
 -
--/* task attribute */
--#define ATTR_UNTAGGED           0x00
--#define ATTR_SIMPLE             0x04
--#define ATTR_HEADOFQUEUE        0x05
--#define ATTR_ORDERED            0x06
--#define ATTR_ACA                0x07
+-In fact, most Quad cards only accept one VIC interrupt line, so they
+-have one interrupt handling processor (called the VIC extended
+-processor) and three non-interrupt handling processors.
 -
--/* cdb type */
--#define TYPE_CMD				0x00
--#define TYPE_MSG				0x01
+-Current Status
+---------------
 -
--/* Type defs used in the following structs */
--#define BYTE __u8
--#define WORD __u16
--#define HWORD __u16
--#define DWORD __u32
+-The System will boot on Mono, Dyad and Quad cards.  There was
+-originally a Quad boot problem which has been fixed by proper gdt
+-alignment in the initial boot loader.  If you still cannot get your
+-voyager system to boot, email me at:
 -
--#define CISS_MAX_LUN	1024
+-<J.E.J.Bottomley@HansenPartnership.com>
 -
--#define LEVEL2LUN   1 /* index into Target(x) structure, due to byte swapping */
--#define LEVEL3LUN   0
 -
--#pragma pack(1)
+-The Quad cards now support using the separate Quad CPI vectors instead
+-of going through the VIC mailbox system.
 -
--/* Command List Structure */
--typedef union _SCSI3Addr_struct {
--   struct {
--    BYTE Dev;
--    BYTE Bus:6;
--    BYTE Mode:2;        /* b00 */
--  } PeripDev;
--   struct {
--    BYTE DevLSB;
--    BYTE DevMSB:6;
--    BYTE Mode:2;        /* b01 */
--  } LogDev;
--   struct {
--    BYTE Dev:5;
--    BYTE Bus:3;
--    BYTE Targ:6;
--    BYTE Mode:2;        /* b10 */
--  } LogUnit;
--} SCSI3Addr_struct;
+-The Level 4 architecture (3430 and 3360 Machines) should also work
+-fine.
 -
--typedef struct _PhysDevAddr_struct {
--  DWORD             TargetId:24;
--  DWORD             Bus:6;
--  DWORD             Mode:2;
--  SCSI3Addr_struct  Target[2]; /* 2 level target device addr */
--} PhysDevAddr_struct;
--  
--typedef struct _LogDevAddr_struct {
--  DWORD            VolId:30;
--  DWORD            Mode:2;
--  BYTE             reserved[4];
--} LogDevAddr_struct;
+-Dump Switch
+------------
 -
--typedef union _LUNAddr_struct {
--  BYTE               LunAddrBytes[8];
--  SCSI3Addr_struct   SCSI3Lun[4];
--  PhysDevAddr_struct PhysDev;
--  LogDevAddr_struct  LogDev;
--} LUNAddr_struct;
+-The voyager dump switch sends out a broadcast NMI which the voyager
+-code intercepts and does a task dump.
 -
--typedef struct _RequestBlock_struct {
--  BYTE   CDBLen;
--  struct {
--    BYTE Type:3;
--    BYTE Attribute:3;
--    BYTE Direction:2;
--  } Type;
--  HWORD  Timeout;
--  BYTE   CDB[16];
--} RequestBlock_struct;
+-Power Switch
+-------------
 -
--typedef union _MoreErrInfo_struct{
--  struct {
--    BYTE  Reserved[3];
--    BYTE  Type;
--    DWORD ErrorInfo;
--  }Common_Info;
--  struct{
--    BYTE  Reserved[2];
--    BYTE  offense_size; /* size of offending entry */
--    BYTE  offense_num;  /* byte # of offense 0-base */
--    DWORD offense_value;
--  }Invalid_Cmd;
--}MoreErrInfo_struct;
--typedef struct _ErrorInfo_struct {
--  BYTE               ScsiStatus;
--  BYTE               SenseLen;
--  HWORD              CommandStatus;
--  DWORD              ResidualCnt;
--  MoreErrInfo_struct MoreErrInfo;
--  BYTE               SenseInfo[SENSEINFOBYTES];
--} ErrorInfo_struct;
+-The front panel power switch is intercepted by the kernel and should
+-cause a system shutdown and power off.
 -
--#pragma pack()
--#endif /* CCISS_CMD_H */ 
+-A Note About Mixed CPU Systems
+-------------------------------
+-
+-Linux isn't designed to handle mixed CPU systems very well.  In order
+-to get everything going you *must* make sure that your lowest
+-capability CPU is used for booting.  Also, mixing CPU classes
+-(e.g. 486 and 586) is really not going to work very well at all.
+_
+
+Patches currently in -mm which might be from bzolnier@gmail.com are
+
+linux-next.patch
+acpica-fix-acpi_ex_release_mutex-comment.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+staging-rt2860-correct-onstack-wait_queue_head-declaration.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+documentation-remove-obsolete-voyagertxt-file.patch
+
