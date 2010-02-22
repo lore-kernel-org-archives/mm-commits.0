@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch added to -mm tree
-Date: Mon, 22 Feb 2010 14:56:53 -0800
-Message-ID: <201002222256.o1MMurjI028547@imap1.linux-foundation.org>
+Subject: + add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 22 Feb 2010 14:58:59 -0800
+Message-ID: <201002222259.o1MMwxRa028697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754807Ab0BVXBq (ORCPT
+	by vger.kernel.org with ESMTP id S1754713Ab0BVXCb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:01:46 -0500
+	Mon, 22 Feb 2010 18:02:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: atrigent@ccs.neu.edu, alan@linux.intel.com
+Cc: akpm@linux-foundation.org, atrigent@ccs.neu.edu
 
 
 The patch titled
-     vt: add a new VT mode which is like VT_PROCESS but doesn't require a VT_RELDISP ioctl call
+     add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch
+     add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,205 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: add a new VT mode which is like VT_PROCESS but doesn't require a VT_RELDISP ioctl call
-From: Ari Entlich <atrigent@ccs.neu.edu>
+Subject: add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This new VT mode (VT_PROCESS_AUTO) does everything that VT_PROCESS does
-except that it doesn't wait for a VT_RELDISP ioctl before switching away
-from a VT with that mode.
+WARNING: line over 80 characters
+#35: FILE: drivers/char/vt_ioctl.c:891:
++		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS && tmp.mode != VT_PROCESS_AUTO) {
 
-If the X server eventually uses this new mode, debugging and crash
-recovery should become easier.  This is because even when currently in the
-VT of a frozen X server it would still be possible to switch out by doing
-SysRq-r and then CTRL-<number of a text vt>, sshing in and doing chvt
-<number of a text vt>, or any other method of VT switching.  The general
-concensus on #xorg-devel seems to be that it should be safe to use this
-with X now that we have KMS.
+WARNING: line over 80 characters
+#44: FILE: drivers/char/vt_ioctl.c:1625:
++	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
 
-This also moves the VT_ACKACQ define to a more appropriate place, for
-clarity's sake.
+WARNING: line over 80 characters
+#53: FILE: drivers/char/vt_ioctl.c:1685:
++	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
 
-Signed-off-by: Ari Entlich <atrigent@ccs.neu.edu>
-Acked-by: Alan Cox <alan@linux.intel.com>
+ERROR: space required before the open parenthesis '('
+#61: FILE: drivers/char/vt_ioctl.c:1696:
++			if(vc->vt_mode.mode == VT_PROCESS)
+
+WARNING: line over 80 characters
+#73: FILE: drivers/char/vt_ioctl.c:1705:
++			 * The controlling process has died, so we revert back to
+
+WARNING: line over 80 characters
+#74: FILE: drivers/char/vt_ioctl.c:1706:
++			 * normal operation. In this case, we'll also change back
+
+WARNING: line over 80 characters
+#75: FILE: drivers/char/vt_ioctl.c:1707:
++			 * to KD_TEXT mode. I'm not sure if this is strictly correct
+
+WARNING: line over 80 characters
+#76: FILE: drivers/char/vt_ioctl.c:1708:
++			 * but it saves the agony when the X server dies and the screen
+
+WARNING: line over 80 characters
+#77: FILE: drivers/char/vt_ioctl.c:1709:
++			 * remains blanked due to KD_GRAPHICS! It would be nice to do
+
+WARNING: line over 80 characters
+#78: FILE: drivers/char/vt_ioctl.c:1710:
++			 * this outside of VT_PROCESS but there is no single process
+
+WARNING: line over 80 characters
+#79: FILE: drivers/char/vt_ioctl.c:1711:
++			 * to account for and tracking tty count may be undesirable.
+
+WARNING: line over 80 characters
+#98: FILE: drivers/char/vt_ioctl.c:1717:
++		 * Fall through to normal (VT_AUTO and VT_PROCESS_AUTO) handling of the switch...
+
+total: 1 errors, 11 warnings, 83 lines checked
+
+./patches/add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ari Entlich <atrigent@ccs.neu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt_ioctl.c |   39 +++++++++++++++++++-------------------
- include/linux/vt.h      |    3 +-
- 2 files changed, 22 insertions(+), 20 deletions(-)
+ drivers/char/vt_ioctl.c |   30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call drivers/char/vt_ioctl.c
---- a/drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call
+diff -puN drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes drivers/char/vt_ioctl.c
+--- a/drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes
 +++ a/drivers/char/vt_ioctl.c
-@@ -888,7 +888,7 @@ int vt_ioctl(struct tty_struct *tty, str
+@@ -888,7 +888,8 @@ int vt_ioctl(struct tty_struct *tty, str
  			ret = -EFAULT;
  			goto out;
  		}
--		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS) {
-+		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS && tmp.mode != VT_PROCESS_AUTO) {
+-		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS && tmp.mode != VT_PROCESS_AUTO) {
++		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS &&
++				tmp.mode != VT_PROCESS_AUTO) {
  			ret = -EINVAL;
  			goto out;
  		}
-@@ -1622,7 +1622,7 @@ static void complete_change_console(stru
+@@ -1622,7 +1623,8 @@ static void complete_change_console(stru
  	 * telling it that it has acquired. Also check if it has died and
  	 * clean up (similar to logic employed in change_console())
  	 */
--	if (vc->vt_mode.mode == VT_PROCESS) {
-+	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
+-	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
++	if (vc->vt_mode.mode == VT_PROCESS ||
++			vc->vt_mode.mode == VT_PROCESS_AUTO) {
  		/*
  		 * Send the signal as privileged - kill_pid() will
  		 * tell us if the process has gone or something else
-@@ -1682,7 +1682,7 @@ void change_console(struct vc_data *new_
+@@ -1682,7 +1684,8 @@ void change_console(struct vc_data *new_
  	 * vt to auto control.
  	 */
  	vc = vc_cons[fg_console].d;
--	if (vc->vt_mode.mode == VT_PROCESS) {
-+	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
+-	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
++	if (vc->vt_mode.mode == VT_PROCESS ||
++			vc->vt_mode.mode == VT_PROCESS_AUTO) {
  		/*
  		 * Send the signal as privileged - kill_pid() will
  		 * tell us if the process has gone or something else
-@@ -1693,27 +1693,28 @@ void change_console(struct vc_data *new_
+@@ -1693,28 +1696,31 @@ void change_console(struct vc_data *new_
  		 */
  		vc->vt_newvt = new_vc->vc_num;
  		if (kill_pid(vc->vt_pid, vc->vt_mode.relsig, 1) == 0) {
-+			if(vc->vt_mode.mode == VT_PROCESS)
-+				/*
-+				 * It worked. Mark the vt to switch to and
-+				 * return. The process needs to send us a
-+				 * VT_RELDISP ioctl to complete the switch.
-+				 */
-+				return;
-+		} else {
+-			if(vc->vt_mode.mode == VT_PROCESS)
++			if (vc->vt_mode.mode == VT_PROCESS) {
+ 				/*
+ 				 * It worked. Mark the vt to switch to and
+ 				 * return. The process needs to send us a
+ 				 * VT_RELDISP ioctl to complete the switch.
+ 				 */
+ 				return;
++			}
+ 		} else {
  			/*
--			 * It worked. Mark the vt to switch to and
--			 * return. The process needs to send us a
--			 * VT_RELDISP ioctl to complete the switch.
-+			 * The controlling process has died, so we revert back to
-+			 * normal operation. In this case, we'll also change back
-+			 * to KD_TEXT mode. I'm not sure if this is strictly correct
-+			 * but it saves the agony when the X server dies and the screen
-+			 * remains blanked due to KD_GRAPHICS! It would be nice to do
-+			 * this outside of VT_PROCESS but there is no single process
-+			 * to account for and tracking tty count may be undesirable.
+-			 * The controlling process has died, so we revert back to
+-			 * normal operation. In this case, we'll also change back
+-			 * to KD_TEXT mode. I'm not sure if this is strictly correct
+-			 * but it saves the agony when the X server dies and the screen
+-			 * remains blanked due to KD_GRAPHICS! It would be nice to do
+-			 * this outside of VT_PROCESS but there is no single process
+-			 * to account for and tracking tty count may be undesirable.
++			 * The controlling process has died, so we revert back
++			 * to normal operation. In this case, we'll also change
++			 * back to KD_TEXT mode. I'm not sure if this is
++			 * strictly correct but it saves the agony when the X
++			 * server dies and the screen remains blanked due to
++			 * KD_GRAPHICS! It would be nice to do this outside of
++			 * VT_PROCESS but there is no single process to account
++			 * for and tracking tty count may be undesirable.
  			 */
--			return;
-+			reset_vc(vc);
+ 			reset_vc(vc);
  		}
  
  		/*
--		 * The controlling process has died, so we revert back to
--		 * normal operation. In this case, we'll also change back
--		 * to KD_TEXT mode. I'm not sure if this is strictly correct
--		 * but it saves the agony when the X server dies and the screen
--		 * remains blanked due to KD_GRAPHICS! It would be nice to do
--		 * this outside of VT_PROCESS but there is no single process
--		 * to account for and tracking tty count may be undesirable.
--		 */
--		reset_vc(vc);
--
--		/*
--		 * Fall through to normal (VT_AUTO) handling of the switch...
-+		 * Fall through to normal (VT_AUTO and VT_PROCESS_AUTO) handling of the switch...
+-		 * Fall through to normal (VT_AUTO and VT_PROCESS_AUTO) handling of the switch...
++		 * Fall through to normal (VT_AUTO and VT_PROCESS_AUTO) handling
++		 * of the switch...
  		 */
  	}
  
-diff -puN include/linux/vt.h~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call include/linux/vt.h
---- a/include/linux/vt.h~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call
-+++ a/include/linux/vt.h
-@@ -27,7 +27,7 @@ struct vt_mode {
- #define VT_SETMODE	0x5602	/* set mode of active vt */
- #define		VT_AUTO		0x00	/* auto vt switching */
- #define		VT_PROCESS	0x01	/* process controls switching */
--#define		VT_ACKACQ	0x02	/* acknowledge switch */
-+#define		VT_PROCESS_AUTO 0x02	/* process is notified of switching */
- 
- struct vt_stat {
- 	unsigned short v_active;	/* active vt */
-@@ -38,6 +38,7 @@ struct vt_stat {
- #define VT_SENDSIG	0x5604	/* signal to send to bitmask of vts */
- 
- #define VT_RELDISP	0x5605	/* release display */
-+#define		VT_ACKACQ	0x02	/* acknowledge switch */
- 
- #define VT_ACTIVATE	0x5606	/* make vt active */
- #define VT_WAITACTIVE	0x5607	/* wait for vt active */
 _
 
-Patches currently in -mm which might be from atrigent@ccs.neu.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+pci-update-pci_set_vga_state-to-call-arch-functions.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+pps-serial-clients-support-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
