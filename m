@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-extern-cleanup-signal.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:19:29 -0800
-Message-ID: <201002242019.o1OKJTgf018175@imap1.linux-foundation.org>
+Subject: + sysctl-extern-cleanup-block-iopoll.patch added to -mm tree
+Date: Wed, 24 Feb 2010 12:19:46 -0800
+Message-ID: <201002242019.o1OKJk6C018204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757743Ab0BXUUQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757985Ab0BXUUU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:20:16 -0500
+	Wed, 24 Feb 2010 15:20:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, oleg@redhat.com, roland@redhat.com
+Cc: hidave.darkstar@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     sysctl extern cleanup: signal
+     sysctl extern cleanup: block iopoll
 has been added to the -mm tree.  Its filename is
-     sysctl-extern-cleanup-signal.patch
+     sysctl-extern-cleanup-block-iopoll.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: signal
+Subject: sysctl extern cleanup: block iopoll
 From: Dave Young <hidave.darkstar@gmail.com>
 
 Extern declarations in sysctl.c should be move to their own head file, and
 then include them in relavant .c files.
 
-Move print_fatal_signals extern declaration to linux/signal.h
+blk_iopoll_enabled declared in linux/blk-iopoll.h, remove the declaration
+in sysctl.c, include the head file instead.
 
 Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |    2 ++
- kernel/sysctl.c        |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/signal.h~sysctl-extern-cleanup-signal include/linux/signal.h
---- a/include/linux/signal.h~sysctl-extern-cleanup-signal
-+++ a/include/linux/signal.h
-@@ -7,6 +7,8 @@
- #ifdef __KERNEL__
- #include <linux/list.h>
- 
-+/* for sysctl */
-+extern int print_fatal_signals;
- /*
-  * Real Time signals may be queued.
-  */
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-signal kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-signal
+diff -puN kernel/sysctl.c~sysctl-extern-cleanup-block-iopoll kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-extern-cleanup-block-iopoll
 +++ a/kernel/sysctl.c
-@@ -54,6 +54,7 @@
- #include <linux/slow-work.h>
- #include <linux/perf_event.h>
- #include <linux/rcustring.h>
-+#include <linux/signal.h>
+@@ -60,6 +60,9 @@
+ #include <linux/compat.h>
+ #include <linux/latencytop.h>
+ #include <linux/file.h>
++#ifdef CONFIG_BLOCK
++#include <linux/blk-iopoll.h>
++#endif
  
  #include <asm/uaccess.h>
  #include <asm/processor.h>
-@@ -72,7 +73,6 @@
- #if defined(CONFIG_SYSCTL)
+@@ -79,9 +82,6 @@
  
  /* External variables not in a header file. */
--extern int print_fatal_signals;
  extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
+-#ifdef CONFIG_BLOCK
+-extern int blk_iopoll_enabled;
+-#endif
+ 
+ /* Constants used for minimum and  maximum */
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
 _
 
 Patches currently in -mm which might be from hidave.darkstar@gmail.com are
