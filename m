@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation.patch added to -mm tree
-Date: Wed, 24 Feb 2010 14:02:39 -0800
-Message-ID: <201002242202.o1OM2d79022915@imap1.linux-foundation.org>
+Subject: + ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch added to -mm tree
+Date: Wed, 24 Feb 2010 14:40:36 -0800
+Message-ID: <201002242240.o1OMeagB024689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758348Ab0BXWMA (ORCPT
+	by vger.kernel.org with ESMTP id S1757453Ab0BXWlV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:12:00 -0500
+	Wed, 24 Feb 2010 17:41:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andre.goddard@gmail.com, adobriyan@gmail.com, clg@fr.ibm.com, serue@us.ibm.com, viro@zeniv.linux.org.uk
+Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su
 
 
 The patch titled
-     mqueue: apply mathematics distributivity on mq_bytes calculation
+     ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
 has been added to the -mm tree.  Its filename is
-     mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation.pa=
-tch
+     ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,81 +26,59 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mqueue: apply mathematics distributivity on mq_bytes calculati=
-on
-=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Subject: ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
+From: Rodolfo Giometti <giometti@linux.it>
 
-Code size reduction:
-   text    data     bss     dec     hex filename
-   9941      72      16   10029    272d ipc/mqueue-BEFORE.o
-   9925      72      16   10013    271d ipc/mqueue-AFTER.o
+This new method can be used to init a new struct tty_ldisc_ops as the
+default tty_ldisc_N_TTY struct.
 
-Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/n_tty.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN ipc/mqueue.c~mqueue-apply-mathematics-distributivity-on-mq_by=
-tes-calculation ipc/mqueue.c
---- a/ipc/mqueue.c~mqueue-apply-mathematics-distributivity-on-mq_bytes-=
-calculation
-+++ a/ipc/mqueue.c
-@@ -261,8 +261,9 @@ static void mqueue_delete_inode(struct i
-=20
- 	clear_inode(inode);
-=20
--	mq_bytes =3D (info->attr.mq_maxmsg * sizeof(struct msg_msg *) +
--		   (info->attr.mq_maxmsg * info->attr.mq_msgsize));
-+	/* Total amount of bytes accounted for the mqueue */
-+	mq_bytes =3D info->attr.mq_maxmsg * (sizeof(struct msg_msg *)
-+	    + info->attr.mq_msgsize);
- 	user =3D info->user;
- 	if (user) {
- 		spin_lock(&mq_lock);
-@@ -601,8 +602,8 @@ static int mq_attr_ok(struct ipc_namespa
- 	/* check for overflow */
- 	if (attr->mq_msgsize > ULONG_MAX/attr->mq_maxmsg)
- 		return 0;
--	if ((unsigned long)(attr->mq_maxmsg * attr->mq_msgsize) +
--	    (attr->mq_maxmsg * sizeof (struct msg_msg *)) <
-+	if ((unsigned long)(attr->mq_maxmsg * (attr->mq_msgsize
-+	    + sizeof (struct msg_msg *))) <
- 	    (unsigned long)(attr->mq_maxmsg * attr->mq_msgsize))
- 		return 0;
- 	return 1;
+diff -puN drivers/char/n_tty.c~ldisc-n_tty-add-new-method-n_tty_inherit_ops-update drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
++++ a/drivers/char/n_tty.c
+@@ -2093,6 +2093,14 @@ struct tty_ldisc_ops tty_ldisc_N_TTY = {
+ 	.write_wakeup    = n_tty_write_wakeup
+ };
+ 
++/**
++ *	n_tty_inherit_ops	-	inherit N_TTY methods
++ *	@ops: struct tty_ldisc_ops where to save N_TTY methods
++ *
++ *	Used by a generic struct tty_ldisc_ops to easily inherit N_TTY
++ *	methods.
++ */
++
+ void n_tty_inherit_ops(struct tty_ldisc_ops *ops)
+ {
+ 	*ops = tty_ldisc_N_TTY;
 _
 
-Patches currently in -mm which might be from andre.goddard@gmail.com ar=
-e
+Patches currently in -mm which might be from giometti@linux.it are
 
 linux-next.patch
-mqueue-fix-mq_open-file-descriptor-leak-on-user-space-processes.patch
-mqueue-remove-unneeded-info-messages-initialization.patch
-mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation.patch
-mqueue-simplify-do_open-error-handling.patch
-mqueue-only-set-error-codes-if-they-are-really-necessary.patch
-mqueue-fix-typo-failues-failures.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
+pps-linuxpps-clients-support.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
+ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
+pps-serial-clients-support.patch
+serial-8250-enable-pps-support.patch
+serial-amba-pl010-enable-pps-support.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
