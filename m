@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-extern-cleanup-latencytop.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:19:40 -0800
-Message-ID: <201002242019.o1OKJeT2018191@imap1.linux-foundation.org>
+Subject: + rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch added to -mm tree
+Date: Wed, 24 Feb 2010 12:27:29 -0800
+Message-ID: <201002242027.o1OKRTLa018589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758037Ab0BXUW3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757453Ab0BXU1y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:22:29 -0500
+	Wed, 24 Feb 2010 15:27:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, arjan@infradead.org
+Cc: adobriyan@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     sysctl extern cleanup: latencytop
+     rcu: remove INIT_RCU_HEAD, RCU_HEAD_INIT, RCU_HEAD
 has been added to the -mm tree.  Its filename is
-     sysctl-extern-cleanup-latencytop.patch
+     rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,237 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: latencytop
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: rcu: remove INIT_RCU_HEAD, RCU_HEAD_INIT, RCU_HEAD
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Extern declarations in sysctl.c should be move to their own head file, and
-then include them in relavant .c files.
+call_rcu() will unconditionally reinitialize RCU head anyway.  New users
+of these macros constantly appear, so remove them.
 
-latencytop_enabled is declared in linux/latencytop.h, so remove the
-declaration in sysctl.c, include the head file instead.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/kernel-locking.tmpl   |    8 --------
+ arch/powerpc/mm/pgtable.c                   |    1 -
+ block/cfq-iosched.c                         |    1 -
+ block/genhd.c                               |    1 -
+ drivers/staging/batman-adv/hard-interface.c |    1 -
+ fs/file.c                                   |    3 ---
+ fs/fs-writeback.c                           |    1 -
+ fs/partitions/check.c                       |    1 -
+ include/linux/init_task.h                   |    1 -
+ include/linux/rcupdate.h                    |    6 ------
+ mm/backing-dev.c                            |    1 -
+ mm/slob.c                                   |    1 -
+ security/selinux/avc.c                      |    1 -
+ security/selinux/netnode.c                  |    2 --
+ 14 files changed, 29 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-latencytop kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-latencytop
-+++ a/kernel/sysctl.c
-@@ -58,6 +58,7 @@
- #include <linux/binfmts.h>
- #include <linux/pid.h>
- #include <linux/compat.h>
-+#include <linux/latencytop.h>
+diff -puN Documentation/DocBook/kernel-locking.tmpl~rcu-remove-init_rcu_head-rcu_head_init-rcu_head Documentation/DocBook/kernel-locking.tmpl
+--- a/Documentation/DocBook/kernel-locking.tmpl~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/Documentation/DocBook/kernel-locking.tmpl
+@@ -1725,14 +1725,6 @@ the amount of locking which needs to be 
+          if (++cache_num > MAX_CACHE_SIZE) {
+                  struct object *i, *outcast = NULL;
+                  list_for_each_entry(i, &amp;cache, list) {
+-@@ -85,6 +94,7 @@
+-         obj-&gt;popularity = 0;
+-         atomic_set(&amp;obj-&gt;refcnt, 1); /* The cache holds a reference */
+-         spin_lock_init(&amp;obj-&gt;lock);
+-+        INIT_RCU_HEAD(&amp;obj-&gt;rcu);
+-
+-         spin_lock_irqsave(&amp;cache_lock, flags);
+-         __cache_add(obj);
+ @@ -104,12 +114,11 @@
+  struct object *cache_find(int id)
+  {
+diff -puN arch/powerpc/mm/pgtable.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head arch/powerpc/mm/pgtable.c
+--- a/arch/powerpc/mm/pgtable.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/arch/powerpc/mm/pgtable.c
+@@ -91,7 +91,6 @@ static void pte_free_rcu_callback(struct
  
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -77,7 +78,6 @@
+ static void pte_free_submit(struct pte_freelist_batch *batch)
+ {
+-	INIT_RCU_HEAD(&batch->rcu);
+ 	call_rcu(&batch->rcu, pte_free_rcu_callback);
+ }
  
- /* External variables not in a header file. */
- extern int max_threads;
--extern int latencytop_enabled;
- extern int sysctl_nr_open_min, sysctl_nr_open_max;
- #ifdef CONFIG_RCU_TORTURE_TEST
- extern int rcutorture_runnable;
+diff -puN block/cfq-iosched.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head block/cfq-iosched.c
+--- a/block/cfq-iosched.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/block/cfq-iosched.c
+@@ -3730,7 +3730,6 @@ static void *cfq_init_queue(struct reque
+ 	 * second, in order to have larger depth for async operations.
+ 	 */
+ 	cfqd->last_delayed_sync = jiffies - HZ;
+-	INIT_RCU_HEAD(&cfqd->rcu);
+ 	return cfqd;
+ }
+ 
+diff -puN block/genhd.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head block/genhd.c
+--- a/block/genhd.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/block/genhd.c
+@@ -987,7 +987,6 @@ int disk_expand_part_tbl(struct gendisk 
+ 	if (!new_ptbl)
+ 		return -ENOMEM;
+ 
+-	INIT_RCU_HEAD(&new_ptbl->rcu_head);
+ 	new_ptbl->len = target;
+ 
+ 	for (i = 0; i < len; i++)
+diff -puN drivers/staging/batman-adv/hard-interface.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head drivers/staging/batman-adv/hard-interface.c
+--- a/drivers/staging/batman-adv/hard-interface.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/drivers/staging/batman-adv/hard-interface.c
+@@ -301,7 +301,6 @@ int hardif_add_interface(char *dev, int 
+ 	batman_if->if_num = if_num;
+ 	batman_if->dev = dev;
+ 	batman_if->if_active = IF_INACTIVE;
+-	INIT_RCU_HEAD(&batman_if->rcu);
+ 
+ 	printk(KERN_INFO "batman-adv:Adding interface: %s\n", dev);
+ 	avail_ifs++;
+diff -puN fs/file.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/file.c
+--- a/fs/file.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/fs/file.c
+@@ -178,7 +178,6 @@ static struct fdtable * alloc_fdtable(un
+ 	fdt->open_fds = (fd_set *)data;
+ 	data += nr / BITS_PER_BYTE;
+ 	fdt->close_on_exec = (fd_set *)data;
+-	INIT_RCU_HEAD(&fdt->rcu);
+ 	fdt->next = NULL;
+ 
+ 	return fdt;
+@@ -312,7 +311,6 @@ struct files_struct *dup_fd(struct files
+ 	new_fdt->close_on_exec = (fd_set *)&newf->close_on_exec_init;
+ 	new_fdt->open_fds = (fd_set *)&newf->open_fds_init;
+ 	new_fdt->fd = &newf->fd_array[0];
+-	INIT_RCU_HEAD(&new_fdt->rcu);
+ 	new_fdt->next = NULL;
+ 
+ 	spin_lock(&oldf->file_lock);
+@@ -430,7 +428,6 @@ struct files_struct init_files = {
+ 		.fd		= &init_files.fd_array[0],
+ 		.close_on_exec	= (fd_set *)&init_files.close_on_exec_init,
+ 		.open_fds	= (fd_set *)&init_files.open_fds_init,
+-		.rcu		= RCU_HEAD_INIT,
+ 	},
+ 	.file_lock	= __SPIN_LOCK_UNLOCKED(init_task.file_lock),
+ };
+diff -puN fs/fs-writeback.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/fs-writeback.c
+--- a/fs/fs-writeback.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/fs/fs-writeback.c
+@@ -77,7 +77,6 @@ static inline bool bdi_work_on_stack(str
+ static inline void bdi_work_init(struct bdi_work *work,
+ 				 struct wb_writeback_args *args)
+ {
+-	INIT_RCU_HEAD(&work->rcu_head);
+ 	work->args = *args;
+ 	work->state = WS_USED;
+ }
+diff -puN fs/partitions/check.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/partitions/check.c
+--- a/fs/partitions/check.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/fs/partitions/check.c
+@@ -455,7 +455,6 @@ struct hd_struct *add_partition(struct g
+ 	}
+ 
+ 	/* everything is up and running, commence */
+-	INIT_RCU_HEAD(&p->rcu_head);
+ 	rcu_assign_pointer(ptbl->part[partno], p);
+ 
+ 	/* suppress uevent if the disk supresses it */
+diff -puN include/linux/init_task.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head include/linux/init_task.h
+--- a/include/linux/init_task.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/include/linux/init_task.h
+@@ -57,7 +57,6 @@ extern struct group_info init_groups;
+ 		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
+ 		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
+ 	},								\
+-	.rcu		= RCU_HEAD_INIT,				\
+ 	.level		= 0,						\
+ 	.numbers	= { {						\
+ 		.nr		= 0,					\
+diff -puN include/linux/rcupdate.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/include/linux/rcupdate.h
+@@ -71,12 +71,6 @@ extern void rcu_init(void);
+ #error "Unknown RCU implementation specified to kernel configuration"
+ #endif
+ 
+-#define RCU_HEAD_INIT	{ .next = NULL, .func = NULL }
+-#define RCU_HEAD(head) struct rcu_head head = RCU_HEAD_INIT
+-#define INIT_RCU_HEAD(ptr) do { \
+-       (ptr)->next = NULL; (ptr)->func = NULL; \
+-} while (0)
+-
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ extern struct lockdep_map rcu_lock_map;
+ # define rcu_read_acquire()	\
+diff -puN mm/backing-dev.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head mm/backing-dev.c
+--- a/mm/backing-dev.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/mm/backing-dev.c
+@@ -655,7 +655,6 @@ int bdi_init(struct backing_dev_info *bd
+ 	bdi->max_ratio = 100;
+ 	bdi->max_prop_frac = PROP_FRAC_BASE;
+ 	spin_lock_init(&bdi->wb_lock);
+-	INIT_RCU_HEAD(&bdi->rcu_head);
+ 	INIT_LIST_HEAD(&bdi->bdi_list);
+ 	INIT_LIST_HEAD(&bdi->wb_list);
+ 	INIT_LIST_HEAD(&bdi->work_list);
+diff -puN mm/slob.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head mm/slob.c
+--- a/mm/slob.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/mm/slob.c
+@@ -647,7 +647,6 @@ void kmem_cache_free(struct kmem_cache *
+ 	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
+ 		struct slob_rcu *slob_rcu;
+ 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
+-		INIT_RCU_HEAD(&slob_rcu->head);
+ 		slob_rcu->size = c->size;
+ 		call_rcu(&slob_rcu->head, kmem_rcu_free);
+ 	} else {
+diff -puN security/selinux/avc.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head security/selinux/avc.c
+--- a/security/selinux/avc.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/security/selinux/avc.c
+@@ -288,7 +288,6 @@ static struct avc_node *avc_alloc_node(v
+ 	if (!node)
+ 		goto out;
+ 
+-	INIT_RCU_HEAD(&node->rhead);
+ 	INIT_HLIST_NODE(&node->list);
+ 	avc_cache_stats_incr(allocations);
+ 
+diff -puN security/selinux/netnode.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head security/selinux/netnode.c
+--- a/security/selinux/netnode.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
++++ a/security/selinux/netnode.c
+@@ -182,8 +182,6 @@ static void sel_netnode_insert(struct se
+ 		BUG();
+ 	}
+ 
+-	INIT_RCU_HEAD(&node->rcu);
+-
+ 	/* we need to impose a limit on the growth of the hash table so check
+ 	 * this bucket to make sure it is within the specified bounds */
+ 	list_add_rcu(&node->list, &sel_netnode_hash[idx].list);
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+origin.patch
 linux-next.patch
-sysctl-extern-cleanup-c_a_d.patch
-sysctl-extern-cleanup-signal.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
+mpt-fusion-convert-to-seq_file.patch
+proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
+proc-warn-on-non-existing-proc-entries.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
 sysctl-extern-cleanup-binfmts.patch
-sysctl-extern-cleanup-pid.patch
-sysctl-extern-cleanup-mm.patch
-sysctl-extern-cleanup-compat.patch
-sysctl-extern-cleanup-latencytop.patch
-sysctl-extern-cleanup-file-nr.patch
-sysctl-extern-cleanup-rcu.patch
-sysctl-extern-cleanup-block-iopoll.patch
-sysctl-extern-cleanup-module.patch
-sysctl-extern-cleanup-sg.patch
-sysctl-extern-cleanup-acct.patch
-sysctl-extern-cleanup-rtmutex.patch
-sysctl-extern-cleanup-lockdep.patch
-sysctl-extern-cleanup-poll.patch
-sysctl-extern-cleanup-inotify.patch
+nsproxy-remove-init_nsproxy.patch
 
