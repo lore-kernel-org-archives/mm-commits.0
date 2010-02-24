@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-telegent-tlg2300-section-fix.patch added to -mm tree
-Date: Wed, 24 Feb 2010 14:48:30 -0800
-Message-ID: <201002242248.o1OMmUPZ025062@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-fix-possible-infinite-loop.patch added to -mm tree
+Date: Wed, 24 Feb 2010 14:49:24 -0800
+Message-ID: <201002242249.o1OMnO8G025085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758476Ab0BXWst (ORCPT
+	by vger.kernel.org with ESMTP id S1758492Ab0BXWtb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:48:49 -0500
+	Wed, 24 Feb 2010 17:49:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mchehab@redhat.com, shijie8@gmail.com
+Cc: joe@perches.com, stable@kernel.org
 
 
 The patch titled
-     MAINTAINERS: Telegent tlg2300 section fix
+     scripts/get_maintainer.pl: fix possible infinite loop
 has been added to the -mm tree.  Its filename is
-     maintainers-telegent-tlg2300-section-fix.patch
+     scripts-get_maintainerpl-fix-possible-infinite-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Telegent tlg2300 section fix
+Subject: scripts/get_maintainer.pl: fix possible infinite loop
 From: Joe Perches <joe@perches.com>
 
-linux-next commit 2ff8223957d901999bf76aaf2c6183e33a6ad14e exposes an
-infinite loop defect in scripts/get_maintainer.pl
+If MAINTAINERS section entries are misformatted, it was possible to have
+an infinite loop.
 
-Fix the incorrect format of the MAINTAINERS "M:" entries.
+Correct the defect by always moving the index to the end of section + 1
+
+Also, exit check for exclude as soon as possible.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Huang Shijie <shijie8@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ scripts/get_maintainer.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-telegent-tlg2300-section-fix MAINTAINERS
---- a/MAINTAINERS~maintainers-telegent-tlg2300-section-fix
-+++ a/MAINTAINERS
-@@ -4788,13 +4788,12 @@ F:	drivers/media/video/*7146*
- F:	include/media/*7146*
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop
++++ a/scripts/get_maintainer.pl
+@@ -347,6 +347,7 @@ foreach my $file (@files) {
+ 		if ($type eq 'X') {
+ 		    if (file_match_pattern($file, $value)) {
+ 			$exclude = 1;
++			last;
+ 		    }
+ 		}
+ 	    }
+@@ -373,8 +374,7 @@ foreach my $file (@files) {
+ 	    }
+ 	}
  
- TLG2300 VIDEO4LINUX-2 DRIVER
--M 	Huang Shijie	<shijie8@gmail.com>
--M 	Kang Yong	<kangyong@telegent.com>
--M 	Zhang Xiaobing	<xbzhang@telegent.com>
-+M:	Huang Shijie <shijie8@gmail.com>
-+M:	Kang Yong <kangyong@telegent.com>
-+M:	Zhang Xiaobing <xbzhang@telegent.com>
- S:	Supported
- F:	drivers/media/video/tlg2300
- 
+-	$tvi += ($end - $start);
 -
- SC1200 WDT DRIVER
- M:	Zwane Mwaikambo <zwane@arm.linux.org.uk>
- S:	Maintained
++	$tvi = $end + 1;
+     }
+ 
+     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -127,6 +129,7 @@ scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintaine
 scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
 get_maintainer-fix-perlcritic-warnings.patch
 get_maintainer-quote-email-address-with-period.patch
+scripts-get_maintainerpl-fix-possible-infinite-loop.patch
 maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
 maintainers-remove-hayes-esp-serial-driver.patch
 maintainers-update-performance-events-f-patterns.patch
