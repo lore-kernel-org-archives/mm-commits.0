@@ -1,133 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch removed from -mm tree
-Date: Wed, 24 Feb 2010 11:40:15 -0800
-Message-ID: <201002241940.o1OJeFCg016376@imap1.linux-foundation.org>
+Subject: + module-init-sysfs-attributes.patch added to -mm tree
+Date: Wed, 24 Feb 2010 11:56:57 -0800
+Message-ID: <201002241956.o1OJuvbq017020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757844Ab0BXTmd (ORCPT
+	by vger.kernel.org with ESMTP id S1757889Ab0BXT51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 14:42:33 -0500
+	Wed, 24 Feb 2010 14:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton@samba.org, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, peterz@infradead.org, schwidefsky@de.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: johannes@sipsolutions.net, rusty@rustcorp.com.au
 
 
 The patch titled
-     sched: cpuacct: use bigger percpu counter batch values for stats counters
-has been removed from the -mm tree.  Its filename was
-     sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
+     module: init sysfs attributes
+has been added to the -mm tree.  Its filename is
+     module-init-sysfs-attributes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: cpuacct: use bigger percpu counter batch values for stats counters
-From: Anton Blanchard <anton@samba.org>
+Subject: module: init sysfs attributes
+From: Johannes Berg <johannes@sipsolutions.net>
 
-When CONFIG_VIRT_CPU_ACCOUNTING and CONFIG_CGROUP_CPUACCT are enabled we
-can call cpuacct_update_stats with values much larger than
-percpu_counter_batch.  This means the call to percpu_counter_add will
-always add to the global count which is protected by a spinlock and we end
-up with a global spinlock in the scheduler.
+This is required for lockdep.
 
-Based on an idea by KOSAKI Motohiro, this patch scales the batch value by
-cputime_one_jiffy such that we have the same batch limit as we would if
-CONFIG_VIRT_CPU_ACCOUNTING was disabled.  His patch did this once at boot
-but that initialisation happened too early on PowerPC (before time_init)
-and it was never updated at runtime as a result of a hotplug cpu
-add/remove.
-
-This patch instead scales percpu_counter_batch by cputime_one_jiffy at
-runtime, which keeps the batch correct even after cpu hotplug operations. 
-We cap it at INT_MAX in case of overflow.
-
-For architectures that do not support CONFIG_VIRT_CPU_ACCOUNTING,
-cputime_one_jiffy is the constant 1 and gcc is smart enough to optimise
-min(s32 percpu_counter_batch, INT_MAX) to just percpu_counter_batch at
-least on x86 and PowerPC.  So there is no need to add an #ifdef.
-
-On a 64 thread PowerPC box with CONFIG_VIRT_CPU_ACCOUNTING and
-CONFIG_CGROUP_CPUACCT enabled, a context switch microbenchmark is 234x
-faster and almost matches a CONFIG_CGROUP_CPUACCT disabled kernel:
-
-CONFIG_CGROUP_CPUACCT disabled:		16906698 ctx switches/sec
-CONFIG_CGROUP_CPUACCT enabled:		   61720 ctx switches/sec
-CONFIG_CGROUP_CPUACCT + patch:		16663217 ctx switches/sec
-
-Tested with:
-
-wget http://ozlabs.org/~anton/junkcode/context_switch.c
-make context_switch
-for i in `seq 0 63`; do taskset -c $i ./context_switch & done
-vmstat 1
-
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ kernel/module.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/sched.c~sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters kernel/sched.c
---- a/kernel/sched.c~sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters
-+++ a/kernel/sched.c
-@@ -9013,12 +9013,30 @@ static void cpuacct_charge(struct task_s
- }
- 
- /*
-+ * When CONFIG_VIRT_CPU_ACCOUNTING is enabled one jiffy can be very large
-+ * in cputime_t units. As a result, cpuacct_update_stats calls
-+ * percpu_counter_add with values large enough to always overflow the
-+ * per cpu batch limit causing bad SMP scalability.
-+ *
-+ * To fix this we scale percpu_counter_batch by cputime_one_jiffy so we
-+ * batch the same amount of time with CONFIG_VIRT_CPU_ACCOUNTING disabled
-+ * and enabled. We cap it at INT_MAX which is the largest allowed batch value.
-+ */
-+#ifdef CONFIG_SMP
-+#define CPUACCT_BATCH	\
-+	min_t(long, percpu_counter_batch * cputime_one_jiffy, INT_MAX)
-+#else
-+#define CPUACCT_BATCH	0
-+#endif
-+
-+/*
-  * Charge the system/user time to the task's accounting group.
-  */
- static void cpuacct_update_stats(struct task_struct *tsk,
- 		enum cpuacct_stat_index idx, cputime_t val)
- {
- 	struct cpuacct *ca;
-+	int batch = CPUACCT_BATCH;
- 
- 	if (unlikely(!cpuacct_subsys.active))
- 		return;
-@@ -9027,7 +9045,7 @@ static void cpuacct_update_stats(struct 
- 	ca = task_ca(tsk);
- 
- 	do {
--		percpu_counter_add(&ca->cpustat[idx], val);
-+		__percpu_counter_add(&ca->cpustat[idx], val, batch);
- 		ca = ca->parent;
- 	} while (ca);
- 	rcu_read_unlock();
+diff -puN kernel/module.c~module-init-sysfs-attributes kernel/module.c
+--- a/kernel/module.c~module-init-sysfs-attributes
++++ a/kernel/module.c
+@@ -1091,6 +1091,7 @@ static void add_sect_attrs(struct module
+ 		sect_attrs->nsections++;
+ 		sattr->mattr.show = module_sect_show;
+ 		sattr->mattr.store = NULL;
++		sysfs_attr_init(&sattr->mattr.attr);
+ 		sattr->mattr.attr.name = sattr->name;
+ 		sattr->mattr.attr.mode = S_IRUGO;
+ 		*(gattr++) = &(sattr++)->mattr.attr;
+@@ -1184,6 +1185,7 @@ static void add_notes_attrs(struct modul
+ 		if (sect_empty(&sechdrs[i]))
+ 			continue;
+ 		if (sechdrs[i].sh_type == SHT_NOTE) {
++			sysfs_bin_attr_init(nattr);
+ 			nattr->attr.name = mod->sect_attrs->attrs[loaded].name;
+ 			nattr->attr.mode = S_IRUGO;
+ 			nattr->size = sechdrs[i].sh_size;
+@@ -1256,6 +1258,7 @@ int module_add_modinfo_attrs(struct modu
+ 		if (!attr->test ||
+ 		    (attr->test && attr->test(mod))) {
+ 			memcpy(temp_attr, attr, sizeof(*temp_attr));
++			sysfs_attr_init(&temp_attr->attr);
+ 			error = sysfs_create_file(&mod->mkobj.kobj,&temp_attr->attr);
+ 			++temp_attr;
+ 		}
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
 linux-next.patch
-panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch
-exec-create-initial-stack-independent-of-page_size.patch
-zlib-make-new-optimized-inflate-endian-independent.patch
+module-init-sysfs-attributes.patch
 
