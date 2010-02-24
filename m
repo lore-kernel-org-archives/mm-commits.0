@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk_delay-for-multi-lines.patch added to -mm tree
-Date: Wed, 24 Feb 2010 13:10:07 -0800
-Message-ID: <201002242110.o1OLA734020542@imap1.linux-foundation.org>
+Subject: + vmscan-factor-out-page-reference-checks.patch added to -mm tree
+Date: Wed, 24 Feb 2010 13:46:03 -0800
+Message-ID: <201002242146.o1OLk3s5022144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757767Ab0BXVKT (ORCPT
+	by vger.kernel.org with ESMTP id S1758098Ab0BXVqg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 16:10:19 -0500
+	Wed, 24 Feb 2010 16:46:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, mingo@elte.hu
+Cc: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     printk_delay for multi lines
+     vmscan: factor out page reference checks
 has been added to the -mm tree.  Its filename is
-     printk_delay-for-multi-lines.patch
+     vmscan-factor-out-page-reference-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,298 +34,236 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk_delay for multi lines
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: vmscan: factor out page reference checks
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-printk_delay helps us to capture printk messages on some unconvenient
-senarios, ie.  on halt phase.  But the messages is still not easy to read.
+The used-once mapped file page detection patchset.
 
-So this patch add another sysctl variable printk_delay_lines to make the
-messages can be delayed after multi printks.  Thus we can take pictures by
-camera easily and the messages will be more readable.
 
-kmesg will delay printk_delay_msecs milliseconds after every
-printk_delay_lines printks when printk_delay > 0.
+It is meant to help workloads with large amounts of shortly used file
+mappings, like rtorrent hashing a file or git when dealing with loose
+objects (git gc on a bigger site?).
 
-Additional, merge boot_delay into printk_delay function.  remove
-boot_delay boot param, add printk_delay and printk_delay_lines instead.
+Right now, the VM activates referenced mapped file pages on first
+encounter on the inactive list and it takes a full memory cycle to
+reclaim them again.  When those pages dominate memory, the system
+no longer has a meaningful notion of 'working set' and is required
+to give up the active list to make reclaim progress.  Obviously,
+this results in rather bad scanning latencies and the wrong pages
+being reclaimed.
 
-Now, we can set the value by:
+This patch makes the VM be more careful about activating mapped file
+pages in the first place.  The minimum granted lifetime without
+another memory access becomes an inactive list cycle instead of the
+full memory cycle, which is more natural given the mentioned loads.
 
-1. sysctl interface:
-/proc/sys/kernel/printk_delay
-/proc/sys/kernel/printk_delay_lines
+This test resembles a hashing rtorrent process.  Sequentially, 32MB
+chunks of a file are mapped into memory, hashed (sha1) and unmapped
+again.  While this happens, every 5 seconds a process is launched and
+its execution time taken:
 
-2. boot params:
-printk_delay
-printk_delay_lines
+	python2.4 -c 'import pydoc'
+	old: max=2.31s mean=1.26s (0.34)
+	new: max=1.25s mean=0.32s (0.32)
 
-printk_delay_lines range from 1 - 10000, default value is 1
+	find /etc -type f
+	old: max=2.52s mean=1.44s (0.43)
+	new: max=1.92s mean=0.12s (0.17)
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+	vim -c ':quit'
+	old: max=6.14s mean=4.03s (0.49)
+	new: max=3.48s mean=2.41s (0.25)
+
+	mplayer --help
+	old: max=8.08s mean=5.74s (1.02)
+	new: max=3.79s mean=1.32s (0.81)
+
+	overall hash time (stdev):
+	old: time=1192.30 (12.85) thruput=25.78mb/s (0.27)
+	new: time=1060.27 (32.58) thruput=29.02mb/s (0.88) (-11%)
+
+I also tested kernbench with regular IO streaming in the background to
+see whether the delayed activation of frequently used mapped file
+pages had a negative impact on performance in the presence of pressure
+on the inactive list.  The patch made no significant difference in
+timing, neither for kernbench nor for the streaming IO throughput.
+
+The first patch submission raised concerns about the cost of the extra
+faults for actually activated pages on machines that have no hardware
+support for young page table entries.
+
+I created an artificial worst case scenario on an ARM machine with
+around 300MHz and 64MB of memory to figure out the dimensions
+involved.  The test would mmap a file of 20MB, then
+
+  1. touch all its pages to fault them in
+  2. force one full scan cycle on the inactive file LRU
+  -- old: mapping pages activated
+  -- new: mapping pages inactive
+  3. touch the mapping pages again
+  -- old and new: fault exceptions to set the young bits
+  4. force another full scan cycle on the inactive file LRU
+  5. touch the mapping pages one last time
+  -- new: fault exceptions to set the young bits
+
+The test showed an overall increase of 6% in time over 100 iterations
+of the above (old: ~212sec, new: ~225sec).  13 secs total overhead /
+(100 * 5k pages), ignoring the execution time of the test itself,
+makes for about 25us overhead for every page that gets actually
+activated.  Note:
+
+  1. File mapping the size of one third of main memory, _completely_
+  in active use across memory pressure - i.e., most pages referenced
+  within one LRU cycle.  This should be rare to non-existant,
+  especially on such embedded setups.
+
+  2. Many huge activation batches.  Those batches only occur when the
+  working set fluctuates.  If it changes completely between every full
+  LRU cycle, you have problematic reclaim overhead anyway.
+
+  3. Access of activated pages at maximum speed: sequential loads from
+  every single page without doing anything in between.  In reality,
+  the extra faults will get distributed between actual operations on
+  the data.
+
+So even if a workload manages to get the VM into the situation of
+activating a third of memory in one go on such a setup, it will take
+2.2 seconds instead 2.1 without the patch.
+
+Comparing the numbers (and my user-experience over several months),
+I think this change is an overall improvement to the VM.
+
+Patch 1 is only refactoring to break up that ugly compound conditional
+in shrink_page_list() and make it easy to document and add new checks
+in a readable fashion.
+
+Patch 2 gets rid of the obsolete page_mapping_inuse().  It's not
+strictly related to #3, but it was in the original submission and is a
+net simplification, so I kept it.
+
+Patch 3 implements used-once detection of mapped file pages.
+
+
+
+This patch:
+
+Moving the big conditional into its own predicate function makes the code
+a bit easier to read and allows for better commenting on the checks
+one-by-one.
+
+This is just cleaning up, no semantics should have been changed.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: OSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   11 +++-
- Documentation/sysctl/kernel.txt     |    9 +++
- include/linux/printk.h              |    1 
- kernel/printk.c                     |   67 ++++++++++++++------------
- kernel/sysctl.c                     |    9 +++
- lib/Kconfig.debug                   |   18 ------
- 6 files changed, 66 insertions(+), 49 deletions(-)
+ mm/vmscan.c |   53 +++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 40 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~printk_delay-for-multi-lines Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~printk_delay-for-multi-lines
-+++ a/Documentation/kernel-parameters.txt
-@@ -418,9 +418,16 @@ and is between 256 and 4096 characters. 
- 			Format: <io>,<irq>,<mode>
- 			See header of drivers/net/hamradio/baycom_ser_hdx.c.
+diff -puN mm/vmscan.c~vmscan-factor-out-page-reference-checks mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-factor-out-page-reference-checks
++++ a/mm/vmscan.c
+@@ -579,6 +579,37 @@ redo:
+ 	put_page(page);		/* drop ref from isolate */
+ }
  
--	boot_delay=	Milliseconds to delay each printk during boot.
-+	printk_delay=	Milliseconds to delay each printk.
- 			Values larger than 10 seconds (10000) are changed to
--			no delay (0).
-+			no delay (0). It can be set via sysctl after boot,
-+			the proc file is: /proc/sys/kernel/printk_delay
-+			Format: integer
++enum page_references {
++	PAGEREF_RECLAIM,
++	PAGEREF_RECLAIM_CLEAN,
++	PAGEREF_ACTIVATE,
++};
 +
-+	printk_delay_lines=	Delay after every printk_delay_lines printk.
-+			Values larger than 10 seconds (10000) are changed to 1.
-+			It can be set via sysctl after boot,
-+			the proc file is: /proc/sys/kernel/printk_delay_lines
- 			Format: integer
- 
- 	bootmem_debug	[KNL] Enable bootmem allocator debug messages.
-diff -puN Documentation/sysctl/kernel.txt~printk_delay-for-multi-lines Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~printk_delay-for-multi-lines
-+++ a/Documentation/sysctl/kernel.txt
-@@ -374,6 +374,15 @@ Value from 0 - 10000 is allowed.
- 
- ==============================================================
- 
-+printk_delay_lines:
-+
-+Delay printk message every printk_delay_lines printks
-+in printk_delay milliseconds
-+
-+Value from 1 - 10000 is allowed.
-+
-+==============================================================
-+
- randomize-va-space:
- 
- This option can be used to select the type of process address
-diff -puN include/linux/printk.h~printk_delay-for-multi-lines include/linux/printk.h
---- a/include/linux/printk.h~printk_delay-for-multi-lines
-+++ a/include/linux/printk.h
-@@ -66,6 +66,7 @@ extern bool printk_timed_ratelimit(unsig
- 				   unsigned int interval_msec);
- 
- extern int printk_delay_msec;
-+extern int printk_delay_lines;
- 
- /*
-  * Print a one-time message (analogous to WARN_ONCE() et al):
-diff -puN kernel/printk.c~printk_delay-for-multi-lines kernel/printk.c
---- a/kernel/printk.c~printk_delay-for-multi-lines
-+++ a/kernel/printk.c
-@@ -206,40 +206,44 @@ out:
- 
- __setup("log_buf_len=", log_buf_len_setup);
- 
--#ifdef CONFIG_BOOT_PRINTK_DELAY
-+static unsigned long long loops_per_msec;	/* based on preset_lpj */
- 
--static unsigned int boot_delay; /* msecs delay after each printk during bootup */
--static unsigned long long loops_per_msec;	/* based on boot_delay */
--
--static int __init boot_delay_setup(char *str)
-+static int __init printk_delay_setup(char *str)
- {
- 	unsigned long lpj;
- 
- 	lpj = preset_lpj ? preset_lpj : 1000000;	/* some guess */
- 	loops_per_msec = (unsigned long long)lpj / 1000 * HZ;
- 
--	get_option(&str, &boot_delay);
--	if (boot_delay > 10 * 1000)
--		boot_delay = 0;
-+	get_option(&str, &printk_delay_msec);
-+	if (printk_delay_msec > 10 * 1000)
-+		printk_delay_msec = 0;
- 
--	pr_debug("boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
-+	pr_debug("printk_delay_msec: %u, preset_lpj: %ld, lpj: %lu, "
- 		"HZ: %d, loops_per_msec: %llu\n",
--		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
-+		printk_delay_msec, preset_lpj, lpj, HZ, loops_per_msec);
-+	return 1;
-+}
-+__setup("printk_delay=", printk_delay_setup);
-+
-+static int __init printk_delay_lines_setup(char *str)
++static enum page_references page_check_references(struct page *page,
++						  struct scan_control *sc)
 +{
-+	get_option(&str, &printk_delay_lines);
-+	if (printk_delay_lines > 10 * 1000)
-+		printk_delay_lines = 1;
++	unsigned long vm_flags;
++	int referenced;
 +
- 	return 1;
- }
--__setup("boot_delay=", boot_delay_setup);
-+__setup("printk_delay_lines=", printk_delay_lines_setup);
- 
--static void boot_delay_msec(void)
-+static void boot_delay(void)
- {
- 	unsigned long long k;
- 	unsigned long timeout;
- 
--	if (boot_delay == 0 || system_state != SYSTEM_BOOTING)
--		return;
--
--	k = (unsigned long long)loops_per_msec * boot_delay;
-+	k = (unsigned long long)loops_per_msec * printk_delay_msec;
- 
--	timeout = jiffies + msecs_to_jiffies(boot_delay);
-+	timeout = jiffies + msecs_to_jiffies(printk_delay_msec);
- 	while (k) {
- 		k--;
- 		cpu_relax();
-@@ -253,11 +257,6 @@ static void boot_delay_msec(void)
- 		touch_nmi_watchdog();
- 	}
- }
--#else
--static inline void boot_delay_msec(void)
--{
--}
--#endif
- 
- int do_syslog(int type, char __user *buf, int len, bool from_file)
- {
-@@ -674,16 +673,28 @@ static int new_text_line = 1;
- static char printk_buf[1024];
- 
- int printk_delay_msec __read_mostly;
-+int printk_delay_lines __read_mostly = 1;
- 
- static inline void printk_delay(void)
- {
- 	if (unlikely(printk_delay_msec)) {
-+		static atomic_t l = ATOMIC_INIT(0);
- 		int m = printk_delay_msec;
- 
--		while (m--) {
--			mdelay(1);
--			touch_nmi_watchdog();
--		}
-+		if (!atomic_read(&l))
-+			atomic_set(&l, printk_delay_lines);
++	referenced = page_referenced(page, 1, sc->mem_cgroup, &vm_flags);
++	if (!referenced)
++		return PAGEREF_RECLAIM;
 +
-+		smp_mb__before_atomic_dec();
-+		if (atomic_dec_return(&l))
-+			return;
++	/* Lumpy reclaim - ignore references */
++	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
++		return PAGEREF_RECLAIM;
 +
-+		if (system_state == SYSTEM_BOOTING)
-+			boot_delay();
-+		else
-+			while (m--) {
-+				mdelay(1);
-+				touch_nmi_watchdog();
-+			}
- 	}
- }
++	/* Mlock lost isolation race - let try_to_unmap() handle it */
++	if (vm_flags & VM_LOCKED)
++		return PAGEREF_RECLAIM;
++
++	if (page_mapping_inuse(page))
++		return PAGEREF_ACTIVATE;
++
++	/* Reclaim if clean, defer dirty pages to writeback */
++	return PAGEREF_RECLAIM_CLEAN;
++}
++
+ /*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+@@ -590,16 +621,15 @@ static unsigned long shrink_page_list(st
+ 	struct pagevec freed_pvec;
+ 	int pgactivate = 0;
+ 	unsigned long nr_reclaimed = 0;
+-	unsigned long vm_flags;
  
-@@ -695,9 +706,6 @@ asmlinkage int vprintk(const char *fmt, 
- 	int this_cpu;
- 	char *p;
+ 	cond_resched();
  
--	boot_delay_msec();
--	printk_delay();
--
- 	preempt_disable();
- 	/* This stops the holder of console_sem just where we want him */
- 	raw_local_irq_save(flags);
-@@ -816,6 +824,7 @@ out_restore_irqs:
- 	raw_local_irq_restore(flags);
+ 	pagevec_init(&freed_pvec, 1);
+ 	while (!list_empty(page_list)) {
++		enum page_references references;
+ 		struct address_space *mapping;
+ 		struct page *page;
+ 		int may_enter_fs;
+-		int referenced;
  
- 	preempt_enable();
-+	printk_delay();
- 	return printed_len;
- }
- EXPORT_SYMBOL(printk);
-diff -puN kernel/sysctl.c~printk_delay-for-multi-lines kernel/sysctl.c
---- a/kernel/sysctl.c~printk_delay-for-multi-lines
-+++ a/kernel/sysctl.c
-@@ -689,6 +689,15 @@ static struct ctl_table kern_table[] = {
- 		.extra1		= &zero,
- 		.extra2		= &ten_thousand,
- 	},
-+	{
-+		.procname	= "printk_delay_lines",
-+		.data		= &printk_delay_lines,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &one,
-+		.extra2		= &ten_thousand,
-+	},
- #endif
- 	{
- 		.procname	= "ngroups_max",
-diff -puN lib/Kconfig.debug~printk_delay-for-multi-lines lib/Kconfig.debug
---- a/lib/Kconfig.debug~printk_delay-for-multi-lines
-+++ a/lib/Kconfig.debug
-@@ -720,24 +720,6 @@ config FRAME_POINTER
- 	  larger and slower, but it gives very useful debugging information
- 	  in case of kernel bugs. (precise oopses/stacktraces/warnings)
+ 		cond_resched();
  
--config BOOT_PRINTK_DELAY
--	bool "Delay each boot printk message by N milliseconds"
--	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY
--	help
--	  This build option allows you to read kernel boot messages
--	  by inserting a short delay after each one.  The delay is
--	  specified in milliseconds on the kernel command line,
--	  using "boot_delay=N".
--
--	  It is likely that you would also need to use "lpj=M" to preset
--	  the "loops per jiffie" value.
--	  See a previous boot log for the "lpj" value to use for your
--	  system, and then set "lpj=M" before setting "boot_delay=N".
--	  NOTE:  Using this option may adversely affect SMP systems.
--	  I.e., processors other than the first one may not boot up.
--	  BOOT_PRINTK_DELAY also may cause DETECT_SOFTLOCKUP to detect
--	  what it believes to be lockup conditions.
--
- config RCU_TORTURE_TEST
- 	tristate "torture tests for RCU"
- 	depends on DEBUG_KERNEL
+@@ -641,17 +671,14 @@ static unsigned long shrink_page_list(st
+ 				goto keep_locked;
+ 		}
+ 
+-		referenced = page_referenced(page, 1,
+-						sc->mem_cgroup, &vm_flags);
+-		/*
+-		 * In active use or really unfreeable?  Activate it.
+-		 * If page which have PG_mlocked lost isoltation race,
+-		 * try_to_unmap moves it to unevictable list
+-		 */
+-		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
+-					referenced && page_mapping_inuse(page)
+-					&& !(vm_flags & VM_LOCKED))
++		references = page_check_references(page, sc);
++		switch (references) {
++		case PAGEREF_ACTIVATE:
+ 			goto activate_locked;
++		case PAGEREF_RECLAIM:
++		case PAGEREF_RECLAIM_CLEAN:
++			; /* try to reclaim the page below */
++		}
+ 
+ 		/*
+ 		 * Anonymous process memory has backing store?
+@@ -685,7 +712,7 @@ static unsigned long shrink_page_list(st
+ 		}
+ 
+ 		if (PageDirty(page)) {
+-			if (sc->order <= PAGE_ALLOC_COSTLY_ORDER && referenced)
++			if (references == PAGEREF_RECLAIM_CLEAN)
+ 				goto keep_locked;
+ 			if (!may_enter_fs)
+ 				goto keep_locked;
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-linux-next.patch
-kernelh-intr_sqrt-cleanup.patch
-kernelh-printk-panic-string-cleanup.patch
-printk_delay-for-multi-lines.patch
-documentation-email-clientstxt-update-gmail-information.patch
-sysctl-extern-cleanup-c_a_d.patch
-sysctl-extern-cleanup-signal.patch
-sysctl-extern-cleanup-binfmts.patch
-sysctl-extern-cleanup-pid.patch
-sysctl-extern-cleanup-mm.patch
-sysctl-extern-cleanup-compat.patch
-sysctl-extern-cleanup-latencytop.patch
-sysctl-extern-cleanup-file-nr.patch
-sysctl-extern-cleanup-rcu.patch
-sysctl-extern-cleanup-block-iopoll.patch
-sysctl-extern-cleanup-module.patch
-sysctl-extern-cleanup-sg.patch
-sysctl-extern-cleanup-acct.patch
-sysctl-extern-cleanup-rtmutex.patch
-sysctl-extern-cleanup-lockdep.patch
-sysctl-extern-cleanup-poll.patch
-sysctl-extern-cleanup-inotify.patch
+bootmem-avoid-dma32-zone-by-default.patch
+vmscan-factor-out-page-reference-checks.patch
+vmscan-factor-out-page-reference-checks-fix.patch
+vmscan-drop-page_mapping_inuse.patch
+vmscan-detect-mapped-file-pages-used-only-once.patch
 
