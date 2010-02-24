@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-serial-clients-support-fix-2.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:30:01 -0800
-Message-ID: <201002242030.o1OKU1m9018737@imap1.linux-foundation.org>
+Subject: + scsi-raid_attrs-depends-on-scsi.patch added to -mm tree
+Date: Wed, 24 Feb 2010 12:33:52 -0800
+Message-ID: <201002242033.o1OKXqwP018920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35814 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757675Ab0BXUaU (ORCPT
+	by vger.kernel.org with ESMTP id S1757687Ab0BXUd7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:30:20 -0500
+	Wed, 24 Feb 2010 15:33:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giometti@enneenne.com
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     pps-serial-clients-support-fix-2
+     scsi: RAID_ATTRS depends on SCSI
 has been added to the -mm tree.  Its filename is
-     pps-serial-clients-support-fix-2.patch
+     scsi-raid_attrs-depends-on-scsi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-serial-clients-support-fix-2
-From: Rodolfo Giometti <giometti@enneenne.com>
+Subject: scsi: RAID_ATTRS depends on SCSI
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
+raid_class uses scsi interfaces, so it should depend on SCSI.
+Otherwise build errors occur when RAID_ATTRS=y and SCSI=m:
 
+ERROR: "raid_class_release" [drivers/scsi/mpt2sas/mpt2sas.ko] undefined!
+ERROR: "raid_class_attach" [drivers/scsi/mpt2sas/mpt2sas.ko] undefined!
 
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ldisc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/Kconfig |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-fix-2 drivers/pps/clients/pps-ldisc.c
---- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-fix-2
-+++ a/drivers/pps/clients/pps-ldisc.c
-@@ -53,7 +53,7 @@ static void pps_tty_dcd_change(struct tt
- 			status ? "assert" : "clear", jiffies, id);
- }
+diff -puN drivers/scsi/Kconfig~scsi-raid_attrs-depends-on-scsi drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~scsi-raid_attrs-depends-on-scsi
++++ a/drivers/scsi/Kconfig
+@@ -1,12 +1,5 @@
+ menu "SCSI device support"
  
--static int (*n_tty_open)(struct tty_struct *tty);
-+static int (*alias_n_tty_open)(struct tty_struct *tty);
+-config RAID_ATTRS
+-	tristate "RAID Transport Class"
+-	default n
+-	depends on BLOCK
+-	---help---
+-	  Provides RAID
+-
+ config SCSI
+ 	tristate "SCSI device support"
+ 	depends on BLOCK
+@@ -34,6 +27,13 @@ config SCSI_DMA
+ 	bool
+ 	default n
  
- static int pps_tty_open(struct tty_struct *tty)
- {
-@@ -79,7 +79,7 @@ static int pps_tty_open(struct tty_struc
- 	tty->disc_data = (void *) ret;
- 
- 	/* Should open N_TTY ldisc too */
--	ret = n_tty_open(tty);
-+	ret = alias_n_tty_open(tty);
- 	if (ret < 0)
- 		pps_unregister_source((int) tty->disc_data);
- 
-@@ -88,14 +88,14 @@ static int pps_tty_open(struct tty_struc
- 	return 0;
- }
- 
--static void (*n_tty_close)(struct tty_struct *tty);
-+static void (*alias_n_tty_close)(struct tty_struct *tty);
- 
- static void pps_tty_close(struct tty_struct *tty)
- {
- 	int id = (int) tty->disc_data;
- 
- 	pps_unregister_source(id);
--	n_tty_close(tty);
-+	alias_n_tty_close(tty);
- 
- 	pr_info("PPS source #%d removed\n", id);
- }
++config RAID_ATTRS
++	tristate "RAID Transport Class"
++	default n
++	depends on BLOCK && SCSI
++	---help---
++	  Provides RAID
++
+ config SCSI_TGT
+ 	tristate "SCSI target support"
+ 	depends on SCSI && EXPERIMENTAL
 _
 
-Patches currently in -mm which might be from giometti@enneenne.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-pps-serial-clients-support-fix-2.patch
+linux-next.patch
+vmwgfx-depends-on-fb.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+i2c-fix-xiic-build-error.patch
+scsi-raid_attrs-depends-on-scsi.patch
+mfgpt-move-clocksource-menu.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+doc-console-doc-should-read-bind-unbind-instead-of-bind-bind.patch
+documentation-timers-split-txt-and-source-files.patch
+documentation-laptop-split-txt-and-source-files.patch
+documentation-fs-split-txt-and-source-files.patch
+documentation-vm-split-txt-and-source-files.patch
+doc-submitchecklist-add-rule-1.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
