@@ -1,84 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch added to -mm tree
-Date: Wed, 24 Feb 2010 14:40:36 -0800
-Message-ID: <201002242240.o1OMeagB024689@imap1.linux-foundation.org>
+Subject: [folded] pps-serial-clients-support-fix-2.patch removed from -mm tree
+Date: Wed, 24 Feb 2010 14:41:06 -0800
+Message-ID: <201002242241.o1OMf602024701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757453Ab0BXWlV (ORCPT
+	by vger.kernel.org with ESMTP id S1757453Ab0BXWlh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:41:21 -0500
+	Wed, 24 Feb 2010 17:41:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su
+To: giometti@enneenne.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
-has been added to the -mm tree.  Its filename is
-     ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
+     pps-serial-clients-support-fix-2
+has been removed from the -mm tree.  Its filename was
+     pps-serial-clients-support-fix-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into pps-serial-clients-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: pps-serial-clients-support-fix-2
+From: Rodolfo Giometti <giometti@enneenne.com>
 
-This new method can be used to init a new struct tty_ldisc_ops as the
-default tty_ldisc_N_TTY struct.
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/pps/clients/pps-ldisc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/n_tty.c~ldisc-n_tty-add-new-method-n_tty_inherit_ops-update drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
-+++ a/drivers/char/n_tty.c
-@@ -2093,6 +2093,14 @@ struct tty_ldisc_ops tty_ldisc_N_TTY = {
- 	.write_wakeup    = n_tty_write_wakeup
- };
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-fix-2 drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-fix-2
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -53,7 +53,7 @@ static void pps_tty_dcd_change(struct tt
+ 			status ? "assert" : "clear", jiffies, id);
+ }
  
-+/**
-+ *	n_tty_inherit_ops	-	inherit N_TTY methods
-+ *	@ops: struct tty_ldisc_ops where to save N_TTY methods
-+ *
-+ *	Used by a generic struct tty_ldisc_ops to easily inherit N_TTY
-+ *	methods.
-+ */
-+
- void n_tty_inherit_ops(struct tty_ldisc_ops *ops)
+-static int (*n_tty_open)(struct tty_struct *tty);
++static int (*alias_n_tty_open)(struct tty_struct *tty);
+ 
+ static int pps_tty_open(struct tty_struct *tty)
  {
- 	*ops = tty_ldisc_N_TTY;
+@@ -79,7 +79,7 @@ static int pps_tty_open(struct tty_struc
+ 	tty->disc_data = (void *) ret;
+ 
+ 	/* Should open N_TTY ldisc too */
+-	ret = n_tty_open(tty);
++	ret = alias_n_tty_open(tty);
+ 	if (ret < 0)
+ 		pps_unregister_source((int) tty->disc_data);
+ 
+@@ -88,14 +88,14 @@ static int pps_tty_open(struct tty_struc
+ 	return 0;
+ }
+ 
+-static void (*n_tty_close)(struct tty_struct *tty);
++static void (*alias_n_tty_close)(struct tty_struct *tty);
+ 
+ static void pps_tty_close(struct tty_struct *tty)
+ {
+ 	int id = (int) tty->disc_data;
+ 
+ 	pps_unregister_source(id);
+-	n_tty_close(tty);
++	alias_n_tty_close(tty);
+ 
+ 	pr_info("PPS source #%d removed\n", id);
+ }
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from giometti@enneenne.com are
 
-linux-next.patch
-pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
-ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
 pps-serial-clients-support.patch
-serial-8250-enable-pps-support.patch
-serial-amba-pl010-enable-pps-support.patch
+pps-serial-clients-support-fix-2.patch
 
