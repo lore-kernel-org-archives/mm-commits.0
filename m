@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-extern-cleanup-compat.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:19:38 -0800
-Message-ID: <201002242019.o1OKJcNs018188@imap1.linux-foundation.org>
+Subject: + sysctl-extern-cleanup-latencytop.patch added to -mm tree
+Date: Wed, 24 Feb 2010 12:19:40 -0800
+Message-ID: <201002242019.o1OKJeT2018191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33517 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757998Ab0BXUV7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758037Ab0BXUW3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:21:59 -0500
+	Wed, 24 Feb 2010 15:22:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, arnd@arndb.de
+Cc: hidave.darkstar@gmail.com, arjan@infradead.org
 
 
 The patch titled
-     sysctl extern cleanup: compat
+     sysctl extern cleanup: latencytop
 has been added to the -mm tree.  Its filename is
-     sysctl-extern-cleanup-compat.patch
+     sysctl-extern-cleanup-latencytop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: compat
+Subject: sysctl extern cleanup: latencytop
 From: Dave Young <hidave.darkstar@gmail.com>
 
 Extern declarations in sysctl.c should be move to their own head file, and
 then include them in relavant .c files.
 
-Move compat_log extern declaration to linux/compat.h
+latencytop_enabled is declared in linux/latencytop.h, so remove the
+declaration in sysctl.c, include the head file instead.
 
 Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    1 +
- kernel/sysctl.c        |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compat.h~sysctl-extern-cleanup-compat include/linux/compat.h
---- a/include/linux/compat.h~sysctl-extern-cleanup-compat
-+++ a/include/linux/compat.h
-@@ -17,6 +17,7 @@
- #include <asm/siginfo.h>
- #include <asm/signal.h>
- 
-+extern int compat_log; /* for sysctl */
- #define compat_jiffies_to_clock_t(x)	\
- 		(((unsigned long)(x) * COMPAT_USER_HZ) / HZ)
- 
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-compat kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-compat
+diff -puN kernel/sysctl.c~sysctl-extern-cleanup-latencytop kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-extern-cleanup-latencytop
 +++ a/kernel/sysctl.c
-@@ -57,6 +57,7 @@
- #include <linux/signal.h>
+@@ -58,6 +58,7 @@
  #include <linux/binfmts.h>
  #include <linux/pid.h>
-+#include <linux/compat.h>
+ #include <linux/compat.h>
++#include <linux/latencytop.h>
  
  #include <asm/uaccess.h>
  #include <asm/processor.h>
-@@ -76,7 +77,6 @@
+@@ -77,7 +78,6 @@
  
  /* External variables not in a header file. */
  extern int max_threads;
--extern int compat_log;
- extern int latencytop_enabled;
+-extern int latencytop_enabled;
  extern int sysctl_nr_open_min, sysctl_nr_open_max;
  #ifdef CONFIG_RCU_TORTURE_TEST
+ extern int rcutorture_runnable;
 _
 
 Patches currently in -mm which might be from hidave.darkstar@gmail.com are
