@@ -1,161 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch removed from -mm tree
-Date: Wed, 24 Feb 2010 11:39:48 -0800
-Message-ID: <201002241939.o1OJdmMC016320@imap1.linux-foundation.org>
+Subject: [merged] sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch removed from -mm tree
+Date: Wed, 24 Feb 2010 11:40:15 -0800
+Message-ID: <201002241940.o1OJeFCg016376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753356Ab0BXTmV (ORCPT
+	by vger.kernel.org with ESMTP id S1757844Ab0BXTmd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 14:42:21 -0500
+	Wed, 24 Feb 2010 14:42:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: anton@samba.org, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, peterz@infradead.org, schwidefsky@de.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 UV: update UV arch to target Legacy VGA I/O correctly.
+     sched: cpuacct: use bigger percpu counter batch values for stats counters
 has been removed from the -mm tree.  Its filename was
-     x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch
+     sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64 UV: update UV arch to target Legacy VGA I/O correctly.
-From: Mike Travis <travis@sgi.com>
+Subject: sched: cpuacct: use bigger percpu counter batch values for stats counters
+From: Anton Blanchard <anton@samba.org>
 
-Add function to direct Legacy VGA I/O traffic to correct I/O Hub.
+When CONFIG_VIRT_CPU_ACCOUNTING and CONFIG_CGROUP_CPUACCT are enabled we
+can call cpuacct_update_stats with values much larger than
+percpu_counter_batch.  This means the call to percpu_counter_add will
+always add to the global count which is protected by a spinlock and we end
+up with a global spinlock in the scheduler.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Robin Holt <holt@sgi.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jack Steiner <steiner@sgi.com>
+Based on an idea by KOSAKI Motohiro, this patch scales the batch value by
+cputime_one_jiffy such that we have the same batch limit as we would if
+CONFIG_VIRT_CPU_ACCOUNTING was disabled.  His patch did this once at boot
+but that initialisation happened too early on PowerPC (before time_init)
+and it was never updated at runtime as a result of a hotplug cpu
+add/remove.
+
+This patch instead scales percpu_counter_batch by cputime_one_jiffy at
+runtime, which keeps the batch correct even after cpu hotplug operations. 
+We cap it at INT_MAX in case of overflow.
+
+For architectures that do not support CONFIG_VIRT_CPU_ACCOUNTING,
+cputime_one_jiffy is the constant 1 and gcc is smart enough to optimise
+min(s32 percpu_counter_batch, INT_MAX) to just percpu_counter_batch at
+least on x86 and PowerPC.  So there is no need to add an #ifdef.
+
+On a 64 thread PowerPC box with CONFIG_VIRT_CPU_ACCOUNTING and
+CONFIG_CGROUP_CPUACCT enabled, a context switch microbenchmark is 234x
+faster and almost matches a CONFIG_CGROUP_CPUACCT disabled kernel:
+
+CONFIG_CGROUP_CPUACCT disabled:		16906698 ctx switches/sec
+CONFIG_CGROUP_CPUACCT enabled:		   61720 ctx switches/sec
+CONFIG_CGROUP_CPUACCT + patch:		16663217 ctx switches/sec
+
+Tested with:
+
+wget http://ozlabs.org/~anton/junkcode/context_switch.c
+make context_switch
+for i in `seq 0 63`; do taskset -c $i ./context_switch & done
+vmstat 1
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/bios.h     |    4 ++-
- arch/x86/kernel/apic/x2apic_uv_x.c |   30 +++++++++++++++++++++++++++
- arch/x86/kernel/bios_uv.c          |   19 +++++++++++++++++
- 3 files changed, 52 insertions(+), 1 deletion(-)
+ kernel/sched.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/uv/bios.h~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/include/asm/uv/bios.h
---- a/arch/x86/include/asm/uv/bios.h~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
-+++ a/arch/x86/include/asm/uv/bios.h
-@@ -36,7 +36,8 @@ enum uv_bios_cmd {
- 	UV_BIOS_WATCHLIST_ALLOC,
- 	UV_BIOS_WATCHLIST_FREE,
- 	UV_BIOS_MEMPROTECT,
--	UV_BIOS_GET_PARTITION_ADDR
-+	UV_BIOS_GET_PARTITION_ADDR,
-+	UV_BIOS_SET_LEGACY_VGA_TARGET
- };
+diff -puN kernel/sched.c~sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters kernel/sched.c
+--- a/kernel/sched.c~sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters
++++ a/kernel/sched.c
+@@ -9013,12 +9013,30 @@ static void cpuacct_charge(struct task_s
+ }
  
  /*
-@@ -96,6 +97,7 @@ extern int uv_bios_mq_watchlist_alloc(un
- extern int uv_bios_mq_watchlist_free(int, int);
- extern s64 uv_bios_change_memprotect(u64, u64, enum uv_memprotect);
- extern s64 uv_bios_reserved_page_pa(u64, u64 *, u64 *, u64 *);
-+extern int uv_bios_set_legacy_vga_target(bool decode, int domain, int bus);
- 
- extern void uv_bios_init(void);
- 
-diff -puN arch/x86/kernel/apic/x2apic_uv_x.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/kernel/apic/x2apic_uv_x.c
---- a/arch/x86/kernel/apic/x2apic_uv_x.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
-+++ a/arch/x86/kernel/apic/x2apic_uv_x.c
-@@ -20,6 +20,7 @@
- #include <linux/cpu.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/pci.h>
- 
- #include <asm/uv/uv_mmrs.h>
- #include <asm/uv/uv_hub.h>
-@@ -34,6 +35,8 @@
- 
- DEFINE_PER_CPU(int, x2apic_extra_bits);
- 
-+#define PR_DEVEL(fmt, args...)	pr_devel("%s: " fmt, __func__, args)
-+
- static enum uv_system_type uv_system_type;
- static u64 gru_start_paddr, gru_end_paddr;
- int uv_min_hub_revision_id;
-@@ -552,6 +555,30 @@ late_initcall(uv_init_heartbeat);
- 
- #endif /* !CONFIG_HOTPLUG_CPU */
- 
-+/* Direct Legacy VGA I/O traffic to designated IOH */
-+int uv_set_vga_state(struct pci_dev *pdev, bool decode,
-+		      unsigned int command_bits, bool change_bridge)
-+{
-+	int domain, bus, rc;
-+
-+	PR_DEVEL("devfn %x decode %d cmd %x chg_brdg %d\n",
-+			pdev->devfn, decode, command_bits, change_bridge);
-+
-+	if (!change_bridge)
-+		return 0;
-+
-+	if ((command_bits & PCI_COMMAND_IO) == 0)
-+		return 0;
-+
-+	domain = pci_domain_nr(pdev->bus);
-+	bus = pdev->bus->number;
-+
-+	rc = uv_bios_set_legacy_vga_target(decode, domain, bus);
-+	PR_DEVEL("vga decode %d %x:%x, rc: %d\n", decode, domain, bus, rc);
-+
-+	return rc;
-+}
-+
- /*
-  * Called on each cpu to initialize the per_cpu UV data area.
-  * FIXME: hotplug not supported yet
-@@ -690,4 +717,7 @@ void __init uv_system_init(void)
- 	uv_cpu_init();
- 	uv_scir_register_cpu_notifier();
- 	proc_mkdir("sgi_uv", NULL);
-+
-+	/* register Legacy VGA I/O redirection handler */
-+	pci_register_set_vga_state(uv_set_vga_state);
- }
-diff -puN arch/x86/kernel/bios_uv.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/kernel/bios_uv.c
---- a/arch/x86/kernel/bios_uv.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
-+++ a/arch/x86/kernel/bios_uv.c
-@@ -163,6 +163,25 @@ s64 uv_bios_freq_base(u64 clock_type, u6
- }
- EXPORT_SYMBOL_GPL(uv_bios_freq_base);
- 
-+/*
-+ * uv_bios_set_legacy_vga_target - Set Legacy VGA I/O Target
-+ * @decode: true to enable target, false to disable target
-+ * @domain: PCI domain number
-+ * @bus: PCI bus number
++ * When CONFIG_VIRT_CPU_ACCOUNTING is enabled one jiffy can be very large
++ * in cputime_t units. As a result, cpuacct_update_stats calls
++ * percpu_counter_add with values large enough to always overflow the
++ * per cpu batch limit causing bad SMP scalability.
 + *
-+ * Returns:
-+ *    0: Success
-+ *    -EINVAL: Invalid domain or bus number
-+ *    -ENOSYS: Capability not available
-+ *    -EBUSY: Legacy VGA I/O cannot be retargeted at this time
++ * To fix this we scale percpu_counter_batch by cputime_one_jiffy so we
++ * batch the same amount of time with CONFIG_VIRT_CPU_ACCOUNTING disabled
++ * and enabled. We cap it at INT_MAX which is the largest allowed batch value.
 + */
-+int uv_bios_set_legacy_vga_target(bool decode, int domain, int bus)
-+{
-+	return uv_bios_call(UV_BIOS_SET_LEGACY_VGA_TARGET,
-+				(u64)decode, (u64)domain, (u64)bus, 0, 0);
-+}
-+EXPORT_SYMBOL_GPL(uv_bios_set_legacy_vga_target);
++#ifdef CONFIG_SMP
++#define CPUACCT_BATCH	\
++	min_t(long, percpu_counter_batch * cputime_one_jiffy, INT_MAX)
++#else
++#define CPUACCT_BATCH	0
++#endif
 +
++/*
+  * Charge the system/user time to the task's accounting group.
+  */
+ static void cpuacct_update_stats(struct task_struct *tsk,
+ 		enum cpuacct_stat_index idx, cputime_t val)
+ {
+ 	struct cpuacct *ca;
++	int batch = CPUACCT_BATCH;
  
- #ifdef CONFIG_EFI
- void uv_bios_init(void)
+ 	if (unlikely(!cpuacct_subsys.active))
+ 		return;
+@@ -9027,7 +9045,7 @@ static void cpuacct_update_stats(struct 
+ 	ca = task_ca(tsk);
+ 
+ 	do {
+-		percpu_counter_add(&ca->cpustat[idx], val);
++		__percpu_counter_add(&ca->cpustat[idx], val, batch);
+ 		ca = ca->parent;
+ 	} while (ca);
+ 	rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from anton@samba.org are
 
+origin.patch
 linux-next.patch
+panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch
+exec-create-initial-stack-independent-of-page_size.patch
+zlib-make-new-optimized-inflate-endian-independent.patch
 
