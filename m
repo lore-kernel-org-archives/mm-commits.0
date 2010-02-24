@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-extern-cleanup-poll.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:19:58 -0800
-Message-ID: <201002242019.o1OKJwrW018236@imap1.linux-foundation.org>
+Subject: + sysctl-extern-cleanup-inotify.patch added to -mm tree
+Date: Wed, 24 Feb 2010 12:20:00 -0800
+Message-ID: <201002242020.o1OKK0Qi018242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47792 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757732Ab0BXUUb (ORCPT
+	by vger.kernel.org with ESMTP id S1757732Ab0BXUUt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:20:31 -0500
+	Wed, 24 Feb 2010 15:20:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com
+Cc: hidave.darkstar@gmail.com, eparis@redhat.com
 
 
 The patch titled
-     sysctl extern cleanup: poll
+     sysctl extern cleanup: inotify
 has been added to the -mm tree.  Its filename is
-     sysctl-extern-cleanup-poll.patch
+     sysctl-extern-cleanup-inotify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: poll
+Subject: sysctl extern cleanup: inotify
 From: Dave Young <hidave.darkstar@gmail.com>
 
 Extern declarations in sysctl.c should be move to their own head file, and
 then include them in relavant .c files.
 
-Move epoll_table extern declaration to linux/poll.h
+Move inotify_table extern declaration to linux/inotify.h
 
 Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poll.h |    2 ++
- kernel/sysctl.c      |    6 +++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ include/linux/inotify.h |    5 +++++
+ kernel/sysctl.c         |    6 +++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/poll.h~sysctl-extern-cleanup-poll include/linux/poll.h
---- a/include/linux/poll.h~sysctl-extern-cleanup-poll
-+++ a/include/linux/poll.h
-@@ -10,8 +10,10 @@
- #include <linux/wait.h>
- #include <linux/string.h>
- #include <linux/fs.h>
-+#include <linux/sysctl.h>
- #include <asm/uaccess.h>
+diff -puN include/linux/inotify.h~sysctl-extern-cleanup-inotify include/linux/inotify.h
+--- a/include/linux/inotify.h~sysctl-extern-cleanup-inotify
++++ a/include/linux/inotify.h
+@@ -69,4 +69,9 @@ struct inotify_event {
+ #define IN_CLOEXEC O_CLOEXEC
+ #define IN_NONBLOCK O_NONBLOCK
  
-+extern struct ctl_table epoll_table[]; /* for sysctl */
- /* ~832 bytes of stack space used max in sys_select/sys_poll before allocating
-    additional memory. */
- #define MAX_STACK_ALLOC 832
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-poll kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-poll
++#ifdef __KERNEL__
++#include <linux/sysctl.h>
++extern struct ctl_table inotify_table[]; /* for sysctl */
++#endif
++
+ #endif	/* _LINUX_INOTIFY_H */
+diff -puN kernel/sysctl.c~sysctl-extern-cleanup-inotify kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-extern-cleanup-inotify
 +++ a/kernel/sysctl.c
-@@ -72,6 +72,9 @@
- #if defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_LOCK_STAT)
- #include <linux/lockdep.h>
+@@ -75,6 +75,9 @@
+ #ifdef CONFIG_EPOLL
+ #include <linux/poll.h>
  #endif
-+#ifdef CONFIG_EPOLL
-+#include <linux/poll.h>
++#ifdef CONFIG_INOTIFY_USER
++#include <linux/inotify.h>
 +#endif
  #ifdef CONFIG_CHR_DEV_SG
  #include <scsi/sg.h>
  #endif
-@@ -178,9 +181,6 @@ extern struct ctl_table random_table[];
- #ifdef CONFIG_INOTIFY_USER
- extern struct ctl_table inotify_table[];
- #endif
--#ifdef CONFIG_EPOLL
--extern struct ctl_table epoll_table[];
+@@ -178,9 +181,6 @@ static struct ctl_table fs_table[];
+ static struct ctl_table debug_table[];
+ static struct ctl_table dev_table[];
+ extern struct ctl_table random_table[];
+-#ifdef CONFIG_INOTIFY_USER
+-extern struct ctl_table inotify_table[];
 -#endif
  
  /* The default sysctl tables: */
