@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-fix-possible-infinite-loop.patch added to -mm tree
-Date: Wed, 24 Feb 2010 14:49:24 -0800
-Message-ID: <201002242249.o1OMnO8G025085@imap1.linux-foundation.org>
+Subject: + omap2_mcspic-null-pointer-dereference.patch added to -mm tree
+Date: Wed, 24 Feb 2010 14:50:35 -0800
+Message-ID: <201002242250.o1OMoZe1025119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758492Ab0BXWtb (ORCPT
+	by vger.kernel.org with ESMTP id S1758042Ab0BXWvD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:49:31 -0500
+	Wed, 24 Feb 2010 17:51:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, stable@kernel.org
+Cc: scott@jumpnowtek.com, Aaro.Koskinen@nokia.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca, khilman@deeprootsystems.com, tony@atomide.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: fix possible infinite loop
+     omap2_mcspi.c: NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-fix-possible-infinite-loop.patch
+     omap2_mcspic-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: fix possible infinite loop
-From: Joe Perches <joe@perches.com>
+Subject: omap2_mcspi.c: NULL pointer dereference
+From: Scott Ellis <scott@jumpnowtek.com>
 
-If MAINTAINERS section entries are misformatted, it was possible to have
-an infinite loop.
+Check spi->controller_state before dereferencing.
 
-Correct the defect by always moving the index to the end of section + 1
+Shows up NULL here when using spi_alloc_device()/spi_add_device()
+and spi_add_device() fails before spi_setup(). Calling spi_dev_put()
+on the leftover spi_device results in the error.
 
-Also, exit check for exclude as soon as possible.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/spi/omap2_mcspi.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop
-+++ a/scripts/get_maintainer.pl
-@@ -347,6 +347,7 @@ foreach my $file (@files) {
- 		if ($type eq 'X') {
- 		    if (file_match_pattern($file, $value)) {
- 			$exclude = 1;
-+			last;
- 		    }
- 		}
- 	    }
-@@ -373,8 +374,7 @@ foreach my $file (@files) {
- 	    }
- 	}
+diff -puN drivers/spi/omap2_mcspi.c~omap2_mcspic-null-pointer-dereference drivers/spi/omap2_mcspi.c
+--- a/drivers/spi/omap2_mcspi.c~omap2_mcspic-null-pointer-dereference
++++ a/drivers/spi/omap2_mcspi.c
+@@ -751,11 +751,13 @@ static void omap2_mcspi_cleanup(struct s
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
  
--	$tvi += ($end - $start);
--
-+	$tvi = $end + 1;
-     }
+-	/* Unlink controller state from context save list */
+-	cs = spi->controller_state;
+-	list_del(&cs->node);
++	if (spi->controller_state) {
++		/* Unlink controller state from context save list */
++		cs = spi->controller_state;
++		list_del(&cs->node);
  
-     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
+-	kfree(spi->controller_state);
++		kfree(spi->controller_state);
++	}
+ 
+ 	if (mcspi_dma->dma_rx_channel != -1) {
+ 		omap_free_dma(mcspi_dma->dma_rx_channel);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from scott@jumpnowtek.com are
 
-linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-staging-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
-get_maintainer-fix-perlcritic-warnings.patch
-get_maintainer-quote-email-address-with-period.patch
-scripts-get_maintainerpl-fix-possible-infinite-loop.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-maintainers-document-and-add-q-patchwork-queue-entries.patch
-maintainers-telegent-tlg2300-section-fix.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
-drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
-drivers-video-via-fix-continuation-line-formats.patch
+omap2_mcspic-null-pointer-dereference.patch
 
