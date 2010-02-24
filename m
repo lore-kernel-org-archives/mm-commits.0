@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch added to -mm tree
-Date: Wed, 24 Feb 2010 15:22:16 -0800
-Message-ID: <201002242322.o1ONMGSG026454@imap1.linux-foundation.org>
+Subject: + olpc-alsa-fix-cs5535audios-mic-gpio-to-enable-input.patch added to -mm tree
+Date: Wed, 24 Feb 2010 15:50:59 -0800
+Message-ID: <201002242350.o1ONoxhT027684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756178Ab0BXXW7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758622Ab0BXXvG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 18:22:59 -0500
+	Wed, 24 Feb 2010 18:51:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
+Cc: dilinger@collabora.co.uk, gardner.ben@gmail.com, jayakumar.alsa@gmail.com, tiwai@suse.de
 
 
 The patch titled
-     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix
+     OLPC: ALSA: fix cs5535audio's MIC GPIO to enable input
 has been added to the -mm tree.  Its filename is
-     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
+     olpc-alsa-fix-cs5535audios-mic-gpio-to-enable-input.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: OLPC: ALSA: fix cs5535audio's MIC GPIO to enable input
+From: Andres Salomon <dilinger@collabora.co.uk>
 
-Actually, we want to fput() cfile, if cfile is not NULL.
+Previously the MIC GPIO was set to output mode, and when checking the
+status after setting it we were checking OUTPUT_VAL.  This worked, though
+I'm not quite sure why.  Instead, if we actually check the READ_BACK
+value, it doesn't work unless the GPIO is in bidirectional mode.  Thus,
+enable input mode as well.
 
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Ben Gardner <gardner.ben@gmail.com>
+Cc: Jaya Kumar <jayakumar.alsa@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/cs5535audio/cs5535audio_olpc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix
-+++ a/kernel/cgroup.c
-@@ -3122,7 +3122,7 @@ static int cgroup_write_event_control(st
- 	return 0;
+diff -puN sound/pci/cs5535audio/cs5535audio_olpc.c~olpc-alsa-fix-cs5535audios-mic-gpio-to-enable-input sound/pci/cs5535audio/cs5535audio_olpc.c
+--- a/sound/pci/cs5535audio/cs5535audio_olpc.c~olpc-alsa-fix-cs5535audios-mic-gpio-to-enable-input
++++ a/sound/pci/cs5535audio/cs5535audio_olpc.c
+@@ -157,6 +157,7 @@ int __devinit olpc_quirks(struct snd_car
+ 		return -EIO;
+ 	}
+ 	gpio_direction_output(OLPC_GPIO_MIC_AC, 0);
++	gpio_direction_input(OLPC_GPIO_MIC_AC);
  
- fail:
--	if (!cfile)
-+	if (cfile)
- 		fput(cfile);
- 
- 	if (event && event->eventfd && !IS_ERR(event->eventfd))
+ 	/* drop the original AD1888 HPF control */
+ 	memset(&elem, 0, sizeof(elem));
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from dilinger@collabora.co.uk are
 
-cgroups-fix-contents-in-cgroups-documentation.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
-memcg-update-threshold-and-softlimit-at-commit-v2.patch
-memcg-share-event-counter-rather-than-duplicate-v2.patch
-memcg-update-memcg_testtxt.patch
-cgroups-fix-race-between-userspace-and-kernelspace.patch
-cgroups-remove-events-before-destroying-subsystem-state-objects.patch
-cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
-memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+origin.patch
+linux-next.patch
+olpc-alsa-fix-cs5535audios-mic-gpio-to-enable-input.patch
+cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
+mfgpt-move-clocksource-menu.patch
+cs5535_gpio-gpio_chipget-should-return-the-input-value.patch
 
