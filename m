@@ -1,164 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 24 Feb 2010 11:37:10 -0800
-Message-ID: <201002241937.o1OJbAsv016148@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-oom-killing-a-child-process-in-an-other-cgroup.patch removed from -mm tree
+Date: Wed, 24 Feb 2010 11:39:24 -0800
+Message-ID: <201002241939.o1OJdO1K016296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757854Ab0BXThM (ORCPT
+	by vger.kernel.org with ESMTP id S1757777Ab0BXTkH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 14:37:12 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o1OJbAVb024218
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 24 Feb 2010 11:37:11 -0800
+	Wed, 24 Feb 2010 14:40:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     memcg: fix oom killing a child process in an other cgroup
+has been removed from the -mm tree.  Its filename was
+     memcg-fix-oom-killing-a-child-process-in-an-other-cgroup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix oom killing a child process in an other cgroup
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
+Presently the oom-killer is memcg aware and it finds the worst process from
+processes under memcg(s) in oom. Then, it kills victim's child first.
+
+It may kill a child in another cgroup and may not be any help for
+recovery.  And it will break the assumption users have.
+
+This patch fixes it.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/cpu/cache.c |    7 -------
- include/linux/blkdev.h             |    9 +++------
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/microblaze/kernel/cpu/cache.c~linux-next-git-rejects arch/microblaze/kernel/cpu/cache.c
---- a/arch/microblaze/kernel/cpu/cache.c~linux-next-git-rejects
-+++ a/arch/microblaze/kernel/cpu/cache.c
-@@ -175,11 +175,7 @@ do {									\
- 	int volatile temp;						\
- 	BUG_ON(end - start <= 0);					\
- 									\
--<<<<<<< HEAD:arch/microblaze/kernel/cpu/cache.c
--	__asm__ __volatile__ (" 1:	" #op " %1, r0;			\
--=======
- 	__asm__ __volatile__ (" 1:	" #op "	%1, r0;			\
-->>>>>>> FETCH_HEAD:arch/microblaze/kernel/cpu/cache.c
- 					cmpu	%0, %1, %2;		\
- 					bgtid	%0, 1b;			\
- 					addk	%1, %1, %3;		\
-@@ -346,14 +342,11 @@ static void __invalidate_dcache_all_wb(v
- #ifdef ASM_LOOP
- 	CACHE_ALL_LOOP2(cpuinfo.dcache_size, cpuinfo.dcache_line_length,
- 					wdc.clear)
--<<<<<<< HEAD:arch/microblaze/kernel/cpu/cache.c
--=======
- #else
- 	for (i = 0; i < cpuinfo.dcache_size;
- 		 i += cpuinfo.dcache_line_length)
- 			__invalidate_dcache_wb(i, 0);
- #endif
-->>>>>>> FETCH_HEAD:arch/microblaze/kernel/cpu/cache.c
- }
- 
- static void __invalidate_dcache_range_wb(unsigned long start,
-diff -puN include/linux/blkdev.h~linux-next-git-rejects include/linux/blkdev.h
---- a/include/linux/blkdev.h~linux-next-git-rejects
-+++ a/include/linux/blkdev.h
-@@ -461,13 +461,10 @@ struct request_queue
- #define QUEUE_FLAG_NONROT      14	/* non-rotational device (SSD) */
- #define QUEUE_FLAG_VIRT        QUEUE_FLAG_NONROT /* paravirt device */
- #define QUEUE_FLAG_IO_STAT     15	/* do IO stats */
--<<<<<<< HEAD:include/linux/blkdev.h
- #define QUEUE_FLAG_DISCARD     16	/* supports DISCARD */
--=======
--#define QUEUE_FLAG_CQ	       16	/* hardware does queuing */
--#define QUEUE_FLAG_DISCARD     17	/* supports DISCARD */
--#define QUEUE_FLAG_NOXMERGES   18	/* No extended merges */
-->>>>>>> FETCH_HEAD:include/linux/blkdev.h
-+#define QUEUE_FLAG_CQ	       17	/* hardware does queuing */
-+#define QUEUE_FLAG_DISCARD     18	/* supports DISCARD */
-+#define QUEUE_FLAG_NOXMERGES   19	/* No extended merges */
- 
- #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_CLUSTER) |		\
+diff -puN mm/oom_kill.c~memcg-fix-oom-killing-a-child-process-in-an-other-cgroup mm/oom_kill.c
+--- a/mm/oom_kill.c~memcg-fix-oom-killing-a-child-process-in-an-other-cgroup
++++ a/mm/oom_kill.c
+@@ -459,6 +459,8 @@ static int oom_kill_process(struct task_
+ 	list_for_each_entry(c, &p->children, sibling) {
+ 		if (c->mm == p->mm)
+ 			continue;
++		if (mem && !task_in_mem_cgroup(c, mem))
++			continue;
+ 		if (!oom_kill_task(c))
+ 			return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-pci-update-pci_set_vga_state-to-call-arch-functions.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+mm-clean-up-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter.patch
 mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage.patch
 mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
+vmscan-get_scan_ratio-cleanup.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
+mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
+nodemaskh-remove-macro-any_online_node.patch
+devmem-dont-allow-seek-to-last-page.patch
 drivers-char-memc-cleanups.patch
 drivers-char-memc-cleanups-fix.patch
 drivers-char-memc-cleanups-fix-fix.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
+cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
+memcg-update-threshold-and-softlimit-at-commit-v2.patch
+memcg-share-event-counter-rather-than-duplicate-v2.patch
+memcg-update-memcg_testtxt.patch
+memcg-handle-panic_on_oom=always-case-v2.patch
+cgroups-fix-race-between-userspace-and-kernelspace.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
+memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+sysctl-clean-up-vm-related-variable-declarations.patch
 sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-serial-clients-support-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
