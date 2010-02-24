@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nsproxy-remove-init_nsproxy.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:05:45 -0800
-Message-ID: <201002242005.o1OK5jbD017502@imap1.linux-foundation.org>
+Subject: + sysctl-extern-cleanup-c_a_d.patch added to -mm tree
+Date: Wed, 24 Feb 2010 12:19:27 -0800
+Message-ID: <201002242019.o1OKJRpt018172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757549Ab0BXUF7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757743Ab0BXUT7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:05:59 -0500
+	Wed, 24 Feb 2010 15:19:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, serue@us.ibm.com
+Cc: hidave.darkstar@gmail.com
 
 
 The patch titled
-     nsproxy: remove INIT_NSPROXY()
+     sysctl extern cleanup: C_A_D
 has been added to the -mm tree.  Its filename is
-     nsproxy-remove-init_nsproxy.patch
+     sysctl-extern-cleanup-c_a_d.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nsproxy: remove INIT_NSPROXY()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: sysctl extern cleanup: C_A_D
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Remove INIT_NSPROXY(), use C99 initializer.
-Remove INIT_IPC_NS(), INIT_NET_NS() while I'm at it.
+Extern declarations in sysctl.c should be move to their own head file, and
+then include them in relavant .c files.
 
-Note: headers trim will be done later, now it's quite pointless because
-results will be invalidated by merge window.
+Move C_A_D extern variable declaration to linux/reboot.h
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h     |    8 --------
- include/linux/ipc_namespace.h |    5 -----
- include/net/net_namespace.h   |    5 -----
- kernel/nsproxy.c              |   13 ++++++++++++-
- 4 files changed, 12 insertions(+), 19 deletions(-)
+ include/linux/reboot.h |    1 +
+ kernel/sysctl.c        |    1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/init_task.h~nsproxy-remove-init_nsproxy include/linux/init_task.h
---- a/include/linux/init_task.h~nsproxy-remove-init_nsproxy
-+++ a/include/linux/init_task.h
-@@ -32,14 +32,6 @@ extern struct fs_struct init_fs;
- }
+diff -puN include/linux/reboot.h~sysctl-extern-cleanup-c_a_d include/linux/reboot.h
+--- a/include/linux/reboot.h~sysctl-extern-cleanup-c_a_d
++++ a/include/linux/reboot.h
+@@ -64,6 +64,7 @@ extern void kernel_restart(char *cmd);
+ extern void kernel_halt(void);
+ extern void kernel_power_off(void);
  
- extern struct nsproxy init_nsproxy;
--#define INIT_NSPROXY(nsproxy) {						\
--	.pid_ns		= &init_pid_ns,					\
--	.count		= ATOMIC_INIT(1),				\
--	.uts_ns		= &init_uts_ns,					\
--	.mnt_ns		= NULL,						\
--	INIT_NET_NS(net_ns)                                             \
--	INIT_IPC_NS(ipc_ns)						\
--}
++extern int C_A_D; /* for sysctl */
+ void ctrl_alt_del(void);
  
- #define INIT_SIGHAND(sighand) {						\
- 	.count		= ATOMIC_INIT(1), 				\
-diff -puN include/linux/ipc_namespace.h~nsproxy-remove-init_nsproxy include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~nsproxy-remove-init_nsproxy
-+++ a/include/linux/ipc_namespace.h
-@@ -62,11 +62,6 @@ extern struct ipc_namespace init_ipc_ns;
- extern atomic_t nr_ipc_ns;
+ #define POWEROFF_CMD_PATH_LEN	256
+diff -puN kernel/sysctl.c~sysctl-extern-cleanup-c_a_d kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-extern-cleanup-c_a_d
++++ a/kernel/sysctl.c
+@@ -72,7 +72,6 @@
+ #if defined(CONFIG_SYSCTL)
  
- extern spinlock_t mq_lock;
--#if defined(CONFIG_POSIX_MQUEUE) || defined(CONFIG_SYSVIPC)
--#define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
--#else
--#define INIT_IPC_NS(ns)
--#endif
- 
- #ifdef CONFIG_SYSVIPC
- extern int register_ipcns_notifier(struct ipc_namespace *);
-diff -puN include/net/net_namespace.h~nsproxy-remove-init_nsproxy include/net/net_namespace.h
---- a/include/net/net_namespace.h~nsproxy-remove-init_nsproxy
-+++ a/include/net/net_namespace.h
-@@ -100,14 +100,9 @@ struct net {
- extern struct net init_net;
- 
- #ifdef CONFIG_NET
--#define INIT_NET_NS(net_ns) .net_ns = &init_net,
--
- extern struct net *copy_net_ns(unsigned long flags, struct net *net_ns);
- 
- #else /* CONFIG_NET */
--
--#define INIT_NET_NS(net_ns)
--
- static inline struct net *copy_net_ns(unsigned long flags, struct net *net_ns)
- {
- 	/* There is nothing to copy so this is a noop */
-diff -puN kernel/nsproxy.c~nsproxy-remove-init_nsproxy kernel/nsproxy.c
---- a/kernel/nsproxy.c~nsproxy-remove-init_nsproxy
-+++ a/kernel/nsproxy.c
-@@ -24,7 +24,18 @@
- 
- static struct kmem_cache *nsproxy_cachep;
- 
--struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
-+struct nsproxy init_nsproxy = {
-+	.count	= ATOMIC_INIT(1),
-+	.uts_ns	= &init_uts_ns,
-+#if defined(CONFIG_POSIX_MQUEUE) || defined(CONFIG_SYSVIPC)
-+	.ipc_ns	= &init_ipc_ns,
-+#endif
-+	.mnt_ns	= NULL,
-+	.pid_ns	= &init_pid_ns,
-+#ifdef CONFIG_NET
-+	.net_ns	= &init_net,
-+#endif
-+};
- 
- static inline struct nsproxy *create_nsproxy(void)
- {
+ /* External variables not in a header file. */
+-extern int C_A_D;
+ extern int print_fatal_signals;
+ extern int max_threads;
+ extern int core_uses_pid;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
 linux-next.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-mpt-fusion-convert-to-seq_file.patch
-proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
-proc-warn-on-non-existing-proc-entries.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-nsproxy-remove-init_nsproxy.patch
+sysctl-extern-cleanup-c_a_d.patch
+sysctl-extern-cleanup-signal.patch
+sysctl-extern-cleanup-binfmts.patch
+sysctl-extern-cleanup-pid.patch
+sysctl-extern-cleanup-mm.patch
+sysctl-extern-cleanup-compat.patch
+sysctl-extern-cleanup-latencytop.patch
+sysctl-extern-cleanup-file-nr.patch
+sysctl-extern-cleanup-rcu.patch
+sysctl-extern-cleanup-block-iopoll.patch
+sysctl-extern-cleanup-module.patch
+sysctl-extern-cleanup-sg.patch
+sysctl-extern-cleanup-acct.patch
+sysctl-extern-cleanup-rtmutex.patch
+sysctl-extern-cleanup-lockdep.patch
+sysctl-extern-cleanup-poll.patch
+sysctl-extern-cleanup-inotify.patch
 
