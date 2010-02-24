@@ -1,270 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch added to -mm tree
-Date: Wed, 24 Feb 2010 12:27:29 -0800
-Message-ID: <201002242027.o1OKRTLa018589@imap1.linux-foundation.org>
+Subject: [obsolete] pps-serial-clients-support-fix.patch removed from -mm tree
+Date: Wed, 24 Feb 2010 12:28:34 -0800
+Message-ID: <201002242028.o1OKSYf1018697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757453Ab0BXU1y (ORCPT
+	by vger.kernel.org with ESMTP id S1757687Ab0BXU3J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:27:54 -0500
+	Wed, 24 Feb 2010 15:29:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, paulmck@linux.vnet.ibm.com
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, giometti@linux.it, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu: remove INIT_RCU_HEAD, RCU_HEAD_INIT, RCU_HEAD
-has been added to the -mm tree.  Its filename is
-     rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
+     pps-serial-clients-support-fix
+has been removed from the -mm tree.  Its filename was
+     pps-serial-clients-support-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: remove INIT_RCU_HEAD, RCU_HEAD_INIT, RCU_HEAD
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: pps-serial-clients-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-call_rcu() will unconditionally reinitialize RCU head anyway.  New users
-of these macros constantly appear, so remove them.
+use (*)() for indirect calls, for readability
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl   |    8 --------
- arch/powerpc/mm/pgtable.c                   |    1 -
- block/cfq-iosched.c                         |    1 -
- block/genhd.c                               |    1 -
- drivers/staging/batman-adv/hard-interface.c |    1 -
- fs/file.c                                   |    3 ---
- fs/fs-writeback.c                           |    1 -
- fs/partitions/check.c                       |    1 -
- include/linux/init_task.h                   |    1 -
- include/linux/rcupdate.h                    |    6 ------
- mm/backing-dev.c                            |    1 -
- mm/slob.c                                   |    1 -
- security/selinux/avc.c                      |    1 -
- security/selinux/netnode.c                  |    2 --
- 14 files changed, 29 deletions(-)
+ drivers/pps/clients/pps-ldisc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~rcu-remove-init_rcu_head-rcu_head_init-rcu_head Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -1725,14 +1725,6 @@ the amount of locking which needs to be 
-          if (++cache_num > MAX_CACHE_SIZE) {
-                  struct object *i, *outcast = NULL;
-                  list_for_each_entry(i, &amp;cache, list) {
--@@ -85,6 +94,7 @@
--         obj-&gt;popularity = 0;
--         atomic_set(&amp;obj-&gt;refcnt, 1); /* The cache holds a reference */
--         spin_lock_init(&amp;obj-&gt;lock);
--+        INIT_RCU_HEAD(&amp;obj-&gt;rcu);
--
--         spin_lock_irqsave(&amp;cache_lock, flags);
--         __cache_add(obj);
- @@ -104,12 +114,11 @@
-  struct object *cache_find(int id)
-  {
-diff -puN arch/powerpc/mm/pgtable.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head arch/powerpc/mm/pgtable.c
---- a/arch/powerpc/mm/pgtable.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -91,7 +91,6 @@ static void pte_free_rcu_callback(struct
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-fix drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-fix
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -79,7 +79,7 @@ static int pps_tty_open(struct tty_struc
+ 	tty->disc_data = (void *) ret;
  
- static void pte_free_submit(struct pte_freelist_batch *batch)
- {
--	INIT_RCU_HEAD(&batch->rcu);
- 	call_rcu(&batch->rcu, pte_free_rcu_callback);
+ 	/* Should open N_TTY ldisc too */
+-	ret = n_tty_open(tty);
++	ret = (*n_tty_open)(tty);
+ 	if (ret < 0)
+ 		pps_unregister_source((int) tty->disc_data);
+ 
+@@ -95,7 +95,7 @@ static void pps_tty_close(struct tty_str
+ 	int id = (int) tty->disc_data;
+ 
+ 	pps_unregister_source(id);
+-	n_tty_close(tty);
++	(*n_tty_close)(tty);
+ 
+ 	pr_info("PPS source #%d removed\n", id);
  }
- 
-diff -puN block/cfq-iosched.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head block/cfq-iosched.c
---- a/block/cfq-iosched.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/block/cfq-iosched.c
-@@ -3730,7 +3730,6 @@ static void *cfq_init_queue(struct reque
- 	 * second, in order to have larger depth for async operations.
- 	 */
- 	cfqd->last_delayed_sync = jiffies - HZ;
--	INIT_RCU_HEAD(&cfqd->rcu);
- 	return cfqd;
- }
- 
-diff -puN block/genhd.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head block/genhd.c
---- a/block/genhd.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/block/genhd.c
-@@ -987,7 +987,6 @@ int disk_expand_part_tbl(struct gendisk 
- 	if (!new_ptbl)
- 		return -ENOMEM;
- 
--	INIT_RCU_HEAD(&new_ptbl->rcu_head);
- 	new_ptbl->len = target;
- 
- 	for (i = 0; i < len; i++)
-diff -puN drivers/staging/batman-adv/hard-interface.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head drivers/staging/batman-adv/hard-interface.c
---- a/drivers/staging/batman-adv/hard-interface.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/drivers/staging/batman-adv/hard-interface.c
-@@ -301,7 +301,6 @@ int hardif_add_interface(char *dev, int 
- 	batman_if->if_num = if_num;
- 	batman_if->dev = dev;
- 	batman_if->if_active = IF_INACTIVE;
--	INIT_RCU_HEAD(&batman_if->rcu);
- 
- 	printk(KERN_INFO "batman-adv:Adding interface: %s\n", dev);
- 	avail_ifs++;
-diff -puN fs/file.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/file.c
---- a/fs/file.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/fs/file.c
-@@ -178,7 +178,6 @@ static struct fdtable * alloc_fdtable(un
- 	fdt->open_fds = (fd_set *)data;
- 	data += nr / BITS_PER_BYTE;
- 	fdt->close_on_exec = (fd_set *)data;
--	INIT_RCU_HEAD(&fdt->rcu);
- 	fdt->next = NULL;
- 
- 	return fdt;
-@@ -312,7 +311,6 @@ struct files_struct *dup_fd(struct files
- 	new_fdt->close_on_exec = (fd_set *)&newf->close_on_exec_init;
- 	new_fdt->open_fds = (fd_set *)&newf->open_fds_init;
- 	new_fdt->fd = &newf->fd_array[0];
--	INIT_RCU_HEAD(&new_fdt->rcu);
- 	new_fdt->next = NULL;
- 
- 	spin_lock(&oldf->file_lock);
-@@ -430,7 +428,6 @@ struct files_struct init_files = {
- 		.fd		= &init_files.fd_array[0],
- 		.close_on_exec	= (fd_set *)&init_files.close_on_exec_init,
- 		.open_fds	= (fd_set *)&init_files.open_fds_init,
--		.rcu		= RCU_HEAD_INIT,
- 	},
- 	.file_lock	= __SPIN_LOCK_UNLOCKED(init_task.file_lock),
- };
-diff -puN fs/fs-writeback.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/fs-writeback.c
---- a/fs/fs-writeback.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/fs/fs-writeback.c
-@@ -77,7 +77,6 @@ static inline bool bdi_work_on_stack(str
- static inline void bdi_work_init(struct bdi_work *work,
- 				 struct wb_writeback_args *args)
- {
--	INIT_RCU_HEAD(&work->rcu_head);
- 	work->args = *args;
- 	work->state = WS_USED;
- }
-diff -puN fs/partitions/check.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/partitions/check.c
---- a/fs/partitions/check.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/fs/partitions/check.c
-@@ -455,7 +455,6 @@ struct hd_struct *add_partition(struct g
- 	}
- 
- 	/* everything is up and running, commence */
--	INIT_RCU_HEAD(&p->rcu_head);
- 	rcu_assign_pointer(ptbl->part[partno], p);
- 
- 	/* suppress uevent if the disk supresses it */
-diff -puN include/linux/init_task.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head include/linux/init_task.h
---- a/include/linux/init_task.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/include/linux/init_task.h
-@@ -57,7 +57,6 @@ extern struct group_info init_groups;
- 		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
- 		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
- 	},								\
--	.rcu		= RCU_HEAD_INIT,				\
- 	.level		= 0,						\
- 	.numbers	= { {						\
- 		.nr		= 0,					\
-diff -puN include/linux/rcupdate.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/include/linux/rcupdate.h
-@@ -71,12 +71,6 @@ extern void rcu_init(void);
- #error "Unknown RCU implementation specified to kernel configuration"
- #endif
- 
--#define RCU_HEAD_INIT	{ .next = NULL, .func = NULL }
--#define RCU_HEAD(head) struct rcu_head head = RCU_HEAD_INIT
--#define INIT_RCU_HEAD(ptr) do { \
--       (ptr)->next = NULL; (ptr)->func = NULL; \
--} while (0)
--
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- extern struct lockdep_map rcu_lock_map;
- # define rcu_read_acquire()	\
-diff -puN mm/backing-dev.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head mm/backing-dev.c
---- a/mm/backing-dev.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/mm/backing-dev.c
-@@ -655,7 +655,6 @@ int bdi_init(struct backing_dev_info *bd
- 	bdi->max_ratio = 100;
- 	bdi->max_prop_frac = PROP_FRAC_BASE;
- 	spin_lock_init(&bdi->wb_lock);
--	INIT_RCU_HEAD(&bdi->rcu_head);
- 	INIT_LIST_HEAD(&bdi->bdi_list);
- 	INIT_LIST_HEAD(&bdi->wb_list);
- 	INIT_LIST_HEAD(&bdi->work_list);
-diff -puN mm/slob.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head mm/slob.c
---- a/mm/slob.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/mm/slob.c
-@@ -647,7 +647,6 @@ void kmem_cache_free(struct kmem_cache *
- 	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
- 		struct slob_rcu *slob_rcu;
- 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
--		INIT_RCU_HEAD(&slob_rcu->head);
- 		slob_rcu->size = c->size;
- 		call_rcu(&slob_rcu->head, kmem_rcu_free);
- 	} else {
-diff -puN security/selinux/avc.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head security/selinux/avc.c
---- a/security/selinux/avc.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/security/selinux/avc.c
-@@ -288,7 +288,6 @@ static struct avc_node *avc_alloc_node(v
- 	if (!node)
- 		goto out;
- 
--	INIT_RCU_HEAD(&node->rhead);
- 	INIT_HLIST_NODE(&node->list);
- 	avc_cache_stats_incr(allocations);
- 
-diff -puN security/selinux/netnode.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head security/selinux/netnode.c
---- a/security/selinux/netnode.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/security/selinux/netnode.c
-@@ -182,8 +182,6 @@ static void sel_netnode_insert(struct se
- 		BUG();
- 	}
- 
--	INIT_RCU_HEAD(&node->rcu);
--
- 	/* we need to impose a limit on the growth of the hash table so check
- 	 * this bucket to make sure it is within the specified bounds */
- 	list_add_rcu(&node->list, &sel_netnode_hash[idx].list);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
-mpt-fusion-convert-to-seq_file.patch
-proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
-proc-warn-on-non-existing-proc-entries.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-sysctl-extern-cleanup-binfmts.patch
-nsproxy-remove-init_nsproxy.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+pps-serial-clients-support-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
