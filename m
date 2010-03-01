@@ -1,139 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 11:32:59 -0800
-Message-ID: <201003011932.o21JWxIR028041@imap1.linux-foundation.org>
+Subject: [merged] ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 11:46:35 -0800
+Message-ID: <201003011946.o21JkZ4d028687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751534Ab0CATeR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:34:17 -0500
+	by vger.kernel.org with ESMTP id S1751318Ab0CATq5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:46:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, James.Bottomley@HansenPartnership.com, ketuzsezr@darnok.org, michaelc@cs.wisc.edu, pjones@redhat.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/firmware/iscsi_ibft.c: remove NIPQUAD_FMT, use %pI4
+     arch/ia64/uv/kernel/setup.c: wrong attribute of HUB chip written in uv_setup()
 has been removed from the -mm tree.  Its filename was
-     drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
+     ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/firmware/iscsi_ibft.c: remove NIPQUAD_FMT, use %pI4
-From: Joe Perches <joe@perches.com>
+Subject: arch/ia64/uv/kernel/setup.c: wrong attribute of HUB chip written in uv_setup()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Convert netmask to __be32 and format it with %pI4
+n_val should be assigned to n_val attribute of HUB chip.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Konrad Rzeszutek <ketuzsezr@darnok.org>
-Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Peter Jones <pjones@redhat.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/iscsi_ibft.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/ia64/uv/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/iscsi_ibft.c~drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4 drivers/firmware/iscsi_ibft.c
---- a/drivers/firmware/iscsi_ibft.c~drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4
-+++ a/drivers/firmware/iscsi_ibft.c
-@@ -380,7 +380,7 @@ static ssize_t ibft_attr_show_nic(struct
- 	struct ibft_nic *nic = entry->nic;
- 	void *ibft_loc = entry->header;
- 	char *str = buf;
--	int val;
-+	__be32 val;
- 
- 	if (!nic)
- 		return 0;
-@@ -396,10 +396,8 @@ static ssize_t ibft_attr_show_nic(struct
- 		str += sprintf_ipaddr(str, nic->ip_addr);
- 		break;
- 	case ibft_eth_subnet_mask:
--		val = ~((1 << (32-nic->subnet_mask_prefix))-1);
--		str += sprintf(str, NIPQUAD_FMT,
--			       (u8)(val >> 24), (u8)(val >> 16),
--			       (u8)(val >> 8), (u8)(val));
-+		val = cpu_to_be32(~((1 << (32-nic->subnet_mask_prefix))-1));
-+		str += sprintf(str, "%pI4", &val);
- 		break;
- 	case ibft_eth_origin:
- 		str += sprintf(str, "%d\n", nic->origin);
+diff -puN arch/ia64/uv/kernel/setup.c~ia64-wrong-attribute-of-hub-chip-written-in-uv_setup arch/ia64/uv/kernel/setup.c
+--- a/arch/ia64/uv/kernel/setup.c~ia64-wrong-attribute-of-hub-chip-written-in-uv_setup
++++ a/arch/ia64/uv/kernel/setup.c
+@@ -104,7 +104,7 @@ void __init uv_setup(char **cmdline_p)
+ 		uv_cpu_hub_info(cpu)->lowmem_remap_top =
+ 			lowmem_redir_base + lowmem_redir_size;
+ 		uv_cpu_hub_info(cpu)->m_val = m_val;
+-		uv_cpu_hub_info(cpu)->n_val = m_val;
++		uv_cpu_hub_info(cpu)->n_val = n_val;
+ 		uv_cpu_hub_info(cpu)->pnode_mask = (1 << n_val) -1;
+ 		uv_cpu_hub_info(cpu)->gpa_mask = (1 << (m_val + n_val)) - 1;
+ 		uv_cpu_hub_info(cpu)->gnode_upper = gnode_upper;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-staging-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
-get_maintainer-fix-perlcritic-warnings.patch
-get_maintainer-quote-email-address-with-period.patch
-scripts-get_maintainerpl-fix-possible-infinite-loop.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-maintainers-document-and-add-q-patchwork-queue-entries.patch
-maintainers-telegent-tlg2300-section-fix.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
-drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
-drivers-video-via-fix-continuation-line-formats.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+isdn-misplaced-parenthesis-in-pof_handle_data.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+paride-fix-off-by-one-test.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+cris-v32-typo-in-crisv32_arbiter_unwatch.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
