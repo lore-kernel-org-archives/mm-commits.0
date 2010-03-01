@@ -1,113 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 11:30:28 -0800
-Message-ID: <201003011930.o21JUSV4027882@imap1.linux-foundation.org>
+Subject: [wrecked] dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 11:31:52 -0800
+Message-ID: <201003011931.o21JVq8a027986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154Ab0CATbS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:31:18 -0500
+	by vger.kernel.org with ESMTP id S1751118Ab0CATdI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:33:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: Mario_Limonciello@Dell.com, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
+     dell_laptop: when the "hardware" switch is disabled, don't actually allow changing the softblock status.
 has been removed from the -mm tree.  Its filename was
-     bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
+     dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status.patch
 
-This patch was dropped because it was folded into bitops-rename-for_each_bit-to-for_each_set_bit.patch
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dell_laptop: when the "hardware" switch is disabled, don't actually allow changing the softblock status.
+From: Mario Limonciello <Mario_Limonciello@Dell.com>
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+The "hardware" switch is tied directly to a BIOS interface that will
+connect and disconnect the hardware from the bus.
+
+If you use the software interface to request the BIOS to make these
+changes, the HW switch will be in an inconsistent state and LEDs may not
+reflect the state of the HW.
+
+Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_cpupri.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/dell-laptop.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2 kernel/sched_cpupri.c
---- a/kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2
-+++ a/kernel/sched_cpupri.c
-@@ -47,7 +47,7 @@ static int convert_prio(int prio)
- }
+diff -puN drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status drivers/platform/x86/dell-laptop.c
+--- a/drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status
++++ a/drivers/platform/x86/dell-laptop.c
+@@ -189,6 +189,10 @@ static int dell_rfkill_set(void *data, b
+ 	unsigned long radio = (unsigned long)data;
  
- #define for_each_cpupri_active(array, idx)                    \
--	for_each_bit(idx, array, CPUPRI_NR_PRIORITIES)
-+	for_each_set_bit(idx, array, CPUPRI_NR_PRIORITIES)
+ 	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
++	dell_send_request(&buffer, 17, 11);
++	if (!(buffer.output[1] & BIT(16)))
++		return -EINVAL;
++
+ 	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
+ 	dell_send_request(&buffer, 17, 11);
  
- /**
-  * cpupri_find - find the best (lowest-pri) CPU in the system
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Mario_Limonciello@Dell.com are
 
 origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-fix-fix-2.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-serial-spi-add-spi-uart-driver-for-maxim-3110-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-linuxpps-clients-support-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status.patch
 
