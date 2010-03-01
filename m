@@ -1,111 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pps-linuxpps-clients-support-fix.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 13:00:39 -0800
-Message-ID: <201003012100.o21L0e8o031909@imap1.linux-foundation.org>
+Subject: [obsolete] pps-serial-clients-support-update.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 13:03:35 -0800
+Message-ID: <201003012103.o21L3ZQH032080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750808Ab0CAVAv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 16:00:51 -0500
+	by vger.kernel.org with ESMTP id S1751054Ab0CAVEg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 16:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, giometti@linux.it, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-linuxpps-clients-support-fix
+     pps-serial-clients-support-update
 has been removed from the -mm tree.  Its filename was
-     pps-linuxpps-clients-support-fix.patch
+     pps-serial-clients-support-update.patch
 
-This patch was dropped because it was folded into pps-linuxpps-clients-support.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-linuxpps-clients-support-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pps-serial-clients-support-update
+From: Rodolfo Giometti <giometti@linux.it>
 
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Adds support, by using the PPS line discipline, for the PPS sources
+connected with the CD (Carrier Detect) pin of a serial port.
+
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pps/clients/pps-ldisc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pps/clients/Kconfig~pps-linuxpps-clients-support-fix drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-linuxpps-clients-support-fix
-+++ a/drivers/pps/clients/Kconfig
-@@ -13,6 +13,6 @@ config PPS_CLIENT_KTIMER
- 	  which uses a kernel timer to generate the PPS signal.
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-update drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-update
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -114,8 +114,8 @@ static int __init pps_tty_init(void)
+ 	n_tty_inherit_ops(&pps_ldisc_ops);
  
- 	  This driver can also be built as a module.  If so, the module
--	  will be called ktimer.ko.
-+	  will be called ktimer.
+ 	/* Save N_TTY's open()/close() methods */
+-	n_tty_open = pps_ldisc_ops.open;
+-	n_tty_close = pps_ldisc_ops.close;
++	alias_n_tty_open = pps_ldisc_ops.open;
++	alias_n_tty_close = pps_ldisc_ops.close;
  
- endif
+ 	/* Init PPS_TTY data */
+ 	pps_ldisc_ops.owner = THIS_MODULE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from giometti@linux.it are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-serial-spi-add-spi-uart-driver-for-maxim-3110-fix.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
 pps-linuxpps-clients-support.patch
-pps-linuxpps-clients-support-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+pps-linuxpps-clients-support-v3.patch
+ldisc-new-dcd_change-method-for-line-disciplines.patch
+ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
+ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
+pps-serial-clients-support.patch
+pps-serial-clients-support-update.patch
+serial-8250-enable-pps-support.patch
+serial-amba-pl010-enable-pps-support.patch
 
