@@ -1,177 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 11:46:50 -0800
-Message-ID: <201003011946.o21JkoWV028702@imap1.linux-foundation.org>
+Subject: [merged] maintainers-telegent-tlg2300-section-fix.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 11:46:59 -0800
+Message-ID: <201003011946.o21JkxeP028715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496Ab0CATr3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:47:29 -0500
+	by vger.kernel.org with ESMTP id S1752019Ab0CATre (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:47:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, leochen@broadcom.com, sbranden@broadcom.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mchehab@redhat.com, shijie8@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: hot spin and code duplication in nand_bcm_umi_bch_read_oobEcc()
+     MAINTAINERS: Telegent tlg2300 section fix
 has been removed from the -mm tree.  Its filename was
-     mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
+     maintainers-telegent-tlg2300-section-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: hot spin and code duplication in nand_bcm_umi_bch_read_oobEcc()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: MAINTAINERS: Telegent tlg2300 section fix
+From: Joe Perches <joe@perches.com>
 
-In the branch where pagesize equalled NAND_DATA_ACCESS_SIZE, NumToRead
-wasn't decremented in the `while (numToRead > 11)' loop.  Also the first
-and last while loops were duplicated in both branches.
+linux-next commit 2ff8223957d901999bf76aaf2c6183e33a6ad14e exposes an
+infinite loop defect in scripts/get_maintainer.pl
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Leo Chen <leochen@broadcom.com>
-Cc: "Scott Branden" <sbranden@broadcom.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Fix the incorrect format of the MAINTAINERS "M:" entries.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Huang Shijie <shijie8@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_bcm_umi.h |   73 ++++++++++--------------------
- 1 file changed, 26 insertions(+), 47 deletions(-)
+ MAINTAINERS |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mtd/nand/nand_bcm_umi.h~mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc drivers/mtd/nand/nand_bcm_umi.h
---- a/drivers/mtd/nand/nand_bcm_umi.h~mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc
-+++ a/drivers/mtd/nand/nand_bcm_umi.h
-@@ -167,18 +167,27 @@ static inline void nand_bcm_umi_bch_read
- 	int numToRead = 16;	/* There are 16 bytes per sector in the OOB */
+diff -puN MAINTAINERS~maintainers-telegent-tlg2300-section-fix MAINTAINERS
+--- a/MAINTAINERS~maintainers-telegent-tlg2300-section-fix
++++ a/MAINTAINERS
+@@ -4788,13 +4788,12 @@ F:	drivers/media/video/*7146*
+ F:	include/media/*7146*
  
- 	/* ECC is already paused when this function is called */
-+	if (pageSize != NAND_DATA_ACCESS_SIZE) {
-+		/* skip BI */
-+#if defined(__KERNEL__) && !defined(STANDALONE)
-+		*oobp++ = REG_NAND_DATA8;
-+#else
-+		REG_NAND_DATA8;
-+#endif
-+		numToRead--;
-+	}
+ TLG2300 VIDEO4LINUX-2 DRIVER
+-M 	Huang Shijie	<shijie8@gmail.com>
+-M 	Kang Yong	<kangyong@telegent.com>
+-M 	Zhang Xiaobing	<xbzhang@telegent.com>
++M:	Huang Shijie <shijie8@gmail.com>
++M:	Kang Yong <kangyong@telegent.com>
++M:	Zhang Xiaobing <xbzhang@telegent.com>
+ S:	Supported
+ F:	drivers/media/video/tlg2300
  
--	if (pageSize == NAND_DATA_ACCESS_SIZE) {
--		while (numToRead > numEccBytes) {
--			/* skip free oob region */
-+	while (numToRead > numEccBytes) {
-+		/* skip free oob region */
- #if defined(__KERNEL__) && !defined(STANDALONE)
--			*oobp++ = REG_NAND_DATA8;
-+		*oobp++ = REG_NAND_DATA8;
- #else
--			REG_NAND_DATA8;
-+		REG_NAND_DATA8;
- #endif
--			numToRead--;
--		}
-+		numToRead--;
-+	}
- 
-+	if (pageSize == NAND_DATA_ACCESS_SIZE) {
- 		/* read ECC bytes before BI */
- 		nand_bcm_umi_bch_resume_read_ecc_calc();
- 
-@@ -190,6 +199,7 @@ static inline void nand_bcm_umi_bch_read
- #else
- 			eccCalc[eccPos++] = REG_NAND_DATA8;
- #endif
-+			numToRead--;
- 		}
- 
- 		nand_bcm_umi_bch_pause_read_ecc_calc();
-@@ -204,49 +214,18 @@ static inline void nand_bcm_umi_bch_read
- 			numToRead--;
- 		}
- 
--		/* read ECC bytes */
--		nand_bcm_umi_bch_resume_read_ecc_calc();
--		while (numToRead) {
--#if defined(__KERNEL__) && !defined(STANDALONE)
--			*oobp = REG_NAND_DATA8;
--			eccCalc[eccPos++] = *oobp;
--			oobp++;
--#else
--			eccCalc[eccPos++] = REG_NAND_DATA8;
--#endif
--			numToRead--;
--		}
--	} else {
--		/* skip BI */
--#if defined(__KERNEL__) && !defined(STANDALONE)
--		*oobp++ = REG_NAND_DATA8;
-+	}
-+	/* read ECC bytes */
-+	nand_bcm_umi_bch_resume_read_ecc_calc();
-+	while (numToRead) {
-+#if defined(__KERNEL__) && !defined(STANDALONE)
-+		*oobp = REG_NAND_DATA8;
-+		eccCalc[eccPos++] = *oobp;
-+		oobp++;
- #else
--		REG_NAND_DATA8;
-+		eccCalc[eccPos++] = REG_NAND_DATA8;
- #endif
- 		numToRead--;
 -
--		while (numToRead > numEccBytes) {
--			/* skip free oob region */
--#if defined(__KERNEL__) && !defined(STANDALONE)
--			*oobp++ = REG_NAND_DATA8;
--#else
--			REG_NAND_DATA8;
--#endif
--			numToRead--;
--		}
--
--		/* read ECC bytes */
--		nand_bcm_umi_bch_resume_read_ecc_calc();
--		while (numToRead) {
--#if defined(__KERNEL__) && !defined(STANDALONE)
--			*oobp = REG_NAND_DATA8;
--			eccCalc[eccPos++] = *oobp;
--			oobp++;
--#else
--			eccCalc[eccPos++] = REG_NAND_DATA8;
--#endif
--			numToRead--;
--		}
- 	}
- }
- 
+ SC1200 WDT DRIVER
+ M:	Zwane Mwaikambo <zwane@arm.linux.org.uk>
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-isdn-misplaced-parenthesis-in-pof_handle_data.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-paride-fix-off-by-one-test.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-cris-v32-typo-in-crisv32_arbiter_unwatch.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-staging-fix-continuation-line-formats.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+get_maintainer-fix-perlcritic-warnings.patch
+get_maintainer-quote-email-address-with-period.patch
+scripts-get_maintainerpl-fix-possible-infinite-loop.patch
+maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+maintainers-remove-hayes-esp-serial-driver.patch
+maintainers-update-performance-events-f-patterns.patch
+maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+maintainers-wavelan-moved-to-staging.patch
+maintainers-document-and-add-q-patchwork-queue-entries.patch
+lib-stringc-simplify-stricmp.patch
+lib-stringc-simplify-strnstr.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
+drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
+drivers-video-via-fix-continuation-line-formats.patch
 
