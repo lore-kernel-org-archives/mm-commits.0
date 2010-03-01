@@ -1,53 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 11:46:53 -0800
-Message-ID: <201003011946.o21JkrQa028705@imap1.linux-foundation.org>
+Subject: [merged] mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 11:46:50 -0800
+Message-ID: <201003011946.o21JkoWV028702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751293Ab0CATr3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751496Ab0CATr3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:47:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, dwmw2@infradead.org, leochen@broadcom.com, sbranden@broadcom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: change positive error return into negative in mtd_do_writeoob()
+     mtd: hot spin and code duplication in nand_bcm_umi_bch_read_oobEcc()
 has been removed from the -mm tree.  Its filename was
-     mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob.patch
+     mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: change positive error return into negative in mtd_do_writeoob()
+Subject: mtd: hot spin and code duplication in nand_bcm_umi_bch_read_oobEcc()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The error return should be negative
+In the branch where pagesize equalled NAND_DATA_ACCESS_SIZE, NumToRead
+wasn't decremented in the `while (numToRead > 11)' loop.  Also the first
+and last while loops were duplicated in both branches.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Leo Chen <leochen@broadcom.com>
+Cc: "Scott Branden" <sbranden@broadcom.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdchar.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/nand/nand_bcm_umi.h |   73 ++++++++++--------------------
+ 1 file changed, 26 insertions(+), 47 deletions(-)
 
-diff -puN drivers/mtd/mtdchar.c~mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob drivers/mtd/mtdchar.c
---- a/drivers/mtd/mtdchar.c~mtd-change-positive-error-return-into-negative-in-mtd_do_writeoob
-+++ a/drivers/mtd/mtdchar.c
-@@ -373,7 +373,7 @@ static int mtd_do_writeoob(struct file *
- 	if (!mtd->write_oob)
- 		ret = -EOPNOTSUPP;
- 	else
--		ret = access_ok(VERIFY_READ, ptr, length) ? 0 : EFAULT;
-+		ret = access_ok(VERIFY_READ, ptr, length) ? 0 : -EFAULT;
+diff -puN drivers/mtd/nand/nand_bcm_umi.h~mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc drivers/mtd/nand/nand_bcm_umi.h
+--- a/drivers/mtd/nand/nand_bcm_umi.h~mtd-hot-spin-and-code-duplication-in-nand_bcm_umi_bch_read_oobecc
++++ a/drivers/mtd/nand/nand_bcm_umi.h
+@@ -167,18 +167,27 @@ static inline void nand_bcm_umi_bch_read
+ 	int numToRead = 16;	/* There are 16 bytes per sector in the OOB */
  
- 	if (ret)
- 		return ret;
+ 	/* ECC is already paused when this function is called */
++	if (pageSize != NAND_DATA_ACCESS_SIZE) {
++		/* skip BI */
++#if defined(__KERNEL__) && !defined(STANDALONE)
++		*oobp++ = REG_NAND_DATA8;
++#else
++		REG_NAND_DATA8;
++#endif
++		numToRead--;
++	}
+ 
+-	if (pageSize == NAND_DATA_ACCESS_SIZE) {
+-		while (numToRead > numEccBytes) {
+-			/* skip free oob region */
++	while (numToRead > numEccBytes) {
++		/* skip free oob region */
+ #if defined(__KERNEL__) && !defined(STANDALONE)
+-			*oobp++ = REG_NAND_DATA8;
++		*oobp++ = REG_NAND_DATA8;
+ #else
+-			REG_NAND_DATA8;
++		REG_NAND_DATA8;
+ #endif
+-			numToRead--;
+-		}
++		numToRead--;
++	}
+ 
++	if (pageSize == NAND_DATA_ACCESS_SIZE) {
+ 		/* read ECC bytes before BI */
+ 		nand_bcm_umi_bch_resume_read_ecc_calc();
+ 
+@@ -190,6 +199,7 @@ static inline void nand_bcm_umi_bch_read
+ #else
+ 			eccCalc[eccPos++] = REG_NAND_DATA8;
+ #endif
++			numToRead--;
+ 		}
+ 
+ 		nand_bcm_umi_bch_pause_read_ecc_calc();
+@@ -204,49 +214,18 @@ static inline void nand_bcm_umi_bch_read
+ 			numToRead--;
+ 		}
+ 
+-		/* read ECC bytes */
+-		nand_bcm_umi_bch_resume_read_ecc_calc();
+-		while (numToRead) {
+-#if defined(__KERNEL__) && !defined(STANDALONE)
+-			*oobp = REG_NAND_DATA8;
+-			eccCalc[eccPos++] = *oobp;
+-			oobp++;
+-#else
+-			eccCalc[eccPos++] = REG_NAND_DATA8;
+-#endif
+-			numToRead--;
+-		}
+-	} else {
+-		/* skip BI */
+-#if defined(__KERNEL__) && !defined(STANDALONE)
+-		*oobp++ = REG_NAND_DATA8;
++	}
++	/* read ECC bytes */
++	nand_bcm_umi_bch_resume_read_ecc_calc();
++	while (numToRead) {
++#if defined(__KERNEL__) && !defined(STANDALONE)
++		*oobp = REG_NAND_DATA8;
++		eccCalc[eccPos++] = *oobp;
++		oobp++;
+ #else
+-		REG_NAND_DATA8;
++		eccCalc[eccPos++] = REG_NAND_DATA8;
+ #endif
+ 		numToRead--;
+-
+-		while (numToRead > numEccBytes) {
+-			/* skip free oob region */
+-#if defined(__KERNEL__) && !defined(STANDALONE)
+-			*oobp++ = REG_NAND_DATA8;
+-#else
+-			REG_NAND_DATA8;
+-#endif
+-			numToRead--;
+-		}
+-
+-		/* read ECC bytes */
+-		nand_bcm_umi_bch_resume_read_ecc_calc();
+-		while (numToRead) {
+-#if defined(__KERNEL__) && !defined(STANDALONE)
+-			*oobp = REG_NAND_DATA8;
+-			eccCalc[eccPos++] = *oobp;
+-			oobp++;
+-#else
+-			eccCalc[eccPos++] = REG_NAND_DATA8;
+-#endif
+-			numToRead--;
+-		}
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
