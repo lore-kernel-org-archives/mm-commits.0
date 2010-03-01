@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch added to -mm tree
-Date: Mon, 01 Mar 2010 15:46:51 -0800
-Message-ID: <201003012346.o21Nkp7d006938@imap1.linux-foundation.org>
+Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-net.patch added to -mm tree
+Date: Mon, 01 Mar 2010 15:46:53 -0800
+Message-ID: <201003012346.o21NksqB006941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752795Ab0CAXrf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 18:47:35 -0500
+	by vger.kernel.org with ESMTP id S1752795Ab0CAXrj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 18:47:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akinobu.mita@gmail.com, adobriyan@gmail.com, akpm@linux-foundation.org, dave
 
 
 The patch titled
-     bitops: rename for_each_bit() to for_each_set_bit(): arm
+     bitops: rename for_each_bit() to for_each_set_bit(): net
 has been added to the -mm tree.  Its filename is
-     bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+     bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: rename for_each_bit() to for_each_set_bit(): arm
+Subject: bitops: rename for_each_bit() to for_each_set_bit(): net
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Rename for_each_bit to for_each_set_bit in the kernel source tree.  To
@@ -50,34 +50,21 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-msm/pm.c  |    2 +-
- arch/arm/mach-msm/pm2.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ixgbevf/ixgbevf_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-msm/pm.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm arch/arm/mach-msm/pm.c
---- a/arch/arm/mach-msm/pm.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm
-+++ a/arch/arm/mach-msm/pm.c
-@@ -764,7 +764,7 @@ static int msm_pm_read_proc(
+diff -puN drivers/net/ixgbevf/ixgbevf_main.c~bitops-rename-for_each_bit-to-for_each_set_bit-net drivers/net/ixgbevf/ixgbevf_main.c
+--- a/drivers/net/ixgbevf/ixgbevf_main.c~bitops-rename-for_each_bit-to-for_each_set_bit-net
++++ a/drivers/net/ixgbevf/ixgbevf_main.c
+@@ -751,7 +751,7 @@ static void ixgbevf_configure_msix(struc
+ 	 */
+ 	for (v_idx = 0; v_idx < q_vectors; v_idx++) {
+ 		q_vector = adapter->q_vector[v_idx];
+-		/* XXX for_each_bit(...) */
++		/* XXX for_each_set_bit(...) */
+ 		r_idx = find_first_bit(q_vector->rxr_idx,
+ 				       adapter->num_rx_queues);
  
- 	if (!off) {
- 		SNPRINTF(p, count, "Clocks against last TCXO shutdown:\n");
--		for_each_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
-+		for_each_set_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
- 			clk_name[0] = '\0';
- 			msm_clock_get_name(i, clk_name, sizeof(clk_name));
- 			SNPRINTF(p, count, "  %s (id=%d)\n", clk_name, i);
-diff -puN arch/arm/mach-msm/pm2.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm arch/arm/mach-msm/pm2.c
---- a/arch/arm/mach-msm/pm2.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm
-+++ a/arch/arm/mach-msm/pm2.c
-@@ -698,7 +698,7 @@ static int msm_pm_read_proc
- 
- 	if (!off) {
- 		SNPRINTF(p, count, "Clocks against last TCXO shutdown:\n");
--		for_each_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
-+		for_each_set_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
- 			clk_name[0] = '\0';
- 			msm_clock_get_name(i, clk_name, sizeof(clk_name));
- 			SNPRINTF(p, count, "  %s (id=%d)\n", clk_name, i);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
