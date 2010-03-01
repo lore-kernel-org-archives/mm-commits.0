@@ -1,154 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 11:47:02 -0800
-Message-ID: <201003011947.o21Jl2V8028720@imap1.linux-foundation.org>
+Subject: [folded] pps-linuxpps-clients-support-fix.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 13:00:39 -0800
+Message-ID: <201003012100.o21L0e8o031909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751293Ab0CATuY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 14:50:24 -0500
+	by vger.kernel.org with ESMTP id S1750808Ab0CAVAv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 16:00:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: atrigent@ccs.neu.edu, alan@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, giometti@linux.it, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: add a new VT mode which is like VT_PROCESS but doesn't require a VT_RELDISP ioctl call
+     pps-linuxpps-clients-support-fix
 has been removed from the -mm tree.  Its filename was
-     add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call.patch
+     pps-linuxpps-clients-support-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into pps-linuxpps-clients-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: add a new VT mode which is like VT_PROCESS but doesn't require a VT_RELDISP ioctl call
-From: Ari Entlich <atrigent@ccs.neu.edu>
+Subject: pps-linuxpps-clients-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This new VT mode (VT_PROCESS_AUTO) does everything that VT_PROCESS does
-except that it doesn't wait for a VT_RELDISP ioctl before switching away
-from a VT with that mode.
-
-If the X server eventually uses this new mode, debugging and crash
-recovery should become easier.  This is because even when currently in the
-VT of a frozen X server it would still be possible to switch out by doing
-SysRq-r and then CTRL-<number of a text vt>, sshing in and doing chvt
-<number of a text vt>, or any other method of VT switching.  The general
-concensus on #xorg-devel seems to be that it should be safe to use this
-with X now that we have KMS.
-
-This also moves the VT_ACKACQ define to a more appropriate place, for
-clarity's sake.
-
-Signed-off-by: Ari Entlich <atrigent@ccs.neu.edu>
-Acked-by: Alan Cox <alan@linux.intel.com>
+Cc: Rodolfo Giometti <giometti@linux.it>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt_ioctl.c |   39 +++++++++++++++++++-------------------
- include/linux/vt.h      |    3 +-
- 2 files changed, 22 insertions(+), 20 deletions(-)
+ drivers/pps/clients/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call drivers/char/vt_ioctl.c
---- a/drivers/char/vt_ioctl.c~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call
-+++ a/drivers/char/vt_ioctl.c
-@@ -888,7 +888,7 @@ int vt_ioctl(struct tty_struct *tty, str
- 			ret = -EFAULT;
- 			goto out;
- 		}
--		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS) {
-+		if (tmp.mode != VT_AUTO && tmp.mode != VT_PROCESS && tmp.mode != VT_PROCESS_AUTO) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
-@@ -1622,7 +1622,7 @@ static void complete_change_console(stru
- 	 * telling it that it has acquired. Also check if it has died and
- 	 * clean up (similar to logic employed in change_console())
- 	 */
--	if (vc->vt_mode.mode == VT_PROCESS) {
-+	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
- 		/*
- 		 * Send the signal as privileged - kill_pid() will
- 		 * tell us if the process has gone or something else
-@@ -1682,7 +1682,7 @@ void change_console(struct vc_data *new_
- 	 * vt to auto control.
- 	 */
- 	vc = vc_cons[fg_console].d;
--	if (vc->vt_mode.mode == VT_PROCESS) {
-+	if (vc->vt_mode.mode == VT_PROCESS || vc->vt_mode.mode == VT_PROCESS_AUTO) {
- 		/*
- 		 * Send the signal as privileged - kill_pid() will
- 		 * tell us if the process has gone or something else
-@@ -1693,27 +1693,28 @@ void change_console(struct vc_data *new_
- 		 */
- 		vc->vt_newvt = new_vc->vc_num;
- 		if (kill_pid(vc->vt_pid, vc->vt_mode.relsig, 1) == 0) {
-+			if(vc->vt_mode.mode == VT_PROCESS)
-+				/*
-+				 * It worked. Mark the vt to switch to and
-+				 * return. The process needs to send us a
-+				 * VT_RELDISP ioctl to complete the switch.
-+				 */
-+				return;
-+		} else {
- 			/*
--			 * It worked. Mark the vt to switch to and
--			 * return. The process needs to send us a
--			 * VT_RELDISP ioctl to complete the switch.
-+			 * The controlling process has died, so we revert back to
-+			 * normal operation. In this case, we'll also change back
-+			 * to KD_TEXT mode. I'm not sure if this is strictly correct
-+			 * but it saves the agony when the X server dies and the screen
-+			 * remains blanked due to KD_GRAPHICS! It would be nice to do
-+			 * this outside of VT_PROCESS but there is no single process
-+			 * to account for and tracking tty count may be undesirable.
- 			 */
--			return;
-+			reset_vc(vc);
- 		}
+diff -puN drivers/pps/clients/Kconfig~pps-linuxpps-clients-support-fix drivers/pps/clients/Kconfig
+--- a/drivers/pps/clients/Kconfig~pps-linuxpps-clients-support-fix
++++ a/drivers/pps/clients/Kconfig
+@@ -13,6 +13,6 @@ config PPS_CLIENT_KTIMER
+ 	  which uses a kernel timer to generate the PPS signal.
  
- 		/*
--		 * The controlling process has died, so we revert back to
--		 * normal operation. In this case, we'll also change back
--		 * to KD_TEXT mode. I'm not sure if this is strictly correct
--		 * but it saves the agony when the X server dies and the screen
--		 * remains blanked due to KD_GRAPHICS! It would be nice to do
--		 * this outside of VT_PROCESS but there is no single process
--		 * to account for and tracking tty count may be undesirable.
--		 */
--		reset_vc(vc);
--
--		/*
--		 * Fall through to normal (VT_AUTO) handling of the switch...
-+		 * Fall through to normal (VT_AUTO and VT_PROCESS_AUTO) handling of the switch...
- 		 */
- 	}
+ 	  This driver can also be built as a module.  If so, the module
+-	  will be called ktimer.ko.
++	  will be called ktimer.
  
-diff -puN include/linux/vt.h~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call include/linux/vt.h
---- a/include/linux/vt.h~add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call
-+++ a/include/linux/vt.h
-@@ -27,7 +27,7 @@ struct vt_mode {
- #define VT_SETMODE	0x5602	/* set mode of active vt */
- #define		VT_AUTO		0x00	/* auto vt switching */
- #define		VT_PROCESS	0x01	/* process controls switching */
--#define		VT_ACKACQ	0x02	/* acknowledge switch */
-+#define		VT_PROCESS_AUTO 0x02	/* process is notified of switching */
- 
- struct vt_stat {
- 	unsigned short v_active;	/* active vt */
-@@ -38,6 +38,7 @@ struct vt_stat {
- #define VT_SENDSIG	0x5604	/* signal to send to bitmask of vts */
- 
- #define VT_RELDISP	0x5605	/* release display */
-+#define		VT_ACKACQ	0x02	/* acknowledge switch */
- 
- #define VT_ACTIVATE	0x5606	/* make vt active */
- #define VT_WAITACTIVE	0x5607	/* wait for vt active */
+ endif
 _
 
-Patches currently in -mm which might be from atrigent@ccs.neu.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+serial-spi-add-spi-uart-driver-for-maxim-3110-fix.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
 add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+pps-linuxpps-clients-support.patch
+pps-linuxpps-clients-support-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
