@@ -1,72 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + pps-linuxpps-clients-support-v3-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 01 Mar 2010 16:52:03 -0800
-Message-ID: <201003020052.o220q312009795@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 02 Mar 2010 10:49:21 -0800
+Message-ID: <201003021849.o22InLH4023384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752309Ab0CBAwI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 19:52:08 -0500
+	by vger.kernel.org with ESMTP id S1751997Ab0CBStj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 13:49:39 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o22InMir017672
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 2 Mar 2010 10:49:23 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, giometti@linux.it
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-linuxpps-clients-support-v3-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-linuxpps-clients-support-v3-checkpatch-fixes
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: please, no space before tabs
-#261: FILE: drivers/pps/clients/pps-ktimer.c:82:
-+^I.echo ^I^I= pps_ktimer_echo,$
-
-total: 0 errors, 1 warnings, 138 lines checked
-
-./patches/pps-linuxpps-clients-support-v3.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ktimer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-mx25/clock.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes drivers/pps/clients/pps-ktimer.c
---- a/drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes
-+++ a/drivers/pps/clients/pps-ktimer.c
-@@ -79,7 +79,7 @@ static struct pps_source_info pps_ktimer
- 	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
- 			  PPS_ECHOASSERT |
- 			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
--	.echo 		= pps_ktimer_echo,
-+	.echo		= pps_ktimer_echo,
- 	.owner		= THIS_MODULE,
- };
+diff -puN arch/arm/mach-mx25/clock.c~linux-next-git-rejects arch/arm/mach-mx25/clock.c
+--- a/arch/arm/mach-mx25/clock.c~linux-next-git-rejects
++++ a/arch/arm/mach-mx25/clock.c
+@@ -239,12 +239,9 @@ int __init mx25_clocks_init(void)
+ 	__raw_writel((0xf << 16) | (3 << 26), CRM_BASE + CCM_CGCR1);
+ 	__raw_writel((1 << 5), CRM_BASE + CCM_CGCR2);
  
+-<<<<<<< HEAD:arch/arm/mach-mx25/clock.c
+-=======
+ 	/* Clock source for lcdc is upll */
+ 	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7), CRM_BASE + 0x64);
+ 
+->>>>>>> FETCH_HEAD:arch/arm/mach-mx25/clock.c
+ 	mxc_timer_init(&gpt_clk, MX25_IO_ADDRESS(MX25_GPT1_BASE_ADDR), 54);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
