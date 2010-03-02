@@ -1,92 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kconfig-place-git-sha1-in-config-output-if-in-git-tree.patch removed from -mm tree
-Date: Tue, 02 Mar 2010 15:11:41 -0800
-Message-ID: <201003022311.o22NBfpE002950@imap1.linux-foundation.org>
+Subject: + acpi-put-acpi_battery_get-set_alarm-into-config_acpi_sysfs_power.patch added to -mm tree
+Date: Tue, 02 Mar 2010 15:13:17 -0800
+Message-ID: <201003022313.o22NDH6u003035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295Ab0CBXMp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 18:12:45 -0500
+	by vger.kernel.org with ESMTP id S1752312Ab0CBXOK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 18:14:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, elendil@planet.nl, geert@linux-m68k.org, mingo@elte.hu, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rakib.mullick@gmail.com, lenb@kernel.org
 
 
 The patch titled
-     kconfig: place git SHA1 in .config output if in git tree
-has been removed from the -mm tree.  Its filename was
-     kconfig-place-git-sha1-in-config-output-if-in-git-tree.patch
+     acpi: put acpi_battery_get/set_alarm into  CONFIG_ACPI_SYSFS_POWER
+has been added to the -mm tree.  Its filename is
+     acpi-put-acpi_battery_get-set_alarm-into-config_acpi_sysfs_power.p=
+atch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: kconfig: place git SHA1 in .config output if in git tree
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: acpi: put acpi_battery_get/set_alarm into  CONFIG_ACPI_SYSFS_P=
+OWER
+=46rom: Rakib Mullick <rakib.mullick@gmail.com>
 
-Append the SHA1 hash of the current git tree to the kernel version line,
-or "[Not git tree]" if run from a non-git tree.  Uses "git log" to print
-the hash.
+acpi_battery_get/set_alarm is only used when CONFIG_ACPI_SYSFS_POWER=3D=
+y.=20
+So put this two functions under CONFIG_ACPI_SYSFS_POWER by shifting it
+upward.
 
-Suggested-by: Ingo Molnar <mingo@elte.hu>
-Cc: Michal Marek <mmarek@suse.cz>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+We were warned by the following warnings:
+
+drivers/acpi/sbs.c:399: warning: =91acpi_battery_get_alarm=92 defined b=
+ut not used
+drivers/acpi/sbs.c:406: warning: =91acpi_battery_set_alarm=92 defined b=
+ut not used
+
+Also fixes a checkpatch warning in acpi_ac_get_present.
+
+ERROR: space prohibited after that '&' (ctx:WxW)
+#13: FILE: drivers/acpi/sbs.c:405:
++				 0x13, (u8 *) & status);
+ 				              ^
+
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/confdata.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ drivers/acpi/sbs.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN scripts/kconfig/confdata.c~kconfig-place-git-sha1-in-config-output-if-in-git-tree scripts/kconfig/confdata.c
---- a/scripts/kconfig/confdata.c~kconfig-place-git-sha1-in-config-output-if-in-git-tree
-+++ a/scripts/kconfig/confdata.c
-@@ -399,10 +399,11 @@ int conf_read(const char *name)
- int conf_write(const char *name)
- {
- 	FILE *out;
-+	FILE *git;
- 	struct symbol *sym;
- 	struct menu *menu;
- 	const char *basename;
--	char dirname[128], tmpname[128], newname[128];
-+	char dirname[128], tmpname[128], newname[128], gitsha[128];
- 	int type, l;
- 	const char *str;
- 	time_t now;
-@@ -450,12 +451,20 @@ int conf_write(const char *name)
- 	if (env && *env)
- 		use_timestamp = 0;
- 
-+	gitsha[0] = '\0';
-+	git = popen("git log --pretty=format:%h -1 2> /dev/null", "r");
-+	if (git != NULL) {
-+		fscanf(git, " %127s ", gitsha);
-+		pclose(git);
-+	}
+diff -puN drivers/acpi/sbs.c~acpi-put-acpi_battery_get-set_alarm-into-c=
+onfig_acpi_sysfs_power drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-put-acpi_battery_get-set_alarm-into-confi=
+g_acpi_sysfs_power
++++ a/drivers/acpi/sbs.c
+@@ -400,6 +400,20 @@ static int acpi_battery_get_state(struct
+ 	return result;
+ }
+=20
++static int acpi_ac_get_present(struct acpi_sbs *sbs)
++{
++	int result;
++	u16 status;
 +
- 	fprintf(out, _("#\n"
- 		       "# Automatically generated make config: don't edit\n"
--		       "# Linux kernel version: %s\n"
-+		       "# Linux kernel version: %s %s\n"
- 		       "%s%s"
- 		       "#\n"),
- 		     sym_get_string_value(sym),
-+		     gitsha[0] == '\0' ? "[Not git tree]" : gitsha,
- 		     use_timestamp ? "# " : "",
- 		     use_timestamp ? ctime(&now) : "");
- 
-_
-
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
-
-origin.patch
-linux-next.patch
-kconfig-place-git-sha1-in-config-output-if-in-git-tree.patch
-rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
-sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
-sysctl-extern-cleanup-rcu.patch
-
++	result =3D acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER=
+,
++				 0x13, (u8 *) &status);
++	if (!result)
++		sbs->charger_present =3D (status >> 15) & 0x1;
++	return result;
++}
++
++#ifdef CONFIG_ACPI_SYSFS_POWER
++
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ {
+ 	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+@@ -436,19 +450,6 @@ static int acpi_battery_set_alarm(struct
+ 	return ret;
+ }
+=20
+-static int acpi_ac_get_present(struct acpi_sbs *sbs)
+-{
+-	int result;
+-	u16 status;
+-
+-	result =3D acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER=
+,
+-				 0x13, (u8 *) & status);
+-	if (!result)
+-		sbs->charger_present =3D (status >> 15) & 0x1;
+-	return result;
+-}
