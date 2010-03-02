@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip.patch added to -mm tree
-Date: Tue, 02 Mar 2010 14:40:31 -0800
-Message-ID: <201003022240.o22MeVG7001454@imap1.linux-foundation.org>
+Subject: + decompress-fix-new-decompressor-for-pic.patch added to -mm tree
+Date: Tue, 02 Mar 2010 14:42:04 -0800
+Message-ID: <201003022242.o22Mg4Al001562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751887Ab0CBWkk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:40:40 -0500
+	by vger.kernel.org with ESMTP id S1751020Ab0CBWmV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:42:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: denis@compulab.co.il, david-b@pacbell.net
+Cc: rmk@arm.linux.org.uk, alain@knaff.lu, rmk+kernel@arm.linux.org.uk, stable@kernel.org
 
 
 The patch titled
-     gpio: introduce it8761e_gpio driver for IT8761E Super I/O chip
+     decompress: fix new decompressor for PIC
 has been added to the -mm tree.  Its filename is
-     gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip.patch
+     decompress-fix-new-decompressor-for-pic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,285 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: introduce it8761e_gpio driver for IT8761E Super I/O chip
-From: Denis Turischev <denis@compulab.co.il>
+Subject: decompress: fix new decompressor for PIC
+From: Russell King <rmk@arm.linux.org.uk>
 
-Signed-off-by: Denis Turischev <denis@compulab.co.il>
-Cc: David Brownell <david-b@pacbell.net>
+The ARM kernel decompressor wants to be able to relocate r/w data
+independently from the rest of the image, and we do this by ensuring that
+r/w data has global visibility.  Define STATIC_RW_DATA to be empty to
+achieve this.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig        |    6 
- drivers/gpio/Makefile       |    1 
- drivers/gpio/it8761e_gpio.c |  231 ++++++++++++++++++++++++++++++++++
- 3 files changed, 238 insertions(+)
+ include/linux/decompress/mm.h |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip
-+++ a/drivers/gpio/Kconfig
-@@ -70,6 +70,12 @@ config GPIO_MAX730X
+diff -puN include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic include/linux/decompress/mm.h
+--- a/include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic
++++ a/include/linux/decompress/mm.h
+@@ -14,11 +14,21 @@
  
- comment "Memory mapped GPIO expanders:"
+ /* Code active when included from pre-boot environment: */
  
-+config GPIO_IT8761E
-+	tristate "IT8761E GPIO support"
-+	depends on GPIOLIB
-+	help
-+	  Say yes here to support GPIO functionality of IT8761E super I/O chip.
-+
- config GPIO_PL061
- 	bool "PrimeCell PL061 GPIO support"
- 	depends on ARM_AMBA
-diff -puN drivers/gpio/Makefile~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip
-+++ a/drivers/gpio/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_GPIO_UCB1400)	+= ucb1400_gp
- obj-$(CONFIG_GPIO_XILINX)	+= xilinx_gpio.o
- obj-$(CONFIG_GPIO_CS5535)	+= cs5535-gpio.o
- obj-$(CONFIG_GPIO_BT8XX)	+= bt8xxgpio.o
-+obj-$(CONFIG_GPIO_IT8761E)	+= it8761e_gpio.o
- obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
- obj-$(CONFIG_GPIO_WM831X)	+= wm831x-gpio.o
- obj-$(CONFIG_GPIO_WM8350)	+= wm8350-gpiolib.o
-diff -puN /dev/null drivers/gpio/it8761e_gpio.c
---- /dev/null
-+++ a/drivers/gpio/it8761e_gpio.c
-@@ -0,0 +1,231 @@
 +/*
-+ *  it8761_gpio.c - GPIO interface for IT8761E Super I/O chip
-+ *
-+ *  Author: Denis Turischev <denis@compulab.co.il>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License 2 as published
-+ *  by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; see the file COPYING.  If not, write to
-+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
++ * Some architectures want to ensure there is no local data in their
++ * pre-boot environment, so that data can arbitarily relocated (via
++ * GOT references).  This is achieved by defining STATIC_RW_DATA to
++ * be null.
 + */
++#ifndef STATIC_RW_DATA
++#define STATIC_RW_DATA static
++#endif
 +
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/io.h>
-+#include <linux/errno.h>
-+#include <linux/ioport.h>
-+
-+#include <linux/gpio.h>
-+
-+#define SIO_CHIP_ID		0x8761
-+#define CHIP_ID_HIGH_BYTE	0x20
-+#define CHIP_ID_LOW_BYTE	0x21
-+
-+static u8 ports[2] = { 0x2e, 0x4e };
-+static u8 port;
-+
-+static DEFINE_SPINLOCK(sio_lock);
-+
-+#define GPIO_NAME		"it8761-gpio"
-+#define GPIO_BA_HIGH_BYTE	0x60
-+#define GPIO_BA_LOW_BYTE	0x61
-+#define GPIO_IOSIZE		4
-+#define GPIO1X_IO		0xf0
-+#define GPIO2X_IO		0xf1
-+
-+static u16 gpio_ba;
-+
-+static u8 read_reg(u8 addr, u8 port)
-+{
-+	outb(addr, port);
-+	return inb(port + 1);
-+}
-+
-+static void write_reg(u8 data, u8 addr, u8 port)
-+{
-+	outb(addr, port);
-+	outb(data, port + 1);
-+}
-+
-+static void enter_conf_mode(u8 port)
-+{
-+	outb(0x87, port);
-+	outb(0x61, port);
-+	outb(0x55, port);
-+	outb((port == 0x2e) ? 0x55 : 0xaa, port);
-+}
-+
-+static void exit_conf_mode(u8 port)
-+{
-+	outb(0x2, port);
-+	outb(0x2, port + 1);
-+}
-+
-+static void enter_gpio_mode(u8 port)
-+{
-+	write_reg(0x2, 0x7, port);
-+}
-+
-+static int it8761e_gpio_get(struct gpio_chip *gc, unsigned gpio_num)
-+{
-+	u16 reg;
-+	u8 bit;
-+
-+	bit = gpio_num % 7;
-+	reg = (gpio_num >= 7) ? gpio_ba + 1 : gpio_ba;
-+
-+	return !!(inb(reg) & (1 << bit));
-+}
-+
-+static int it8761e_gpio_direction_in(struct gpio_chip *gc, unsigned gpio_num)
-+{
-+	u8 curr_dirs;
-+	u8 io_reg, bit;
-+
-+	bit = gpio_num % 7;
-+	io_reg = (gpio_num >= 7) ? GPIO2X_IO : GPIO1X_IO;
-+
-+	spin_lock(&sio_lock);
-+
-+	enter_conf_mode(port);
-+	enter_gpio_mode(port);
-+
-+	curr_dirs = read_reg(io_reg, port);
-+
-+	if (curr_dirs & (1 << bit))
-+		write_reg(curr_dirs & ~(1 << bit), io_reg, port);
-+
-+	exit_conf_mode(port);
-+
-+	spin_unlock(&sio_lock);
-+	return 0;
-+}
-+
-+static void it8761e_gpio_set(struct gpio_chip *gc,
-+				unsigned gpio_num, int val)
-+{
-+	u8 curr_vals, bit;
-+	u16 reg;
-+
-+	bit = gpio_num % 7;
-+	reg = (gpio_num >= 7) ? gpio_ba + 1 : gpio_ba;
-+
-+	spin_lock(&sio_lock);
-+
-+	curr_vals = inb(reg);
-+	if (val)
-+		outb(curr_vals | (1 << bit) , reg);
-+	else
-+		outb(curr_vals & ~(1 << bit), reg);
-+
-+	spin_unlock(&sio_lock);
-+}
-+
-+static int it8761e_gpio_direction_out(struct gpio_chip *gc,
-+					unsigned gpio_num, int val)
-+{
-+	u8 curr_dirs, io_reg, bit;
-+
-+	bit = gpio_num % 7;
-+	io_reg = (gpio_num >= 7) ? GPIO2X_IO : GPIO1X_IO;
-+
-+	it8761e_gpio_set(gc, gpio_num, val);
-+
-+	spin_lock(&sio_lock);
-+
-+	enter_conf_mode(port);
-+	enter_gpio_mode(port);
-+
-+	curr_dirs = read_reg(io_reg, port);
-+
-+	if (!(curr_dirs & (1 << bit)))
-+		write_reg(curr_dirs | (1 << bit), io_reg, port);
-+
-+	exit_conf_mode(port);
-+
-+	spin_unlock(&sio_lock);
-+	return 0;
-+}
-+
-+static struct gpio_chip it8761e_gpio_chip = {
-+	.label			= GPIO_NAME,
-+	.owner			= THIS_MODULE,
-+	.get			= it8761e_gpio_get,
-+	.direction_input	= it8761e_gpio_direction_in,
-+	.set			= it8761e_gpio_set,
-+	.direction_output	= it8761e_gpio_direction_out,
-+};
-+
-+static int __init it8761e_gpio_init(void)
-+{
-+	int i, id, err;
-+
-+	/* chip and port detection */
-+	for (i = 0; i < ARRAY_SIZE(ports); i++) {
-+		spin_lock(&sio_lock);
-+		enter_conf_mode(ports[i]);
-+
-+		id = (read_reg(CHIP_ID_HIGH_BYTE, ports[i]) << 8) +
-+				read_reg(CHIP_ID_LOW_BYTE, ports[i]);
-+
-+		exit_conf_mode(ports[i]);
-+		spin_unlock(&sio_lock);
-+
-+		if (id == SIO_CHIP_ID) {
-+			port = ports[i];
-+			break;
-+		}
-+	}
-+
-+	if (!port)
-+		return -ENODEV;
-+
-+	/* fetch GPIO base address */
-+	enter_conf_mode(port);
-+	enter_gpio_mode(port);
-+	gpio_ba = (read_reg(GPIO_BA_HIGH_BYTE, port) << 8) +
-+				read_reg(GPIO_BA_LOW_BYTE, port);
-+	exit_conf_mode(port);
-+
-+	if (!request_region(gpio_ba, GPIO_IOSIZE, GPIO_NAME))
-+		return -EBUSY;
-+
-+	it8761e_gpio_chip.base = -1;
-+	it8761e_gpio_chip.ngpio = 14;
-+
-+	err = gpiochip_add(&it8761e_gpio_chip);
-+	if (err < 0)
-+		goto gpiochip_add_err;
-+
-+	return 0;
-+
-+gpiochip_add_err:
-+	release_region(gpio_ba, GPIO_IOSIZE);
-+	gpio_ba = 0;
-+	return err;
-+}
-+
-+static void __exit it8761e_gpio_exit(void)
-+{
-+	if (gpio_ba) {
-+		gpiochip_remove(&it8761e_gpio_chip);
-+
-+		release_region(gpio_ba, GPIO_IOSIZE);
-+		gpio_ba = 0;
-+	}
-+}
-+module_init(it8761e_gpio_init);
-+module_exit(it8761e_gpio_exit);
-+
-+MODULE_AUTHOR("Denis Turischev <denis@compulab.co.il>");
-+MODULE_DESCRIPTION("GPIO interface for IT8761E Super I/O chip");
-+MODULE_LICENSE("GPL");
+ /* A trivial malloc implementation, adapted from
+  *  malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
+  */
+-static unsigned long malloc_ptr;
+-static int malloc_count;
++STATIC_RW_DATA unsigned long malloc_ptr;
++STATIC_RW_DATA int malloc_count;
+ 
+ static void *malloc(int size)
+ {
 _
 
-Patches currently in -mm which might be from denis@compulab.co.il are
+Patches currently in -mm which might be from rmk@arm.linux.org.uk are
 
+origin.patch
 linux-next.patch
-gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+broadsheetfb-add-multiple-panel-type-support.patch
+nuc900-lcd-controller-driver.patch
+nuc900-lcd-controller-driver-updates.patch
+mx3fb-introduce-waveform-configuration-for-pixel-clock-signal.patch
+arm-use-generic-ptrace_resume-code.patch
+decompress-fix-new-decompressor-for-pic.patch
 
