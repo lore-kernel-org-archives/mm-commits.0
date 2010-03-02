@@ -1,38 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf-plug-a-memory-leak-situation-on-dump_seek.patch added to -mm tree
-Date: Tue, 02 Mar 2010 12:43:06 -0800
-Message-ID: <201003022043.o22Kh6IR028511@imap1.linux-foundation.org>
+Subject: [wrecked] binfmt_elf-plug-a-memory-leak-situation-on-dump_seek.patch removed from -mm tree
+Date: Tue, 02 Mar 2010 13:21:37 -0800
+Message-ID: <201003022121.o22LLbdW030259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754114Ab0CBUnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 15:43:09 -0500
+	by vger.kernel.org with ESMTP id S1751580Ab0CBVVj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 16:21:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andre.goddard@gmail.com
+To: andre.goddard@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      binfmt_elf: plug a memory leak situation on dump_seek()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      binfmt_elf-plug-a-memory-leak-situation-on-dump_seek.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because other changes were merged, which wrecked=
+ this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
