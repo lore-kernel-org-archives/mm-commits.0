@@ -1,82 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dmatest-correct-raid6-pq-test.patch removed from -mm tree
-Date: Tue, 02 Mar 2010 11:11:18 -0800
-Message-ID: <201003021911.o22JBIZ3024353@imap1.linux-foundation.org>
+Subject: + mm-add-comment-about-deprecation-of-__gfp_nofail.patch added to -mm tree
+Date: Tue, 02 Mar 2010 12:34:12 -0800
+Message-ID: <201003022034.o22KYCEM028022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46136 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751331Ab0CBTM7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 14:12:59 -0500
+	by vger.kernel.org with ESMTP id S1752917Ab0CBUew (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 15:34:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agust@denx.de, dan.j.williams@intel.com, maciej.sosnowski@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     dmatest: correct raid6 PQ test
-has been removed from the -mm tree.  Its filename was
-     dmatest-correct-raid6-pq-test.patch
+     mm: add comment about deprecation of __GFP_NOFAIL
+has been added to the -mm tree.  Its filename is
+     mm-add-comment-about-deprecation-of-__gfp_nofail.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmatest: correct raid6 PQ test
-From: Anatolij Gustschin <agust@denx.de>
+Subject: mm: add comment about deprecation of __GFP_NOFAIL
+From: David Rientjes <rientjes@google.com>
 
-The number of PQ sources specified by module parameter "pq_sources" is
-always forced odd to fit into dmatest's destination verificaton scheme. 
-But number of PQ sources and coefficients as passed to the driver's
-prep_dma_pq() is not adjusted accordingly.
+__GFP_NOFAIL was deprecated in dab48dab, so add a comment that no new
+users should be added.
 
-Fix it now to get correct PQ testing results in the case passed
-"pq_sources" parameter is even.
-
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmatest.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/gfp.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/dma/dmatest.c~dmatest-correct-raid6-pq-test drivers/dma/dmatest.c
---- a/drivers/dma/dmatest.c~dmatest-correct-raid6-pq-test
-+++ a/drivers/dma/dmatest.c
-@@ -237,7 +237,7 @@ static int dmatest_func(void *data)
- 	dma_cookie_t		cookie;
- 	enum dma_status		status;
- 	enum dma_ctrl_flags 	flags;
--	u8			pq_coefs[pq_sources];
-+	u8			pq_coefs[pq_sources + 1];
- 	int			ret;
- 	int			src_cnt;
- 	int			dst_cnt;
-@@ -257,7 +257,7 @@ static int dmatest_func(void *data)
- 	} else if (thread->type == DMA_PQ) {
- 		src_cnt = pq_sources | 1; /* force odd to ensure dst = src */
- 		dst_cnt = 2;
--		for (i = 0; i < pq_sources; i++)
-+		for (i = 0; i < src_cnt; i++)
- 			pq_coefs[i] = 1;
- 	} else
- 		goto err_srcs;
-@@ -355,7 +355,7 @@ static int dmatest_func(void *data)
- 			for (i = 0; i < dst_cnt; i++)
- 				dma_pq[i] = dma_dsts[i] + dst_off;
- 			tx = dev->device_prep_dma_pq(chan, dma_pq, dma_srcs,
--						     pq_sources, pq_coefs,
-+						     src_cnt, pq_coefs,
- 						     len, flags);
- 		}
- 
+diff -puN include/linux/gfp.h~mm-add-comment-about-deprecation-of-__gfp_nofail include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-add-comment-about-deprecation-of-__gfp_nofail
++++ a/include/linux/gfp.h
+@@ -30,7 +30,8 @@ struct vm_area_struct;
+  * _might_ fail.  This depends upon the particular VM implementation.
+  *
+  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
+- * cannot handle allocation failures.
++ * cannot handle allocation failures.  This modifier is deprecated and no new
++ * users should be added.
+  *
+  * __GFP_NORETRY: The VM implementation must not retry indefinitely.
+  *
 _
 
-Patches currently in -mm which might be from agust@denx.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
+mm-clean-up-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
+mm-suppress-pfn-range-output-for-zones-without-pages.patch
+mm-add-comment-about-deprecation-of-__gfp_nofail.patch
+nodemaskh-remove-macro-any_online_node.patch
+memcg-handle-panic_on_oom=always-case-v2.patch
+sysctl-clean-up-vm-related-variable-declarations.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
 
