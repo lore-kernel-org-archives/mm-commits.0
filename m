@@ -1,86 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch added to -mm tree
-Date: Mon, 01 Mar 2010 15:46:55 -0800
-Message-ID: <201003012346.o21NktUr006946@imap1.linux-foundation.org>
+Subject: [to-be-updated] kernelh-intr_sqrt-cleanup.patch removed from -mm tree
+Date: Mon, 01 Mar 2010 16:21:29 -0800
+Message-ID: <201003020021.o220LTIZ008497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752795Ab0CAXrh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 18:47:37 -0500
+	by vger.kernel.org with ESMTP id S1751337Ab0CBAVc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 19:21:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, adobriyan@gmail.com, akpm@linux-foundation.org, davem@davemloft.net, dedekind@infradead.org, dwmw2@infradead.org, rmk@arm.linux.org.uk, sfr@canb.auug.org.au
+To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops: rename for_each_bit() to for_each_set_bit(): mtd
-has been added to the -mm tree.  Its filename is
-     bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+     kernel.h: intr_sqrt cleanup
+has been removed from the -mm tree.  Its filename was
+     kernelh-intr_sqrt-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: rename for_each_bit() to for_each_set_bit(): mtd
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: kernel.h: intr_sqrt cleanup
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Rename for_each_bit to for_each_set_bit in the kernel source tree.  To
-permit for_each_clear_bit(), should that ever be added.
+int_sqrt in kernel.h should be put into a standalone head file
 
-Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Artem Bityutskiy <dedekind@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+cleanup int_sqrt declarations in kernel.h, put them into int_sqrt.h
+include int_sqrt.h in every file which need it
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/sm_ftl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/pt1/va1j5jf8007s.c     |    1 +
+ drivers/media/video/cx88/cx88-dsp.c      |    1 +
+ drivers/net/wireless/b43/phy_lp.c        |    1 +
+ drivers/staging/comedi/drivers/vmk80xx.c |    1 +
+ drivers/video/fbmon.c                    |    1 +
+ fs/nfs/write.c                           |    1 +
+ include/linux/int_sqrt.h                 |    6 ++++++
+ lib/int_sqrt.c                           |    1 +
+ mm/memcontrol.c                          |    1 +
+ mm/oom_kill.c                            |    1 +
+ mm/page_alloc.c                          |    1 +
+ net/ipv4/route.c                         |    1 +
+ 12 files changed, 17 insertions(+)
 
-diff -puN drivers/mtd/sm_ftl.c~bitops-rename-for_each_bit-to-for_each_set_bit-mtd drivers/mtd/sm_ftl.c
---- a/drivers/mtd/sm_ftl.c~bitops-rename-for_each_bit-to-for_each_set_bit-mtd
-+++ a/drivers/mtd/sm_ftl.c
-@@ -937,7 +937,7 @@ int sm_cache_flush(struct sm_ftl *ftl)
+diff -puN drivers/media/dvb/pt1/va1j5jf8007s.c~kernelh-intr_sqrt-cleanup drivers/media/dvb/pt1/va1j5jf8007s.c
+--- a/drivers/media/dvb/pt1/va1j5jf8007s.c~kernelh-intr_sqrt-cleanup
++++ a/drivers/media/dvb/pt1/va1j5jf8007s.c
+@@ -25,6 +25,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
++#include <linux/int_sqrt.h>
+ #include "dvb_frontend.h"
+ #include "va1j5jf8007s.h"
  
+diff -puN drivers/media/video/cx88/cx88-dsp.c~kernelh-intr_sqrt-cleanup drivers/media/video/cx88/cx88-dsp.c
+--- a/drivers/media/video/cx88/cx88-dsp.c~kernelh-intr_sqrt-cleanup
++++ a/drivers/media/video/cx88/cx88-dsp.c
+@@ -22,6 +22,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/jiffies.h>
++#include <linux/int_sqrt.h>
+ #include <asm/div64.h>
  
- 	/* Try to read all unread areas of the cache block*/
--	for_each_bit(sector_num, &ftl->cache_data_invalid_bitmap,
-+	for_each_set_bit(sector_num, &ftl->cache_data_invalid_bitmap,
- 		ftl->block_size / SM_SECTOR_SIZE) {
+ #include "cx88.h"
+diff -puN drivers/net/wireless/b43/phy_lp.c~kernelh-intr_sqrt-cleanup drivers/net/wireless/b43/phy_lp.c
+--- a/drivers/net/wireless/b43/phy_lp.c~kernelh-intr_sqrt-cleanup
++++ a/drivers/net/wireless/b43/phy_lp.c
+@@ -23,6 +23,7 @@
  
- 		if (!sm_read_sector(ftl,
+ */
+ 
++#include <linux/int_sqrt.h>
+ #include "b43.h"
+ #include "main.h"
+ #include "phy_lp.h"
+diff -puN drivers/staging/comedi/drivers/vmk80xx.c~kernelh-intr_sqrt-cleanup drivers/staging/comedi/drivers/vmk80xx.c
+--- a/drivers/staging/comedi/drivers/vmk80xx.c~kernelh-intr_sqrt-cleanup
++++ a/drivers/staging/comedi/drivers/vmk80xx.c
+@@ -61,6 +61,7 @@ Changelog:
+ #include <linux/poll.h>
+ #include <linux/usb.h>
+ #include <linux/uaccess.h>
++#include <linux/int_sqrt.h>
+ 
+ #include "../comedidev.h"
+ 
+diff -puN drivers/video/fbmon.c~kernelh-intr_sqrt-cleanup drivers/video/fbmon.c
+--- a/drivers/video/fbmon.c~kernelh-intr_sqrt-cleanup
++++ a/drivers/video/fbmon.c
+@@ -29,6 +29,7 @@
+ #include <linux/fb.h>
+ #include <linux/module.h>
+ #include <linux/pci.h>
++#include <linux/int_sqrt.h>
+ #include <video/edid.h>
+ #ifdef CONFIG_PPC_OF
+ #include <asm/prom.h>
+diff -puN fs/nfs/write.c~kernelh-intr_sqrt-cleanup fs/nfs/write.c
+--- a/fs/nfs/write.c~kernelh-intr_sqrt-cleanup
++++ a/fs/nfs/write.c
+@@ -20,6 +20,7 @@
+ #include <linux/nfs_mount.h>
+ #include <linux/nfs_page.h>
+ #include <linux/backing-dev.h>
++#include <linux/int_sqrt.h>
+ 
+ #include <asm/uaccess.h>
+ 
+diff -puN /dev/null include/linux/int_sqrt.h
+--- /dev/null
++++ a/include/linux/int_sqrt.h
+@@ -0,0 +1,6 @@
++#ifndef _INT_SQRT_H
++#define _INT_SQRT_H
++
++extern unsigned long int_sqrt(unsigned long);
++
++#endif
+diff -puN lib/int_sqrt.c~kernelh-intr_sqrt-cleanup lib/int_sqrt.c
+--- a/lib/int_sqrt.c~kernelh-intr_sqrt-cleanup
++++ a/lib/int_sqrt.c
+@@ -1,6 +1,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/int_sqrt.h>
+ 
+ /**
+  * int_sqrt - rough approximation to sqrt
+diff -puN mm/memcontrol.c~kernelh-intr_sqrt-cleanup mm/memcontrol.c
+--- a/mm/memcontrol.c~kernelh-intr_sqrt-cleanup
++++ a/mm/memcontrol.c
+@@ -39,6 +39,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/page_cgroup.h>
+ #include <linux/cpu.h>
++#include <linux/int_sqrt.h>
+ #include "internal.h"
+ 
+ #include <asm/uaccess.h>
+diff -puN mm/oom_kill.c~kernelh-intr_sqrt-cleanup mm/oom_kill.c
+--- a/mm/oom_kill.c~kernelh-intr_sqrt-cleanup
++++ a/mm/oom_kill.c
+@@ -27,6 +27,7 @@
+ #include <linux/notifier.h>
+ #include <linux/memcontrol.h>
+ #include <linux/security.h>
++#include <linux/int_sqrt.h>
+ 
+ int sysctl_panic_on_oom;
+ int sysctl_oom_kill_allocating_task;
+diff -puN mm/page_alloc.c~kernelh-intr_sqrt-cleanup mm/page_alloc.c
+--- a/mm/page_alloc.c~kernelh-intr_sqrt-cleanup
++++ a/mm/page_alloc.c
+@@ -49,6 +49,7 @@
+ #include <linux/debugobjects.h>
+ #include <linux/kmemleak.h>
+ #include <linux/memory.h>
++#include <linux/int_sqrt.h>
+ #include <trace/events/kmem.h>
+ #include <linux/ftrace_event.h>
+ 
+diff -puN net/ipv4/route.c~kernelh-intr_sqrt-cleanup net/ipv4/route.c
+--- a/net/ipv4/route.c~kernelh-intr_sqrt-cleanup
++++ a/net/ipv4/route.c
+@@ -104,6 +104,7 @@
+ #include <net/xfrm.h>
+ #include <net/netevent.h>
+ #include <net/rtnetlink.h>
++#include <linux/int_sqrt.h>
+ #ifdef CONFIG_SYSCTL
+ #include <linux/sysctl.h>
+ #endif
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
-infiniband-use-for_each_set_bit.patch
 linux-next.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-hpet-use-for_each_set_bit.patch
-intel-iommu-use-for_each_set_bit.patch
-ntfs-use-bitmap_weight.patch
-phonet-use-for_each_set_bit.patch
-atm-use-for_each_set_bit.patch
-bitmap-use-for_each_set_bit.patch
-sgi-gru-use-for_each_set_bit.patch
+kernelh-intr_sqrt-cleanup.patch
+documentation-email-clientstxt-update-gmail-information.patch
+sysctl-extern-cleanup-c_a_d.patch
+sysctl-extern-cleanup-signal.patch
+sysctl-extern-cleanup-binfmts.patch
+sysctl-extern-cleanup-pid.patch
+sysctl-extern-cleanup-mm.patch
+sysctl-extern-cleanup-compat.patch
+sysctl-extern-cleanup-latencytop.patch
+sysctl-extern-cleanup-file-nr.patch
+sysctl-extern-cleanup-rcu.patch
+sysctl-extern-cleanup-block-iopoll.patch
+sysctl-extern-cleanup-module.patch
+sysctl-extern-cleanup-sg.patch
+sysctl-extern-cleanup-acct.patch
+sysctl-extern-cleanup-rtmutex.patch
+sysctl-extern-cleanup-lockdep.patch
+sysctl-extern-cleanup-poll.patch
+sysctl-extern-cleanup-inotify.patch
 
