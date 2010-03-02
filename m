@@ -1,207 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kernelh-intr_sqrt-cleanup.patch removed from -mm tree
-Date: Mon, 01 Mar 2010 16:21:29 -0800
-Message-ID: <201003020021.o220LTIZ008497@imap1.linux-foundation.org>
+Subject: + ufs-make-solaris-fsck-happy.patch added to -mm tree
+Date: Mon, 01 Mar 2010 16:37:59 -0800
+Message-ID: <201003020037.o220bxSf009181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751337Ab0CBAVc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 19:21:32 -0500
+	by vger.kernel.org with ESMTP id S1752701Ab0CBAiI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 19:38:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dushistov@mail.ru, viskovatoff@imap.cc
 
 
 The patch titled
-     kernel.h: intr_sqrt cleanup
-has been removed from the -mm tree.  Its filename was
-     kernelh-intr_sqrt-cleanup.patch
+     ufs: make solaris fsck happy
+has been added to the -mm tree.  Its filename is
+     ufs-make-solaris-fsck-happy.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: intr_sqrt cleanup
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: ufs: make solaris fsck happy
+From: Evgeniy Dushistov <dushistov@mail.ru>
 
-int_sqrt in kernel.h should be put into a standalone head file
+Alex Viskovatoff let me know that after copying data to solaris's ufs from
+linux, solaris's fsck sees some errors in cylinder summary information. 
+This is because of solaris expects find some data on another places, then
+curernt implementation save it.  This patch fixes this issue.  It is
+tested by me, and also Alex reported that it works for him.
 
-cleanup int_sqrt declarations in kernel.h, put them into int_sqrt.h
-include int_sqrt.h in every file which need it
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
+Reported-by: Alex Viskovatoff <viskovatoff@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/pt1/va1j5jf8007s.c     |    1 +
- drivers/media/video/cx88/cx88-dsp.c      |    1 +
- drivers/net/wireless/b43/phy_lp.c        |    1 +
- drivers/staging/comedi/drivers/vmk80xx.c |    1 +
- drivers/video/fbmon.c                    |    1 +
- fs/nfs/write.c                           |    1 +
- include/linux/int_sqrt.h                 |    6 ++++++
- lib/int_sqrt.c                           |    1 +
- mm/memcontrol.c                          |    1 +
- mm/oom_kill.c                            |    1 +
- mm/page_alloc.c                          |    1 +
- net/ipv4/route.c                         |    1 +
- 12 files changed, 17 insertions(+)
+ fs/ufs/ufs_fs.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/dvb/pt1/va1j5jf8007s.c~kernelh-intr_sqrt-cleanup drivers/media/dvb/pt1/va1j5jf8007s.c
---- a/drivers/media/dvb/pt1/va1j5jf8007s.c~kernelh-intr_sqrt-cleanup
-+++ a/drivers/media/dvb/pt1/va1j5jf8007s.c
-@@ -25,6 +25,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-+#include <linux/int_sqrt.h>
- #include "dvb_frontend.h"
- #include "va1j5jf8007s.h"
+diff -puN fs/ufs/ufs_fs.h~ufs-make-solaris-fsck-happy fs/ufs/ufs_fs.h
+--- a/fs/ufs/ufs_fs.h~ufs-make-solaris-fsck-happy
++++ a/fs/ufs/ufs_fs.h
+@@ -233,11 +233,16 @@ typedef __u16 __bitwise __fs16;
+  */
+ #define ufs_cbtocylno(bno) \
+ 	((bno) * uspi->s_nspf / uspi->s_spc)
+-#define ufs_cbtorpos(bno) \
++#define ufs_cbtorpos(bno)				      \
++	((UFS_SB(sb)->s_flags & UFS_CG_SUN) ?		      \
++	 (((((bno) * uspi->s_nspf % uspi->s_spc) %	      \
++	    uspi->s_nsect) *				      \
++	   uspi->s_nrpos) / uspi->s_nsect)		      \
++	 :						      \
+ 	((((bno) * uspi->s_nspf % uspi->s_spc / uspi->s_nsect \
+ 	* uspi->s_trackskew + (bno) * uspi->s_nspf % uspi->s_spc \
+ 	% uspi->s_nsect * uspi->s_interleave) % uspi->s_nsect \
+-	* uspi->s_nrpos) / uspi->s_npsect)
++	  * uspi->s_nrpos) / uspi->s_npsect))
  
-diff -puN drivers/media/video/cx88/cx88-dsp.c~kernelh-intr_sqrt-cleanup drivers/media/video/cx88/cx88-dsp.c
---- a/drivers/media/video/cx88/cx88-dsp.c~kernelh-intr_sqrt-cleanup
-+++ a/drivers/media/video/cx88/cx88-dsp.c
-@@ -22,6 +22,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/jiffies.h>
-+#include <linux/int_sqrt.h>
- #include <asm/div64.h>
- 
- #include "cx88.h"
-diff -puN drivers/net/wireless/b43/phy_lp.c~kernelh-intr_sqrt-cleanup drivers/net/wireless/b43/phy_lp.c
---- a/drivers/net/wireless/b43/phy_lp.c~kernelh-intr_sqrt-cleanup
-+++ a/drivers/net/wireless/b43/phy_lp.c
-@@ -23,6 +23,7 @@
- 
- */
- 
-+#include <linux/int_sqrt.h>
- #include "b43.h"
- #include "main.h"
- #include "phy_lp.h"
-diff -puN drivers/staging/comedi/drivers/vmk80xx.c~kernelh-intr_sqrt-cleanup drivers/staging/comedi/drivers/vmk80xx.c
---- a/drivers/staging/comedi/drivers/vmk80xx.c~kernelh-intr_sqrt-cleanup
-+++ a/drivers/staging/comedi/drivers/vmk80xx.c
-@@ -61,6 +61,7 @@ Changelog:
- #include <linux/poll.h>
- #include <linux/usb.h>
- #include <linux/uaccess.h>
-+#include <linux/int_sqrt.h>
- 
- #include "../comedidev.h"
- 
-diff -puN drivers/video/fbmon.c~kernelh-intr_sqrt-cleanup drivers/video/fbmon.c
---- a/drivers/video/fbmon.c~kernelh-intr_sqrt-cleanup
-+++ a/drivers/video/fbmon.c
-@@ -29,6 +29,7 @@
- #include <linux/fb.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-+#include <linux/int_sqrt.h>
- #include <video/edid.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
-diff -puN fs/nfs/write.c~kernelh-intr_sqrt-cleanup fs/nfs/write.c
---- a/fs/nfs/write.c~kernelh-intr_sqrt-cleanup
-+++ a/fs/nfs/write.c
-@@ -20,6 +20,7 @@
- #include <linux/nfs_mount.h>
- #include <linux/nfs_page.h>
- #include <linux/backing-dev.h>
-+#include <linux/int_sqrt.h>
- 
- #include <asm/uaccess.h>
- 
-diff -puN /dev/null include/linux/int_sqrt.h
---- /dev/null
-+++ a/include/linux/int_sqrt.h
-@@ -0,0 +1,6 @@
-+#ifndef _INT_SQRT_H
-+#define _INT_SQRT_H
-+
-+extern unsigned long int_sqrt(unsigned long);
-+
-+#endif
-diff -puN lib/int_sqrt.c~kernelh-intr_sqrt-cleanup lib/int_sqrt.c
---- a/lib/int_sqrt.c~kernelh-intr_sqrt-cleanup
-+++ a/lib/int_sqrt.c
-@@ -1,6 +1,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/int_sqrt.h>
- 
- /**
-  * int_sqrt - rough approximation to sqrt
-diff -puN mm/memcontrol.c~kernelh-intr_sqrt-cleanup mm/memcontrol.c
---- a/mm/memcontrol.c~kernelh-intr_sqrt-cleanup
-+++ a/mm/memcontrol.c
-@@ -39,6 +39,7 @@
- #include <linux/mm_inline.h>
- #include <linux/page_cgroup.h>
- #include <linux/cpu.h>
-+#include <linux/int_sqrt.h>
- #include "internal.h"
- 
- #include <asm/uaccess.h>
-diff -puN mm/oom_kill.c~kernelh-intr_sqrt-cleanup mm/oom_kill.c
---- a/mm/oom_kill.c~kernelh-intr_sqrt-cleanup
-+++ a/mm/oom_kill.c
-@@ -27,6 +27,7 @@
- #include <linux/notifier.h>
- #include <linux/memcontrol.h>
- #include <linux/security.h>
-+#include <linux/int_sqrt.h>
- 
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
-diff -puN mm/page_alloc.c~kernelh-intr_sqrt-cleanup mm/page_alloc.c
---- a/mm/page_alloc.c~kernelh-intr_sqrt-cleanup
-+++ a/mm/page_alloc.c
-@@ -49,6 +49,7 @@
- #include <linux/debugobjects.h>
- #include <linux/kmemleak.h>
- #include <linux/memory.h>
-+#include <linux/int_sqrt.h>
- #include <trace/events/kmem.h>
- #include <linux/ftrace_event.h>
- 
-diff -puN net/ipv4/route.c~kernelh-intr_sqrt-cleanup net/ipv4/route.c
---- a/net/ipv4/route.c~kernelh-intr_sqrt-cleanup
-+++ a/net/ipv4/route.c
-@@ -104,6 +104,7 @@
- #include <net/xfrm.h>
- #include <net/netevent.h>
- #include <net/rtnetlink.h>
-+#include <linux/int_sqrt.h>
- #ifdef CONFIG_SYSCTL
- #include <linux/sysctl.h>
- #endif
+ /*
+  * The following macros optimize certain frequently calculated
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from dushistov@mail.ru are
 
-linux-next.patch
-kernelh-intr_sqrt-cleanup.patch
-documentation-email-clientstxt-update-gmail-information.patch
-sysctl-extern-cleanup-c_a_d.patch
-sysctl-extern-cleanup-signal.patch
-sysctl-extern-cleanup-binfmts.patch
-sysctl-extern-cleanup-pid.patch
-sysctl-extern-cleanup-mm.patch
-sysctl-extern-cleanup-compat.patch
-sysctl-extern-cleanup-latencytop.patch
-sysctl-extern-cleanup-file-nr.patch
-sysctl-extern-cleanup-rcu.patch
-sysctl-extern-cleanup-block-iopoll.patch
-sysctl-extern-cleanup-module.patch
-sysctl-extern-cleanup-sg.patch
-sysctl-extern-cleanup-acct.patch
-sysctl-extern-cleanup-rtmutex.patch
-sysctl-extern-cleanup-lockdep.patch
-sysctl-extern-cleanup-poll.patch
-sysctl-extern-cleanup-inotify.patch
+fs-ufs-recognize-solaris-specific-file-system-state.patch
+ufs-make-solaris-fsck-happy.patch
 
