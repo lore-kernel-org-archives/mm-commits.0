@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-comment-about-deprecation-of-__gfp_nofail.patch added to -mm tree
-Date: Tue, 02 Mar 2010 12:34:12 -0800
-Message-ID: <201003022034.o22KYCEM028022@imap1.linux-foundation.org>
+Subject: + mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm.patch added to -mm tree
+Date: Tue, 02 Mar 2010 12:35:10 -0800
+Message-ID: <201003022035.o22KZAAx028057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752917Ab0CBUew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 15:34:52 -0500
+	by vger.kernel.org with ESMTP id S1751578Ab0CBUgW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 15:36:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: dilinger@collabora.co.uk, johannes@sipsolutions.net, linville@tuxdriver.com, stable@kernel.org
 
 
 The patch titled
-     mm: add comment about deprecation of __GFP_NOFAIL
+     mac80211: give warning if building w/out rate ctrl algorithm
 has been added to the -mm tree.  Its filename is
-     mm-add-comment-about-deprecation-of-__gfp_nofail.patch
+     mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add comment about deprecation of __GFP_NOFAIL
-From: David Rientjes <rientjes@google.com>
+Subject: mac80211: give warning if building w/out rate ctrl algorithm
+From: Andres Salomon <dilinger@collabora.co.uk>
 
-__GFP_NOFAIL was deprecated in dab48dab, so add a comment that no new
-users should be added.
+I discovered that if EMBEDDED=y, one can accidentally build a mac80211
+stack and drivers w/ no rate control algorithm.  For drivers like RTL8187
+that don't supply their own RC algorithms, this will cause
+ieee80211_register_hw to fail (making the driver unusable).
 
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+This will tell kconfig to provide a warning if no rate control algorithms
+have been selected.  That'll at least warn the user; users that know that
+their drivers supply a rate control algorithm can safely ignore the
+warning, and those who don't know (or who expect to be using multiple
+drivers) can select a default RC algorithm.
+
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/mac80211/Kconfig |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/gfp.h~mm-add-comment-about-deprecation-of-__gfp_nofail include/linux/gfp.h
---- a/include/linux/gfp.h~mm-add-comment-about-deprecation-of-__gfp_nofail
-+++ a/include/linux/gfp.h
-@@ -30,7 +30,8 @@ struct vm_area_struct;
-  * _might_ fail.  This depends upon the particular VM implementation.
-  *
-  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
-- * cannot handle allocation failures.
-+ * cannot handle allocation failures.  This modifier is deprecated and no new
-+ * users should be added.
-  *
-  * __GFP_NORETRY: The VM implementation must not retry indefinitely.
-  *
+diff -puN net/mac80211/Kconfig~mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm net/mac80211/Kconfig
+--- a/net/mac80211/Kconfig~mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm
++++ a/net/mac80211/Kconfig
+@@ -15,8 +15,12 @@ comment "CFG80211 needs to be enabled fo
+ 
+ if MAC80211 != n
+ 
++config MAC80211_HAS_RC
++	def_bool n
++
+ config MAC80211_RC_PID
+ 	bool "PID controller based rate control algorithm" if EMBEDDED
++	select MAC80211_HAS_RC
+ 	---help---
+ 	  This option enables a TX rate control algorithm for
+ 	  mac80211 that uses a PID controller to select the TX
+@@ -24,12 +28,14 @@ config MAC80211_RC_PID
+ 
+ config MAC80211_RC_MINSTREL
+ 	bool "Minstrel" if EMBEDDED
++	select MAC80211_HAS_RC
+ 	default y
+ 	---help---
+ 	  This option enables the 'minstrel' TX rate control algorithm
+ 
+ choice
+ 	prompt "Default rate control algorithm"
++	depends on MAC80211_HAS_RC
+ 	default MAC80211_RC_DEFAULT_MINSTREL
+ 	---help---
+ 	  This option selects the default rate control algorithm
+@@ -62,6 +68,9 @@ config MAC80211_RC_DEFAULT
+ 
+ endif
+ 
++comment "some wireless drivers require a rate control algorithm"
++	depends on MAC80211_HAS_RC=n
++
+ config MAC80211_MESH
+ 	bool "Enable mac80211 mesh networking (pre-802.11s) support"
+ 	depends on MAC80211 && EXPERIMENTAL
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dilinger@collabora.co.uk are
 
 origin.patch
 linux-next.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-suppress-pfn-range-output-for-zones-without-pages.patch
-mm-add-comment-about-deprecation-of-__gfp_nofail.patch
-nodemaskh-remove-macro-any_online_node.patch
-memcg-handle-panic_on_oom=always-case-v2.patch
-sysctl-clean-up-vm-related-variable-declarations.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
+olpc-alsa-fix-cs5535audios-mic-gpio-to-enable-input.patch
+cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
+mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm.patch
+mfgpt-move-clocksource-menu.patch
+cs5535_gpio-gpio_chipget-should-return-the-input-value.patch
 
