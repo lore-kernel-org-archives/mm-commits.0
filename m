@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works.patch added to -mm tree
-Date: Tue, 02 Mar 2010 13:35:09 -0800
-Message-ID: <201003022135.o22LZ9vI030840@imap1.linux-foundation.org>
+Subject: + mmc-at91_mci-fix-timeout-errors.patch added to -mm tree
+Date: Tue, 02 Mar 2010 13:34:59 -0800
+Message-ID: <201003022134.o22LYxr3030820__33338.1481621929$1267565829$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753073Ab0CBVfq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 16:35:46 -0500
+	by vger.kernel.org with ESMTP id S1752984Ab0CBVfo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 16:35:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, avictor.za@gmail.com, linux-mmc@vger.kernel.org, wolfgang.mues@auerswald.de
+Cc: wolfgang.mues@auerswald.de, avictor.za@gmail.com, linux-mmc@vger.kernel.org, nicolas.ferre@atmel.com
 
 
 The patch titled
-     mmc: at91_mci: Enable MMC_CAP_SDIO_IRQ only when it actually works.
+     mmc: at91_mci: fix timeout errors
 has been added to the -mm tree.  Its filename is
-     mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works.patch
+     mmc-at91_mci-fix-timeout-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: Enable MMC_CAP_SDIO_IRQ only when it actually works.
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: mmc: at91_mci: fix timeout errors
+From: Wolfgang Muees <wolfgang.mues@auerswald.de>
 
-According to the datasheets AT91SAM9261 does not support SDIO interrupts,
-and AT91SAM9260/9263 have an erratum requiring 4bit mode while using slot
-B for the interrupt to work.
+Fix two timeout errors, one for slow SDHC cards and one for slow users
+while inserting SD cards.
 
+Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
 Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Wolfgang Muees <wolfgang.mues@auerswald.de>
 Cc: Andrew Victor <avictor.za@gmail.com>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/mmc/host/at91_mci.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works
+diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-fix-timeout-errors drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-fix-timeout-errors
 +++ a/drivers/mmc/host/at91_mci.c
-@@ -929,7 +929,7 @@ static int __init at91_mci_probe(struct 
- 	mmc->f_min = 375000;
- 	mmc->f_max = 25000000;
- 	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
--	mmc->caps = MMC_CAP_SDIO_IRQ;
-+	mmc->caps = 0;
+@@ -756,7 +756,8 @@ static void at91_mci_request(struct mmc_
+ 	host->request = mrq;
+ 	host->flags = 0;
  
- 	mmc->max_blk_size  = MCI_MAXBLKSIZE;
- 	mmc->max_blk_count = MCI_BLKATONCE;
-@@ -958,6 +958,13 @@ static int __init at91_mci_probe(struct 
- 		goto fail5;
+-	mod_timer(&host->timer, jiffies +  HZ);
++	/* more than 1s timeout needed with slow SD cards */
++	mod_timer(&host->timer, jiffies +  msecs_to_jiffies(2000));
+ 
+ 	at91_mci_process_next(host);
+ }
+@@ -944,7 +945,8 @@ static irqreturn_t at91_mmc_det_irq(int 
+ 			pr_debug("****** Resetting SD-card bus width ******\n");
+ 			at91_mci_write(host, AT91_MCI_SDCR, at91_mci_read(host, AT91_MCI_SDCR) & ~AT91_MCI_SDCBUS);
+ 		}
+-		mmc_detect_change(host->mmc, msecs_to_jiffies(100));
++		/* 0.5s needed because of early card detect switch firing */
++		mmc_detect_change(host->mmc, msecs_to_jiffies(500));
  	}
- 
-+	/* Add SDIO capability when available */
-+	if (cpu_is_at91sam9260() || cpu_is_at91sam9263()) {
-+		/* AT91SAM9260/9263 erratum */
-+		if (host->board->wire4 || !host->board->slot_b)
-+			mmc->caps |= MMC_CAP_SDIO_IRQ;
-+	}
-+
- 	/*
- 	 * Reserve GPIOs ... board init code makes sure these pins are set
- 	 * up as GPIOs with the right direction (input, except for vcc)
+ 	return IRQ_HANDLED;
+ }
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
 
-mmc-atmel-host-kconfig-cleanup-for-everyone-else.patch
 mmc-at91_mci-fix-pointer-errors.patch
 mmc-at91_mci-fix-timeout-errors.patch
 mmc-at91_mci-use-one-coherent-dma-buffer.patch
