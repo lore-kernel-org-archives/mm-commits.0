@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mx3fb-introduce-waveform-configuration-for-pixel-clock-signal.patch added to -mm tree
-Date: Tue, 02 Mar 2010 14:30:15 -0800
-Message-ID: <201003022230.o22MUGIs000990@imap1.linux-foundation.org>
+Subject: + mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 02 Mar 2010 14:30:55 -0800
+Message-ID: <201003022230.o22MUtQY001034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753717Ab0CBWbH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:31:07 -0500
+	by vger.kernel.org with ESMTP id S1753717Ab0CBWbS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:31:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maramaopercheseimorto@gmail.com, g.liakhovetski@gmx.de, krzysztof.h1@wp.pl, rmk@arm.linux.org.uk, s.hauer@pengutronix.de
+Cc: akpm@linux-foundation.org, maramaopercheseimorto@gmail.com
 
 
 The patch titled
-     mx3fb: introduce waveform configuration for Pixel Clock signal
+     mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mx3fb-introduce-waveform-configuration-for-pixel-clock-signal.patch
+     mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,163 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mx3fb: introduce waveform configuration for Pixel Clock signal
-From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+Subject: mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Instead of static assignments for Pixel Clock waveform timings make it
-machine configurable.  This address an old problem posted here:
-http://thread.gmane.org/gmane.linux.ports.arm.kernel/58185/focus=58285
+ERROR: code indent should use tabs where possible
+#116: FILE: drivers/video/mx3fb.c:532:
++^I^I              mx3fb_pdata->pix_clk_width)) / 16) >> 2) << 22;$
 
-In particular, the Armadillo 500 developing board is provided with a
-digital to analogue converter chip that need a different than default
-Pixel Clock waveform to perform the pixel conversion correctly.  (Te DAC
-is low CS enabled and need more time than a half pixelclock period to
-perform the conversion)
+total: 1 errors, 0 warnings, 94 lines checked
 
-This RFC address the problem modelling the pixelclock signal as a square
-waveform where can be chosen the start and width for the high part of the
-signal.
+./patches/mx3fb-introduce-waveform-configuration-for-pixel-clock-signal.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-These parameters are expressed in sixteenths of the pixelclock period. 
-Why the number 16?  Because I think it is the better trade off between the
-maths offered by the hardware (DISP3_IF_CLK_[UP:DOWN]_WR are number with 2
-fractional digits so the unity can be divided at least by 4 and the normal
-configurations achieved with a 640x480 resolution is div = circa 4 with
-400Mhz MCU clock) and the configuration needs (think that today this
-timings cannot be configurable).
+Please run checkpatch prior to sending patches
 
-The code is developed to prevent regressions: if not configured
-pix_clk_start and pix_clk_width, the driver probe function provide to
-choose a configuration very similar (on my board equal) to the previous
-one.
-
-Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-mxc/include/mach/mx3fb.h |   16 ++++++++++
- drivers/video/mx3fb.c                  |   35 ++++++++++++++++++++---
- 2 files changed, 47 insertions(+), 4 deletions(-)
+ drivers/video/mx3fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/plat-mxc/include/mach/mx3fb.h~mx3fb-introduce-waveform-configuration-for-pixel-clock-signal arch/arm/plat-mxc/include/mach/mx3fb.h
---- a/arch/arm/plat-mxc/include/mach/mx3fb.h~mx3fb-introduce-waveform-configuration-for-pixel-clock-signal
-+++ a/arch/arm/plat-mxc/include/mach/mx3fb.h
-@@ -33,6 +33,22 @@ struct mx3fb_platform_data {
- 	const char			*name;
- 	const struct fb_videomode	*mode;
- 	int				num_modes;
-+
-+	/*
-+	 * Timings configuration for the Pixel clock waveform:
-+	 *          ___________
-+	 *  _______|           |_____ Pixel clock
-+	 * ^       ^           ^     ^
-+	 * |<--ts->|<---tw---->|     |
-+	 * |<-----------Tc---------->|
-+	 *
-+	 * ts = (Tc * pix_clk_start) / 16
-+	 * tw = (Tc * pix_clk_width) / 16
-+	 *
-+	 * Constraint: ((pix_clk_start + pix_clk_width) / 16) <= 1
-+	 */
-+	__u8 pix_clk_start;
-+	__u8 pix_clk_width;
- };
- 
- #endif
-diff -puN drivers/video/mx3fb.c~mx3fb-introduce-waveform-configuration-for-pixel-clock-signal drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~mx3fb-introduce-waveform-configuration-for-pixel-clock-signal
+diff -puN drivers/video/mx3fb.c~mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes drivers/video/mx3fb.c
+--- a/drivers/video/mx3fb.c~mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes
 +++ a/drivers/video/mx3fb.c
-@@ -241,6 +241,7 @@ struct mx3fb_data {
- 	void __iomem		*reg_base;
- 	spinlock_t		lock;
- 	struct device		*dev;
-+	struct mx3fb_platform_data	*pdata;
+@@ -529,7 +529,7 @@ static int sdc_init_panel(struct mx3fb_d
+ 	old_conf = div;
+ 	old_conf |= (((div * mx3fb_pdata->pix_clk_start) / 16) >> 2) << 12;
+ 	old_conf |= (((div * (mx3fb_pdata->pix_clk_start +
+-		              mx3fb_pdata->pix_clk_width)) / 16) >> 2) << 22;
++			      mx3fb_pdata->pix_clk_width)) / 16) >> 2) << 22;
  
- 	uint32_t		h_start_width;
- 	uint32_t		v_start_width;
-@@ -443,6 +444,7 @@ static int sdc_init_panel(struct mx3fb_d
- 			  uint16_t v_sync_width, uint16_t v_end_width,
- 			  struct ipu_di_signal_cfg sig)
- {
-+	struct mx3fb_platform_data *mx3fb_pdata = mx3fb->pdata;
- 	unsigned long lock_flags;
- 	uint32_t reg;
- 	uint32_t old_conf;
-@@ -506,6 +508,10 @@ static int sdc_init_panel(struct mx3fb_d
- 		dev_dbg(mx3fb->dev,
- 			"InitPanel() - Pixel clock divider less than 4\n");
- 		div = 0x40;
-+	} else if (div > 0xFFF) {
-+		dev_dbg(mx3fb->dev,
-+			"InitPanel() - Pixel clock divider greater than max\n");
-+		div = 0xFFFF;
- 	}
+ 	mx3fb_write_reg(mx3fb, old_conf , DI_DISP3_TIME_CONF);
  
- 	dev_dbg(mx3fb->dev, "pixel clk = %u, divider %u.%u\n",
-@@ -514,11 +520,18 @@ static int sdc_init_panel(struct mx3fb_d
- 	spin_lock_irqsave(&mx3fb->lock, lock_flags);
- 
- 	/*
--	 * DISP3_IF_CLK_DOWN_WR is half the divider value and 2 fraction bits
--	 * fewer. Subtract 1 extra from DISP3_IF_CLK_DOWN_WR based on timing
--	 * debug. DISP3_IF_CLK_UP_WR is 0
-+	 * Building DI_DISP3_TIME_CONF:
-+	 * DISP3_IF_CLK_PER_WR  = div; (4 fractional digits)
-+	 * DISP3_IF_CLK_UP_WR   [0:(DOWN_WR - 0.5)]  (2 fractional digits)
-+	 * DISP3_IF_CLK_DOWN_WR [(UP_WR + 0.5):PER_WR] (2 fractional digits)
-+	 * using old_conf as buffer.
- 	 */
--	mx3fb_write_reg(mx3fb, (((div / 8) - 1) << 22) | div, DI_DISP3_TIME_CONF);
-+	old_conf = div;
-+	old_conf |= (((div * mx3fb_pdata->pix_clk_start) / 16) >> 2) << 12;
-+	old_conf |= (((div * (mx3fb_pdata->pix_clk_start +
-+		              mx3fb_pdata->pix_clk_width)) / 16) >> 2) << 22;
-+
-+	mx3fb_write_reg(mx3fb, old_conf , DI_DISP3_TIME_CONF);
- 
- 	/* DI settings */
- 	old_conf = mx3fb_read_reg(mx3fb, DI_DISP_IF_CONF) & 0x78FFFFFF;
-@@ -1448,6 +1461,7 @@ static int mx3fb_probe(struct platform_d
- 	dma_cap_mask_t mask;
- 	struct dma_chan *chan;
- 	struct dma_chan_request rq;
-+	struct mx3fb_platform_data *pdata = pdev->dev.platform_data;
- 
- 	/*
- 	 * Display Interface (DI) and Synchronous Display Controller (SDC)
-@@ -1463,6 +1477,19 @@ static int mx3fb_probe(struct platform_d
- 
- 	spin_lock_init(&mx3fb->lock);
- 
-+	/*
-+	 * If pixel clock configuration is not defined or misconfigured, fall
-+	 * through the default: rising edge at the beginning of the period and
-+	 * falling edge a bit before the half.
-+	 */
-+	if ((!pdata->pix_clk_start && !pdata->pix_clk_width) ||
-+	    ((pdata->pix_clk_start + pdata->pix_clk_width) > 16) {
-+		pr_debug("mx3fb: Default waveform for Pixel clock signal.\n");
-+		pdata->pix_clk_start = 0;
-+		pdata->pix_clk_width = 7;
-+	}
-+	mx3fb->pdata = pdata;
-+
- 	mx3fb->reg_base = ioremap(sdc_reg->start, resource_size(sdc_reg));
- 	if (!mx3fb->reg_base) {
- 		ret = -ENOMEM;
 _
 
-Patches currently in -mm which might be from maramaopercheseimorto@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-checkpatchpl-warn-if-an-adding-line-introduce-spaces-before-tabs.patch
-mx3fb-introduce-waveform-configuration-for-pixel-clock-signal.patch
-w1-mxc_w1-move-probe-and-remove-to-the-dev-text-area.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
