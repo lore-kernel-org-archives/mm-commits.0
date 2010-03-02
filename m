@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5.patch added to -mm tree
-Date: Tue, 02 Mar 2010 14:34:31 -0800
-Message-ID: <201003022234.o22MYVvf001210@imap1.linux-foundation.org>
+Subject: + gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip.patch added to -mm tree
+Date: Tue, 02 Mar 2010 14:40:31 -0800
+Message-ID: <201003022240.o22MeVG7001454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486Ab0CBWg4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:36:56 -0500
+	by vger.kernel.org with ESMTP id S1751887Ab0CBWkk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:40:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: huang.ying.caritas@gmail.com, gregkh@suse.de, ying.huang@intel.com
+Cc: denis@compulab.co.il, david-b@pacbell.net
 
 
 The patch titled
-     drivers/usb/serial/option.c: add support for a variant of DLink DWM 652 U5
+     gpio: introduce it8761e_gpio driver for IT8761E Super I/O chip
 has been added to the -mm tree.  Its filename is
-     usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5.patch
+     gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,285 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/option.c: add support for a variant of DLink DWM 652 U5
-From: Huang Ying <huang.ying.caritas@gmail.com>
+Subject: gpio: introduce it8761e_gpio driver for IT8761E Super I/O chip
+From: Denis Turischev <denis@compulab.co.il>
 
-I found a DLink DWM 652 U5 USB 3G modem has product ID 0xce1e instead of
-orignal 0xce16.  The new ID is added.
-
-And I found there are two entries for 0xce16, one has raw number, the
-other has symbol DLINK_PRODUCT_DWM_652_U5.  This is fixed too.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Greg KH <gregkh@suse.de>
+Signed-off-by: Denis Turischev <denis@compulab.co.il>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/gpio/Kconfig        |    6 
+ drivers/gpio/Makefile       |    1 
+ drivers/gpio/it8761e_gpio.c |  231 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 238 insertions(+)
 
-diff -puN drivers/usb/serial/option.c~usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5 drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5
-+++ a/drivers/usb/serial/option.c
-@@ -309,6 +309,7 @@ static int  option_resume(struct usb_ser
- #define DLINK_VENDOR_ID				0x1186
- #define DLINK_PRODUCT_DWM_652			0x3e04
- #define DLINK_PRODUCT_DWM_652_U5		0xce16
-+#define DLINK_PRODUCT_DWM_652_U5A		0xce1e
+diff -puN drivers/gpio/Kconfig~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip
++++ a/drivers/gpio/Kconfig
+@@ -70,6 +70,12 @@ config GPIO_MAX730X
  
- #define QISDA_VENDOR_ID				0x1da5
- #define QISDA_PRODUCT_H21_4512			0x4512
-@@ -659,6 +660,7 @@ static const struct usb_device_id option
- 	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_H10) },
- 	{ USB_DEVICE(DLINK_VENDOR_ID, DLINK_PRODUCT_DWM_652) },
- 	{ USB_DEVICE(ALINK_VENDOR_ID, DLINK_PRODUCT_DWM_652_U5) }, /* Yes, ALINK_VENDOR_ID */
-+	{ USB_DEVICE(ALINK_VENDOR_ID, DLINK_PRODUCT_DWM_652_U5A) },
- 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H21_4512) },
- 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H21_4523) },
- 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H20_4515) },
-@@ -666,7 +668,6 @@ static const struct usb_device_id option
- 	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_G450) },
- 	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_HSDPA_MINICARD ) }, /* Toshiba 3G HSDPA == Novatel Expedite EU870D MiniCard */
- 	{ USB_DEVICE(ALINK_VENDOR_ID, 0x9000) },
--	{ USB_DEVICE(ALINK_VENDOR_ID, 0xce16) },
- 	{ USB_DEVICE_AND_INTERFACE_INFO(ALINK_VENDOR_ID, ALINK_PRODUCT_3GU, 0xff, 0xff, 0xff) },
- 	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X060S) },
- 	{ USB_DEVICE(AIRPLUS_VENDOR_ID, AIRPLUS_PRODUCT_MCD650) },
+ comment "Memory mapped GPIO expanders:"
+ 
++config GPIO_IT8761E
++	tristate "IT8761E GPIO support"
++	depends on GPIOLIB
++	help
++	  Say yes here to support GPIO functionality of IT8761E super I/O chip.
++
+ config GPIO_PL061
+ 	bool "PrimeCell PL061 GPIO support"
+ 	depends on ARM_AMBA
+diff -puN drivers/gpio/Makefile~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip
++++ a/drivers/gpio/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_GPIO_UCB1400)	+= ucb1400_gp
+ obj-$(CONFIG_GPIO_XILINX)	+= xilinx_gpio.o
+ obj-$(CONFIG_GPIO_CS5535)	+= cs5535-gpio.o
+ obj-$(CONFIG_GPIO_BT8XX)	+= bt8xxgpio.o
++obj-$(CONFIG_GPIO_IT8761E)	+= it8761e_gpio.o
+ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
+ obj-$(CONFIG_GPIO_WM831X)	+= wm831x-gpio.o
+ obj-$(CONFIG_GPIO_WM8350)	+= wm8350-gpiolib.o
+diff -puN /dev/null drivers/gpio/it8761e_gpio.c
+--- /dev/null
++++ a/drivers/gpio/it8761e_gpio.c
+@@ -0,0 +1,231 @@
++/*
++ *  it8761_gpio.c - GPIO interface for IT8761E Super I/O chip
++ *
++ *  Author: Denis Turischev <denis@compulab.co.il>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License 2 as published
++ *  by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; see the file COPYING.  If not, write to
++ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/io.h>
++#include <linux/errno.h>
++#include <linux/ioport.h>
++
++#include <linux/gpio.h>
++
++#define SIO_CHIP_ID		0x8761
++#define CHIP_ID_HIGH_BYTE	0x20
++#define CHIP_ID_LOW_BYTE	0x21
++
++static u8 ports[2] = { 0x2e, 0x4e };
++static u8 port;
++
++static DEFINE_SPINLOCK(sio_lock);
++
++#define GPIO_NAME		"it8761-gpio"
++#define GPIO_BA_HIGH_BYTE	0x60
++#define GPIO_BA_LOW_BYTE	0x61
++#define GPIO_IOSIZE		4
++#define GPIO1X_IO		0xf0
++#define GPIO2X_IO		0xf1
++
++static u16 gpio_ba;
++
++static u8 read_reg(u8 addr, u8 port)
++{
++	outb(addr, port);
++	return inb(port + 1);
++}
++
++static void write_reg(u8 data, u8 addr, u8 port)
++{
++	outb(addr, port);
++	outb(data, port + 1);
++}
++
++static void enter_conf_mode(u8 port)
++{
++	outb(0x87, port);
++	outb(0x61, port);
++	outb(0x55, port);
++	outb((port == 0x2e) ? 0x55 : 0xaa, port);
++}
++
++static void exit_conf_mode(u8 port)
++{
++	outb(0x2, port);
++	outb(0x2, port + 1);
++}
++
++static void enter_gpio_mode(u8 port)
++{
++	write_reg(0x2, 0x7, port);
++}
++
++static int it8761e_gpio_get(struct gpio_chip *gc, unsigned gpio_num)
++{
++	u16 reg;
++	u8 bit;
++
++	bit = gpio_num % 7;
++	reg = (gpio_num >= 7) ? gpio_ba + 1 : gpio_ba;
++
++	return !!(inb(reg) & (1 << bit));
++}
++
++static int it8761e_gpio_direction_in(struct gpio_chip *gc, unsigned gpio_num)
++{
++	u8 curr_dirs;
++	u8 io_reg, bit;
++
++	bit = gpio_num % 7;
++	io_reg = (gpio_num >= 7) ? GPIO2X_IO : GPIO1X_IO;
++
++	spin_lock(&sio_lock);
++
++	enter_conf_mode(port);
++	enter_gpio_mode(port);
++
++	curr_dirs = read_reg(io_reg, port);
++
++	if (curr_dirs & (1 << bit))
++		write_reg(curr_dirs & ~(1 << bit), io_reg, port);
++
++	exit_conf_mode(port);
++
++	spin_unlock(&sio_lock);
++	return 0;
++}
++
++static void it8761e_gpio_set(struct gpio_chip *gc,
++				unsigned gpio_num, int val)
++{
++	u8 curr_vals, bit;
++	u16 reg;
++
++	bit = gpio_num % 7;
++	reg = (gpio_num >= 7) ? gpio_ba + 1 : gpio_ba;
++
++	spin_lock(&sio_lock);
++
++	curr_vals = inb(reg);
++	if (val)
++		outb(curr_vals | (1 << bit) , reg);
++	else
++		outb(curr_vals & ~(1 << bit), reg);
++
++	spin_unlock(&sio_lock);
++}
++
++static int it8761e_gpio_direction_out(struct gpio_chip *gc,
++					unsigned gpio_num, int val)
++{
++	u8 curr_dirs, io_reg, bit;
++
++	bit = gpio_num % 7;
++	io_reg = (gpio_num >= 7) ? GPIO2X_IO : GPIO1X_IO;
++
++	it8761e_gpio_set(gc, gpio_num, val);
++
++	spin_lock(&sio_lock);
++
++	enter_conf_mode(port);
++	enter_gpio_mode(port);
++
++	curr_dirs = read_reg(io_reg, port);
++
++	if (!(curr_dirs & (1 << bit)))
++		write_reg(curr_dirs | (1 << bit), io_reg, port);
++
++	exit_conf_mode(port);
++
++	spin_unlock(&sio_lock);
++	return 0;
++}
++
++static struct gpio_chip it8761e_gpio_chip = {
++	.label			= GPIO_NAME,
++	.owner			= THIS_MODULE,
++	.get			= it8761e_gpio_get,
++	.direction_input	= it8761e_gpio_direction_in,
++	.set			= it8761e_gpio_set,
++	.direction_output	= it8761e_gpio_direction_out,
++};
++
++static int __init it8761e_gpio_init(void)
++{
++	int i, id, err;
++
++	/* chip and port detection */
++	for (i = 0; i < ARRAY_SIZE(ports); i++) {
++		spin_lock(&sio_lock);
++		enter_conf_mode(ports[i]);
++
++		id = (read_reg(CHIP_ID_HIGH_BYTE, ports[i]) << 8) +
++				read_reg(CHIP_ID_LOW_BYTE, ports[i]);
++
++		exit_conf_mode(ports[i]);
++		spin_unlock(&sio_lock);
++
++		if (id == SIO_CHIP_ID) {
++			port = ports[i];
++			break;
++		}
++	}
++
++	if (!port)
++		return -ENODEV;
++
++	/* fetch GPIO base address */
++	enter_conf_mode(port);
++	enter_gpio_mode(port);
++	gpio_ba = (read_reg(GPIO_BA_HIGH_BYTE, port) << 8) +
++				read_reg(GPIO_BA_LOW_BYTE, port);
++	exit_conf_mode(port);
++
++	if (!request_region(gpio_ba, GPIO_IOSIZE, GPIO_NAME))
++		return -EBUSY;
++
++	it8761e_gpio_chip.base = -1;
++	it8761e_gpio_chip.ngpio = 14;
++
++	err = gpiochip_add(&it8761e_gpio_chip);
++	if (err < 0)
++		goto gpiochip_add_err;
++
++	return 0;
++
++gpiochip_add_err:
++	release_region(gpio_ba, GPIO_IOSIZE);
++	gpio_ba = 0;
++	return err;
++}
++
++static void __exit it8761e_gpio_exit(void)
++{
++	if (gpio_ba) {
++		gpiochip_remove(&it8761e_gpio_chip);
++
++		release_region(gpio_ba, GPIO_IOSIZE);
++		gpio_ba = 0;
++	}
++}
++module_init(it8761e_gpio_init);
++module_exit(it8761e_gpio_exit);
++
++MODULE_AUTHOR("Denis Turischev <denis@compulab.co.il>");
++MODULE_DESCRIPTION("GPIO interface for IT8761E Super I/O chip");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
+Patches currently in -mm which might be from denis@compulab.co.il are
 
-usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5.patch
+linux-next.patch
+gpio-introduce-it8761e_gpio-driver-for-it8761e-super-i-o-chip.patch
 
