@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-place-git-sha1-in-config-output-if-in-git-tree.patch added to -mm tree
-Date: Tue, 02 Mar 2010 15:10:02 -0800
-Message-ID: <201003022310.o22NA2AS002816@imap1.linux-foundation.org>
+Subject: [to-be-updated] kconfig-place-git-sha1-in-config-output-if-in-git-tree.patch removed from -mm tree
+Date: Tue, 02 Mar 2010 15:11:41 -0800
+Message-ID: <201003022311.o22NBfpE002950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752963Ab0CBXKo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 18:10:44 -0500
+	by vger.kernel.org with ESMTP id S1751295Ab0CBXMp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 18:12:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, mingo@elte.hu, mmarek@suse.cz
+To: paulmck@linux.vnet.ibm.com, elendil@planet.nl, geert@linux-m68k.org, mingo@elte.hu, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
      kconfig: place git SHA1 in .config output if in git tree
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      kconfig-place-git-sha1-in-config-output-if-in-git-tree.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -43,6 +33,8 @@ the hash.
 Suggested-by: Ingo Molnar <mingo@elte.hu>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Frans Pop <elendil@planet.nl>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
