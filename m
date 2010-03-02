@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-at91_mci-use-one-coherent-dma-buffer.patch added to -mm tree
-Date: Tue, 02 Mar 2010 13:35:01 -0800
-Message-ID: <201003022135.o22LZ1lP030824__13486.9913723835$1267565769$gmane$org@imap1.linux-foundation.org>
+Subject: + mmc-at91_mci-use-dma-buffer-for-read.patch added to -mm tree
+Date: Tue, 02 Mar 2010 13:35:03 -0800
+Message-ID: <201003022135.o22LZ3vC030829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38700 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752552Ab0CBVfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 16:35:38 -0500
+	by vger.kernel.org with ESMTP id S1752552Ab0CBVfk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 16:35:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: wolfgang.mues@auerswald.de, avictor.za@gmail.com, linux-mmc@vger.kernel.org,
 
 
 The patch titled
-     mmc: at91_mci: use one coherent DMA buffer
+     mmc: at91_mci: use DMA buffer for read
 has been added to the -mm tree.  Its filename is
-     mmc-at91_mci-use-one-coherent-dma-buffer.patch
+     mmc-at91_mci-use-dma-buffer-for-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: use one coherent DMA buffer
+Subject: mmc: at91_mci: use DMA buffer for read
 From: Wolfgang Muees <wolfgang.mues@auerswald.de>
 
-The TX DMA buffer is allocated only once, because the
-allocation/deallocation of the buffer for EACH chunk of data is
-time-consuming and prone to memory fragmentation.
+Convert the read to use the DMA buffer as well.  The old code was doing
+double-buffering DMA with the PDC; no way to make it work.  Replace it
+with a single-PDC approach.  It also simplify things removing the need for
+a pre_dma_read() function.
 
-Using a coherent DMA buffer avoids extra data cache calls.
-
-[nicolas.ferre@atmel.com: coding style modifications]
+[nicolas.ferre@atmel.com coding style modifications]
 Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
 Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 Cc: Andrew Victor <avictor.za@gmail.com>
@@ -50,129 +49,176 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |   49 ++++++++++++++++------------------
- 1 file changed, 24 insertions(+), 25 deletions(-)
+ drivers/mmc/host/at91_mci.c |  128 ++++++++--------------------------
+ 1 file changed, 32 insertions(+), 96 deletions(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-use-one-coherent-dma-buffer drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-use-one-coherent-dma-buffer
+diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-use-dma-buffer-for-read drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-use-dma-buffer-for-read
 +++ a/drivers/mmc/host/at91_mci.c
-@@ -88,6 +88,10 @@
- #define at91_mci_read(host, reg)	__raw_readl((host)->baseaddr + (reg))
- #define at91_mci_write(host, reg, val)	__raw_writel((val), (host)->baseaddr + (reg))
- 
-+#define MCI_BLKSIZE 		512
-+#define MCI_MAXBLKSIZE 		4095
-+#define MCI_BLKATONCE 		256
-+#define MCI_BUFSIZE 		(MCI_BLKSIZE * MCI_BLKATONCE)
+@@ -251,80 +251,14 @@ static inline void at91_mci_sg_to_dma(st
+ }
  
  /*
-  * Low level type for this driver
-@@ -604,7 +608,6 @@ static void at91_mci_send_command(struct
- 				/*
- 				 * Handle a read
- 				 */
--				host->buffer = NULL;
- 				host->total_length = 0;
- 
- 				at91_mci_pre_dma_read(host);
-@@ -623,20 +626,8 @@ static void at91_mci_send_command(struct
- 					if (host->total_length < 12)
- 						host->total_length = 12;
- 
--				host->buffer = kmalloc(host->total_length, GFP_KERNEL);
--				if (!host->buffer) {
--					pr_debug("Can't alloc tx buffer\n");
--					cmd->error = -ENOMEM;
--					mmc_request_done(host->mmc, host->request);
--					return;
--				}
+- * Prepare a dma read
+- */
+-static void at91_mci_pre_dma_read(struct at91mci_host *host)
+-{
+-	int i;
+-	struct scatterlist *sg;
+-	struct mmc_command *cmd;
+-	struct mmc_data *data;
 -
- 				at91_mci_sg_to_dma(host, data);
- 
--				host->physical_address = dma_map_single(NULL,
--						host->buffer, host->total_length,
--						DMA_TO_DEVICE);
+-	pr_debug("pre dma read\n");
 -
- 				pr_debug("Transmitting %d bytes\n", host->total_length);
- 
- 				at91_mci_write(host, ATMEL_PDC_TPR, host->physical_address);
-@@ -703,14 +694,6 @@ static void at91_mci_completed_command(s
- 	cmd->resp[2] = at91_mci_read(host, AT91_MCI_RSPR(2));
- 	cmd->resp[3] = at91_mci_read(host, AT91_MCI_RSPR(3));
- 
--	if (host->buffer) {
--		dma_unmap_single(NULL,
--				host->physical_address, host->total_length,
--				DMA_TO_DEVICE);
--		kfree(host->buffer);
--		host->buffer = NULL;
+-	cmd = host->cmd;
+-	if (!cmd) {
+-		pr_debug("no command\n");
+-		return;
 -	}
 -
- 	pr_debug("Status = %08X/%08x [%08X %08X %08X %08X]\n",
- 		 status, at91_mci_read(host, AT91_MCI_SR),
- 		 cmd->resp[0], cmd->resp[1], cmd->resp[2], cmd->resp[3]);
-@@ -1012,12 +995,12 @@ static int __init at91_mci_probe(struct 
- 	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
- 	mmc->caps = MMC_CAP_SDIO_IRQ;
+-	data = cmd->data;
+-	if (!data) {
+-		pr_debug("no data\n");
+-		return;
+-	}
+-
+-	for (i = 0; i < 2; i++) {
+-		/* nothing left to transfer */
+-		if (host->transfer_index >= data->sg_len) {
+-			pr_debug("Nothing left to transfer (index = %d)\n", host->transfer_index);
+-			break;
+-		}
+-
+-		/* Check to see if this needs filling */
+-		if (i == 0) {
+-			if (at91_mci_read(host, ATMEL_PDC_RCR) != 0) {
+-				pr_debug("Transfer active in current\n");
+-				continue;
+-			}
+-		}
+-		else {
+-			if (at91_mci_read(host, ATMEL_PDC_RNCR) != 0) {
+-				pr_debug("Transfer active in next\n");
+-				continue;
+-			}
+-		}
+-
+-		/* Setup the next transfer */
+-		pr_debug("Using transfer index %d\n", host->transfer_index);
+-
+-		sg = &data->sg[host->transfer_index++];
+-		pr_debug("sg = %p\n", sg);
+-
+-		sg->dma_address = dma_map_page(NULL, sg_page(sg), sg->offset, sg->length, DMA_FROM_DEVICE);
+-
+-		pr_debug("dma address = %08X, length = %d\n", sg->dma_address, sg->length);
+-
+-		if (i == 0) {
+-			at91_mci_write(host, ATMEL_PDC_RPR, sg->dma_address);
+-			at91_mci_write(host, ATMEL_PDC_RCR, (data->blksz & 0x3) ? sg->length : sg->length / 4);
+-		}
+-		else {
+-			at91_mci_write(host, ATMEL_PDC_RNPR, sg->dma_address);
+-			at91_mci_write(host, ATMEL_PDC_RNCR, (data->blksz & 0x3) ? sg->length : sg->length / 4);
+-		}
+-	}
+-
+-	pr_debug("pre dma read done\n");
+-}
+-
+-/*
+  * Handle after a dma read
+  */
+ static void at91_mci_post_dma_read(struct at91mci_host *host)
+ {
+ 	struct mmc_command *cmd;
+ 	struct mmc_data *data;
++	unsigned int len, i, size;
++	unsigned *dmabuf = host->buffer;
  
--	mmc->max_blk_size = 4095;
--	mmc->max_blk_count = mmc->max_req_size;
-+	mmc->max_blk_size  = MCI_MAXBLKSIZE;
-+	mmc->max_blk_count = MCI_BLKATONCE;
-+	mmc->max_req_size  = MCI_BUFSIZE;
+ 	pr_debug("post dma read\n");
  
- 	host = mmc_priv(mmc);
- 	host->mmc = mmc;
--	host->buffer = NULL;
- 	host->bus_mode = 0;
- 	host->board = pdev->dev.platform_data;
- 	if (host->board->wire4) {
-@@ -1028,6 +1011,14 @@ static int __init at91_mci_probe(struct 
- 				" - using 1 wire\n");
+@@ -340,42 +274,39 @@ static void at91_mci_post_dma_read(struc
+ 		return;
  	}
  
-+	host->buffer = dma_alloc_coherent(&pdev->dev, MCI_BUFSIZE,
-+					&host->physical_address, GFP_KERNEL);
-+	if (!host->buffer) {
-+		ret = -ENOMEM;
-+		dev_err(&pdev->dev, "Can't allocate transmit buffer\n");
-+		goto fail5;
-+	}
-+
- 	/*
- 	 * Reserve GPIOs ... board init code makes sure these pins are set
- 	 * up as GPIOs with the right direction (input, except for vcc)
-@@ -1036,7 +1027,7 @@ static int __init at91_mci_probe(struct 
- 		ret = gpio_request(host->board->det_pin, "mmc_detect");
- 		if (ret < 0) {
- 			dev_dbg(&pdev->dev, "couldn't claim card detect pin\n");
--			goto fail5;
-+			goto fail4b;
+-	while (host->in_use_index < host->transfer_index) {
+-		struct scatterlist *sg;
++	size = data->blksz * data->blocks;
++	len = data->sg_len;
+ 
+-		pr_debug("finishing index %d\n", host->in_use_index);
++	at91_mci_write(host, AT91_MCI_IDR, AT91_MCI_ENDRX);
++	at91_mci_write(host, AT91_MCI_IER, AT91_MCI_RXBUFF);
+ 
+-		sg = &data->sg[host->in_use_index++];
++	for (i = 0; i < len; i++) {
++		struct scatterlist *sg;
++		int amount;
++		unsigned int *sgbuffer;
+ 
+-		pr_debug("Unmapping page %08X\n", sg->dma_address);
++		sg = &data->sg[i];
+ 
+-		dma_unmap_page(NULL, sg->dma_address, sg->length, DMA_FROM_DEVICE);
++		sgbuffer = kmap_atomic(sg_page(sg), KM_BIO_SRC_IRQ) + sg->offset;
++		amount = min(size, sg->length);
++		size -= amount;
+ 
+ 		if (cpu_is_at91rm9200()) {	/* AT91RM9200 errata */
+-			unsigned int *buffer;
+ 			int index;
+-
+-			/* Swap the contents of the buffer */
+-			buffer = kmap_atomic(sg_page(sg), KM_BIO_SRC_IRQ) + sg->offset;
+-			pr_debug("buffer = %p, length = %d\n", buffer, sg->length);
+-
+-			for (index = 0; index < (sg->length / 4); index++)
+-				buffer[index] = swab32(buffer[index]);
+-
+-			kunmap_atomic(buffer, KM_BIO_SRC_IRQ);
++			for (index = 0; index < (amount / 4); index++)
++				sgbuffer[index] = swab32(*dmabuf++);
++		} else {
++			char *tmpv = (char *)dmabuf;
++			memcpy(sgbuffer, tmpv, amount);
++			tmpv += amount;
++			dmabuf = (unsigned *)tmpv;
  		}
+ 
+-		flush_dcache_page(sg_page(sg));
+-
+-		data->bytes_xfered += sg->length;
+-	}
+-
+-	/* Is there another transfer to trigger? */
+-	if (host->transfer_index < data->sg_len)
+-		at91_mci_pre_dma_read(host);
+-	else {
+-		at91_mci_write(host, AT91_MCI_IDR, AT91_MCI_ENDRX);
+-		at91_mci_write(host, AT91_MCI_IER, AT91_MCI_RXBUFF);
++		kunmap_atomic(((void *)sgbuffer)-sg->offset, KM_BIO_SRC_IRQ);
++		dmac_flush_range((void *)sgbuffer, ((void *)sgbuffer) + amount);
++		data->bytes_xfered += amount;
++		if (size == 0)
++			break;
  	}
- 	if (host->board->wp_pin) {
-@@ -1136,6 +1127,10 @@ fail3:
- fail4:
- 	if (host->board->det_pin)
- 		gpio_free(host->board->det_pin);
-+fail4b:
-+	if (host->buffer)
-+		dma_free_coherent(&pdev->dev, MCI_BUFSIZE,
-+				host->buffer, host->physical_address);
- fail5:
- 	mmc_free_host(mmc);
- fail6:
-@@ -1158,6 +1153,10 @@ static int __exit at91_mci_remove(struct
  
- 	host = mmc_priv(mmc);
+ 	pr_debug("post dma read done\n");
+@@ -610,7 +541,12 @@ static void at91_mci_send_command(struct
+ 				 */
+ 				host->total_length = 0;
  
-+	if (host->buffer)
-+		dma_free_coherent(&pdev->dev, MCI_BUFSIZE,
-+				host->buffer, host->physical_address);
+-				at91_mci_pre_dma_read(host);
++				at91_mci_write(host, ATMEL_PDC_RPR, host->physical_address);
++				at91_mci_write(host, ATMEL_PDC_RCR, (data->blksz & 0x3) ?
++					(blocks * block_length) : (blocks * block_length) / 4);
++				at91_mci_write(host, ATMEL_PDC_RNPR, 0);
++				at91_mci_write(host, ATMEL_PDC_RNCR, 0);
 +
- 	if (host->board->det_pin) {
- 		if (device_can_wakeup(&pdev->dev))
- 			free_irq(gpio_to_irq(host->board->det_pin), host);
+ 				ier = AT91_MCI_ENDRX /* | AT91_MCI_RXBUFF */;
+ 			}
+ 			else {
 _
 
 Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
