@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + decompress-fix-new-decompressor-for-pic.patch added to -mm tree
-Date: Tue, 02 Mar 2010 14:42:04 -0800
-Message-ID: <201003022242.o22Mg4Al001562@imap1.linux-foundation.org>
+Subject: + crc32-some-minor-cleanups.patch added to -mm tree
+Date: Tue, 02 Mar 2010 14:54:42 -0800
+Message-ID: <201003022254.o22MsgJu002123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751020Ab0CBWmV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:42:21 -0500
+	by vger.kernel.org with ESMTP id S1753584Ab0CBWzH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:55:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rmk@arm.linux.org.uk, alain@knaff.lu, rmk+kernel@arm.linux.org.uk, stable@kernel.org
+Cc: Joakim.Tjernlund@transmode.se
 
 
 The patch titled
-     decompress: fix new decompressor for PIC
+     crc32: some minor cleanups
 has been added to the -mm tree.  Its filename is
-     decompress-fix-new-decompressor-for-pic.patch
+     crc32-some-minor-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: decompress: fix new decompressor for PIC
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: crc32: some minor cleanups
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 
-The ARM kernel decompressor wants to be able to relocate r/w data
-independently from the rest of the image, and we do this by ensuring that
-r/w data has global visibility.  Define STATIC_RW_DATA to be empty to
-achieve this.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: <stable@kernel.org>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/decompress/mm.h |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ lib/crc32.c |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic include/linux/decompress/mm.h
---- a/include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic
-+++ a/include/linux/decompress/mm.h
-@@ -14,11 +14,21 @@
- 
- /* Code active when included from pre-boot environment: */
- 
-+/*
-+ * Some architectures want to ensure there is no local data in their
-+ * pre-boot environment, so that data can arbitarily relocated (via
-+ * GOT references).  This is achieved by defining STATIC_RW_DATA to
-+ * be null.
-+ */
-+#ifndef STATIC_RW_DATA
-+#define STATIC_RW_DATA static
+diff -puN lib/crc32.c~crc32-some-minor-cleanups lib/crc32.c
+--- a/lib/crc32.c~crc32-some-minor-cleanups
++++ a/lib/crc32.c
+@@ -30,11 +30,15 @@
+ #include <asm/atomic.h>
+ #include "crc32defs.h"
+ #if CRC_LE_BITS == 8
+-#define tole(x) __constant_cpu_to_le32(x)
+-#define tobe(x) __constant_cpu_to_be32(x)
++# define tole(x) __constant_cpu_to_le32(x)
+ #else
+-#define tole(x) (x)
+-#define tobe(x) (x)
++# define tole(x) (x)
 +#endif
 +
- /* A trivial malloc implementation, adapted from
-  *  malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
-  */
--static unsigned long malloc_ptr;
--static int malloc_count;
-+STATIC_RW_DATA unsigned long malloc_ptr;
-+STATIC_RW_DATA int malloc_count;
++#if CRC_BE_BITS == 8
++# define tobe(x) __constant_cpu_to_be32(x)
++#else
++# define tobe(x) (x)
+ #endif
+ #include "crc32table.h"
  
- static void *malloc(int size)
- {
-_
-
-Patches currently in -mm which might be from rmk@arm.linux.org.uk are
-
-origin.patch
-linux-next.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-broadsheetfb-add-multiple-panel-type-support.patch
-nuc900-lcd-controller-driver.patch
-nuc900-lcd-controller-driver-updates.patch
-mx3fb-introduce-waveform-configuration-for-pixel-clock-signal.patch
-arm-use-generic-ptrace_resume-code.patch
-decompress-fix-new-decompressor-for-pic.patch
-
+@@ -52,20 +56,19 @@ crc32_body(u32 crc, unsigned char const 
+ # else
+ #  define DO_CRC(x) crc = tab[((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
+ # endif
+-	const u32 *b = (const u32 *)buf;
++	const u32 *b;
+ 	size_t    rem_len;
+ 
+ 	/* Align it */
+-	if (unlikely((long)b & 3 && len)) {
+-		u8 *p = (u8 *)b;
++	if (unlikely((long)buf & 3 && len)) {
+ 		do {
+-			DO_CRC(*p++);
+-		} while ((--len) && ((long)p)&3);
+-		b = (u32 *)p;
++			DO_CRC(*buf++);
++		} while ((--len) && ((long)buf)&3);
+ 	}
+ 	rem_len = len & 3;
+ 	/* load data 32 bits wide, xor data 32 bits wide. */
+ 	len = len >> 2;
++	b = (const u32 *)buf;
+ 	for (--b; len; --len) {
+ 		crc ^= *++b; /* use pre increment for speed */
+ 		DO_CRC(0);
+@@ -82,6 +85,7 @@ crc32_body(u32 crc, unsigned char const 
+ 		} while (--len);
+ 	}
+ 	return crc;
++#undef DO_CRC
+ }
+ #endif
+ /**
+@@ -119,9 +123,6 @@ u32 __pure crc32_le(u32 crc, unsigned ch
+ 	crc = __cpu_to_le32(crc);
+ 	crc = crc32_body(crc, p, len, tab);
+ 	return __le32_to_cpu(crc);
+-#undef ENDIAN_SHIFT
+-#undef DO_CRC
+-
+ # elif CRC_LE_BITS == 4
+ 	while (len--) {
+ 		crc ^= *p++;
+@@ -179,9 +180,6 @@ u32 __pure crc32_be(u32 crc, unsigned ch
+ 	crc = __cpu_to_be32(crc);
+ 	crc = crc32_body(crc, p, len, tab);
+ 	return __be32_to_cpu(crc);
+-#undef ENDIAN_SHIFT
+-#undef DO_CRC
