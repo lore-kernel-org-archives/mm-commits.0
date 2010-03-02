@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pps-linuxpps-clients-support-v3.patch added to -mm tree
-Date: Mon, 01 Mar 2010 16:51:21 -0800
-Message-ID: <201003020051.o220pLBb009779@imap1.linux-foundation.org>
+Subject: + pps-linuxpps-clients-support-v3-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 01 Mar 2010 16:52:03 -0800
+Message-ID: <201003020052.o220q312009795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751792Ab0CBAv3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 19:51:29 -0500
+	by vger.kernel.org with ESMTP id S1752309Ab0CBAwI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Mar 2010 19:52:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giometti@linux.it
+Cc: akpm@linux-foundation.org, giometti@linux.it
 
 
 The patch titled
-     From: Rodolfo Giometti <giometti@linux.it>
+     pps-linuxpps-clients-support-v3-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     pps-linuxpps-clients-support-v3.patch
+     pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,321 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Rodolfo Giometti <giometti@linux.it>
+Subject: pps-linuxpps-clients-support-v3-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
+WARNING: please, no space before tabs
+#261: FILE: drivers/pps/clients/pps-ktimer.c:82:
++^I.echo ^I^I= pps_ktimer_echo,$
 
-Each PPS source can be registered/deregistered into the system by
-using special modules called "clients". They simply define the PPS
-sources' attributes and implement the time signal registartion
-mechanism.
+total: 0 errors, 1 warnings, 138 lines checked
 
-This patch adds a special directory for such clients and adds a dummy
-client that can be useful to test system integrity on real systems.
+./patches/pps-linuxpps-clients-support-v3.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
----
- create mode 100644 drivers/pps/clients/Kconfig
- create mode 100644 drivers/pps/clients/Makefile
- create mode 100644 drivers/pps/clients/pps-ktimer.c
+Please run checkpatch prior to sending patches
 
-index cc2eb8e..1afe4e0 100644
+Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/Kconfig      |    2 
- drivers/pps/clients/Makefile     |    2 
- drivers/pps/clients/ktimer.c     |  123 -----------------------------
- drivers/pps/clients/pps-ktimer.c |  123 +++++++++++++++++++++++++++++
- 4 files changed, 125 insertions(+), 125 deletions(-)
+ drivers/pps/clients/pps-ktimer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pps/clients/Kconfig~pps-linuxpps-clients-support-v3 drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-linuxpps-clients-support-v3
-+++ a/drivers/pps/clients/Kconfig
-@@ -13,6 +13,6 @@ config PPS_CLIENT_KTIMER
- 	  which uses a kernel timer to generate the PPS signal.
- 
- 	  This driver can also be built as a module.  If so, the module
--	  will be called ktimer.
-+	  will be called pps-ktimer.
- 
- endif
-diff -puN drivers/pps/clients/Makefile~pps-linuxpps-clients-support-v3 drivers/pps/clients/Makefile
---- a/drivers/pps/clients/Makefile~pps-linuxpps-clients-support-v3
-+++ a/drivers/pps/clients/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for PPS clients.
- #
- 
--obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= ktimer.o
-+obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= pps-ktimer.o
- 
- ifeq ($(CONFIG_PPS_DEBUG),y)
- EXTRA_CFLAGS += -DDEBUG
-diff -puN drivers/pps/clients/ktimer.c~pps-linuxpps-clients-support-v3 /dev/null
---- a/drivers/pps/clients/ktimer.c
-+++ /dev/null
-@@ -1,123 +0,0 @@
--/*
-- * ktimer.c -- kernel timer test client
-- *
-- *
-- * Copyright (C) 2005-2006   Rodolfo Giometti <giometti@linux.it>
-- *
-- *   This program is free software; you can redistribute it and/or modify
-- *   it under the terms of the GNU General Public License as published by
-- *   the Free Software Foundation; either version 2 of the License, or
-- *   (at your option) any later version.
-- *
-- *   This program is distributed in the hope that it will be useful,
-- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *   GNU General Public License for more details.
-- *
-- *   You should have received a copy of the GNU General Public License
-- *   along with this program; if not, write to the Free Software
-- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- */
--
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/time.h>
--#include <linux/timer.h>
--#include <linux/pps_kernel.h>
--
--/*
-- * Global variables
-- */
--
--static int source;
--static struct timer_list ktimer;
--
--/*
-- * The kernel timer
-- */
--
--static void pps_ktimer_event(unsigned long ptr)
--{
--	struct timespec __ts;
--	struct pps_ktime ts;
--
--	/* First of all we get the time stamp... */
--	getnstimeofday(&__ts);
--
--	pr_info("PPS event at %lu\n", jiffies);
--
--	/* ... and translate it to PPS time data struct */
--	ts.sec = __ts.tv_sec;
--	ts.nsec = __ts.tv_nsec;
--
--	pps_event(source, &ts, PPS_CAPTUREASSERT, NULL);
--
--	mod_timer(&ktimer, jiffies + HZ);
--}
--
--/*
-- * The echo function
-- */
--
--static void pps_ktimer_echo(int source, int event, void *data)
--{
--	pr_info("echo %s %s for source %d\n",
--		event & PPS_CAPTUREASSERT ? "assert" : "",
--		event & PPS_CAPTURECLEAR ? "clear" : "",
--		source);
--}
--
--/*
-- * The PPS info struct
-- */
--
--static struct pps_source_info pps_ktimer_info = {
--	.name		= "ktimer",
--	.path		= "",
--	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT | \
--			  PPS_ECHOASSERT | \
--			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
--	.echo 		= pps_ktimer_echo,
--	.owner		= THIS_MODULE,
--};
--
--/*
-- * Module staff
-- */
--
--static void __exit pps_ktimer_exit(void)
--{
--	del_timer_sync(&ktimer);
--	pps_unregister_source(source);
--
--	pr_info("ktimer PPS source unregistered\n");
--}
--
--static int __init pps_ktimer_init(void)
--{
--	int ret;
--
--	ret = pps_register_source(&pps_ktimer_info,
--				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
--	if (ret < 0) {
--		printk(KERN_ERR "cannot register ktimer source\n");
--		return ret;
--	}
--	source = ret;
--
--	setup_timer(&ktimer, pps_ktimer_event, 0);
--	mod_timer(&ktimer, jiffies + HZ);
--
--	pr_info("ktimer PPS source registered at %d\n", source);
--
--	return  0;
--}
--
--module_init(pps_ktimer_init);
--module_exit(pps_ktimer_exit);
--
--MODULE_AUTHOR("Rodolfo Giometti <giometti@linux.it>");
--MODULE_DESCRIPTION("dummy PPS source by using a kernel timer (just for debug)");
--MODULE_LICENSE("GPL");
-diff -puN /dev/null drivers/pps/clients/pps-ktimer.c
---- /dev/null
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes
 +++ a/drivers/pps/clients/pps-ktimer.c
-@@ -0,0 +1,123 @@
-+/*
-+ * pps-ktimer.c -- kernel timer test client
-+ *
-+ *
-+ * Copyright (C) 2005-2006   Rodolfo Giometti <giometti@linux.it>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/time.h>
-+#include <linux/timer.h>
-+#include <linux/pps_kernel.h>
-+
-+/*
-+ * Global variables
-+ */
-+
-+static int source;
-+static struct timer_list ktimer;
-+
-+/*
-+ * The kernel timer
-+ */
-+
-+static void pps_ktimer_event(unsigned long ptr)
-+{
-+	struct timespec __ts;
-+	struct pps_ktime ts;
-+
-+	/* First of all we get the time stamp... */
-+	getnstimeofday(&__ts);
-+
-+	pr_info("PPS event at %lu\n", jiffies);
-+
-+	/* ... and translate it to PPS time data struct */
-+	ts.sec = __ts.tv_sec;
-+	ts.nsec = __ts.tv_nsec;
-+
-+	pps_event(source, &ts, PPS_CAPTUREASSERT, NULL);
-+
-+	mod_timer(&ktimer, jiffies + HZ);
-+}
-+
-+/*
-+ * The echo function
-+ */
-+
-+static void pps_ktimer_echo(int source, int event, void *data)
-+{
-+	pr_info("echo %s %s for source %d\n",
-+		event & PPS_CAPTUREASSERT ? "assert" : "",
-+		event & PPS_CAPTURECLEAR ? "clear" : "",
-+		source);
-+}
-+
-+/*
-+ * The PPS info struct
-+ */
-+
-+static struct pps_source_info pps_ktimer_info = {
-+	.name		= "ktimer",
-+	.path		= "",
-+	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
-+			  PPS_ECHOASSERT |
-+			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
-+	.echo 		= pps_ktimer_echo,
-+	.owner		= THIS_MODULE,
-+};
-+
-+/*
-+ * Module staff
-+ */
-+
-+static void __exit pps_ktimer_exit(void)
-+{
-+	del_timer_sync(&ktimer);
-+	pps_unregister_source(source);
-+
-+	pr_info("ktimer PPS source unregistered\n");
-+}
-+
-+static int __init pps_ktimer_init(void)
-+{
-+	int ret;
-+
-+	ret = pps_register_source(&pps_ktimer_info,
-+				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
-+	if (ret < 0) {
-+		printk(KERN_ERR "cannot register ktimer source\n");
-+		return ret;
-+	}
-+	source = ret;
-+
-+	setup_timer(&ktimer, pps_ktimer_event, 0);
-+	mod_timer(&ktimer, jiffies + HZ);
-+
-+	pr_info("ktimer PPS source registered at %d\n", source);
-+
-+	return  0;
-+}
-+
-+module_init(pps_ktimer_init);
-+module_exit(pps_ktimer_exit);
-+
-+MODULE_AUTHOR("Rodolfo Giometti <giometti@linux.it>");
-+MODULE_DESCRIPTION("dummy PPS source by using a kernel timer (just for debug)");
-+MODULE_LICENSE("GPL");
+@@ -79,7 +79,7 @@ static struct pps_source_info pps_ktimer
+ 	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
+ 			  PPS_ECHOASSERT |
+ 			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
+-	.echo 		= pps_ktimer_echo,
++	.echo		= pps_ktimer_echo,
+ 	.owner		= THIS_MODULE,
+ };
+ 
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-pps-linuxpps-clients-support.patch
-pps-linuxpps-clients-support-v3.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
-ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
-pps-serial-clients-support.patch
-serial-8250-enable-pps-support.patch
-serial-amba-pl010-enable-pps-support.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
