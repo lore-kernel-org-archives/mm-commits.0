@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-enable-dma-on-ricoh-sdhci-reader-by-default.patch added to -mm tree
-Date: Tue, 02 Mar 2010 13:38:01 -0800
-Message-ID: <201003022138.o22Lc1aT031023__3712.60745819217$1267565936$gmane$org@imap1.linux-foundation.org>
+Subject: + includecheck-fix-for-kernel-paramsc.patch added to -mm tree
+Date: Tue, 02 Mar 2010 14:26:43 -0800
+Message-ID: <201003022226.o22MQhJ1000856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752472Ab0CBVip (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 16:38:45 -0500
+	by vger.kernel.org with ESMTP id S1753605Ab0CBW0q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 17:26:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anarsoul@gmail.com, HaraldWelte@viatech.com, linux-mmc@vger.kernel.org, maximlevitsky@gmail.com, preining@logic.at
+Cc: jaswinder@kernel.org, andre.goddard@gmail.com, jaswinderrajput@gmail.com
 
 
 The patch titled
-     mmc: enable DMA on Ricoh sdhci reader by default
+     includecheck fix for kernel/params.c
 has been added to the -mm tree.  Its filename is
-     mmc-enable-dma-on-ricoh-sdhci-reader-by-default.patch
+     includecheck-fix-for-kernel-paramsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,39 +28,52 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mmc: enable DMA on Ricoh sdhci reader by default
-From: Vasily Khoruzhick <anarsoul@gmail.com>
+Subject: includecheck fix for kernel/params.c
+=46rom: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-This card reader doesn't advertise, however DMA works well.  Probably
-windows SDHCI driver assumes that all readers support DMA and thus we see
-that bug.
+=46ix the following 'make includecheck' warning:
+  kernel/params.c: linux/string.h is included more than once.
 
-Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
-Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Harald Welte <HaraldWelte@viatech.com>
-Cc: Norbert Preining <preining@logic.at>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-pci.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/params.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci-pci.c~mmc-enable-dma-on-ricoh-sdhci-reader-by-default drivers/mmc/host/sdhci-pci.c
---- a/drivers/mmc/host/sdhci-pci.c~mmc-enable-dma-on-ricoh-sdhci-reader-by-default
-+++ a/drivers/mmc/host/sdhci-pci.c
-@@ -80,9 +80,6 @@ struct sdhci_pci_chip {
- 
- static int ricoh_probe(struct sdhci_pci_chip *chip)
- {
--	if (chip->pdev->subsystem_vendor == PCI_VENDOR_ID_IBM)
--		chip->quirks |= SDHCI_QUIRK_CLOCK_BEFORE_RESET;
+diff -puN kernel/params.c~includecheck-fix-for-kernel-paramsc kernel/pa=
+rams.c
+--- a/kernel/params.c~includecheck-fix-for-kernel-paramsc
++++ a/kernel/params.c
+@@ -24,7 +24,6 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/ctype.h>
+-#include <linux/string.h>
+=20
+ #if 0
+ #define DEBUGP printk
+_
+
+Patches currently in -mm which might be from jaswinder@kernel.org are
+
+linux-next.patch
+xtensa-includecheck-fix-vectorss.patch
+includecheck-fix-for-kernel-paramsc.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
