@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch added to -mm tree
-Date: Tue, 02 Mar 2010 19:06:52 -0800
-Message-ID: <201003030306.o2336qLw016021@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 03 Mar 2010 11:54:48 -0800
+Message-ID: <201003031954.o23Jsmlb028026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751963Ab0CCDH0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 22:07:26 -0500
+	by vger.kernel.org with ESMTP id S1751001Ab0CCTyv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Mar 2010 14:54:51 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o23JsmJ6009809
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 3 Mar 2010 11:54:49 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     dma-mapping: pci: move pci_set_dma_mask and pci_set_consistent_dma_mask to pci-dma-compat.h
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,155 +37,214 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: pci: move pci_set_dma_mask and pci_set_consistent_dma_mask to pci-dma-compat.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We can use pci-dma-compat.h to implement pci_set_dma_mask and
-pci_set_consistent_dma_mask as we do with the other PCI DMA API.
-
-We can remove HAVE_ARCH_PCI_SET_DMA_MASK too.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c                    |   28 -------------------------
- include/asm-generic/pci-dma-compat.h |   13 ++++++++---
- include/linux/pci.h                  |    2 -
- 3 files changed, 10 insertions(+), 33 deletions(-)
+ arch/arm/mach-mx2/devices.c   |    4 +---
+ arch/arm/mach-mx2/devices.h   |    3 ---
+ drivers/i2c/busses/i2c-isch.c |    4 ----
+ drivers/i2c/i2c-smbus.c       |   11 -----------
+ drivers/usb/early/ehci-dbgp.c |    7 -------
+ 5 files changed, 1 insertion(+), 28 deletions(-)
 
-diff -puN drivers/pci/pci.c~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath drivers/pci/pci.c
---- a/drivers/pci/pci.c~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath
-+++ a/drivers/pci/pci.c
-@@ -2307,32 +2307,6 @@ void pci_msi_off(struct pci_dev *dev)
- 	}
- }
- 
--#ifndef HAVE_ARCH_PCI_SET_DMA_MASK
--/*
-- * These can be overridden by arch-specific implementations
-- */
--int
--pci_set_dma_mask(struct pci_dev *dev, u64 mask)
--{
--	int ret = dma_set_mask(&dev->dev, mask);
--	if (ret)
--		return ret;
--	dev_dbg(&dev->dev, "using %dbit DMA mask\n", fls64(mask));
--	return 0;
--}
--
--int
--pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
--{
--	int ret = dma_set_coherent_mask(&dev->dev, mask);
--	if (ret)
--		return ret;
--
--	dev_dbg(&dev->dev, "using %dbit consistent DMA mask\n", fls64(mask));
--	return 0;
--}
--#endif
--
- #ifndef HAVE_ARCH_PCI_SET_DMA_MAX_SEGMENT_SIZE
- int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size)
- {
-@@ -3073,8 +3047,6 @@ EXPORT_SYMBOL(pci_set_mwi);
- EXPORT_SYMBOL(pci_try_set_mwi);
- EXPORT_SYMBOL(pci_clear_mwi);
- EXPORT_SYMBOL_GPL(pci_intx);
--EXPORT_SYMBOL(pci_set_dma_mask);
--EXPORT_SYMBOL(pci_set_consistent_dma_mask);
- EXPORT_SYMBOL(pci_assign_resource);
- EXPORT_SYMBOL(pci_find_parent_resource);
- EXPORT_SYMBOL(pci_select_bars);
-diff -puN include/asm-generic/pci-dma-compat.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath include/asm-generic/pci-dma-compat.h
---- a/include/asm-generic/pci-dma-compat.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath
-+++ a/include/asm-generic/pci-dma-compat.h
-@@ -6,9 +6,6 @@
- 
- #include <linux/dma-mapping.h>
- 
--/* note pci_set_dma_mask isn't here, since it's a public function
-- * exported from drivers/pci, use dma_supported instead */
--
- static inline int
- pci_dma_supported(struct pci_dev *hwdev, u64 mask)
- {
-@@ -104,4 +101,14 @@ pci_dma_mapping_error(struct pci_dev *pd
- 	return dma_mapping_error(&pdev->dev, dma_addr);
- }
- 
-+static inline int pci_set_dma_mask(struct pci_dev *dev, u64 mask)
-+{
-+	return dma_set_mask(&dev->dev, mask);
-+}
+diff -puN arch/arm/mach-mx2/devices.c~linux-next-git-rejects arch/arm/mach-mx2/devices.c
+--- a/arch/arm/mach-mx2/devices.c~linux-next-git-rejects
++++ a/arch/arm/mach-mx2/devices.c
+@@ -271,7 +271,6 @@ struct platform_device mxc_pwm_device = 
+ /*
+  * Resource definition for the MXC SDHC
+  */
+-<<<<<<< HEAD:arch/arm/mach-mx2/devices.c
+ static struct resource mxc_sdhc1_resources[] = {
+ 	{
+ 		.start = SDHC1_BASE_ADDR,
+@@ -329,7 +328,7 @@ struct platform_device mxc_sdhc_device1 
+ 	.num_resources  = ARRAY_SIZE(mxc_sdhc2_resources),
+ 	.resource       = mxc_sdhc2_resources,
+ };
+-=======
 +
-+static inline int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
-+{
-+	return dma_set_coherent_mask(&dev->dev, mask);
-+}
-+
+ #define DEFINE_MXC_MMC_DEVICE(n, baseaddr, irq, dmareq)			\
+ 	static struct resource mxc_sdhc_resources ## n[] = {		\
+ 		{							\
+@@ -362,7 +361,6 @@ struct platform_device mxc_sdhc_device1 
+ 
+ DEFINE_MXC_MMC_DEVICE(0, MX2x_SDHC1_BASE_ADDR, MX2x_INT_SDHC1, MX2x_DMA_REQ_SDHC1);
+ DEFINE_MXC_MMC_DEVICE(1, MX2x_SDHC2_BASE_ADDR, MX2x_INT_SDHC2, MX2x_DMA_REQ_SDHC2);
+->>>>>>> FETCH_HEAD:arch/arm/mach-mx2/devices.c
+ 
+ #ifdef CONFIG_MACH_MX27
+ static struct resource otg_resources[] = {
+diff -puN arch/arm/mach-mx2/devices.h~linux-next-git-rejects arch/arm/mach-mx2/devices.h
+--- a/arch/arm/mach-mx2/devices.h~linux-next-git-rejects
++++ a/arch/arm/mach-mx2/devices.h
+@@ -36,10 +36,7 @@ extern struct platform_device mxc_spi_de
+ extern struct platform_device mxc_spi_device1;
+ #ifdef CONFIG_MACH_MX27
+ extern struct platform_device mxc_spi_device2;
+-<<<<<<< HEAD:arch/arm/mach-mx2/devices.h
+-=======
  #endif
-diff -puN include/linux/pci.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath include/linux/pci.h
---- a/include/linux/pci.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath
-+++ a/include/linux/pci.h
-@@ -770,8 +770,6 @@ int pci_try_set_mwi(struct pci_dev *dev)
- void pci_clear_mwi(struct pci_dev *dev);
- void pci_intx(struct pci_dev *dev, int enable);
- void pci_msi_off(struct pci_dev *dev);
--int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
--int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
- int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size);
- int pci_set_dma_seg_boundary(struct pci_dev *dev, unsigned long mask);
- int pcix_get_max_mmrbc(struct pci_dev *dev);
+->>>>>>> FETCH_HEAD:arch/arm/mach-mx2/devices.h
+ extern struct platform_device mx21_usbhc_device;
+ extern struct platform_device imx_ssi_device0;
+ extern struct platform_device imx_ssi_device1;
+diff -puN drivers/i2c/busses/i2c-isch.c~linux-next-git-rejects drivers/i2c/busses/i2c-isch.c
+--- a/drivers/i2c/busses/i2c-isch.c~linux-next-git-rejects
++++ a/drivers/i2c/busses/i2c-isch.c
+@@ -249,7 +249,6 @@ static struct i2c_adapter sch_adapter = 
+ 	.algo		= &smbus_algorithm,
+ };
+ 
+-<<<<<<< HEAD:drivers/i2c/busses/i2c-isch.c
+ static const struct pci_device_id sch_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_SCH_LPC) },
+ 	{ 0, }
+@@ -259,9 +258,6 @@ MODULE_DEVICE_TABLE(pci, sch_ids);
+ 
+ static int __devinit sch_probe(struct pci_dev *dev,
+ 				const struct pci_device_id *id)
+-=======
+-static int __devinit smbus_sch_probe(struct platform_device *dev)
+->>>>>>> FETCH_HEAD:drivers/i2c/busses/i2c-isch.c
+ {
+ 	struct resource *res;
+ 	int retval;
+diff -puN drivers/i2c/i2c-smbus.c~linux-next-git-rejects drivers/i2c/i2c-smbus.c
+--- a/drivers/i2c/i2c-smbus.c~linux-next-git-rejects
++++ a/drivers/i2c/i2c-smbus.c
+@@ -27,10 +27,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-smbus.h>
+-<<<<<<< HEAD:drivers/i2c/i2c-smbus.c
+-=======
+ #include <linux/mutex.h>
+->>>>>>> FETCH_HEAD:drivers/i2c/i2c-smbus.c
+ 
+ struct i2c_smbus_alert {
+ 	unsigned int		alert_edge_triggered:1;
+@@ -59,11 +56,7 @@ static int smbus_do_alert(struct device 
+ 	 * Drivers should either disable alerts, or provide at least
+ 	 * a minimal handler.  Lock so client->driver won't change.
+ 	 */
+-<<<<<<< HEAD:drivers/i2c/i2c-smbus.c
+-	down(&dev->sem);
+-=======
+ 	device_lock(dev);
+->>>>>>> FETCH_HEAD:drivers/i2c/i2c-smbus.c
+ 	if (client->driver) {
+ 		if (client->driver->alert)
+ 			client->driver->alert(client, data->flag);
+@@ -71,11 +64,7 @@ static int smbus_do_alert(struct device 
+ 			dev_warn(&client->dev, "no driver alert()!\n");
+ 	} else
+ 		dev_dbg(&client->dev, "alert with no driver\n");
+-<<<<<<< HEAD:drivers/i2c/i2c-smbus.c
+-	up(&dev->sem);
+-=======
+ 	device_unlock(dev);
+->>>>>>> FETCH_HEAD:drivers/i2c/i2c-smbus.c
+ 
+ 	/* Stop iterating after we find the device */
+ 	return -EBUSY;
+diff -puN drivers/usb/early/ehci-dbgp.c~linux-next-git-rejects drivers/usb/early/ehci-dbgp.c
+--- a/drivers/usb/early/ehci-dbgp.c~linux-next-git-rejects
++++ a/drivers/usb/early/ehci-dbgp.c
+@@ -197,10 +197,7 @@ static int dbgp_wait_until_done(unsigned
+ {
+ 	u32 pids, lpid;
+ 	int ret;
+-<<<<<<< HEAD:drivers/usb/early/ehci-dbgp.c
+ 	int loop = DBGP_LOOPS;
+-=======
+->>>>>>> FETCH_HEAD:drivers/usb/early/ehci-dbgp.c
+ 
+ retry:
+ 	writel(ctrl | DBGP_GO, &ehci_debug->control);
+@@ -290,11 +287,7 @@ static int dbgp_bulk_write(unsigned devn
+ 	dbgp_set_data(bytes, size);
+ 	writel(addr, &ehci_debug->address);
+ 	writel(pids, &ehci_debug->pids);
+-<<<<<<< HEAD:drivers/usb/early/ehci-dbgp.c
+-	ret = dbgp_wait_until_done(ctrl);
+-=======
+ 	ret = dbgp_wait_until_done(ctrl, DBGP_LOOPS);
+->>>>>>> FETCH_HEAD:drivers/usb/early/ehci-dbgp.c
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch
-documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
-dma-apitxt-add-dma_sync_single-sg-api-description.patch
-dma-apitxt-remove-dma_sync_single_range-description.patch
-alpha-remove-dma_sync_single_range.patch
-um-remove-dma_sync_single_range.patch
-pci-dma-add-include-linux-pci-dmah.patch
-pci-dma-x86-use-include-linux-pci-dmah.patch
-pci-dma-alpha-use-include-linux-pci-dmah.patch
-pci-dma-arm-use-include-linux-pci-dmah.patch
-pci-dma-frv-use-include-linux-pci-dmah.patch
-pci-dma-ia64-use-include-linux-pci-dmah.patch
-pci-dma-mips-use-include-linux-pci-dmah.patch
-pci-dma-parisc-use-include-linux-pci-dmah.patch
-pci-dma-powerpc-use-include-linux-pci-dmah.patch
-pci-dma-sh-use-include-linux-pci-dmah.patch
-pci-dma-sparc-use-include-linux-pci-dmah.patch
-pci-dma-xtensa-use-include-linux-pci-dmah.patch
-pci-dma-cris-use-include-linux-pci-dmah.patch
-pci-dma-add-linux-pci-dmah-to-linux-pcih.patch
-dma-mappingh-add-the-dma_unmap-state-api.patch
-frv-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-frv-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-blackfin-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-watchdog-wdtc-dont-constify-something-which-isnt-constant.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+gpio-cs5535-gpio-fix-input-direction.patch
+broadsheetfb-support-storing-waveform-fix.patch
+mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-dma-mapping-sparc-unify-32bit-and-64bit-dma_set_mask.patch
-dma-mapping-alpha-use-include-linux-pci-dma-compath.patch
-dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
-dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
-dma-mapping-powerpc-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
-dma-mapping-arm-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
-dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
-dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
