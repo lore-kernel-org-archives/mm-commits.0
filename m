@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names.patch added to -mm tree
-Date: Wed, 03 Mar 2010 14:57:25 -0800
-Message-ID: <201003032257.o23MvQ2s003747@imap1.linux-foundation.org>
+Subject: + i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver.patch added to -mm tree
+Date: Wed, 03 Mar 2010 14:57:22 -0800
+Message-ID: <201003032257.o23MvM8Z003744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751125Ab0CCW5q (ORCPT
+	by vger.kernel.org with ESMTP id S1750880Ab0CCW5q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Mar 2010 17:57:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: imunsie@au.ibm.com, isdn@linux-pingi.de, mac@melware.de, sgayda2@uiuc.edu
 
 
 The patch titled
-     i4l: change magic numbers in Eicon DIVA ISDN driver to symbolic names
+     i4l: silence compiler warnings for array access in Eicon DIVA ISDN driver
 has been added to the -mm tree.  Its filename is
-     i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names.patch
+     i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i4l: change magic numbers in Eicon DIVA ISDN driver to symbolic names
+Subject: i4l: silence compiler warnings for array access in Eicon DIVA ISDN driver
 From: Ian Munsie <imunsie@au.ibm.com>
 
-Replace references to the '20' magic number found throughout the Eicon
-ISDN driver for the length of the station_id field in the T30_INFO struct
-with the T30_MAX_STATION_ID_LENGTH symbolic constant.
+When compiling this driver, the compiler throws the following warnings:
+
+drivers/isdn/hardware/eicon/message.c:8426: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8427: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8434: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8435: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8436: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8447: warning: array subscript is above array bounds
+
+This arises from the particular semantics the driver is using to write to
+the nlc array (static byte[256]).  The array has a length in byte 0
+followed by a T30_INFO struct starting at byte 1.
+
+The T30_INFO struct has a number of variable length strings after the
+station_id entry, which cannot be explicitly defined in the struct and the
+driver accesses them with an array index to station_id beyond the length
+of station_id.
+
+This patch merely changes the semantics that the driver uses to access the
+entries after the station_id entry to use the original 256 byte nlc array
+taking the offset and length of the station_id entry to calculate where to
+write in the array, thereby silencing the warning.
 
 Signed-off-by: Ian Munsie <imunsie@au.ibm.com>
 Cc: Armin Schindler <mac@melware.de>
@@ -47,130 +66,47 @@ Cc: Stoyan Gaydarov <sgayda2@uiuc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/message.c |   32 ++++++++++++------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/isdn/hardware/eicon/message.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/message.c~i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names drivers/isdn/hardware/eicon/message.c
---- a/drivers/isdn/hardware/eicon/message.c~i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names
+diff -puN drivers/isdn/hardware/eicon/message.c~i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver
 +++ a/drivers/isdn/hardware/eicon/message.c
-@@ -2754,7 +2754,7 @@ static byte connect_b3_req(dword Id, wor
-                     for (i = 0; i < w; i++)
-                       ((T30_INFO   *)(plci->fax_connect_info_buffer))->station_id[i] = fax_parms[4].info[1+i];
-                     ((T30_INFO   *)(plci->fax_connect_info_buffer))->head_line_len = 0;
--                    len = offsetof(T30_INFO, station_id) + 20;
-+                    len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
-                     w = fax_parms[5].length;
-                     if (w > 20)
-                       w = 20;
-@@ -2892,7 +2892,7 @@ static byte connect_b3_res(dword Id, wor
-     && (plci->nsf_control_bits & T30_NSF_CONTROL_BIT_ENABLE_NSF)
-     && (plci->nsf_control_bits & T30_NSF_CONTROL_BIT_NEGOTIATE_RESP))
-    {
--            len = offsetof(T30_INFO, station_id) + 20;
-+            len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
-             if (plci->fax_connect_info_length < len)
-             {
-               ((T30_INFO *)(plci->fax_connect_info_buffer))->station_id_len = 0;
-@@ -3802,7 +3802,7 @@ static byte manufacturer_res(dword Id, w
-       break;
-     }
-     ncpi = &m_parms[1];
--    len = offsetof(T30_INFO, station_id) + 20;
-+    len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
-     if (plci->fax_connect_info_length < len)
-     {
-       ((T30_INFO *)(plci->fax_connect_info_buffer))->station_id_len = 0;
-@@ -6830,7 +6830,7 @@ static void nl_ind(PLCI *plci)
-         if(((T30_INFO   *)plci->NL.RBuffer->P)->station_id_len)
-         {
-           plci->ncpi_buffer[len] = 20;
--          for (i = 0; i < 20; i++)
-+          for (i = 0; i < T30_MAX_STATION_ID_LENGTH; i++)
-             plci->ncpi_buffer[++len] = ((T30_INFO   *)plci->NL.RBuffer->P)->station_id[i];
-         }
-         if (((plci->NL.Ind & 0x0f) == N_DISC) || ((plci->NL.Ind & 0x0f) == N_DISC_ACK))
-@@ -6844,7 +6844,7 @@ static void nl_ind(PLCI *plci)
-         if ((plci->requested_options_conn | plci->requested_options | a->requested_options_table[plci->appl->Id-1])
-           & ((1L << PRIVATE_FAX_SUB_SEP_PWD) | (1L << PRIVATE_FAX_NONSTANDARD)))
-         {
--          i = offsetof(T30_INFO, station_id) + 20 + ((T30_INFO   *)plci->NL.RBuffer->P)->head_line_len;
-+          i = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + ((T30_INFO   *)plci->NL.RBuffer->P)->head_line_len;
-           while (i < plci->NL.RBuffer->length)
-             plci->ncpi_buffer[++len] = plci->NL.RBuffer->P[i++];
-         }
-@@ -8400,7 +8400,7 @@ static word add_b23(PLCI *plci, API_PARS
-         }
-       }
-       /* copy station id to NLC */
--      for(i=0; i<20; i++)
-+      for(i=0; i < T30_MAX_STATION_ID_LENGTH; i++)
-       {
-         if(i<b3_config_parms[2].length)
-         {
-@@ -8411,29 +8411,29 @@ static word add_b23(PLCI *plci, API_PARS
-           ((T30_INFO *)&nlc[1])->station_id[i] = ' ';
-         }
-       }
--      ((T30_INFO *)&nlc[1])->station_id_len = 20;
-+      ((T30_INFO *)&nlc[1])->station_id_len = T30_MAX_STATION_ID_LENGTH;
-       /* copy head line to NLC */
-       if(b3_config_parms[3].length)
-       {
- 
--        pos = (byte)(fax_head_line_time (&(((T30_INFO *)&nlc[1])->station_id[20])));
-+        pos = (byte)(fax_head_line_time (&(((T30_INFO *)&nlc[1])->station_id[T30_MAX_STATION_ID_LENGTH])));
-         if (pos != 0)
-         {
-           if (CAPI_MAX_DATE_TIME_LENGTH + 2 + b3_config_parms[3].length > CAPI_MAX_HEAD_LINE_SPACE)
+@@ -8423,17 +8423,17 @@ static word add_b23(PLCI *plci, API_PARS
              pos = 0;
            else
            {
--            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
--            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
-+            nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
-+            nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
+-            ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
+-            ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
++            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
++            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
              len = (byte)b3_config_parms[2].length;
              if (len > 20)
                len = 20;
              if (CAPI_MAX_DATE_TIME_LENGTH + 2 + len + 2 + b3_config_parms[3].length <= CAPI_MAX_HEAD_LINE_SPACE)
              {
                for (i = 0; i < len; i++)
--                nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
--              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
--              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
-+                nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
-+              nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
-+              nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
+-                ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
+-              ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
+-              ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
++                nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
++              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
++              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
              }
            }
          }
-@@ -8444,7 +8444,7 @@ static word add_b23(PLCI *plci, API_PARS
+@@ -8444,9 +8444,8 @@ static word add_b23(PLCI *plci, API_PARS
          ((T30_INFO *)&nlc[1])->head_line_len = (byte)(pos + len);
          nlc[0] += (byte)(pos + len);
          for (i = 0; i < len; i++)
--          nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] =  ((byte   *)b3_config_parms[3].info)[1+i];
-+          nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] =  ((byte   *)b3_config_parms[3].info)[1+i];
-       } else
+-          ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ((byte   *)b3_config_parms[3].info)[1+i];
+-        }
+-      else
++          nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] =  ((byte   *)b3_config_parms[3].info)[1+i];
++      } else
          ((T30_INFO *)&nlc[1])->head_line_len = 0;
  
-@@ -8472,7 +8472,7 @@ static word add_b23(PLCI *plci, API_PARS
-             fax_control_bits |= T30_CONTROL_BIT_ACCEPT_SEL_POLLING;
-           }
-             len = nlc[0];
--          pos = offsetof(T30_INFO, station_id) + 20;
-+          pos = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
-    if (pos < plci->fax_connect_info_length)
-    {
-      for (i = 1 + plci->fax_connect_info_buffer[pos]; i != 0; i--)
-@@ -8524,7 +8524,7 @@ static word add_b23(PLCI *plci, API_PARS
-       }
- 
-       PUT_WORD(&(((T30_INFO *)&nlc[1])->control_bits_low), fax_control_bits);
--      len = offsetof(T30_INFO, station_id) + 20;
-+      len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
-       for (i = 0; i < len; i++)
-         plci->fax_connect_info_buffer[i] = nlc[1+i];
-       ((T30_INFO   *) plci->fax_connect_info_buffer)->head_line_len = 0;
+       plci->nsf_control_bits = 0;
 _
 
 Patches currently in -mm which might be from imunsie@au.ibm.com are
