@@ -1,176 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [failures] dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch removed from -mm tree
-Date: Tue, 02 Mar 2010 18:03:44 -0800
-Message-ID: <201003030229.o232Tpdb014486@imap1.linux-foundation.org>
+Subject: + drivers-char-tty_bufferc-fix-min-warnings.patch added to -mm tree
+Date: Tue, 02 Mar 2010 18:09:52 -0800
+Message-ID: <201003030235.o232Zx6O014714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753044Ab0CCCa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 21:30:26 -0500
+	by vger.kernel.org with ESMTP id S1751948Ab0CCCgJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 21:36:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     dma-mapping: pci: move pci_set_dma_mask and pci_set_consistent_dma_mask to pci-dma-compat.h
-has been removed from the -mm tree.  Its filename was
-     dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
+     drivers/char/tty_buffer.c: fix min() warnings
+has been added to the -mm tree.  Its filename is
+     drivers-char-tty_bufferc-fix-min-warnings.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: pci: move pci_set_dma_mask and pci_set_consistent_dma_mask to pci-dma-compat.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: drivers/char/tty_buffer.c: fix min() warnings
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We can use pci-dma-compat.h to implement pci_set_dma_mask and
-pci_set_consistent_dma_mask as we do with the other PCI DMA API.
+i386 allnoconfig:
 
-We can remove HAVE_ARCH_PCI_SET_DMA_MASK too.
+drivers/char/tty_buffer.c: In function 'tty_insert_flip_string_fixed_flag':
+drivers/char/tty_buffer.c:251: warning: comparison of distinct pointer types lacks a cast
+drivers/char/tty_buffer.c: In function 'tty_insert_flip_string_flags':
+drivers/char/tty_buffer.c:288: warning: comparison of distinct pointer types lacks a cast
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c                    |   28 -------------------------
- include/asm-generic/pci-dma-compat.h |   13 ++++++++---
- include/linux/pci.h                  |    2 -
- 3 files changed, 10 insertions(+), 33 deletions(-)
+ drivers/char/tty_buffer.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/pci.c~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath drivers/pci/pci.c
---- a/drivers/pci/pci.c~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath
-+++ a/drivers/pci/pci.c
-@@ -2296,32 +2296,6 @@ void pci_msi_off(struct pci_dev *dev)
- 	}
- }
- 
--#ifndef HAVE_ARCH_PCI_SET_DMA_MASK
--/*
-- * These can be overridden by arch-specific implementations
-- */
--int
--pci_set_dma_mask(struct pci_dev *dev, u64 mask)
--{
--	int ret = dma_set_mask(&dev->dev, mask);
--	if (ret)
--		return ret;
--	dev_dbg(&dev->dev, "using %dbit DMA mask\n", fls64(mask));
--	return 0;
--}
--
--int
--pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
--{
--	int ret = dma_set_coherent_mask(&dev->dev, mask);
--	if (ret)
--		return ret;
--
--	dev_dbg(&dev->dev, "using %dbit consistent DMA mask\n", fls64(mask));
--	return 0;
--}
--#endif
--
- #ifndef HAVE_ARCH_PCI_SET_DMA_MAX_SEGMENT_SIZE
- int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size)
+diff -puN drivers/char/tty_buffer.c~drivers-char-tty_bufferc-fix-min-warnings drivers/char/tty_buffer.c
+--- a/drivers/char/tty_buffer.c~drivers-char-tty_bufferc-fix-min-warnings
++++ a/drivers/char/tty_buffer.c
+@@ -248,7 +248,7 @@ int tty_insert_flip_string_fixed_flag(st
  {
-@@ -3063,8 +3037,6 @@ EXPORT_SYMBOL(pci_set_mwi);
- EXPORT_SYMBOL(pci_try_set_mwi);
- EXPORT_SYMBOL(pci_clear_mwi);
- EXPORT_SYMBOL_GPL(pci_intx);
--EXPORT_SYMBOL(pci_set_dma_mask);
--EXPORT_SYMBOL(pci_set_consistent_dma_mask);
- EXPORT_SYMBOL(pci_assign_resource);
- EXPORT_SYMBOL(pci_find_parent_resource);
- EXPORT_SYMBOL(pci_select_bars);
-diff -puN include/asm-generic/pci-dma-compat.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath include/asm-generic/pci-dma-compat.h
---- a/include/asm-generic/pci-dma-compat.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath
-+++ a/include/asm-generic/pci-dma-compat.h
-@@ -6,9 +6,6 @@
- 
- #include <linux/dma-mapping.h>
- 
--/* note pci_set_dma_mask isn't here, since it's a public function
-- * exported from drivers/pci, use dma_supported instead */
--
- static inline int
- pci_dma_supported(struct pci_dev *hwdev, u64 mask)
+ 	int copied = 0;
+ 	do {
+-		int goal = min(size - copied, TTY_BUFFER_PAGE);
++		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
+ 		int space = tty_buffer_request_room(tty, goal);
+ 		struct tty_buffer *tb = tty->buf.tail;
+ 		/* If there is no space then tb may be NULL */
+@@ -285,7 +285,7 @@ int tty_insert_flip_string_flags(struct 
  {
-@@ -104,4 +101,14 @@ pci_dma_mapping_error(struct pci_dev *pd
- 	return dma_mapping_error(&pdev->dev, dma_addr);
- }
- 
-+static inline int pci_set_dma_mask(struct pci_dev *dev, u64 mask)
-+{
-+	return dma_set_mask(&dev->dev, mask);
-+}
-+
-+static inline int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
-+{
-+	return dma_set_coherent_mask(&dev->dev, mask);
-+}
-+
- #endif
-diff -puN include/linux/pci.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath include/linux/pci.h
---- a/include/linux/pci.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath
-+++ a/include/linux/pci.h
-@@ -770,8 +770,6 @@ int pci_try_set_mwi(struct pci_dev *dev)
- void pci_clear_mwi(struct pci_dev *dev);
- void pci_intx(struct pci_dev *dev, int enable);
- void pci_msi_off(struct pci_dev *dev);
--int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
--int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
- int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size);
- int pci_set_dma_seg_boundary(struct pci_dev *dev, unsigned long mask);
- int pcix_get_max_mmrbc(struct pci_dev *dev);
+ 	int copied = 0;
+ 	do {
+-		int goal = min(size - copied, TTY_BUFFER_PAGE);
++		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
+ 		int space = tty_buffer_request_room(tty, goal);
+ 		struct tty_buffer *tb = tty->buf.tail;
+ 		/* If there is no space then tb may be NULL */
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch
-documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
-dma-apitxt-add-dma_sync_single-sg-api-description.patch
-dma-apitxt-remove-dma_sync_single_range-description.patch
-alpha-remove-dma_sync_single_range.patch
-um-remove-dma_sync_single_range.patch
-pci-dma-add-include-linux-pci-dmah.patch
-pci-dma-x86-use-include-linux-pci-dmah.patch
-pci-dma-alpha-use-include-linux-pci-dmah.patch
-pci-dma-arm-use-include-linux-pci-dmah.patch
-pci-dma-frv-use-include-linux-pci-dmah.patch
-pci-dma-ia64-use-include-linux-pci-dmah.patch
-pci-dma-mips-use-include-linux-pci-dmah.patch
-pci-dma-parisc-use-include-linux-pci-dmah.patch
-pci-dma-powerpc-use-include-linux-pci-dmah.patch
-pci-dma-sh-use-include-linux-pci-dmah.patch
-pci-dma-sparc-use-include-linux-pci-dmah.patch
-pci-dma-xtensa-use-include-linux-pci-dmah.patch
-pci-dma-cris-use-include-linux-pci-dmah.patch
-pci-dma-add-linux-pci-dmah-to-linux-pcih.patch
-dma-mappingh-add-the-dma_unmap-state-api.patch
-frv-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-frv-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-blackfin-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+add-generic-sys_ipc-wrapper-fix.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+gpio-cs5535-gpio-fix-input-direction.patch
+broadsheetfb-support-storing-waveform-fix.patch
+mx3fb-introduce-waveform-configuration-for-pixel-clock-signal-checkpatch-fixes.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-dma-mapping-sparc-unify-32bit-and-64bit-dma_set_mask.patch
-dma-mapping-alpha-use-include-linux-pci-dma-compath.patch
-dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
-dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
-dma-mapping-powerpc-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
-dma-mapping-arm-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
-dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
 
