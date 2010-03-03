@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-tty_bufferc-fix-min-warnings.patch added to -mm tree
-Date: Tue, 02 Mar 2010 18:09:52 -0800
-Message-ID: <201003030235.o232Zx6O014714@imap1.linux-foundation.org>
+Subject: + drivers-watchdog-wdtc-dont-constify-something-which-isnt-constant.patch added to -mm tree
+Date: Tue, 02 Mar 2010 18:29:18 -0800
+Message-ID: <201003030255.o232tPRp015497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751948Ab0CCCgJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 21:36:09 -0500
+	by vger.kernel.org with ESMTP id S1753299Ab0CCCzd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Mar 2010 21:55:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     drivers/char/tty_buffer.c: fix min() warnings
+     drivers/watchdog/wdt.c: don't constify something which isn't constant
 has been added to the -mm tree.  Its filename is
-     drivers-char-tty_bufferc-fix-min-warnings.patch
+     drivers-watchdog-wdtc-dont-constify-something-which-isnt-constant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/tty_buffer.c: fix min() warnings
+Subject: drivers/watchdog/wdt.c: don't constify something which isn't constant
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+drivers/watchdog/wdt.c: In function 'wdt_ioctl':
+drivers/watchdog/wdt.c:370: error: assignment of read-only variable 'ident'
+drivers/watchdog/wdt.c:373: error: assignment of read-only variable 'ident'
+drivers/watchdog/wdt.c:375: error: assignment of read-only variable 'ident'
 
-drivers/char/tty_buffer.c: In function 'tty_insert_flip_string_fixed_flag':
-drivers/char/tty_buffer.c:251: warning: comparison of distinct pointer types lacks a cast
-drivers/char/tty_buffer.c: In function 'tty_insert_flip_string_flags':
-drivers/char/tty_buffer.c:288: warning: comparison of distinct pointer types lacks a cast
+also, make it non-static.  Making this instance static exposes the code to SMP
+races.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_buffer.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/watchdog/wdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_buffer.c~drivers-char-tty_bufferc-fix-min-warnings drivers/char/tty_buffer.c
---- a/drivers/char/tty_buffer.c~drivers-char-tty_bufferc-fix-min-warnings
-+++ a/drivers/char/tty_buffer.c
-@@ -248,7 +248,7 @@ int tty_insert_flip_string_fixed_flag(st
- {
- 	int copied = 0;
- 	do {
--		int goal = min(size - copied, TTY_BUFFER_PAGE);
-+		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
- 		int space = tty_buffer_request_room(tty, goal);
- 		struct tty_buffer *tb = tty->buf.tail;
- 		/* If there is no space then tb may be NULL */
-@@ -285,7 +285,7 @@ int tty_insert_flip_string_flags(struct 
- {
- 	int copied = 0;
- 	do {
--		int goal = min(size - copied, TTY_BUFFER_PAGE);
-+		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
- 		int space = tty_buffer_request_room(tty, goal);
- 		struct tty_buffer *tb = tty->buf.tail;
- 		/* If there is no space then tb may be NULL */
+diff -puN drivers/watchdog/wdt.c~a drivers/watchdog/wdt.c
+--- a/drivers/watchdog/wdt.c~a
++++ a/drivers/watchdog/wdt.c
+@@ -358,7 +358,7 @@ static long wdt_ioctl(struct file *file,
+ 	int new_heartbeat;
+ 	int status;
+ 
+-	static const struct watchdog_info ident = {
++	struct watchdog_info ident = {
+ 		.options =		WDIOF_SETTIMEOUT|
+ 					WDIOF_MAGICCLOSE|
+ 					WDIOF_KEEPALIVEPING,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +86,7 @@ mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes
 3x59x-fix-pci-resource-management.patch
 kernel-schedc-suppress-unused-var-warning.patch
 usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
 mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
 mm-count-swap-usage-checkpatch-fixes.patch
 vmscan-check-high-watermark-after-shrink-zone-fix.patch
@@ -139,5 +131,5 @@ put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
+drivers-watchdog-wdtc-dont-constify-something-which-isnt-constant.patch
 
