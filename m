@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + timbgpio-fix-build.patch added to -mm tree
-Date: Wed, 03 Mar 2010 15:34:11 -0800
-Message-ID: <201003032334.o23NYBCn005360@imap1.linux-foundation.org>
+Subject: + cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch added to -mm tree
+Date: Wed, 03 Mar 2010 15:39:02 -0800
+Message-ID: <201003032339.o23Nd2R3005577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753215Ab0CCXeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Mar 2010 18:34:21 -0500
+	by vger.kernel.org with ESMTP id S1752938Ab0CCXjV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Mar 2010 18:39:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, richard.rojfors@pelagicore.com
+Cc: miaox@cn.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com, mingo@elte.hu, npiggin@suse.de, rientjes@google.com
 
 
 The patch titled
-     timbgpio: fix build
+     cpuset: fix the problem that cpuset_mem_spread_node() returns an offline node
 has been added to the -mm tree.  Its filename is
-     timbgpio-fix-build.patch
+     cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,87 +25,140 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timbgpio: fix build
-=46rom: David Miller <davem@davemloft.net>
+Subject: cpuset: fix the problem that cpuset_mem_spread_node() returns an offline node
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-Use of get_irq_chip_data() et al.  requires including linux/irq.h
+cpuset_mem_spread_node() returns an offline node, and causes an oops.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+This patch fixes it by initializing task->mems_allowed to
+node_states[N_HIGH_MEMORY], and updating task->mems_allowed when doing
+memory hotplug.
+
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Paul Menage <menage@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/timbgpio.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/main.c      |    2 +-
+ kernel/cpuset.c  |   30 ++++++++++++++++++++++--------
+ kernel/kthread.c |    2 +-
+ 3 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN drivers/gpio/timbgpio.c~timbgpio-fix-build drivers/gpio/timbg=
-pio.c
---- a/drivers/gpio/timbgpio.c~timbgpio-fix-build
-+++ a/drivers/gpio/timbgpio.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/gpio.h>
- #include <linux/platform_device.h>
-+#include <linux/irq.h>
- #include <linux/io.h>
- #include <linux/timb_gpio.h>
- #include <linux/interrupt.h>
+diff -puN init/main.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node init/main.c
+--- a/init/main.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node
++++ a/init/main.c
+@@ -865,7 +865,7 @@ static int __init kernel_init(void * unu
+ 	/*
+ 	 * init can allocate pages on any node
+ 	 */
+-	set_mems_allowed(node_possible_map);
++	set_mems_allowed(node_states[N_HIGH_MEMORY]);
+ 	/*
+ 	 * init can run on any cpu.
+ 	 */
+diff -puN kernel/cpuset.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node
++++ a/kernel/cpuset.c
+@@ -920,9 +920,6 @@ static int update_cpumask(struct cpuset 
+  *    call to guarantee_online_mems(), as we know no one is changing
+  *    our task's cpuset.
+  *
+- *    Hold callback_mutex around the two modifications of our tasks
+- *    mems_allowed to synchronize with cpuset_mems_allowed().
+- *
+  *    While the mm_struct we are migrating is typically from some
+  *    other task, the task_struct mems_allowed that we are hacking
+  *    is for our current task, which must allocate new pages for that
+@@ -936,9 +933,23 @@ static void cpuset_migrate_mm(struct mm_
+ 
+ 	tsk->mems_allowed = *to;
+ 
++	/*
++	 * After current->mems_allowed is set to a new value, current will
++	 * allocate new pages for the migrating memory region. So we must
++	 * ensure that update of current->mems_allowed have been completed
++	 * by this moment.
++	 */
++	smp_wmb();
+ 	do_migrate_pages(mm, from, to, MPOL_MF_MOVE_ALL);
+ 
+ 	guarantee_online_mems(task_cs(tsk),&tsk->mems_allowed);
++
++	/*
++	 * After doing migrate pages, current will allocate new pages for
++	 * itself not the other tasks. So we must ensure that update of
++	 * current->mems_allowed have been completed by this moment.
++	 */
++	smp_wmb();
+ }
+ 
+ /*
+@@ -1391,11 +1402,10 @@ static void cpuset_attach(struct cgroup_
+ 
+ 	if (cs == &top_cpuset) {
+ 		cpumask_copy(cpus_attach, cpu_possible_mask);
+-		to = node_possible_map;
+ 	} else {
+ 		guarantee_online_cpus(cs, cpus_attach);
+-		guarantee_online_mems(cs, &to);
+ 	}
++	guarantee_online_mems(cs, &to);
+ 
+ 	/* do per-task migration stuff possibly for each in the threadgroup */
+ 	cpuset_attach_task(tsk, &to, cs);
+@@ -2090,15 +2100,19 @@ static int cpuset_track_online_cpus(stru
+ static int cpuset_track_online_nodes(struct notifier_block *self,
+ 				unsigned long action, void *arg)
+ {
++	nodemask_t oldmems;
++
+ 	cgroup_lock();
+ 	switch (action) {
+ 	case MEM_ONLINE:
+-	case MEM_OFFLINE:
++		oldmems = top_cpuset.mems_allowed;
+ 		mutex_lock(&callback_mutex);
+ 		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 		mutex_unlock(&callback_mutex);
+-		if (action == MEM_OFFLINE)
+-			scan_for_empty_cpusets(&top_cpuset);
++		update_tasks_nodemask(&top_cpuset, &oldmems, NULL);
++		break;
++	case MEM_OFFLINE:
++		scan_for_empty_cpusets(&top_cpuset);
+ 		break;
+ 	default:
+ 		break;
+diff -puN kernel/kthread.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node kernel/kthread.c
+--- a/kernel/kthread.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node
++++ a/kernel/kthread.c
+@@ -219,7 +219,7 @@ int kthreadd(void *unused)
+ 	set_task_comm(tsk, "kthreadd");
+ 	ignore_signals(tsk);
+ 	set_cpus_allowed_ptr(tsk, cpu_all_mask);
+-	set_mems_allowed(node_possible_map);
++	set_mems_allowed(node_states[N_HIGH_MEMORY]);
+ 
+ 	current->flags |= PF_NOFREEZE | PF_FREEZER_NOSIG;
+ 
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
-origin.patch
-timbgpio-fix-build.patch
-linux-next.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-phonet-use-for_each_set_bit.patch
-ll-temac-driver-add-non-virtex-5-support.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-obsolete-config-in-kernel-source-hso_autopm.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-staging-rt2860-correct-onstack-wait_queue_head-declaration.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch
-nodemaskh-remove-macro-any_online_node.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.=
-patch
-console-limit-the-range-of-vgacon_soft_scrollback_size.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-loading-interface-fix.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-blkio-subsystem-as-module.patch
-documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
-dma-apitxt-add-dma_sync_single-sg-api-description.patch
-dma-apitxt-remove-dma_sync_single_range-description.patch
-alpha-remove-dma_sync_single_range.patch
-um-remove-dma_sync_single_range.patch
-pci-dma-add-include-linux-pci-dmah.patch
-pci-dma-sparc-use-include-linux-pci-dmah.patch
-dma-mappingh-add-the-dma_unmap-state-api.patch
-dma-mappingh-add-the-dma_unmap-state-api-fix.patch
-dma-mapping-sparc-unify-32bit-and-64bit-dma_set_mask.patch
-dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
-dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-ssb-remove-the-ssb-dma-api.patch
+cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch
+nodemask-fix-the-declaration-of-nodemask_alloc.patch
+cpuset-alloc-nodemask_t-at-heap-not-stack.patch
+cpusetmm-use-rwlock-to-protect-task-mempolicy-and-mems_allowed.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
