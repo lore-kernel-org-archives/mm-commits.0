@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-powernow-k8-add-core-performance-boost-support.patch added to -mm tree
-Date: Thu, 04 Mar 2010 13:28:36 -0800
-Message-ID: <201003042128.o24LSadi030903@imap1.linux-foundation.org>
+Subject: + xfs-needs-list_sort.patch added to -mm tree
+Date: Thu, 04 Mar 2010 13:12:05 -0800
+Message-ID: <201003042112.o24LC5o8030096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751789Ab0CDV2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:28:49 -0500
+	by vger.kernel.org with ESMTP id S932330Ab0CDVMY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:12:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark.langsdorf@amd.com, borislav.petkov@amd.com, davej@codemonkey.org.uk
+Cc: randy.dunlap@oracle.com, aelder@sgi.com, david@fromorbit.com
 
 
 The patch titled
-     cpufreq: powernow-k8: add core performance boost support
+     xfs: needs LIST_SORT
 has been added to the -mm tree.  Its filename is
-     cpufreq-powernow-k8-add-core-performance-boost-support.patch
+     xfs-needs-list_sort.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,166 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: powernow-k8: add core performance boost support
-From: Mark Langsdorf <mark.langsdorf@amd.com>
+Subject: xfs: needs LIST_SORT
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add CPUID check for hardware CPB support
+xfs uses list_sort (library function), so it needs to select it.
+Fixes these build errors:
+fs/xfs/linux-2.6/xfs_buf.c:1918: undefined reference to `list_sort'
+fs/xfs/linux-2.6/xfs_buf.c:1996: undefined reference to `list_sort'
+fs/xfs/linux-2.6/xfs_buf.c:1950: undefined reference to `list_sort'
 
-Also, update copyright while at it.
-
-Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
-Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |   41 ++++++++++++++++++--
- arch/x86/kernel/cpu/cpufreq/powernow-k8.h |    3 -
- include/linux/cpufreq.h                   |    4 +
- 3 files changed, 42 insertions(+), 6 deletions(-)
+ fs/xfs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-add-core-performance-boost-support arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-powernow-k8-add-core-performance-boost-support
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1,6 +1,5 @@
--
- /*
-- *   (c) 2003-2006 Advanced Micro Devices, Inc.
-+ *   (c) 2003-2009 Advanced Micro Devices, Inc.
-  *  Your use of this code is subject to the terms and conditions of the
-  *  GNU general public license version 2. See "COPYING" or
-  *  http://www.gnu.org/licenses/gpl.html
-@@ -57,6 +56,9 @@ static int cpu_family = CPU_OPTERON;
- 
- static struct cpufreq_driver cpufreq_amd64_driver;
- 
-+/* core performance boost */
-+static bool cpb_capable;
-+
- #ifndef CONFIG_SMP
- static inline const struct cpumask *cpu_core_mask(int cpu)
- {
-@@ -511,6 +513,24 @@ static int core_voltage_post_transition(
- 	return 0;
- }
- 
-+/* CPB 0=disable, 1=enable. */
-+static void cpb_toggle(u32 t)
-+{
-+	if (cpb_capable) {
-+		u32 lo, hi;
-+		rdmsr(MSR_K7_HWCR, lo, hi);
-+
-+		if (t)
-+			lo &= ~(1 << 25);
-+		else
-+			lo |= (1 << 25);
-+
-+		wrmsr(MSR_K7_HWCR, lo, hi);
-+
-+		printk(KERN_ERR "CPB: %s.\n", (t ? "on" : "off"));
-+	}
-+}
-+
- static void check_supported_cpu(void *_rc)
- {
- 	u32 eax, ebx, ecx, edx;
-@@ -1173,8 +1193,8 @@ static int powernowk8_target(struct cpuf
- 		}
- 	}
- 
--	if (cpufreq_frequency_table_target(pol, data->powernow_table,
--				targfreq, relation, &newstate))
-+	if (cpufreq_frequency_table_target(pol, data->powernow_table, targfreq,
-+					   relation, &newstate))
- 		goto err_out;
- 
- 	mutex_lock(&fidvid_mutex);
-@@ -1191,6 +1211,9 @@ static int powernowk8_target(struct cpuf
- 		mutex_unlock(&fidvid_mutex);
- 		goto err_out;
- 	}
-+
-+	cpb_toggle(pol->flags.cpb);
-+
- 	mutex_unlock(&fidvid_mutex);
- 
- 	if (cpu_family == CPU_HW_PSTATE)
-@@ -1330,6 +1353,7 @@ static int __cpuinit powernowk8_cpu_init
- 	/* Check for APERF/MPERF support in hardware */
- 	if (cpu_has(c, X86_FEATURE_APERFMPERF))
- 		cpufreq_amd64_driver.getavg = get_measured_perf;
-+	pol->flags.cpb = cpb_capable;
- 
- 	cpufreq_frequency_table_get_attr(data->powernow_table, pol->cpu);
- 
-@@ -1419,11 +1443,20 @@ static struct cpufreq_driver cpufreq_amd
- 	.attr		= powernow_k8_attr,
- };
- 
-+static bool __cpuinit check_cpb_capable(void)
-+{
-+	u32 tmp = cpuid_edx(CPUID_FREQ_VOLT_CAPABILITIES);
-+
-+	return (tmp & CPB_CAPABLE);
-+}
-+
- /* driver entry point for init */
- static int __cpuinit powernowk8_init(void)
- {
- 	unsigned int i, supported_cpus = 0;
- 
-+	cpb_capable = check_cpb_capable();
-+
- 	for_each_online_cpu(i) {
- 		int rc;
- 		smp_call_function_single(i, check_supported_cpu, &rc, 1);
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.h~cpufreq-powernow-k8-add-core-performance-boost-support arch/x86/kernel/cpu/cpufreq/powernow-k8.h
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h~cpufreq-powernow-k8-add-core-performance-boost-support
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h
-@@ -5,7 +5,6 @@
-  *  http://www.gnu.org/licenses/gpl.html
-  */
- 
--
- enum pstate {
- 	HW_PSTATE_INVALID = 0xff,
- 	HW_PSTATE_0 = 0,
-@@ -55,7 +54,6 @@ struct powernow_k8_data {
- 	struct cpumask *available_cores;
- };
- 
--
- /* processor's cpuid instruction support */
- #define CPUID_PROCESSOR_SIGNATURE	1	/* function 1 */
- #define CPUID_XFAM			0x0ff00000	/* extended family */
-@@ -67,6 +65,7 @@ struct powernow_k8_data {
- #define CPUID_GET_MAX_CAPABILITIES	0x80000000
- #define CPUID_FREQ_VOLT_CAPABILITIES	0x80000007
- #define P_STATE_TRANSITION_CAPABLE	6
-+#define CPB_CAPABLE			0x00000200
- 
- /* Model Specific Registers for p-state transitions. MSRs are 64-bit. For     */
- /* writes (wrmsr - opcode 0f 30), the register number is placed in ecx, and   */
-diff -puN include/linux/cpufreq.h~cpufreq-powernow-k8-add-core-performance-boost-support include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-powernow-k8-add-core-performance-boost-support
-+++ a/include/linux/cpufreq.h
-@@ -104,6 +104,10 @@ struct cpufreq_policy {
- 
- 	struct kobject		kobj;
- 	struct completion	kobj_unregister;
-+
-+	struct flags {
-+		unsigned long cpb:1;	/* toggle CPB on this cpu */
-+	} flags;
- };
- 
- #define CPUFREQ_ADJUST		(0)
+diff -puN fs/xfs/Kconfig~xfs-needs-list_sort fs/xfs/Kconfig
+--- a/fs/xfs/Kconfig~xfs-needs-list_sort
++++ a/fs/xfs/Kconfig
+@@ -2,6 +2,7 @@ config XFS_FS
+ 	tristate "XFS filesystem support"
+ 	depends on BLOCK
+ 	select EXPORTFS
++	select LIST_SORT
+ 	help
+ 	  XFS is a high performance journaling filesystem which originated
+ 	  on the SGI IRIX platform.  It is completely multi-threaded, can
 _
 
-Patches currently in -mm which might be from mark.langsdorf@amd.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-cpufreq-add-aperf-mperf-support-for-amd-processors.patch
-cpufreq-powernow-k8-add-core-performance-boost-support.patch
-cpufreq-add-sysfs-knob-for-toggling-core-performance-boost.patch
+origin.patch
+linux-next.patch
+vmwgfx-depends-on-fb.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+i2c-fix-xiic-build-error.patch
+xfs-needs-list_sort.patch
+mfgpt-move-clocksource-menu.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions-fix.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+documentation-timers-split-txt-and-source-files.patch
+documentation-laptop-split-txt-and-source-files.patch
+documentation-fs-split-txt-and-source-files.patch
+documentation-vm-split-txt-and-source-files.patch
+doc-submitchecklist-add-rule-1.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+dma-mappingh-add-the-dma_unmap-state-api-fix-2.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
