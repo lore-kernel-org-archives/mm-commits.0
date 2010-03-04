@@ -1,276 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-add-aperf-mperf-support-for-amd-processors.patch added to -mm tree
-Date: Thu, 04 Mar 2010 13:28:33 -0800
-Message-ID: <201003042128.o24LSXot030900@imap1.linux-foundation.org>
+Subject: [to-be-updated] ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch removed from -mm tree
+Date: Thu, 04 Mar 2010 13:03:46 -0800
+Message-ID: <201003042103.o24L3kZ1029741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752877Ab0CDV2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:28:49 -0500
+	by vger.kernel.org with ESMTP id S1756474Ab0CDVEf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:04:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mark.langsdorf@amd.com, davej@codemonkey.org.uk
+To: martin.wilck@ts.fujitsu.com, cminyard@mvista.com, jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: add APERF/MPERF support for AMD processors
-has been added to the -mm tree.  Its filename is
-     cpufreq-add-aperf-mperf-support-for-amd-processors.patch
+     ipmi: add parameter to limit CPU usage in kipmid
+has been removed from the -mm tree.  Its filename was
+     ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: add APERF/MPERF support for AMD processors
-From: Mark Langsdorf <mark.langsdorf@amd.com>
+Subject: ipmi: add parameter to limit CPU usage in kipmid
+From: Martin Wilck <martin.wilck@ts.fujitsu.com>
 
-Starting with model 10 of Family 0x10, AMD processors may have support for
-APERF/MPERF.  Add support for identifying it and using it within cpufreq. 
-Move the APERF/MPERF functions out of the acpi-cpufreq code and into their
-own file so they can easily be shared.
+In some cases kipmid can use a lot of CPU.  This is generally due to the
+bad design of the hardware, it doesn't have interrupts and must be polled
+constantly.  Different controllers run at different speeds and have
+different latencies, so it is difficult to account for automatically.
 
-Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+This adds a way to tune the CPU used by kipmid to help in those cases.  By
+setting kipmid_max_busy_us to a value between 100 and 500, it is possible
+to bring down kipmid CPU load to practically 0.  This will cost some
+performance, and that will vary from system to system.  Not setting the
+value, or setting the value to zero, causes operation to be unaffected.
+
+Signed-off-by: Martin Wilck <martin.wilck@ts.fujitsu.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/amd.c                  |    6 ++
- arch/x86/kernel/cpu/cpufreq/Makefile       |    4 -
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   42 ---------------
- arch/x86/kernel/cpu/cpufreq/mperf.c        |   50 +++++++++++++++++++
- arch/x86/kernel/cpu/cpufreq/mperf.h        |    9 +++
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c  |   11 +++-
- 6 files changed, 78 insertions(+), 44 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   89 ++++++++++++++++++++++++++++-
+ 1 file changed, 88 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/amd.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/amd.c
---- a/arch/x86/kernel/cpu/amd.c~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/amd.c
-@@ -537,6 +537,12 @@ static void __cpuinit init_amd(struct cp
- 		set_cpu_cap(c, X86_FEATURE_MFENCE_RDTSC);
- 	}
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-parameter-to-limit-cpu-usage-in-kipmid drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-parameter-to-limit-cpu-usage-in-kipmid
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -295,6 +295,9 @@ struct smi_info {
+ static int force_kipmid[SI_MAX_PARMS];
+ static int num_force_kipmid;
  
-+	if (c->cpuid_level >= 6) {
-+		unsigned ecx = cpuid_ecx(6);
-+		if (ecx & 0x01)
-+			set_cpu_cap(c, X86_FEATURE_APERFMPERF);
-+	}
++static unsigned int kipmid_max_busy_us[SI_MAX_PARMS];
++static int num_max_busy_us;
 +
- #ifdef CONFIG_X86_64
- 	if (c->x86 == 0x10) {
- 		/* do this for boot cpu */
-diff -puN arch/x86/kernel/cpu/cpufreq/Makefile~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/Makefile
---- a/arch/x86/kernel/cpu/cpufreq/Makefile~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/cpufreq/Makefile
-@@ -2,8 +2,8 @@
- # K8 systems. ACPI is preferred to all other hardware-specific drivers.
- # speedstep-* is preferred over p4-clockmod.
+ static int unload_when_empty = 1;
  
--obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o
--obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o
-+obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o mperf.o
-+obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o mperf.o
- obj-$(CONFIG_X86_PCC_CPUFREQ)		+= pcc-cpufreq.o
- obj-$(CONFIG_X86_POWERNOW_K6)		+= powernow-k6.o
- obj-$(CONFIG_X86_POWERNOW_K7)		+= powernow-k7.o
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -45,6 +45,7 @@
- #include <asm/msr.h>
- #include <asm/processor.h>
- #include <asm/cpufeature.h>
-+#include "mperf.h"
- 
- #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, \
- 		"acpi-cpufreq", msg)
-@@ -70,8 +71,6 @@ struct acpi_cpufreq_data {
- 
- static DEFINE_PER_CPU(struct acpi_cpufreq_data *, acfreq_data);
- 
--static DEFINE_PER_CPU(struct aperfmperf, acfreq_old_perf);
--
- /* acpi_perf_data is a pointer to percpu data. */
- static struct acpi_processor_performance *acpi_perf_data;
- 
-@@ -239,45 +238,6 @@ static u32 get_cur_val(const struct cpum
- 	return cmd.val;
+ static int try_smi_init(struct smi_info *smi);
+@@ -925,12 +928,88 @@ static void set_run_to_completion(void *
+ 	}
  }
  
--/* Called via smp_call_function_single(), on the target CPU */
--static void read_measured_perf_ctrs(void *_cur)
--{
--	struct aperfmperf *am = _cur;
--
--	get_aperfmperf(am);
--}
--
--/*
-- * Return the measured active (C0) frequency on this CPU since last call
-- * to this function.
-- * Input: cpu number
-- * Return: Average CPU frequency in terms of max frequency (zero on error)
-- *
-- * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
-- * over a period of time, while CPU is in C0 state.
-- * IA32_MPERF counts at the rate of max advertised frequency
-- * IA32_APERF counts at the rate of actual CPU frequency
-- * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
-- * no meaning should be associated with absolute values of these MSRs.
-- */
--static unsigned int get_measured_perf(struct cpufreq_policy *policy,
--				      unsigned int cpu)
--{
--	struct aperfmperf perf;
--	unsigned long ratio;
--	unsigned int retval;
--
--	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &perf, 1))
--		return 0;
--
--	ratio = calc_aperfmperf_ratio(&per_cpu(acfreq_old_perf, cpu), &perf);
--	per_cpu(acfreq_old_perf, cpu) = perf;
--
--	retval = (policy->cpuinfo.max_freq * ratio) >> APERFMPERF_SHIFT;
--
--	return retval;
--}
--
- static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
- {
- 	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, cpu);
-diff -puN /dev/null arch/x86/kernel/cpu/cpufreq/mperf.c
---- /dev/null
-+++ a/arch/x86/kernel/cpu/cpufreq/mperf.c
-@@ -0,0 +1,50 @@
-+#include <linux/kernel.h>
-+#include <linux/smp.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/cpufreq.h>
-+#include <linux/slab.h>
-+
-+#include "mperf.h"
-+
-+static DEFINE_PER_CPU(struct aperfmperf, acfreq_old_perf);
-+
-+/* Called via smp_call_function_single(), on the target CPU */
-+static void read_measured_perf_ctrs(void *_cur)
++/*
++ * Handle busy waiting flags in the timespec.  We use a -1 in tv_nsec
++ * to mark that we are not currently busy waiting.
++ */
++static inline void ipmi_si_set_not_busy(struct timespec *ts)
 +{
-+	struct aperfmperf *am = _cur;
++	ts->tv_nsec = -1;
++}
++static inline int ipmi_si_is_busy(struct timespec *ts)
++{
++	return ts->tv_nsec != -1;
++}
 +
-+	get_aperfmperf(am);
++static inline int ipmi_result_allow_busy_wait(enum si_sm_result smi_result)
++{
++	/*
++	 * In these states we allow a busy wait.  SI_SM_CALL_WITHOUT_DELAY
++	 * is caught before here, so that will not be handled here.  In the
++	 * other results besides the ones below and SI_SM_CALL_WITHOUT_DELAY,
++	 * do a full tick delay before checking again in kipmid.
++	 */
++	switch (smi_result) {
++	case SI_SM_CALL_WITH_DELAY:
++	case SI_SM_TRANSACTION_COMPLETE:
++	case SI_SM_ATTN:
++		return 1;
++
++	default:
++		return 0;
++	}
 +}
 +
 +/*
-+ * Return the measured active (C0) frequency on this CPU since last call
-+ * to this function.
-+ * Input: cpu number
-+ * Return: Average CPU frequency in terms of max frequency (zero on error)
-+ *
-+ * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
-+ * over a period of time, while CPU is in C0 state.
-+ * IA32_MPERF counts at the rate of max advertised frequency
-+ * IA32_APERF counts at the rate of actual CPU frequency
-+ * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
-+ * no meaning should be associated with absolute values of these MSRs.
++ * Return true if the kthread should busy wait, and false if not.  This is
++ * used to tune the operation of the kthread to not use too much CPU.
 + */
-+unsigned int get_measured_perf(struct cpufreq_policy *policy,
-+					unsigned int cpu)
++static int ipmi_thread_busy_wait(enum si_sm_result smi_result,
++				 const struct smi_info *smi_info,
++				 struct timespec *busy_until)
 +{
-+	struct aperfmperf perf;
-+	unsigned long ratio;
-+	unsigned int retval;
++	unsigned int max_busy_us = 0;
 +
-+	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &perf, 1))
++	if (!ipmi_result_allow_busy_wait(smi_result))
 +		return 0;
 +
-+	ratio = calc_aperfmperf_ratio(&per_cpu(acfreq_old_perf, cpu), &perf);
-+	per_cpu(acfreq_old_perf, cpu) = perf;
++	if (smi_info->intf_num < num_max_busy_us)
++		max_busy_us = kipmid_max_busy_us[smi_info->intf_num];
 +
-+	retval = (policy->cpuinfo.max_freq * ratio) >> APERFMPERF_SHIFT;
++	if (max_busy_us <= 0)
++		/* Busy wait timing is disabled, just busy wait forever. */
++		ipmi_si_set_not_busy(busy_until);
++	else if (!ipmi_si_is_busy(busy_until)) {
++		/*
++		 * Need to start busy waiting.  Record the time to stop busy
++		 * waiting and do a full delay.
++		 */
++		getnstimeofday(busy_until);
++		timespec_add_ns(busy_until, max_busy_us * NSEC_PER_USEC);
++	} else {
++		struct timespec now;
 +
-+	return retval;
++		/*
++		 * We are busy waiting.  If we have exceeded our time then
++		 * return false to do a full delay.
++		 */
++		getnstimeofday(&now);
++		if (unlikely(timespec_compare(&now, busy_until) > 0)) {
++			ipmi_si_set_not_busy(busy_until);
++			return 0;
++		}
++	}
++	return 1;
 +}
-+EXPORT_SYMBOL_GPL(get_measured_perf);
-diff -puN /dev/null arch/x86/kernel/cpu/cpufreq/mperf.h
---- /dev/null
-+++ a/arch/x86/kernel/cpu/cpufreq/mperf.h
-@@ -0,0 +1,9 @@
-+/*
-+ *  (c) 2003-2006 Advanced Micro Devices, Inc.
-+ *  Your use of this code is subject to the terms and conditions of the
-+ *  GNU general public license version 2. See "COPYING" or
-+ *  http://www.gnu.org/licenses/gpl.html
-+ */
 +
-+unsigned int get_measured_perf(struct cpufreq_policy *policy,
-+				unsigned int cpu);
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -46,6 +46,7 @@
- #define PFX "powernow-k8: "
- #define VERSION "version 2.20.00"
- #include "powernow-k8.h"
-+#include "mperf.h"
- 
- /* serialize freq changes  */
- static DEFINE_MUTEX(fidvid_mutex);
-@@ -54,6 +55,8 @@ static DEFINE_PER_CPU(struct powernow_k8
- 
- static int cpu_family = CPU_OPTERON;
- 
-+static struct cpufreq_driver cpufreq_amd64_driver;
-+
- #ifndef CONFIG_SMP
- static inline const struct cpumask *cpu_core_mask(int cpu)
+ static int ipmi_thread(void *data)
  {
-@@ -929,7 +932,8 @@ static int fill_powernow_table_pstate(st
- 		powernow_table[i].index = index;
+ 	struct smi_info *smi_info = data;
+ 	unsigned long flags;
+ 	enum si_sm_result smi_result;
++	struct timespec busy_until;
  
- 		/* Frequency may be rounded for these */
--		if (boot_cpu_data.x86 == 0x10 || boot_cpu_data.x86 == 0x11) {
-+		if ((boot_cpu_data.x86 == 0x10 && boot_cpu_data.x86_model < 10)
-+				 || boot_cpu_data.x86 == 0x11) {
- 			powernow_table[i].frequency =
- 				freq_from_fid_did(lo & 0x3f, (lo >> 6) & 7);
- 		} else
-@@ -1248,6 +1252,7 @@ static int __cpuinit powernowk8_cpu_init
- 	struct powernow_k8_data *data;
- 	struct init_on_cpu init_on_cpu;
- 	int rc;
-+	struct cpuinfo_x86 *c = &cpu_data(pol->cpu);
++	ipmi_si_set_not_busy(&busy_until);
+ 	set_user_nice(current, 19);
+ 	while (!kthread_should_stop()) {
+ 		spin_lock_irqsave(&(smi_info->si_lock), flags);
+@@ -938,7 +1017,8 @@ static int ipmi_thread(void *data)
+ 		spin_unlock_irqrestore(&(smi_info->si_lock), flags);
+ 		if (smi_result == SI_SM_CALL_WITHOUT_DELAY)
+ 			; /* do nothing */
+-		else if (smi_result == SI_SM_CALL_WITH_DELAY)
++		else if (ipmi_thread_busy_wait(smi_result, smi_info,
++					       &busy_until))
+ 			schedule();
+ 		else
+ 			schedule_timeout_interruptible(1);
+@@ -1212,6 +1292,13 @@ module_param(unload_when_empty, int, 0);
+ MODULE_PARM_DESC(unload_when_empty, "Unload the module if no interfaces are"
+ 		 " specified or found, default is 1.  Setting to 0"
+ 		 " is useful for hot add of devices using hotmod.");
++module_param_array(kipmid_max_busy_us, int, &num_max_busy_us, 0644);
++MODULE_PARM_DESC(kipmid_max_busy_us,
++		 "Max time (in microseconds) for kipmid to busy-wait for"
++		 " IPMI data before sleeping. 0 (default) means to wait"
++		 " forever. Set to a positive value, generally in the 100"
++		 " to 500 range, if kipmid is using up a lot of CPU time."
++		 " This will reduce performace, so balance is required.");
  
- 	if (!cpu_online(pol->cpu))
- 		return -ENODEV;
-@@ -1322,6 +1327,10 @@ static int __cpuinit powernowk8_cpu_init
- 		return -EINVAL;
- 	}
  
-+	/* Check for APERF/MPERF support in hardware */
-+	if (cpu_has(c, X86_FEATURE_APERFMPERF))
-+		cpufreq_amd64_driver.getavg = get_measured_perf;
-+
- 	cpufreq_frequency_table_get_attr(data->powernow_table, pol->cpu);
- 
- 	if (cpu_family == CPU_HW_PSTATE)
+ static void std_irq_cleanup(struct smi_info *info)
 _
 
-Patches currently in -mm which might be from mark.langsdorf@amd.com are
+Patches currently in -mm which might be from martin.wilck@ts.fujitsu.com are
 
-cpufreq-add-aperf-mperf-support-for-amd-processors.patch
-cpufreq-powernow-k8-add-core-performance-boost-support.patch
-cpufreq-add-sysfs-knob-for-toggling-core-performance-boost.patch
+ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch
 
