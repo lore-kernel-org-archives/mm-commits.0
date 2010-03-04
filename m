@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-recursive-vsnprintf-add-%pv-struct-va_format.patch added to -mm tree
-Date: Thu, 04 Mar 2010 14:38:45 -0800
-Message-ID: <201003042238.o24McjXH001731@imap1.linux-foundation.org>
+Subject: + deviceh-drivers-base-corec-convert-dev_level-macros-to-functions.patch added to -mm tree
+Date: Thu, 04 Mar 2010 14:38:47 -0800
+Message-ID: <201003042238.o24MclsA001734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561Ab0CDWiv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:38:51 -0500
+	by vger.kernel.org with ESMTP id S1751561Ab0CDWiw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:38:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: joe@perches.com, greg@kroah.com, kay.sievers@vrfy.org, nick@nick-andrew.net,
 
 
 The patch titled
-     vsprintf: recursive vsnprintf: add "%pV", struct va_format
+     device.h, drivers/base/core.c: convert dev_<level> macros to functions
 has been added to the -mm tree.  Its filename is
-     vsprintf-recursive-vsnprintf-add-%pv-struct-va_format.patch
+     deviceh-drivers-base-corec-convert-dev_level-macros-to-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vsprintf: recursive vsnprintf: add "%pV", struct va_format
+Subject: device.h, drivers/base/core.c: convert dev_<level> macros to functions
 From: Joe Perches <joe@perches.com>
 
-dev_<level> macros use a lot of repetitive string space.
+Save ~60k in a defconfig
 
-Eliminate the string prefixes and function arguments from all the macro
-uses and consolidate them in functions.
-
-This patchset saves about 60K.
-
-This implementation also adds the ability to use a struct va_format to
-emit a format string along with va_list arguments.
-
-This %pV implementation should not be used without a wrapper that does
-printf argument verification like the dev_<level> functions.
-
-Inspired a bit by Nick Andrew's patches and Linus' comments in December 2008
-http://lkml.org/lkml/2008/12/6/15
-http://lkml.org/lkml/2008/12/6/101
-
-
-This patch:
-
-Add the ability to print a format and va_list from a structure pointer
-
-Allows __dev_printk to be implemented as a single printk while
-minimizing string space duplication.
-
-%pV should not be used without some mechanism to verify the
-format and argument use ala __attribute__(format (printf(...))).
+Use %pV and struct va_format
+Format arguments are verified before printk
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -72,51 +49,264 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    5 +++++
- lib/vsprintf.c         |    9 +++++++++
- 2 files changed, 14 insertions(+)
+ drivers/base/core.c    |  124 +++++++++++++++++++++++++++++++++++++++
+ include/linux/device.h |  102 +++++++++++++++++++++++---------
+ 2 files changed, 200 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/kernel.h~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format include/linux/kernel.h
---- a/include/linux/kernel.h~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format
-+++ a/include/linux/kernel.h
-@@ -169,6 +169,11 @@ static inline void might_fault(void)
+diff -puN drivers/base/core.c~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions drivers/base/core.c
+--- a/drivers/base/core.c~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions
++++ a/drivers/base/core.c
+@@ -1742,3 +1742,127 @@ void device_shutdown(void)
+ 	}
+ 	async_synchronize_full();
  }
++
++/*
++ * Device logging functions
++ */
++
++#ifdef CONFIG_PRINTK
++
++static int __dev_printk(const char *level, const struct device *dev,
++			const char *fmt, va_list args)
++{
++	struct va_format vaf;
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
++	return printk("%s%s %s: %pV",
++		      level, dev_driver_string(dev), dev_name(dev), &vaf);
++}
++
++int dev_printk(const char *level, const struct device *dev,
++	       const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(level, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_printk);
++
++int dev_emerg(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_EMERG, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_emerg);
++
++int dev_alert(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_ALERT, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_alert);
++
++int dev_crit(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_CRIT, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_crit);
++
++int dev_err(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_ERR, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_err);
++
++int dev_warn(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_WARNING, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_warn);
++
++int dev_notice(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_NOTICE, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_notice);
++
++int dev_info(const struct device *dev, const char *fmt, ...)
++{
++	int r;
++	va_list args;
++
++	va_start(args, fmt);
++	r = __dev_printk(KERN_INFO, dev, fmt, args);
++	va_end(args);
++
++	return r;
++}
++EXPORT_SYMBOL(dev_info);
++
++#endif
+diff -puN include/linux/device.h~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions include/linux/device.h
+--- a/include/linux/device.h~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions
++++ a/include/linux/device.h
+@@ -623,43 +623,93 @@ extern void sysdev_shutdown(void);
+ 
+ /* debugging and troubleshooting/diagnostic helpers. */
+ extern const char *dev_driver_string(const struct device *dev);
+-#define dev_printk(level, dev, format, arg...)	\
+-	printk(level "%s %s: " format , dev_driver_string(dev) , \
+-	       dev_name(dev) , ## arg)
+-
+-#define dev_emerg(dev, format, arg...)		\
+-	dev_printk(KERN_EMERG , dev , format , ## arg)
+-#define dev_alert(dev, format, arg...)		\
+-	dev_printk(KERN_ALERT , dev , format , ## arg)
+-#define dev_crit(dev, format, arg...)		\
+-	dev_printk(KERN_CRIT , dev , format , ## arg)
+-#define dev_err(dev, format, arg...)		\
+-	dev_printk(KERN_ERR , dev , format , ## arg)
+-#define dev_warn(dev, format, arg...)		\
+-	dev_printk(KERN_WARNING , dev , format , ## arg)
+-#define dev_notice(dev, format, arg...)		\
+-	dev_printk(KERN_NOTICE , dev , format , ## arg)
+-#define dev_info(dev, format, arg...)		\
+-	dev_printk(KERN_INFO , dev , format , ## arg)
++
++#ifdef CONFIG_PRINTK
++
++extern int dev_printk(const char *level, const struct device *dev,
++		      const char *fmt, ...)
++	__attribute__ ((format (printf, 3, 4)));
++extern int dev_emerg(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern int dev_alert(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern int dev_crit(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern int dev_err(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern int dev_warn(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern int dev_notice(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++extern int dev_info(const struct device *dev, const char *fmt, ...)
++	__attribute__ ((format (printf, 2, 3)));
++
++#else
++
++static inline int dev_printk(const char *level, const struct device *dev,
++		      const char *fmt, ...)
++	__attribute__ ((format (printf, 3, 4)));
++static inline int dev_printk(const char *level, const struct device *dev,
++		      const char *fmt, ...)
++	 { return 0; }
++
++static inline int dev_emerg(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_emerg(const struct device *dev, const char *s, ...)
++	{ return 0; }
++static inline int dev_crit(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_crit(const struct device *dev, const char *s, ...)
++	{ return 0; }
++static inline int dev_alert(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_alert(const struct device *dev, const char *s, ...)
++	{ return 0; }
++static inline int dev_err(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_err(const struct device *dev, const char *s, ...)
++	{ return 0; }
++static inline int dev_warn(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_warn(const struct device *dev, const char *s, ...)
++	{ return 0; }
++static inline int dev_notice(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_notice(const struct device *dev, const char *s, ...)
++	{ return 0; }
++static inline int dev_info(const struct device *dev, const char *s, ...)
++	__attribute__ ((format (printf, 2, 3)));
++static inline int dev_info(const struct device *dev, const char *s, ...)
++	{ return 0; }
++
++#endif
+ 
+ #if defined(DEBUG)
+ #define dev_dbg(dev, format, arg...)		\
+-	dev_printk(KERN_DEBUG , dev , format , ## arg)
++	dev_printk(KERN_DEBUG, dev, format, ##arg)
+ #elif defined(CONFIG_DYNAMIC_DEBUG)
+-#define dev_dbg(dev, format, ...) do { \
++#define dev_dbg(dev, format, ...)		     \
++do {						     \
+ 	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+-	} while (0)
++} while (0)
+ #else
+-#define dev_dbg(dev, format, arg...)		\
+-	({ if (0) dev_printk(KERN_DEBUG, dev, format, ##arg); 0; })
++#define dev_dbg(dev, format, arg...)				\
++({								\
++	if (0)							\
++		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
++	0;							\
++})
  #endif
  
-+struct va_format {
-+	const char *fmt;
-+	va_list *va;
-+};
-+
- extern struct atomic_notifier_head panic_notifier_list;
- extern long (*panic_blink)(long time);
- NORET_TYPE void panic(const char * fmt, ...)
-diff -puN lib/vsprintf.c~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format
-+++ a/lib/vsprintf.c
-@@ -950,6 +950,11 @@ static char *uuid_string(char *buf, char
-  *             [0][1][2][3]-[4][5]-[6][7]-[8][9]-[10][11][12][13][14][15]
-  *           little endian output byte order is:
-  *             [3][2][1][0]-[5][4]-[7][6]-[8][9]-[10][11][12][13][14][15]
-+ * - 'V' For a struct va_format which contains a format string * and va_list *,
-+ *       call vsnprintf(->format, *->va_list).
-+ *       Implements a "recursive vsnprintf".
-+ *       Do not use this feature without some mechanism to verify the
-+ *       correctness of the format string and va_list arguments.
-  *
-  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
-  * function pointers are really function descriptors, which contain a
-@@ -994,6 +999,10 @@ static char *pointer(const char *fmt, ch
- 		break;
- 	case 'U':
- 		return uuid_string(buf, end, ptr, spec, fmt);
-+	case 'V':
-+		return buf + vsnprintf(buf, end - buf,
-+				       ((struct va_format *)ptr)->fmt,
-+				       *(((struct va_format *)ptr)->va));
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
+ #ifdef VERBOSE_DEBUG
+ #define dev_vdbg	dev_dbg
+ #else
+-
+-#define dev_vdbg(dev, format, arg...)		\
+-	({ if (0) dev_printk(KERN_DEBUG, dev, format, ##arg); 0; })
++#define dev_vdbg(dev, format, arg...)				\
++({								\
++	if (0)							\
++		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
++	0;							\
++})
+ #endif
+ 
+ /*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
