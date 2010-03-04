@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-add-sysfs-knob-for-toggling-core-performance-boost.patch added to -mm tree
-Date: Thu, 04 Mar 2010 13:28:38 -0800
-Message-ID: <201003042128.o24LScbC030906@imap1.linux-foundation.org>
+Subject: + cpufreq-unexport-unlock_policy_rwsem-functions.patch added to -mm tree
+Date: Thu, 04 Mar 2010 14:40:53 -0800
+Message-ID: <201003042240.o24Mesq1001813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753241Ab0CDV2u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:28:50 -0500
+	by vger.kernel.org with ESMTP id S1753574Ab0CDWmg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark.langsdorf@amd.com, borislav.petkov@amd.com, davej@codemonkey.org.uk
+Cc: amwang@redhat.com, davej@redhat.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     cpufreq: add sysfs knob for toggling core performance boost
+     cpufreq: unexport (un)lock_policy_rwsem* functions
 has been added to the -mm tree.  Its filename is
-     cpufreq-add-sysfs-knob-for-toggling-core-performance-boost.patch
+     cpufreq-unexport-unlock_policy_rwsem-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: add sysfs knob for toggling core performance boost
-From: Mark Langsdorf <mark.langsdorf@amd.com>
+Subject: cpufreq: unexport (un)lock_policy_rwsem* functions
+From: Amerigo Wang <amwang@redhat.com>
 
-Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
-Tested-by: Mark Langsdorf <mark.langsdorf@amd.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+lock_policy_rwsem_* and unlock_policy_rwsem_* functions are scheduled to
+be unexported when 2.6.33.  Now there are no other callers of them out of
+cpufreq.c, unexport them and make them static.
+
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ Documentation/feature-removal-schedule.txt |   10 ----------
+ drivers/cpufreq/cpufreq.c                  |   10 +++-------
+ include/linux/cpufreq.h                    |    5 -----
+ 3 files changed, 3 insertions(+), 22 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-add-sysfs-knob-for-toggling-core-performance-boost drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-add-sysfs-knob-for-toggling-core-performance-boost
+diff -puN Documentation/feature-removal-schedule.txt~cpufreq-unexport-unlock_policy_rwsem-functions Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~cpufreq-unexport-unlock_policy_rwsem-functions
++++ a/Documentation/feature-removal-schedule.txt
+@@ -379,16 +379,6 @@ Who:	Johannes Berg <johannes@sipsolution
+ 
+ ----------------------------
+ 
+-What:	lock_policy_rwsem_* and unlock_policy_rwsem_* will not be
+-	exported interface anymore.
+-When:	2.6.33
+-Why:	cpu_policy_rwsem has a new cleaner definition making it local to
+-	cpufreq core and contained inside cpufreq.c. Other dependent
+-	drivers should not use it in order to safely avoid lockdep issues.
+-Who:	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+-
+-----------------------------
+-
+ What:	sound-slot/service-* module aliases and related clutters in
+ 	sound/sound_core.c
+ When:	August 2010
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-unexport-unlock_policy_rwsem-functions drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-unexport-unlock_policy_rwsem-functions
 +++ a/drivers/cpufreq/cpufreq.c
-@@ -662,6 +662,30 @@ static ssize_t show_bios_limit(struct cp
- 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
+@@ -68,7 +68,7 @@ static DEFINE_PER_CPU(int, cpufreq_polic
+ static DEFINE_PER_CPU(struct rw_semaphore, cpu_policy_rwsem);
+ 
+ #define lock_policy_rwsem(mode, cpu)					\
+-int lock_policy_rwsem_##mode						\
++static int lock_policy_rwsem_##mode					\
+ (int cpu)								\
+ {									\
+ 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);		\
+@@ -83,26 +83,22 @@ int lock_policy_rwsem_##mode						\
  }
  
-+static ssize_t store_cpb(struct cpufreq_policy *policy, const char *buf,
-+				 size_t count)
-+{
-+	int ret = -EINVAL;
-+	unsigned long val = 0;
-+
-+	ret = strict_strtoul(buf, 10, &val);
-+	if (!ret && (val == 0 || val == 1))
-+		policy->flags.cpb = val;
-+	else
-+		return -EINVAL;
-+
-+	ret = __cpufreq_driver_target(policy, policy->cur, CPUFREQ_RELATION_H);
-+	if (ret)
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static ssize_t show_cpb(struct cpufreq_policy *policy, char *buf)
-+{
-+	return sprintf(buf, "%u\n", policy->flags.cpb);
-+}
-+
- #define define_one_ro(_name) \
- static struct freq_attr _name = \
- __ATTR(_name, 0444, show_##_name, NULL)
-@@ -688,6 +712,7 @@ define_one_rw(scaling_min_freq);
- define_one_rw(scaling_max_freq);
- define_one_rw(scaling_governor);
- define_one_rw(scaling_setspeed);
-+define_one_rw(cpb);
+ lock_policy_rwsem(read, cpu);
+-EXPORT_SYMBOL_GPL(lock_policy_rwsem_read);
  
- static struct attribute *default_attrs[] = {
- 	&cpuinfo_min_freq.attr,
-@@ -701,6 +726,7 @@ static struct attribute *default_attrs[]
- 	&scaling_driver.attr,
- 	&scaling_available_governors.attr,
- 	&scaling_setspeed.attr,
-+	&cpb.attr,
- 	NULL
- };
+ lock_policy_rwsem(write, cpu);
+-EXPORT_SYMBOL_GPL(lock_policy_rwsem_write);
  
-_
-
-Patches currently in -mm which might be from mark.langsdorf@amd.com are
-
-cpufreq-add-aperf-mperf-support-for-amd-processors.patch
-cpufreq-powernow-k8-add-core-performance-boost-support.patch
-cpufreq-add-sysfs-knob-for-toggling-core-performance-boost.patch
-
+-void unlock_policy_rwsem_read(int cpu)
++static void unlock_policy_rwsem_read(int cpu)
+ {
+ 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);
+ 	BUG_ON(policy_cpu == -1);
+ 	up_read(&per_cpu(cpu_policy_rwsem, policy_cpu));
+ }
+-EXPORT_SYMBOL_GPL(unlock_policy_rwsem_read);
+ 
+-void unlock_policy_rwsem_write(int cpu)
++static void unlock_policy_rwsem_write(int cpu)
+ {
+ 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);
+ 	BUG_ON(policy_cpu == -1);
+ 	up_write(&per_cpu(cpu_policy_rwsem, policy_cpu));
+ }
+-EXPORT_SYMBOL_GPL(unlock_policy_rwsem_write);
+ 
+ 
+ /* internal prototypes */
+diff -puN include/linux/cpufreq.h~cpufreq-unexport-unlock_policy_rwsem-functions include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~cpufreq-unexport-unlock_policy_rwsem-functions
++++ a/include/linux/cpufreq.h
+@@ -196,11 +196,6 @@ extern int __cpufreq_driver_getavg(struc
+ int cpufreq_register_governor(struct cpufreq_governor *governor);
+ void cpufreq_unregister_governor(struct cpufreq_governor *governor);
+ 
+-int lock_policy_rwsem_read(int cpu);
+-int lock_policy_rwsem_write(int cpu);
+-void unlock_policy_rwsem_read(int cpu);
+-void unlock_policy_rwsem_write(int cpu);
