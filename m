@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + deviceh-drivers-base-corec-convert-dev_level-macros-to-functions.patch added to -mm tree
-Date: Thu, 04 Mar 2010 14:38:47 -0800
-Message-ID: <201003042238.o24MclsA001734@imap1.linux-foundation.org>
+Subject: + cpufreq-add-aperf-mperf-support-for-amd-processors.patch added to -mm tree
+Date: Thu, 04 Mar 2010 13:28:33 -0800
+Message-ID: <201003042128.o24LSXot030900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561Ab0CDWiw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:38:52 -0500
+	by vger.kernel.org with ESMTP id S1752877Ab0CDV2t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:28:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, greg@kroah.com, kay.sievers@vrfy.org, nick@nick-andrew.net, torvalds@linux-foundation.org
+Cc: mark.langsdorf@amd.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     device.h, drivers/base/core.c: convert dev_<level> macros to functions
+     cpufreq: add APERF/MPERF support for AMD processors
 has been added to the -mm tree.  Its filename is
-     deviceh-drivers-base-corec-convert-dev_level-macros-to-functions.patch
+     cpufreq-add-aperf-mperf-support-for-amd-processors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,350 +33,244 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: device.h, drivers/base/core.c: convert dev_<level> macros to functions
-From: Joe Perches <joe@perches.com>
+Subject: cpufreq: add APERF/MPERF support for AMD processors
+From: Mark Langsdorf <mark.langsdorf@amd.com>
 
-Save ~60k in a defconfig
+Starting with model 10 of Family 0x10, AMD processors may have support for
+APERF/MPERF.  Add support for identifying it and using it within cpufreq. 
+Move the APERF/MPERF functions out of the acpi-cpufreq code and into their
+own file so they can easily be shared.
 
-Use %pV and struct va_format
-Format arguments are verified before printk
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nick Andrew <nick@nick-andrew.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c    |  124 +++++++++++++++++++++++++++++++++++++++
- include/linux/device.h |  102 +++++++++++++++++++++++---------
- 2 files changed, 200 insertions(+), 26 deletions(-)
+ arch/x86/kernel/cpu/amd.c                  |    6 ++
+ arch/x86/kernel/cpu/cpufreq/Makefile       |    4 -
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   42 ---------------
+ arch/x86/kernel/cpu/cpufreq/mperf.c        |   50 +++++++++++++++++++
+ arch/x86/kernel/cpu/cpufreq/mperf.h        |    9 +++
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c  |   11 +++-
+ 6 files changed, 78 insertions(+), 44 deletions(-)
 
-diff -puN drivers/base/core.c~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions drivers/base/core.c
---- a/drivers/base/core.c~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions
-+++ a/drivers/base/core.c
-@@ -1742,3 +1742,127 @@ void device_shutdown(void)
+diff -puN arch/x86/kernel/cpu/amd.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/amd.c
+--- a/arch/x86/kernel/cpu/amd.c~cpufreq-add-aperf-mperf-support-for-amd-processors
++++ a/arch/x86/kernel/cpu/amd.c
+@@ -537,6 +537,12 @@ static void __cpuinit init_amd(struct cp
+ 		set_cpu_cap(c, X86_FEATURE_MFENCE_RDTSC);
  	}
- 	async_synchronize_full();
+ 
++	if (c->cpuid_level >= 6) {
++		unsigned ecx = cpuid_ecx(6);
++		if (ecx & 0x01)
++			set_cpu_cap(c, X86_FEATURE_APERFMPERF);
++	}
++
+ #ifdef CONFIG_X86_64
+ 	if (c->x86 == 0x10) {
+ 		/* do this for boot cpu */
+diff -puN arch/x86/kernel/cpu/cpufreq/Makefile~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/Makefile
+--- a/arch/x86/kernel/cpu/cpufreq/Makefile~cpufreq-add-aperf-mperf-support-for-amd-processors
++++ a/arch/x86/kernel/cpu/cpufreq/Makefile
+@@ -2,8 +2,8 @@
+ # K8 systems. ACPI is preferred to all other hardware-specific drivers.
+ # speedstep-* is preferred over p4-clockmod.
+ 
+-obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o
+-obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o
++obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o mperf.o
++obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o mperf.o
+ obj-$(CONFIG_X86_PCC_CPUFREQ)		+= pcc-cpufreq.o
+ obj-$(CONFIG_X86_POWERNOW_K6)		+= powernow-k6.o
+ obj-$(CONFIG_X86_POWERNOW_K7)		+= powernow-k7.o
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-add-aperf-mperf-support-for-amd-processors
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -45,6 +45,7 @@
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include <asm/cpufeature.h>
++#include "mperf.h"
+ 
+ #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, \
+ 		"acpi-cpufreq", msg)
+@@ -70,8 +71,6 @@ struct acpi_cpufreq_data {
+ 
+ static DEFINE_PER_CPU(struct acpi_cpufreq_data *, acfreq_data);
+ 
+-static DEFINE_PER_CPU(struct aperfmperf, acfreq_old_perf);
+-
+ /* acpi_perf_data is a pointer to percpu data. */
+ static struct acpi_processor_performance *acpi_perf_data;
+ 
+@@ -239,45 +238,6 @@ static u32 get_cur_val(const struct cpum
+ 	return cmd.val;
  }
+ 
+-/* Called via smp_call_function_single(), on the target CPU */
+-static void read_measured_perf_ctrs(void *_cur)
+-{
+-	struct aperfmperf *am = _cur;
+-
+-	get_aperfmperf(am);
+-}
+-
+-/*
+- * Return the measured active (C0) frequency on this CPU since last call
+- * to this function.
+- * Input: cpu number
+- * Return: Average CPU frequency in terms of max frequency (zero on error)
+- *
+- * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
+- * over a period of time, while CPU is in C0 state.
+- * IA32_MPERF counts at the rate of max advertised frequency
+- * IA32_APERF counts at the rate of actual CPU frequency
+- * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
+- * no meaning should be associated with absolute values of these MSRs.
+- */
+-static unsigned int get_measured_perf(struct cpufreq_policy *policy,
+-				      unsigned int cpu)
+-{
+-	struct aperfmperf perf;
+-	unsigned long ratio;
+-	unsigned int retval;
+-
+-	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &perf, 1))
+-		return 0;
+-
+-	ratio = calc_aperfmperf_ratio(&per_cpu(acfreq_old_perf, cpu), &perf);
+-	per_cpu(acfreq_old_perf, cpu) = perf;
+-
+-	retval = (policy->cpuinfo.max_freq * ratio) >> APERFMPERF_SHIFT;
+-
+-	return retval;
+-}
+-
+ static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
+ {
+ 	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, cpu);
+diff -puN /dev/null arch/x86/kernel/cpu/cpufreq/mperf.c
+--- /dev/null
++++ a/arch/x86/kernel/cpu/cpufreq/mperf.c
+@@ -0,0 +1,50 @@
++#include <linux/kernel.h>
++#include <linux/smp.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/cpufreq.h>
++#include <linux/slab.h>
++
++#include "mperf.h"
++
++static DEFINE_PER_CPU(struct aperfmperf, acfreq_old_perf);
++
++/* Called via smp_call_function_single(), on the target CPU */
++static void read_measured_perf_ctrs(void *_cur)
++{
++	struct aperfmperf *am = _cur;
++
++	get_aperfmperf(am);
++}
 +
 +/*
-+ * Device logging functions
++ * Return the measured active (C0) frequency on this CPU since last call
++ * to this function.
++ * Input: cpu number
++ * Return: Average CPU frequency in terms of max frequency (zero on error)
++ *
++ * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
++ * over a period of time, while CPU is in C0 state.
++ * IA32_MPERF counts at the rate of max advertised frequency
++ * IA32_APERF counts at the rate of actual CPU frequency
++ * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
++ * no meaning should be associated with absolute values of these MSRs.
++ */
++unsigned int get_measured_perf(struct cpufreq_policy *policy,
++					unsigned int cpu)
++{
++	struct aperfmperf perf;
++	unsigned long ratio;
++	unsigned int retval;
++
++	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &perf, 1))
++		return 0;
++
++	ratio = calc_aperfmperf_ratio(&per_cpu(acfreq_old_perf, cpu), &perf);
++	per_cpu(acfreq_old_perf, cpu) = perf;
++
++	retval = (policy->cpuinfo.max_freq * ratio) >> APERFMPERF_SHIFT;
++
++	return retval;
++}
++EXPORT_SYMBOL_GPL(get_measured_perf);
+diff -puN /dev/null arch/x86/kernel/cpu/cpufreq/mperf.h
+--- /dev/null
++++ a/arch/x86/kernel/cpu/cpufreq/mperf.h
+@@ -0,0 +1,9 @@
++/*
++ *  (c) 2003-2006 Advanced Micro Devices, Inc.
++ *  Your use of this code is subject to the terms and conditions of the
++ *  GNU general public license version 2. See "COPYING" or
++ *  http://www.gnu.org/licenses/gpl.html
 + */
 +
-+#ifdef CONFIG_PRINTK
-+
-+static int __dev_printk(const char *level, const struct device *dev,
-+			const char *fmt, va_list args)
-+{
-+	struct va_format vaf;
-+
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	return printk("%s%s %s: %pV",
-+		      level, dev_driver_string(dev), dev_name(dev), &vaf);
-+}
-+
-+int dev_printk(const char *level, const struct device *dev,
-+	       const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(level, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_printk);
-+
-+int dev_emerg(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_EMERG, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_emerg);
-+
-+int dev_alert(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_ALERT, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_alert);
-+
-+int dev_crit(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_CRIT, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_crit);
-+
-+int dev_err(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_ERR, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_err);
-+
-+int dev_warn(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_WARNING, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_warn);
-+
-+int dev_notice(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_NOTICE, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_notice);
-+
-+int dev_info(const struct device *dev, const char *fmt, ...)
-+{
-+	int r;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	r = __dev_printk(KERN_INFO, dev, fmt, args);
-+	va_end(args);
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(dev_info);
-+
-+#endif
-diff -puN include/linux/device.h~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions include/linux/device.h
---- a/include/linux/device.h~deviceh-drivers-base-corec-convert-dev_level-macros-to-functions
-+++ a/include/linux/device.h
-@@ -623,43 +623,93 @@ extern void sysdev_shutdown(void);
++unsigned int get_measured_perf(struct cpufreq_policy *policy,
++				unsigned int cpu);
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-add-aperf-mperf-support-for-amd-processors
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -46,6 +46,7 @@
+ #define PFX "powernow-k8: "
+ #define VERSION "version 2.20.00"
+ #include "powernow-k8.h"
++#include "mperf.h"
  
- /* debugging and troubleshooting/diagnostic helpers. */
- extern const char *dev_driver_string(const struct device *dev);
--#define dev_printk(level, dev, format, arg...)	\
--	printk(level "%s %s: " format , dev_driver_string(dev) , \
--	       dev_name(dev) , ## arg)
--
--#define dev_emerg(dev, format, arg...)		\
--	dev_printk(KERN_EMERG , dev , format , ## arg)
--#define dev_alert(dev, format, arg...)		\
--	dev_printk(KERN_ALERT , dev , format , ## arg)
--#define dev_crit(dev, format, arg...)		\
--	dev_printk(KERN_CRIT , dev , format , ## arg)
--#define dev_err(dev, format, arg...)		\
--	dev_printk(KERN_ERR , dev , format , ## arg)
--#define dev_warn(dev, format, arg...)		\
--	dev_printk(KERN_WARNING , dev , format , ## arg)
--#define dev_notice(dev, format, arg...)		\
--	dev_printk(KERN_NOTICE , dev , format , ## arg)
--#define dev_info(dev, format, arg...)		\
--	dev_printk(KERN_INFO , dev , format , ## arg)
-+
-+#ifdef CONFIG_PRINTK
-+
-+extern int dev_printk(const char *level, const struct device *dev,
-+		      const char *fmt, ...)
-+	__attribute__ ((format (printf, 3, 4)));
-+extern int dev_emerg(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+extern int dev_alert(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+extern int dev_crit(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+extern int dev_err(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+extern int dev_warn(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+extern int dev_notice(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+extern int dev_info(const struct device *dev, const char *fmt, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+
-+#else
-+
-+static inline int dev_printk(const char *level, const struct device *dev,
-+		      const char *fmt, ...)
-+	__attribute__ ((format (printf, 3, 4)));
-+static inline int dev_printk(const char *level, const struct device *dev,
-+		      const char *fmt, ...)
-+	 { return 0; }
-+
-+static inline int dev_emerg(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_emerg(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+static inline int dev_crit(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_crit(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+static inline int dev_alert(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_alert(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+static inline int dev_err(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_err(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+static inline int dev_warn(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_warn(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+static inline int dev_notice(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_notice(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+static inline int dev_info(const struct device *dev, const char *s, ...)
-+	__attribute__ ((format (printf, 2, 3)));
-+static inline int dev_info(const struct device *dev, const char *s, ...)
-+	{ return 0; }
-+
-+#endif
+ /* serialize freq changes  */
+ static DEFINE_MUTEX(fidvid_mutex);
+@@ -54,6 +55,8 @@ static DEFINE_PER_CPU(struct powernow_k8
  
- #if defined(DEBUG)
- #define dev_dbg(dev, format, arg...)		\
--	dev_printk(KERN_DEBUG , dev , format , ## arg)
-+	dev_printk(KERN_DEBUG, dev, format, ##arg)
- #elif defined(CONFIG_DYNAMIC_DEBUG)
--#define dev_dbg(dev, format, ...) do { \
-+#define dev_dbg(dev, format, ...)		     \
-+do {						     \
- 	dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
--	} while (0)
-+} while (0)
- #else
--#define dev_dbg(dev, format, arg...)		\
--	({ if (0) dev_printk(KERN_DEBUG, dev, format, ##arg); 0; })
-+#define dev_dbg(dev, format, arg...)				\
-+({								\
-+	if (0)							\
-+		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
-+	0;							\
-+})
- #endif
+ static int cpu_family = CPU_OPTERON;
  
- #ifdef VERBOSE_DEBUG
- #define dev_vdbg	dev_dbg
- #else
--
--#define dev_vdbg(dev, format, arg...)		\
--	({ if (0) dev_printk(KERN_DEBUG, dev, format, ##arg); 0; })
-+#define dev_vdbg(dev, format, arg...)				\
-+({								\
-+	if (0)							\
-+		dev_printk(KERN_DEBUG, dev, format, ##arg);	\
-+	0;							\
-+})
- #endif
++static struct cpufreq_driver cpufreq_amd64_driver;
++
+ #ifndef CONFIG_SMP
+ static inline const struct cpumask *cpu_core_mask(int cpu)
+ {
+@@ -929,7 +932,8 @@ static int fill_powernow_table_pstate(st
+ 		powernow_table[i].index = index;
  
- /*
+ 		/* Frequency may be rounded for these */
+-		if (boot_cpu_data.x86 == 0x10 || boot_cpu_data.x86 == 0x11) {
++		if ((boot_cpu_data.x86 == 0x10 && boot_cpu_data.x86_model < 10)
++				 || boot_cpu_data.x86 == 0x11) {
+ 			powernow_table[i].frequency =
+ 				freq_from_fid_did(lo & 0x3f, (lo >> 6) & 7);
+ 		} else
+@@ -1248,6 +1252,7 @@ static int __cpuinit powernowk8_cpu_init
+ 	struct powernow_k8_data *data;
+ 	struct init_on_cpu init_on_cpu;
+ 	int rc;
++	struct cpuinfo_x86 *c = &cpu_data(pol->cpu);
+ 
+ 	if (!cpu_online(pol->cpu))
+ 		return -ENODEV;
+@@ -1322,6 +1327,10 @@ static int __cpuinit powernowk8_cpu_init
+ 		return -EINVAL;
+ 	}
+ 
++	/* Check for APERF/MPERF support in hardware */
++	if (cpu_has(c, X86_FEATURE_APERFMPERF))
++		cpufreq_amd64_driver.getavg = get_measured_perf;
++
+ 	cpufreq_frequency_table_get_attr(data->powernow_table, pol->cpu);
+ 
+ 	if (cpu_family == CPU_HW_PSTATE)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mark.langsdorf@amd.com are
 
-origin.patch
-linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-staging-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-vsprintf-recursive-vsnprintf-add-%pv-struct-va_format.patch
-deviceh-drivers-base-corec-convert-dev_level-macros-to-functions.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
-get_maintainer-fix-perlcritic-warnings.patch
-get_maintainer-quote-email-address-with-period.patch
-scripts-get_maintainerpl-fix-possible-infinite-loop.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-maintainers-document-and-add-q-patchwork-queue-entries.patch
-lib-stringc-simplify-stricmp.patch
-lib-stringc-simplify-strnstr.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
-drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
-drivers-video-via-fix-continuation-line-formats.patch
+cpufreq-add-aperf-mperf-support-for-amd-processors.patch
+cpufreq-powernow-k8-add-core-performance-boost-support.patch
+cpufreq-add-sysfs-knob-for-toggling-core-performance-boost.patch
 
