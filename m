@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + time-clean-up-warp_clock.patch added to -mm tree
-Date: Thu, 04 Mar 2010 13:51:50 -0800
-Message-ID: <201003042151.o24LpoiQ032043@imap1.linux-foundation.org>
+Subject: + rtc-coh901331-fix-braces-in-resume-code.patch added to -mm tree
+Date: Thu, 04 Mar 2010 12:38:40 -0800
+Message-ID: <201003042038.o24Kcel1028539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096Ab0CDVwl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:52:41 -0500
+	by vger.kernel.org with ESMTP id S1756006Ab0CDUiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 15:38:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: james@albanarts.com, a.zummo@towertech.it, linus.walleij@stericsson.com, stable@kernel.org
 
 
 The patch titled
-     time: clean up warp_clock()
+     rtc-coh901331: fix braces in resume code
 has been added to the -mm tree.  Its filename is
-     time-clean-up-warp_clock.patch
+     rtc-coh901331-fix-braces-in-resume-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time: clean up warp_clock()
-From: John Stultz <johnstul@us.ibm.com>
+Subject: rtc-coh901331: fix braces in resume code
+From: James Hogan <james@albanarts.com>
 
-warp_clock() currently accesses timekeeping internal state directly, which
-is unnecessary.  Convert it to use the proper timekeeping interfaces.
+The else part of the if statement is indented but does not have braces
+around it. It clearly should since it uses clk_enable and clk_disable
+which are supposed to balance.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: James Hogan <james@albanarts.com>
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-coh901331.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time.c~time-clean-up-warp_clock kernel/time.c
---- a/kernel/time.c~time-clean-up-warp_clock
-+++ a/kernel/time.c
-@@ -133,12 +133,11 @@ SYSCALL_DEFINE2(gettimeofday, struct tim
-  */
- static inline void warp_clock(void)
+diff -puN drivers/rtc/rtc-coh901331.c~rtc-coh901331-fix-braces-in-resume-code drivers/rtc/rtc-coh901331.c
+--- a/drivers/rtc/rtc-coh901331.c~rtc-coh901331-fix-braces-in-resume-code
++++ a/drivers/rtc/rtc-coh901331.c
+@@ -271,12 +271,13 @@ static int coh901331_resume(struct platf
  {
--	write_seqlock_irq(&xtime_lock);
--	wall_to_monotonic.tv_sec -= sys_tz.tz_minuteswest * 60;
--	xtime.tv_sec += sys_tz.tz_minuteswest * 60;
--	update_xtime_cache(0);
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
-+	struct timespec delta, adjust;
-+	delta.tv_sec = sys_tz.tz_minuteswest * 60;
-+	delta.tv_nsec = 0;
-+	adjust = timespec_add_safe(current_kernel_time(), delta);
-+	do_settimeofday(&adjust);
- }
+ 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
  
- /*
+-	if (device_may_wakeup(&pdev->dev))
++	if (device_may_wakeup(&pdev->dev)) {
+ 		disable_irq_wake(rtap->irq);
+-	else
++	} else {
+ 		clk_enable(rtap->clk);
+ 		writel(rtap->irqmaskstore, rtap->virtbase + COH901331_IRQ_MASK);
+ 		clk_disable(rtap->clk);
++	}
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from james@albanarts.com are
 
-origin.patch
-linux-next.patch
-arm-convert-arm-to-arch_gettimeoffset.patch
-cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
-time-clean-up-warp_clock.patch
-time-cleanup-direct-xtime-usage-in-xen.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-cris-convert-to-use-arch_gettimeoffset.patch
-posix-cpu-timers-cleanup-rlimits-usage.patch
-kernel-core-use-helpers-for-rlimits.patch
-time-kill-off-config_generic_time.patch
-xtensa-fix-unnecessary-setting-of-xtime.patch
+rtc-coh901331-fix-braces-in-resume-code.patch
 
