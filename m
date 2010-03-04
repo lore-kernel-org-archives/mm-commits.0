@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-coh901331-fix-braces-in-resume-code.patch added to -mm tree
-Date: Thu, 04 Mar 2010 12:38:40 -0800
-Message-ID: <201003042038.o24Kcel1028539@imap1.linux-foundation.org>
+Subject: + mmc-at91_mci-correct-kunmap_atomic.patch added to -mm tree
+Date: Thu, 04 Mar 2010 12:42:15 -0800
+Message-ID: <201003042042.o24KgFGL028715__27727.171048946$1267744752$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756006Ab0CDUiy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 15:38:54 -0500
+	by vger.kernel.org with ESMTP id S1756378Ab0CDUm0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 15:42:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: james@albanarts.com, a.zummo@towertech.it, linus.walleij@stericsson.com, stable@kernel.org
+Cc: nicolas.ferre@atmel.com, avictor.za@gmail.com, linux-mmc@vger.kernel.org, wolfgang.mues@auerswald.de
 
 
 The patch titled
-     rtc-coh901331: fix braces in resume code
+     mmc: at91_mci: correct kunmap_atomic()
 has been added to the -mm tree.  Its filename is
-     rtc-coh901331-fix-braces-in-resume-code.patch
+     mmc-at91_mci-correct-kunmap_atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-coh901331: fix braces in resume code
-From: James Hogan <james@albanarts.com>
+Subject: mmc: at91_mci: correct kunmap_atomic()
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-The else part of the if statement is indented but does not have braces
-around it. It clearly should since it uses clk_enable and clk_disable
-which are supposed to balance.
+kunmap_atomic() accepts a pointer to any location in the page so we do not
+need the subtraction and cast.
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Acked-by: Linus Walleij <linus.walleij@stericsson.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@kernel.org>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Cc: Andrew Victor <avictor.za@gmail.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mmc/host/at91_mci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~rtc-coh901331-fix-braces-in-resume-code drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~rtc-coh901331-fix-braces-in-resume-code
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -271,12 +271,13 @@ static int coh901331_resume(struct platf
- {
- 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
+diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-correct-kunmap_atomic drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-correct-kunmap_atomic
++++ a/drivers/mmc/host/at91_mci.c
+@@ -248,7 +248,7 @@ static inline void at91_mci_sg_to_dma(st
+ 			dmabuf = (unsigned *)tmpv;
+ 		}
  
--	if (device_may_wakeup(&pdev->dev))
-+	if (device_may_wakeup(&pdev->dev)) {
- 		disable_irq_wake(rtap->irq);
--	else
-+	} else {
- 		clk_enable(rtap->clk);
- 		writel(rtap->irqmaskstore, rtap->virtbase + COH901331_IRQ_MASK);
- 		clk_disable(rtap->clk);
-+	}
- 	return 0;
- }
- #else
+-		kunmap_atomic(((void *)sgbuffer) - sg->offset, KM_BIO_SRC_IRQ);
++		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
+ 
+ 		if (size == 0)
+ 			break;
+@@ -313,7 +313,7 @@ static void at91_mci_post_dma_read(struc
+ 			dmabuf = (unsigned *)tmpv;
+ 		}
+ 
+-		kunmap_atomic(((void *)sgbuffer)-sg->offset, KM_BIO_SRC_IRQ);
++		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
+ 		dmac_flush_range((void *)sgbuffer, ((void *)sgbuffer) + amount);
+ 		data->bytes_xfered += amount;
+ 		if (size == 0)
 _
 
-Patches currently in -mm which might be from james@albanarts.com are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
-rtc-coh901331-fix-braces-in-resume-code.patch
+mmc-atmel-host-kconfig-cleanup-for-everyone-else.patch
+mmc-at91_mci-fix-pointer-errors.patch
+mmc-at91_mci-fix-timeout-errors.patch
+mmc-at91_mci-use-one-coherent-dma-buffer.patch
+mmc-at91_mci-use-dma-buffer-for-read.patch
+mmc-at91_mci-enable-large-data-blocks.patch
+mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works.patch
+mmc-at91_mci-introduce-per-mci-revision-conditional-code.patch
+mmc-at91_mci-correct-kunmap_atomic.patch
 
