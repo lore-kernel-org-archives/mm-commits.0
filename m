@@ -1,163 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 04 Mar 2010 11:39:07 -0800
-Message-ID: <201003041939.o24Jd7Cp025783@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-hpsac-fix-section-mismatch.patch removed from -mm tree
+Date: Thu, 04 Mar 2010 11:41:56 -0800
+Message-ID: <201003041941.o24JfuZO025962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756225Ab0CDTjL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 14:39:11 -0500
+	by vger.kernel.org with ESMTP id S932233Ab0CDTmJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 14:42:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andre.goddard@gmail.com, mm-commits@vger.kernel.org
+To: jeffm@suse.com, James.Bottomley@HansenPartnership.com, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-ch=
-eckpatch-fixes
+     drivers/scsi/hpsa.c: fix section mismatch
 has been removed from the -mm tree.  Its filename was
-     mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-ch=
-eckpatch-fixes.patch
+     drivers-scsi-hpsac-fix-section-mismatch.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mqueue-apply-mathematics-distributivity-on-mq_bytes-calculatio=
-n-checkpatch-fixes
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/scsi/hpsa.c: fix section mismatch
+From: Jeff Mahoney <jeffm@suse.com>
 
-ERROR: Invalid UTF-8, patch and commit message should be encoded in UTF=
--8
-#1:=20
-          ^
+hpsa_pci_init() calls hpsa_interrupt_mode() which is a __devinit function.
+ hpsa_pci_init() is only called by hpsa_init_one() which is also
+__devinit, so mark it __devinit as well.
 
-ERROR: Invalid UTF-8, patch and commit message should be encoded in UTF=
--8
-#8:=20
-Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
-                   ^
-
-WARNING: space prohibited between function name and open parenthesis '(=
-'
-#41: FILE: ipc/mqueue.c:606:
-+	    + sizeof (struct msg_msg *))) <
-
-total: 2 errors, 1 warnings, 21 lines checked
-
-=2E/patches/mqueue-apply-mathematics-distributivity-on-mq_bytes-calcula=
-tion.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Acked-by: "Stephen M.Cameron" <scameron@beardog.cce.hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
+ drivers/scsi/hpsa.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/mqueue.c~mqueue-apply-mathematics-distributivity-on-mq_by=
-tes-calculation-checkpatch-fixes ipc/mqueue.c
---- a/ipc/mqueue.c~mqueue-apply-mathematics-distributivity-on-mq_bytes-=
-calculation-checkpatch-fixes
-+++ a/ipc/mqueue.c
-@@ -603,7 +603,7 @@ static int mq_attr_ok(struct ipc_namespa
- 	if (attr->mq_msgsize > ULONG_MAX/attr->mq_maxmsg)
- 		return 0;
- 	if ((unsigned long)(attr->mq_maxmsg * (attr->mq_msgsize
--	    + sizeof (struct msg_msg *))) <
-+	    + sizeof(struct msg_msg *))) <
- 	    (unsigned long)(attr->mq_maxmsg * attr->mq_msgsize))
- 		return 0;
- 	return 1;
+diff -puN drivers/scsi/hpsa.c~drivers-scsi-hpsac-fix-section-mismatch drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~drivers-scsi-hpsac-fix-section-mismatch
++++ a/drivers/scsi/hpsa.c
+@@ -3296,7 +3296,7 @@ default_int_mode:
+ 	h->intr[PERF_MODE_INT] = pdev->irq;
+ }
+ 
+-static int hpsa_pci_init(struct ctlr_info *h, struct pci_dev *pdev)
++static int __devinit hpsa_pci_init(struct ctlr_info *h, struct pci_dev *pdev)
+ {
+ 	ushort subsystem_vendor_id, subsystem_device_id, command;
+ 	u32 board_id, scratchpad = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-pres=
-ent.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-mqueue-apply-mathematics-distributivity-on-mq_bytes-calculation-checkpa=
-tch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-watchdog-wdtc-wdt_ioctl-make-ident-non-static.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patc=
-h
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issu=
-e-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reld=
-isp-ioctl-call-checkpatch-fixes.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-gpio-cs5535-gpio-fix-input-direction.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on=
--a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
