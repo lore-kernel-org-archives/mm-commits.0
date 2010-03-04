@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-unexport-unlock_policy_rwsem-functions.patch added to -mm tree
-Date: Thu, 04 Mar 2010 14:40:53 -0800
-Message-ID: <201003042240.o24Mesq1001813@imap1.linux-foundation.org>
+Subject: + memcg-update-maintainer-list.patch added to -mm tree
+Date: Thu, 04 Mar 2010 14:30:19 -0800
+Message-ID: <201003042230.o24MUJGI001363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54758 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41325 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753574Ab0CDWmg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:42:36 -0500
+	by vger.kernel.org with ESMTP id S1754525Ab0CDWa2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:30:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, davej@redhat.com, venkatesh.pallipadi@intel.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
 
 
 The patch titled
-     cpufreq: unexport (un)lock_policy_rwsem* functions
+     memcg: update maintainer list
 has been added to the -mm tree.  Its filename is
-     cpufreq-unexport-unlock_policy_rwsem-functions.patch
+     memcg-update-maintainer-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: unexport (un)lock_policy_rwsem* functions
-From: Amerigo Wang <amwang@redhat.com>
+Subject: memcg: update maintainer list
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-lock_policy_rwsem_* and unlock_policy_rwsem_* functions are scheduled to
-be unexported when 2.6.33.  Now there are no other callers of them out of
-cpufreq.c, unexport them and make them static.
+Nishimura-san have been working for memcg very good.  His review and tests
+give us much improvements and account migraiton which he is now
+challenging is really important.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@redhat.com>
+He is a stakeholder.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   10 ----------
- drivers/cpufreq/cpufreq.c                  |   10 +++-------
- include/linux/cpufreq.h                    |    5 -----
- 3 files changed, 3 insertions(+), 22 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~cpufreq-unexport-unlock_policy_rwsem-functions Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~cpufreq-unexport-unlock_policy_rwsem-functions
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -379,16 +379,6 @@ Who:	Johannes Berg <johannes@sipsolution
+diff -puN MAINTAINERS~memcg-update-maintainer-list MAINTAINERS
+--- a/MAINTAINERS~memcg-update-maintainer-list
++++ a/MAINTAINERS
+@@ -3674,7 +3674,7 @@ F:	mm/
  
- ----------------------------
- 
--What:	lock_policy_rwsem_* and unlock_policy_rwsem_* will not be
--	exported interface anymore.
--When:	2.6.33
--Why:	cpu_policy_rwsem has a new cleaner definition making it local to
--	cpufreq core and contained inside cpufreq.c. Other dependent
--	drivers should not use it in order to safely avoid lockdep issues.
--Who:	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
--
------------------------------
--
- What:	sound-slot/service-* module aliases and related clutters in
- 	sound/sound_core.c
- When:	August 2010
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-unexport-unlock_policy_rwsem-functions drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-unexport-unlock_policy_rwsem-functions
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -68,7 +68,7 @@ static DEFINE_PER_CPU(int, cpufreq_polic
- static DEFINE_PER_CPU(struct rw_semaphore, cpu_policy_rwsem);
- 
- #define lock_policy_rwsem(mode, cpu)					\
--int lock_policy_rwsem_##mode						\
-+static int lock_policy_rwsem_##mode					\
- (int cpu)								\
- {									\
- 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);		\
-@@ -83,26 +83,22 @@ int lock_policy_rwsem_##mode						\
- }
- 
- lock_policy_rwsem(read, cpu);
--EXPORT_SYMBOL_GPL(lock_policy_rwsem_read);
- 
- lock_policy_rwsem(write, cpu);
--EXPORT_SYMBOL_GPL(lock_policy_rwsem_write);
- 
--void unlock_policy_rwsem_read(int cpu)
-+static void unlock_policy_rwsem_read(int cpu)
- {
- 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);
- 	BUG_ON(policy_cpu == -1);
- 	up_read(&per_cpu(cpu_policy_rwsem, policy_cpu));
- }
--EXPORT_SYMBOL_GPL(unlock_policy_rwsem_read);
- 
--void unlock_policy_rwsem_write(int cpu)
-+static void unlock_policy_rwsem_write(int cpu)
- {
- 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);
- 	BUG_ON(policy_cpu == -1);
- 	up_write(&per_cpu(cpu_policy_rwsem, policy_cpu));
- }
--EXPORT_SYMBOL_GPL(unlock_policy_rwsem_write);
- 
- 
- /* internal prototypes */
-diff -puN include/linux/cpufreq.h~cpufreq-unexport-unlock_policy_rwsem-functions include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-unexport-unlock_policy_rwsem-functions
-+++ a/include/linux/cpufreq.h
-@@ -196,11 +196,6 @@ extern int __cpufreq_driver_getavg(struc
- int cpufreq_register_governor(struct cpufreq_governor *governor);
- void cpufreq_unregister_governor(struct cpufreq_governor *governor);
- 
--int lock_policy_rwsem_read(int cpu);
--int lock_policy_rwsem_write(int cpu);
--void unlock_policy_rwsem_read(int cpu);
--void unlock_policy_rwsem_write(int cpu);
+ MEMORY RESOURCE CONTROLLER
+ M:	Balbir Singh <balbir@linux.vnet.ibm.com>
+-M:	Pavel Emelyanov <xemul@openvz.org>
++M:	Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+ M:	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+_
+
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+origin.patch
+linux-next.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+mm-clean-up-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-get_scan_ratio-cleanup.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
+mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
+mm-add-comment-about-deprecation-of-__gfp_nofail.patch
+nodemaskh-remove-macro-any_online_node.patch
+devmem-dont-allow-seek-to-last-page.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
+cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
+memcg-update-threshold-and-softlimit-at-commit-v2.patch
+memcg-share-event-counter-rather-than-duplicate-v2.patch
+memcg-update-memcg_testtxt.patch
+memcg-handle-panic_on_oom=always-case-v2.patch
+cgroups-fix-race-between-userspace-and-kernelspace.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
+memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+memcg-fix-oom-kill-behavior-v3.patch
+memcg-fix-oom-kill-behavior-v4.patch
+memcg-update-maintainer-list.patch
+sysctl-clean-up-vm-related-variable-declarations.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+
