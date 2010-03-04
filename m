@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-at91_mci-correct-kunmap_atomic.patch added to -mm tree
-Date: Thu, 04 Mar 2010 12:42:15 -0800
-Message-ID: <201003042042.o24KgFGL028715__27727.171048946$1267744752$gmane$org@imap1.linux-foundation.org>
+Subject: + mm-add-comment-on-swap_duplicates-error-code.patch added to -mm tree
+Date: Thu, 04 Mar 2010 13:40:21 -0800
+Message-ID: <201003042140.o24LeLud031482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756378Ab0CDUm0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 15:42:26 -0500
+	by vger.kernel.org with ESMTP id S1754929Ab0CDVka (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 16:40:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, avictor.za@gmail.com, linux-mmc@vger.kernel.org, wolfgang.mues@auerswald.de
+Cc: hugh.dickins@tiscali.co.uk, hughd@google.com, shijie8@gmail.com
 
 
 The patch titled
-     mmc: at91_mci: correct kunmap_atomic()
+     mm: add comment on swap_duplicate's error code
 has been added to the -mm tree.  Its filename is
-     mmc-at91_mci-correct-kunmap_atomic.patch
+     mm-add-comment-on-swap_duplicates-error-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: correct kunmap_atomic()
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: mm: add comment on swap_duplicate's error code
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-kunmap_atomic() accepts a pointer to any location in the page so we do not
-need the subtraction and cast.
+swap_duplicate()'s loop appears to miss out on returning the error code
+from __swap_duplicate(), except when that's -ENOMEM.  In fact this is
+intentional: prior to -ENOMEM for swap_count_continuation,
+swap_duplicate() was void (and the case only occurs when copy_one_pte()
+hits a corrupt pte).  But that's surprising behaviour, which certainly
+deserves a comment.
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Wolfgang Muees <wolfgang.mues@auerswald.de>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Huang Shijie <shijie8@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-correct-kunmap_atomic drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-correct-kunmap_atomic
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -248,7 +248,7 @@ static inline void at91_mci_sg_to_dma(st
- 			dmabuf = (unsigned *)tmpv;
- 		}
+diff -puN mm/swapfile.c~mm-add-comment-on-swap_duplicates-error-code mm/swapfile.c
+--- a/mm/swapfile.c~mm-add-comment-on-swap_duplicates-error-code
++++ a/mm/swapfile.c
+@@ -2164,7 +2164,11 @@ void swap_shmem_alloc(swp_entry_t entry)
+ }
  
--		kunmap_atomic(((void *)sgbuffer) - sg->offset, KM_BIO_SRC_IRQ);
-+		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
- 
- 		if (size == 0)
- 			break;
-@@ -313,7 +313,7 @@ static void at91_mci_post_dma_read(struc
- 			dmabuf = (unsigned *)tmpv;
- 		}
- 
--		kunmap_atomic(((void *)sgbuffer)-sg->offset, KM_BIO_SRC_IRQ);
-+		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
- 		dmac_flush_range((void *)sgbuffer, ((void *)sgbuffer) + amount);
- 		data->bytes_xfered += amount;
- 		if (size == 0)
+ /*
+- * increase reference count of swap entry by 1.
++ * Increase reference count of swap entry by 1.
++ * Returns 0 for success, or -ENOMEM if a swap_count_continuation is required
++ * but could not be atomically allocated.  Returns 0, just as if it succeeded,
++ * if __swap_duplicate() fails for another reason (-EINVAL or -ENOENT), which
++ * might occur if a page table entry has got corrupted.
+  */
+ int swap_duplicate(swp_entry_t entry)
+ {
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-mmc-atmel-host-kconfig-cleanup-for-everyone-else.patch
-mmc-at91_mci-fix-pointer-errors.patch
-mmc-at91_mci-fix-timeout-errors.patch
-mmc-at91_mci-use-one-coherent-dma-buffer.patch
-mmc-at91_mci-use-dma-buffer-for-read.patch
-mmc-at91_mci-enable-large-data-blocks.patch
-mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works.patch
-mmc-at91_mci-introduce-per-mci-revision-conditional-code.patch
-mmc-at91_mci-correct-kunmap_atomic.patch
+mm-add-swap-slot-free-callback-to-block_device_operations.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+mlock_vma_pages_range-never-return-negative-value.patch
+mlock_vma_pages_range-only-return-success-or-failure.patch
+mm-fix-mbind-vma-merge-problem.patch
+mm-fix-mbind-vma-merge-problem-fix.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups.patch
+rmap-remove-obsolete-check-from-__page_check_anon_rmap.patch
+rmap-move-exclusively-owned-pages-to-own-anon_vma-in-do_wp_page.patch
+mm-swapfilec-fix-swapon-size-off-by-one.patch
+mm-add-comment-on-swap_duplicates-error-code.patch
+prio_tree-debugging-patch.patch
 
