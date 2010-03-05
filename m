@@ -1,72 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [folded] elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:24:29 -0800
-Message-ID: <201003052124.o25LOTcS028459@imap1.linux-foundation.org>
+Subject: [folded] mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:24:49 -0800
+Message-ID: <201003052124.o25LOns3028485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755131Ab0CEVZ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:25:29 -0500
+	by vger.kernel.org with ESMTP id S1754740Ab0CEV0N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:26:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: d.hatayama@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhiramat@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2
+     mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix
 has been removed from the -mm tree.  Its filename was
-     elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2.patch
+     mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
 
-This patch was dropped because it was folded into elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
+This patch was dropped because it was folded into mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2
-From: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
+Subject: mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-compat_binfmt_elf.c: Use 32-bit section header, not 64-bit one
+fix merge
 
-I found that the previous fix patch of mine was insufficient for
-fixing the problem relevant to EL32. It was necessary that one should
-use the 32-bit datatype for section headers instead of the 64-bit one.
-Here is a patch complementing it.
-
-I made a runtime test for this fix patch, confirming that the
-functionality works well.
-
-Signed-off-by: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_binfmt_elf.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/binfmt_elf.c       |    2 +-
+ fs/binfmt_elf_fdpic.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/compat_binfmt_elf.c~elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2 fs/compat_binfmt_elf.c
---- a/fs/compat_binfmt_elf.c~elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2
-+++ a/fs/compat_binfmt_elf.c
-@@ -28,10 +28,12 @@
+diff -puN fs/binfmt_elf.c~mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix
++++ a/fs/binfmt_elf.c
+@@ -1956,7 +1956,7 @@ static int elf_core_dump(struct coredump
  
- #undef	elfhdr
- #undef	elf_phdr
-+#undef	elf_shdr
- #undef	elf_note
- #undef	elf_addr_t
- #define elfhdr		elf32_hdr
- #define elf_phdr	elf32_phdr
-+#define elf_shdr	elf32_shdr
- #define elf_note	elf32_note
- #define elf_addr_t	Elf32_Addr
+ 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
+ 
+-	offset += elf_core_vma_data_size(gate_vma, mm_flags);
++	offset += elf_core_vma_data_size(gate_vma, cprm->mm_flags);
+ 	offset += elf_core_extra_data_size();
+ 	e_shoff = offset;
+ 
+diff -puN fs/binfmt_elf_fdpic.c~mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1768,7 +1768,7 @@ static int elf_fdpic_core_dump(struct co
+ 	/* Page-align dumped data */
+ 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
+ 
+-	offset += elf_core_vma_data_size(mm_flags);
++	offset += elf_core_vma_data_size(cprm->mm_flags);
+ 	offset += elf_core_extra_data_size();
+ 	e_shoff = offset;
  
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions-fix-2.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
+origin.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+mm-remove-function-free_hot_page.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+uml-linec-avoid-null-pointer-dereference.patch
+lib-more-scalable-list_sort.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+gpio-cs5535-gpio-fix-input-direction.patch
 
