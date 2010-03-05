@@ -1,138 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:19:31 -0800
-Message-ID: <201003052119.o25LJVh1028190@imap1.linux-foundation.org>
+Subject: [folded] mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:20:11 -0800
+Message-ID: <201003052120.o25LKBCm028209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39380 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752462Ab0CEVTt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:19:49 -0500
+	by vger.kernel.org with ESMTP id S1752622Ab0CEVUi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:20:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lwoodman@redhat.com, minchan.kim@gmail.com, mm-commits@vger.
 
 
 The patch titled
-     mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix
+     mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups
 has been removed from the -mm tree.  Its filename was
-     mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+     mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups.patch
 
 This patch was dropped because it was folded into mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups
+From: Rik van Riel <riel@redhat.com>
 
-Cc: Rik van Riel <riel@redhat.com>
+Fix the locking comments, the missed free in the fork error path and clean
+up the anon_vma_chain slab creation as suggested by Andrew Morton.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c           |    2 +-
- mm/memory-failure.c |    5 +++--
- mm/mmap.c           |    3 +--
- mm/rmap.c           |    9 +++++----
- 4 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/mm_types.h |    3 ++-
+ include/linux/rmap.h     |    2 +-
+ kernel/fork.c            |    1 +
+ mm/rmap.c                |    4 +---
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/exec.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix fs/exec.c
---- a/fs/exec.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix
-+++ a/fs/exec.c
-@@ -549,7 +549,7 @@ static int shift_arg_pages(struct vm_are
- 	tlb_finish_mmu(tlb, new_end, old_end);
- 
- 	/*
--	 * shrink the vma to just the new range.  always succeeds.
-+	 * Shrink the vma to just the new range.  Always succeeds.
+diff -puN include/linux/mm_types.h~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups
++++ a/include/linux/mm_types.h
+@@ -163,7 +163,8 @@ struct vm_area_struct {
+ 	 * can only be in the i_mmap tree.  An anonymous MAP_PRIVATE, stack
+ 	 * or brk vma (with NULL file) can only be in an anon_vma list.
  	 */
- 	vma_adjust(vma, new_start, new_end, vma->vm_pgoff, NULL);
+-	struct list_head anon_vma_chain; /* Serialized by mmap_sem & friends */
++	struct list_head anon_vma_chain; /* Serialized by mmap_sem &
++					  * page_table_lock */
+ 	struct anon_vma *anon_vma;	/* Serialized by page_table_lock */
  
-diff -puN mm/memory-failure.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix mm/memory-failure.c
---- a/mm/memory-failure.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix
-+++ a/mm/memory-failure.c
-@@ -375,7 +375,6 @@ static void collect_procs_anon(struct pa
- 			      struct to_kill **tkc)
- {
+ 	/* Function pointers to deal with this struct. */
+diff -puN include/linux/rmap.h~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups
++++ a/include/linux/rmap.h
+@@ -56,7 +56,7 @@ struct anon_vma {
+ struct anon_vma_chain {
  	struct vm_area_struct *vma;
--	struct anon_vma_chain *vmac;
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
+ 	struct anon_vma *anon_vma;
+-	struct list_head same_vma;	/* locked by mmap_sem & friends */
++	struct list_head same_vma;   /* locked by mmap_sem & page_table_lock */
+ 	struct list_head same_anon_vma;	/* locked by anon_vma->lock */
+ };
  
-@@ -384,9 +383,11 @@ static void collect_procs_anon(struct pa
- 	if (av == NULL)	/* Not actually mapped anymore */
- 		goto out;
- 	for_each_process (tsk) {
-+		struct anon_vma_chain *vmac;
-+
- 		if (!task_early_kill(tsk))
- 			continue;
--		list_for_each_entry (vmac, &av->head, same_anon_vma) {
-+		list_for_each_entry(vmac, &av->head, same_anon_vma) {
- 			vma = vmac->vma;
- 			if (!page_mapped_in_vma(page, vma))
- 				continue;
-diff -puN mm/mmap.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix mm/mmap.c
---- a/mm/mmap.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix
-+++ a/mm/mmap.c
-@@ -542,8 +542,7 @@ again:			remove_next = 1 + (end > next->
- 	}
- 
- 	/*
--	 * When changing only vma->vm_end, we don't really need
--	 * anon_vma lock.
-+	 * When changing only vma->vm_end, we don't really need anon_vma lock.
- 	 */
- 	if (vma->anon_vma && (insert || importer || start != vma->vm_start))
- 		anon_vma = vma->anon_vma;
-diff -puN mm/rmap.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix mm/rmap.c
---- a/mm/rmap.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix
+diff -puN kernel/fork.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups kernel/fork.c
+--- a/kernel/fork.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups
++++ a/kernel/fork.c
+@@ -395,6 +395,7 @@ out:
+ 	up_write(&oldmm->mmap_sem);
+ 	return retval;
+ fail_nomem_anon_vma_fork:
++	mpol_put(pol);
+ fail_nomem_policy:
+ 	kmem_cache_free(vm_area_cachep, tmp);
+ fail_nomem:
+diff -puN mm/rmap.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups mm/rmap.c
+--- a/mm/rmap.c~mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups
 +++ a/mm/rmap.c
-@@ -331,17 +331,18 @@ vma_address(struct page *page, struct vm
- 		/* page should be within @vma mapping range */
- 		return -EFAULT;
- 	}
--	if (unlikely(vma->vm_flags & VM_LOCK_RMAP))
-+	if (unlikely(vma->vm_flags & VM_LOCK_RMAP)) {
- 		/*
--		 * This VMA is being unlinked or not yet linked into the
-+		 * This VMA is being unlinked or is not yet linked into the
- 		 * VMA tree.  Do not try to follow this rmap.  This race
--		 * condition can result in page_referenced ignoring a
--		 * reference or try_to_unmap failing to unmap a page.
-+		 * condition can result in page_referenced() ignoring a
-+		 * reference or in try_to_unmap() failing to unmap a page.
- 		 * The VMA cannot be freed under us because we hold the
- 		 * anon_vma->lock, which the munmap code takes while
- 		 * unlinking the anon_vmas from the VMA.
- 		 */
- 		return -EFAULT;
-+	}
- 	return address;
+@@ -280,9 +280,7 @@ void __init anon_vma_init(void)
+ {
+ 	anon_vma_cachep = kmem_cache_create("anon_vma", sizeof(struct anon_vma),
+ 			0, SLAB_DESTROY_BY_RCU|SLAB_PANIC, anon_vma_ctor);
+-	anon_vma_chain_cachep = kmem_cache_create("anon_vma_chain",
+-			sizeof(struct anon_vma_chain), 0,
+-			SLAB_PANIC, NULL);
++	anon_vma_chain_cachep = KMEM_CACHE(anon_vma_chain, SLAB_PANIC);
  }
  
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-origin.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-count-swap-usage.patch
+mlock_vma_pages_range-never-return-negative-value.patch
+mlock_vma_pages_range-only-return-success-or-failure.patch
 vmscan-check-high-watermark-after-shrink-zone.patch
+vmscan-get_scan_ratio-cleanup.patch
+mm-page_allocc-remove-duplicate-call-to-trace_mm_page_free_direct.patch
+mm-page_allocc-adjust-a-call-site-to-trace_mm_page_free_direct.patch
 mm-remove-function-free_hot_page.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
 mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-gpio-cs5535-gpio-fix-input-direction.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups.patch
+rmap-remove-obsolete-check-from-__page_check_anon_rmap.patch
+rmap-move-exclusively-owned-pages-to-own-anon_vma-in-do_wp_page.patch
+mm-remove-vm_lock_rmap-code.patch
+vmscan-factor-out-page-reference-checks.patch
+vmscan-factor-out-page-reference-checks-fix.patch
+vmscan-drop-page_mapping_inuse.patch
+vmscan-detect-mapped-file-pages-used-only-once.patch
 
