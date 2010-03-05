@@ -1,79 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] lis3-add-missing-constants-for-8bit-device.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 11:56:04 -0800
-Message-ID: <201003051956.o25Ju4aq024345@imap1.linux-foundation.org>
+Subject: [to-be-updated] lis3-introduce-platform-data-for-second-ff-wu-unit.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 11:56:10 -0800
+Message-ID: <201003051956.o25JuAw5024425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755765Ab0CET4W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 14:56:22 -0500
+	by vger.kernel.org with ESMTP id S1755802Ab0CET4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 14:56:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, daniel@caiaq.de, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3: add missing constants for 8bit device
+     lis3: introduce platform data for second ff / wu unit
 has been removed from the -mm tree.  Its filename was
-     lis3-add-missing-constants-for-8bit-device.patch
+     lis3-introduce-platform-data-for-second-ff-wu-unit.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: add missing constants for 8bit device
+Subject: lis3: introduce platform data for second ff / wu unit
 From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Lis3 accelerometer chip family changes for power management, click and
-threshold event handling.
+An 8 bit device has two wakeup / free fall units.  It was not possible to
+configure the second unit.  This patch introduces configuration entry to
+the platform data and also corresponding changes to the 8 bit setup
+function.
 
-Patch set adds interrupt handlers for click/tap events and threshold based
-events.  Actual configuration which events are enabled is done via
-platform data.  All the features cannot be used in parallel.  Interrupts
-are implemented only for 8 bit device, since I'm not familiar with other
-devices and I don't have suitable testing environment.
-
-Changes:
-
-lis3: Add missing constants for 8bit device This is quite clear.  Some
-click feature related register definitions were missing.
-
-lis3: Separate configuration function for 8 bit device Move platformdata
-based configurations for 8 bit device to separate function to keep common
-part little bit more readable.
-
-lis3: Introduce platform data for second ff / wu unit 8 bit device has two
-freefall / wakeup detection blocks.  Add possibility to configure also the
-second unit.  Change hipass filter configuration to platform data.  Change
-is compatible with existing platform data.
-
-lis3: Power control for the chip This kind of feature has been in the
-driver earlier.  It was removed because saving was so small in laptop
-environment.  However, in smaller devices, even a small saving need to be
-implemented.  When driver detects that no-one is really interested about
-the acceleration, chip is powered down.  Input device, freefall device and
-sysfs are controlling this.  By default, chip is powered on to keep
-functionality similar to current implementation.
-
-lis3: Add skeletons for interrupt handlers Interrupt handlers are added in
-two patches to keep changes cleaner.  This first patch adds two dummy
-threaded interrupt handlers for 8 bit device.  
-
-lis3: Interrupt handlers for 8bit wakeup and click events This patch adds
-content to dummy handlers.  Depending on the chip configuration, either
-click or ff/wu handling is called.  For click event, BTN input event is
-sent separately for each axes.  For threshold event, coordinates are
-updated immediatelly to input device.  This allows input device to be used
-either in polled mode and / or interrupt driven mode.  Polling can stopped
-from userspace by via input device sysfs.
-
-
-
-This patch:
-
-Definitions for click were missing.
+High pass filters were enabled by default.  Patch introduces configuration
+option for high pass filter cut off frequency and also possibility to
+disable or enable the filter via platform data.  Since the control is a
+new one and default state was filter enabled, new option is used to
+disable the filter.  This way old platform data is still compatible with
+the change.
 
 Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
@@ -81,35 +44,66 @@ Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/hwmon/lis3lv02d.c |   15 +++++++++++++--
+ include/linux/lis3lv02d.h |    9 +++++++++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-missing-constants-for-8bit-device drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3-add-missing-constants-for-8bit-device
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -196,6 +196,16 @@ enum lis3lv02d_dd_src {
- 	DD_SRC_IA	= 0x40,
- };
- 
-+enum lis3lv02d_click_src_8b {
-+	CLICK_SINGLE_X	= 0x01,
-+	CLICK_DOUBLE_X	= 0x02,
-+	CLICK_SINGLE_Y	= 0x04,
-+	CLICK_DOUBLE_Y	= 0x08,
-+	CLICK_SINGLE_Z	= 0x10,
-+	CLICK_DOUBLE_Z	= 0x20,
-+	CLICK_IA	= 0x40,
-+};
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-introduce-platform-data-for-second-ff-wu-unit drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-introduce-platform-data-for-second-ff-wu-unit
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -524,6 +524,8 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+ 				struct lis3lv02d_platform_data *p)
+ {
++	int ctrl2 = p->hipass_ctrl;
 +
- struct axis_conversion {
- 	s8	x;
- 	s8	y;
+ 	if (p->click_flags) {
+ 		dev->write(dev, CLICK_CFG, p->click_flags);
+ 		dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
+@@ -540,9 +542,18 @@ static void lis3lv02d_8b_configure(struc
+ 		dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
+ 		/* default to 2.5ms for now */
+ 		dev->write(dev, FF_WU_DURATION_1, 1);
+-		/* enable high pass filter for both free-fall units */
+-		dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
++		ctrl2 ^= HP_FF_WU1; /* Xor to keep compatible with old pdata*/
++	}
++
++	if (p->wakeup_flags2) {
++		dev->write(dev, FF_WU_CFG_2, p->wakeup_flags2);
++		dev->write(dev, FF_WU_THS_2, p->wakeup_thresh2 & 0x7f);
++		/* default to 2.5ms for now */
++		dev->write(dev, FF_WU_DURATION_2, 1);
++		ctrl2 ^= HP_FF_WU2; /* Xor to keep compatible with old pdata*/
+ 	}
++	/* Configure hipass filters */
++	dev->write(dev, CTRL_REG2, ctrl2);
+ }
+ 
+ /*
+diff -puN include/linux/lis3lv02d.h~lis3-introduce-platform-data-for-second-ff-wu-unit include/linux/lis3lv02d.h
+--- a/include/linux/lis3lv02d.h~lis3-introduce-platform-data-for-second-ff-wu-unit
++++ a/include/linux/lis3lv02d.h
+@@ -43,6 +43,15 @@ struct lis3lv02d_platform_data {
+ #define LIS3_WAKEUP_Z_HI	(1 << 5)
+ 	unsigned char wakeup_flags;
+ 	unsigned char wakeup_thresh;
++	unsigned char wakeup_flags2;
++	unsigned char wakeup_thresh2;
++#define LIS3_HIPASS_CUTFF_8HZ   0
++#define LIS3_HIPASS_CUTFF_4HZ   1
++#define LIS3_HIPASS_CUTFF_2HZ   2
++#define LIS3_HIPASS_CUTFF_1HZ   3
++#define LIS3_HIPASS1_DISABLE    (1 << 2)
++#define LIS3_HIPASS2_DISABLE    (1 << 3)
++	unsigned char hipass_ctrl;
+ #define LIS3_NO_MAP		0
+ #define LIS3_DEV_X		1
+ #define LIS3_DEV_Y		2
 _
 
 Patches currently in -mm which might be from samu.p.onkalo@nokia.com are
 
-lis3-add-missing-constants-for-8bit-device.patch
-lis3-separate-configuration-function-for-8-bit-device.patch
 lis3-introduce-platform-data-for-second-ff-wu-unit.patch
 lis3-power-control-for-the-chip.patch
 lis3-add-skeletons-for-interrupt-handlers.patch
