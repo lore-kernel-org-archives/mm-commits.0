@@ -1,63 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-factor-out-page-reference-checks-fix.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:20:56 -0800
-Message-ID: <201003052120.o25LKuta028252@imap1.linux-foundation.org>
+Subject: [folded] uml-linec-avoid-null-pointer-dereference-simplify.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:21:24 -0800
+Message-ID: <201003052121.o25LLOAp028342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622Ab0CEVVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:21:39 -0500
+	by vger.kernel.org with ESMTP id S1755083Ab0CEVV5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:21:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.beregalov@gmail.com, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: improve comment on mlocked page in reclaim
+     uml-linec-avoid-null-pointer-dereference-simplify
 has been removed from the -mm tree.  Its filename was
-     vmscan-factor-out-page-reference-checks-fix.patch
+     uml-linec-avoid-null-pointer-dereference-simplify.patch
 
-This patch was dropped because it was folded into vmscan-factor-out-page-reference-checks.patch
+This patch was dropped because it was folded into uml-linec-avoid-null-pointer-dereference.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: improve comment on mlocked page in reclaim
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: uml-linec-avoid-null-pointer-dereference-simplify
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: OSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/um/drivers/line.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-factor-out-page-reference-checks-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-factor-out-page-reference-checks-fix
-+++ a/mm/vmscan.c
-@@ -599,7 +599,10 @@ static enum page_references page_check_r
- 	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
- 		return PAGEREF_RECLAIM;
+diff -puN arch/um/drivers/line.c~uml-linec-avoid-null-pointer-dereference-simplify arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-linec-avoid-null-pointer-dereference-simplify
++++ a/arch/um/drivers/line.c
+@@ -20,10 +20,8 @@ static irqreturn_t line_interrupt(int ir
+ 	struct line *line = chan->line;
+ 	struct tty_struct *tty;
  
--	/* Mlock lost isolation race - let try_to_unmap() handle it */
-+	/*
-+	 * Mlock lost the isolation race with us.  Let try_to_unmap()
-+	 * move the page to the unevictable list.
-+	 */
- 	if (vm_flags & VM_LOCKED)
- 		return PAGEREF_RECLAIM;
+-	if (line) {
+-		tty = line->tty;
+-		chan_interrupt(&line->chan_list, &line->task, tty, irq);
+-	}
++	if (line)
++		chan_interrupt(&line->chan_list, &line->task, line->tty, irq);
+ 	return IRQ_HANDLED;
+ }
  
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-factor-out-page-reference-checks.patch
-vmscan-factor-out-page-reference-checks-fix.patch
-vmscan-drop-page_mapping_inuse.patch
-vmscan-detect-mapped-file-pages-used-only-once.patch
+origin.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+mm-remove-function-free_hot_page.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+uml-linec-avoid-null-pointer-dereference.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+gpio-cs5535-gpio-fix-input-direction.patch
 
