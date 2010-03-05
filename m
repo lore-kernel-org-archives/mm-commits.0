@@ -1,76 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lib-more-scalable-list_sort-fix.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:22:40 -0800
-Message-ID: <201003052122.o25LMfR6028385@imap1.linux-foundation.org>
+Subject: [folded] sdio-introduce-api-for-special-power-management-features-fix.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:23:35 -0800
+Message-ID: <201003052123.o25LNZFE028438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56216 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752462Ab0CEVXd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:23:33 -0500
+	by vger.kernel.org with ESMTP id S1755358Ab0CEVYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:24:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@redhat.com, andi@firstfloor.org, david@fromorbit.com, dedekind@infradead.org, don.mullis@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nico@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-more-scalable-list_sort-fix
+     sdio-introduce-api-for-special-power-management-features-fix
 has been removed from the -mm tree.  Its filename was
-     lib-more-scalable-list_sort-fix.patch
+     sdio-introduce-api-for-special-power-management-features-fix.patch
 
-This patch was dropped because it was folded into lib-more-scalable-list_sort.patch
+This patch was dropped because it was folded into sdio-introduce-api-for-special-power-management-features.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-more-scalable-list_sort-fix
+Subject: sdio-introduce-api-for-special-power-management-features-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-style tweaks, fix comment, make list_sort_test __init.
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Artem Bityutskiy <dedekind@infradead.org>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Don Mullis <don.mullis@gmail.com>
+Cc: Nicolas Pitre <nico@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_sort.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/mmc/core/sdio_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/list_sort.c~lib-more-scalable-list_sort-fix lib/list_sort.c
---- a/lib/list_sort.c~lib-more-scalable-list_sort-fix
-+++ a/lib/list_sort.c
-@@ -61,16 +61,16 @@ static void merge_and_restore_back_links
- 		}
- 		tail = tail->next;
- 	}
--	tail->next = a?:b;
-+	tail->next = a ? : b;
- 
- 	do {
- 		/*
- 		 * In worst cases this loop may run many iterations.
- 		 * Continue callbacks to the client even though no
--		 * element comparison is need, so the client's cmp()
-+		 * element comparison is needed, so the client's cmp()
- 		 * routine can invoke cond_resched() periodically.
- 		 */
--		(void) (*cmp)(priv, tail, tail);
-+		(*cmp)(priv, tail, tail);
- 
- 		tail->next->prev = tail;
- 		tail = tail->next;
-@@ -159,7 +159,7 @@ static int cmp(void *priv, struct list_h
-  */
- #define LIST_SORT_TEST_LENGTH (512+128+2) /* not including head */
- 
--static int list_sort_test(void)
-+static int __init list_sort_test(void)
- {
- 	int i, r = 1, count;
- 	struct list_head *head = kmalloc(sizeof(*head), GFP_KERNEL);
+diff -puN drivers/mmc/core/sdio_io.c~sdio-introduce-api-for-special-power-management-features-fix drivers/mmc/core/sdio_io.c
+--- a/drivers/mmc/core/sdio_io.c~sdio-introduce-api-for-special-power-management-features-fix
++++ a/drivers/mmc/core/sdio_io.c
+@@ -645,7 +645,7 @@ EXPORT_SYMBOL_GPL(sdio_f0_writeb);
+  *	sdio_get_host_pm_caps - get host power management capabilities
+  *	@func: SDIO function attached to host
+  *
+- *	REturns a capability bitmask corresponding to power management
++ *	Returns a capability bitmask corresponding to power management
+  *	features supported by the host controller that the card function
+  *	might rely upon during a system suspend.  The host doesn't need
+  *	to be claimed, nor the function active, for this information to be
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +62,8 @@ mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
 mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
 uml-linec-avoid-null-pointer-dereference.patch
 lib-more-scalable-list_sort.patch
-lib-more-scalable-list_sort-fix.patch
 fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features.patch
 sdio-introduce-api-for-special-power-management-features-fix.patch
 mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
 gpio-pca953xc-add-interrupt-handling-capability.patch
