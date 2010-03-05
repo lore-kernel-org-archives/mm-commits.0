@@ -1,74 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [folded] gpio-pca953xc-add-interrupt-handling-capability-v4.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:26:28 -0800
-Message-ID: <201003052126.o25LQSmQ028610@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 05 Mar 2010 14:06:02 -0800
+Message-ID: <201003052206.o25M627p031054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755319Ab0CEV1t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:27:49 -0500
+	by vger.kernel.org with ESMTP id S1755333Ab0CEWGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 17:06:34 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o25M62Ca012914
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 5 Mar 2010 14:06:03 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maz@misterjones.org, david-b@pacbell.net, eric.y.miao@gmail.com, haojian.zhuang@gmail.com, ncase@xes-inc.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     gpio-pca953xc-add-interrupt-handling-capability-v4
-has been removed from the -mm tree.  Its filename was
-     gpio-pca953xc-add-interrupt-handling-capability-v4.patch
+     linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-This patch was dropped because it was folded into gpio-pca953xc-add-interrupt-handling-capability.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-pca953xc-add-interrupt-handling-capability-v4
-From: Marc Zyngier <maz@misterjones.org>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Fix compilation issue on anything but ARM
-- Remove unnecessary inlines, courtesy of Andrew Morton
-
-Signed-off-by: Marc Zyngier <maz@misterjones.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Nate Case <ncase@xes-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/fs.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/pca953x.c~gpio-pca953xc-add-interrupt-handling-capability-v4 drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-pca953xc-add-interrupt-handling-capability-v4
-+++ a/drivers/gpio/pca953x.c
-@@ -371,7 +371,11 @@ static int pca953x_irq_setup(struct pca9
- 			set_irq_chip_and_handler(irq, &pca953x_irq_chip,
- 						 handle_edge_irq);
- 			set_irq_nested_thread(irq, 1);
-+#ifdef CONFIG_ARM
- 			set_irq_flags(irq, IRQF_VALID);
-+#else
-+			set_irq_noprobe(irq);
-+#endif
- 		}
+diff -puN Documentation/filesystems/proc.txt~linux-next-rejects Documentation/filesystems/proc.txt
+diff -puN include/linux/fs.h~linux-next-rejects include/linux/fs.h
+--- a/include/linux/fs.h~linux-next-rejects
++++ a/include/linux/fs.h
+@@ -91,7 +91,8 @@ struct inodes_stat_t {
+ #define FMODE_RANDOM		((__force fmode_t)0x1000)
  
- 		ret = request_threaded_irq(client->irq,
-@@ -413,7 +417,7 @@ static int pca953x_irq_setup(struct pca9
- 	return 0;
- }
+ /* File was opened by fanotify and shouldn't generate fanotify events */
+-#define FMODE_NONOTIFY		((__force fmode_t)16777216) /* 0x1000000 */
++/* File was opened by fanotify and shouldn't generate fanotify events */
++#define FMODE_NONOTIFY		((__force fmode_t)0x1000000)
  
--static inline void pca953x_irq_teardown(struct pca953x_chip *chip)
-+static void pca953x_irq_teardown(struct pca953x_chip *chip)
- {
- }
- #endif
+ /*
+  * The below are the various read and write types that we support. Some of
+diff -puN lib/Kconfig~linux-next-rejects lib/Kconfig
+diff -puN lib/Makefile~linux-next-rejects lib/Makefile
 _
 
-Patches currently in -mm which might be from maz@misterjones.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+bitops-rename-for_each_bit-to-for_each_set_bit.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+mm-remove-function-free_hot_page.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+uml-linec-avoid-null-pointer-dereference.patch
+lib-more-scalable-list_sort.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
 gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-v4.patch
+gpio-cs5535-gpio-fix-input-direction.patch
+linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-watchdog-wdtc-wdt_ioctl-make-ident-non-static.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+add-generic-sys_ipc-wrapper-fix.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
