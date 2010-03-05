@@ -1,73 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-remove-function-free_hot_page-fix.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:16:25 -0800
-Message-ID: <201003052116.o25LGPiP028076@imap1.linux-foundation.org>
+Subject: [folded] memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:18:40 -0800
+Message-ID: <201003052118.o25LIeMI028158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752462Ab0CEVSc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:18:32 -0500
+	by vger.kernel.org with ESMTP id S1752462Ab0CEVSp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:18:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lihong.hi@gmail.com, lwoodman@redhat.com, macli@brc.ubc.ca, mel@csn.ul.ie, mingo@elte.hu, peterz@infradead.org, riel@redhat.
+To: akpm@linux-foundation.org, ak@linux.intel.com, fengguang.wu@intel.com, haveblue@us.ibm.com, shaohui.zheng@intel.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-remove-function-free_hot_page-fix
+     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix
 has been removed from the -mm tree.  Its filename was
-     mm-remove-function-free_hot_page-fix.patch
+     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
 
-This patch was dropped because it was folded into mm-remove-function-free_hot_page.patch
+This patch was dropped because it was folded into memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-remove-function-free_hot_page-fix
+Subject: memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-hm, that couldn't possible have worked for you :(
+un-kernedoc a no longer kerneldoc comment
 
-Cc: Americo Wang <xiyou.wangcong@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Li Hong <lihong.hi@gmail.com>
-Cc: Li Ming Chun <macli@brc.ubc.ca>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Shaohui Zheng <shaohui.zheng@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/page_alloc.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/firmware/memmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-remove-function-free_hot_page-fix include/linux/gfp.h
---- a/include/linux/gfp.h~mm-remove-function-free_hot_page-fix
-+++ a/include/linux/gfp.h
-@@ -325,7 +325,7 @@ void free_pages_exact(void *virt, size_t
+diff -puN drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix
++++ a/drivers/firmware/memmap.c
+@@ -122,7 +122,7 @@ static int firmware_map_add_entry(u64 st
+ 	return 0;
+ }
  
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
--extern void free_hot_page(struct page *page);
-+extern void free_hot_cold_page(struct page *page, int cold);
- 
- #define __free_page(page) __free_pages((page), 0)
- #define free_page(addr) free_pages((addr),0)
-diff -puN mm/page_alloc.c~mm-remove-function-free_hot_page-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-function-free_hot_page-fix
-+++ a/mm/page_alloc.c
-@@ -1095,7 +1095,7 @@ void mark_free_pages(struct zone *zone)
-  * Free a 0-order page
-  * cold == 1 ? free a cold page : free a hot page
+-/**
++/*
+  * Add memmap entry on sysfs
   */
--static void free_hot_cold_page(struct page *page, int cold)
-+void free_hot_cold_page(struct page *page, int cold)
- {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
+ static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,8 +61,8 @@ mm-avoid-false-sharing-of-mm_counter.patch
 mm-count-swap-usage.patch
 vmscan-check-high-watermark-after-shrink-zone.patch
 mm-remove-function-free_hot_page.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
 include-linux-fsh-convert-fmode_-constants-to-hex.patch
 mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
