@@ -1,74 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-count-swap-usage-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:15:31 -0800
-Message-ID: <201003052115.o25LFVCE027973@imap1.linux-foundation.org>
+Subject: [folded] bitops-add-temporary-for_each_bit.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:13:23 -0800
+Message-ID: <201003052113.o25LDNg3027881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754170Ab0CEVP4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:15:56 -0500
+	by vger.kernel.org with ESMTP id S1753235Ab0CEVQi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:16:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-count-swap-usage-checkpatch-fixes
+     bitops: add temporary for_each_bit()
 has been removed from the -mm tree.  Its filename was
-     mm-count-swap-usage-checkpatch-fixes.patch
+     bitops-add-temporary-for_each_bit.patch
 
-This patch was dropped because it was folded into mm-count-swap-usage.patch
+This patch was dropped because it was folded into bitops-rename-for_each_bit-to-for_each_set_bit.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-count-swap-usage-checkpatch-fixes
+Subject: bitops: add temporary for_each_bit()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#150: FILE: mm/memory.c:984:
-+^I^I  ^Iif (unlikely(!free_swap_and_cache(entry)))$
+Keep stuff working for now.
 
-total: 1 errors, 0 warnings, 102 lines checked
-
-./patches/mm-count-swap-usage.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bitops.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memory.c~mm-count-swap-usage-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-count-swap-usage-checkpatch-fixes
-+++ a/mm/memory.c
-@@ -981,7 +981,7 @@ static unsigned long zap_pte_range(struc
+diff -puN include/linux/bitops.h~bitops-add-temporary-for_each_bit include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-add-temporary-for_each_bit
++++ a/include/linux/bitops.h
+@@ -21,6 +21,8 @@
+ 	     (bit) < (size); \
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
  
- 			if (!non_swap_entry(entry))
- 				rss[MM_SWAPENTS]--;
--		  	if (unlikely(!free_swap_and_cache(entry)))
-+			if (unlikely(!free_swap_and_cache(entry)))
- 				print_bad_pte(vma, addr, ptent, NULL);
- 		}
- 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++/* Temporary */
++#define for_each_bit(bit, addr, size) for_each_set_bit(bit, addr, size)
+ 
+ static __inline__ int get_bitmask_order(unsigned int count)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-count-swap-usage.patch
+bitops-add-temporary-for_each_bit.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
 mm-count-swap-usage-checkpatch-fixes.patch
 vmscan-check-high-watermark-after-shrink-zone-fix.patch
 mm-remove-function-free_hot_page-fix.patch
