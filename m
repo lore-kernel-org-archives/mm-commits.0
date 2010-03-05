@@ -1,133 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-update-maintainer-list.patch added to -mm tree
-Date: Thu, 04 Mar 2010 14:30:19 -0800
-Message-ID: <201003042230.o24MUJGI001363@imap1.linux-foundation.org>
+Subject: [failures] vsprintf-recursive-vsnprintf-add-%pv-struct-va_format.patch removed from -mm tree
+Date: Thu, 04 Mar 2010 16:30:27 -0800
+Message-ID: <201003050056.o250ubar007807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754525Ab0CDWa2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 17:30:28 -0500
+	by vger.kernel.org with ESMTP id S1756561Ab0CEA4q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Mar 2010 19:56:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, xemul@openvz.org
+To: joe@perches.com, greg@kroah.com, kay.sievers@vrfy.org, nick@nick-andrew.net, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: update maintainer list
-has been added to the -mm tree.  Its filename is
-     memcg-update-maintainer-list.patch
+     vsprintf: recursive vsnprintf: add "%pV", struct va_format
+has been removed from the -mm tree.  Its filename was
+     vsprintf-recursive-vsnprintf-add-%pv-struct-va_format.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: update maintainer list
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: vsprintf: recursive vsnprintf: add "%pV", struct va_format
+From: Joe Perches <joe@perches.com>
 
-Nishimura-san have been working for memcg very good.  His review and tests
-give us much improvements and account migraiton which he is now
-challenging is really important.
+dev_<level> macros use a lot of repetitive string space.
 
-He is a stakeholder.
+Eliminate the string prefixes and function arguments from all the macro
+uses and consolidate them in functions.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+This patchset saves about 60K.
+
+This implementation also adds the ability to use a struct va_format to
+emit a format string along with va_list arguments.
+
+This %pV implementation should not be used without a wrapper that does
+printf argument verification like the dev_<level> functions.
+
+Inspired a bit by Nick Andrew's patches and Linus' comments in December 2008
+http://lkml.org/lkml/2008/12/6/15
+http://lkml.org/lkml/2008/12/6/101
+
+
+This patch:
+
+Add the ability to print a format and va_list from a structure pointer
+
+Allows __dev_printk to be implemented as a single printk while
+minimizing string space duplication.
+
+%pV should not be used without some mechanism to verify the
+format and argument use ala __attribute__(format (printf(...))).
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Nick Andrew <nick@nick-andrew.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |    5 +++++
+ lib/vsprintf.c         |    9 +++++++++
+ 2 files changed, 14 insertions(+)
 
-diff -puN MAINTAINERS~memcg-update-maintainer-list MAINTAINERS
---- a/MAINTAINERS~memcg-update-maintainer-list
-+++ a/MAINTAINERS
-@@ -3674,7 +3674,7 @@ F:	mm/
+diff -puN include/linux/kernel.h~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format include/linux/kernel.h
+--- a/include/linux/kernel.h~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format
++++ a/include/linux/kernel.h
+@@ -169,6 +169,11 @@ static inline void might_fault(void)
+ }
+ #endif
  
- MEMORY RESOURCE CONTROLLER
- M:	Balbir Singh <balbir@linux.vnet.ibm.com>
--M:	Pavel Emelyanov <xemul@openvz.org>
-+M:	Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
- M:	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
- L:	linux-mm@kvack.org
- S:	Maintained
++struct va_format {
++	const char *fmt;
++	va_list *va;
++};
++
+ extern struct atomic_notifier_head panic_notifier_list;
+ extern long (*panic_blink)(long time);
+ NORET_TYPE void panic(const char * fmt, ...)
+diff -puN lib/vsprintf.c~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-recursive-vsnprintf-add-%pv-struct-va_format
++++ a/lib/vsprintf.c
+@@ -950,6 +950,11 @@ static char *uuid_string(char *buf, char
+  *             [0][1][2][3]-[4][5]-[6][7]-[8][9]-[10][11][12][13][14][15]
+  *           little endian output byte order is:
+  *             [3][2][1][0]-[5][4]-[7][6]-[8][9]-[10][11][12][13][14][15]
++ * - 'V' For a struct va_format which contains a format string * and va_list *,
++ *       call vsnprintf(->format, *->va_list).
++ *       Implements a "recursive vsnprintf".
++ *       Do not use this feature without some mechanism to verify the
++ *       correctness of the format string and va_list arguments.
+  *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+@@ -994,6 +999,10 @@ static char *pointer(const char *fmt, ch
+ 		break;
+ 	case 'U':
+ 		return uuid_string(buf, end, ptr, spec, fmt);
++	case 'V':
++		return buf + vsnprintf(buf, end - buf,
++				       ((struct va_format *)ptr)->fmt,
++				       *(((struct va_format *)ptr)->va));
+ 	}
+ 	spec.flags |= SMALL;
+ 	if (spec.field_width == -1) {
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-get_scan_ratio-cleanup.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-migratec-kill-anon-local-variable-from-migrate_page_copy.patch
-mm-add-comment-about-deprecation-of-__gfp_nofail.patch
-nodemaskh-remove-macro-any_online_node.patch
-devmem-dont-allow-seek-to-last-page.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-loading-interface-fix.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-blkio-subsystem-as-module.patch
-cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
-memcg-use-generic-percpu-instead-of-private-implementation.patch
-memcg-update-threshold-and-softlimit-at-commit-v2.patch
-memcg-share-event-counter-rather-than-duplicate-v2.patch
-memcg-update-memcg_testtxt.patch
-memcg-handle-panic_on_oom=always-case-v2.patch
-cgroups-fix-race-between-userspace-and-kernelspace.patch
-cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
-cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
-memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
-memcg-fix-oom-kill-behavior-v3.patch
-memcg-fix-oom-kill-behavior-v4.patch
-memcg-update-maintainer-list.patch
-sysctl-clean-up-vm-related-variable-declarations.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
+drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-staging-fix-continuation-line-formats.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+vsprintf-recursive-vsnprintf-add-%pv-struct-va_format.patch
+deviceh-drivers-base-corec-convert-dev_level-macros-to-functions.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+get_maintainer-fix-perlcritic-warnings.patch
+get_maintainer-quote-email-address-with-period.patch
+scripts-get_maintainerpl-fix-possible-infinite-loop.patch
+maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+maintainers-remove-hayes-esp-serial-driver.patch
+maintainers-update-performance-events-f-patterns.patch
+maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+maintainers-wavelan-moved-to-staging.patch
+maintainers-document-and-add-q-patchwork-queue-entries.patch
+lib-stringc-simplify-stricmp.patch
+lib-stringc-simplify-strnstr.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
+drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
+drivers-video-via-fix-continuation-line-formats.patch
 
