@@ -1,82 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:17:06 -0800
-Message-ID: <201003052117.o25LH6In028094@imap1.linux-foundation.org>
+Subject: [folded] mm-fix-mbind-vma-merge-problem-fix.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:17:37 -0800
+Message-ID: <201003052117.o25LHbwm028123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753235Ab0CEVRz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:17:55 -0500
+	by vger.kernel.org with ESMTP id S1755083Ab0CEVSP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:18:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, rientjes@goog
+To: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yah
 
 
 The patch titled
-     mm-restore-zone-all_unreclaimable-to-independence-word-fix
+     mm-fix-mbind-vma-merge-problem-fix
 has been removed from the -mm tree.  Its filename was
-     mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+     mm-fix-mbind-vma-merge-problem-fix.patch
 
-This patch was dropped because it was folded into mm-restore-zone-all_unreclaimable-to-independence-word.patch
+This patch was dropped because it was folded into mm-fix-mbind-vma-merge-problem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-restore-zone-all_unreclaimable-to-independence-word-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-mbind-vma-merge-problem-fix
+From: Minchan Kim <minchan.kim@gmail.com>
 
-mm-restore-zone-all_unreclaimable-to-independence-word.patch broke
-vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
+mm-fix-mbind-vma-merge-problem.patch added vma_merge in mbind to merge
+mergeable vmas.  But it passed wrong offset of vm_file.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+This patch fixes it.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word-fix
-+++ a/mm/vmscan.c
-@@ -1926,7 +1926,7 @@ static int sleeping_prematurely(pg_data_
- 		if (!populated_zone(zone))
- 			continue;
+diff -puN mm/mempolicy.c~mm-fix-mbind-vma-merge-problem-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-fix-mbind-vma-merge-problem-fix
++++ a/mm/mempolicy.c
+@@ -570,6 +570,7 @@ static int mbind_range(struct mm_struct 
+ 	struct vm_area_struct *prev;
+ 	struct vm_area_struct *vma;
+ 	int err = 0;
++	pgoff_t pgoff;
+ 	unsigned long vmstart;
+ 	unsigned long vmend;
  
--		if (zone_is_all_unreclaimable(zone))
-+		if (zone->all_unreclaimable)
- 			continue;
+@@ -582,9 +583,9 @@ static int mbind_range(struct mm_struct 
+ 		vmstart = max(start, vma->vm_start);
+ 		vmend   = min(end, vma->vm_end);
  
- 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
++		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+ 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
+-				  vma->anon_vma, vma->vm_file, vma->vm_pgoff,
+-				  new_pol);
++				  vma->anon_vma, vma->vm_file, pgoff, new_pol);
+ 		if (prev) {
+ 			vma = prev;
+ 			next = vma->vm_next;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-origin.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
+mm-clean-up-mm_counter.patch
 mm-avoid-false-sharing-of-mm_counter.patch
 mm-count-swap-usage.patch
 vmscan-check-high-watermark-after-shrink-zone.patch
-mm-remove-function-free_hot_page.patch
+vmscan-get_scan_ratio-cleanup.patch
+mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
 mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-gpio-cs5535-gpio-fix-input-direction.patch
+mm-fix-mbind-vma-merge-problem.patch
+mm-fix-mbind-vma-merge-problem-fix.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-further-cleanups.patch
+rmap-remove-obsolete-check-from-__page_check_anon_rmap.patch
+rmap-move-exclusively-owned-pages-to-own-anon_vma-in-do_wp_page.patch
+vmscan-factor-out-page-reference-checks.patch
+vmscan-factor-out-page-reference-checks-fix.patch
+vmscan-drop-page_mapping_inuse.patch
+vmscan-detect-mapped-file-pages-used-only-once.patch
 
