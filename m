@@ -1,171 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 10:58:29 -0800
-Message-ID: <201003051858.o25IwTrK021738@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-fix-continuation-line-formats.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 11:03:21 -0800
+Message-ID: <201003051903.o25J3LUl022019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755353Ab0CES6g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 13:58:36 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o25IwYuR030160
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 5 Mar 2010 10:58:35 -0800
+	by vger.kernel.org with ESMTP id S1755350Ab0CETDZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 14:03:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     drivers/staging: fix continuation line formats
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     drivers-staging-fix-continuation-line-formats.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging: fix continuation line formats
+From: Joe Perches <joe@perches.com>
 
+String constants that are continued on subsequent lines with \ will cause
+spurious whitespace in the resulting output.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/vga/Kconfig          |    3 ---
- fs/nfsd/nfs4xdr.c                |    7 -------
- fs/notify/inotify/inotify_user.c |    4 ----
- kernel/audit_tree.c              |    4 ----
- 4 files changed, 18 deletions(-)
+ drivers/staging/rtl8192su/r8192S_phy.c |   16 ++++++++--------
+ drivers/staging/sep/sep_driver.c       |    5 +++--
+ drivers/staging/slicoss/slicoss.c      |    6 ++----
+ 3 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN drivers/gpu/vga/Kconfig~linux-next-git-rejects drivers/gpu/vga/Kconfig
---- a/drivers/gpu/vga/Kconfig~linux-next-git-rejects
-+++ a/drivers/gpu/vga/Kconfig
-@@ -27,7 +27,4 @@ config VGA_SWITCHEROO
-           X isn't running and delayed switching until the next logoff. This
- 	  features is called hybrid graphics, ATI PowerXpress, and Nvidia
- 	  HybridPower.
--<<<<<<< HEAD:drivers/gpu/vga/Kconfig
--=======
+diff -puN drivers/staging/rtl8192su/r8192S_phy.c~drivers-staging-fix-continuation-line-formats drivers/staging/rtl8192su/r8192S_phy.c
+--- a/drivers/staging/rtl8192su/r8192S_phy.c~drivers-staging-fix-continuation-line-formats
++++ a/drivers/staging/rtl8192su/r8192S_phy.c
+@@ -2407,8 +2407,8 @@ void PHY_SetBWModeCallback8192S(struct n
+ 			break;
  
-->>>>>>> FETCH_HEAD:drivers/gpu/vga/Kconfig
-diff -puN fs/nfsd/nfs4xdr.c~linux-next-git-rejects fs/nfsd/nfs4xdr.c
---- a/fs/nfsd/nfs4xdr.c~linux-next-git-rejects
-+++ a/fs/nfsd/nfs4xdr.c
-@@ -2124,15 +2124,8 @@ out_acl:
- 		    dentry == exp->ex_path.mnt->mnt_root) {
- 			struct path path = exp->ex_path;
- 			path_get(&path);
--<<<<<<< HEAD:fs/nfsd/nfs4xdr.c
--			while (follow_up(&path)) {
--				if (path.dentry != path.mnt->mnt_root)
--					break;
--			}
--=======
- 			while (follow_up(&path))
- 				;
-->>>>>>> FETCH_HEAD:fs/nfsd/nfs4xdr.c
- 			err = vfs_getattr(path.mnt, path.dentry, &stat);
- 			path_put(&path);
- 			if (err)
-diff -puN fs/notify/inotify/inotify_user.c~linux-next-git-rejects fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~linux-next-git-rejects
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -836,11 +836,7 @@ out:
-  */
- static int __init inotify_user_setup(void)
- {
--<<<<<<< HEAD:fs/notify/inotify/inotify_user.c
--	inotify_inode_mark_cachep = KMEM_CACHE(inotify_inode_mark_entry, SLAB_PANIC);
--=======
- 	inotify_inode_mark_cachep = KMEM_CACHE(inotify_inode_mark, SLAB_PANIC);
-->>>>>>> FETCH_HEAD:fs/notify/inotify/inotify_user.c
- 	event_priv_cachep = KMEM_CACHE(inotify_event_private_data, SLAB_PANIC);
+ 		default:
+-			RT_TRACE(COMP_DBG, "SetBWModeCallback8190Pci():\
+-						unknown Bandwidth: %#X\n",priv->CurrentChannelBW);
++			RT_TRACE(COMP_DBG, "SetBWModeCallback8190Pci(): unknown Bandwidth: %#X\n",
++				 priv->CurrentChannelBW);
+ 			break;
+ 	}
  
- 	inotify_max_queued_events = 16384;
-diff -puN kernel/audit_tree.c~linux-next-git-rejects kernel/audit_tree.c
---- a/kernel/audit_tree.c~linux-next-git-rejects
-+++ a/kernel/audit_tree.c
-@@ -600,12 +600,8 @@ void audit_trim_trees(void)
+@@ -3398,8 +3398,8 @@ void SwChnlCallback8192SUsb(struct net_d
+ 	u32			delay;
+ //	bool			ret;
  
- 		spin_lock(&hash_lock);
- 		list_for_each_entry(node, &tree->chunks, list) {
--<<<<<<< HEAD:kernel/audit_tree.c
--			struct inode *inode = find_chunk(node)->watch.inode;
--=======
- 			/* this could be NULL if the watch is dieing else where... */
- 			struct inode *inode = find_chunk(node)->mark.i.inode;
-->>>>>>> FETCH_HEAD:kernel/audit_tree.c
- 			node->index |= 1U<<31;
- 			if (iterate_mounts(compare_root, inode, root_mnt))
- 				node->index &= ~(1U<<31);
+-	RT_TRACE(COMP_SCAN, "==>SwChnlCallback8190Pci(), switch to channel\
+-				%d\n", priv->chan);
++	RT_TRACE(COMP_SCAN, "==>SwChnlCallback8190Pci(), switch to channel %d\n",
++		 priv->chan);
+ 
+ 
+ 	if(!priv->up)
+@@ -3525,8 +3525,8 @@ void SetBWModeCallback8192SUsb(struct ne
+ 			break;
+ 
+ 		default:
+-			RT_TRACE(COMP_DBG, "SetChannelBandwidth8190Pci():\
+-						unknown Bandwidth: %#X\n",priv->CurrentChannelBW);
++			RT_TRACE(COMP_DBG, "SetChannelBandwidth8190Pci(): unknown Bandwidth: %#X\n",
++				 priv->CurrentChannelBW);
+ 			break;
+ 	}
+ 
+@@ -3660,8 +3660,8 @@ void SetBWModeCallback8192SUsbWorkItem(s
+ 			break;
+ 
+ 		default:
+-			RT_TRACE(COMP_DBG, "SetBWModeCallback8192SUsbWorkItem():\
+-						unknown Bandwidth: %#X\n",priv->CurrentChannelBW);
++			RT_TRACE(COMP_DBG, "SetBWModeCallback8192SUsbWorkItem(): unknown Bandwidth: %#X\n",
++				 priv->CurrentChannelBW);
+ 			break;
+ 	}
+ 
+diff -puN drivers/staging/sep/sep_driver.c~drivers-staging-fix-continuation-line-formats drivers/staging/sep/sep_driver.c
+--- a/drivers/staging/sep/sep_driver.c~drivers-staging-fix-continuation-line-formats
++++ a/drivers/staging/sep/sep_driver.c
+@@ -944,8 +944,9 @@ static int sep_lock_user_pages(struct se
+ 			dbg("data_size is %lu\n", data_size);
+ 			while (1);
+ 		}
+-		edbg("lli_array[%lu].physical_address is %08lx, \
+-		lli_array[%lu].block_size is %lu\n", count, lli_array[count].physical_address, count, lli_array[count].block_size);
++		edbg("lli_array[%lu].physical_address is %08lx, lli_array[%lu].block_size is %lu\n",
++		     count, lli_array[count].physical_address,
++		     count, lli_array[count].block_size);
+ 	}
+ 
+ 	/* set output params */
+diff -puN drivers/staging/slicoss/slicoss.c~drivers-staging-fix-continuation-line-formats drivers/staging/slicoss/slicoss.c
+--- a/drivers/staging/slicoss/slicoss.c~drivers-staging-fix-continuation-line-formats
++++ a/drivers/staging/slicoss/slicoss.c
+@@ -658,8 +658,7 @@ static int slic_ioctl(struct net_device 
+ 
+ 			if (copy_from_user(data, rq->ifr_data, 28)) {
+ 				PRINT_ERROR
+-				    ("slic: copy_from_user FAILED getting \
+-				     initial simba param\n");
++				    ("slic: copy_from_user FAILED getting initial simba param\n");
+ 				return -EFAULT;
+ 			}
+ 
+@@ -674,8 +673,7 @@ static int slic_ioctl(struct net_device 
+ 				   (tracemon_request ==
+ 				    SLIC_DUMP_IN_PROGRESS)) {
+ 				PRINT_ERROR
+-				    ("ATK Diagnostic Trace Dump Requested but \
+-				     already in progress... ignore\n");
++				    ("ATK Diagnostic Trace Dump Requested but already in progress... ignore\n");
+ 			} else {
+ 				PRINT_ERROR
+ 				    ("ATK Diagnostic Trace Dump Requested\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-watchdog-wdtc-wdt_ioctl-make-ident-non-static.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
-include-linux-fsh-convert-fmode_-constants-to-hex.patch
-mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
-mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-add-generic-sys_ipc-wrapper-fix.patch
-lib-more-scalable-list_sort-fix.patch
-fs-compat_ioctlc-suppress-two-warnings.patch
-sdio-introduce-api-for-special-power-management-features-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-gpio-pca953xc-add-interrupt-handling-capability.patch
-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-gpio-cs5535-gpio-fix-input-direction.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+get_maintainer-fix-perlcritic-warnings.patch
+get_maintainer-quote-email-address-with-period.patch
+scripts-get_maintainerpl-fix-possible-infinite-loop.patch
+maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+maintainers-remove-hayes-esp-serial-driver.patch
+maintainers-update-performance-events-f-patterns.patch
+maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+maintainers-wavelan-moved-to-staging.patch
+maintainers-document-and-add-q-patchwork-queue-entries.patch
+lib-stringc-simplify-stricmp.patch
+lib-stringc-simplify-strnstr.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+checkpatch-warn-on-unnecessary-spaces-before-quoted-newlines.patch
+drivers-hwmon-vt8231c-fix-continuation-line-formats.patch
+drivers-video-via-fix-continuation-line-formats.patch
 
