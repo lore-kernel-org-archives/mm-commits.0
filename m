@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded] bitops-add-temporary-for_each_bit.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:13:23 -0800
-Message-ID: <201003052113.o25LDNg3027881@imap1.linux-foundation.org>
+Subject: [folded] vmscan-check-high-watermark-after-shrink-zone-fix.patch removed from -mm tree
+Date: Fri, 05 Mar 2010 13:15:53 -0800
+Message-ID: <201003052115.o25LFrxo027987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753235Ab0CEVQi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:16:38 -0500
+	by vger.kernel.org with ESMTP id S1755194Ab0CEVRA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:17:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops: add temporary for_each_bit()
+     vmscan-check-high-watermark-after-shrink-zone-fix
 has been removed from the -mm tree.  Its filename was
-     bitops-add-temporary-for_each_bit.patch
+     vmscan-check-high-watermark-after-shrink-zone-fix.patch
 
-This patch was dropped because it was folded into bitops-rename-for_each_bit-to-for_each_set_bit.patch
+This patch was dropped because it was folded into vmscan-check-high-watermark-after-shrink-zone.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: add temporary for_each_bit()
+Subject: vmscan-check-high-watermark-after-shrink-zone-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Keep stuff working for now.
+fix comment, layout.
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmscan.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bitops.h~bitops-add-temporary-for_each_bit include/linux/bitops.h
---- a/include/linux/bitops.h~bitops-add-temporary-for_each_bit
-+++ a/include/linux/bitops.h
-@@ -21,6 +21,8 @@
- 	     (bit) < (size); \
- 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+diff -puN mm/vmscan.c~vmscan-check-high-watermark-after-shrink-zone-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-check-high-watermark-after-shrink-zone-fix
++++ a/mm/vmscan.c
+@@ -2103,11 +2103,12 @@ loop_again:
+ 					high_wmark_pages(zone), end_zone, 0)) {
+ 				all_zones_ok = 0;
+ 				/*
+-				 * We are still under min water mark. it mean we have
+-				 * GFP_ATOMIC allocation failure risk. Hurry up!
++				 * We are still under min water mark.  This
++				 * means that we have a GFP_ATOMIC allocation
++				 * failure risk. Hurry up!
+ 				 */
+-				if (!zone_watermark_ok(zone, order, min_wmark_pages(zone),
+-						      end_zone, 0))
++				if (!zone_watermark_ok(zone, order,
++					    min_wmark_pages(zone), end_zone, 0))
+ 					has_under_min_watermark_zone = 1;
+ 			}
  
-+/* Temporary */
-+#define for_each_bit(bit, addr, size) for_each_set_bit(bit, addr, size)
- 
- static __inline__ int get_bitmask_order(unsigned int count)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-add-temporary-for_each_bit.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
 vmscan-check-high-watermark-after-shrink-zone-fix.patch
 mm-remove-function-free_hot_page-fix.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
