@@ -1,68 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded] bitops-rename-for_each_bit-to-for_each_set_bit-net.patch removed from -mm tree
-Date: Fri, 05 Mar 2010 13:13:06 -0800
-Message-ID: <201003052113.o25LD6A5027878@imap1.linux-foundation.org>
+Subject: + bitops-remove-temporary-for_each_bit.patch added to -mm tree
+Date: Fri, 05 Mar 2010 13:14:39 -0800
+Message-ID: <201003052114.o25LEd0O027917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622Ab0CEVOp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:14:45 -0500
+	by vger.kernel.org with ESMTP id S1752182Ab0CEVPC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Mar 2010 16:15:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, adobriyan@gmail.com, akpm@linux-foundation.org, davem@davemloft.net, dedekind@infradead.org, dwmw2@infradead.org, rmk@arm.linux.org.uk, sfr@canb.auug.org.aum
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com
 
 
 The patch titled
-     bitops: rename for_each_bit() to for_each_set_bit(): net
-has been removed from the -mm tree.  Its filename was
-     bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
+     bitops: remove temporary for_each_bit()
+has been added to the -mm tree.  Its filename is
+     bitops-remove-temporary-for_each_bit.patch
 
-This patch was dropped because it was folded into bitops-rename-for_each_bit-to-for_each_set_bit.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: rename for_each_bit() to for_each_set_bit(): net
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: bitops: remove temporary for_each_bit()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Rename for_each_bit to for_each_set_bit in the kernel source tree.  To
-permit for_each_clear_bit(), should that ever be added.
+Migration has been completed so remove this now.
 
-Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Artem Bityutskiy <dedekind@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ixgbevf/ixgbevf_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bitops.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/net/ixgbevf/ixgbevf_main.c~bitops-rename-for_each_bit-to-for_each_set_bit-net drivers/net/ixgbevf/ixgbevf_main.c
---- a/drivers/net/ixgbevf/ixgbevf_main.c~bitops-rename-for_each_bit-to-for_each_set_bit-net
-+++ a/drivers/net/ixgbevf/ixgbevf_main.c
-@@ -751,7 +751,7 @@ static void ixgbevf_configure_msix(struc
- 	 */
- 	for (v_idx = 0; v_idx < q_vectors; v_idx++) {
- 		q_vector = adapter->q_vector[v_idx];
--		/* XXX for_each_bit(...) */
-+		/* XXX for_each_set_bit(...) */
- 		r_idx = find_first_bit(q_vector->rxr_idx,
- 				       adapter->num_rx_queues);
+diff -puN include/linux/bitops.h~bitops-remove-temporary-for_each_bit include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-remove-temporary-for_each_bit
++++ a/include/linux/bitops.h
+@@ -21,9 +21,6 @@
+ 	     (bit) < (size); \
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
  
+-/* Temporary */
+-#define for_each_bit(bit, addr, size) for_each_set_bit(bit, addr, size)
+-
+ static __inline__ int get_bitmask_order(unsigned int count)
+ {
+ 	int order;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 bitops-rename-for_each_bit-to-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-net.patch
-bitops-add-temporary-for_each_bit.patch
-infiniband-use-for_each_set_bit.patch
-bitmap-use-for_each_set_bit.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
+include-linux-fsh-convert-fmode_-constants-to-hex.patch
+mm-change-anon_vma-linking-to-fix-multi-process-server-scalability-issue-fix.patch
+mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
+uml-linec-avoid-null-pointer-dereference-simplify.patch
+lib-more-scalable-list_sort-fix.patch
+fs-compat_ioctlc-suppress-two-warnings.patch
+sdio-introduce-api-for-special-power-management-features-fix.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+gpio-pca953xc-add-interrupt-handling-capability.patch
+gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+gpio-cs5535-gpio-fix-input-direction.patch
+bitops-remove-temporary-for_each_bit.patch
 
