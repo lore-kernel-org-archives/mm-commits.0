@@ -1,115 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-drop-page_mapping_inuse.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:04:41 -0800
-Message-ID: <201003091904.o29J4f4V031058@imap1.linux-foundation.org>
+Subject: [merged] alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:05:03 -0800
+Message-ID: <201003091905.o29J53bp031092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752552Ab0CITFX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:05:23 -0500
+	by vger.kernel.org with ESMTP id S1755790Ab0CITFd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:05:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: drop page_mapping_inuse()
+     alpha: PTR_ERR overwrites -EINVAL in syscall osf_mount
 has been removed from the -mm tree.  Its filename was
-     vmscan-drop-page_mapping_inuse.patch
+     alpha-ptr_err-overwrites-einval-in-syscall-osf_mount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: drop page_mapping_inuse()
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: alpha: PTR_ERR overwrites -EINVAL in syscall osf_mount
+From: Roel Kluin <roel.kluin@gmail.com>
 
-page_mapping_inuse() is a historic predicate function for pages that are
-about to be reclaimed or deactivated.
+The initial -EINVAL value is overwritten by `retval = PTR_ERR(name)'.  If
+this isn't an error pointer and typenr is not 1, 6 or 9, then this retval,
+a pointer cast to a long, is returned.
 
-According to it, a page is in use when it is mapped into page tables OR
-part of swap cache OR backing an mmapped file.
-
-This function is used in combination with page_referenced(), which checks
-for young bits in ptes and the page descriptor itself for the
-PG_referenced bit.  Thus, checking for unmapped swap cache pages is
-meaningless as PG_referenced is not set for anonymous pages and unmapped
-pages do not have young ptes.  The test makes no difference.
-
-Protecting file pages that are not by themselves mapped but are part of a
-mapped file is also a historic leftover for short-lived things like the
-exec() code in libc.  However, the VM now does reference accounting and
-activation of pages at unmap time and thus the special treatment on
-reclaim is obsolete.
-
-This patch drops page_mapping_inuse() and switches the two callsites to
-use page_mapped() directly.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: OSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   25 ++-----------------------
- 1 file changed, 2 insertions(+), 23 deletions(-)
+ arch/alpha/kernel/osf_sys.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-drop-page_mapping_inuse mm/vmscan.c
---- a/mm/vmscan.c~vmscan-drop-page_mapping_inuse
-+++ a/mm/vmscan.c
-@@ -262,27 +262,6 @@ unsigned long shrink_slab(unsigned long 
- 	return ret;
- }
- 
--/* Called without lock on whether page is mapped, so answer is unstable */
--static inline int page_mapping_inuse(struct page *page)
--{
--	struct address_space *mapping;
--
--	/* Page is in somebody's page tables. */
--	if (page_mapped(page))
--		return 1;
--
--	/* Be more reluctant to reclaim swapcache than pagecache */
--	if (PageSwapCache(page))
--		return 1;
--
--	mapping = page_mapping(page);
--	if (!mapping)
--		return 0;
--
--	/* File is mmap'd by somebody? */
--	return mapping_mapped(mapping);
--}
--
- static inline int is_page_cache_freeable(struct page *page)
+diff -puN arch/alpha/kernel/osf_sys.c~alpha-ptr_err-overwrites-einval-in-syscall-osf_mount arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~alpha-ptr_err-overwrites-einval-in-syscall-osf_mount
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -361,7 +361,7 @@ osf_procfs_mount(char *dirname, struct p
+ SYSCALL_DEFINE4(osf_mount, unsigned long, typenr, char __user *, path,
+ 		int, flag, void __user *, data)
  {
- 	/*
-@@ -606,7 +585,7 @@ static enum page_references page_check_r
- 	if (vm_flags & VM_LOCKED)
- 		return PAGEREF_RECLAIM;
+-	int retval = -EINVAL;
++	int retval;
+ 	char *name;
  
--	if (page_mapping_inuse(page))
-+	if (page_mapped(page))
- 		return PAGEREF_ACTIVATE;
- 
- 	/* Reclaim if clean, defer dirty pages to writeback */
-@@ -1381,7 +1360,7 @@ static void shrink_active_list(unsigned 
- 		}
- 
- 		/* page_referenced clears PageReferenced */
--		if (page_mapping_inuse(page) &&
-+		if (page_mapped(page) &&
- 		    page_referenced(page, 0, sc->mem_cgroup, &vm_flags)) {
- 			nr_rotated++;
- 			/*
+ 	name = getname(path);
+@@ -379,6 +379,7 @@ SYSCALL_DEFINE4(osf_mount, unsigned long
+ 		retval = osf_procfs_mount(name, data, flag);
+ 		break;
+ 	default:
++		retval = -EINVAL;
+ 		printk("osf_mount(%ld, %x)\n", typenr, flag);
+ 	}
+ 	putname(name);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-bootmem-avoid-dma32-zone-by-default.patch
+linux-next.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+isdn-misplaced-parenthesis-in-pof_handle_data.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+paride-fix-off-by-one-test.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
