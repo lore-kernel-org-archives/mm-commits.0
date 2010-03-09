@@ -1,53 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:06:54 -0800
-Message-ID: <201003091906.o29J6sqx031285@imap1.linux-foundation.org>
+Subject: [merged] maintainers-remove-hayes-esp-serial-driver.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:07:09 -0800
+Message-ID: <201003091907.o29J79qA031312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755630Ab0CITHx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:07:53 -0500
+	by vger.kernel.org with ESMTP id S1755833Ab0CITH7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:07:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: change --sections to print in the same style as MAINTAINERS
+     MAINTAINERS: remove HAYES ESP SERIAL DRIVER
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+     maintainers-remove-hayes-esp-serial-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: change --sections to print in the same style as MAINTAINERS
+Subject: MAINTAINERS: remove HAYES ESP SERIAL DRIVER
 From: Joe Perches <joe@perches.com>
 
+Commit f53a2ade0bb9f2a81f473e6469155172a96b7c38 removed it
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers
-+++ a/scripts/get_maintainer.pl
-@@ -381,8 +381,10 @@ foreach my $file (@files) {
- 			$line =~ s/\\\./\./g;       	##Convert \. to .
- 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
- 		    }
-+		    $line =~ s/^([A-Z]):/$1:\t/g;
- 		    print("$line\n");
- 		}
-+		print("\n");
- 	    }
-     }
+diff -puN MAINTAINERS~maintainers-remove-hayes-esp-serial-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-hayes-esp-serial-driver
++++ a/MAINTAINERS
+@@ -2501,13 +2501,6 @@ L:	linux-parisc@vger.kernel.org
+ S:	Maintained
+ F:	sound/parisc/harmony.*
  
+-HAYES ESP SERIAL DRIVER
+-M:	"Andrew J. Robinson" <arobinso@nyx.net>
+-W:	http://www.nyx.net/~arobinso
+-S:	Maintained
+-F:	Documentation/serial/hayes-esp.txt
+-F:	drivers/char/esp.c
+-
+ HEWLETT-PACKARD SMART2 RAID DRIVER
+ M:	Chirag Kantharia <chirag.kantharia@hp.com>
+ L:	iss_storagedev@hp.com
 _
 
 Patches currently in -mm which might be from joe@perches.com are
