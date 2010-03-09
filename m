@@ -1,205 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:09:50 -0800
-Message-ID: <201003091909.o29J9oq3031549__38817.5677661367$1268162615$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] nodemaskh-remove-macro-any_online_node.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:05:50 -0800
+Message-ID: <201003091905.o29J5oQt031145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756079Ab0CITXF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:23:05 -0500
+	by vger.kernel.org with ESMTP id S1751445Ab0CITXl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:23:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: d.hatayama@jp.fujitsu.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, dhowells@redhat.com, gerg@snapgear.com, jdike@addtoit.com, linux-arch@vger.kernel.org, mingo@elte.hu, oleg@re
+To: hartleys@visionengravers.com, Ricardo.Labiaga@netapp.com, Trond.Myklebust@netapp.com, benh@kernel.crashing.org, bfields@fieldses.org, bhalevy@panasas.com, chuck.lever@oracle.com, dave
 
 
 The patch titled
-     elf coredump: make offset calculation process and writing process explicit
+     nodemask.h: remove macro any_online_node
 has been removed from the -mm tree.  Its filename was
-     elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
+     nodemaskh-remove-macro-any_online_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf coredump: make offset calculation process and writing process explicit
-From: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
+Subject: nodemask.h: remove macro any_online_node
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-By the next patch, elf_core_dump() and elf_fdpic_core_dump() will support
-extended numbering and so will produce the corefiles with section header
-table in a special case.
+The macro any_online_node() is prone to producing sparse warnings due to
+the local symbol 'node'.  Since all the in-tree users are really
+requesting the first online node (the mask argument is either
+NODE_MASK_ALL or node_online_map) just use the first_online_node macro and
+remove the any_online_node macro since there are no users.
 
-The problem is the process of writing a file header offset of the section
-header table into e_shoff field of the ELF header.  ELF header is
-positioned at the beginning of the corefile, while section header at the
-end.  So, we need to take which of the following ways:
-
- 1. Seek backward to retry writing operation for ELF header
-    after writing process for a whole part
-
- 2. Make offset calculation process and writing process
-    totally sequential
-
-The clause 1.  is not always possible: one cannot assume that file system
-supports seek function.  Consider the no_llseek case.
-
-Therefore, this patch adopts the clause 2.
-
-Signed-off-by: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Milton Miller <miltonm@bga.com>
+Cc: Nathan Fontenot <nfont@austin.ibm.com>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Benny Halevy <bhalevy@panasas.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Ricardo Labiaga <Ricardo.Labiaga@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |   27 ++++++++++++++++-----------
- fs/binfmt_elf_fdpic.c |   29 ++++++++++++++++-------------
- 2 files changed, 32 insertions(+), 24 deletions(-)
+ arch/powerpc/mm/numa.c   |    6 +++---
+ include/linux/nodemask.h |   11 -----------
+ net/sunrpc/svc.c         |    2 +-
+ 3 files changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN fs/binfmt_elf.c~elf-coredump-make-offset-calculation-process-and-writing-process-explicit fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-coredump-make-offset-calculation-process-and-writing-process-explicit
-+++ a/fs/binfmt_elf.c
-@@ -1856,6 +1856,7 @@ static int elf_core_dump(struct coredump
- 	loff_t offset = 0, dataoff, foffset;
- 	unsigned long mm_flags;
- 	struct elf_note_info info;
-+	struct elf_phdr *phdr4note = NULL;
+diff -puN arch/powerpc/mm/numa.c~nodemaskh-remove-macro-any_online_node arch/powerpc/mm/numa.c
+--- a/arch/powerpc/mm/numa.c~nodemaskh-remove-macro-any_online_node
++++ a/arch/powerpc/mm/numa.c
+@@ -451,7 +451,7 @@ static int __cpuinit numa_setup_cpu(unsi
+ 	nid = of_node_to_nid_single(cpu);
  
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -1898,28 +1899,22 @@ static int elf_core_dump(struct coredump
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 
--	size += sizeof(*elf);
--	if (size > cprm->limit || !dump_write(cprm->file, elf, sizeof(*elf)))
--		goto end_coredump;
--
- 	offset += sizeof(*elf);				/* Elf header */
- 	offset += (segs + 1) * sizeof(struct elf_phdr); /* Program headers */
- 	foffset = offset;
- 
- 	/* Write notes phdr entry */
- 	{
--		struct elf_phdr phdr;
- 		size_t sz = get_note_info_size(&info);
- 
- 		sz += elf_coredump_extra_notes_size();
- 
--		fill_elf_note_phdr(&phdr, sz, offset);
--		offset += sz;
--
--		size += sizeof(phdr);
--		if (size > cprm->limit
--		    || !dump_write(cprm->file, &phdr, sizeof(phdr)))
-+		phdr4note = kmalloc(sizeof(*phdr4note), GFP_KERNEL);
-+		if (!phdr4note)
- 			goto end_coredump;
-+
-+		fill_elf_note_phdr(phdr4note, sz, offset);
-+		offset += sz;
- 	}
- 
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
-@@ -1931,6 +1926,15 @@ static int elf_core_dump(struct coredump
- 	 */
- 	mm_flags = current->mm->flags;
- 
-+	size += sizeof(*elf);
-+	if (size > cprm->limit || !dump_write(cprm->file, elf, sizeof(*elf)))
-+		goto end_coredump;
-+
-+	size += sizeof(*phdr4note);
-+	if (size > cprm->limit
-+	    || !dump_write(cprm->file, phdr4note, sizeof(*phdr4note)))
-+		goto end_coredump;
-+
- 	/* Write program headers for segments dump */
- 	for (vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
-@@ -2004,6 +2008,7 @@ end_coredump:
- 
- cleanup:
- 	free_note_info(&info);
-+	kfree(phdr4note);
- 	kfree(elf);
+ 	if (nid < 0 || !node_online(nid))
+-		nid = any_online_node(NODE_MASK_ALL);
++		nid = first_online_node;
  out:
- 	return has_dumped;
-diff -puN fs/binfmt_elf_fdpic.c~elf-coredump-make-offset-calculation-process-and-writing-process-explicit fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~elf-coredump-make-offset-calculation-process-and-writing-process-explicit
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1600,6 +1600,7 @@ static int elf_fdpic_core_dump(struct co
- 	int thread_status_size = 0;
- 	elf_addr_t *auxv;
- 	unsigned long mm_flags;
-+	struct elf_phdr *phdr4note = NULL;
+ 	map_cpu_to_node(lcpu, nid);
  
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -1706,18 +1707,12 @@ static int elf_fdpic_core_dump(struct co
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
+@@ -1114,7 +1114,7 @@ int hot_add_scn_to_nid(unsigned long scn
+ 	int nid, found = 0;
  
--	size += sizeof(*elf);
--	if (size > cprm->limit
--	    || !dump_write(cprm->file, elf, sizeof(*elf)))
--		goto end_coredump;
--
- 	offset += sizeof(*elf);				/* Elf header */
- 	offset += (segs+1) * sizeof(struct elf_phdr);	/* Program headers */
- 	foffset = offset;
+ 	if (!numa_enabled || (min_common_depth < 0))
+-		return any_online_node(NODE_MASK_ALL);
++		return first_online_node;
  
- 	/* Write notes phdr entry */
- 	{
--		struct elf_phdr phdr;
- 		int sz = 0;
- 
- 		for (i = 0; i < numnote; i++)
-@@ -1725,13 +1720,12 @@ static int elf_fdpic_core_dump(struct co
- 
- 		sz += thread_status_size;
- 
--		fill_elf_note_phdr(&phdr, sz, offset);
--		offset += sz;
--
--		size += sizeof(phdr);
--		if (size > cprm->limit
--		    || !dump_write(cprm->file, &phdr, sizeof(phdr)))
-+		phdr4note = kmalloc(sizeof(*phdr4note), GFP_KERNEL);
-+		if (!phdr4note)
- 			goto end_coredump;
-+
-+		fill_elf_note_phdr(phdr4note, sz, offset);
-+		offset += sz;
+ 	memory = of_find_node_by_path("/ibm,dynamic-reconfiguration-memory");
+ 	if (memory) {
+@@ -1125,7 +1125,7 @@ int hot_add_scn_to_nid(unsigned long scn
  	}
  
- 	/* Page-align dumped data */
-@@ -1744,6 +1738,15 @@ static int elf_fdpic_core_dump(struct co
- 	 */
- 	mm_flags = current->mm->flags;
+ 	if (nid < 0 || !node_online(nid))
+-		nid = any_online_node(NODE_MASK_ALL);
++		nid = first_online_node;
  
-+	size += sizeof(*elf);
-+	if (size > cprm->limit || !dump_write(cprm->file, elf, sizeof(*elf)))
-+		goto end_coredump;
-+
-+	size += sizeof(*phdr4note);
-+	if (size > cprm->limit
-+	    || !dump_write(cprm->file, phdr4note, sizeof(*phdr4note)))
-+		goto end_coredump;
-+
- 	/* write program headers for segments dump */
- 	for (vma = current->mm->mmap; vma; vma = vma->vm_next) {
- 		struct elf_phdr phdr;
-@@ -1815,7 +1818,7 @@ cleanup:
- 		list_del(tmp);
- 		kfree(list_entry(tmp, struct elf_thread_status, list));
- 	}
+ 	if (NODE_DATA(nid)->node_spanned_pages)
+ 		return nid;
+diff -puN include/linux/nodemask.h~nodemaskh-remove-macro-any_online_node include/linux/nodemask.h
+--- a/include/linux/nodemask.h~nodemaskh-remove-macro-any_online_node
++++ a/include/linux/nodemask.h
+@@ -69,8 +69,6 @@
+  * int node_online(node)		Is some node online?
+  * int node_possible(node)		Is some node possible?
+  *
+- * int any_online_node(mask)		First online node in mask
+- *
+  * node_set_online(node)		set bit 'node' in node_online_map
+  * node_set_offline(node)		clear bit 'node' in node_online_map
+  *
+@@ -467,15 +465,6 @@ static inline int num_node_state(enum no
+ #define node_online_map 	node_states[N_ONLINE]
+ #define node_possible_map 	node_states[N_POSSIBLE]
+ 
+-#define any_online_node(mask)			\
+-({						\
+-	int node;				\
+-	for_each_node_mask(node, (mask))	\
+-		if (node_online(node))		\
+-			break;			\
+-	node;					\
+-})
