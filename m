@@ -1,68 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rmap-remove-obsolete-check-from-__page_check_anon_rmap.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:04:10 -0800
-Message-ID: <201003091904.o29J4Ari031026@imap1.linux-foundation.org>
+Subject: [merged] mm-swapfilec-fix-swapon-size-off-by-one.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:04:19 -0800
+Message-ID: <201003091904.o29J4JdI031035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755613Ab0CITEv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:04:51 -0500
+	by vger.kernel.org with ESMTP id S1755613Ab0CITE6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:04:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lwoodman@redhat.com, minchan.kim@gmail.com, mm-commits@vger.
+To: hugh.dickins@tiscali.co.uk, jarkko.lavinen@nokia.com, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rmap: remove obsolete check from __page_check_anon_rmap()
+     mm/swapfile.c: fix swapon size off-by-one
 has been removed from the -mm tree.  Its filename was
-     rmap-remove-obsolete-check-from-__page_check_anon_rmap.patch
+     mm-swapfilec-fix-swapon-size-off-by-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: remove obsolete check from __page_check_anon_rmap()
-From: Rik van Riel <riel@redhat.com>
+Subject: mm/swapfile.c: fix swapon size off-by-one
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-When an anonymous page is inherited from a parent process, the
-vma->anon_vma can differ from the page anon_vma.  This can trip up
-__page_check_anon_rmap, which is indirectly called from do_swap_page().
+There's an off-by-one disagreement between mkswap and swapon about the
+meaning of swap_header last_page: mkswap (in all versions I've looked at:
+util-linux-ng and BusyBox and old util-linux; probably as far back as
+1999) consistently means the offset (in page units) of the last page of
+the swap area, whereas kernel sys_swapon (as far back as 2.2 and 2.3)
+strangely takes it to mean the size (in page units) of the swap area.
 
-Remove that obsolete check to prevent an oops.
+This disagreement is the safe way round; but it's worrying people, and
+loses us one page of swap.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+The fix is not just to add one to nr_good_pages: we need to get maxpages
+(the size of the swap_map array) right before that; and though that is an
+unsigned long, be careful not to overflow the unsigned int p->max which
+later holds it (probably why header uses __u32 last_page instead of size).
+
+Why did we subtract one from the maximum swp_offset to calculate maxpages?
+ Though it was probably me who made that change in 2.4.10, I don't get it:
+and now we should be adding one (without risk of overflow in this case).
+
+Fix the handling of swap_header badpages: it could have overrun the
+swap_map when very large swap area used on a more limited architecture.
+
+Remove pre-initializations of swap_header, nr_good_pages and maxpages:
+those date from when sys_swapon was supporting other versions of header.
+
+Reported-by: Nitin Gupta <ngupta@vflare.org>
+Reported-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/swapfile.c |   31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN mm/rmap.c~rmap-remove-obsolete-check-from-__page_check_anon_rmap mm/rmap.c
---- a/mm/rmap.c~rmap-remove-obsolete-check-from-__page_check_anon_rmap
-+++ a/mm/rmap.c
-@@ -754,9 +754,6 @@ static void __page_check_anon_rmap(struc
- 	 * are initially only visible via the pagetables, and the pte is locked
- 	 * over the call to page_add_new_anon_rmap.
+diff -puN mm/swapfile.c~mm-swapfilec-fix-swapon-size-off-by-one mm/swapfile.c
+--- a/mm/swapfile.c~mm-swapfilec-fix-swapon-size-off-by-one
++++ a/mm/swapfile.c
+@@ -1760,11 +1760,11 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	unsigned int type;
+ 	int i, prev;
+ 	int error;
+-	union swap_header *swap_header = NULL;
+-	unsigned int nr_good_pages = 0;
++	union swap_header *swap_header;
++	unsigned int nr_good_pages;
+ 	int nr_extents = 0;
+ 	sector_t span;
+-	unsigned long maxpages = 1;
++	unsigned long maxpages;
+ 	unsigned long swapfilepages;
+ 	unsigned char *swap_map = NULL;
+ 	struct page *page = NULL;
+@@ -1923,9 +1923,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	 * swap pte.
  	 */
--	struct anon_vma *anon_vma = vma->anon_vma;
--	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
--	BUG_ON(page->mapping != (struct address_space *)anon_vma);
- 	BUG_ON(page->index != linear_page_index(vma, address));
- #endif
- }
-_
-
-Patches currently in -mm which might be from riel@redhat.com are
-
-fs-buffer_head-remove-kmem_cache-constructor-to-reduce-memory-usage-under-slub.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-
+ 	maxpages = swp_offset(pte_to_swp_entry(
+-			swp_entry_to_pte(swp_entry(0, ~0UL)))) - 1;
+-	if (maxpages > swap_header->info.last_page)
+-		maxpages = swap_header->info.last_page;
++			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
++	if (maxpages > swap_header->info.last_page) {
++		maxpages = swap_header->info.last_page + 1;
++		/* p->max is an unsigned int: don't overflow it */
++		if ((unsigned int)maxpages == 0)
++			maxpages = UINT_MAX;
++	}
+ 	p->highest_bit = maxpages - 1;
+ 
+ 	error = -EINVAL;
+@@ -1949,23 +1953,24 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	}
+ 
+ 	memset(swap_map, 0, maxpages);
++	nr_good_pages = maxpages - 1;	/* omit header page */
++
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
+-		int page_nr = swap_header->info.badpages[i];
+-		if (page_nr <= 0 || page_nr >= swap_header->info.last_page) {
++		unsigned int page_nr = swap_header->info.badpages[i];
++		if (page_nr == 0 || page_nr > swap_header->info.last_page) {
+ 			error = -EINVAL;
+ 			goto bad_swap;
+ 		}
+-		swap_map[page_nr] = SWAP_MAP_BAD;
++		if (page_nr < maxpages) {
++			swap_map[page_nr] = SWAP_MAP_BAD;
++			nr_good_pages--;
++		}
+ 	}
+ 
+ 	error = swap_cgroup_swapon(type, maxpages);
+ 	if (error)
+ 		goto bad_swap;
+ 
+-	nr_good_pages = swap_header->info.last_page -
+-			swap_header->info.nr_badpages -
+-			1 /* header page */;
