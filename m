@@ -1,153 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:06:56 -0800
-Message-ID: <201003091906.o29J6uPH031289@imap1.linux-foundation.org>
+Subject: [merged] sdio-put-active-devices-into-1-bit-mode-during-suspend.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:08:21 -0800
+Message-ID: <201003091908.o29J8LAn031438__21201.6495330774$1268162547$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755749Ab0CITWG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:06 -0500
+	by vger.kernel.org with ESMTP id S1755953Ab0CITWM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, petkovbb@googlemail.com, mm-commits@vger.kernel.org
+To: dsd@laptop.org, linux-mmc@vger.kernel.org, nico@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: add ability to read from STDIN
+     sdio: put active devices into 1-bit mode during suspend
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-add-ability-to-read-from-stdin.patch
+     sdio-put-active-devices-into-1-bit-mode-during-suspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add ability to read from STDIN
-From: Joe Perches <joe@perches.com>
+Subject: sdio: put active devices into 1-bit mode during suspend
+From: Daniel Drake <dsd@laptop.org>
 
-Doesn't need or accept '-' as a trailing option to read stdin.  Doesn't
-print usage() after bad options.  Adds --usage as command line equivalent
-of --help
+And bring them back to 4-bit mode during resume.
 
-Suggested-by: Borislav Petkov <petkovbb@googlemail.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Signed-off-by: Nicolas Pitre <nico@marvell.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/mmc/core/sdio.c  |   43 +++++++++++++++++++++++++++++++++++++
+ include/linux/mmc/sdio.h |    2 +
+ 2 files changed, 45 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-ability-to-read-from-stdin scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-ability-to-read-from-stdin
-+++ a/scripts/get_maintainer.pl
-@@ -126,7 +126,7 @@ if (!GetOptions(
- 		'fe|file-emails!' => \$file_emails,
- 		'f|file' => \$from_filename,
- 		'v|version' => \$version,
--		'h|help' => \$help,
-+		'h|help|usage' => \$help,
- 		)) {
-     die "$P: invalid argument - use --help if necessary\n";
- }
-@@ -141,9 +141,9 @@ if ($version != 0) {
-     exit 0;
+diff -puN drivers/mmc/core/sdio.c~sdio-put-active-devices-into-1-bit-mode-during-suspend drivers/mmc/core/sdio.c
+--- a/drivers/mmc/core/sdio.c~sdio-put-active-devices-into-1-bit-mode-during-suspend
++++ a/drivers/mmc/core/sdio.c
+@@ -188,6 +188,40 @@ static int sdio_disable_cd(struct mmc_ca
  }
  
--if ($#ARGV < 0) {
--    usage();
--    die "$P: argument missing: patchfile or -f file please\n";
-+if (-t STDIN && !@ARGV) {
-+    # We're talking to a terminal, but have no command line arguments.
-+    die "$P: missing patchfile or -f file - use --help if necessary\n";
- }
- 
- if ($output_separator ne ", ") {
-@@ -165,7 +165,6 @@ if ($sections) {
- } else {
-     my $selections = $email + $scm + $status + $subsystem + $web;
-     if ($selections == 0) {
--	usage();
- 	die "$P:  Missing required option: email, scm, status, subsystem or web\n";
-     }
- }
-@@ -173,7 +172,6 @@ if ($sections) {
- if ($email &&
-     ($email_maintainer + $email_list + $email_subscriber_list +
-      $email_git + $email_git_penguin_chiefs + $email_git_blame) == 0) {
--    usage();
-     die "$P: Please select at least 1 email option\n";
- }
- 
-@@ -248,12 +246,18 @@ my @range = ();
- my @keyword_tvi = ();
- my @file_emails = ();
- 
-+if (!@ARGV) {
-+    push(@ARGV, "&STDIN");
+ /*
++ * Devices that remain active during a system suspend are
++ * put back into 1-bit mode.
++ */
++static int sdio_disable_wide(struct mmc_card *card)
++{
++	int ret;
++	u8 ctrl;
++
++	if (!(card->host->caps & MMC_CAP_4_BIT_DATA))
++		return 0;
++
++	if (card->cccr.low_speed && !card->cccr.wide_bus)
++		return 0;
++
++	ret = mmc_io_rw_direct(card, 0, 0, SDIO_CCCR_IF, 0, &ctrl);
++	if (ret)
++		return ret;
++
++	if (!(ctrl & SDIO_BUS_WIDTH_4BIT))
++		return 0;
++
++	ctrl &= ~SDIO_BUS_WIDTH_4BIT;
++	ctrl |= SDIO_BUS_ASYNC_INT;
++
++	ret = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_IF, ctrl, NULL);
++	if (ret)
++		return ret;
++
++	mmc_set_bus_width(card->host, MMC_BUS_WIDTH_1);
++
++	return 0;
 +}
 +
- foreach my $file (@ARGV) {
--    ##if $file is a directory and it lacks a trailing slash, add one
--    if ((-d $file)) {
--	$file =~ s@([^/])$@$1/@;
--    } elsif (!(-f $file)) {
--	die "$P: file '${file}' not found\n";
-+    if ($file ne "&STDIN") {
-+	##if $file is a directory and it lacks a trailing slash, add one
-+	if ((-d $file)) {
-+	    $file =~ s@([^/])$@$1/@;
-+	} elsif (!(-f $file)) {
-+	    die "$P: file '${file}' not found\n";
++/*
+  * Test if the card supports high-speed mode and, if so, switch to it.
+  */
+ static int sdio_enable_hs(struct mmc_card *card)
+@@ -427,6 +461,12 @@ static int mmc_sdio_suspend(struct mmc_h
+ 		}
+ 	}
+ 
++	if (!err && host->pm_flags & MMC_PM_KEEP_POWER) {
++		mmc_claim_host(host);
++		sdio_disable_wide(host->card);
++		mmc_release_host(host);
 +	}
-     }
-     if ($from_filename) {
- 	push(@files, $file);
++
+ 	return err;
+ }
+ 
+@@ -441,6 +481,9 @@ static int mmc_sdio_resume(struct mmc_ho
+ 	mmc_claim_host(host);
+ 	err = mmc_sdio_init_card(host, host->ocr, host->card,
+ 				 (host->pm_flags & MMC_PM_KEEP_POWER));
++	if (!err)
++		/* We may have switched to 1-bit mode during suspend. */
++		err = sdio_enable_wide(host->card);
+ 	if (!err && host->sdio_irqs)
+ 		mmc_signal_sdio_irq(host);
+ 	mmc_release_host(host);
+diff -puN include/linux/mmc/sdio.h~sdio-put-active-devices-into-1-bit-mode-during-suspend include/linux/mmc/sdio.h
+--- a/include/linux/mmc/sdio.h~sdio-put-active-devices-into-1-bit-mode-during-suspend
++++ a/include/linux/mmc/sdio.h
+@@ -95,6 +95,8 @@
+ #define  SDIO_BUS_WIDTH_1BIT	0x00
+ #define  SDIO_BUS_WIDTH_4BIT	0x02
+ 
++#define  SDIO_BUS_ASYNC_INT	0x20
++
+ #define  SDIO_BUS_CD_DISABLE     0x80	/* disable pull-up on DAT3 (pin 1) */
+ 
+ #define SDIO_CCCR_CAPS		0x08
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from dsd@laptop.org are
 
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-drivers-video-via-fix-continuation-line-formats.patch
 
