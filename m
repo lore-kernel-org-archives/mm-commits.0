@@ -1,116 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-compat_ioctlc-suppress-two-warnings.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:07:39 -0800
-Message-ID: <201003091907.o29J7dFO031354@imap1.linux-foundation.org>
+Subject: [merged] rtc-ep93xxc-cleanup-probe-remove-routines.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:10:22 -0800
+Message-ID: <201003091910.o29JAM4j031590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756018Ab0CITWR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:17 -0500
+	by vger.kernel.org with ESMTP id S1755953Ab0CITWT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amwang@redhat.com, arnd@arndb.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hartleys@visionengravers.com, a.zummo@towertech.it, hsweeten@visionengravers.com, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/compat_ioctl.c: suppress two warnings
+     rtc-ep93xx.c: cleanup probe/remove routines
 has been removed from the -mm tree.  Its filename was
-     fs-compat_ioctlc-suppress-two-warnings.patch
+     rtc-ep93xxc-cleanup-probe-remove-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/compat_ioctl.c: suppress two warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-ep93xx.c: cleanup probe/remove routines
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-fs/compat_ioctl.c: In function 'do_ioctl_trans':
-fs/compat_ioctl.c:534: warning: 'karg' may be used uninitialized in this function
-fs/compat_ioctl.c:533: warning: 'kcmd' may be used uninitialized in this function
-fs/compat_ioctl.c:656: warning: 'ret' may be used uninitialized in this function
+Fix issue with rtc device not getting unregistered in probe error path.
 
-Reduces text size by 44 bytes.
+Use the devres managed resource functions in the probe routine to cleanup
+the error path.
 
-If someone calls one of these functions with an unexpected argument, the
-code's buggy as-is.
+Use sysfs_{create/remove}_group to add/remove the sysfs files.
 
-Amerigo Wang <amwang@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Reduces the text size by 132 bytes, increases data by 12 bytes:
+    text	   data	    bss	    dec	    hex	filename
+-    937	    124	      0	   1061	    425	rtc-ep93xx.o
++    805	    136	      0	    941	    3ad	rtc-ep93xx.o
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ep93xx.c |   73 ++++++++++++++-----------------------
+ 1 file changed, 29 insertions(+), 44 deletions(-)
 
-diff -puN fs/compat_ioctl.c~fs-compat_ioctlc-suppress-two-warnings fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~fs-compat_ioctlc-suppress-two-warnings
-+++ a/fs/compat_ioctl.c
-@@ -545,7 +545,7 @@ static int mt_ioctl_trans(unsigned int f
- 		kcmd = MTIOCPOS;
- 		karg = &pos;
- 		break;
--	case MTIOCGET32:
-+	default:	/* MTIOCGET32 */
- 		kcmd = MTIOCGET;
- 		karg = &get;
- 		break;
-@@ -663,7 +663,7 @@ static int raw_ioctl(unsigned fd, unsign
+diff -puN drivers/rtc/rtc-ep93xx.c~rtc-ep93xxc-cleanup-probe-remove-routines drivers/rtc/rtc-ep93xx.c
+--- a/drivers/rtc/rtc-ep93xx.c~rtc-ep93xxc-cleanup-probe-remove-routines
++++ a/drivers/rtc/rtc-ep93xx.c
+@@ -115,6 +115,15 @@ static ssize_t ep93xx_rtc_show_comp_dele
+ }
+ static DEVICE_ATTR(comp_delete, S_IRUGO, ep93xx_rtc_show_comp_delete, NULL);
  
-         switch (cmd) {
-         case RAW_SETBIND:
--        case RAW_GETBIND: {
-+	default: {	/* RAW_GETBIND */
-                 struct raw_config_request req;
-                 mm_segment_t oldfs = get_fs();
++static struct attribute *ep93xx_rtc_attrs[] = {
++	&dev_attr_comp_preload.attr,
++	&dev_attr_comp_delete.attr,
++	NULL
++};
++
++static const struct attribute_group ep93xx_rtc_sysfs_files = {
++	.attrs	= ep93xx_rtc_attrs,
++};
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-add-generic-sys_ipc-wrapper-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+ static int __init ep93xx_rtc_probe(struct platform_device *pdev)
+ {
+@@ -123,27 +132,22 @@ static int __init ep93xx_rtc_probe(struc
+ 	struct rtc_device *rtc;
+ 	int err;
+ 
+-	ep93xx_rtc = kzalloc(sizeof(struct ep93xx_rtc), GFP_KERNEL);
+-	if (ep93xx_rtc == NULL)
++	ep93xx_rtc = devm_kzalloc(&pdev->dev, sizeof(*ep93xx_rtc), GFP_KERNEL);
++	if (!ep93xx_rtc)
+ 		return -ENOMEM;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL) {
+-		err = -ENXIO;
+-		goto fail_free;
+-	}
+-
+-	res = request_mem_region(res->start, resource_size(res), pdev->name);
+-	if (res == NULL) {
+-		err = -EBUSY;
+-		goto fail_free;
+-	}
++	if (!res)
++		return -ENXIO;
+ 
+-	ep93xx_rtc->mmio_base = ioremap(res->start, resource_size(res));
+-	if (ep93xx_rtc->mmio_base == NULL) {
+-		err = -ENXIO;
+-		goto fail;
+-	}
++	if (!devm_request_mem_region(&pdev->dev, res->start,
++				     resource_size(res), pdev->name))
++		return -EBUSY;
++
++	ep93xx_rtc->mmio_base = devm_ioremap(&pdev->dev, res->start,
++					     resource_size(res));
++	if (!ep93xx_rtc->mmio_base)
++		return -ENXIO;
+ 
+ 	pdev->dev.platform_data = ep93xx_rtc;
+ 
+@@ -151,53 +155,34 @@ static int __init ep93xx_rtc_probe(struc
+ 				&pdev->dev, &ep93xx_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+ 		err = PTR_ERR(rtc);
+-		goto fail;
++		goto exit;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, rtc);
+ 
+-	err = device_create_file(&pdev->dev, &dev_attr_comp_preload);
++	err = sysfs_create_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
+ 	if (err)
+ 		goto fail;
+-	err = device_create_file(&pdev->dev, &dev_attr_comp_delete);
+-	if (err) {
+-		device_remove_file(&pdev->dev, &dev_attr_comp_preload);
+-		goto fail;
+-	}
+ 
+ 	return 0;
+ 
+ fail:
+-	if (ep93xx_rtc->mmio_base) {
+-		iounmap(ep93xx_rtc->mmio_base);
+-		pdev->dev.platform_data = NULL;
+-	}
+-	release_mem_region(res->start, resource_size(res));
+-fail_free:
+-	kfree(ep93xx_rtc);
++	platform_set_drvdata(pdev, NULL);
++	rtc_device_unregister(rtc);
++exit:
++	pdev->dev.platform_data = NULL;
+ 	return err;
+ }
+ 
+ static int __exit ep93xx_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-	struct ep93xx_rtc *ep93xx_rtc = pdev->dev.platform_data;
+-	struct resource *res;
+-
+-	/* cleanup sysfs */
+-	device_remove_file(&pdev->dev, &dev_attr_comp_delete);
+-	device_remove_file(&pdev->dev, &dev_attr_comp_preload);
+ 
++	sysfs_remove_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
++	platform_set_drvdata(pdev, NULL);
+ 	rtc_device_unregister(rtc);
+-
+-	iounmap(ep93xx_rtc->mmio_base);
+ 	pdev->dev.platform_data = NULL;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, resource_size(res));
+-
+-	platform_set_drvdata(pdev, NULL);
