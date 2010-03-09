@@ -1,57 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-hayes-esp-serial-driver.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:07:09 -0800
-Message-ID: <201003091907.o29J79qA031312@imap1.linux-foundation.org>
+Subject: [merged] maintainers-update-performance-events-f-patterns.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:07:11 -0800
+Message-ID: <201003091907.o29J7BnE031315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56422 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40792 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755833Ab0CITH7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:07:59 -0500
+	by vger.kernel.org with ESMTP id S1755833Ab0CITIA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:08:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove HAYES ESP SERIAL DRIVER
+     MAINTAINERS: update PERFORMANCE EVENTS F: patterns
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-hayes-esp-serial-driver.patch
+     maintainers-update-performance-events-f-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove HAYES ESP SERIAL DRIVER
+Subject: MAINTAINERS: update PERFORMANCE EVENTS F: patterns
 From: Joe Perches <joe@perches.com>
 
-Commit f53a2ade0bb9f2a81f473e6469155172a96b7c38 removed it
+To match arch/*/kernel perf_event location changes
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 -------
- 1 file changed, 7 deletions(-)
+ MAINTAINERS |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-hayes-esp-serial-driver MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-hayes-esp-serial-driver
+diff -puN MAINTAINERS~maintainers-update-performance-events-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-performance-events-f-patterns
 +++ a/MAINTAINERS
-@@ -2501,13 +2501,6 @@ L:	linux-parisc@vger.kernel.org
- S:	Maintained
- F:	sound/parisc/harmony.*
- 
--HAYES ESP SERIAL DRIVER
--M:	"Andrew J. Robinson" <arobinso@nyx.net>
--W:	http://www.nyx.net/~arobinso
--S:	Maintained
--F:	Documentation/serial/hayes-esp.txt
--F:	drivers/char/esp.c
--
- HEWLETT-PACKARD SMART2 RAID DRIVER
- M:	Chirag Kantharia <chirag.kantharia@hp.com>
- L:	iss_storagedev@hp.com
+@@ -4257,7 +4257,9 @@ M:	Ingo Molnar <mingo@elte.hu>
+ S:	Supported
+ F:	kernel/perf_event.c
+ F:	include/linux/perf_event.h
+-F:	arch/*/*/kernel/perf_event.c
++F:	arch/*/kernel/perf_event.c
++F:	arch/*/kernel/*/perf_event.c
++F:	arch/*/kernel/*/*/perf_event.c
+ F:	arch/*/include/asm/perf_event.h
+ F:	arch/*/lib/perf_event.c
+ F:	arch/*/kernel/perf_callchain.c
 _
 
 Patches currently in -mm which might be from joe@perches.com are
