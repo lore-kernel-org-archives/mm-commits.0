@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update.patch added to -mm tree
-Date: Tue, 09 Mar 2010 12:23:06 -0800
-Message-ID: <201003092023.o29KN6GL003003@imap1.linux-foundation.org>
+Subject: + maintainers-add-bfin_sdh-driver.patch added to -mm tree
+Date: Tue, 09 Mar 2010 12:31:44 -0800
+Message-ID: <201003092031.o29KVi8H003402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754383Ab0CIUYJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 15:24:09 -0500
+	by vger.kernel.org with ESMTP id S1751494Ab0CIUbs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 15:31:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, penberg@cs.helsinki.fi, tj@kernel.org
+Cc: vapier@gentoo.org
 
 
 The patch titled
-     mm: do not iterate over NR_CPUS in __zone_pcp_update()
+     MAINTAINERS: add bfin_sdh driver
 has been added to the -mm tree.  Its filename is
-     mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update.patch
+     maintainers-add-bfin_sdh-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: do not iterate over NR_CPUS in __zone_pcp_update()
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: MAINTAINERS: add bfin_sdh driver
+From: Mike Frysinger <vapier@gentoo.org>
 
-__zone_pcp_update() iterates over NR_CPUS instead of limiting the access
-to the possible cpus.  This might result in access to uninitialized areas
-as the per cpu allocator only populates the per cpu memory for possible
-cpus.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update mm/page_alloc.c
---- a/mm/page_alloc.c~mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update
-+++ a/mm/page_alloc.c
-@@ -3243,7 +3243,7 @@ static int __zone_pcp_update(void *data)
- 	int cpu;
- 	unsigned long batch = zone_batchsize(zone), flags;
+diff -puN MAINTAINERS~maintainers-add-bfin_sdh-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-bfin_sdh-driver
++++ a/MAINTAINERS
+@@ -1259,6 +1259,13 @@ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/rtc/rtc-bfin.c
  
--	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-+	for_each_possible_cpu(cpu) {
- 		struct per_cpu_pageset *pset;
- 		struct per_cpu_pages *pcp;
- 
++BLACKFIN SDH DRIVER
++M:	Cliff Cai <cliff.cai@analog.com>
++L:	uclinux-dist-devel@blackfin.uclinux.org
++W:	http://blackfin.uclinux.org
++S:	Supported
++F:	drivers/mmc/host/bfin_sdh.c
++
+ BLACKFIN SERIAL DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+ L:	uclinux-dist-devel@blackfin.uclinux.org
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 linux-next.patch
-mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update.patch
-arch-x86-kernel-rebootc-add-imac91-to-pci_reboot_dmi_table.patch
-arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-timers-introduce-the-concept-of-timer-slack-for-legacy-timers.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
-timer-print-function-name-for-timer-callbacks-modifying-preemption-count.patch
-time-clean-up-warp_clock.patch
-time-clean-up-direct-xtime-usage-in-xen.patch
-core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks.patch
-kernel-irq-procc-expose-the-irq_desc-node-in-proc-irq.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-genirq-introduce-irqf_allow_nested-flag-for-request_irq.patch
-xtensa-fix-unnecessary-setting-of-xtime.patch
-add-generic-sys_old_select.patch
-add-generic-sys_old_mmap.patch
-add-generic-sys_ipc-wrapper.patch
-add-generic-sys_ipc-wrapper-fix.patch
-improve-sys_personality-for-compat-architectures.patch
-improve-sys_newuname-for-compat-architectures.patch
-add-generic-sys_olduname.patch
-documentation-timers-split-txt-and-source-files.patch
-sysctl-extern-cleanup-rtmutex.patch
-sysctl-extern-cleanup-lockdep.patch
-pci-dma-add-include-linux-pci-dmah.patch
-pci-dma-x86-use-include-linux-pci-dmah.patch
-time-kill-off-config_generic_time.patch
+maintainers-add-bfin_sdh-driver.patch
+fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler.patch
+blackfin-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
 
