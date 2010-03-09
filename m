@@ -1,115 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nodemaskh-remove-macro-any_online_node.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:05:50 -0800
-Message-ID: <201003091905.o29J5oQt031145@imap1.linux-foundation.org>
+Subject: + coredump-plug-a-memory-leak-situation-on-dump_seek.patch added to -mm tree
+Date: Tue, 09 Mar 2010 11:38:52 -0800
+Message-ID: <201003091938.o29JcrHq000712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751445Ab0CITXl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:23:41 -0500
+	by vger.kernel.org with ESMTP id S1750973Ab0CITjm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:39:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hartleys@visionengravers.com, Ricardo.Labiaga@netapp.com, Trond.Myklebust@netapp.com, benh@kernel.crashing.org, bfields@fieldses.org, bhalevy@panasas.com, chuck.lever@oracle.com, dave
+To: mm-commits@vger.kernel.org
+Cc: andre.goddard@gmail.com, amwang@redhat.com, kosaki.motohiro@jp.fujitsu.com, roland@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nodemask.h: remove macro any_online_node
-has been removed from the -mm tree.  Its filename was
-     nodemaskh-remove-macro-any_online_node.patch
+     coredump: plug a memory leak situation on dump_seek()
+has been added to the -mm tree.  Its filename is
+     coredump-plug-a-memory-leak-situation-on-dump_seek.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: nodemask.h: remove macro any_online_node
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: coredump: plug a memory leak situation on dump_seek()
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-The macro any_online_node() is prone to producing sparse warnings due to
-the local symbol 'node'.  Since all the in-tree users are really
-requesting the first online node (the mask argument is either
-NODE_MASK_ALL or node_online_map) just use the first_online_node macro and
-remove the any_online_node macro since there are no users.
+After having started writing the coredump, if filesystem reports an err=
+or
+anytime while writing part of the core file, we would leak a memory pag=
+e
+when bailing out.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Milton Miller <miltonm@bga.com>
-Cc: Nathan Fontenot <nfont@austin.ibm.com>
-Cc: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Benny Halevy <bhalevy@panasas.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Ricardo Labiaga <Ricardo.Labiaga@netapp.com>
+Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c   |    6 +++---
- include/linux/nodemask.h |   11 -----------
- net/sunrpc/svc.c         |    2 +-
- 3 files changed, 4 insertions(+), 15 deletions(-)
+ include/linux/coredump.h |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/numa.c~nodemaskh-remove-macro-any_online_node arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~nodemaskh-remove-macro-any_online_node
-+++ a/arch/powerpc/mm/numa.c
-@@ -451,7 +451,7 @@ static int __cpuinit numa_setup_cpu(unsi
- 	nid = of_node_to_nid_single(cpu);
- 
- 	if (nid < 0 || !node_online(nid))
--		nid = any_online_node(NODE_MASK_ALL);
-+		nid = first_online_node;
- out:
- 	map_cpu_to_node(lcpu, nid);
- 
-@@ -1114,7 +1114,7 @@ int hot_add_scn_to_nid(unsigned long scn
- 	int nid, found = 0;
- 
- 	if (!numa_enabled || (min_common_depth < 0))
--		return any_online_node(NODE_MASK_ALL);
-+		return first_online_node;
- 
- 	memory = of_find_node_by_path("/ibm,dynamic-reconfiguration-memory");
- 	if (memory) {
-@@ -1125,7 +1125,7 @@ int hot_add_scn_to_nid(unsigned long scn
+diff -puN include/linux/coredump.h~coredump-plug-a-memory-leak-situatio=
+n-on-dump_seek include/linux/coredump.h
+--- a/include/linux/coredump.h~coredump-plug-a-memory-leak-situation-on=
+-dump_seek
++++ a/include/linux/coredump.h
+@@ -16,6 +16,8 @@ static inline int dump_write(struct file
+=20
+ static inline int dump_seek(struct file *file, loff_t off)
+ {
++	int ret =3D 1;
++
+ 	if (file->f_op->llseek && file->f_op->llseek !=3D no_llseek) {
+ 		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
+ 			return 0;
+@@ -29,13 +31,15 @@ static inline int dump_seek(struct file=20
+=20
+ 			if (n > PAGE_SIZE)
+ 				n =3D PAGE_SIZE;
+-			if (!dump_write(file, buf, n))
+-				return 0;
++			if (!dump_write(file, buf, n)) {
++				ret =3D 0;
++				break;
++			}
+ 			off -=3D n;
+ 		}
+ 		free_page((unsigned long)buf);
  	}
- 
- 	if (nid < 0 || !node_online(nid))
--		nid = any_online_node(NODE_MASK_ALL);
-+		nid = first_online_node;
- 
- 	if (NODE_DATA(nid)->node_spanned_pages)
- 		return nid;
-diff -puN include/linux/nodemask.h~nodemaskh-remove-macro-any_online_node include/linux/nodemask.h
---- a/include/linux/nodemask.h~nodemaskh-remove-macro-any_online_node
-+++ a/include/linux/nodemask.h
-@@ -69,8 +69,6 @@
-  * int node_online(node)		Is some node online?
-  * int node_possible(node)		Is some node possible?
-  *
-- * int any_online_node(mask)		First online node in mask
-- *
-  * node_set_online(node)		set bit 'node' in node_online_map
-  * node_set_offline(node)		clear bit 'node' in node_online_map
-  *
-@@ -467,15 +465,6 @@ static inline int num_node_state(enum no
- #define node_online_map 	node_states[N_ONLINE]
- #define node_possible_map 	node_states[N_POSSIBLE]
- 
--#define any_online_node(mask)			\
--({						\
--	int node;				\
--	for_each_node_mask(node, (mask))	\
--		if (node_online(node))		\
--			break;			\
--	node;					\
--})
+-	return 1;
++	return ret;
+ }
+=20
+ #endif /* _LINUX_COREDUMP_H */
+_
+
+Patches currently in -mm which might be from andre.goddard@gmail.com ar=
+e
+
+linux-next.patch
+coredump-plug-a-memory-leak-situation-on-dump_seek.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
