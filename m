@@ -1,107 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-fix-first-line-of-kernel-doc-for-a-few-functions.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:07:34 -0800
-Message-ID: <201003091907.o29J7Y8T031344@imap1.linux-foundation.org>
+Subject: [merged] headers_check-fix-perl-warnings.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:11:53 -0800
+Message-ID: <201003091911.o29JBrhg031773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755949Ab0CITWM (ORCPT
+	by vger.kernel.org with ESMTP id S1755993Ab0CITWM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@decadent.org.uk, mm-commits@vger.kernel.org
+To: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: fix first line of kernel-doc for a few functions
+     headers_check: fix perl warnings
 has been removed from the -mm tree.  Its filename was
-     lib-fix-first-line-of-kernel-doc-for-a-few-functions.patch
+     headers_check-fix-perl-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: fix first line of kernel-doc for a few functions
-From: Ben Hutchings <ben@decadent.org.uk>
+Subject: headers_check: fix perl warnings
+From: Stephen Hemminger <shemminger@vyatta.com>
 
-The function name must be followed by a space, hypen, space, and a short
-description.
+According to PBP; best way practice is to use local reference for file
+handle and three argument open. Also perl prototypes are a mistake.
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Acked-by: WANG Cong <amwang@redhat.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |    6 +++---
- lib/bitmap.c         |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ scripts/headers_check.pl |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/list.h~lib-fix-first-line-of-kernel-doc-for-a-few-functions include/linux/list.h
---- a/include/linux/list.h~lib-fix-first-line-of-kernel-doc-for-a-few-functions
-+++ a/include/linux/list.h
-@@ -498,7 +498,7 @@ static inline void list_splice_tail_init
- 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
+diff -puN scripts/headers_check.pl~headers_check-fix-perl-warnings scripts/headers_check.pl
+--- a/scripts/headers_check.pl~headers_check-fix-perl-warnings
++++ a/scripts/headers_check.pl
+@@ -28,11 +28,12 @@ my $lineno = 0;
+ my $filename;
  
- /**
-- * list_for_each_entry_safe_continue
-+ * list_for_each_entry_safe_continue - continue list iteration safe against removal
-  * @pos:	the type * to use as a loop cursor.
-  * @n:		another type * to use as temporary storage
-  * @head:	the head for your list.
-@@ -514,7 +514,7 @@ static inline void list_splice_tail_init
- 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
+ foreach my $file (@files) {
+-	local *FH;
+ 	$filename = $file;
+-	open(FH, "<$filename") or die "$filename: $!\n";
++
++	open(my $fh, '<', $filename)
++		or die "$filename: $!\n";
+ 	$lineno = 0;
+-	while ($line = <FH>) {
++	while ($line = <$fh>) {
+ 		$lineno++;
+ 		&check_include();
+ 		&check_asm_types();
+@@ -40,7 +41,7 @@ foreach my $file (@files) {
+ 		&check_declarations();
+ 		# Dropped for now. Too much noise &check_config();
+ 	}
+-	close FH;
++	close $fh;
+ }
+ exit $ret;
  
- /**
-- * list_for_each_entry_safe_from
-+ * list_for_each_entry_safe_from - iterate over list from current point safe against removal
-  * @pos:	the type * to use as a loop cursor.
-  * @n:		another type * to use as temporary storage
-  * @head:	the head for your list.
-@@ -529,7 +529,7 @@ static inline void list_splice_tail_init
- 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
- 
- /**
-- * list_for_each_entry_safe_reverse
-+ * list_for_each_entry_safe_reverse - iterate backwards over list safe against removal
-  * @pos:	the type * to use as a loop cursor.
-  * @n:		another type * to use as temporary storage
-  * @head:	the head for your list.
-diff -puN lib/bitmap.c~lib-fix-first-line-of-kernel-doc-for-a-few-functions lib/bitmap.c
---- a/lib/bitmap.c~lib-fix-first-line-of-kernel-doc-for-a-few-functions
-+++ a/lib/bitmap.c
-@@ -487,7 +487,7 @@ int __bitmap_parse(const char *buf, unsi
- EXPORT_SYMBOL(__bitmap_parse);
- 
- /**
-- * bitmap_parse_user()
-+ * bitmap_parse_user - convert an ASCII hex string in a user buffer into a bitmap
-  *
-  * @ubuf: pointer to user buffer containing string.
-  * @ulen: buffer size in bytes.  If string is smaller than this
-@@ -619,7 +619,7 @@ int bitmap_parselist(const char *bp, uns
- EXPORT_SYMBOL(bitmap_parselist);
- 
- /**
-- * bitmap_pos_to_ord(buf, pos, bits)
-+ * bitmap_pos_to_ord - find ordinal of set bit at given position in bitmap
-  *	@buf: pointer to a bitmap
-  *	@pos: a bit position in @buf (0 <= @pos < @bits)
-  *	@bits: number of valid bit positions in @buf
-@@ -655,7 +655,7 @@ static int bitmap_pos_to_ord(const unsig
+@@ -78,7 +79,7 @@ sub check_config
  }
  
- /**
-- * bitmap_ord_to_pos(buf, ord, bits)
-+ * bitmap_ord_to_pos - find position of n-th set bit in bitmap
-  *	@buf: pointer to bitmap
-  *	@ord: ordinal bit position (n-th set bit, n >= 0)
-  *	@bits: number of valid bit positions in @buf
+ my $linux_asm_types;
+-sub check_asm_types()
++sub check_asm_types
+ {
+ 	if ($filename =~ /types.h|int-l64.h|int-ll64.h/o) {
+ 		return;
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from shemminger@vyatta.com are
 
 linux-next.patch
-mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch
-video-fix-first-line-of-kernel-doc-for-a-few-functions.patch
+markup_oops-fix-perlcritic-warnings.patch
+headerdep-perlcritic-warning.patch
+drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
+drivers-block-floppyc-define-space-and-column-neatening.patch
+drivers-block-floppyc-use-pr_level.patch
+drivers-block-floppyc-remove-unnecessary-braces.patch
+drivers-block-floppyc-remove-used-once-check_ready-macro.patch
+drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
+drivers-block-floppyc-remove-last_out-macro.patch
+drivers-block-floppyc-comment-neatening-and-remove-naked.patch
+drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
+drivers-block-floppyc-indent-a-comment.patch
+drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
+drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
+drivers-block-floppyc-remove-macro-lock_fdc.patch
+drivers-block-floppyc-add-debug_dcl-macro.patch
+drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
+drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
+drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
+drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
+drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
+drivers-block-floppyc-move-leading-and-to-preceding-line.patch
+drivers-block-floppyc-remove-define-device_name-floppy.patch
+drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
+drivers-block-floppyc-add-function-is_ready_state.patch
+drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
+drivers-block-floppyc-remove-repeat-macro.patch
+drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
+drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
+drivers-block-floppyc-remove-define-floppy_sanity_check.patch
+drivers-block-floppyc-dprint-neatening.patch
+drivers-block-floppyc-use-__func__-where-appropriate.patch
+drivers-block-floppyc-use-%pf-in-logging-messages.patch
+drivers-block-floppyc-remove-some-unnecessary-casting.patch
+drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
+drivers-block-floppyc-add-__func__-to-debugt.patch
+drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
+drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
+drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
 
