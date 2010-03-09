@@ -1,73 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:08:47 -0800
-Message-ID: <201003091908.o29J8lLd031470__22815.8374237411$1268162568$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:06:33 -0800
+Message-ID: <201003091906.o29J6Xjr031265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756028Ab0CITWZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:25 -0500
+	by vger.kernel.org with ESMTP id S1756015Ab0CITWQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, avictor.za@gmail.com, linux-mmc@vger.kernel.org, wolfgang.mues@auerswald.de, mm-commits@vger.kernel.org
+To: anton@samba.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: at91_mci: Enable MMC_CAP_SDIO_IRQ only when it actually works.
+     panic: fix panic_timeout accuracy when running on a hypervisor
 has been removed from the -mm tree.  Its filename was
-     mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works.patch
+     panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: Enable MMC_CAP_SDIO_IRQ only when it actually works.
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: panic: fix panic_timeout accuracy when running on a hypervisor
+From: Anton Blanchard <anton@samba.org>
 
-According to the datasheets AT91SAM9261 does not support SDIO interrupts,
-and AT91SAM9260/9263 have an erratum requiring 4bit mode while using slot
-B for the interrupt to work.
+I've had some complaints about panic_timeout being wildly innacurate on
+shared processor PowerPC partitions (a 3 minute panic_timeout taking 30
+minutes).
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Wolfgang Muees <wolfgang.mues@auerswald.de>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: <linux-mmc@vger.kernel.org>
+The problem is we loop on mdelay(1) and with a 1ms in 10ms hypervisor
+timeslice each of these will take 10ms (ie 10x) longer.  I expect other
+platforms with shared processor hypervisors will see the same issue.
+
+This patch keeps the old behaviour if we have a panic_blink (only keyboard
+LEDs right now) and does 1 second mdelays if we don't.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ kernel/panic.c |   46 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 16 deletions(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-enable-mmc_cap_sdio_irq-only-when-it-actually-works
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -929,7 +929,7 @@ static int __init at91_mci_probe(struct 
- 	mmc->f_min = 375000;
- 	mmc->f_max = 25000000;
- 	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
--	mmc->caps = MMC_CAP_SDIO_IRQ;
-+	mmc->caps = 0;
+diff -puN kernel/panic.c~panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor kernel/panic.c
+--- a/kernel/panic.c~panic-fix-panic_timeout-accuracy-when-running-on-a-hypervisor
++++ a/kernel/panic.c
+@@ -36,15 +36,36 @@ ATOMIC_NOTIFIER_HEAD(panic_notifier_list
  
- 	mmc->max_blk_size  = MCI_MAXBLKSIZE;
- 	mmc->max_blk_count = MCI_BLKATONCE;
-@@ -958,6 +958,13 @@ static int __init at91_mci_probe(struct 
- 		goto fail5;
- 	}
+ EXPORT_SYMBOL(panic_notifier_list);
  
-+	/* Add SDIO capability when available */
-+	if (cpu_is_at91sam9260() || cpu_is_at91sam9263()) {
-+		/* AT91SAM9260/9263 erratum */
-+		if (host->board->wire4 || !host->board->slot_b)
-+			mmc->caps |= MMC_CAP_SDIO_IRQ;
-+	}
+-static long no_blink(long time)
+-{
+-	return 0;
+-}
+-
+ /* Returns how long it waited in ms */
+ long (*panic_blink)(long time);
+ EXPORT_SYMBOL(panic_blink);
+ 
++static void panic_blink_one_second(void)
++{
++	static long i = 0, end;
 +
- 	/*
- 	 * Reserve GPIOs ... board init code makes sure these pins are set
- 	 * up as GPIOs with the right direction (input, except for vcc)
++	if (panic_blink) {
++		end = i + MSEC_PER_SEC;
++
++		while (i < end) {
++			i += panic_blink(i);
++			mdelay(1);
++			i++;
++		}
++	} else {
++		/*
++		 * When running under a hypervisor a small mdelay may get
++		 * rounded up to the hypervisor timeslice. For example, with
++		 * a 1ms in 10ms hypervisor timeslice we might inflate a
++		 * mdelay(1) loop by 10x.
++		 *
++		 * If we have nothing to blink, spin on 1 second calls to
++		 * mdelay to avoid this.
++		 */
++		mdelay(MSEC_PER_SEC);
++	}
++}
++
+ /**
+  *	panic - halt the system
+  *	@fmt: The text string to print
+@@ -95,9 +116,6 @@ NORET_TYPE void panic(const char * fmt, 
+ 
+ 	bust_spinlocks(0);
+ 
+-	if (!panic_blink)
+-		panic_blink = no_blink;
+-
+ 	if (panic_timeout > 0) {
+ 		/*
+ 		 * Delay timeout seconds before rebooting the machine.
+@@ -105,11 +123,9 @@ NORET_TYPE void panic(const char * fmt, 
+ 		 */
+ 		printk(KERN_EMERG "Rebooting in %d seconds..", panic_timeout);
+ 
+-		for (i = 0; i < panic_timeout*1000; ) {
++		for (i = 0; i < panic_timeout; i++) {
+ 			touch_nmi_watchdog();
+-			i += panic_blink(i);
+-			mdelay(1);
+-			i++;
++			panic_blink_one_second();
+ 		}
+ 		/*
+ 		 * This will not be a clean reboot, with everything
+@@ -135,11 +151,9 @@ NORET_TYPE void panic(const char * fmt, 
+ 	}
+ #endif
+ 	local_irq_enable();
+-	for (i = 0; ; ) {
++	while (1) {
+ 		touch_softlockup_watchdog();
+-		i += panic_blink(i);
+-		mdelay(1);
+-		i++;
++		panic_blink_one_second();
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from anton@samba.org are
 
+linux-next.patch
+zlib-make-new-optimized-inflate-endian-independent.patch
 
