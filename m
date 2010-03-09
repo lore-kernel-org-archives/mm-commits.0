@@ -1,112 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-fix-possible-infinite-loop.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:07:04 -0800
-Message-ID: <201003091907.o29J74wI031300@imap1.linux-foundation.org>
+Subject: [merged] lib-stringc-simplify-stricmp.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:07:21 -0800
+Message-ID: <201003091907.o29J7Loi031329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755925Ab0CITWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:05 -0500
+	by vger.kernel.org with ESMTP id S1755975Ab0CITWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: andre.goddard@gmail.com, fweisbec@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: fix possible infinite loop
+     lib/string.c: simplify stricmp()
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-fix-possible-infinite-loop.patch
+     lib-stringc-simplify-stricmp.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: fix possible infinite loop
-From: Joe Perches <joe@perches.com>
+Subject: lib/string.c: simplify stricmp()
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-If MAINTAINERS section entries are misformatted, it was possible to have
-an infinite loop.
+Removes 32 bytes on core2 with gcc 4.4.1:
+   text    data     bss     dec     hex filename
+   3196       0       0    3196     c7c lib/string-BEFORE.o
+   3164       0       0    3164     c5c lib/string-AFTER.o
 
-Correct the defect by always moving the index to the end of section + 1
-
-Also, exit check for exclude as soon as possible.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/string.c |   34 +++++++++++++++-------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop
-+++ a/scripts/get_maintainer.pl
-@@ -347,6 +347,7 @@ foreach my $file (@files) {
- 		if ($type eq 'X') {
- 		    if (file_match_pattern($file, $value)) {
- 			$exclude = 1;
-+			last;
- 		    }
- 		}
- 	    }
-@@ -373,8 +374,7 @@ foreach my $file (@files) {
- 	    }
- 	}
- 
--	$tvi += ($end - $start);
--
-+	$tvi = $end + 1;
-     }
- 
-     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
+diff -puN lib/string.c~lib-stringc-simplify-stricmp lib/string.c
+--- a/lib/string.c~lib-stringc-simplify-stricmp
++++ a/lib/string.c
+@@ -36,25 +36,21 @@ int strnicmp(const char *s1, const char=20
+ 	/* Yes, Virginia, it had better be unsigned */
+ 	unsigned char c1, c2;
+=20
+-	c1 =3D c2 =3D 0;
+-	if (len) {
+-		do {
+-			c1 =3D *s1;
+-			c2 =3D *s2;
+-			s1++;
+-			s2++;
+-			if (!c1)
+-				break;
+-			if (!c2)
+-				break;
+-			if (c1 =3D=3D c2)
+-				continue;
+-			c1 =3D tolower(c1);
+-			c2 =3D tolower(c2);
+-			if (c1 !=3D c2)
+-				break;
+-		} while (--len);
+-	}
++	if (!len)
++		return 0;
++
++	do {
++		c1 =3D *s1++;
++		c2 =3D *s2++;
++		if (!c1 || !c2)
++			break;
++		if (c1 =3D=3D c2)
++			continue;
++		c1 =3D tolower(c1);
++		c2 =3D tolower(c2);
++		if (c1 !=3D c2)
++			break;
++	} while (--len);
+ 	return (int)c1 - (int)c2;
+ }
+ EXPORT_SYMBOL(strnicmp);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from andre.goddard@gmail.com ar=
+e
 
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
 linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-drivers-video-via-fix-continuation-line-formats.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
