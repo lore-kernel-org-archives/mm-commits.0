@@ -1,76 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatchpl-add-union-and-struct-to-the-exceptions-list.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:09:11 -0800
-Message-ID: <201003091909.o29J9BrH031503@imap1.linux-foundation.org>
+Subject: [merged] exec-create-initial-stack-independent-of-page_size.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:06:39 -0800
+Message-ID: <201003091906.o29J6dRC031271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756037Ab0CITW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:27 -0500
+	by vger.kernel.org with ESMTP id S1756035Ab0CITW0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefani@seibold.net, apw@shadowen.org, mm-commits@vger.kernel.org
+To: mikey@neuling.org, anton@samba.org, deller@gmx.de, kosaki.motohiro@jp.fujitsu.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch.pl: add union and struct to the exceptions list
+     exec: create initial stack independent of PAGE_SIZE
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-add-union-and-struct-to-the-exceptions-list.patch
+     exec-create-initial-stack-independent-of-page_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: add union and struct to the exceptions list
-From: Stefani Seibold <stefani@seibold.net>
+Subject: exec: create initial stack independent of PAGE_SIZE
+From: Michael Neuling <mikey@neuling.org>
 
-Here is a small code snippet, which will be complained about by
-checkpatch.pl:
+Currently we create the initial stack based on the PAGE_SIZE.  This is
+unnecessary.
 
-#define __STRUCT_KFIFO_COMMON(recsize, ptrtype) \
-	union { \
-		struct { \
-			unsigned int	in; \
-			unsigned int	out; \
-		}; \
-		char		rectype[recsize]; \
-		ptrtype		*ptr; \
-		const ptrtype	*ptr_const; \
-	};
+This creates this initial stack independent of the PAGE_SIZE.
 
-This construct is legal and safe, so checkpatch.pl should accept this.  It
-should be also true for struct defined in a macro.
+It also bumps up the number of 4k pages allocated from 20 to 32, to
+align with 64K page systems.
 
-Add the `struct' and `union' keywords to the exceptions list of the
-checkpatch.pl script, to prevent error message "Macros with multiple
-statements should be enclosed in a do - while loop".  Otherwise it is not
-possible to build a struct or union with a macro.
-
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Cc: Helge Deller <deller@gmx.de>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Americo Wang <xiyou.wangcong@gmail.com>
+Cc: Anton Blanchard <anton@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/exec.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-union-and-struct-to-the-exceptions-list scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-union-and-struct-to-the-exceptions-list
-+++ a/scripts/checkpatch.pl
-@@ -2361,6 +2361,8 @@ sub process {
- 				DECLARE_PER_CPU|
- 				DEFINE_PER_CPU|
- 				__typeof__\(|
-+				union|
-+				struct|
- 				\.$Ident\s*=\s*|
- 				^\"|\"$
- 			}x;
-_
-
-Patches currently in -mm which might be from stefani@seibold.net are
-
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-
+diff -puN fs/exec.c~exec-create-initial-stack-independent-of-page_size fs/exec.c
+--- a/fs/exec.c~exec-create-initial-stack-independent-of-page_size
++++ a/fs/exec.c
+@@ -556,8 +556,6 @@ static int shift_arg_pages(struct vm_are
+ 	return 0;
+ }
+ 
+-#define EXTRA_STACK_VM_PAGES	20	/* random */
