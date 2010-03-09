@@ -1,69 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-at91_mci-fix-timeout-errors.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:08:34 -0800
-Message-ID: <201003091908.o29J8YpL031450__2672.01993051476$1268162562$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] i2c-fix-xiic-build-error.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:11:31 -0800
+Message-ID: <201003091911.o29JBVCw031745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32901 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756023Ab0CITWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:19 -0500
+	by vger.kernel.org with ESMTP id S1755966Ab0CITWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wolfgang.mues@auerswald.de, avictor.za@gmail.com, linux-mmc@vger.kernel.org, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: at91_mci: fix timeout errors
+     i2c: fix xiic build error
 has been removed from the -mm tree.  Its filename was
-     mmc-at91_mci-fix-timeout-errors.patch
+     i2c-fix-xiic-build-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: fix timeout errors
-From: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Subject: i2c: fix xiic build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix two timeout errors, one for slow SDHC cards and one for slow users
-while inserting SD cards.
+Add header file to fix build error:
 
-Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: <linux-mmc@vger.kernel.org>
+drivers/i2c/busses/i2c-xiic.c:493: error: implicit declaration of function 'mdelay'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-xiic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-fix-timeout-errors drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-fix-timeout-errors
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -756,7 +756,8 @@ static void at91_mci_request(struct mmc_
- 	host->request = mrq;
- 	host->flags = 0;
- 
--	mod_timer(&host->timer, jiffies +  HZ);
-+	/* more than 1s timeout needed with slow SD cards */
-+	mod_timer(&host->timer, jiffies +  msecs_to_jiffies(2000));
- 
- 	at91_mci_process_next(host);
- }
-@@ -944,7 +945,8 @@ static irqreturn_t at91_mmc_det_irq(int 
- 			pr_debug("****** Resetting SD-card bus width ******\n");
- 			at91_mci_write(host, AT91_MCI_SDCR, at91_mci_read(host, AT91_MCI_SDCR) & ~AT91_MCI_SDCBUS);
- 		}
--		mmc_detect_change(host->mmc, msecs_to_jiffies(100));
-+		/* 0.5s needed because of early card detect switch firing */
-+		mmc_detect_change(host->mmc, msecs_to_jiffies(500));
- 	}
- 	return IRQ_HANDLED;
- }
+diff -puN drivers/i2c/busses/i2c-xiic.c~i2c-fix-xiic-build-error drivers/i2c/busses/i2c-xiic.c
+--- a/drivers/i2c/busses/i2c-xiic.c~i2c-fix-xiic-build-error
++++ a/drivers/i2c/busses/i2c-xiic.c
+@@ -31,6 +31,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
++#include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
 _
 
-Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+linux-next.patch
+xfs-needs-list_sort.patch
+vmwgfx-depends-on-fb.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+documentation-timers-split-txt-and-source-files.patch
+documentation-laptop-split-txt-and-source-files.patch
+documentation-fs-split-txt-and-source-files.patch
+documentation-vm-split-txt-and-source-files.patch
+doc-submitchecklist-add-rule-1.patch
+cgroups-subsystem-module-unloading-fix.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+dma-mappingh-add-the-dma_unmap-state-api-fix-2.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
