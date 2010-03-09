@@ -1,205 +1,355 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-restore-zone-all_unreclaimable-to-independence-word.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:03:38 -0800
-Message-ID: <201003091903.o29J3c2n030979@imap1.linux-foundation.org>
+Subject: [merged] bitops-rename-for_each_bit-to-for_each_set_bit.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:02:55 -0800
+Message-ID: <201003091902.o29J2tMW030907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755699Ab0CITDs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:48 -0500
+	by vger.kernel.org with ESMTP id S1753902Ab0CITDv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, rientjes@google.com, shijie8@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, adobriyan@gmail.com, akpm@linux-foundation.org, davem@davemloft.net, dedekind@infradead.org, dwmw2@infradead.org, rmk@arm.linux.org.uk, sfr@canb.auug.org.aum
 
 
 The patch titled
-     mm: restore zone->all_unreclaimable to independence word
+     bitops: rename for_each_bit() to for_each_set_bit()
 has been removed from the -mm tree.  Its filename was
-     mm-restore-zone-all_unreclaimable-to-independence-word.patch
+     bitops-rename-for_each_bit-to-for_each_set_bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: restore zone->all_unreclaimable to independence word
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: bitops: rename for_each_bit() to for_each_set_bit()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-commit e815af95 ("change all_unreclaimable zone member to flags") changed
-all_unreclaimable member to bit flag.  But it had an undesireble side
-effect.  free_one_page() is one of most hot path in linux kernel and
-increasing atomic ops in it can reduce kernel performance a bit.
+Rename for_each_bit to for_each_set_bit in the kernel source tree.  To
+permit for_each_clear_bit(), should that ever be added.
 
-Thus, this patch revert such commit partially. at least
-all_unreclaimable shouldn't share memory word with other zone flags.
+The patch includes a macro to map the old for_each_bit() onto the new
+for_each_set_bit().  This is a (very) temporary thing to ease the migration.
 
-[akpm@linux-foundation.org: fix patch interaction]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Huang Shijie <shijie8@gmail.com>
+[akpm@linux-foundation.org: add temporary for_each_bit()]
+Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    7 +------
- mm/page_alloc.c        |    6 +++---
- mm/vmscan.c            |   22 +++++++++-------------
- mm/vmstat.c            |    2 +-
- 4 files changed, 14 insertions(+), 23 deletions(-)
+ arch/x86/kernel/cpu/perf_event.c            |    2 +-
+ arch/x86/kernel/cpu/perf_event_intel.c      |    2 +-
+ drivers/dma/ioat/dma.c                      |    2 +-
+ drivers/gpio/pl061.c                        |    2 +-
+ drivers/gpio/timbgpio.c                     |    2 +-
+ drivers/i2c/busses/i2c-designware.c         |    4 ++--
+ drivers/mfd/htc-egpio.c                     |    2 +-
+ drivers/misc/sgi-xp/xpnet.c                 |    2 +-
+ drivers/net/gianfar.c                       |   12 ++++++------
+ drivers/net/ixgbe/ixgbe_main.c              |    2 +-
+ drivers/net/ixgbevf/ixgbevf_main.c          |    2 +-
+ drivers/net/wireless/ath/ar9170/main.c      |    2 +-
+ drivers/net/wireless/iwmc3200wifi/debugfs.c |    2 +-
+ drivers/net/wireless/iwmc3200wifi/rx.c      |    2 +-
+ fs/ocfs2/quota_local.c                      |    2 +-
+ include/linux/bitops.h                      |    4 +++-
+ kernel/sched_cpupri.c                       |    2 +-
+ sound/soc/codecs/uda1380.c                  |    2 +-
+ 18 files changed, 26 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-restore-zone-all_unreclaimable-to-independence-word include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-restore-zone-all_unreclaimable-to-independence-word
-+++ a/include/linux/mmzone.h
-@@ -306,6 +306,7 @@ struct zone {
- 	 * free areas of different sizes
- 	 */
- 	spinlock_t		lock;
-+	int                     all_unreclaimable; /* All pages pinned */
- #ifdef CONFIG_MEMORY_HOTPLUG
- 	/* see spanned/present_pages for more description */
- 	seqlock_t		span_seqlock;
-@@ -417,7 +418,6 @@ struct zone {
- } ____cacheline_internodealigned_in_smp;
+diff -puN arch/x86/kernel/cpu/perf_event.c~bitops-rename-for_each_bit-to-for_each_set_bit arch/x86/kernel/cpu/perf_event.c
+--- a/arch/x86/kernel/cpu/perf_event.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/arch/x86/kernel/cpu/perf_event.c
+@@ -676,7 +676,7 @@ static int x86_schedule_events(struct cp
+ 			if (c->weight != w)
+ 				continue;
  
- typedef enum {
--	ZONE_ALL_UNRECLAIMABLE,		/* all pages pinned */
- 	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
- 	ZONE_OOM_LOCKED,		/* zone is in OOM killer zonelist */
- } zone_flags_t;
-@@ -437,11 +437,6 @@ static inline void zone_clear_flag(struc
- 	clear_bit(flag, &zone->flags);
+-			for_each_bit(j, c->idxmsk, X86_PMC_IDX_MAX) {
++			for_each_set_bit(j, c->idxmsk, X86_PMC_IDX_MAX) {
+ 				if (!test_bit(j, used_mask))
+ 					break;
+ 			}
+diff -puN arch/x86/kernel/cpu/perf_event_intel.c~bitops-rename-for_each_bit-to-for_each_set_bit arch/x86/kernel/cpu/perf_event_intel.c
+--- a/arch/x86/kernel/cpu/perf_event_intel.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/arch/x86/kernel/cpu/perf_event_intel.c
+@@ -757,7 +757,7 @@ again:
+ 
+ 	inc_irq_stat(apic_perf_irqs);
+ 	ack = status;
+-	for_each_bit(bit, (unsigned long *)&status, X86_PMC_IDX_MAX) {
++	for_each_set_bit(bit, (unsigned long *)&status, X86_PMC_IDX_MAX) {
+ 		struct perf_event *event = cpuc->events[bit];
+ 
+ 		clear_bit(bit, (unsigned long *) &status);
+diff -puN drivers/dma/ioat/dma.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/dma/ioat/dma.c
+--- a/drivers/dma/ioat/dma.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/dma/ioat/dma.c
+@@ -71,7 +71,7 @@ static irqreturn_t ioat_dma_do_interrupt
+ 	}
+ 
+ 	attnstatus = readl(instance->reg_base + IOAT_ATTNSTATUS_OFFSET);
+-	for_each_bit(bit, &attnstatus, BITS_PER_LONG) {
++	for_each_set_bit(bit, &attnstatus, BITS_PER_LONG) {
+ 		chan = ioat_chan_by_index(instance, bit);
+ 		tasklet_schedule(&chan->cleanup_task);
+ 	}
+diff -puN drivers/gpio/pl061.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/gpio/pl061.c
+--- a/drivers/gpio/pl061.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/gpio/pl061.c
+@@ -219,7 +219,7 @@ static void pl061_irq_handler(unsigned i
+ 		if (pending == 0)
+ 			continue;
+ 
+-		for_each_bit(offset, &pending, PL061_GPIO_NR)
++		for_each_set_bit(offset, &pending, PL061_GPIO_NR)
+ 			generic_handle_irq(pl061_to_irq(&chip->gc, offset));
+ 	}
+ 	desc->chip->unmask(irq);
+diff -puN drivers/gpio/timbgpio.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/gpio/timbgpio.c
+--- a/drivers/gpio/timbgpio.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/gpio/timbgpio.c
+@@ -175,7 +175,7 @@ static void timbgpio_irq(unsigned int ir
+ 	ipr = ioread32(tgpio->membase + TGPIO_IPR);
+ 	iowrite32(ipr, tgpio->membase + TGPIO_ICR);
+ 
+-	for_each_bit(offset, &ipr, tgpio->gpio.ngpio)
++	for_each_set_bit(offset, &ipr, tgpio->gpio.ngpio)
+ 		generic_handle_irq(timbgpio_to_irq(&tgpio->gpio, offset));
  }
  
--static inline int zone_is_all_unreclaimable(const struct zone *zone)
--{
--	return test_bit(ZONE_ALL_UNRECLAIMABLE, &zone->flags);
--}
--
- static inline int zone_is_reclaim_locked(const struct zone *zone)
+diff -puN drivers/i2c/busses/i2c-designware.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/i2c/busses/i2c-designware.c
+--- a/drivers/i2c/busses/i2c-designware.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/i2c/busses/i2c-designware.c
+@@ -497,13 +497,13 @@ static int i2c_dw_handle_tx_abort(struct
+ 	int i;
+ 
+ 	if (abort_source & DW_IC_TX_ABRT_NOACK) {
+-		for_each_bit(i, &abort_source, ARRAY_SIZE(abort_sources))
++		for_each_set_bit(i, &abort_source, ARRAY_SIZE(abort_sources))
+ 			dev_dbg(dev->dev,
+ 				"%s: %s\n", __func__, abort_sources[i]);
+ 		return -EREMOTEIO;
+ 	}
+ 
+-	for_each_bit(i, &abort_source, ARRAY_SIZE(abort_sources))
++	for_each_set_bit(i, &abort_source, ARRAY_SIZE(abort_sources))
+ 		dev_err(dev->dev, "%s: %s\n", __func__, abort_sources[i]);
+ 
+ 	if (abort_source & DW_IC_TX_ARB_LOST)
+diff -puN drivers/mfd/htc-egpio.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/mfd/htc-egpio.c
+--- a/drivers/mfd/htc-egpio.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/mfd/htc-egpio.c
+@@ -108,7 +108,7 @@ static void egpio_handler(unsigned int i
+ 	ack_irqs(ei);
+ 	/* Process all set pins. */
+ 	readval &= ei->irqs_enabled;
+-	for_each_bit(irqpin, &readval, ei->nirqs) {
++	for_each_set_bit(irqpin, &readval, ei->nirqs) {
+ 		/* Run irq handler */
+ 		pr_debug("got IRQ %d\n", irqpin);
+ 		irq = ei->irq_start + irqpin;
+diff -puN drivers/misc/sgi-xp/xpnet.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/misc/sgi-xp/xpnet.c
+--- a/drivers/misc/sgi-xp/xpnet.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/misc/sgi-xp/xpnet.c
+@@ -475,7 +475,7 @@ xpnet_dev_hard_start_xmit(struct sk_buff
+ 
+ 	if (skb->data[0] == 0xff) {
+ 		/* we are being asked to broadcast to all partitions */
+-		for_each_bit(dest_partid, xpnet_broadcast_partitions,
++		for_each_set_bit(dest_partid, xpnet_broadcast_partitions,
+ 			     xp_max_npartitions) {
+ 
+ 			xpnet_send(skb, queued_msg, start_addr, end_addr,
+diff -puN drivers/net/gianfar.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/net/gianfar.c
+--- a/drivers/net/gianfar.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/net/gianfar.c
+@@ -998,7 +998,7 @@ static int gfar_probe(struct of_device *
+ 	}
+ 
+ 	/* Need to reverse the bit maps as  bit_map's MSB is q0
+-	 * but, for_each_bit parses from right to left, which
++	 * but, for_each_set_bit parses from right to left, which
+ 	 * basically reverses the queue numbers */
+ 	for (i = 0; i< priv->num_grps; i++) {
+ 		priv->gfargrp[i].tx_bit_map = reverse_bitmap(
+@@ -1011,7 +1011,7 @@ static int gfar_probe(struct of_device *
+ 	 * also assign queues to groups */
+ 	for (grp_idx = 0; grp_idx < priv->num_grps; grp_idx++) {
+ 		priv->gfargrp[grp_idx].num_rx_queues = 0x0;
+-		for_each_bit(i, &priv->gfargrp[grp_idx].rx_bit_map,
++		for_each_set_bit(i, &priv->gfargrp[grp_idx].rx_bit_map,
+ 				priv->num_rx_queues) {
+ 			priv->gfargrp[grp_idx].num_rx_queues++;
+ 			priv->rx_queue[i]->grp = &priv->gfargrp[grp_idx];
+@@ -1019,7 +1019,7 @@ static int gfar_probe(struct of_device *
+ 			rqueue = rqueue | ((RQUEUE_EN0 | RQUEUE_EX0) >> i);
+ 		}
+ 		priv->gfargrp[grp_idx].num_tx_queues = 0x0;
+-		for_each_bit (i, &priv->gfargrp[grp_idx].tx_bit_map,
++		for_each_set_bit(i, &priv->gfargrp[grp_idx].tx_bit_map,
+ 				priv->num_tx_queues) {
+ 			priv->gfargrp[grp_idx].num_tx_queues++;
+ 			priv->tx_queue[i]->grp = &priv->gfargrp[grp_idx];
+@@ -1709,7 +1709,7 @@ void gfar_configure_coalescing(struct gf
+ 
+ 	if (priv->mode == MQ_MG_MODE) {
+ 		baddr = &regs->txic0;
+-		for_each_bit (i, &tx_mask, priv->num_tx_queues) {
++		for_each_set_bit(i, &tx_mask, priv->num_tx_queues) {
+ 			if (likely(priv->tx_queue[i]->txcoalescing)) {
+ 				gfar_write(baddr + i, 0);
+ 				gfar_write(baddr + i, priv->tx_queue[i]->txic);
+@@ -1717,7 +1717,7 @@ void gfar_configure_coalescing(struct gf
+ 		}
+ 
+ 		baddr = &regs->rxic0;
+-		for_each_bit (i, &rx_mask, priv->num_rx_queues) {
++		for_each_set_bit(i, &rx_mask, priv->num_rx_queues) {
+ 			if (likely(priv->rx_queue[i]->rxcoalescing)) {
+ 				gfar_write(baddr + i, 0);
+ 				gfar_write(baddr + i, priv->rx_queue[i]->rxic);
+@@ -2607,7 +2607,7 @@ static int gfar_poll(struct napi_struct 
+ 		budget_per_queue = left_over_budget/num_queues;
+ 		left_over_budget = 0;
+ 
+-		for_each_bit(i, &gfargrp->rx_bit_map, priv->num_rx_queues) {
++		for_each_set_bit(i, &gfargrp->rx_bit_map, priv->num_rx_queues) {
+ 			if (test_bit(i, &serviced_queues))
+ 				continue;
+ 			rx_queue = priv->rx_queue[i];
+diff -puN drivers/net/ixgbe/ixgbe_main.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/net/ixgbe/ixgbe_main.c
+--- a/drivers/net/ixgbe/ixgbe_main.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/net/ixgbe/ixgbe_main.c
+@@ -1050,7 +1050,7 @@ static void ixgbe_configure_msix(struct 
+ 	 */
+ 	for (v_idx = 0; v_idx < q_vectors; v_idx++) {
+ 		q_vector = adapter->q_vector[v_idx];
+-		/* XXX for_each_bit(...) */
++		/* XXX for_each_set_bit(...) */
+ 		r_idx = find_first_bit(q_vector->rxr_idx,
+ 		                       adapter->num_rx_queues);
+ 
+diff -puN drivers/net/ixgbevf/ixgbevf_main.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/net/ixgbevf/ixgbevf_main.c
+--- a/drivers/net/ixgbevf/ixgbevf_main.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/net/ixgbevf/ixgbevf_main.c
+@@ -751,7 +751,7 @@ static void ixgbevf_configure_msix(struc
+ 	 */
+ 	for (v_idx = 0; v_idx < q_vectors; v_idx++) {
+ 		q_vector = adapter->q_vector[v_idx];
+-		/* XXX for_each_bit(...) */
++		/* XXX for_each_set_bit(...) */
+ 		r_idx = find_first_bit(q_vector->rxr_idx,
+ 				       adapter->num_rx_queues);
+ 
+diff -puN drivers/net/wireless/ath/ar9170/main.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/net/wireless/ath/ar9170/main.c
+--- a/drivers/net/wireless/ath/ar9170/main.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/net/wireless/ath/ar9170/main.c
+@@ -394,7 +394,7 @@ static void ar9170_tx_fake_ampdu_status(
+ 		ieee80211_tx_status_irqsafe(ar->hw, skb);
+ 	}
+ 
+-	for_each_bit(i, &queue_bitmap, BITS_PER_BYTE) {
++	for_each_set_bit(i, &queue_bitmap, BITS_PER_BYTE) {
+ #ifdef AR9170_QUEUE_STOP_DEBUG
+ 		printk(KERN_DEBUG "%s: wake queue %d\n",
+ 		       wiphy_name(ar->hw->wiphy), i);
+diff -puN drivers/net/wireless/iwmc3200wifi/debugfs.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/net/wireless/iwmc3200wifi/debugfs.c
+--- a/drivers/net/wireless/iwmc3200wifi/debugfs.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/net/wireless/iwmc3200wifi/debugfs.c
+@@ -89,7 +89,7 @@ static int iwm_debugfs_dbg_modules_write
+ 	for (i = 0; i < __IWM_DM_NR; i++)
+ 		iwm->dbg.dbg_module[i] = 0;
+ 
+-	for_each_bit(bit, &iwm->dbg.dbg_modules, __IWM_DM_NR)
++	for_each_set_bit(bit, &iwm->dbg.dbg_modules, __IWM_DM_NR)
+ 		iwm->dbg.dbg_module[bit] = iwm->dbg.dbg_level;
+ 
+ 	return 0;
+diff -puN drivers/net/wireless/iwmc3200wifi/rx.c~bitops-rename-for_each_bit-to-for_each_set_bit drivers/net/wireless/iwmc3200wifi/rx.c
+--- a/drivers/net/wireless/iwmc3200wifi/rx.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/drivers/net/wireless/iwmc3200wifi/rx.c
+@@ -1116,7 +1116,7 @@ static int iwm_ntf_stop_resume_tx(struct
+ 		return -EINVAL;
+ 	}
+ 
+-	for_each_bit(bit, (unsigned long *)&tid_msk, IWM_UMAC_TID_NR) {
++	for_each_set_bit(bit, (unsigned long *)&tid_msk, IWM_UMAC_TID_NR) {
+ 		tid_info = &sta_info->tid_info[bit];
+ 
+ 		mutex_lock(&tid_info->mutex);
+diff -puN fs/ocfs2/quota_local.c~bitops-rename-for_each_bit-to-for_each_set_bit fs/ocfs2/quota_local.c
+--- a/fs/ocfs2/quota_local.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/fs/ocfs2/quota_local.c
+@@ -457,7 +457,7 @@ static int ocfs2_recover_local_quota_fil
+ 			break;
+ 		}
+ 		dchunk = (struct ocfs2_local_disk_chunk *)hbh->b_data;
+-		for_each_bit(bit, rchunk->rc_bitmap, ol_chunk_entries(sb)) {
++		for_each_set_bit(bit, rchunk->rc_bitmap, ol_chunk_entries(sb)) {
+ 			qbh = NULL;
+ 			status = ocfs2_read_quota_block(lqinode,
+ 						ol_dqblk_block(sb, chunk, bit),
+diff -puN include/linux/bitops.h~bitops-rename-for_each_bit-to-for_each_set_bit include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/include/linux/bitops.h
+@@ -16,11 +16,13 @@
+  */
+ #include <asm/bitops.h>
+ 
+-#define for_each_bit(bit, addr, size) \
++#define for_each_set_bit(bit, addr, size) \
+ 	for ((bit) = find_first_bit((addr), (size)); \
+ 	     (bit) < (size); \
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+ 
++/* Temporary */
++#define for_each_bit(bit, addr, size) for_each_set_bit(bit, addr, size)
+ 
+ static __inline__ int get_bitmask_order(unsigned int count)
  {
- 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
-diff -puN mm/page_alloc.c~mm-restore-zone-all_unreclaimable-to-independence-word mm/page_alloc.c
---- a/mm/page_alloc.c~mm-restore-zone-all_unreclaimable-to-independence-word
-+++ a/mm/page_alloc.c
-@@ -530,7 +530,7 @@ static void free_pcppages_bulk(struct zo
- 	int batch_free = 0;
+diff -puN kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit kernel/sched_cpupri.c
+--- a/kernel/sched_cpupri.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/kernel/sched_cpupri.c
+@@ -47,7 +47,7 @@ static int convert_prio(int prio)
+ }
  
- 	spin_lock(&zone->lock);
--	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
-+	zone->all_unreclaimable = 0;
- 	zone->pages_scanned = 0;
+ #define for_each_cpupri_active(array, idx)                    \
+-	for_each_bit(idx, array, CPUPRI_NR_PRIORITIES)
++	for_each_set_bit(idx, array, CPUPRI_NR_PRIORITIES)
  
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, count);
-@@ -568,7 +568,7 @@ static void free_one_page(struct zone *z
- 				int migratetype)
+ /**
+  * cpupri_find - find the best (lowest-pri) CPU in the system
+diff -puN sound/soc/codecs/uda1380.c~bitops-rename-for_each_bit-to-for_each_set_bit sound/soc/codecs/uda1380.c
+--- a/sound/soc/codecs/uda1380.c~bitops-rename-for_each_bit-to-for_each_set_bit
++++ a/sound/soc/codecs/uda1380.c
+@@ -137,7 +137,7 @@ static void uda1380_flush_work(struct wo
  {
- 	spin_lock(&zone->lock);
--	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
-+	zone->all_unreclaimable = 0;
- 	zone->pages_scanned = 0;
+ 	int bit, reg;
  
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
-@@ -2262,7 +2262,7 @@ void show_free_areas(void)
- 			K(zone_page_state(zone, NR_BOUNCE)),
- 			K(zone_page_state(zone, NR_WRITEBACK_TEMP)),
- 			zone->pages_scanned,
--			(zone_is_all_unreclaimable(zone) ? "yes" : "no")
-+			(zone->all_unreclaimable ? "yes" : "no")
- 			);
- 		printk("lowmem_reserve[]:");
- 		for (i = 0; i < MAX_NR_ZONES; i++)
-diff -puN mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word mm/vmscan.c
---- a/mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word
-+++ a/mm/vmscan.c
-@@ -1699,8 +1699,7 @@ static void shrink_zones(int priority, s
- 				continue;
- 			note_zone_scanning_priority(zone, priority);
- 
--			if (zone_is_all_unreclaimable(zone) &&
--						priority != DEF_PRIORITY)
-+			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
- 				continue;	/* Let kswapd poll it */
- 			sc->all_unreclaimable = 0;
- 		} else {
-@@ -1927,7 +1926,7 @@ static int sleeping_prematurely(pg_data_
- 		if (!populated_zone(zone))
- 			continue;
- 
--		if (zone_is_all_unreclaimable(zone))
-+		if (zone->all_unreclaimable)
- 			continue;
- 
- 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
-@@ -2017,8 +2016,7 @@ loop_again:
- 			if (!populated_zone(zone))
- 				continue;
- 
--			if (zone_is_all_unreclaimable(zone) &&
--			    priority != DEF_PRIORITY)
-+			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
- 				continue;
- 
- 			/*
-@@ -2061,8 +2059,7 @@ loop_again:
- 			if (!populated_zone(zone))
- 				continue;
- 
--			if (zone_is_all_unreclaimable(zone) &&
--					priority != DEF_PRIORITY)
-+			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
- 				continue;
- 
- 			temp_priority[i] = priority;
-@@ -2089,12 +2086,11 @@ loop_again:
- 						lru_pages);
- 			sc.nr_reclaimed += reclaim_state->reclaimed_slab;
- 			total_scanned += sc.nr_scanned;
--			if (zone_is_all_unreclaimable(zone))
-+			if (zone->all_unreclaimable)
- 				continue;
--			if (nr_slab == 0 && zone->pages_scanned >=
--					(zone_reclaimable_pages(zone) * 6))
--					zone_set_flag(zone,
--						      ZONE_ALL_UNRECLAIMABLE);
-+			if (nr_slab == 0 &&
-+			    zone->pages_scanned >= (zone_reclaimable_pages(zone) * 6))
-+				zone->all_unreclaimable = 1;
- 			/*
- 			 * If we've done a decent amount of scanning and
- 			 * the reclaim ratio is low, start doing writepage
-@@ -2624,7 +2620,7 @@ int zone_reclaim(struct zone *zone, gfp_
- 	    zone_page_state(zone, NR_SLAB_RECLAIMABLE) <= zone->min_slab_pages)
- 		return ZONE_RECLAIM_FULL;
- 
--	if (zone_is_all_unreclaimable(zone))
-+	if (zone->all_unreclaimable)
- 		return ZONE_RECLAIM_FULL;
- 
- 	/*
-diff -puN mm/vmstat.c~mm-restore-zone-all_unreclaimable-to-independence-word mm/vmstat.c
---- a/mm/vmstat.c~mm-restore-zone-all_unreclaimable-to-independence-word
-+++ a/mm/vmstat.c
-@@ -763,7 +763,7 @@ static void zoneinfo_show_print(struct s
- 		   "\n  prev_priority:     %i"
- 		   "\n  start_pfn:         %lu"
- 		   "\n  inactive_ratio:    %u",
--			   zone_is_all_unreclaimable(zone),
-+		   zone->all_unreclaimable,
- 		   zone->prev_priority,
- 		   zone->zone_start_pfn,
- 		   zone->inactive_ratio);
+-	for_each_bit(bit, &uda1380_cache_dirty, UDA1380_CACHEREGNUM - 0x10) {
++	for_each_set_bit(bit, &uda1380_cache_dirty, UDA1380_CACHEREGNUM - 0x10) {
+ 		reg = 0x10 + bit;
+ 		pr_debug("uda1380: flush reg %x val %x:\n", reg,
+ 				uda1380_read_reg_cache(uda1380_codec, reg));
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-memcg-move-charges-of-anonymous-swap-fix-2.patch
-sysctl-clean-up-vm-related-variable-declarations.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-reiser4.patch
+linux-next.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+hpet-use-for_each_set_bit.patch
+intel-iommu-use-for_each_set_bit.patch
+ntfs-use-bitmap_weight.patch
+phonet-use-for_each_set_bit.patch
+atm-use-for_each_set_bit.patch
+sgi-gru-use-for_each_set_bit.patch
+bitops-remove-temporary-for_each_bit.patch
 
