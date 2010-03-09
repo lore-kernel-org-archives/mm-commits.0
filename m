@@ -1,136 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-fsh-convert-fmode_-constants-to-hex.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:04:01 -0800
-Message-ID: <201003091904.o29J41if031009@imap1.linux-foundation.org>
+Subject: [merged] memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:03:45 -0800
+Message-ID: <201003091903.o29J3jD9030987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755822Ab0CITER (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:04:17 -0500
+	by vger.kernel.org with ESMTP id S1755758Ab0CITD7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eparis@redhat.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haveblue@us.ibm.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/fs.h: convert FMODE_* constants to hex
+     memory-hotplug: create /sys/firmware/memmap entry for new memory
 has been removed from the -mm tree.  Its filename was
-     include-linux-fsh-convert-fmode_-constants-to-hex.patch
+     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/fs.h: convert FMODE_* constants to hex
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug: create /sys/firmware/memmap entry for new memory
 
-It was tolerable until Eric went and added 8388608.
 
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+A memmap is a directory in sysfs which includes 3 text files: start, end
+and type.  For example:
+
+start: 	0x100000
+end:	0x7e7b1cff
+type:	System RAM
+
+Interface firmware_map_add was not called explicitly.  Remove it and add
+function firmware_map_add_hotplug as hotplug interface of memmap.  
+
+Each memory entry has a memmap in sysfs, When we hot-add new memory, sysfs
+does not export memmap entry for it.  We add a call in function add_memory
+to function firmware_map_add_hotplug.
+
+Add a new function add_sysfs_fw_map_entry() to create memmap entry, it
+will be called when initialize memmap and hot-add memory.
+
+[akpm@linux-foundation.org: un-kernedoc a no longer kerneldoc comment]
+Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/firmware/memmap.c    |   57 ++++++++++++++++++++-------------
+ include/linux/firmware-map.h |    6 +--
+ mm/memory_hotplug.c          |    4 ++
+ 3 files changed, 43 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/fs.h~include-linux-fsh-convert-fmode_-constants-to-hex include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-convert-fmode_-constants-to-hex
-+++ a/include/linux/fs.h
-@@ -60,24 +60,24 @@ struct inodes_stat_t {
+diff -puN drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/drivers/firmware/memmap.c
+@@ -122,29 +122,53 @@ static int firmware_map_add_entry(u64 st
+ 	return 0;
+ }
+ 
++/*
++ * Add memmap entry on sysfs
++ */
++static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
++{
++	static int map_entries_nr;
++	static struct kset *mmap_kset;
++
++	if (!mmap_kset) {
++		mmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
++		if (!mmap_kset)
++			return -ENOMEM;
++	}
++
++	entry->kobj.kset = mmap_kset;
++	if (kobject_add(&entry->kobj, NULL, "%d", map_entries_nr++))
++		kobject_put(&entry->kobj);
++
++	return 0;
++}
++
+ /**
+- * firmware_map_add() - Adds a firmware mapping entry.
++ * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
++ * memory hotplug.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  *
+- * This function uses kmalloc() for memory
+- * allocation. Use firmware_map_add_early() if you want to use the bootmem
+- * allocator.
+- *
+- * That function must be called before late_initcall.
++ * Adds a firmware mapping entry. This function is for memory hotplug, it is
++ * similar to function firmware_map_add_early(). The only difference is that
++ * it will create the syfs entry dynamically.
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int firmware_map_add(u64 start, u64 end, const char *type)
++int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+-	entry = kmalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
++	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
+ 	if (!entry)
+ 		return -ENOMEM;
+ 
+-	return firmware_map_add_entry(start, end, type, entry);
++	firmware_map_add_entry(start, end, type, entry);
++	/* create the memmap entry */
++	add_sysfs_fw_map_entry(entry);
++
++	return 0;
+ }
+ 
+ /**
+@@ -154,7 +178,7 @@ int firmware_map_add(u64 start, u64 end,
+  * @type:  Type of the memory range.
+  *
+  * Adds a firmware mapping entry. This function uses the bootmem allocator
+- * for memory allocation. Use firmware_map_add() if you want to use kmalloc().
++ * for memory allocation.
+  *
+  * That function must be called before late_initcall.
+  *
+@@ -214,19 +238,10 @@ static ssize_t memmap_attr_show(struct k
   */
+ static int __init memmap_init(void)
+ {
+-	int i = 0;
+ 	struct firmware_map_entry *entry;
+-	struct kset *memmap_kset;
+-
+-	memmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
+-	if (WARN_ON(!memmap_kset))
+-		return -ENOMEM;
  
- /* file is open for reading */
--#define FMODE_READ		((__force fmode_t)1)
-+#define FMODE_READ		((__force fmode_t)0x1)
- /* file is open for writing */
--#define FMODE_WRITE		((__force fmode_t)2)
-+#define FMODE_WRITE		((__force fmode_t)0x2)
- /* file is seekable */
--#define FMODE_LSEEK		((__force fmode_t)4)
-+#define FMODE_LSEEK		((__force fmode_t)0x4)
- /* file can be accessed using pread */
--#define FMODE_PREAD		((__force fmode_t)8)
-+#define FMODE_PREAD		((__force fmode_t)0x8)
- /* file can be accessed using pwrite */
--#define FMODE_PWRITE		((__force fmode_t)16)
-+#define FMODE_PWRITE		((__force fmode_t)0x10)
- /* File is opened for execution with sys_execve / sys_uselib */
--#define FMODE_EXEC		((__force fmode_t)32)
-+#define FMODE_EXEC		((__force fmode_t)0x20)
- /* File is opened with O_NDELAY (only set for block devices) */
--#define FMODE_NDELAY		((__force fmode_t)64)
-+#define FMODE_NDELAY		((__force fmode_t)0x40)
- /* File is opened with O_EXCL (only set for block devices) */
--#define FMODE_EXCL		((__force fmode_t)128)
-+#define FMODE_EXCL		((__force fmode_t)0x80)
- /* File is opened using open(.., 3, ..) and is writeable only for ioctls
-    (specialy hack for floppy.c) */
--#define FMODE_WRITE_IOCTL	((__force fmode_t)256)
-+#define FMODE_WRITE_IOCTL	((__force fmode_t)0x100)
+-	list_for_each_entry(entry, &map_entries, list) {
+-		entry->kobj.kset = memmap_kset;
+-		if (kobject_add(&entry->kobj, NULL, "%d", i++))
+-			kobject_put(&entry->kobj);
+-	}
++	list_for_each_entry(entry, &map_entries, list)
++		add_sysfs_fw_map_entry(entry);
  
- /*
-  * Don't update ctime and mtime.
-@@ -85,10 +85,10 @@ struct inodes_stat_t {
-  * Currently a special hack for the XFS open_by_handle ioctl, but we'll
-  * hopefully graduate it to a proper O_CMTIME flag supported by open(2) soon.
+ 	return 0;
+ }
+diff -puN include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/include/linux/firmware-map.h
+@@ -24,17 +24,17 @@
   */
--#define FMODE_NOCMTIME		((__force fmode_t)2048)
-+#define FMODE_NOCMTIME		((__force fmode_t)0x800)
+ #ifdef CONFIG_FIRMWARE_MEMMAP
  
- /* Expect random access pattern */
--#define FMODE_RANDOM		((__force fmode_t)4096)
-+#define FMODE_RANDOM		((__force fmode_t)0x1000)
+-int firmware_map_add(u64 start, u64 end, const char *type);
+ int firmware_map_add_early(u64 start, u64 end, const char *type);
++int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
  
- /*
-  * The below are the various read and write types that we support. Some of
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+-static inline int firmware_map_add(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+ 
+-static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+diff -puN mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/mm/memory_hotplug.c
+@@ -28,6 +28,7 @@
+ #include <linux/pfn.h>
+ #include <linux/suspend.h>
+ #include <linux/mm_inline.h>
++#include <linux/firmware-map.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -523,6 +524,9 @@ int __ref add_memory(int nid, u64 start,
+ 		BUG_ON(ret);
+ 	}
+ 
++	/* create new memmap entry */
++	firmware_map_add_hotplug(start, start + size, "System RAM");
++
+ 	goto out;
+ 
+ error:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-add-generic-sys_ipc-wrapper-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
