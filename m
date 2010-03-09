@@ -1,132 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:05:00 -0800
-Message-ID: <201003091905.o29J50sn031086@imap1.linux-foundation.org>
+Subject: [merged] mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:04:23 -0800
+Message-ID: <201003091904.o29J4NN8031038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755809Ab0CITFh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:05:37 -0500
+	by vger.kernel.org with ESMTP id S1755790Ab0CITFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:05:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, benh@kernel.crashing.org, kosaki.motohiro@jp.fujitsu.com, maximlevitsky@gmail.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: remove pci_dma_sync_single() and pci_dma_sync_sg()
+     mm/pm: force GFP_NOIO during suspend/hibernation and resume
 has been removed from the -mm tree.  Its filename was
-     frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg.patch
+     mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: remove pci_dma_sync_single() and pci_dma_sync_sg()
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: mm/pm: force GFP_NOIO during suspend/hibernation and resume
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-No architecture except for frv has pci_dma_sync_single() and
-pci_dma_sync_sg().  The APIs are deprecated.
+There are quite a few GFP_KERNEL memory allocations made during
+suspend/hibernation and resume that may cause the system to hang, because
+the I/O operations they depend on cannot be completed due to the
+underlying devices being suspended.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: David Howells <dhowells@redhat.com>
+Avoid this problem by clearing the __GFP_IO and __GFP_FS bits in
+gfp_allowed_mask before suspend/hibernation and restoring the original
+values of these bits in gfp_allowed_mask durig the subsequent resume.
+
+[akpm@linux-foundation.org: fix CONFIG_PM=n linkage]
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/pci.h |   37 -----------------------------------
- 1 file changed, 37 deletions(-)
+ include/linux/gfp.h      |    7 +++----
+ init/main.c              |    2 +-
+ kernel/power/hibernate.c |    9 +++++++++
+ kernel/power/suspend.c   |    3 +++
+ mm/page_alloc.c          |   25 +++++++++++++++++++++++++
+ 5 files changed, 41 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/include/asm/pci.h~frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg arch/frv/include/asm/pci.h
---- a/arch/frv/include/asm/pci.h~frv-remove-pci_dma_sync_single-and-pci_dma_sync_sg
-+++ a/arch/frv/include/asm/pci.h
-@@ -68,41 +68,4 @@ static inline void pci_dma_burst_advice(
- #define PCIBIOS_MIN_IO		0x100
- #define PCIBIOS_MIN_MEM		0x00010000
+diff -puN include/linux/gfp.h~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
++++ a/include/linux/gfp.h
+@@ -83,6 +83,7 @@ struct vm_area_struct;
+ #define GFP_HIGHUSER_MOVABLE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
+ 				 __GFP_HARDWALL | __GFP_HIGHMEM | \
+ 				 __GFP_MOVABLE)
++#define GFP_IOFS	(__GFP_IO | __GFP_FS)
  
--/* Make physical memory consistent for a single
-- * streaming mode DMA translation after a transfer.
-- *
-- * If you perform a pci_map_single() but wish to interrogate the
-- * buffer using the cpu, yet do not wish to teardown the PCI dma
-- * mapping, you must call this function before doing so.  At the
-- * next point you give the PCI dma address back to the card, the
-- * device again owns the buffer.
-- */
--static inline void pci_dma_sync_single(struct pci_dev *hwdev,
--				       dma_addr_t dma_handle,
--				       size_t size, int direction)
+ #ifdef CONFIG_NUMA
+ #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
+@@ -337,9 +338,7 @@ void drain_local_pages(void *dummy);
+ 
+ extern gfp_t gfp_allowed_mask;
+ 
+-static inline void set_gfp_allowed_mask(gfp_t mask)
 -{
--	BUG_ON(direction == PCI_DMA_NONE);
--
--	frv_cache_wback_inv((unsigned long)bus_to_virt(dma_handle),
--			    (unsigned long)bus_to_virt(dma_handle) + size);
+-	gfp_allowed_mask = mask;
 -}
--
--/* Make physical memory consistent for a set of streaming
-- * mode DMA translations after a transfer.
-- *
-- * The same as pci_dma_sync_single but for a scatter-gather list,
-- * same rules and usage.
-- */
--static inline void pci_dma_sync_sg(struct pci_dev *hwdev,
--				   struct scatterlist *sg,
--				   int nelems, int direction)
--{
--	int i;
--	BUG_ON(direction == PCI_DMA_NONE);
--
--	for (i = 0; i < nelems; i++)
--		frv_cache_wback_inv(sg_dma_address(&sg[i]),
--				    sg_dma_address(&sg[i])+sg_dma_len(&sg[i]));
--}
--
- #endif /* _ASM_FRV_PCI_H */
++extern void set_gfp_allowed_mask(gfp_t mask);
++extern gfp_t clear_gfp_allowed_mask(gfp_t mask);
+ 
+ #endif /* __LINUX_GFP_H */
+diff -puN init/main.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume init/main.c
+--- a/init/main.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
++++ a/init/main.c
+@@ -618,7 +618,7 @@ asmlinkage void __init start_kernel(void
+ 	local_irq_enable();
+ 
+ 	/* Interrupts are enabled now so all GFP allocations are safe. */
+-	set_gfp_allowed_mask(__GFP_BITS_MASK);
++	gfp_allowed_mask = __GFP_BITS_MASK;
+ 
+ 	kmem_cache_init_late();
+ 
+diff -puN kernel/power/hibernate.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume kernel/power/hibernate.c
+--- a/kernel/power/hibernate.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
++++ a/kernel/power/hibernate.c
+@@ -323,6 +323,7 @@ static int create_image(int platform_mod
+ int hibernation_snapshot(int platform_mode)
+ {
+ 	int error;
++	gfp_t saved_mask;
+ 
+ 	error = platform_begin(platform_mode);
+ 	if (error)
+@@ -334,6 +335,7 @@ int hibernation_snapshot(int platform_mo
+ 		goto Close;
+ 
+ 	suspend_console();
++	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
+ 	error = dpm_suspend_start(PMSG_FREEZE);
+ 	if (error)
+ 		goto Recover_platform;
+@@ -351,6 +353,7 @@ int hibernation_snapshot(int platform_mo
+ 
+ 	dpm_resume_end(in_suspend ?
+ 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
++	set_gfp_allowed_mask(saved_mask);
+ 	resume_console();
+  Close:
+ 	platform_end(platform_mode);
+@@ -445,14 +448,17 @@ static int resume_target_kernel(bool pla
+ int hibernation_restore(int platform_mode)
+ {
+ 	int error;
++	gfp_t saved_mask;
+ 
+ 	pm_prepare_console();
+ 	suspend_console();
++	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
+ 	error = dpm_suspend_start(PMSG_QUIESCE);
+ 	if (!error) {
+ 		error = resume_target_kernel(platform_mode);
+ 		dpm_resume_end(PMSG_RECOVER);
+ 	}
++	set_gfp_allowed_mask(saved_mask);
+ 	resume_console();
+ 	pm_restore_console();
+ 	return error;
+@@ -466,6 +472,7 @@ int hibernation_restore(int platform_mod
+ int hibernation_platform_enter(void)
+ {
+ 	int error;
++	gfp_t saved_mask;
+ 
+ 	if (!hibernation_ops)
+ 		return -ENOSYS;
+@@ -481,6 +488,7 @@ int hibernation_platform_enter(void)
+ 
+ 	entering_platform_hibernation = true;
+ 	suspend_console();
++	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
+ 	error = dpm_suspend_start(PMSG_HIBERNATE);
+ 	if (error) {
+ 		if (hibernation_ops->recover)
+@@ -518,6 +526,7 @@ int hibernation_platform_enter(void)
+  Resume_devices:
+ 	entering_platform_hibernation = false;
+ 	dpm_resume_end(PMSG_RESTORE);
++	set_gfp_allowed_mask(saved_mask);
+ 	resume_console();
+ 
+  Close:
+diff -puN kernel/power/suspend.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume kernel/power/suspend.c
+--- a/kernel/power/suspend.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
++++ a/kernel/power/suspend.c
+@@ -189,6 +189,7 @@ static int suspend_enter(suspend_state_t
+ int suspend_devices_and_enter(suspend_state_t state)
+ {
+ 	int error;
++	gfp_t saved_mask;
+ 
+ 	if (!suspend_ops)
+ 		return -ENOSYS;
+@@ -199,6 +200,7 @@ int suspend_devices_and_enter(suspend_st
+ 			goto Close;
+ 	}
+ 	suspend_console();
++	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
+ 	suspend_test_start();
+ 	error = dpm_suspend_start(PMSG_SUSPEND);
+ 	if (error) {
+@@ -215,6 +217,7 @@ int suspend_devices_and_enter(suspend_st
+ 	suspend_test_start();
+ 	dpm_resume_end(PMSG_RESUME);
+ 	suspend_test_finish("resume devices");
++	set_gfp_allowed_mask(saved_mask);
+ 	resume_console();
+  Close:
+ 	if (suspend_ops->end)
+diff -puN mm/page_alloc.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-pm-force-gfp_noio-during-suspend-hibernation-and-resume
++++ a/mm/page_alloc.c
+@@ -76,6 +76,31 @@ unsigned long totalreserve_pages __read_
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+ 
++#ifdef CONFIG_PM_SLEEP
++/*
++ * The following functions are used by the suspend/hibernate code to temporarily
++ * change gfp_allowed_mask in order to avoid using I/O during memory allocations
++ * while devices are suspended.  To avoid races with the suspend/hibernate code,
++ * they should always be called with pm_mutex held (gfp_allowed_mask also should
++ * only be modified with pm_mutex held, unless the suspend/hibernate code is
++ * guaranteed not to run in parallel with that modification).
++ */
++void set_gfp_allowed_mask(gfp_t mask)
++{
++	WARN_ON(!mutex_is_locked(&pm_mutex));
++	gfp_allowed_mask = mask;
++}
++
++gfp_t clear_gfp_allowed_mask(gfp_t mask)
++{
++	gfp_t ret = gfp_allowed_mask;
++
++	WARN_ON(!mutex_is_locked(&pm_mutex));
++	gfp_allowed_mask &= ~mask;
++	return ret;
++}
++#endif /* CONFIG_PM_SLEEP */
++
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+ int pageblock_order __read_mostly;
+ #endif
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
-dma-apitxt-add-dma_sync_single-sg-api-description.patch
-dma-apitxt-remove-dma_sync_single_range-description.patch
-alpha-remove-dma_sync_single_range.patch
-um-remove-dma_sync_single_range.patch
-pci-dma-add-include-linux-pci-dmah.patch
-pci-dma-x86-use-include-linux-pci-dmah.patch
-pci-dma-alpha-use-include-linux-pci-dmah.patch
-pci-dma-arm-use-include-linux-pci-dmah.patch
-pci-dma-frv-use-include-linux-pci-dmah.patch
-pci-dma-ia64-use-include-linux-pci-dmah.patch
-pci-dma-mips-use-include-linux-pci-dmah.patch
-pci-dma-parisc-use-include-linux-pci-dmah.patch
-pci-dma-powerpc-use-include-linux-pci-dmah.patch
-pci-dma-sh-use-include-linux-pci-dmah.patch
-pci-dma-sparc-use-include-linux-pci-dmah.patch
-pci-dma-xtensa-use-include-linux-pci-dmah.patch
-pci-dma-cris-use-include-linux-pci-dmah.patch
-pci-dma-add-linux-pci-dmah-to-linux-pcih.patch
-dma-mappingh-add-the-dma_unmap-state-api.patch
-dma-mappingh-add-the-dma_unmap-state-api-fix.patch
-dma-mappingh-add-the-dma_unmap-state-api-fix-2.patch
-frv-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-frv-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-blackfin-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-dma-mapping-sparc-unify-32bit-and-64bit-dma_set_mask.patch
-dma-mapping-alpha-use-include-linux-pci-dma-compath.patch
-dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
-dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
-dma-mapping-powerpc-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
-dma-mapping-arm-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
-dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
-dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
+arch-x86-kernel-rebootc-add-imac91-to-pci_reboot_dmi_table.patch
 
