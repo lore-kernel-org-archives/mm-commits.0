@@ -1,77 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cris-v32-typo-in-crisv32_arbiter_unwatch.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:05:19 -0800
-Message-ID: <201003091905.o29J5J6H031115@imap1.linux-foundation.org>
+Subject: [merged] cris-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:05:11 -0800
+Message-ID: <201003091905.o29J5Bp0031107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755569Ab0CITGN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:06:13 -0500
+	by vger.kernel.org with ESMTP id S1755832Ab0CITFi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:05:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris v32: typo in crisv32_arbiter_unwatch()?
+     cris: convert to use arch_gettimeoffset()
 has been removed from the -mm tree.  Its filename was
-     cris-v32-typo-in-crisv32_arbiter_unwatch.patch
+     cris-convert-to-use-arch_gettimeoffset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris v32: typo in crisv32_arbiter_unwatch()?
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cris: convert to use arch_gettimeoffset()
+From: john stultz <johnstul@us.ibm.com>
 
-With id 1 the wrong bp was unwatched.
+Convert cris to use GENERIC_TIME via the arch_getoffset() infrastructure,
+reducing the amount of arch specific code we need to maintain.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Cc: Mikael Starvik <starvik@axis.com>
 Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/mach-fs/arbiter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/cris/Kconfig       |    6 +++
+ arch/cris/kernel/time.c |   68 +-------------------------------------
+ 2 files changed, 8 insertions(+), 66 deletions(-)
 
-diff -puN arch/cris/arch-v32/mach-fs/arbiter.c~cris-v32-typo-in-crisv32_arbiter_unwatch arch/cris/arch-v32/mach-fs/arbiter.c
---- a/arch/cris/arch-v32/mach-fs/arbiter.c~cris-v32-typo-in-crisv32_arbiter_unwatch
-+++ a/arch/cris/arch-v32/mach-fs/arbiter.c
-@@ -332,7 +332,7 @@ int crisv32_arbiter_unwatch(int id)
- 	if (id == 0)
- 		intr_mask.bp0 = regk_marb_no;
- 	else if (id == 1)
--		intr_mask.bp2 = regk_marb_no;
-+		intr_mask.bp1 = regk_marb_no;
- 	else if (id == 2)
- 		intr_mask.bp2 = regk_marb_no;
- 	else if (id == 3)
-_
-
-Patches currently in -mm which might be from roel.kluin@gmail.com are
-
-linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-isdn-misplaced-parenthesis-in-pof_handle_data.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-paride-fix-off-by-one-test.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
-
+diff -puN arch/cris/Kconfig~cris-convert-to-use-arch_gettimeoffset arch/cris/Kconfig
+--- a/arch/cris/Kconfig~cris-convert-to-use-arch_gettimeoffset
++++ a/arch/cris/Kconfig
+@@ -20,6 +20,12 @@ config RWSEM_GENERIC_SPINLOCK
+ config RWSEM_XCHGADD_ALGORITHM
+ 	bool
+ 
++config GENERIC_TIME
++	def_bool y
++
++config ARCH_USES_GETTIMEOFFSET
++	def_bool y
++
+ config GENERIC_IOMAP
+        bool
+        default y
+diff -puN arch/cris/kernel/time.c~cris-convert-to-use-arch_gettimeoffset arch/cris/kernel/time.c
+--- a/arch/cris/kernel/time.c~cris-convert-to-use-arch_gettimeoffset
++++ a/arch/cris/kernel/time.c
+@@ -42,75 +42,11 @@ unsigned long loops_per_usec;
+ extern unsigned long do_slow_gettimeoffset(void);
+ static unsigned long (*do_gettimeoffset)(void) = do_slow_gettimeoffset;
+ 
+-/*
+- * This version of gettimeofday has near microsecond resolution.
+- *
+- * Note: Division is quite slow on CRIS and do_gettimeofday is called
+- *       rather often. Maybe we should do some kind of approximation here
+- *       (a naive approximation would be to divide by 1024).
+- */
+-void do_gettimeofday(struct timeval *tv)
+-{
+-	unsigned long flags;
+-	signed long usec, sec;
+-	local_irq_save(flags);
+-	usec = do_gettimeoffset();
+-
+-        /*
+-	 * If time_adjust is negative then NTP is slowing the clock
+-	 * so make sure not to go into next possible interval.
+-	 * Better to lose some accuracy than have time go backwards..
+-	 */
+-	if (unlikely(time_adjust < 0) && usec > tickadj)
+-		usec = tickadj;
+-
+-	sec = xtime.tv_sec;
+-	usec += xtime.tv_nsec / 1000;
+-	local_irq_restore(flags);
+-
+-	while (usec >= 1000000) {
+-		usec -= 1000000;
+-		sec++;
+-	}
+-
+-	tv->tv_sec = sec;
+-	tv->tv_usec = usec;
+-}
+-
+-EXPORT_SYMBOL(do_gettimeofday);
+-
+-int do_settimeofday(struct timespec *tv)
++u32 arch_gettimeoffset(void)
+ {
+-	time_t wtm_sec, sec = tv->tv_sec;
+-	long wtm_nsec, nsec = tv->tv_nsec;
+-
+-	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+-		return -EINVAL;
+-
+-	write_seqlock_irq(&xtime_lock);
+-	/*
+-	 * This is revolting. We need to set "xtime" correctly. However, the
+-	 * value in this location is the value at the most recent update of
+-	 * wall time.  Discover what correction gettimeofday() would have
+-	 * made, and then undo it!
+-	 */
+-	nsec -= do_gettimeoffset() * NSEC_PER_USEC;
+-
+-	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+-	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
+-
+-	set_normalized_timespec(&xtime, sec, nsec);
+-	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+-
+-	ntp_clear();
+-	write_sequnlock_irq(&xtime_lock);
+-	clock_was_set();
+-	return 0;
++	return do_gettimeoffset() * 1000;
+ }
+ 
+-EXPORT_SYMBOL(do_settimeofday);
+-
