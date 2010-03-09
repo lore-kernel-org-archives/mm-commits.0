@@ -1,125 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-mc13783-protect-rtc-unregistration-by-mc13783-lock.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:10:54 -0800
-Message-ID: <201003091910.o29JAs14031624@imap1.linux-foundation.org>
+Subject: [merged] kernel-pidc-update-comment-on-find_task_by_pid_ns.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:06:36 -0800
+Message-ID: <201003091906.o29J6aAY031268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756037Ab0CITWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:36 -0500
+	by vger.kernel.org with ESMTP id S1756044Ab0CITW1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it, dmitry.torokhov@gmail.com, l.fu@pengutronix.de, p_gortmaker@yahoo.com, s.hauer@pengutronix.de, sameo@linux.intel.com, valentin.lo
+To: penguin-kernel@I-love.SAKURA.ne.jp, oleg@redhat.com, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc/mc13783: protect rtc {,un}registration by mc13783 lock
+     kernel/pid.c: update comment on find_task_by_pid_ns
 has been removed from the -mm tree.  Its filename was
-     rtc-mc13783-protect-rtc-unregistration-by-mc13783-lock.patch
+     kernel-pidc-update-comment-on-find_task_by_pid_ns.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc/mc13783: protect rtc {,un}registration by mc13783 lock
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: kernel/pid.c: update comment on find_task_by_pid_ns
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 
-This is to protect from interrupt handlers using an unregistered rtc
-device.
+tasklist_lock does protect the task and its pid, it can't go away.  The
+problem is that find_pid_ns() itself is unsafe without rcu lock, it can
+race with copy_process()->free_pid(any_pid).
 
-To assert that the reset irq is considered now before the rtc is
-registered the corresponding status is checked before.
+Protecting copy_process()->free_pid(any_pid) with tasklist_lock would make
+it possible to call find_task_by_pid_ns() under tasklist safely, but we
+don't do so because we are trying to get rid of the read_lock sites of
+tasklist_lock.
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Valentin Longchamp <valentin.longchamp@epfl.ch>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Luotao Fu <l.fu@pengutronix.de>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mc13783.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ kernel/pid.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-mc13783.c~rtc-mc13783-protect-rtc-unregistrat=
-ion-by-mc13783-lock drivers/rtc/rtc-mc13783.c
---- a/drivers/rtc/rtc-mc13783.c~rtc-mc13783-protect-rtc-unregistration-=
-by-mc13783-lock
-+++ a/drivers/rtc/rtc-mc13783.c
-@@ -169,6 +169,7 @@ static int __devinit mc13783_rtc_probe(s
+diff -puN kernel/pid.c~kernel-pidc-update-comment-on-find_task_by_pid_ns kernel/pid.c
+--- a/kernel/pid.c~kernel-pidc-update-comment-on-find_task_by_pid_ns
++++ a/kernel/pid.c
+@@ -376,7 +376,7 @@ struct task_struct *pid_task(struct pid 
+ EXPORT_SYMBOL(pid_task);
+ 
+ /*
+- * Must be called under rcu_read_lock() or with tasklist_lock read-held.
++ * Must be called under rcu_read_lock().
+  */
+ struct task_struct *find_task_by_pid_ns(pid_t nr, struct pid_namespace *ns)
  {
- 	int ret;
- 	struct mc13783_rtc *priv;
-+	int rtcrst_pending;
-=20
- 	priv =3D kzalloc(sizeof(*priv), GFP_KERNEL);
- 	if (!priv)
-@@ -177,8 +178,6 @@ static int __devinit mc13783_rtc_probe(s
- 	priv->mc13783 =3D dev_get_drvdata(pdev->dev.parent);
- 	platform_set_drvdata(pdev, priv);
-=20
--	priv->valid =3D 1;
--
- 	mc13783_lock(priv->mc13783);
-=20
- 	ret =3D mc13783_irq_request(priv->mc13783, MC13783_IRQ_RTCRST,
-@@ -186,33 +185,37 @@ static int __devinit mc13783_rtc_probe(s
- 	if (ret)
- 		goto err_reset_irq_request;
-=20
-+	ret =3D mc13783_irq_status(priv->mc13783, MC13783_IRQ_RTCRST,
-+			NULL, &rtcrst_pending);
-+	if (ret)
-+		goto err_reset_irq_status;
-+
-+	priv->valid =3D !rtcrst_pending;
-+
- 	ret =3D mc13783_irq_request_nounmask(priv->mc13783, MC13783_IRQ_1HZ,
- 			mc13783_rtc_update_handler, DRIVER_NAME, priv);
- 	if (ret)
- 		goto err_update_irq_request;
-=20
--	mc13783_unlock(priv->mc13783);
--
- 	priv->rtc =3D rtc_device_register(pdev->name,
- 			&pdev->dev, &mc13783_rtc_ops, THIS_MODULE);
--
- 	if (IS_ERR(priv->rtc)) {
- 		ret =3D PTR_ERR(priv->rtc);
-=20
--		mc13783_lock(priv->mc13783);
--
- 		mc13783_irq_free(priv->mc13783, MC13783_IRQ_1HZ, priv);
- err_update_irq_request:
-=20
-+err_reset_irq_status:
-+
- 		mc13783_irq_free(priv->mc13783, MC13783_IRQ_RTCRST, priv);
- err_reset_irq_request:
-=20
--		mc13783_unlock(priv->mc13783);
--
- 		platform_set_drvdata(pdev, NULL);
- 		kfree(priv);
- 	}
-=20
-+	mc13783_unlock(priv->mc13783);
-+
- 	return ret;
- }
-=20
-@@ -220,10 +223,10 @@ static int __devexit mc13783_rtc_remove(
- {
- 	struct mc13783_rtc *priv =3D platform_get_drvdata(pdev);
-=20
--	rtc_device_unregister(priv->rtc);
+_
+
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+
+
