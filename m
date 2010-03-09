@@ -1,118 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:12:02 -0800
-Message-ID: <201003091912.o29JC2Zl031786@imap1.linux-foundation.org>
+Subject: [merged] mmc-bfin_sdh-set-timeout-based-on-actual-card-data.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:07:56 -0800
+Message-ID: <201003091907.o29J7uTW031396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755966Ab0CITWI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:08 -0500
+	by vger.kernel.org with ESMTP id S1755945Ab0CITWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, Trond.Myklebust@netapp.com, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: cliff.cai@analog.com, linux-mmc@vger.kernel.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/sunrpc: remove uses of NIPQUAD, use %pI4
+     mmc: bfin_sdh: set timeout based on actual card data
 has been removed from the -mm tree.  Its filename was
-     net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+     mmc-bfin_sdh-set-timeout-based-on-actual-card-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sunrpc: remove uses of NIPQUAD, use %pI4
-From: Joe Perches <joe@perches.com>
+Subject: mmc: bfin_sdh: set timeout based on actual card data
+From: Cliff Cai <cliff.cai@analog.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+The hardcoded value doesn't really work for all cards.
+
+Signed-off-by: Cliff Cai <cliff.cai@analog.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/transport.c |    3 +--
- net/sunrpc/xprtsock.c           |    5 ++---
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/mmc/host/bfin_sdh.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/transport.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4 net/sunrpc/xprtrdma/transport.c
---- a/net/sunrpc/xprtrdma/transport.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4
-+++ a/net/sunrpc/xprtrdma/transport.c
-@@ -165,8 +165,7 @@ xprt_rdma_format_addresses(struct rpc_xp
+diff -puN drivers/mmc/host/bfin_sdh.c~mmc-bfin_sdh-set-timeout-based-on-actual-card-data drivers/mmc/host/bfin_sdh.c
+--- a/drivers/mmc/host/bfin_sdh.c~mmc-bfin_sdh-set-timeout-based-on-actual-card-data
++++ a/drivers/mmc/host/bfin_sdh.c
+@@ -115,6 +115,7 @@ static int sdh_setup_data(struct sdh_hos
+ 	unsigned int length;
+ 	unsigned int data_ctl;
+ 	unsigned int dma_cfg;
++	unsigned int cycle_ns, timeout;
  
- 	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
+ 	dev_dbg(mmc_dev(host->mmc), "%s enter flags: 0x%x\n", __func__, data->flags);
+ 	host->data = data;
+@@ -135,8 +136,11 @@ static int sdh_setup_data(struct sdh_hos
+ 	data_ctl |= ((ffs(data->blksz) - 1) << 4);
  
--	(void)snprintf(buf, sizeof(buf), "%02x%02x%02x%02x",
--				NIPQUAD(sin->sin_addr.s_addr));
-+	(void)snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
- 	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
- 
- 	(void)snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
-diff -puN net/sunrpc/xprtsock.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4 net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4
-+++ a/net/sunrpc/xprtsock.c
-@@ -297,12 +297,11 @@ static void xs_format_common_peer_addres
- 	switch (sap->sa_family) {
- 	case AF_INET:
- 		sin = xs_addr_in(xprt);
--		(void)snprintf(buf, sizeof(buf), "%02x%02x%02x%02x",
--					NIPQUAD(sin->sin_addr.s_addr));
-+		snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
- 		break;
- 	case AF_INET6:
- 		sin6 = xs_addr_in6(xprt);
--		(void)snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
-+		snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
- 		break;
- 	default:
- 		BUG();
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-drivers-video-via-fix-continuation-line-formats.patch
-
+ 	bfin_write_SDH_DATA_CTL(data_ctl);
