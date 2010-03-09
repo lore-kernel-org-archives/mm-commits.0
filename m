@@ -1,151 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:06:51 -0800
-Message-ID: <201003091906.o29J6pZr031280@imap1.linux-foundation.org>
+Subject: [merged] net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:12:02 -0800
+Message-ID: <201003091912.o29JC2Zl031786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755949Ab0CITWI (ORCPT
+	by vger.kernel.org with ESMTP id S1755966Ab0CITWI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@suse.de, steve.glendinning@smsc.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, Trond.Myklebust@netapp.com, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: add --sections, print entire matched subsystem
+     net/sunrpc: remove uses of NIPQUAD, use %pI4
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+     net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add --sections, print entire matched subsystem
+Subject: net/sunrpc: remove uses of NIPQUAD, use %pI4
 From: Joe Perches <joe@perches.com>
 
-Print the complete contents of the matched subsystems
-in pattern match depth order.
-
-Sample output:
-
-$ ./scripts/get_maintainer.pl --sections -f drivers/net/usb/smsc95xx.c
-USB SMSC95XX ETHERNET DRIVER
-M:Steve Glendinning <steve.glendinning@smsc.com>
-L:netdev@vger.kernel.org
-S:Supported
-F:drivers/net/usb/smsc95xx.*
-USB SUBSYSTEM
-M:Greg Kroah-Hartman <gregkh@suse.de>
-L:linux-usb@vger.kernel.org
-W:http://www.linux-usb.org
-T:quilt kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/
-S:Supported
-F:Documentation/usb/
-F:drivers/net/usb/
-F:drivers/usb/
-F:include/linux/usb.h
-F:include/linux/usb/
-NETWORKING DRIVERS
-L:netdev@vger.kernel.org
-W:http://www.linuxfoundation.org/en/Net
-T:git git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-2.6.git
-S:Odd Fixes
-F:drivers/net/
-F:include/linux/if_*
-F:include/linux/*device.h
-THE REST
-M:Linus Torvalds <torvalds@linux-foundation.org>
-L:linux-kernel@vger.kernel.org
-Q:http://patchwork.kernel.org/project/LKML/list/
-T:git git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-S:Buried alive in reporters
-F:*
-F:*/
-
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |    3 +--
+ net/sunrpc/xprtsock.c           |    5 ++---
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem
-+++ a/scripts/get_maintainer.pl
-@@ -41,6 +41,7 @@ my $web = 0;
- my $subsystem = 0;
- my $status = 0;
- my $keywords = 1;
-+my $sections = 0;
- my $file_emails = 0;
- my $from_filename = 0;
- my $pattern_depth = 0;
-@@ -121,6 +122,7 @@ if (!GetOptions(
- 		'web!' => \$web,
- 		'pattern-depth=i' => \$pattern_depth,
- 		'k|keywords!' => \$keywords,
-+		'sections!' => \$sections,
- 		'fe|file-emails!' => \$file_emails,
- 		'f|file' => \$from_filename,
- 		'v|version' => \$version,
-@@ -152,10 +154,20 @@ if ($output_rolestats) {
-     $output_roles = 1;
- }
+diff -puN net/sunrpc/xprtrdma/transport.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4 net/sunrpc/xprtrdma/transport.c
+--- a/net/sunrpc/xprtrdma/transport.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4
++++ a/net/sunrpc/xprtrdma/transport.c
+@@ -165,8 +165,7 @@ xprt_rdma_format_addresses(struct rpc_xp
  
--my $selections = $email + $scm + $status + $subsystem + $web;
--if ($selections == 0) {
--    usage();
--    die "$P:  Missing required option: email, scm, status, subsystem or web\n";
-+if ($sections) {
-+    $email = 0;
-+    $email_list = 0;
-+    $scm = 0;
-+    $status = 0;
-+    $subsystem = 0;
-+    $web = 0;
-+    $keywords = 0;
-+} else {
-+    my $selections = $email + $scm + $status + $subsystem + $web;
-+    if ($selections == 0) {
-+	usage();
-+	die "$P:  Missing required option: email, scm, status, subsystem or web\n";
-+    }
- }
+ 	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
  
- if ($email &&
-@@ -357,6 +369,21 @@ foreach my $file (@files) {
+-	(void)snprintf(buf, sizeof(buf), "%02x%02x%02x%02x",
+-				NIPQUAD(sin->sin_addr.s_addr));
++	(void)snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+ 	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
  
-     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
- 	add_categories($line);
-+	    if ($sections) {
-+		my $i;
-+		my $start = find_starting_index($line);
-+		my $end = find_ending_index($line);
-+		for ($i = $start; $i < $end; $i++) {
-+		    my $line = $typevalue[$i];
-+		    if ($line =~ /^[FX]:/) {		##Restore file patterns
-+			$line =~ s/([^\\])\.([^\*])/$1\?$2/g;
-+			$line =~ s/([^\\])\.$/$1\?/g;	##Convert . back to ?
-+			$line =~ s/\\\./\./g;       	##Convert \. to .
-+			$line =~ s/\.\*/\*/g;       	##Convert .* to *
-+		    }
-+		    print("$line\n");
-+		}
-+	    }
-     }
- 
-     if ($email && $email_git) {
-@@ -486,6 +513,7 @@ Output type options:
- Other options:
-   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
-   --keywords => scan patch for keywords (default: 1 (on))
-+  --sections => print the entire subsystem sections with pattern matches
-   --version => show version
-   --help => show this help information
- 
+ 	(void)snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
+diff -puN net/sunrpc/xprtsock.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4 net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4
++++ a/net/sunrpc/xprtsock.c
+@@ -297,12 +297,11 @@ static void xs_format_common_peer_addres
+ 	switch (sap->sa_family) {
+ 	case AF_INET:
+ 		sin = xs_addr_in(xprt);
+-		(void)snprintf(buf, sizeof(buf), "%02x%02x%02x%02x",
+-					NIPQUAD(sin->sin_addr.s_addr));
++		snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+ 		break;
+ 	case AF_INET6:
+ 		sin6 = xs_addr_in6(xprt);
+-		(void)snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
++		snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
+ 		break;
+ 	default:
+ 		BUG();
 _
 
 Patches currently in -mm which might be from joe@perches.com are
