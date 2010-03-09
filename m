@@ -1,181 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-detect-mapped-file-pages-used-only-once.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:04:44 -0800
-Message-ID: <201003091904.o29J4iqJ031062@imap1.linux-foundation.org>
+Subject: [merged] cryptocop-fix-assertion-in-create_output_descriptors.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:05:15 -0800
+Message-ID: <201003091905.o29J5Fnb031112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902Ab0CITFh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:05:37 -0500
+	by vger.kernel.org with ESMTP id S1752002Ab0CITGJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:06:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: detect mapped file pages used only once
+     cryptocop: fix assertion in create_output_descriptors()
 has been removed from the -mm tree.  Its filename was
-     vmscan-detect-mapped-file-pages-used-only-once.patch
+     cryptocop-fix-assertion-in-create_output_descriptors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: detect mapped file pages used only once
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: cryptocop: fix assertion in create_output_descriptors()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The VM currently assumes that an inactive, mapped and referenced file page
-is in use and promotes it to the active list.
+size_t desc_len cannot be less than 0, test before the subtraction.
 
-However, every mapped file page starts out like this and thus a problem
-arises when workloads create a stream of such pages that are used only for
-a short time.  By flooding the active list with those pages, the VM
-quickly gets into trouble finding eligible reclaim canditates.  The result
-is long allocation latencies and eviction of the wrong pages.
-
-This patch reuses the PG_referenced page flag (used for unmapped file
-pages) to implement a usage detection that scales with the speed of LRU
-list cycling (i.e.  memory pressure).
-
-If the scanner encounters those pages, the flag is set and the page cycled
-again on the inactive list.  Only if it returns with another page table
-reference it is activated.  Otherwise it is reclaimed as 'not recently
-used cache'.
-
-This effectively changes the minimum lifetime of a used-once mapped file
-page from a full memory cycle to an inactive list cycle, which allows it
-to occur in linear streams without affecting the stable working set of the
-system.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: OSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 -
- mm/rmap.c            |    3 --
- mm/vmscan.c          |   45 +++++++++++++++++++++++++++++++----------
- 3 files changed, 36 insertions(+), 14 deletions(-)
+ arch/cris/arch-v32/drivers/cryptocop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rmap.h~vmscan-detect-mapped-file-pages-used-only-once include/linux/rmap.h
---- a/include/linux/rmap.h~vmscan-detect-mapped-file-pages-used-only-once
-+++ a/include/linux/rmap.h
-@@ -209,7 +209,7 @@ static inline int page_referenced(struct
- 				  unsigned long *vm_flags)
- {
- 	*vm_flags = 0;
--	return TestClearPageReferenced(page);
-+	return 0;
- }
+diff -puN arch/cris/arch-v32/drivers/cryptocop.c~cryptocop-fix-assertion-in-create_output_descriptors arch/cris/arch-v32/drivers/cryptocop.c
+--- a/arch/cris/arch-v32/drivers/cryptocop.c~cryptocop-fix-assertion-in-create_output_descriptors
++++ a/arch/cris/arch-v32/drivers/cryptocop.c
+@@ -628,9 +628,9 @@ static int create_output_descriptors(str
+ 		cdesc->dma_descr->buf = (char*)virt_to_phys(operation->tfrm_op.indata[*iniov_ix].iov_base + *iniov_offset);
+ 		cdesc->dma_descr->after = cdesc->dma_descr->buf + dlength;
  
- #define try_to_unmap(page, refs) SWAP_FAIL
-diff -puN mm/rmap.c~vmscan-detect-mapped-file-pages-used-only-once mm/rmap.c
---- a/mm/rmap.c~vmscan-detect-mapped-file-pages-used-only-once
-+++ a/mm/rmap.c
-@@ -601,9 +601,6 @@ int page_referenced(struct page *page,
- 	int referenced = 0;
- 	int we_locked = 0;
- 
--	if (TestClearPageReferenced(page))
--		referenced++;
--
- 	*vm_flags = 0;
- 	if (page_mapped(page) && page_rmapping(page)) {
- 		if (!is_locked && (!PageAnon(page) || PageKsm(page))) {
-diff -puN mm/vmscan.c~vmscan-detect-mapped-file-pages-used-only-once mm/vmscan.c
---- a/mm/vmscan.c~vmscan-detect-mapped-file-pages-used-only-once
-+++ a/mm/vmscan.c
-@@ -561,18 +561,18 @@ redo:
- enum page_references {
- 	PAGEREF_RECLAIM,
- 	PAGEREF_RECLAIM_CLEAN,
-+	PAGEREF_KEEP,
- 	PAGEREF_ACTIVATE,
- };
- 
- static enum page_references page_check_references(struct page *page,
- 						  struct scan_control *sc)
- {
-+	int referenced_ptes, referenced_page;
- 	unsigned long vm_flags;
--	int referenced;
- 
--	referenced = page_referenced(page, 1, sc->mem_cgroup, &vm_flags);
--	if (!referenced)
--		return PAGEREF_RECLAIM;
-+	referenced_ptes = page_referenced(page, 1, sc->mem_cgroup, &vm_flags);
-+	referenced_page = TestClearPageReferenced(page);
- 
- 	/* Lumpy reclaim - ignore references */
- 	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
-@@ -585,11 +585,36 @@ static enum page_references page_check_r
- 	if (vm_flags & VM_LOCKED)
- 		return PAGEREF_RECLAIM;
- 
--	if (page_mapped(page))
--		return PAGEREF_ACTIVATE;
-+	if (referenced_ptes) {
-+		if (PageAnon(page))
-+			return PAGEREF_ACTIVATE;
-+		/*
-+		 * All mapped pages start out with page table
-+		 * references from the instantiating fault, so we need
-+		 * to look twice if a mapped file page is used more
-+		 * than once.
-+		 *
-+		 * Mark it and spare it for another trip around the
-+		 * inactive list.  Another page table reference will
-+		 * lead to its activation.
-+		 *
-+		 * Note: the mark is set for activated pages as well
-+		 * so that recently deactivated but used pages are
-+		 * quickly recovered.
-+		 */
-+		SetPageReferenced(page);
-+
-+		if (referenced_page)
-+			return PAGEREF_ACTIVATE;
-+
-+		return PAGEREF_KEEP;
-+	}
- 
- 	/* Reclaim if clean, defer dirty pages to writeback */
--	return PAGEREF_RECLAIM_CLEAN;
-+	if (referenced_page)
-+		return PAGEREF_RECLAIM_CLEAN;
-+
-+	return PAGEREF_RECLAIM;
- }
- 
- /*
-@@ -657,6 +682,8 @@ static unsigned long shrink_page_list(st
- 		switch (references) {
- 		case PAGEREF_ACTIVATE:
- 			goto activate_locked;
-+		case PAGEREF_KEEP:
-+			goto keep_locked;
- 		case PAGEREF_RECLAIM:
- 		case PAGEREF_RECLAIM_CLEAN:
- 			; /* try to reclaim the page below */
-@@ -1359,9 +1386,7 @@ static void shrink_active_list(unsigned 
- 			continue;
- 		}
- 
--		/* page_referenced clears PageReferenced */
--		if (page_mapped(page) &&
--		    page_referenced(page, 0, sc->mem_cgroup, &vm_flags)) {
-+		if (page_referenced(page, 0, sc->mem_cgroup, &vm_flags)) {
- 			nr_rotated++;
- 			/*
- 			 * Identify referenced, file-backed active pages and
++		assert(desc_len >= dlength);
+ 		desc_len -= dlength;
+ 		*iniov_offset += dlength;
+-		assert(desc_len >= 0);
+ 		if (*iniov_offset >= operation->tfrm_op.indata[*iniov_ix].iov_len) {
+ 			*iniov_offset = 0;
+ 			++(*iniov_ix);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-bootmem-avoid-dma32-zone-by-default.patch
+linux-next.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+isdn-misplaced-parenthesis-in-pof_handle_data.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+paride-fix-off-by-one-test.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
