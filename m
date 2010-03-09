@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mfd-mc13783-new-function-reading-irq-mask-and-status-register.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:10:50 -0800
-Message-ID: <201003091910.o29JAogr031617@imap1.linux-foundation.org>
+Subject: [merged] rtc-mc13783-dont-use-deprecated-mc13783-api-calls.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:10:46 -0800
+Message-ID: <201003091910.o29JAkLF031612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755569Ab0CITLx (ORCPT
+	by vger.kernel.org with ESMTP id S1755751Ab0CITLx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:11:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,10 +17,9 @@ To: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it, dmitry.torokhov@gmail.
 
 
 The patch titled
-     mfd/mc13783: new function reading irq mask and status register
+     rtc/mc13783: don't use deprecated mc13783 API calls
 has been removed from the -mm tree.  Its filename was
-     mfd-mc13783-new-function-reading-irq-mask-and-status-register.patc=
-h
+     rtc-mc13783-dont-use-deprecated-mc13783-api-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
@@ -29,15 +28,11 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: mfd/mc13783: new function reading irq mask and status register
+Subject: rtc/mc13783: don't use deprecated mc13783 API calls
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-The driver for the mc13783 rtc needs to know if the TODA irq is pending=
-=2E
-
-Instead of tracking in the rtc driver if the irq is enabled provide tha=
-t
-information, too.
+mc13783_ackirq, mc13783_unmask and mc13783_mask are deprecated, use the
+drop in replacements with the nicer names.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -50,75 +45,56 @@ Cc: Luotao Fu <l.fu@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/mc13783-core.c  |   35 ++++++++++++++++++++++++++++++++++
- include/linux/mfd/mc13783.h |    2 +
- 2 files changed, 37 insertions(+)
+ drivers/rtc/rtc-mc13783.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mfd/mc13783-core.c~mfd-mc13783-new-function-reading-i=
-rq-mask-and-status-register drivers/mfd/mc13783-core.c
---- a/drivers/mfd/mc13783-core.c~mfd-mc13783-new-function-reading-irq-m=
-ask-and-status-register
-+++ a/drivers/mfd/mc13783-core.c
-@@ -269,6 +269,41 @@ int mc13783_irq_unmask(struct mc13783 *m
+diff -puN drivers/rtc/rtc-mc13783.c~rtc-mc13783-dont-use-deprecated-mc1=
+3783-api-calls drivers/rtc/rtc-mc13783.c
+--- a/drivers/rtc/rtc-mc13783.c~rtc-mc13783-dont-use-deprecated-mc13783=
+-api-calls
++++ a/drivers/rtc/rtc-mc13783.c
+@@ -101,11 +101,11 @@ static int mc13783_rtc_set_mmss(struct d
+ 	if (unlikely(ret))
+ 		goto out;
+=20
+-	ret =3D mc13783_ackirq(priv->mc13783, MC13783_IRQ_RTCRST);
++	ret =3D mc13783_irq_ack(priv->mc13783, MC13783_IRQ_RTCRST);
+ 	if (unlikely(ret))
+ 		goto out;
+=20
+-	ret =3D mc13783_unmask(priv->mc13783, MC13783_IRQ_RTCRST);
++	ret =3D mc13783_irq_unmask(priv->mc13783, MC13783_IRQ_RTCRST);
+ out:
+ 	priv->valid =3D !ret;
+=20
+@@ -123,7 +123,7 @@ static irqreturn_t mc13783_rtc_update_ha
+=20
+ 	rtc_update_irq(priv->rtc, 1, RTC_IRQF | RTC_UF);
+=20
+-	mc13783_ackirq(mc13783, irq);
++	mc13783_irq_ack(mc13783, irq);
+=20
+ 	return IRQ_HANDLED;
  }
- EXPORT_SYMBOL(mc13783_irq_unmask);
+@@ -138,7 +138,7 @@ static int mc13783_rtc_update_irq_enable
+ 	if (!priv->valid)
+ 		goto out;
 =20
-+int mc13783_irq_status(struct mc13783 *mc13783, int irq,
-+		int *enabled, int *pending)
-+{
-+	int ret;
-+	unsigned int offmask =3D irq < 24 ? MC13783_IRQMASK0 : MC13783_IRQMAS=
-K1;
-+	unsigned int offstat =3D irq < 24 ? MC13783_IRQSTAT0 : MC13783_IRQSTA=
-T1;
-+	u32 irqbit =3D 1 << (irq < 24 ? irq : irq - 24);
-+
-+	if (irq < 0 || irq >=3D MC13783_NUM_IRQ)
-+		return -EINVAL;
-+
-+	if (enabled) {
-+		u32 mask;
-+
-+		ret =3D mc13783_reg_read(mc13783, offmask, &mask);
-+		if (ret)
-+			return ret;
-+
-+		*enabled =3D mask & irqbit;
-+	}
-+
-+	if (pending) {
-+		u32 stat;
-+
-+		ret =3D mc13783_reg_read(mc13783, offstat, &stat);
-+		if (ret)
-+			return ret;
-+
-+		*pending =3D stat & irqbit;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(mc13783_irq_status);
-+
- int mc13783_irq_ack(struct mc13783 *mc13783, int irq)
- {
- 	unsigned int offstat =3D irq < 24 ? MC13783_IRQSTAT0 : MC13783_IRQSTA=
-T1;
-diff -puN include/linux/mfd/mc13783.h~mfd-mc13783-new-function-reading-=
-irq-mask-and-status-register include/linux/mfd/mc13783.h
---- a/include/linux/mfd/mc13783.h~mfd-mc13783-new-function-reading-irq-=
-mask-and-status-register
-+++ a/include/linux/mfd/mc13783.h
-@@ -29,6 +29,8 @@ int mc13783_irq_free(struct mc13783 *mc1
+-	ret =3D (enabled ? mc13783_unmask : mc13783_mask)(priv->mc13783,
++	ret =3D (enabled ? mc13783_irq_unmask : mc13783_irq_mask)(priv->mc137=
+83,
+ 			MC13783_IRQ_1HZ);
+ out:
+ 	mc13783_unlock(priv->mc13783);
+@@ -160,7 +160,7 @@ static irqreturn_t mc13783_rtc_reset_han
+ 	dev_dbg(&priv->rtc->dev, "RTCRST\n");
+ 	priv->valid =3D 0;
 =20
- int mc13783_irq_mask(struct mc13783 *mc13783, int irq);
- int mc13783_irq_unmask(struct mc13783 *mc13783, int irq);
-+int mc13783_irq_status(struct mc13783 *mc13783, int irq,
-+		int *enabled, int *pending);
- int mc13783_irq_ack(struct mc13783 *mc13783, int irq);
+-	mc13783_mask(mc13783, irq);
++	mc13783_irq_mask(mc13783, irq);
 =20
- static inline int mc13783_mask(struct mc13783 *mc13783, int irq) __dep=
-recated;
+ 	return IRQ_HANDLED;
+ }
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
