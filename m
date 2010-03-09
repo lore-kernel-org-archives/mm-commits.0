@@ -1,124 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdio-put-active-devices-into-1-bit-mode-during-suspend.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:08:21 -0800
-Message-ID: <201003091908.o29J8LAn031438__21201.6495330774$1268162547$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] ext4-fixup-rb_root-initializations-to-use-rb_root.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:11:59 -0800
+Message-ID: <201003091911.o29JBxUG031781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35392 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755953Ab0CITWM (ORCPT
+	by vger.kernel.org with ESMTP id S1755994Ab0CITWM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsd@laptop.org, linux-mmc@vger.kernel.org, nico@marvell.com, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, eparis@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdio: put active devices into 1-bit mode during suspend
+     ext4: fix up rb_root initializations to use RB_ROOT
 has been removed from the -mm tree.  Its filename was
-     sdio-put-active-devices-into-1-bit-mode-during-suspend.patch
+     ext4-fixup-rb_root-initializations-to-use-rb_root.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: put active devices into 1-bit mode during suspend
-From: Daniel Drake <dsd@laptop.org>
+Subject: ext4: fix up rb_root initializations to use RB_ROOT
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-And bring them back to 4-bit mode during resume.
+ext4 uses rb_node = NULL; to zero rb_root at few places.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Signed-off-by: Nicolas Pitre <nico@marvell.com>
-Cc: <linux-mmc@vger.kernel.org>
+The problem with this is that 17d9ddc72fb8bba0d4f678 ("rbtree: Add support
+for augmented rbtrees") in the linux-next tree adds a new field to that
+struct which needs to be NULLas well.  This patch uses RB_ROOT as the
+intializer so all of the relevant fields will be NULL'd.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c  |   43 +++++++++++++++++++++++++++++++++++++
- include/linux/mmc/sdio.h |    2 +
- 2 files changed, 45 insertions(+)
+ fs/ext4/block_validity.c |    4 ++--
+ fs/ext4/dir.c            |    2 +-
+ fs/ext4/mballoc.c        |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/core/sdio.c~sdio-put-active-devices-into-1-bit-mode-during-suspend drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~sdio-put-active-devices-into-1-bit-mode-during-suspend
-+++ a/drivers/mmc/core/sdio.c
-@@ -188,6 +188,40 @@ static int sdio_disable_cd(struct mmc_ca
+diff -puN fs/ext4/block_validity.c~ext4-fixup-rb_root-initializations-to-use-rb_root fs/ext4/block_validity.c
+--- a/fs/ext4/block_validity.c~ext4-fixup-rb_root-initializations-to-use-rb_root
++++ a/fs/ext4/block_validity.c
+@@ -205,14 +205,14 @@ void ext4_release_system_zone(struct sup
+ 		entry = rb_entry(n, struct ext4_system_zone, node);
+ 		kmem_cache_free(ext4_system_zone_cachep, entry);
+ 		if (!parent)
+-			EXT4_SB(sb)->system_blks.rb_node = NULL;
++			EXT4_SB(sb)->system_blks = RB_ROOT;
+ 		else if (parent->rb_left == n)
+ 			parent->rb_left = NULL;
+ 		else if (parent->rb_right == n)
+ 			parent->rb_right = NULL;
+ 		n = parent;
+ 	}
+-	EXT4_SB(sb)->system_blks.rb_node = NULL;
++	EXT4_SB(sb)->system_blks = RB_ROOT;
  }
  
  /*
-+ * Devices that remain active during a system suspend are
-+ * put back into 1-bit mode.
-+ */
-+static int sdio_disable_wide(struct mmc_card *card)
-+{
-+	int ret;
-+	u8 ctrl;
-+
-+	if (!(card->host->caps & MMC_CAP_4_BIT_DATA))
-+		return 0;
-+
-+	if (card->cccr.low_speed && !card->cccr.wide_bus)
-+		return 0;
-+
-+	ret = mmc_io_rw_direct(card, 0, 0, SDIO_CCCR_IF, 0, &ctrl);
-+	if (ret)
-+		return ret;
-+
-+	if (!(ctrl & SDIO_BUS_WIDTH_4BIT))
-+		return 0;
-+
-+	ctrl &= ~SDIO_BUS_WIDTH_4BIT;
-+	ctrl |= SDIO_BUS_ASYNC_INT;
-+
-+	ret = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_IF, ctrl, NULL);
-+	if (ret)
-+		return ret;
-+
-+	mmc_set_bus_width(card->host, MMC_BUS_WIDTH_1);
-+
-+	return 0;
-+}
-+
-+/*
-  * Test if the card supports high-speed mode and, if so, switch to it.
-  */
- static int sdio_enable_hs(struct mmc_card *card)
-@@ -427,6 +461,12 @@ static int mmc_sdio_suspend(struct mmc_h
+diff -puN fs/ext4/dir.c~ext4-fixup-rb_root-initializations-to-use-rb_root fs/ext4/dir.c
+--- a/fs/ext4/dir.c~ext4-fixup-rb_root-initializations-to-use-rb_root
++++ a/fs/ext4/dir.c
+@@ -303,7 +303,7 @@ static void free_rb_tree_fname(struct rb
+ 			kfree(old);
  		}
- 	}
+ 		if (!parent)
+-			root->rb_node = NULL;
++			*root = RB_ROOT;
+ 		else if (parent->rb_left == n)
+ 			parent->rb_left = NULL;
+ 		else if (parent->rb_right == n)
+diff -puN fs/ext4/mballoc.c~ext4-fixup-rb_root-initializations-to-use-rb_root fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~ext4-fixup-rb_root-initializations-to-use-rb_root
++++ a/fs/ext4/mballoc.c
+@@ -2256,7 +2256,7 @@ int ext4_mb_add_groupinfo(struct super_b
  
-+	if (!err && host->pm_flags & MMC_PM_KEEP_POWER) {
-+		mmc_claim_host(host);
-+		sdio_disable_wide(host->card);
-+		mmc_release_host(host);
-+	}
-+
- 	return err;
- }
+ 	INIT_LIST_HEAD(&meta_group_info[i]->bb_prealloc_list);
+ 	init_rwsem(&meta_group_info[i]->alloc_sem);
+-	meta_group_info[i]->bb_free_root.rb_node = NULL;
++	meta_group_info[i]->bb_free_root = RB_ROOT;
  
-@@ -441,6 +481,9 @@ static int mmc_sdio_resume(struct mmc_ho
- 	mmc_claim_host(host);
- 	err = mmc_sdio_init_card(host, host->ocr, host->card,
- 				 (host->pm_flags & MMC_PM_KEEP_POWER));
-+	if (!err)
-+		/* We may have switched to 1-bit mode during suspend. */
-+		err = sdio_enable_wide(host->card);
- 	if (!err && host->sdio_irqs)
- 		mmc_signal_sdio_irq(host);
- 	mmc_release_host(host);
-diff -puN include/linux/mmc/sdio.h~sdio-put-active-devices-into-1-bit-mode-during-suspend include/linux/mmc/sdio.h
---- a/include/linux/mmc/sdio.h~sdio-put-active-devices-into-1-bit-mode-during-suspend
-+++ a/include/linux/mmc/sdio.h
-@@ -95,6 +95,8 @@
- #define  SDIO_BUS_WIDTH_1BIT	0x00
- #define  SDIO_BUS_WIDTH_4BIT	0x02
- 
-+#define  SDIO_BUS_ASYNC_INT	0x20
-+
- #define  SDIO_BUS_CD_DISABLE     0x80	/* disable pull-up on DAT3 (pin 1) */
- 
- #define SDIO_CCCR_CAPS		0x08
+ #ifdef DOUBLE_CHECK
+ 	{
 _
 
-Patches currently in -mm which might be from dsd@laptop.org are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
+linux-next.patch
+arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
+cpufreq-unexport-unlock_policy_rwsem-functions.patch
+cpufreq-fix-a-lockdep-warning.patch
+jffs2-fixup-rb_root-initializations-to-use-rb_root.patch
+ext3-fixup-rb_root-initializations-to-use-rb_root.patch
 
