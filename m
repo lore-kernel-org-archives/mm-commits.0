@@ -1,94 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] timbgpio-fix-build.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:02:52 -0800
-Message-ID: <201003091902.o29J2qHY030904@imap1.linux-foundation.org>
+Subject: [merged] infiniband-use-for_each_set_bit.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:02:59 -0800
+Message-ID: <201003091902.o29J2xjY030913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755336Ab0CITDC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:02 -0500
+	by vger.kernel.org with ESMTP id S1755336Ab0CITDG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, richard.rojfors@pelagicore.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, hal.rosenstock@gmail.com, rolandd@cisco.com, sean.hefty@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timbgpio: fix build
+     infiniband: use for_each_set_bit()
 has been removed from the -mm tree.  Its filename was
-     timbgpio-fix-build.patch
+     infiniband-use-for_each_set_bit.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timbgpio: fix build
-=46rom: David Miller <davem@davemloft.net>
+Subject: infiniband: use for_each_set_bit()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use of get_irq_chip_data() et al.  requires including linux/irq.h
+Replace open-coded loop with for_each_set_bit().
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Roland Dreier <rolandd@cisco.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/timbgpio.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/mad.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN drivers/gpio/timbgpio.c~timbgpio-fix-build drivers/gpio/timbg=
-pio.c
---- a/drivers/gpio/timbgpio.c~timbgpio-fix-build
-+++ a/drivers/gpio/timbgpio.c
-@@ -23,6 +23,7 @@
- #include <linux/module.h>
- #include <linux/gpio.h>
- #include <linux/platform_device.h>
-+#include <linux/irq.h>
- #include <linux/io.h>
- #include <linux/timb_gpio.h>
- #include <linux/interrupt.h>
+diff -puN drivers/infiniband/core/mad.c~infiniband-use-for_each_set_bit drivers/infiniband/core/mad.c
+--- a/drivers/infiniband/core/mad.c~infiniband-use-for_each_set_bit
++++ a/drivers/infiniband/core/mad.c
+@@ -1193,10 +1193,7 @@ static int method_in_use(struct ib_mad_m
+ {
+ 	int i;
+ 
+-	for (i = find_first_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS);
+-	     i < IB_MGMT_MAX_METHODS;
+-	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
+-			       1+i)) {
++	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS) {
+ 		if ((*method)->agent[i]) {
+ 			printk(KERN_ERR PFX "Method %d already in use\n", i);
+ 			return -EINVAL;
+@@ -1330,13 +1327,9 @@ static int add_nonoui_reg_req(struct ib_
+ 		goto error3;
+ 
+ 	/* Finally, add in methods being registered */
+-	for (i = find_first_bit(mad_reg_req->method_mask,
+-				IB_MGMT_MAX_METHODS);
+-	     i < IB_MGMT_MAX_METHODS;
+-	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
+-			       1+i)) {
++	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS)
+ 		(*method)->agent[i] = agent_priv;
+-	}
++
+ 	return 0;
+ 
+ error3:
+@@ -1429,13 +1422,9 @@ check_in_use:
+ 		goto error4;
+ 
+ 	/* Finally, add in methods being registered */
+-	for (i = find_first_bit(mad_reg_req->method_mask,
+-				IB_MGMT_MAX_METHODS);
+-	     i < IB_MGMT_MAX_METHODS;
+-	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
+-			       1+i)) {
++	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS)
+ 		(*method)->agent[i] = agent_priv;
+-	}
++
+ 	return 0;
+ 
+ error4:
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+hpet-use-for_each_set_bit.patch
+intel-iommu-use-for_each_set_bit.patch
+ntfs-use-bitmap_weight.patch
 phonet-use-for_each_set_bit.patch
-ll-temac-driver-add-non-virtex-5-support.patch
-obsolete-config-in-kernel-source-use_internal_timer.patch
-obsolete-config-in-kernel-source-hso_autopm.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-loading-interface-fix.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-blkio-subsystem-as-module.patch
-documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
-dma-apitxt-add-dma_sync_single-sg-api-description.patch
-dma-apitxt-remove-dma_sync_single_range-description.patch
-alpha-remove-dma_sync_single_range.patch
-um-remove-dma_sync_single_range.patch
-pci-dma-add-include-linux-pci-dmah.patch
-pci-dma-sparc-use-include-linux-pci-dmah.patch
-dma-mappingh-add-the-dma_unmap-state-api.patch
-dma-mappingh-add-the-dma_unmap-state-api-fix.patch
-dma-mapping-sparc-unify-32bit-and-64bit-dma_set_mask.patch
-dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
-dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-ssb-remove-the-ssb-dma-api.patch
+atm-use-for_each_set_bit.patch
+sgi-gru-use-for_each_set_bit.patch
+bitops-remove-temporary-for_each_bit.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
