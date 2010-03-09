@@ -1,80 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:03:26 -0800
-Message-ID: <201003091903.o29J3QCj030967@imap1.linux-foundation.org>
+Subject: [merged] mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:03:48 -0800
+Message-ID: <201003091903.o29J3meu030994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755639Ab0CITDr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:47 -0500
+	by vger.kernel.org with ESMTP id S1755710Ab0CITDv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, minchan.kim@gmail.com, mingo@elte.hu, npiggin@suse.de, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm, lockdep: annotate reclaim context to zone reclaim too
+     mm/mempolicy.c: fix indentation of the comments of do_migrate_pages
 has been removed from the -mm tree.  Its filename was
-     mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
+     mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm, lockdep: annotate reclaim context to zone reclaim too
+Subject: mm/mempolicy.c: fix indentation of the comments of do_migrate_pages
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Commit cf40bd16fd ("lockdep: annotate reclaim context") introduced reclaim
-context annotation.  But it didn't annotate zone reclaim.  This patch do
-it.
+Currently, do_migrate_pages() have very long comment and this is not
+indent properly.  I often misunderstand it is function starting commnents
+and confused it.
 
-The point is, commit cf40bd16fd annotate __alloc_pages_direct_reclaim but
-zone-reclaim doesn't use __alloc_pages_direct_reclaim.
+this patch fixes it.
 
-current call graph is
-
-__alloc_pages_nodemask
-   get_page_from_freelist
-       zone_reclaim()
-   __alloc_pages_slowpath
-       __alloc_pages_direct_reclaim
-           try_to_free_pages
-
-Actually, if zone_reclaim_mode=1, VM never call
-__alloc_pages_direct_reclaim in usual VM pressure.
+note: this patch doesn't break 80 column rule. I guess original
+      author intended this indentaion, but an accident corrupted it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mempolicy.c |   60 +++++++++++++++++++++++------------------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
-diff -puN mm/vmscan.c~mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too mm/vmscan.c
---- a/mm/vmscan.c~mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too
-+++ a/mm/vmscan.c
-@@ -2557,6 +2557,7 @@ static int __zone_reclaim(struct zone *z
- 	 * and RECLAIM_SWAP.
- 	 */
- 	p->flags |= PF_MEMALLOC | PF_SWAPWRITE;
-+	lockdep_set_current_reclaim_state(gfp_mask);
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
+diff -puN mm/mempolicy.c~mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages
++++ a/mm/mempolicy.c
+@@ -888,36 +888,36 @@ int do_migrate_pages(struct mm_struct *m
+ 	if (err)
+ 		goto out;
  
-@@ -2600,6 +2601,7 @@ static int __zone_reclaim(struct zone *z
+-/*
+- * Find a 'source' bit set in 'tmp' whose corresponding 'dest'
+- * bit in 'to' is not also set in 'tmp'.  Clear the found 'source'
+- * bit in 'tmp', and return that <source, dest> pair for migration.
+- * The pair of nodemasks 'to' and 'from' define the map.
+- *
+- * If no pair of bits is found that way, fallback to picking some
+- * pair of 'source' and 'dest' bits that are not the same.  If the
+- * 'source' and 'dest' bits are the same, this represents a node
+- * that will be migrating to itself, so no pages need move.
+- *
+- * If no bits are left in 'tmp', or if all remaining bits left
+- * in 'tmp' correspond to the same bit in 'to', return false
+- * (nothing left to migrate).
+- *
+- * This lets us pick a pair of nodes to migrate between, such that
+- * if possible the dest node is not already occupied by some other
+- * source node, minimizing the risk of overloading the memory on a
+- * node that would happen if we migrated incoming memory to a node
+- * before migrating outgoing memory source that same node.
+- *
+- * A single scan of tmp is sufficient.  As we go, we remember the
+- * most recent <s, d> pair that moved (s != d).  If we find a pair
+- * that not only moved, but what's better, moved to an empty slot
+- * (d is not set in tmp), then we break out then, with that pair.
+- * Otherwise when we finish scannng from_tmp, we at least have the
+- * most recent <s, d> pair that moved.  If we get all the way through
+- * the scan of tmp without finding any node that moved, much less
+- * moved to an empty node, then there is nothing left worth migrating.
+- */
++	/*
++	 * Find a 'source' bit set in 'tmp' whose corresponding 'dest'
++	 * bit in 'to' is not also set in 'tmp'.  Clear the found 'source'
++	 * bit in 'tmp', and return that <source, dest> pair for migration.
++	 * The pair of nodemasks 'to' and 'from' define the map.
++	 *
++	 * If no pair of bits is found that way, fallback to picking some
++	 * pair of 'source' and 'dest' bits that are not the same.  If the
++	 * 'source' and 'dest' bits are the same, this represents a node
++	 * that will be migrating to itself, so no pages need move.
++	 *
++	 * If no bits are left in 'tmp', or if all remaining bits left
++	 * in 'tmp' correspond to the same bit in 'to', return false
++	 * (nothing left to migrate).
++	 *
++	 * This lets us pick a pair of nodes to migrate between, such that
++	 * if possible the dest node is not already occupied by some other
++	 * source node, minimizing the risk of overloading the memory on a
++	 * node that would happen if we migrated incoming memory to a node
++	 * before migrating outgoing memory source that same node.
++	 *
++	 * A single scan of tmp is sufficient.  As we go, we remember the
++	 * most recent <s, d> pair that moved (s != d).  If we find a pair
++	 * that not only moved, but what's better, moved to an empty slot
++	 * (d is not set in tmp), then we break out then, with that pair.
++	 * Otherwise when we finish scannng from_tmp, we at least have the
++	 * most recent <s, d> pair that moved.  If we get all the way through
++	 * the scan of tmp without finding any node that moved, much less
++	 * moved to an empty node, then there is nothing left worth migrating.
++	 */
  
- 	p->reclaim_state = NULL;
- 	current->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE);
-+	lockdep_clear_current_reclaim_state();
- 	return sc.nr_reclaimed >= nr_pages;
- }
- 
+ 	tmp = *from_nodes;
+ 	while (!nodes_empty(tmp)) {
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
