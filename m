@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-allow-setting-of-phys_device.patch added to -mm tree
-Date: Tue, 09 Mar 2010 12:38:51 -0800
-Message-ID: <201003092038.o29KcpUn003707@imap1.linux-foundation.org>
+Subject: + sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch added to -mm tree
+Date: Tue, 09 Mar 2010 13:49:06 -0800
+Message-ID: <201003092149.o29Ln6h0006960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751377Ab0CIUj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 15:39:27 -0500
+	by vger.kernel.org with ESMTP id S1751239Ab0CIVuN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 16:50:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, gerald.schaefer@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: yinghai@kernel.org, cl@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, hpa@zytor.com, jirislaby@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     memory hotplug: allow setting of phys_device
+     sparsemem: on no vmemmap path put mem_map on node high too
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-allow-setting-of-phys_device.patch
+     sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,108 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: allow setting of phys_device
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: sparsemem: on no vmemmap path put mem_map on node high too
+From: Yinghai Lu <yinghai@kernel.org>
 
-/sys/devices/system/memory/memoryX/phys_device is supposed to contain the
-number of the physical device that the corresponding piece of memory
-belongs to.
+We need to put mem_map high when virtual memmap is not used.
 
-In case a physical device should be replaced or taken offline for whatever
-reason it is necessary to set all corresponding memory pieces offline. 
-The current implementation always sets phys_device to '0' and there is no
-way or hook to change that.  Seems like there was a plan to implement that
-but it wasn't finished for whatever reason.
+before this patch
+free mem pfn range on first node:
+[    0.000000]  19 - 1f
+[    0.000000]  28 40 - 80 95
+[    0.000000]  702 740 - 1000 1000
+[    0.000000]  347c - 347e
+[    0.000000]  34e7 3500 - 3b80 3b8b
+[    0.000000]  73b8b 73bc0 - 73c00 73c00
+[    0.000000]  73ddd - 73e00
+[    0.000000]  73fdd - 74000
+[    0.000000]  741dd - 74200
+[    0.000000]  743dd - 74400
+[    0.000000]  745dd - 74600
+[    0.000000]  747dd - 74800
+[    0.000000]  749dd - 74a00
+[    0.000000]  74bdd - 74c00
+[    0.000000]  74ddd - 74e00
+[    0.000000]  74fdd - 75000
+[    0.000000]  751dd - 75200
+[    0.000000]  753dd - 75400
+[    0.000000]  755dd - 75600
+[    0.000000]  757dd - 75800
+[    0.000000]  759dd - 75a00
+[    0.000000]  79bdd 79c00 - 7d540 7d550
+[    0.000000]  7f745 - 7f750
+[    0.000000]  10000b 100040 - 2080000 2080000
+so only 79c00 - 7d540 are major free block under 4g...
 
-So add a weak function which architectures can override to actually set
-the phys_device from within add_memory_block().
+after this patch, we will get
+[    0.000000]  19 - 1f
+[    0.000000]  28 40 - 80 95
+[    0.000000]  702 740 - 1000 1000
+[    0.000000]  347c - 347e
+[    0.000000]  34e7 3500 - 3600 3600
+[    0.000000]  37dd - 3800
+[    0.000000]  39dd - 3a00
+[    0.000000]  3bdd - 3c00
+[    0.000000]  3ddd - 3e00
+[    0.000000]  3fdd - 4000
+[    0.000000]  41dd - 4200
+[    0.000000]  43dd - 4400
+[    0.000000]  45dd - 4600
+[    0.000000]  47dd - 4800
+[    0.000000]  49dd - 4a00
+[    0.000000]  4bdd - 4c00
+[    0.000000]  4ddd - 4e00
+[    0.000000]  4fdd - 5000
+[    0.000000]  51dd - 5200
+[    0.000000]  53dd - 5400
+[    0.000000]  95dd 9600 - 7d540 7d550
+[    0.000000]  7f745 - 7f750
+[    0.000000]  17000b 170040 - 2080000 2080000
+we will have 9600 - 7d540 for major free block...
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+sparse-vmemmap path already used __alloc_bootmem_node_high()
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   15 ++++++++++-----
- include/linux/memory.h |    2 ++
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ mm/sparse.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-allow-setting-of-phys_device drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-allow-setting-of-phys_device
-+++ a/drivers/base/memory.c
-@@ -429,12 +429,16 @@ static inline int memory_fail_init(void)
-  * differentiation between which *physical* devices each
-  * section belongs to...
-  */
-+int __weak arch_get_memory_phys_device(unsigned long start_pfn)
-+{
-+	return 0;
-+}
- 
- static int add_memory_block(int nid, struct mem_section *section,
--			unsigned long state, int phys_device,
--			enum mem_add_context context)
-+			unsigned long state, enum mem_add_context context)
+diff -puN mm/sparse.c~sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too mm/sparse.c
+--- a/mm/sparse.c~sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too
++++ a/mm/sparse.c
+@@ -381,13 +381,15 @@ static void __init sparse_early_usemaps_
+ struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
  {
- 	struct memory_block *mem = kzalloc(sizeof(*mem), GFP_KERNEL);
-+	unsigned long start_pfn;
- 	int ret = 0;
+ 	struct page *map;
++	unsigned long size;
  
- 	if (!mem)
-@@ -443,7 +447,8 @@ static int add_memory_block(int nid, str
- 	mem->phys_index = __section_nr(section);
- 	mem->state = state;
- 	mutex_init(&mem->state_mutex);
--	mem->phys_device = phys_device;
-+	start_pfn = section_nr_to_pfn(mem->phys_index);
-+	mem->phys_device = arch_get_memory_phys_device(start_pfn);
+ 	map = alloc_remap(nid, sizeof(struct page) * PAGES_PER_SECTION);
+ 	if (map)
+ 		return map;
  
- 	ret = register_memory(mem, section);
- 	if (!ret)
-@@ -515,7 +520,7 @@ int remove_memory_block(unsigned long no
-  */
- int register_new_memory(int nid, struct mem_section *section)
- {
--	return add_memory_block(nid, section, MEM_OFFLINE, 0, HOTPLUG);
-+	return add_memory_block(nid, section, MEM_OFFLINE, HOTPLUG);
+-	map = alloc_bootmem_pages_node(NODE_DATA(nid),
+-		       PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION));
++	size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
++	map = __alloc_bootmem_node_high(NODE_DATA(nid), size,
++					 PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
+ 	return map;
  }
- 
- int unregister_memory_section(struct mem_section *section)
-@@ -548,7 +553,7 @@ int __init memory_dev_init(void)
- 		if (!present_section_nr(i))
- 			continue;
- 		err = add_memory_block(0, __nr_to_section(i), MEM_ONLINE,
--					0, BOOT);
-+				       BOOT);
- 		if (!ret)
- 			ret = err;
+ void __init sparse_mem_maps_populate_node(struct page **map_map,
+@@ -411,7 +413,8 @@ void __init sparse_mem_maps_populate_nod
  	}
-diff -puN include/linux/memory.h~memory-hotplug-allow-setting-of-phys_device include/linux/memory.h
---- a/include/linux/memory.h~memory-hotplug-allow-setting-of-phys_device
-+++ a/include/linux/memory.h
-@@ -36,6 +36,8 @@ struct memory_block {
- 	struct sys_device sysdev;
- };
  
-+int arch_get_memory_phys_device(unsigned long start_pfn);
-+
- /* These states are exposed to userspace as text strings in sysfs */
- #define	MEM_ONLINE		(1<<0) /* exposed to userspace */
- #define	MEM_GOING_OFFLINE	(1<<1) /* exposed to userspace */
+ 	size = PAGE_ALIGN(size);
+-	map = alloc_bootmem_pages_node(NODE_DATA(nodeid), size * map_count);
++	map = __alloc_bootmem_node_high(NODE_DATA(nodeid), size * map_count,
++					 PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
+ 	if (map) {
+ 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+ 			if (!present_section_nr(pnum))
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 linux-next.patch
-memory-hotplug-allow-setting-of-phys_device.patch
-memory-hotplug-s390-set-phys_device.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-add-generic-sys_old_select.patch
-add-generic-sys_old_mmap.patch
-add-generic-sys_ipc-wrapper.patch
-add-generic-sys_ipc-wrapper-fix.patch
-improve-sys_personality-for-compat-architectures.patch
-improve-sys_newuname-for-compat-architectures.patch
-add-generic-sys_olduname.patch
+sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
 
