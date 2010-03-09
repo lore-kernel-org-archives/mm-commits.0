@@ -1,54 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-bfin_sdh-set-timeout-based-on-actual-card-data.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:07:56 -0800
-Message-ID: <201003091907.o29J7uTW031396@imap1.linux-foundation.org>
+Subject: [merged] checkpatchpl-warn-if-an-adding-line-introduce-spaces-before-tabs.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:09:17 -0800
+Message-ID: <201003091909.o29J9Hru031509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755945Ab0CITWK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:10 -0500
+	by vger.kernel.org with ESMTP id S1755749Ab0CITWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cliff.cai@analog.com, linux-mmc@vger.kernel.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: maramaopercheseimorto@gmail.com, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: bfin_sdh: set timeout based on actual card data
+     checkpatch.pl: warn if an adding line introduce spaces before tabs.
 has been removed from the -mm tree.  Its filename was
-     mmc-bfin_sdh-set-timeout-based-on-actual-card-data.patch
+     checkpatchpl-warn-if-an-adding-line-introduce-spaces-before-tabs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: bfin_sdh: set timeout based on actual card data
-From: Cliff Cai <cliff.cai@analog.com>
+Subject: checkpatch.pl: warn if an adding line introduce spaces before tabs.
+From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 
-The hardcoded value doesn't really work for all cards.
-
-Signed-off-by: Cliff Cai <cliff.cai@analog.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/bfin_sdh.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/mmc/host/bfin_sdh.c~mmc-bfin_sdh-set-timeout-based-on-actual-card-data drivers/mmc/host/bfin_sdh.c
---- a/drivers/mmc/host/bfin_sdh.c~mmc-bfin_sdh-set-timeout-based-on-actual-card-data
-+++ a/drivers/mmc/host/bfin_sdh.c
-@@ -115,6 +115,7 @@ static int sdh_setup_data(struct sdh_hos
- 	unsigned int length;
- 	unsigned int data_ctl;
- 	unsigned int dma_cfg;
-+	unsigned int cycle_ns, timeout;
+diff -puN scripts/checkpatch.pl~checkpatchpl-warn-if-an-adding-line-introduce-spaces-before-tabs scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-warn-if-an-adding-line-introduce-spaces-before-tabs
++++ a/scripts/checkpatch.pl
+@@ -1422,6 +1422,12 @@ sub process {
+ 			ERROR("code indent should use tabs where possible\n" . $herevet);
+ 		}
  
- 	dev_dbg(mmc_dev(host->mmc), "%s enter flags: 0x%x\n", __func__, data->flags);
- 	host->data = data;
-@@ -135,8 +136,11 @@ static int sdh_setup_data(struct sdh_hos
- 	data_ctl |= ((ffs(data->blksz) - 1) << 4);
++# check for space before tabs.
++		if ($rawline =~ /^\+/ && $rawline =~ / \t/) {
++			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
++			WARN("please, no space before tabs\n" . $herevet);
++		}
++
+ # check we are in a valid C source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c)$/);
  
- 	bfin_write_SDH_DATA_CTL(data_ctl);
+_
+
+Patches currently in -mm which might be from maramaopercheseimorto@gmail.com are
+
+linux-next.patch
+w1-mxc_w1-move-probe-and-remove-to-the-dev-text-area.patch
+
