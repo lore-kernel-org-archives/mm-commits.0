@@ -1,91 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-get_scan_ratio-cleanup.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:03:23 -0800
-Message-ID: <201003091903.o29J3NTK030964@imap1.linux-foundation.org>
+Subject: [merged] mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:03:26 -0800
+Message-ID: <201003091903.o29J3QCj030967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755612Ab0CITDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:42 -0500
+	by vger.kernel.org with ESMTP id S1755639Ab0CITDr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:03:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, minchan.kim@gmail.com, mingo@elte.hu, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: get_scan_ratio() cleanup
+     mm, lockdep: annotate reclaim context to zone reclaim too
 has been removed from the -mm tree.  Its filename was
-     vmscan-get_scan_ratio-cleanup.patch
+     mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: get_scan_ratio() cleanup
+Subject: mm, lockdep: annotate reclaim context to zone reclaim too
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The get_scan_ratio() should have all scan-ratio related calculations. 
-Thus, this patch move some calculation into get_scan_ratio.
+Commit cf40bd16fd ("lockdep: annotate reclaim context") introduced reclaim
+context annotation.  But it didn't annotate zone reclaim.  This patch do
+it.
+
+The point is, commit cf40bd16fd annotate __alloc_pages_direct_reclaim but
+zone-reclaim doesn't use __alloc_pages_direct_reclaim.
+
+current call graph is
+
+__alloc_pages_nodemask
+   get_page_from_freelist
+       zone_reclaim()
+   __alloc_pages_slowpath
+       __alloc_pages_direct_reclaim
+           try_to_free_pages
+
+Actually, if zone_reclaim_mode=1, VM never call
+__alloc_pages_direct_reclaim in usual VM pressure.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-get_scan_ratio-cleanup mm/vmscan.c
---- a/mm/vmscan.c~vmscan-get_scan_ratio-cleanup
+diff -puN mm/vmscan.c~mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too mm/vmscan.c
+--- a/mm/vmscan.c~mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too
 +++ a/mm/vmscan.c
-@@ -1501,6 +1501,13 @@ static void get_scan_ratio(struct zone *
- 	unsigned long ap, fp;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+@@ -2557,6 +2557,7 @@ static int __zone_reclaim(struct zone *z
+ 	 * and RECLAIM_SWAP.
+ 	 */
+ 	p->flags |= PF_MEMALLOC | PF_SWAPWRITE;
++	lockdep_set_current_reclaim_state(gfp_mask);
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
  
-+	/* If we have no swap space, do not bother scanning anon pages. */
-+	if (!sc->may_swap || (nr_swap_pages <= 0)) {
-+		percent[0] = 0;
-+		percent[1] = 100;
-+		return;
-+	}
-+
- 	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
- 		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
- 	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
-@@ -1598,22 +1605,20 @@ static void shrink_zone(int priority, st
- 	unsigned long nr_reclaimed = sc->nr_reclaimed;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
--	int noswap = 0;
+@@ -2600,6 +2601,7 @@ static int __zone_reclaim(struct zone *z
  
--	/* If we have no swap space, do not bother scanning anon pages. */
--	if (!sc->may_swap || (nr_swap_pages <= 0)) {
--		noswap = 1;
--		percent[0] = 0;
--		percent[1] = 100;
--	} else
--		get_scan_ratio(zone, sc, percent);
-+	get_scan_ratio(zone, sc, percent);
+ 	p->reclaim_state = NULL;
+ 	current->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE);
++	lockdep_clear_current_reclaim_state();
+ 	return sc.nr_reclaimed >= nr_pages;
+ }
  
- 	for_each_evictable_lru(l) {
- 		int file = is_file_lru(l);
- 		unsigned long scan;
- 
-+		if (percent[file] == 0) {
-+			nr[l] = 0;
-+			continue;
-+		}
-+
- 		scan = zone_nr_lru_pages(zone, sc, l);
--		if (priority || noswap) {
-+		if (priority) {
- 			scan >>= priority;
- 			scan = (scan * percent[file]) / 100;
- 		}
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
