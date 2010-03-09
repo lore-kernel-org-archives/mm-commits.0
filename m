@@ -1,46 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-avoid-warning-when-config_printk-is-disabled.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:06:42 -0800
-Message-ID: <201003091906.o29J6ghO031274@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-fix-false-positive-on-__initconst.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:09:08 -0800
+Message-ID: <201003091909.o29J98cW031500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755945Ab0CITWQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:16 -0500
+	by vger.kernel.org with ESMTP id S1756017Ab0CITWR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: padovan@profusion.mobi, mingo@elte.hu, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk: avoid warning when CONFIG_PRINTK is disabled
+     checkpatch: fix false positive on __initconst
 has been removed from the -mm tree.  Its filename was
-     printk-avoid-warning-when-config_printk-is-disabled.patch
+     checkpatch-fix-false-positive-on-__initconst.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: avoid warning when CONFIG_PRINTK is disabled
-From: "Gustavo F. Padovan" <padovan@profusion.mobi>
+Subject: checkpatch: fix false positive on __initconst
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-kernel/printk.c:72: warning: `saved_console_loglevel' defined but not used
+checkpatch falsely complained about '__initconst' because it thought the
+'const' needed a space before.  Fix this by changing the list of
+attributes:
 
-Signed-off-by: Gustavo F. Padovan <padovan@profusion.mobi>
-Cc: Ingo Molnar <mingo@elte.hu>
+- add '__initconst'
+- force plain 'init' to contain a word-boundary at the end
+
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ scripts/checkpatch.pl |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~printk-avoid-warning-when-config_printk-is-disabled kernel/printk.c
---- a/kernel/printk.c~printk-avoid-warning-when-config_printk-is-disabled
-+++ a/kernel/printk.c
-@@ -70,8 +70,6 @@ int console_printk[4] = {
- 	DEFAULT_CONSOLE_LOGLEVEL,	/* default_console_loglevel */
- };
- 
--static int saved_console_loglevel = -1;
+diff -puN scripts/checkpatch.pl~checkpatch-fix-false-positive-on-__initconst scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-false-positive-on-__initconst
++++ a/scripts/checkpatch.pl
+@@ -145,11 +145,14 @@ our $Sparse	= qr{
+ 			__kprobes|
+ 			__ref
+ 		}x;
++
++# Notes to $Attribute:
++# We need \b after 'init' otherwise 'initconst' will cause a false positive in a check
+ our $Attribute	= qr{
+ 			const|
+ 			__read_mostly|
+ 			__kprobes|
+-			__(?:mem|cpu|dev|)(?:initdata|init)|
++			__(?:mem|cpu|dev|)(?:initdata|initconst|init\b)|
+ 			____cacheline_aligned|
+ 			____cacheline_aligned_in_smp|
+ 			____cacheline_internodealigned_in_smp|
+_
+
+Patches currently in -mm which might be from w.sang@pengutronix.de are
+
+linux-next.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+
