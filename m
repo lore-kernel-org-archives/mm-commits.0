@@ -1,70 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] get_maintainer-quote-email-address-with-period.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:07:02 -0800
-Message-ID: <201003091907.o29J72xG031297@imap1.linux-foundation.org>
+Subject: [merged] scripts-get_maintainerpl-fix-possible-infinite-loop.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:07:04 -0800
+Message-ID: <201003091907.o29J74wI031300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755909Ab0CITWE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:04 -0500
+	by vger.kernel.org with ESMTP id S1755925Ab0CITWF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@vyatta.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     get_maintainer: quote email address with period
+     scripts/get_maintainer.pl: fix possible infinite loop
 has been removed from the -mm tree.  Its filename was
-     get_maintainer-quote-email-address-with-period.patch
+     scripts-get_maintainerpl-fix-possible-infinite-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get_maintainer: quote email address with period
-From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: scripts/get_maintainer.pl: fix possible infinite loop
+From: Joe Perches <joe@perches.com>
 
-Picky mail systems won't accept email addresses where recipient has period
-in name; ie.  David S.  Miller <davemloft.net> will not work.
+If MAINTAINERS section entries are misformatted, it was possible to have
+an infinite loop.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: Joe Perches <joe@perches.com>
+Correct the defect by always moving the index to the end of section + 1
+
+Also, exit check for exclude as soon as possible.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  scripts/get_maintainer.pl |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-quote-email-address-with-period scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-quote-email-address-with-period
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-possible-infinite-loop
 +++ a/scripts/get_maintainer.pl
-@@ -605,7 +605,7 @@ sub parse_email {
-     $name =~ s/^\"|\"$//g;
-     $address =~ s/^\s+|\s+$//g;
+@@ -347,6 +347,7 @@ foreach my $file (@files) {
+ 		if ($type eq 'X') {
+ 		    if (file_match_pattern($file, $value)) {
+ 			$exclude = 1;
++			last;
+ 		    }
+ 		}
+ 	    }
+@@ -373,8 +374,7 @@ foreach my $file (@files) {
+ 	    }
+ 	}
  
--    if ($name =~ /[^a-z0-9 \.\-]/i) {    ##has "must quote" chars
-+    if ($name =~ /[^\w \-]/i) {  	 ##has "must quote" chars
- 	$name =~ s/(?<!\\)"/\\"/g;       ##escape quotes
- 	$name = "\"$name\"";
+-	$tvi += ($end - $start);
+-
++	$tvi = $end + 1;
      }
-@@ -622,7 +622,7 @@ sub format_email {
-     $name =~ s/^\"|\"$//g;
-     $address =~ s/^\s+|\s+$//g;
  
--    if ($name =~ /[^a-z0-9 \.\-]/i) {    ##has "must quote" chars
-+    if ($name =~ /[^\w \-]/i) {          ##has "must quote" chars
- 	$name =~ s/(?<!\\)"/\\"/g;       ##escape quotes
- 	$name = "\"$name\"";
-     }
+     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
 _
 
-Patches currently in -mm which might be from shemminger@vyatta.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
 linux-next.patch
-markup_oops-fix-perlcritic-warnings.patch
-headerdep-perlcritic-warning.patch
+drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
 drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
 drivers-block-floppyc-define-space-and-column-neatening.patch
 drivers-block-floppyc-use-pr_level.patch
@@ -102,4 +108,5 @@ drivers-block-floppyc-add-__func__-to-debugt.patch
 drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
 drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
 drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
+drivers-video-via-fix-continuation-line-formats.patch
 
