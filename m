@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:05:32 -0800
-Message-ID: <201003091905.o29J5W80031127@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-iwmc3200top-mainc-eliminate-useless-code.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:06:04 -0800
+Message-ID: <201003091906.o29J64Fu031155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752118Ab0CITGb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:06:31 -0500
+	by vger.kernel.org with ESMTP id S1755336Ab0CITG5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:06:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gong.chen@linux.intel.com, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: julia@diku.dk, tomas.winkler@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/cpu.c: delete deprecated definition in cpu_up()
+     drivers/misc/iwmc3200top/main.c: eliminate useless code
 has been removed from the -mm tree.  Its filename was
-     kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch
+     drivers-misc-iwmc3200top-mainc-eliminate-useless-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/cpu.c: delete deprecated definition in cpu_up()
-From: Chen Gong <gong.chen@linux.intel.com>
+Subject: drivers/misc/iwmc3200top/main.c: eliminate useless code
+From: Julia Lawall <julia@diku.dk>
 
-Additional_cpus is only supported for IA64 now.  X86_64 should not be
-included.
+The variable priv is initialized twice to the same (side effect-free)
+expression.  Drop one initialization.
 
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+A simplified version of the semantic match that finds this problem is:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@forall@
+idexpression *x;
+identifier f!=ERR_PTR;
+@@
+
+x = f(...)
+... when != x
+(
+x = f(...,<+...x...+>,...)
+|
+* x = f(...)
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/iwmc3200top/main.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/cpu.c~kernel-cpuc-delete-deprecated-definition-in-cpu_up kernel/cpu.c
---- a/kernel/cpu.c~kernel-cpuc-delete-deprecated-definition-in-cpu_up
-+++ a/kernel/cpu.c
-@@ -338,7 +338,7 @@ int __cpuinit cpu_up(unsigned int cpu)
- 	if (!cpu_possible(cpu)) {
- 		printk(KERN_ERR "can't online cpu %d because it is not "
- 			"configured as may-hotadd at boot time\n", cpu);
--#if defined(CONFIG_IA64) || defined(CONFIG_X86_64)
-+#if defined(CONFIG_IA64)
- 		printk(KERN_ERR "please check additional_cpus= boot "
- 				"parameter\n");
- #endif
-_
-
-Patches currently in -mm which might be from gong.chen@linux.intel.com are
-
-
+diff -puN drivers/misc/iwmc3200top/main.c~drivers-misc-iwmc3200top-mainc-eliminate-useless-code drivers/misc/iwmc3200top/main.c
+--- a/drivers/misc/iwmc3200top/main.c~drivers-misc-iwmc3200top-mainc-eliminate-useless-code
++++ a/drivers/misc/iwmc3200top/main.c
+@@ -597,8 +597,6 @@ static void iwmct_remove(struct sdio_fun
+ 	struct iwmct_work_struct *read_req;
+ 	struct iwmct_priv *priv = sdio_get_drvdata(func);
+ 
+-	priv = sdio_get_drvdata(func);
