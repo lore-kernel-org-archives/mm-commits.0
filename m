@@ -1,120 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkincludes-fix-perlcritic-warnings.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:11:38 -0800
-Message-ID: <201003091911.o29JBcsC031753@imap1.linux-foundation.org>
+Subject: [merged] scripts-improve-checkstack.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:11:34 -0800
+Message-ID: <201003091911.o29JBYSp031750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752118Ab0CITMn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:12:43 -0500
+	by vger.kernel.org with ESMTP id S1754719Ab0CITMt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:12:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: shemminger@vyatta.com, amwang@redhat.com, arjan@infradead.org, mmarek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkincludes: fix perlcritic warnings
+     scripts: improve checkstack
 has been removed from the -mm tree.  Its filename was
-     checkincludes-fix-perlcritic-warnings.patch
+     scripts-improve-checkstack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkincludes: fix perlcritic warnings
+Subject: scripts: improve checkstack
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Turn on strict checking.
-Use local file handles.
-Use three argument open.
+Cleanup checkstack script:
+  * Turn on strict checking
+  * Fix resulting error message because the declaration syntax
+    was incorrect.
+  * Remove incorrect and misleading use of prototype
+     - prototype not required for this type of sort function
+       because $a and $b are being used in this contex
+     - if prototype was being used it should be for both arguments
+  * Use closure for sort function
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Cong Wang <amwang@redhat.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkincludes.pl |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ scripts/checkstack.pl |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkincludes.pl~checkincludes-fix-perlcritic-warnings scripts/checkincludes.pl
---- a/scripts/checkincludes.pl~checkincludes-fix-perlcritic-warnings
-+++ a/scripts/checkincludes.pl
-@@ -11,6 +11,8 @@
- # you do have real dups and do not have them under #ifdef's. You
- # could also just review the results.
+diff -puN scripts/checkstack.pl~scripts-improve-checkstack scripts/checkstack.pl
+--- a/scripts/checkstack.pl~scripts-improve-checkstack
++++ a/scripts/checkstack.pl
+@@ -21,6 +21,8 @@
+ #
+ #	TODO :	Port to all architectures (one regex per arch)
  
 +use strict;
 +
- sub usage {
- 	print "Usage: checkincludes.pl [-r]\n";
- 	print "By default we just warn of duplicates\n";
-@@ -35,23 +37,24 @@ if ($#ARGV >= 1) {
+ # check for arch
+ #
+ # $re is used for two matches:
+@@ -104,19 +106,11 @@ my (@stack, $re, $dre, $x, $xs);
  	}
  }
  
--foreach $file (@ARGV) {
--	open(FILE, $file) or die "Cannot open $file: $!.\n";
-+foreach my $file (@ARGV) {
-+	open(my $f, '<', $file)
-+	    or die "Cannot open $file: $!.\n";
+-sub bysize($) {
+-	my ($asize, $bsize);
+-	($asize = $a) =~ s/.*:	*(.*)$/$1/;
+-	($bsize = $b) =~ s/.*:	*(.*)$/$1/;
+-	$bsize <=> $asize
+-}
+-
+ #
+ # main()
+ #
+ my $funcre = qr/^$x* <(.*)>:$/;
+-my $func;
+-my $file, $lastslash;
++my ($func, $file, $lastslash);
  
- 	my %includedfiles = ();
- 	my @file_lines = ();
- 
--	while (<FILE>) {
-+	while (<$f>) {
- 		if (m/^\s*#\s*include\s*[<"](\S*)[>"]/o) {
- 			++$includedfiles{$1};
- 		}
- 		push(@file_lines, $_);
+ while (my $line = <STDIN>) {
+ 	if ($line =~ m/$funcre/) {
+@@ -173,4 +167,6 @@ while (my $line = <STDIN>) {
  	}
- 
--	close(FILE);
-+	close($f);
- 
- 	if (!$remove) {
--		foreach $filename (keys %includedfiles) {
-+		foreach my $filename (keys %includedfiles) {
- 			if ($includedfiles{$filename} > 1) {
- 				print "$file: $filename is included more than once.\n";
- 			}
-@@ -59,27 +62,28 @@ foreach $file (@ARGV) {
- 		next;
- 	}
- 
--	open(FILE,">$file") || die("Cannot write to $file: $!");
-+	open($f, '>', $file)
-+	    or die("Cannot write to $file: $!");
- 
- 	my $dups = 0;
- 	foreach (@file_lines) {
- 		if (m/^\s*#\s*include\s*[<"](\S*)[>"]/o) {
--			foreach $filename (keys %includedfiles) {
-+			foreach my $filename (keys %includedfiles) {
- 				if ($1 eq $filename) {
- 					if ($includedfiles{$filename} > 1) {
- 						$includedfiles{$filename}--;
- 						$dups++;
- 					} else {
--						print FILE $_;
-+						print {$f} $_;
- 					}
- 				}
- 			}
- 		} else {
--			print FILE $_;
-+			print {$f} $_;
- 		}
- 	}
- 	if ($dups > 0) {
- 		print "$file: removed $dups duplicate includes\n";
- 	}
--	close(FILE);
-+	close($f);
  }
+ 
+-print sort bysize @stack;
++# Sort output by size (last field)
++print sort { ($b =~ /:\t*(\d+)$/)[0] <=> ($a =~ /:\t*(\d+)$/)[0] } @stack;
++
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
