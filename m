@@ -1,231 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpio-introduce-gpio_request_one-and-friends.patch removed from -mm tree
-Date: Tue, 09 Mar 2010 11:11:13 -0800
-Message-ID: <201003091911.o29JBDBa031726@imap1.linux-foundation.org>
+Subject: [merged] sdhci-add-adma-descriptor-set-call.patch removed from -mm tree
+Date: Tue, 09 Mar 2010 11:08:02 -0800
+Message-ID: <201003091908.o29J823o031409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756055Ab0CITWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:31 -0500
+	by vger.kernel.org with ESMTP id S1756039Ab0CITWs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 14:22:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.y.miao@gmail.com, bn@niasdigital.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, linux-mmc@vger.kernel.org, pierre@ossman.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: introduce gpio_request_one() and friends
+     sdhci: add adma descriptor set call
 has been removed from the -mm tree.  Its filename was
-     gpio-introduce-gpio_request_one-and-friends.patch
+     sdhci-add-adma-descriptor-set-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: introduce gpio_request_one() and friends
-From: Eric Miao <eric.y.miao@gmail.com>
+Subject: sdhci: add adma descriptor set call
+From: Ben Dooks <ben-linux@fluff.org>
 
-gpio_request() without initial configuration of the GPIO is normally
-useless, introduce gpio_request_one() together with GPIOF_ flags for
-input/output direction and initial output level.
+The code to write the ADMA descriptor into memory is repeated several
+times throughout sdhci_adma_table_pre, and thus should be moved into a
+common function.  This will also be useful if the patch to make the write
+more efficient is accepted.
 
-gpio_{request,free}_array() for multiple GPIOs.
-
-Signed-off-by: Eric Miao <eric.y.miao@gmail.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ben Nizette <bn@niasdigital.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt     |   64 +++++++++++++++++++++++++++++++++++
- drivers/gpio/gpiolib.c     |   58 +++++++++++++++++++++++++++++++
- include/asm-generic/gpio.h |   26 ++++++++++++++
- 3 files changed, 148 insertions(+)
+ drivers/mmc/host/sdhci.c |   50 ++++++++++++++-----------------------
+ 1 file changed, 20 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpio-introduce-gpio_request_one-and-friends Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpio-introduce-gpio_request_one-and-friends
-+++ a/Documentation/gpio.txt
-@@ -253,6 +253,70 @@ pin setup (e.g. controlling which pin th
- Also note that it's your responsibility to have stopped using a GPIO
- before you free it.
- 
-+Considering in most cases GPIOs are actually configured right after they
-+are claimed, three additional calls are defined:
-+
-+	/* request a single GPIO, with initial configuration specified by
-+	 * 'flags', identical to gpio_request() wrt other arguments and
-+	 * return value
-+	 */
-+	int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
-+
-+	/* request multiple GPIOs in a single call
-+	 */
-+	int gpio_request_array(struct gpio *array, size_t num);
-+
-+	/* release multiple GPIOs in a single call
-+	 */
-+	void gpio_free_array(struct gpio *array, size_t num);
-+
-+where 'flags' is currently defined to specify the following properties:
-+
-+	* GPIOF_DIR_IN		- to configure direction as input
-+	* GPIOF_DIR_OUT		- to configure direction as output
-+
-+	* GPIOF_INIT_LOW	- as output, set initial level to LOW
-+	* GPIOF_INIT_HIGH	- as output, set initial level to HIGH
-+
-+since GPIOF_INIT_* are only valid when configured as output, so group valid
-+combinations as:
-+
-+	* GPIOF_IN		- configure as input
-+	* GPIOF_OUT_INIT_LOW	- configured as output, initial level LOW
-+	* GPIOF_OUT_INIT_HIGH	- configured as output, initial level HIGH
-+
-+In the future, these flags can be extended to support more properties such
-+as open-drain status.
-+
-+Further more, to ease the claim/release of multiple GPIOs, 'struct gpio' is
-+introduced to encapsulate all three fields as:
-+
-+	struct gpio {
-+		unsigned	gpio;
-+		unsigned long	flags;
-+		const char	*label;
-+	};
-+
-+A typical example of usage:
-+
-+	static struct gpio leds_gpios[] = {
-+		{ 32, GPIOF_OUT_INIT_HIGH, "Power LED" }, /* default to ON */
-+		{ 33, GPIOF_OUT_INIT_LOW,  "Green LED" }, /* default to OFF */
-+		{ 34, GPIOF_OUT_INIT_LOW,  "Red LED"   }, /* default to OFF */
-+		{ 35, GPIOF_OUT_INIT_LOW,  "Blue LED"  }, /* default to OFF */
-+		{ ... },
-+	};
-+
-+	err = gpio_request_one(31, GPIOF_IN, "Reset Button");
-+	if (err)
-+		...
-+
-+	err = gpio_request_array(leds_gpios, ARRAY_SIZE(leds_gpios));
-+	if (err)
-+		...
-+
-+	gpio_free_array(leds_gpios, ARRAY_SIZE(leds_gpios));
-+
- 
- GPIOs mapped to IRQs
- --------------------
-diff -puN drivers/gpio/gpiolib.c~gpio-introduce-gpio_request_one-and-friends drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-introduce-gpio_request_one-and-friends
-+++ a/drivers/gpio/gpiolib.c
-@@ -1237,6 +1237,64 @@ void gpio_free(unsigned gpio)
+diff -puN drivers/mmc/host/sdhci.c~sdhci-add-adma-descriptor-set-call drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-add-adma-descriptor-set-call
++++ a/drivers/mmc/host/sdhci.c
+@@ -376,6 +376,20 @@ static void sdhci_kunmap_atomic(void *bu
+ 	local_irq_restore(*flags);
  }
- EXPORT_SYMBOL_GPL(gpio_free);
  
-+/**
-+ * gpio_request_one - request a single GPIO with initial configuration
-+ * @gpio:	the GPIO number
-+ * @flags:	GPIO configuration as specified by GPIOF_*
-+ * @label:	a literal description string of this GPIO
-+ */
-+int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
++static void sdhci_set_adma_desc(u8 *desc, u32 addr, int len, unsigned cmd)
 +{
-+	int err;
++	desc[7] = (addr >> 24) & 0xff;
++	desc[6] = (addr >> 16) & 0xff;
++	desc[5] = (addr >> 8) & 0xff;
++	desc[4] = (addr >> 0) & 0xff;
 +
-+	err = gpio_request(gpio, label);
-+	if (err)
-+		return err;
++	desc[3] = (len >> 8) & 0xff;
++	desc[2] = (len >> 0) & 0xff;
 +
-+	if (flags & GPIOF_DIR_IN)
-+		err = gpio_direction_input(gpio);
-+	else
-+		err = gpio_direction_output(gpio,
-+				(flags & GPIOF_INIT_HIGH) ? 1 : 0);
-+
-+	return err;
++	desc[0] = cmd & 0xff;
++	desc[1] = cmd >> 8;
 +}
-+EXPORT_SYMBOL_GPL(gpio_request_one);
 +
-+/**
-+ * gpio_request_array - request multiple GPIOs in a single call
-+ * @array:	array of the 'struct gpio'
-+ * @num:	how many GPIOs in the array
-+ */
-+int gpio_request_array(struct gpio *array, size_t num)
-+{
-+	int i, err;
-+
-+	for (i = 0; i < num; i++, array++) {
-+		err = gpio_request_one(array->gpio, array->flags, array->label);
-+		if (err)
-+			goto err_free;
-+	}
-+	return 0;
-+
-+err_free:
-+	while (i--)
-+		gpio_free((--array)->gpio);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(gpio_request_array);
-+
-+/**
-+ * gpio_free_array - release multiple GPIOs in a single call
-+ * @array:	array of the 'struct gpio'
-+ * @num:	how many GPIOs in the array
-+ */
-+void gpio_free_array(struct gpio *array, size_t num)
-+{
-+	while (num--)
-+		gpio_free((array++)->gpio);
-+}
-+EXPORT_SYMBOL_GPL(gpio_free_array);
+ static int sdhci_adma_table_pre(struct sdhci_host *host,
+ 	struct mmc_data *data)
+ {
+@@ -443,19 +457,11 @@ static int sdhci_adma_table_pre(struct s
+ 				sdhci_kunmap_atomic(buffer, &flags);
+ 			}
  
- /**
-  * gpiochip_is_requested - return string iff signal was requested
-diff -puN include/asm-generic/gpio.h~gpio-introduce-gpio_request_one-and-friends include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpio-introduce-gpio_request_one-and-friends
-+++ a/include/asm-generic/gpio.h
-@@ -136,6 +136,32 @@ extern int __gpio_cansleep(unsigned gpio
+-			desc[7] = (align_addr >> 24) & 0xff;
+-			desc[6] = (align_addr >> 16) & 0xff;
+-			desc[5] = (align_addr >> 8) & 0xff;
+-			desc[4] = (align_addr >> 0) & 0xff;
++			/* tran, valid */
++			sdhci_set_adma_desc(desc, align_addr, offset, 0x21);
  
- extern int __gpio_to_irq(unsigned gpio);
+ 			BUG_ON(offset > 65536);
  
-+#define GPIOF_DIR_OUT	(0 << 0)
-+#define GPIOF_DIR_IN	(1 << 0)
-+
-+#define GPIOF_INIT_LOW	(0 << 1)
-+#define GPIOF_INIT_HIGH	(1 << 1)
-+
-+#define GPIOF_IN		(GPIOF_DIR_IN)
-+#define GPIOF_OUT_INIT_LOW	(GPIOF_DIR_OUT | GPIOF_INIT_LOW)
-+#define GPIOF_OUT_INIT_HIGH	(GPIOF_DIR_OUT | GPIOF_INIT_HIGH)
-+
-+/**
-+ * struct gpio - a structure describing a GPIO with configuration
-+ * @gpio:	the GPIO number
-+ * @flags:	GPIO configuration as specified by GPIOF_*
-+ * @label:	a literal description string of this GPIO
-+ */
-+struct gpio {
-+	unsigned	gpio;
-+	unsigned long	flags;
-+	const char	*label;
-+};
-+
-+extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
-+extern int gpio_request_array(struct gpio *array, size_t num);
-+extern void gpio_free_array(struct gpio *array, size_t num);
-+
- #ifdef CONFIG_GPIO_SYSFS
+-			desc[3] = (offset >> 8) & 0xff;
+-			desc[2] = (offset >> 0) & 0xff;
+-
+-			desc[1] = 0x00;
+-			desc[0] = 0x21; /* tran, valid */
+-
+ 			align += 4;
+ 			align_addr += 4;
  
- /*
-_
-
-Patches currently in -mm which might be from eric.y.miao@gmail.com are
-
-linux-next.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-
+@@ -465,19 +471,10 @@ static int sdhci_adma_table_pre(struct s
+ 			len -= offset;
+ 		}
+ 
+-		desc[7] = (addr >> 24) & 0xff;
+-		desc[6] = (addr >> 16) & 0xff;
+-		desc[5] = (addr >> 8) & 0xff;
+-		desc[4] = (addr >> 0) & 0xff;
+-
+ 		BUG_ON(len > 65536);
+ 
+-		desc[3] = (len >> 8) & 0xff;
+-		desc[2] = (len >> 0) & 0xff;
+-
+-		desc[1] = 0x00;
+-		desc[0] = 0x21; /* tran, valid */
+-
++		/* tran, valid */
++		sdhci_set_adma_desc(desc, addr, len, 0x21);
+ 		desc += 8;
+ 
+ 		/*
+@@ -490,16 +487,9 @@ static int sdhci_adma_table_pre(struct s
+ 	/*
+ 	 * Add a terminating entry.
+ 	 */
+-	desc[7] = 0;
+-	desc[6] = 0;
+-	desc[5] = 0;
+-	desc[4] = 0;
