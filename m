@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-broke.patch added to -mm tree
-Date: Tue, 09 Mar 2010 17:30:37 -0800
-Message-ID: <201003100156.o2A1utcJ018278@imap1.linux-foundation.org>
+Subject: + memcg-move-charges-of-anonymous-swap-fix-3.patch added to -mm tree
+Date: Tue, 09 Mar 2010 19:04:14 -0800
+Message-ID: <201003100304.o2A34EY7020892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753551Ab0CJB5A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 20:57:00 -0500
+	by vger.kernel.org with ESMTP id S1755180Ab0CJDE4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 22:04:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
+Cc: nishimura@mxp.nes.nec.co.jp, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     reiser4-broke
+     memcg-move-charges-of-anonymous-swap-fix-3
 has been added to the -mm tree.  Its filename is
-     reiser4-broke.patch
+     memcg-move-charges-of-anonymous-swap-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-broke
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-move-charges-of-anonymous-swap-fix-3
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-fs/reiser4/plugin/inode_ops.c: In function 'reiser4_setattr_common':
-fs/reiser4/plugin/inode_ops.c:456: error: implicit declaration of function 'vfs_dq_transfer'
-fs/reiser4/plugin/inode_ops.c: In function 'do_create_vfs_child':
-fs/reiser4/plugin/inode_ops.c:596: error: implicit declaration of function 'vfs_dq_alloc_inode'
-fs/reiser4/plugin/inode_ops.c:597: error: implicit declaration of function 'vfs_dq_drop'
-fs/reiser4/plugin/inode_ops.c:611: error: implicit declaration of function 'vfs_dq_free_inode'
+"move charges at task migration" feature depends on page tables. So, it doesn't
+work in !CONIFG_MMU environments.
+This patch moves "task move" codes under CONIFG_MMU.
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/cgroups/memory.txt |    2 +
+ mm/memcontrol.c                  |   31 +++++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-diff -puN fs/reiser4/Kconfig~reiser4-broke fs/reiser4/Kconfig
---- a/fs/reiser4/Kconfig~reiser4-broke
-+++ a/fs/reiser4/Kconfig
-@@ -1,6 +1,7 @@
- config REISER4_FS
- 	tristate "Reiser4 (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
- 	select LZO_COMPRESS
+diff -puN Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap-fix-3 Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap-fix-3
++++ a/Documentation/cgroups/memory.txt
+@@ -420,6 +420,8 @@ NOTE2: It is recommended to set the soft
+ 
+ Users can move charges associated with a task along with task migration, that
+ is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
++This feature is not supporetd in !CONFIG_MMU environmetns because of lack of
++page tables.
+ 
+ 8.1 Interface
+ 
+diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-swap-fix-3 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-swap-fix-3
++++ a/mm/memcontrol.c
+@@ -2998,6 +2998,7 @@ static u64 mem_cgroup_move_charge_read(s
+ 	return mem_cgroup_from_cont(cgrp)->move_charge_at_immigrate;
+ }
+ 
++#ifdef CONFIG_MMU
+ static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
+ 					struct cftype *cft, u64 val)
+ {
+@@ -3016,6 +3017,13 @@ static int mem_cgroup_move_charge_write(
+ 
+ 	return 0;
+ }
++#else
++static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
++					struct cftype *cft, u64 val)
++{
++	return -ENOSYS;
++}
++#endif
+ 
+ 
+ /* For read statistics */
+@@ -3538,6 +3546,7 @@ static int mem_cgroup_populate(struct cg
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_MMU
+ /* Handlers for move charge at task migration. */
+ #define PRECHARGE_COUNT_AT_ONCE	256
+ static int mem_cgroup_do_precharge(unsigned long count)
+@@ -3593,6 +3602,28 @@ one_by_one:
+ 	}
+ 	return ret;
+ }
++#else	/* !CONFIG_MMU */
++static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
++				struct cgroup *cgroup,
++				struct task_struct *p,
++				bool threadgroup)
++{
++	return 0;
++}
++static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
++				struct cgroup *cgroup,
++				struct task_struct *p,
++				bool threadgroup)
++{
++}
++static void mem_cgroup_move_task(struct cgroup_subsys *ss,
++				struct cgroup *cont,
++				struct cgroup *old_cont,
++				struct task_struct *p,
++				bool threadgroup)
++{
++}
++#endif
+ 
+ /**
+  * is_target_pte_for_mc - check a pte whether it is valid for move charge
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-add-generic-sys_ipc-wrapper-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-move-charges-of-anonymous-swap-fix-3.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-sysctl-clean-up-vm-related-variable-declarations-fix.patch
-kmod-add-init-function-to-usermodehelper-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
+memcg-update-threshold-and-softlimit-at-commit-v2.patch
+memcg-share-event-counter-rather-than-duplicate-v2.patch
+memcg-update-memcg_testtxt.patch
+memcg-handle-panic_on_oom=always-case-v2.patch
+cgroups-fix-race-between-userspace-and-kernelspace.patch
+cgroups-remove-events-before-destroying-subsystem-state-objects.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
+memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+memcg-fix-oom-kill-behavior-v3.patch
+memcg-fix-oom-kill-behavior-v4.patch
+memcg-update-maintainer-list.patch
 
