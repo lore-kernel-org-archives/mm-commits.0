@@ -1,119 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-move-charges-of-anonymous-swap-fix-3.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:54:42 -0800
-Message-ID: <201003102254.o2AMsgna008742@imap1.linux-foundation.org>
+Subject: [folded] memcg-move-charges-of-anonymous-swap-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:54:37 -0800
+Message-ID: <201003102254.o2AMsbZ6008715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757385Ab0CJWyr (ORCPT
+	by vger.kernel.org with ESMTP id S1757385Ab0CJWyt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:54:47 -0500
+	Wed, 10 Mar 2010 17:54:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-move-charges-of-anonymous-swap-fix-3
+     memcg-move-charges-of-anonymous-swap-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-move-charges-of-anonymous-swap-fix-3.patch
+     memcg-move-charges-of-anonymous-swap-fix.patch
 
 This patch was dropped because it was folded into memcg-move-charges-of-anonymous-swap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-charges-of-anonymous-swap-fix-3
+Subject: memcg-move-charges-of-anonymous-swap-fix
 From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-"move charges at task migration" feature depends on page tables. So, it doesn't
-work in !CONIFG_MMU environments.
-This patch moves "task move" codes under CONIFG_MMU.
+build fix in !CONFIG_SWAP case.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+  CC      mm/memcontrol.o
+mm/memcontrol.c: In function 'is_target_pte_for_mc':
+mm/memcontrol.c:3648: error: implicit declaration of function 'mem_cgroup_count_swap_user'
+make[1]: *** [mm/memcontrol.o] Error 1
+make: *** [mm] Error 2
+
 Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 +
- mm/memcontrol.c                  |   31 +++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ include/linux/swap.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap-fix-3 Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap-fix-3
-+++ a/Documentation/cgroups/memory.txt
-@@ -420,6 +420,8 @@ NOTE2: It is recommended to set the soft
- 
- Users can move charges associated with a task along with task migration, that
- is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
-+This feature is not supporetd in !CONFIG_MMU environmetns because of lack of
-+page tables.
- 
- 8.1 Interface
- 
-diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-swap-fix-3 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-swap-fix-3
-+++ a/mm/memcontrol.c
-@@ -2998,6 +2998,7 @@ static u64 mem_cgroup_move_charge_read(s
- 	return mem_cgroup_from_cont(cgrp)->move_charge_at_immigrate;
- }
- 
-+#ifdef CONFIG_MMU
- static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
- 					struct cftype *cft, u64 val)
+diff -puN include/linux/swap.h~memcg-move-charges-of-anonymous-swap-fix include/linux/swap.h
+--- a/include/linux/swap.h~memcg-move-charges-of-anonymous-swap-fix
++++ a/include/linux/swap.h
+@@ -486,6 +486,14 @@ mem_cgroup_uncharge_swapcache(struct pag
  {
-@@ -3016,6 +3017,13 @@ static int mem_cgroup_move_charge_write(
- 
- 	return 0;
- }
-+#else
-+static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
-+					struct cftype *cft, u64 val)
-+{
-+	return -ENOSYS;
-+}
-+#endif
- 
- 
- /* For read statistics */
-@@ -3538,6 +3546,7 @@ static int mem_cgroup_populate(struct cg
- 	return ret;
  }
  
-+#ifdef CONFIG_MMU
- /* Handlers for move charge at task migration. */
- #define PRECHARGE_COUNT_AT_ONCE	256
- static int mem_cgroup_do_precharge(unsigned long count)
-@@ -3593,6 +3602,28 @@ one_by_one:
- 	}
- 	return ret;
- }
-+#else	/* !CONFIG_MMU */
-+static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
++static inline int
++mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep)
 +{
 +	return 0;
 +}
-+static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-+				struct cgroup *cont,
-+				struct cgroup *old_cont,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
 +#endif
- 
- /**
-  * is_target_pte_for_mc - check a pte whether it is valid for move charge
++
+ #endif /* CONFIG_SWAP */
+ #endif /* __KERNEL__*/
+ #endif /* _LINUX_SWAP_H */
 _
 
 Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
@@ -125,6 +76,7 @@ memcg-move-charges-of-anonymous-page.patch
 memcg-improve-performance-in-moving-charge.patch
 memcg-avoid-oom-during-moving-charge.patch
 memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
 memcg-move-charges-of-anonymous-swap-fix-3.patch
 memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
 memcg-improve-performance-in-moving-swap-charge.patch
