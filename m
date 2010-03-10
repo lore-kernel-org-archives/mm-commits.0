@@ -1,89 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pps-serial-clients-support-warning-fixes.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 15:06:12 -0800
-Message-ID: <201003102306.o2AN6CRf009353@imap1.linux-foundation.org>
+Subject: [folded] sysctl-extern-cleanup-module-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 15:07:10 -0800
+Message-ID: <201003102307.o2AN7A8H009392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932854Ab0CJXGc (ORCPT
+	by vger.kernel.org with ESMTP id S932855Ab0CJXHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 18:06:32 -0500
+	Wed, 10 Mar 2010 18:07:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, giometti@linux.it, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-serial-clients-support-warning-fixes.txt
+     sysctl-extern-cleanup-module-fix
 has been removed from the -mm tree.  Its filename was
-     pps-serial-clients-support-warning-fixes.patch
+     sysctl-extern-cleanup-module-fix.patch
 
-This patch was dropped because it was folded into pps-serial-clients-support.patch
+This patch was dropped because it was folded into sysctl-extern-cleanup-module.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-serial-clients-support-warning-fixes.txt
+Subject: sysctl-extern-cleanup-module-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-s390: 
+More fallout from dropping Andi's rcustring changes.
 
-drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_dcd_change':
-drivers/pps/clients/pps-ldisc.c:32: warning: cast from pointer to integer of different size
-drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_open':
-drivers/pps/clients/pps-ldisc.c:79: warning: cast to pointer from integer of different size
-drivers/pps/clients/pps-ldisc.c:84: warning: cast from pointer to integer of different size
-drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_close':
-drivers/pps/clients/pps-ldisc.c:95: warning: cast from pointer to integer of different size
-
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ldisc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/kmod.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-warning-fixes drivers/pps/clients/pps-ldisc.c
---- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-warning-fixes
-+++ a/drivers/pps/clients/pps-ldisc.c
-@@ -29,7 +29,7 @@
- static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status,
- 				struct timespec *ts)
- {
--	int id = (int) tty->disc_data;
-+	int id = (long)tty->disc_data;
- 	struct timespec __ts;
- 	struct pps_ktime pps_ts;
+diff -puN include/linux/kmod.h~sysctl-extern-cleanup-module-fix include/linux/kmod.h
+--- a/include/linux/kmod.h~sysctl-extern-cleanup-module-fix
++++ a/include/linux/kmod.h
+@@ -27,7 +27,7 @@
+ #define KMOD_PATH_LEN 256
  
-@@ -76,12 +76,12 @@ static int pps_tty_open(struct tty_struc
- 		pr_err("cannot register PPS source \"%s\"\n", info.path);
- 		return ret;
- 	}
--	tty->disc_data = (void *) ret;
-+	tty->disc_data = (void *)(long)ret;
- 
- 	/* Should open N_TTY ldisc too */
- 	ret = alias_n_tty_open(tty);
- 	if (ret < 0)
--		pps_unregister_source((int) tty->disc_data);
-+		pps_unregister_source((long)tty->disc_data);
- 
- 	pr_info("PPS source #%d \"%s\" added\n", ret, info.path);
- 
-@@ -92,7 +92,7 @@ static void (*alias_n_tty_close)(struct 
- 
- static void pps_tty_close(struct tty_struct *tty)
- {
--	int id = (int) tty->disc_data;
-+	int id = (long)tty->disc_data;
- 
- 	pps_unregister_source(id);
- 	alias_n_tty_close(tty);
+ #ifdef CONFIG_MODULES
+-extern char *modprobe_path; /* for sysctl */
++extern char modprobe_path[]; /* for sysctl */
+ /* modprobe exit status on success, -ve on error.  Return value
+  * usually useless though. */
+ extern int __request_module(bool wait, const char *name, ...) \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,8 +62,7 @@ memcg-implement-memory-thresholds.patch
 documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
 pps-linuxpps-clients-support.patch
 pps-serial-clients-support.patch
-pps-serial-clients-support-warning-fixes.patch
-sysctl-extern-cleanup-binfmts-fix.patch
+sysctl-extern-cleanup-module.patch
 sysctl-extern-cleanup-module-fix.patch
 linux-next.patch
 linux-next-fixups.patch
