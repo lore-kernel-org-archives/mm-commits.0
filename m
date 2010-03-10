@@ -1,174 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-convert-modprobe_path-to-proc_rcu_string.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 12:29:54 -0800
-Message-ID: <201003102029.o2AKTs6t001927@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-fix-up-remaining-references-to-uevent_helper.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 12:30:06 -0800
+Message-ID: <201003102030.o2AKU6Be001951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757032Ab0CJUa0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757029Ab0CJUaX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 15:30:26 -0500
+	Wed, 10 Mar 2010 15:30:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, andi@firstfloor.org, gregkh@suse.de, jirislaby@gmail.com, kay.sievers@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: convert modprobe_path to proc_rcu_string()
+     sysctl: fix up remaining references to uevent_helper()
 has been removed from the -mm tree.  Its filename was
-     sysctl-convert-modprobe_path-to-proc_rcu_string.patch
+     sysctl-fix-up-remaining-references-to-uevent_helper.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: convert modprobe_path to proc_rcu_string()
-From: Andi Kleen <andi@firstfloor.org>
+Subject: sysctl: fix up remaining references to uevent_helper()
+From: Neil Horman <nhorman@tuxdriver.com>
 
-Avoids races with lockless sysctl
+Fix up remaining references to uevent_helper to play nice with Andi's
+uevent_helper/rcu changes.
 
-Also saves ~220 bytes in the data segment for default kernels.
+Some changes were made recently which modified uevent_helper to be an rcu
+protected pointer, rather than a static char array.  This has led to a few
+missed points in which the sysfs path still assumed that:
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+1) the uevent_helper symbol could still be accessed safely without
+   rcu_dereference
+
+2) that the sysfs path could copy data to that pointer safely.
+
+I've fixed this by chaging the sysfs path so that it duplicates the string
+on uevent_helper_store, and freeing it (only if it doesn't point to the
+CONFIG_DEFAULT_UEVENT_HELPER string), in a call_rcu post-quiescent point. 
+I've also fixed up the remaining references to the uevent_helper pointers
+to use rcu_dereference.
+
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Kay Sievers <kay.sievers@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c   |   36 ++++++++++++++++++++++++++++--------
- kernel/sysctl.c |    4 ++--
- 2 files changed, 30 insertions(+), 10 deletions(-)
+ kernel/ksysfs.c      |   38 ++++++++++++++++++++++++++++++++++++--
+ lib/kobject_uevent.c |    4 +++-
+ 2 files changed, 39 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kmod.c~sysctl-convert-modprobe_path-to-proc_rcu_string kernel/kmod.c
---- a/kernel/kmod.c~sysctl-convert-modprobe_path-to-proc_rcu_string
-+++ a/kernel/kmod.c
-@@ -35,6 +35,7 @@
- #include <linux/resource.h>
- #include <linux/notifier.h>
- #include <linux/suspend.h>
-+#include <linux/rcustring.h>
- #include <asm/uaccess.h>
- 
- #include <trace/events/module.h>
-@@ -48,7 +49,12 @@ static struct workqueue_struct *khelper_
- /*
- 	modprobe_path is set via /proc/sys.
- */
--char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
-+char *modprobe_path = "/sbin/modprobe";
-+
-+static void free_arg(char **argv, char **env)
-+{
-+	kfree(argv[0]);
-+}
- 
- /**
-  * __request_module - try to load a kernel module
-@@ -71,7 +77,8 @@ int __request_module(bool wait, const ch
- 	char module_name[MODULE_NAME_LEN];
- 	unsigned int max_modprobes;
- 	int ret;
--	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
-+	char *mp_copy;
-+	char *argv[] = { NULL, "-q", "--", module_name, NULL };
- 	static char *envp[] = { "HOME=/",
- 				"TERM=linux",
- 				"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
-@@ -80,15 +87,24 @@ int __request_module(bool wait, const ch
- #define MAX_KMOD_CONCURRENT 50	/* Completely arbitrary value - KAO */
- 	static int kmod_loop_msg;
- 
-+	/* Get a stable-over-sleeps private copy of modprobe_path */
-+	mp_copy = access_rcu_string(&modprobe_path, KMOD_PATH_LEN,
-+					wait ? GFP_KERNEL : GFP_ATOMIC);
-+	if (!mp_copy)
-+		return -ENOMEM;
-+	argv[0] = mp_copy;
-+
- 	va_start(args, fmt);
- 	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
- 	va_end(args);
--	if (ret >= MODULE_NAME_LEN)
--		return -ENAMETOOLONG;
-+	if (ret >= MODULE_NAME_LEN) {
-+		ret = -ENAMETOOLONG;
-+		goto error;
-+	}
- 
- 	ret = security_kernel_module_request(module_name);
- 	if (ret)
--		return ret;
-+		goto error;
- 
- 	/* If modprobe needs a service that is in a module, we get a recursive
- 	 * loop.  Limit the number of running kmod threads to max_threads/2 or
-@@ -111,14 +127,18 @@ int __request_module(bool wait, const ch
- 			       "request_module: runaway loop modprobe %s\n",
- 			       module_name);
- 		atomic_dec(&kmod_concurrent);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto error;
- 	}
- 
- 	trace_module_request(module_name, wait, _RET_IP_);
- 
--	ret = call_usermodehelper(modprobe_path, argv, envp,
--			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
-+	ret = call_usermodehelper_cleanup(mp_copy, argv, envp,
-+			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC, free_arg);
-+	mp_copy = NULL; /* free_arg frees */
- 	atomic_dec(&kmod_concurrent);
-+error:
-+	kfree(mp_copy);
- 	return ret;
+diff -puN kernel/ksysfs.c~sysctl-fix-up-remaining-references-to-uevent_helper kernel/ksysfs.c
+--- a/kernel/ksysfs.c~sysctl-fix-up-remaining-references-to-uevent_helper
++++ a/kernel/ksysfs.c
+@@ -37,19 +37,53 @@ KERNEL_ATTR_RO(uevent_seqnum);
+ static ssize_t uevent_helper_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%s\n", uevent_helper);
++	return sprintf(buf, "%s\n", rcu_dereference(uevent_helper));
  }
- EXPORT_SYMBOL(__request_module);
-diff -puN kernel/sysctl.c~sysctl-convert-modprobe_path-to-proc_rcu_string kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-convert-modprobe_path-to-proc_rcu_string
-+++ a/kernel/sysctl.c
-@@ -127,7 +127,7 @@ static int min_percpu_pagelist_fract = 8
- static int ngroups_max = NGROUPS_MAX;
- 
- #ifdef CONFIG_MODULES
--extern char modprobe_path[];
-+extern char *modprobe_path;
- extern int modules_disabled;
++
++struct uevent_helper_rcu {
++	char *oldptr;
++	struct rcu_head rcu;
++};
++
++static void free_old_uevent_ptr(struct rcu_head *list)
++{
++	struct uevent_helper_rcu *ptr;
++	char *dfl = CONFIG_UEVENT_HELPER_PATH;
++	ptr = container_of(list, struct uevent_helper_rcu, rcu);
++	if (ptr->oldptr && (ptr->oldptr != dfl))
++		kfree(ptr->oldptr);
++
++	kfree(ptr);
++}
++
+ static ssize_t uevent_helper_store(struct kobject *kobj,
+ 				   struct kobj_attribute *attr,
+ 				   const char *buf, size_t count)
+ {
++	char *kbuf;
++	struct uevent_helper_rcu *old;
++
+ 	if (count+1 > UEVENT_HELPER_PATH_LEN)
+ 		return -ENOENT;
+-	memcpy(uevent_helper, buf, count);
++	kbuf = kstrndup(buf, UEVENT_HELPER_PATH_LEN, GFP_KERNEL);
++	if (!kbuf)
++		return -ENOMEM;
+ 	uevent_helper[count] = '\0';
+ 	if (count && uevent_helper[count-1] == '\n')
+ 		uevent_helper[count-1] = '\0';
++	old = kmalloc(sizeof(struct uevent_helper_rcu), GFP_KERNEL);
++	if (!old)
++		goto out_free;
++
++	old->oldptr = rcu_dereference(uevent_helper);
++	rcu_assign_pointer(uevent_helper, kbuf);
++	call_rcu(&old->rcu, free_old_uevent_ptr);
++
+ 	return count;
++
++out_free:
++	kfree(kbuf);
++	return -ENOMEM;
+ }
+ KERNEL_ATTR_RW(uevent_helper);
  #endif
- #ifdef CONFIG_CHR_DEV_SG
-@@ -538,7 +538,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= &modprobe_path,
- 		.maxlen		= KMOD_PATH_LEN,
- 		.mode		= 0644,
--		.proc_handler	= proc_dostring,
-+		.proc_handler	= proc_rcu_string,
- 	},
- 	{
- 		.procname	= "modules_disabled",
+diff -puN lib/kobject_uevent.c~sysctl-fix-up-remaining-references-to-uevent_helper lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~sysctl-fix-up-remaining-references-to-uevent_helper
++++ a/lib/kobject_uevent.c
+@@ -126,6 +126,7 @@ int kobject_uevent_env(struct kobject *k
+ 	struct kset *kset;
+ 	const struct kset_uevent_ops *uevent_ops;
+ 	u64 seq;
++	const char *helper;
+ 	int i = 0;
+ 	int retval = 0;
+ 
+@@ -272,7 +273,8 @@ int kobject_uevent_env(struct kobject *k
+ #endif
+ 
+ 	/* call uevent_helper, usually only enabled during early boot */
+-	if (uevent_helper[0])
++	helper = rcu_dereference(uevent_helper);
++	if (helper[0])
+ 		retval = uevent_call_helper(subsystem, env);
+ 
+ exit:
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
 linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-sysctl-convert-modprobe_path-to-proc_rcu_string.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
 sysctl-fix-up-remaining-references-to-uevent_helper.patch
 sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
+kmod-add-init-function-to-usermodehelper.patch
+kmod-add-init-function-to-usermodehelper-fix.patch
+kmod-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+kmod-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limitcleanup.patch
 
