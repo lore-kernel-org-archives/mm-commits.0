@@ -1,176 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-char-memc-cleanups-fix-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:51:26 -0800
-Message-ID: <201003102251.o2AMpQB4008639@imap1.linux-foundation.org>
+Subject: [folded] cgroups-subsystem-module-loading-interface-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:52:05 -0800
+Message-ID: <201003102252.o2AMq5vZ008661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757420Ab0CJWvb (ORCPT
+	by vger.kernel.org with ESMTP id S1757394Ab0CJWwW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:51:31 -0500
+	Wed, 10 Mar 2010 17:52:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, hirofumi@mail.parknet.co.jp, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: bblum@andrew.cmu.edu, davem@davemloft.net, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-char-memc-cleanups-fix-fix
+     cgroups: modular subsystems support for use_id
 has been removed from the -mm tree.  Its filename was
-     drivers-char-memc-cleanups-fix-fix.patch
+     cgroups-subsystem-module-loading-interface-fix.patch
 
-This patch was dropped because it was folded into drivers-char-memc-cleanups.patch
+This patch was dropped because it was folded into cgroups-subsystem-module-loading-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-memc-cleanups-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroups: modular subsystems support for use_id
+From: Ben Blum <bblum@andrew.cmu.edu>
 
-uninlining revealed:
+This patch adds support for subsys.use_id in module-loadable subsystems.
 
-drivers/char/mem.c:53: warning: 'uncached_access' defined but not used
-
+Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   65 +++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ kernel/cgroup.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/mem.c~drivers-char-memc-cleanups-fix-fix drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-memc-cleanups-fix-fix
-+++ a/drivers/char/mem.c
-@@ -44,38 +44,6 @@ static inline unsigned long size_inside_
- 	return min(sz, size);
- }
+diff -puN kernel/cgroup.c~cgroups-subsystem-module-loading-interface-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-subsystem-module-loading-interface-fix
++++ a/kernel/cgroup.c
+@@ -255,7 +255,8 @@ struct cg_cgroup_link {
+ static struct css_set init_css_set;
+ static struct cg_cgroup_link init_css_set_link;
  
--/*
-- * Architectures vary in how they handle caching for addresses
-- * outside of main memory.
-- *
-- */
--static int uncached_access(struct file *file, unsigned long addr)
--{
--#if defined(CONFIG_IA64)
--	/*
--	 * On ia64, we ignore O_DSYNC because we cannot tolerate memory
--	 * attribute aliases.
--	 */
--	return !(efi_mem_attributes(addr) & EFI_MEMORY_WB);
--#elif defined(CONFIG_MIPS)
--	{
--		extern int __uncached_access(struct file *file,
--					     unsigned long addr);
--
--		return __uncached_access(file, addr);
--	}
--#else
--	/*
--	 * Accessing memory above the top the kernel knows about or through a
--	 * file pointer
--	 * that was marked O_DSYNC will be done non-cached.
--	 */
--	if (file->f_flags & O_DSYNC)
--		return 1;
--	return addr >= __pa(high_memory);
--#endif
--}
--
- #ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
- static inline int valid_phys_addr_range(unsigned long addr, size_t count)
- {
-@@ -251,6 +219,39 @@ int __weak phys_mem_access_prot_allowed(
- }
+-static int cgroup_subsys_init_idr(struct cgroup_subsys *ss);
++static int cgroup_init_idr(struct cgroup_subsys *ss,
++			   struct cgroup_subsys_state *css);
  
- #ifndef __HAVE_PHYS_MEM_ACCESS_PROT
-+
-+/*
-+ * Architectures vary in how they handle caching for addresses
-+ * outside of main memory.
-+ *
-+ */
-+static int uncached_access(struct file *file, unsigned long addr)
-+{
-+#if defined(CONFIG_IA64)
-+	/*
-+	 * On ia64, we ignore O_DSYNC because we cannot tolerate memory
-+	 * attribute aliases.
-+	 */
-+	return !(efi_mem_attributes(addr) & EFI_MEMORY_WB);
-+#elif defined(CONFIG_MIPS)
-+	{
-+		extern int __uncached_access(struct file *file,
-+					     unsigned long addr);
-+
-+		return __uncached_access(file, addr);
+ /* css_set_lock protects the list of css_set objects, and the
+  * chain of tasks off each css_set.  Nests outside task->alloc_lock
+@@ -3376,6 +3377,18 @@ int __init_or_module cgroup_load_subsys(
+ 
+ 	/* our new subsystem will be attached to the dummy hierarchy. */
+ 	init_cgroup_css(css, ss, dummytop);
++	/* init_idr must be after init_cgroup_css because it sets css->id. */
++	if (ss->use_id) {
++		int ret = cgroup_init_idr(ss, css);
++		if (ret) {
++			dummytop->subsys[ss->subsys_id] = NULL;
++			ss->destroy(ss, dummytop);
++			subsys[i] = NULL;
++			mutex_unlock(&cgroup_mutex);
++			return ret;
++		}
 +	}
-+#else
-+	/*
-+	 * Accessing memory above the top the kernel knows about or through a
-+	 * file pointer
-+	 * that was marked O_DSYNC will be done non-cached.
-+	 */
-+	if (file->f_flags & O_DSYNC)
-+		return 1;
-+	return addr >= __pa(high_memory);
-+#endif
-+}
 +
- static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 				     unsigned long size, pgprot_t vma_prot)
+ 	/*
+ 	 * Now we need to entangle the css into the existing css_sets. unlike
+ 	 * in cgroup_init_subsys, there are now multiple css_sets, so each one
+@@ -3492,7 +3505,7 @@ int __init cgroup_init(void)
+ 		if (!ss->early_init)
+ 			cgroup_init_subsys(ss);
+ 		if (ss->use_id)
+-			cgroup_subsys_init_idr(ss);
++			cgroup_init_idr(ss, init_css_set.subsys[ss->subsys_id]);
+ 	}
+ 
+ 	/* Add init_css_set to the hash table */
+@@ -4161,15 +4174,14 @@ err_out:
+ 
+ }
+ 
+-static int __init cgroup_subsys_init_idr(struct cgroup_subsys *ss)
++static int __init_or_module cgroup_init_idr(struct cgroup_subsys *ss,
++					    struct cgroup_subsys_state *rootcss)
  {
+ 	struct css_id *newid;
+-	struct cgroup_subsys_state *rootcss;
+ 
+ 	spin_lock_init(&ss->id_lock);
+ 	idr_init(&ss->idr);
+ 
+-	rootcss = init_css_set.subsys[ss->subsys_id];
+ 	newid = get_new_cssid(ss, 0);
+ 	if (IS_ERR(newid))
+ 		return PTR_ERR(newid);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bblum@andrew.cmu.edu are
 
-add-generic-sys_ipc-wrapper.patch
-broadsheetfb-support-storing-waveform.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-pps-serial-clients-support-warning-fixes.patch
-sysctl-extern-cleanup-binfmts-fix.patch
-sysctl-extern-cleanup-module-fix.patch
-linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-subsystem-module-unloading-fix.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
 
