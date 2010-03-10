@@ -1,106 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded] add-generic-sys_old_select-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:49:05 -0800
-Message-ID: <201003102249.o2AMn5Ed008455@imap1.linux-foundation.org>
+Subject: [folded] viafb-split-global-index-up-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:50:14 -0800
+Message-ID: <201003102250.o2AMoFvm008530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932801Ab0CJWtb (ORCPT
+	by vger.kernel.org with ESMTP id S1757393Ab0CJWu0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:49:31 -0500
+	Wed, 10 Mar 2010 17:50:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, schwab@linux-m68k.org, mm-commits@vger.kernel.org
+To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-generic-sys_old_select-fix.txt
+     viafb-split-global-index-up-fix
 has been removed from the -mm tree.  Its filename was
-     add-generic-sys_old_select-fix.patch
+     viafb-split-global-index-up-fix.patch
 
-This patch was dropped because it was folded into add-generic-sys_old_select.patch
+This patch was dropped because it was folded into viafb-split-global-index-up.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-generic-sys_old_select-fix.txt
-From: Christoph Hellwig <hch@lst.de>
+Subject: viafb-split-global-index-up-fix
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-On Mon, Feb 01, 2010 at 11:40:29PM +0100, Andreas Schwab wrote:
-> > Index: linux-2.6/fs/compat.c
-> > ===================================================================
-> > --- linux-2.6.orig/fs/compat.c	2010-01-12 14:08:16.202003005 +0100
-> > +++ linux-2.6/fs/compat.c	2010-01-29 23:35:20.187003404 +0100
-> > @@ -1795,6 +1795,24 @@ asmlinkage long compat_sys_select(int n,
-> >  	return ret;
-> >  }
-> >
-> > +struct compat_sel_arg_struct {
-> > +	compat_ulong_t n;
-> > +	compat_ulong_t inp;
-> > +	compat_ulong_t outp;
-> > +	compat_ulong_t exp;
-> > +	compat_ulong_t tvp;
-> > +};
->
-> Shouldn't the last four be compat_uptr_t?
+v2: - fix variable name typo (missing 1) which would break SAMM
 
-Strictly speaking yes, although it doesn't matter for the generated
-code.  The patch below makes it use the strictly correct type:
-
-Cc: Andreas Schwab <schwab@linux-m68k.org>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/via/viafbdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/compat.c~add-generic-sys_old_select-fix fs/compat.c
---- a/fs/compat.c~add-generic-sys_old_select-fix
-+++ a/fs/compat.c
-@@ -1796,10 +1796,10 @@ asmlinkage long compat_sys_select(int n,
+diff -puN drivers/video/via/viafbdev.c~viafb-split-global-index-up-fix drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-split-global-index-up-fix
++++ a/drivers/video/via/viafbdev.c
+@@ -166,7 +166,7 @@ static int viafb_set_par(struct fb_info 
+ 		DEBUG_MSG(KERN_INFO
+ 		"viafb_second_xres = %d, viafb_second_yres = %d, bpp = %d\n",
+ 			  viafb_second_xres, viafb_second_yres, viafb_bpp1);
+-		vmode_entry = viafb_get_mode(viafb_second_xres,
++		vmode_entry1 = viafb_get_mode(viafb_second_xres,
+ 			viafb_second_yres);
  
- struct compat_sel_arg_struct {
- 	compat_ulong_t n;
--	compat_ulong_t inp;
--	compat_ulong_t outp;
--	compat_ulong_t exp;
--	compat_ulong_t tvp;
-+	compat_uptr_t inp;
-+	compat_uptr_t outp;
-+	compat_uptr_t exp;
-+	compat_uptr_t tvp;
- };
- 
- asmlinkage long compat_sys_old_select(struct compat_sel_arg_struct __user *arg)
+ 		viafb_update_device_setting(viafb_second_xres,
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
 
-add-generic-sys_old_select.patch
-add-generic-sys_old_select-fix.patch
-add-generic-sys_old_mmap.patch
-add-generic-sys_ipc-wrapper.patch
-add-generic-sys_ipc-wrapper-fix.patch
-improve-sys_newuname-for-compat-architectures.patch
-add-generic-sys_olduname.patch
-ptrace-use-ptrace_request-in-the-remaining-architectures.patch
-ptrace-move-user_enable_single_step-co-prototypes-to-linux-ptraceh.patch
-alpha-use-generic-ptrace_resume-code.patch
-arm-use-generic-ptrace_resume-code.patch
-avr32-use-generic-ptrace_resume-code.patch
-h8300-use-generic-ptrace_resume-code.patch
-m68knommu-use-generic-ptrace_resume-code.patch
-microblaze-use-generic-ptrace_resume-code.patch
-mips-use-generic-ptrace_resume-code.patch
-um-use-generic-ptrace_resume-code.patch
-xtensa-use-generic-ptrace_resume-code.patch
-cris-arch-v10-use-generic-ptrace_resume-code.patch
-cris-arch-v32-use-generic-ptrace_resume-code.patch
-m32r-use-generic-ptrace_resume-code.patch
-linux-next.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-improve-sys_personality-for-compat-architectures.patch
+viafb-deprecate-private-ioctls.patch
+viafb-remove-dead-code.patch
+viafb-split-global-index-up.patch
+viafb-split-global-index-up-fix.patch
+viafb-remove-the-remaining-via_res_-uses.patch
+viafb-some-dvi-cleanup.patch
+viafb-yet-another-dead-code-removal.patch
+viafb-reorder-initialization-for-dual-framebuffer-mode.patch
+viafb-video-address-setting-revisited.patch
+viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch
+viafb-introduce-strict-parameter-checking.patch
+viafb-split-color-mode-setting-up.patch
+viafb-remove-dead-code-due-to-iga1_iga2.patch
+viafb-make-some-variables-a-bit-less-global.patch
+viafb-rework-color-checking.patch
+viafb-some-virtual_xres-handling-fixes.patch
+viafb-rework-color-setting.patch
+viafb-support-color-depth-15-and-30.patch
+drivers-video-via-fix-continuation-line-formats.patch
 
