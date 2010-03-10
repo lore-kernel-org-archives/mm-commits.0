@@ -1,121 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [folded] add-generic-sys_ipc-wrapper-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:49:28 -0800
-Message-ID: <201003102249.o2AMnSd0008490@imap1.linux-foundation.org>
+Subject: [folded] cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:56:23 -0800
+Message-ID: <201003102256.o2AMuN3L008870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757394Ab0CJW47 (ORCPT
+	by vger.kernel.org with ESMTP id S1757394Ab0CJW5E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:56:59 -0500
+	Wed, 10 Mar 2010 17:57:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org, hch@lst.de, heiko.carstens@de.ibm.com, hpa@zytor.com, jdike@addtoit.com, jmorris@namei.org, lethal@linux-sh.org, mi
+To: kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-generic-sys_ipc-wrapper-fix
+     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
 has been removed from the -mm tree.  Its filename was
-     add-generic-sys_ipc-wrapper-fix.patch
+     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
 
-This patch was dropped because it was folded into add-generic-sys_ipc-wrapper.patch
+This patch was dropped because it was folded into cgroup-implement-eventfd-based-generic-api-for-notifications.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-generic-sys_ipc-wrapper-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 
-i386 allnoconfig:
+Several random fixes.
 
-arch/x86/built-in.o: In function `sys_call_table':
-: undefined reference to `sys_ipc'
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/cgroups/cgroups.txt |    1 +
+ kernel/cgroup.c                   |   26 +++++++++++++++++++++++---
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sys_ni.c~add-generic-sys_ipc-wrapper-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~add-generic-sys_ipc-wrapper-fix
-+++ a/kernel/sys_ni.c
-@@ -126,6 +126,7 @@ cond_syscall(sys_setreuid16);
- cond_syscall(sys_setuid16);
- cond_syscall(sys_vm86old);
- cond_syscall(sys_vm86);
-+cond_syscall(sys_ipc);
- cond_syscall(compat_sys_ipc);
- cond_syscall(compat_sys_sysctl);
- cond_syscall(sys_flock);
+diff -puN Documentation/cgroups/cgroups.txt~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
++++ a/Documentation/cgroups/cgroups.txt
+@@ -23,6 +23,7 @@ CONTENTS:
+   2.1 Basic Usage
+   2.2 Attaching processes
+   2.3 Mounting hierarchies by name
++  2.4 Notification API
+ 3. Kernel API
+   3.1 Overview
+   3.2 Synchronization
+diff -puN kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
++++ a/kernel/cgroup.c
+@@ -2991,13 +2991,18 @@ static int cgroup_write_notify_on_releas
+ 	return 0;
+ }
+ 
++/*
++ * Unregister event and free resources.
++ *
++ * Gets called from workqueue.
++ */
+ static void cgroup_event_remove(struct work_struct *work)
+ {
+ 	struct cgroup_event *event = container_of(work, struct cgroup_event,
+ 			remove);
+ 	struct cgroup *cgrp = event->cgrp;
+ 
+-	/* TODO: check return code*/
++	/* TODO: check return code */
+ 	event->cft->unregister_event(cgrp, event->cft, event->eventfd);
+ 
+ 	eventfd_ctx_put(event->eventfd);
+@@ -3005,6 +3010,11 @@ static void cgroup_event_remove(struct w
+ 	kfree(event);
+ }
+ 
++/*
++ * Gets called on POLLHUP on eventfd when user closes it.
++ *
++ * Called with wqh->lock held and interrupts disabled.
++ */
+ static int cgroup_event_wake(wait_queue_t *wait, unsigned mode,
+ 		int sync, void *key)
+ {
+@@ -3017,6 +3027,10 @@ static int cgroup_event_wake(wait_queue_
+ 		spin_lock(&cgrp->event_list_lock);
+ 		list_del(&event->list);
+ 		spin_unlock(&cgrp->event_list_lock);
++		/*
++		 * We are in atomic context, but cgroup_event_remove() may
++		 * sleep, so we have to call it in workqueue.
++		 */
+ 		schedule_work(&event->remove);
+ 	}
+ 
+@@ -3033,6 +3047,12 @@ static void cgroup_event_ptable_queue_pr
+ 	add_wait_queue(wqh, &event->wait);
+ }
+ 
++/*
++ * Parse input and register new cgroup event handler.
++ *
++ * Input must be in format '<event_fd> <control_fd> <args>'.
++ * Interpretation of args is defined by control file implementation.
++ */
+ static int cgroup_write_event_control(struct cgroup *cgrp, struct cftype *cft,
+ 				      const char *buffer)
+ {
+@@ -3117,13 +3137,13 @@ static int cgroup_write_event_control(st
+ 	return 0;
+ 
+ fail:
+-	if (!IS_ERR(cfile))
++	if (!cfile)
+ 		fput(cfile);
+ 
+ 	if (event && event->eventfd && !IS_ERR(event->eventfd))
+ 		eventfd_ctx_put(event->eventfd);
+ 
+-	if (!IS_ERR(efile))
++	if (!IS_ERR_OR_NULL(efile))
+ 		fput(efile);
+ 
+ 	kfree(event);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-add-generic-sys_ipc-wrapper.patch
-add-generic-sys_ipc-wrapper-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
+cgroups-fix-contents-in-cgroups-documentation.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-pps-serial-clients-support-warning-fixes.patch
-sysctl-extern-cleanup-binfmts-fix.patch
-sysctl-extern-cleanup-module-fix.patch
-linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-update-threshold-and-softlimit-at-commit-v2.patch
+memcg-share-event-counter-rather-than-duplicate-v2.patch
+memcg-update-memcg_testtxt.patch
+cgroups-fix-race-between-userspace-and-kernelspace.patch
+cgroups-remove-events-before-destroying-subsystem-state-objects.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
+memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+memcg-fix-typos-in-memcg_testtxt.patch
 
