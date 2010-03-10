@@ -1,79 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:56:25 -0800
-Message-ID: <201003102256.o2AMuPwR008873@imap1.linux-foundation.org>
+Subject: [folded] memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:57:02 -0800
+Message-ID: <201003102257.o2AMv2GQ008881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757419Ab0CJW5G (ORCPT
+	by vger.kernel.org with ESMTP id S1757394Ab0CJW5i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:57:06 -0500
+	Wed, 10 Mar 2010 17:57:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix
+     memcg-implement-memory-thresholds-checkpatch-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
+     memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
 
-This patch was dropped because it was folded into cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+This patch was dropped because it was folded into memcg-implement-memory-thresholds.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: memcg-implement-memory-thresholds-checkpatch-fixes-fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Actually, we want to fput() cfile, if cfile is not NULL.
+Each memcg-implement-memory-thresholds.patch and
+memcg-add-interface-to-move-charge-at-task-migration.patch try to add a new
+section to Documentation/cgroup/memory.txt, so the document has been a bit
+mangled when these patches are merged at the same time.
 
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+This patch fixes it.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix
-+++ a/kernel/cgroup.c
-@@ -3137,7 +3137,7 @@ static int cgroup_write_event_control(st
- 	return 0;
+diff -puN Documentation/cgroups/memory.txt~memcg-implement-memory-thresholds-checkpatch-fixes-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-implement-memory-thresholds-checkpatch-fixes-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -458,7 +458,15 @@ Note: Those pages and swaps must be char
+ Note: More type of pages(e.g. file cache, shmem,) will be supported by other
+       bits in future.
  
- fail:
--	if (!cfile)
-+	if (cfile)
- 		fput(cfile);
+-8.3 Memory thresholds
++8.3 TODO
++
++- Add support for other types of pages(e.g. file cache, shmem, etc.).
++- Implement madvise(2) to let users decide the vma to be moved or not to be
++  moved.
++- All of moving charge operations are done under cgroup_mutex. It's not good
++  behavior to hold the mutex too long, so we may need some trick.
++
++9. Memory thresholds
  
- 	if (event && event->eventfd && !IS_ERR(event->eventfd))
+ Memory controler implements memory thresholds using cgroups notification
+ API (see cgroups.txt). It allows to register multiple memory and memsw
+@@ -475,16 +483,7 @@ threshold in any direction.
+ 
+ It's applicable for root and non-root cgroup.
+ 
+-
+-8.4 TODO
+-
+-- Add support for other types of pages(e.g. file cache, shmem, etc.).
+-- Implement madvise(2) to let users decide the vma to be moved or not to be
+-  moved.
+-- All of moving charge operations are done under cgroup_mutex. It's not good
+-  behavior to hold the mutex too long, so we may need some trick.
+-
+-9. TODO
++10. TODO
+ 
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-cgroups-fix-contents-in-cgroups-documentation.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-improve-performance-in-moving-swap-charge.patch
 cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
 memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
 memcg-rework-usage-of-stats-by-soft-limit.patch
 memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
 memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
 memcg-update-threshold-and-softlimit-at-commit-v2.patch
 memcg-share-event-counter-rather-than-duplicate-v2.patch
 memcg-update-memcg_testtxt.patch
+memcg-handle-panic_on_oom=always-case-v2.patch
 cgroups-fix-race-between-userspace-and-kernelspace.patch
 cgroups-remove-events-before-destroying-subsystem-state-objects.patch
 cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
 cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
 memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
-memcg-fix-typos-in-memcg_testtxt.patch
+memcg-fix-oom-kill-behavior-v3.patch
+memcg-fix-oom-kill-behavior-v4.patch
+memcg-update-maintainer-list.patch
 
