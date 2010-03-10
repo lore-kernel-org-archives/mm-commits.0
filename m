@@ -1,54 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] sysctl-extern-cleanup-module-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 15:07:10 -0800
-Message-ID: <201003102307.o2AN7A8H009392@imap1.linux-foundation.org>
+Subject: [folded] sysctl-extern-cleanup-binfmts-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 15:06:53 -0800
+Message-ID: <201003102306.o2AN6rXf009369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38149 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932855Ab0CJXHQ (ORCPT
+	by vger.kernel.org with ESMTP id S932801Ab0CJXHO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 18:07:16 -0500
+	Wed, 10 Mar 2010 18:07:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@xmission.com, hidave.darkstar@gmail.com, jmorris@namei.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-extern-cleanup-module-fix
+     sysctl-extern-cleanup-binfmts-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-extern-cleanup-module-fix.patch
+     sysctl-extern-cleanup-binfmts-fix.patch
 
-This patch was dropped because it was folded into sysctl-extern-cleanup-module.patch
+This patch was dropped because it was folded into sysctl-extern-cleanup-binfmts.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-extern-cleanup-module-fix
+Subject: sysctl-extern-cleanup-binfmts-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-More fallout from dropping Andi's rcustring changes.
+not sure how that happened..
 
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: James Morris <jmorris@namei.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |    2 +-
+ include/linux/binfmts.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kmod.h~sysctl-extern-cleanup-module-fix include/linux/kmod.h
---- a/include/linux/kmod.h~sysctl-extern-cleanup-module-fix
-+++ a/include/linux/kmod.h
-@@ -27,7 +27,7 @@
- #define KMOD_PATH_LEN 256
+diff -puN include/linux/binfmts.h~sysctl-extern-cleanup-binfmts-fix include/linux/binfmts.h
+--- a/include/linux/binfmts.h~sysctl-extern-cleanup-binfmts-fix
++++ a/include/linux/binfmts.h
+@@ -22,7 +22,7 @@ struct pt_regs;
  
- #ifdef CONFIG_MODULES
--extern char *modprobe_path; /* for sysctl */
-+extern char modprobe_path[]; /* for sysctl */
- /* modprobe exit status on success, -ve on error.  Return value
-  * usually useless though. */
- extern int __request_module(bool wait, const char *name, ...) \
+ /* for sysctl */
+ extern int core_uses_pid;
+-extern char *core_pattern;
++extern char core_pattern[];
+ extern unsigned int core_pipe_limit;
+ 
+ #define CORENAME_MAX_SIZE 128
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +66,8 @@ memcg-implement-memory-thresholds.patch
 documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
 pps-linuxpps-clients-support.patch
 pps-serial-clients-support.patch
-sysctl-extern-cleanup-module.patch
+sysctl-extern-cleanup-binfmts.patch
+sysctl-extern-cleanup-binfmts-fix.patch
 sysctl-extern-cleanup-module-fix.patch
 linux-next.patch
 linux-next-fixups.patch
