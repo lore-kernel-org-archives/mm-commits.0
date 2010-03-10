@@ -1,149 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + pps-serial-clients-support-warning-fixes.patch added to -mm tree
-Date: Wed, 10 Mar 2010 14:03:19 -0800
-Message-ID: <201003102229.o2AMTcpn007617@imap1.linux-foundation.org>
+Subject: [folded] add-generic-sys_old_select-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:49:05 -0800
+Message-ID: <201003102249.o2AMn5Ed008455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753447Ab0CJWaI (ORCPT
+	by vger.kernel.org with ESMTP id S932801Ab0CJWtb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:30:08 -0500
+	Wed, 10 Mar 2010 17:49:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, giometti@linux.it, greg@kroah.com, lasaine@lvk.cs.msu.su
+To: hch@lst.de, schwab@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-serial-clients-support-warning-fixes.txt
-has been added to the -mm tree.  Its filename is
-     pps-serial-clients-support-warning-fixes.patch
+     add-generic-sys_old_select-fix.txt
+has been removed from the -mm tree.  Its filename was
+     add-generic-sys_old_select-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into add-generic-sys_old_select.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-serial-clients-support-warning-fixes.txt
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: add-generic-sys_old_select-fix.txt
+From: Christoph Hellwig <hch@lst.de>
 
-s390: 
+On Mon, Feb 01, 2010 at 11:40:29PM +0100, Andreas Schwab wrote:
+> > Index: linux-2.6/fs/compat.c
+> > ===================================================================
+> > --- linux-2.6.orig/fs/compat.c	2010-01-12 14:08:16.202003005 +0100
+> > +++ linux-2.6/fs/compat.c	2010-01-29 23:35:20.187003404 +0100
+> > @@ -1795,6 +1795,24 @@ asmlinkage long compat_sys_select(int n,
+> >  	return ret;
+> >  }
+> >
+> > +struct compat_sel_arg_struct {
+> > +	compat_ulong_t n;
+> > +	compat_ulong_t inp;
+> > +	compat_ulong_t outp;
+> > +	compat_ulong_t exp;
+> > +	compat_ulong_t tvp;
+> > +};
+>
+> Shouldn't the last four be compat_uptr_t?
 
-drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_dcd_change':
-drivers/pps/clients/pps-ldisc.c:32: warning: cast from pointer to integer of different size
-drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_open':
-drivers/pps/clients/pps-ldisc.c:79: warning: cast to pointer from integer of different size
-drivers/pps/clients/pps-ldisc.c:84: warning: cast from pointer to integer of different size
-drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_close':
-drivers/pps/clients/pps-ldisc.c:95: warning: cast from pointer to integer of different size
+Strictly speaking yes, although it doesn't matter for the generated
+code.  The patch below makes it use the strictly correct type:
 
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ldisc.c |    8 ++++----
+ fs/compat.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-warning-fixes drivers/pps/clients/pps-ldisc.c
---- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-warning-fixes
-+++ a/drivers/pps/clients/pps-ldisc.c
-@@ -29,7 +29,7 @@
- static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status,
- 				struct timespec *ts)
- {
--	int id = (int) tty->disc_data;
-+	int id = (long)tty->disc_data;
- 	struct timespec __ts;
- 	struct pps_ktime pps_ts;
+diff -puN fs/compat.c~add-generic-sys_old_select-fix fs/compat.c
+--- a/fs/compat.c~add-generic-sys_old_select-fix
++++ a/fs/compat.c
+@@ -1796,10 +1796,10 @@ asmlinkage long compat_sys_select(int n,
  
-@@ -76,12 +76,12 @@ static int pps_tty_open(struct tty_struc
- 		pr_err("cannot register PPS source \"%s\"\n", info.path);
- 		return ret;
- 	}
--	tty->disc_data = (void *) ret;
-+	tty->disc_data = (void *)(long)ret;
+ struct compat_sel_arg_struct {
+ 	compat_ulong_t n;
+-	compat_ulong_t inp;
+-	compat_ulong_t outp;
+-	compat_ulong_t exp;
+-	compat_ulong_t tvp;
++	compat_uptr_t inp;
++	compat_uptr_t outp;
++	compat_uptr_t exp;
++	compat_uptr_t tvp;
+ };
  
- 	/* Should open N_TTY ldisc too */
- 	ret = alias_n_tty_open(tty);
- 	if (ret < 0)
--		pps_unregister_source((int) tty->disc_data);
-+		pps_unregister_source((long)tty->disc_data);
- 
- 	pr_info("PPS source #%d \"%s\" added\n", ret, info.path);
- 
-@@ -92,7 +92,7 @@ static void (*alias_n_tty_close)(struct 
- 
- static void pps_tty_close(struct tty_struct *tty)
- {
--	int id = (int) tty->disc_data;
-+	int id = (long)tty->disc_data;
- 
- 	pps_unregister_source(id);
- 	alias_n_tty_close(tty);
+ asmlinkage long compat_sys_old_select(struct compat_sel_arg_struct __user *arg)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
+add-generic-sys_old_select.patch
+add-generic-sys_old_select-fix.patch
+add-generic-sys_old_mmap.patch
+add-generic-sys_ipc-wrapper.patch
 add-generic-sys_ipc-wrapper-fix.patch
-broadsheetfb-support-storing-waveform-fix.patch
-drivers-char-memc-cleanups.patch
-drivers-char-memc-cleanups-fix.patch
-drivers-char-memc-cleanups-fix-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-pps-serial-clients-support-warning-fixes.patch
-sysctl-extern-cleanup-binfmts-fix.patch
-sysctl-extern-cleanup-module-fix.patch
+improve-sys_newuname-for-compat-architectures.patch
+add-generic-sys_olduname.patch
+ptrace-use-ptrace_request-in-the-remaining-architectures.patch
+ptrace-move-user_enable_single_step-co-prototypes-to-linux-ptraceh.patch
+alpha-use-generic-ptrace_resume-code.patch
+arm-use-generic-ptrace_resume-code.patch
+avr32-use-generic-ptrace_resume-code.patch
+h8300-use-generic-ptrace_resume-code.patch
+m68knommu-use-generic-ptrace_resume-code.patch
+microblaze-use-generic-ptrace_resume-code.patch
+mips-use-generic-ptrace_resume-code.patch
+um-use-generic-ptrace_resume-code.patch
+xtensa-use-generic-ptrace_resume-code.patch
+cris-arch-v10-use-generic-ptrace_resume-code.patch
+cris-arch-v32-use-generic-ptrace_resume-code.patch
+m32r-use-generic-ptrace_resume-code.patch
 linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+improve-sys_personality-for-compat-architectures.patch
 
