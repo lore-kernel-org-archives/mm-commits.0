@@ -1,104 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 15:03:08 -0800
-Message-ID: <201003102303.o2AN39KZ009151@imap1.linux-foundation.org>
+Subject: [folded] dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 15:04:35 -0800
+Message-ID: <201003102304.o2AN4Zww009207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757385Ab0CJXDz (ORCPT
+	by vger.kernel.org with ESMTP id S1757385Ab0CJXFL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 18:03:55 -0500
+	Wed, 10 Mar 2010 18:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, fujita.tomonori@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix
+     dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix
 has been removed from the -mm tree.  Its filename was
-     mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+     dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix.patch
 
-This patch was dropped because it was folded into mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
+This patch was dropped because it was folded into dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/dma-mapping.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/asm-generic/pci-dma-compat.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/mn10300/include/asm/dma-mapping.h~mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix arch/mn10300/include/asm/dma-mapping.h
---- a/arch/mn10300/include/asm/dma-mapping.h~mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix
-+++ a/arch/mn10300/include/asm/dma-mapping.h
-@@ -17,6 +17,11 @@
- #include <asm/cache.h>
- #include <asm/io.h>
+diff -puN include/asm-generic/pci-dma-compat.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix include/asm-generic/pci-dma-compat.h
+--- a/include/asm-generic/pci-dma-compat.h~dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix
++++ a/include/asm-generic/pci-dma-compat.h
+@@ -101,6 +101,7 @@ pci_dma_mapping_error(struct pci_dev *pd
+ 	return dma_mapping_error(&pdev->dev, dma_addr);
+ }
  
-+/*
-+ * See Documentation/DMA-API.txt for the description of how the
-+ * following DMA API should work.
-+ */
-+
- extern void *dma_alloc_coherent(struct device *dev, size_t size,
- 				dma_addr_t *dma_handle, int flag);
++#ifdef CONFIG_PCI
+ static inline int pci_set_dma_mask(struct pci_dev *dev, u64 mask)
+ {
+ 	return dma_set_mask(&dev->dev, mask);
+@@ -110,5 +111,6 @@ static inline int pci_set_consistent_dma
+ {
+ 	return dma_set_coherent_mask(&dev->dev, mask);
+ }
++#endif
  
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-add-generic-sys_ipc-wrapper.patch
-broadsheetfb-support-storing-waveform.patch
-drivers-char-memc-cleanups.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-implement-memory-thresholds.patch
+documentation-dma-apitxt-remove-deprecated-function-descriptions.patch
+dma-apitxt-add-dma_sync_single-sg-api-description.patch
+dma-apitxt-remove-dma_sync_single_range-description.patch
+alpha-remove-dma_sync_single_range.patch
+um-remove-dma_sync_single_range.patch
+pci-dma-add-include-linux-pci-dmah.patch
+pci-dma-x86-use-include-linux-pci-dmah.patch
+pci-dma-alpha-use-include-linux-pci-dmah.patch
+pci-dma-arm-use-include-linux-pci-dmah.patch
+pci-dma-frv-use-include-linux-pci-dmah.patch
+pci-dma-ia64-use-include-linux-pci-dmah.patch
+pci-dma-mips-use-include-linux-pci-dmah.patch
+pci-dma-parisc-use-include-linux-pci-dmah.patch
+pci-dma-powerpc-use-include-linux-pci-dmah.patch
+pci-dma-sh-use-include-linux-pci-dmah.patch
+pci-dma-sparc-use-include-linux-pci-dmah.patch
+pci-dma-xtensa-use-include-linux-pci-dmah.patch
+pci-dma-cris-use-include-linux-pci-dmah.patch
+pci-dma-add-linux-pci-dmah-to-linux-pcih.patch
+dma-mappingh-add-the-dma_unmap-state-api.patch
+frv-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
+blackfin-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
 mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+dma-mapping-sparc-unify-32bit-and-64bit-dma_set_mask.patch
+dma-mapping-alpha-use-include-linux-pci-dma-compath.patch
+dma-mapping-pci-convert-pci_set_dma_mask-to-call-dma_set_mask.patch
+dma-mapping-dma-mappingh-add-dma_set_coherent_mask.patch
+dma-mapping-powerpc-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
+dma-mapping-arm-use-generic-pci_set_dma_mask-and-pci_set_consistent_dma_mask.patch
+dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath.patch
+dma-mapping-pci-move-pci_set_dma_mask-and-pci_set_consistent_dma_mask-to-pci-dma-compath-fix.patch
+documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
 documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-pps-serial-clients-support-warning-fixes.patch
-sysctl-extern-cleanup-binfmts-fix.patch
-sysctl-extern-cleanup-module-fix.patch
+documentation-remove-the-pci-dma-api-description-in-dma-apitxt.patch
+documentation-rename-pci-dma-mappingtxt-to-dma-api-howtotxt.patch
 linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+documentation-fix-block-biodoctxt-dma-mapping-description.patch
+ssb-add-dma_dev-to-ssb_device-structure.patch
+b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+ssb-remove-the-ssb-dma-api.patch
 
