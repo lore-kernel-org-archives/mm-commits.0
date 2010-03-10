@@ -1,74 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 15:05:56 -0800
-Message-ID: <201003102305.o2AN5uLp009263@imap1.linux-foundation.org>
+Subject: [folded] pps-linuxpps-clients-support-v3-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 15:05:32 -0800
+Message-ID: <201003102305.o2AN5Wjx009251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932854Ab0CJXGT (ORCPT
+	by vger.kernel.org with ESMTP id S932854Ab0CJXGD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 18:06:19 -0500
+	Wed, 10 Mar 2010 18:06:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
+     pps-linuxpps-clients-support-v3-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
+     pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
+This patch was dropped because it was folded into pps-linuxpps-clients-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: pps-linuxpps-clients-support-v3-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This new method can be used to init a new struct tty_ldisc_ops as the
-default tty_ldisc_N_TTY struct.
+WARNING: please, no space before tabs
+#261: FILE: drivers/pps/clients/pps-ktimer.c:82:
++^I.echo ^I^I= pps_ktimer_echo,$
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+total: 0 errors, 1 warnings, 138 lines checked
+
+./patches/pps-linuxpps-clients-support-v3.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/pps/clients/pps-ktimer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/n_tty.c~ldisc-n_tty-add-new-method-n_tty_inherit_ops-update drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~ldisc-n_tty-add-new-method-n_tty_inherit_ops-update
-+++ a/drivers/char/n_tty.c
-@@ -2093,6 +2093,14 @@ struct tty_ldisc_ops tty_ldisc_N_TTY = {
- 	.write_wakeup    = n_tty_write_wakeup
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes
++++ a/drivers/pps/clients/pps-ktimer.c
+@@ -79,7 +79,7 @@ static struct pps_source_info pps_ktimer
+ 	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
+ 			  PPS_ECHOASSERT |
+ 			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
+-	.echo 		= pps_ktimer_echo,
++	.echo		= pps_ktimer_echo,
+ 	.owner		= THIS_MODULE,
  };
  
-+/**
-+ *	n_tty_inherit_ops	-	inherit N_TTY methods
-+ *	@ops: struct tty_ldisc_ops where to save N_TTY methods
-+ *
-+ *	Used by a generic struct tty_ldisc_ops to easily inherit N_TTY
-+ *	methods.
-+ */
-+
- void n_tty_inherit_ops(struct tty_ldisc_ops *ops)
- {
- 	*ops = tty_ldisc_N_TTY;
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+add-generic-sys_ipc-wrapper.patch
+broadsheetfb-support-storing-waveform.patch
+drivers-char-memc-cleanups.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-implement-memory-thresholds.patch
+documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
 pps-linuxpps-clients-support.patch
-ldisc-new-dcd_change-method-for-line-disciplines.patch
-ldisc-n_tty-add-new-method-n_tty_inherit_ops.patch
-ldisc-n_tty-add-new-method-n_tty_inherit_ops-update.patch
-pps-serial-clients-support.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
 pps-serial-clients-support-warning-fixes.patch
-serial-8250-enable-pps-support.patch
-serial-amba-pl010-enable-pps-support.patch
+sysctl-extern-cleanup-binfmts-fix.patch
+sysctl-extern-cleanup-module-fix.patch
+linux-next.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
