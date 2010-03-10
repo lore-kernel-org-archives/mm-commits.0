@@ -1,77 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [folded] viafb-split-global-index-up-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:50:14 -0800
-Message-ID: <201003102250.o2AMoFvm008530@imap1.linux-foundation.org>
+Subject: [folded] broadsheetfb-support-storing-waveform-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:50:37 -0800
+Message-ID: <201003102250.o2AMobDk008533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757393Ab0CJWu0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757393Ab0CJWuv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:50:26 -0500
+	Wed, 10 Mar 2010 17:50:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, jayakumar.lkml@gmail.com, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb-split-global-index-up-fix
+     broadsheetfb-support-storing-waveform-fix
 has been removed from the -mm tree.  Its filename was
-     viafb-split-global-index-up-fix.patch
+     broadsheetfb-support-storing-waveform-fix.patch
 
-This patch was dropped because it was folded into viafb-split-global-index-up.patch
+This patch was dropped because it was folded into broadsheetfb-support-storing-waveform.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb-split-global-index-up-fix
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: broadsheetfb-support-storing-waveform-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-v2: - fix variable name typo (missing 1) which would break SAMM
+drivers/video/broadsheetfb.c:766: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |    2 +-
+ drivers/video/broadsheetfb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-split-global-index-up-fix drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-split-global-index-up-fix
-+++ a/drivers/video/via/viafbdev.c
-@@ -166,7 +166,7 @@ static int viafb_set_par(struct fb_info 
- 		DEBUG_MSG(KERN_INFO
- 		"viafb_second_xres = %d, viafb_second_yres = %d, bpp = %d\n",
- 			  viafb_second_xres, viafb_second_yres, viafb_bpp1);
--		vmode_entry = viafb_get_mode(viafb_second_xres,
-+		vmode_entry1 = viafb_get_mode(viafb_second_xres,
- 			viafb_second_yres);
+diff -puN drivers/video/broadsheetfb.c~broadsheetfb-support-storing-waveform-fix drivers/video/broadsheetfb.c
+--- a/drivers/video/broadsheetfb.c~broadsheetfb-support-storing-waveform-fix
++++ a/drivers/video/broadsheetfb.c
+@@ -763,7 +763,7 @@ static ssize_t broadsheet_loadstore_wave
+ 		goto err_failed;
+ 	}
  
- 		viafb_update_device_setting(viafb_second_xres,
+-	dev_info(dev, "Stored broadsheet waveform, size %d\n", fw_entry->size);
++	dev_info(dev, "Stored broadsheet waveform, size %zd\n", fw_entry->size);
+ 
+ 	return len;
+ 
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-viafb-deprecate-private-ioctls.patch
-viafb-remove-dead-code.patch
-viafb-split-global-index-up.patch
-viafb-split-global-index-up-fix.patch
-viafb-remove-the-remaining-via_res_-uses.patch
-viafb-some-dvi-cleanup.patch
-viafb-yet-another-dead-code-removal.patch
-viafb-reorder-initialization-for-dual-framebuffer-mode.patch
-viafb-video-address-setting-revisited.patch
-viafb-make-viafb_set_par-more-dual-framebuffer-compatible.patch
-viafb-introduce-strict-parameter-checking.patch
-viafb-split-color-mode-setting-up.patch
-viafb-remove-dead-code-due-to-iga1_iga2.patch
-viafb-make-some-variables-a-bit-less-global.patch
-viafb-rework-color-checking.patch
-viafb-some-virtual_xres-handling-fixes.patch
-viafb-rework-color-setting.patch
-viafb-support-color-depth-15-and-30.patch
-drivers-video-via-fix-continuation-line-formats.patch
+add-generic-sys_ipc-wrapper.patch
+broadsheetfb-support-storing-waveform.patch
+broadsheetfb-support-storing-waveform-fix.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
+documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
+pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+pps-serial-clients-support-warning-fixes.patch
+sysctl-extern-cleanup-binfmts-fix.patch
+sysctl-extern-cleanup-module-fix.patch
+linux-next.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
