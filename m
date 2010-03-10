@@ -1,106 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-convert-poweroff_command-to-proc_rcu_string.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 12:29:57 -0800
-Message-ID: <201003102029.o2AKTvOq001937@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 12:30:00 -0800
+Message-ID: <201003102030.o2AKU0QT001941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757034Ab0CJUa2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757036Ab0CJUa2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 10 Mar 2010 15:30:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, gregkh@suse.de, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.
 
 
 The patch titled
-     sysctl: convert poweroff_command to proc_rcu_string
+     sysctl: convert hotplug helper string to proc_rcu_string()
 has been removed from the -mm tree.  Its filename was
-     sysctl-convert-poweroff_command-to-proc_rcu_string.patch
+     sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: convert poweroff_command to proc_rcu_string
+Subject: sysctl: convert hotplug helper string to proc_rcu_string()
 From: Andi Kleen <andi@firstfloor.org>
 
-Avoids races with lockless sysctl.
+This avoids races with lockless sysctl.
 
 Also saves ~220 bytes in the data segment for default kernels.
+
+I also moved the code into a separate function because the original
+was very long.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Russell King <rmk+lkml@arm.linux.org.uk>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |    2 +-
- kernel/sys.c           |    8 ++++++--
- kernel/sysctl.c        |    2 +-
- 3 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/kobject.h |    2 -
+ kernel/sysctl.c         |    2 -
+ lib/kobject_uevent.c    |   50 ++++++++++++++++++++++++--------------
+ 3 files changed, 34 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/reboot.h~sysctl-convert-poweroff_command-to-proc_rcu_string include/linux/reboot.h
---- a/include/linux/reboot.h~sysctl-convert-poweroff_command-to-proc_rcu_string
-+++ a/include/linux/reboot.h
-@@ -67,7 +67,7 @@ extern void kernel_power_off(void);
- void ctrl_alt_del(void);
+diff -puN include/linux/kobject.h~sysctl-convert-hotplug-helper-string-to-proc_rcu_string include/linux/kobject.h
+--- a/include/linux/kobject.h~sysctl-convert-hotplug-helper-string-to-proc_rcu_string
++++ a/include/linux/kobject.h
+@@ -31,7 +31,7 @@
+ #define UEVENT_BUFFER_SIZE		2048	/* buffer for the variables */
  
- #define POWEROFF_CMD_PATH_LEN	256
--extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
-+extern char *poweroff_cmd;
+ /* path to the userspace helper executed on an event */
+-extern char uevent_helper[];
++extern char *uevent_helper;
  
- extern int orderly_poweroff(bool force);
- 
-diff -puN kernel/sys.c~sysctl-convert-poweroff_command-to-proc_rcu_string kernel/sys.c
---- a/kernel/sys.c~sysctl-convert-poweroff_command-to-proc_rcu_string
-+++ a/kernel/sys.c
-@@ -1789,7 +1789,7 @@ SYSCALL_DEFINE3(getcpu, unsigned __user 
- 	return err ? -EFAULT : 0;
- }
- 
--char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
-+char *poweroff_cmd = "/sbin/poweroff";
- 
- static void argv_cleanup(char **argv, char **envp)
- {
-@@ -1806,7 +1806,7 @@ static void argv_cleanup(char **argv, ch
- int orderly_poweroff(bool force)
- {
- 	int argc;
--	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
-+	char **argv;
- 	static char *envp[] = {
- 		"HOME=/",
- 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
-@@ -1815,6 +1815,10 @@ int orderly_poweroff(bool force)
- 	int ret = -ENOMEM;
- 	struct subprocess_info *info;
- 
-+	/* RCU protection for poweroff_cmd */
-+	rcu_read_lock();
-+	argv = argv_split(GFP_ATOMIC, rcu_dereference(poweroff_cmd), &argc);
-+	rcu_read_unlock();
- 	if (argv == NULL) {
- 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
- 		       __func__, poweroff_cmd);
-diff -puN kernel/sysctl.c~sysctl-convert-poweroff_command-to-proc_rcu_string kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-convert-poweroff_command-to-proc_rcu_string
+ /* counter to tag the uevent, read only except for the kobject core */
+ extern u64 uevent_seqnum;
+diff -puN kernel/sysctl.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string
 +++ a/kernel/sysctl.c
-@@ -886,7 +886,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= &poweroff_cmd,
- 		.maxlen		= POWEROFF_CMD_PATH_LEN,
+@@ -557,7 +557,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &uevent_helper,
+ 		.maxlen		= UEVENT_HELPER_PATH_LEN,
  		.mode		= 0644,
 -		.proc_handler	= proc_dostring,
 +		.proc_handler	= proc_rcu_string,
  	},
- #ifdef CONFIG_KEYS
- 	{
+ #endif
+ #ifdef CONFIG_CHR_DEV_SG
+diff -puN lib/kobject_uevent.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string
++++ a/lib/kobject_uevent.c
+@@ -22,11 +22,12 @@
+ #include <linux/socket.h>
+ #include <linux/skbuff.h>
+ #include <linux/netlink.h>
++#include <linux/rcustring.h>
+ #include <net/sock.h>
+ 
+ 
+ u64 uevent_seqnum;
+-char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
++char *uevent_helper = CONFIG_UEVENT_HELPER_PATH;
+ static DEFINE_SPINLOCK(sequence_lock);
+ #if defined(CONFIG_NET)
+ static struct sock *uevent_sock;
+@@ -76,6 +77,34 @@ out:
+ 	return ret;
+ }
+ 
++/* Call an external helper executable. */
++static int uevent_call_helper(const char *subsystem, struct kobj_uevent_env *env)
++{
++	char *argv[3];
++	char *helper;
++	int retval;
++
++	helper = access_rcu_string(&uevent_helper, UEVENT_HELPER_PATH_LEN, GFP_KERNEL);
++	if (!helper)
++		return -ENOMEM;
++
++	retval = -E2BIG;
++	argv[0] = helper;
++	argv[1] = (char *)subsystem;
++	argv[2] = NULL;
++	retval = add_uevent_var(env, "HOME=/");
++	if (retval)
++		goto error;
++	retval = add_uevent_var(env, "PATH=/sbin:/bin:/usr/sbin:/usr/bin");
++	if (retval)
++		goto error;
++
++	retval = call_usermodehelper(argv[0], argv, env->envp, UMH_WAIT_EXEC);
++error:
++	kfree(helper);
++	return retval;
++}
++
+ /**
+  * kobject_uevent_env - send an uevent with environmental data
+  *
+@@ -243,23 +272,8 @@ int kobject_uevent_env(struct kobject *k
+ #endif
+ 
+ 	/* call uevent_helper, usually only enabled during early boot */
+-	if (uevent_helper[0]) {
+-		char *argv [3];
+-
+-		argv [0] = uevent_helper;
+-		argv [1] = (char *)subsystem;
+-		argv [2] = NULL;
+-		retval = add_uevent_var(env, "HOME=/");
+-		if (retval)
+-			goto exit;
+-		retval = add_uevent_var(env,
+-					"PATH=/sbin:/bin:/usr/sbin:/usr/bin");
+-		if (retval)
+-			goto exit;
+-
+-		retval = call_usermodehelper(argv[0], argv,
+-					     env->envp, UMH_WAIT_EXEC);
+-	}
++	if (uevent_helper[0])
++		retval = uevent_call_helper(subsystem, env);
+ 
+ exit:
+ 	kfree(devpath);
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
@@ -116,7 +166,6 @@ export-__ptrace_detach-and-do_notify_parent_cldstop.patch
 reorder-the-code-in-kernel-ptracec.patch
 implement-utrace-ptrace.patch
 utrace-core.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
 sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
 sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
 sysctl-fix-up-remaining-references-to-uevent_helper.patch
