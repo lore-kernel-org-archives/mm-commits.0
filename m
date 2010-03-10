@@ -1,63 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pps-linuxpps-clients-support-v3-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 15:05:32 -0800
-Message-ID: <201003102305.o2AN5Wjx009251@imap1.linux-foundation.org>
+Subject: [folded] pps-serial-clients-support-warning-fixes.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 15:06:12 -0800
+Message-ID: <201003102306.o2AN6CRf009353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932854Ab0CJXGD (ORCPT
+	by vger.kernel.org with ESMTP id S932854Ab0CJXGc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 18:06:03 -0500
+	Wed, 10 Mar 2010 18:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, giometti@linux.it, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, giometti@linux.it, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps-linuxpps-clients-support-v3-checkpatch-fixes
+     pps-serial-clients-support-warning-fixes.txt
 has been removed from the -mm tree.  Its filename was
-     pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+     pps-serial-clients-support-warning-fixes.patch
 
-This patch was dropped because it was folded into pps-linuxpps-clients-support.patch
+This patch was dropped because it was folded into pps-serial-clients-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-linuxpps-clients-support-v3-checkpatch-fixes
+Subject: pps-serial-clients-support-warning-fixes.txt
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: please, no space before tabs
-#261: FILE: drivers/pps/clients/pps-ktimer.c:82:
-+^I.echo ^I^I= pps_ktimer_echo,$
+s390: 
 
-total: 0 errors, 1 warnings, 138 lines checked
-
-./patches/pps-linuxpps-clients-support-v3.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_dcd_change':
+drivers/pps/clients/pps-ldisc.c:32: warning: cast from pointer to integer of different size
+drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_open':
+drivers/pps/clients/pps-ldisc.c:79: warning: cast to pointer from integer of different size
+drivers/pps/clients/pps-ldisc.c:84: warning: cast from pointer to integer of different size
+drivers/pps/clients/pps-ldisc.c: In function 'pps_tty_close':
+drivers/pps/clients/pps-ldisc.c:95: warning: cast from pointer to integer of different size
 
 Cc: Rodolfo Giometti <giometti@linux.it>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ktimer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pps/clients/pps-ldisc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes drivers/pps/clients/pps-ktimer.c
---- a/drivers/pps/clients/pps-ktimer.c~pps-linuxpps-clients-support-v3-checkpatch-fixes
-+++ a/drivers/pps/clients/pps-ktimer.c
-@@ -79,7 +79,7 @@ static struct pps_source_info pps_ktimer
- 	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
- 			  PPS_ECHOASSERT |
- 			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
--	.echo 		= pps_ktimer_echo,
-+	.echo		= pps_ktimer_echo,
- 	.owner		= THIS_MODULE,
- };
+diff -puN drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-warning-fixes drivers/pps/clients/pps-ldisc.c
+--- a/drivers/pps/clients/pps-ldisc.c~pps-serial-clients-support-warning-fixes
++++ a/drivers/pps/clients/pps-ldisc.c
+@@ -29,7 +29,7 @@
+ static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status,
+ 				struct timespec *ts)
+ {
+-	int id = (int) tty->disc_data;
++	int id = (long)tty->disc_data;
+ 	struct timespec __ts;
+ 	struct pps_ktime pps_ts;
  
+@@ -76,12 +76,12 @@ static int pps_tty_open(struct tty_struc
+ 		pr_err("cannot register PPS source \"%s\"\n", info.path);
+ 		return ret;
+ 	}
+-	tty->disc_data = (void *) ret;
++	tty->disc_data = (void *)(long)ret;
+ 
+ 	/* Should open N_TTY ldisc too */
+ 	ret = alias_n_tty_open(tty);
+ 	if (ret < 0)
+-		pps_unregister_source((int) tty->disc_data);
++		pps_unregister_source((long)tty->disc_data);
+ 
+ 	pr_info("PPS source #%d \"%s\" added\n", ret, info.path);
+ 
+@@ -92,7 +92,7 @@ static void (*alias_n_tty_close)(struct 
+ 
+ static void pps_tty_close(struct tty_struct *tty)
+ {
+-	int id = (int) tty->disc_data;
++	int id = (long)tty->disc_data;
+ 
+ 	pps_unregister_source(id);
+ 	alias_n_tty_close(tty);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +96,7 @@ memcg-move-charges-of-anonymous-swap.patch
 memcg-implement-memory-thresholds.patch
 documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
 pps-linuxpps-clients-support.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
+pps-serial-clients-support.patch
 pps-serial-clients-support-warning-fixes.patch
 sysctl-extern-cleanup-binfmts-fix.patch
 sysctl-extern-cleanup-module-fix.patch
