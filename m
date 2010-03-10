@@ -1,161 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-charges-of-anonymous-swap-fix-3.patch added to -mm tree
-Date: Tue, 09 Mar 2010 19:04:14 -0800
-Message-ID: <201003100304.o2A34EY7020892@imap1.linux-foundation.org>
+Subject: [obsolete] bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 12:08:05 -0800
+Message-ID: <201003102008.o2AK86PS000997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755180Ab0CJDE4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Mar 2010 22:04:56 -0500
+	by vger.kernel.org with ESMTP id S1756964Ab0CJUI7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 10 Mar 2010 15:08:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, kamezawa.hiroyu@jp.fujitsu.com
+To: akinobu.mita@gmail.com, adobriyan@gmail.com, akpm@linux-foundation.org, davem@davemloft.net, dedekind@infradead.org, dwalker@codeaurora.org, dwmw2@infradead.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     memcg-move-charges-of-anonymous-swap-fix-3
-has been added to the -mm tree.  Its filename is
-     memcg-move-charges-of-anonymous-swap-fix-3.patch
+     bitops: rename for_each_bit() to for_each_set_bit(): arm
+has been removed from the -mm tree.  Its filename was
+     bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-charges-of-anonymous-swap-fix-3
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: bitops: rename for_each_bit() to for_each_set_bit(): arm
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-"move charges at task migration" feature depends on page tables. So, it doesn't
-work in !CONIFG_MMU environments.
-This patch moves "task move" codes under CONIFG_MMU.
+Rename for_each_bit to for_each_set_bit in the kernel source tree.  To
+permit for_each_clear_bit(), should that ever be added.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Suggested-by: Alexey Dobriyan <adobriyan@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 +
- mm/memcontrol.c                  |   31 +++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ arch/arm/mach-msm/pm.c  |    2 +-
+ arch/arm/mach-msm/pm2.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap-fix-3 Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap-fix-3
-+++ a/Documentation/cgroups/memory.txt
-@@ -420,6 +420,8 @@ NOTE2: It is recommended to set the soft
+diff -puN arch/arm/mach-msm/pm.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm arch/arm/mach-msm/pm.c
+--- a/arch/arm/mach-msm/pm.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm
++++ a/arch/arm/mach-msm/pm.c
+@@ -764,7 +764,7 @@ static int msm_pm_read_proc(
  
- Users can move charges associated with a task along with task migration, that
- is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
-+This feature is not supporetd in !CONFIG_MMU environmetns because of lack of
-+page tables.
+ 	if (!off) {
+ 		SNPRINTF(p, count, "Clocks against last TCXO shutdown:\n");
+-		for_each_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
++		for_each_set_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
+ 			clk_name[0] = '\0';
+ 			msm_clock_get_name(i, clk_name, sizeof(clk_name));
+ 			SNPRINTF(p, count, "  %s (id=%d)\n", clk_name, i);
+diff -puN arch/arm/mach-msm/pm2.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm arch/arm/mach-msm/pm2.c
+--- a/arch/arm/mach-msm/pm2.c~bitops-rename-for_each_bit-to-for_each_set_bit-arm
++++ a/arch/arm/mach-msm/pm2.c
+@@ -698,7 +698,7 @@ static int msm_pm_read_proc
  
- 8.1 Interface
- 
-diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-swap-fix-3 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-swap-fix-3
-+++ a/mm/memcontrol.c
-@@ -2998,6 +2998,7 @@ static u64 mem_cgroup_move_charge_read(s
- 	return mem_cgroup_from_cont(cgrp)->move_charge_at_immigrate;
- }
- 
-+#ifdef CONFIG_MMU
- static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
- 					struct cftype *cft, u64 val)
- {
-@@ -3016,6 +3017,13 @@ static int mem_cgroup_move_charge_write(
- 
- 	return 0;
- }
-+#else
-+static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
-+					struct cftype *cft, u64 val)
-+{
-+	return -ENOSYS;
-+}
-+#endif
- 
- 
- /* For read statistics */
-@@ -3538,6 +3546,7 @@ static int mem_cgroup_populate(struct cg
- 	return ret;
- }
- 
-+#ifdef CONFIG_MMU
- /* Handlers for move charge at task migration. */
- #define PRECHARGE_COUNT_AT_ONCE	256
- static int mem_cgroup_do_precharge(unsigned long count)
-@@ -3593,6 +3602,28 @@ one_by_one:
- 	}
- 	return ret;
- }
-+#else	/* !CONFIG_MMU */
-+static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+	return 0;
-+}
-+static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-+				struct cgroup *cont,
-+				struct cgroup *old_cont,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+#endif
- 
- /**
-  * is_target_pte_for_mc - check a pte whether it is valid for move charge
+ 	if (!off) {
+ 		SNPRINTF(p, count, "Clocks against last TCXO shutdown:\n");
+-		for_each_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
++		for_each_set_bit(i, msm_pm_clocks_no_tcxo_shutdown, NR_CLKS) {
+ 			clk_name[0] = '\0';
+ 			msm_clock_get_name(i, clk_name, sizeof(clk_name));
+ 			SNPRINTF(p, count, "  %s (id=%d)\n", clk_name, i);
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-move-charges-of-anonymous-swap-fix-3.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-use-generic-percpu-instead-of-private-implementation.patch
-memcg-update-threshold-and-softlimit-at-commit-v2.patch
-memcg-share-event-counter-rather-than-duplicate-v2.patch
-memcg-update-memcg_testtxt.patch
-memcg-handle-panic_on_oom=always-case-v2.patch
-cgroups-fix-race-between-userspace-and-kernelspace.patch
-cgroups-remove-events-before-destroying-subsystem-state-objects.patch
-cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
-cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
-memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
-memcg-fix-oom-kill-behavior-v3.patch
-memcg-fix-oom-kill-behavior-v4.patch
-memcg-update-maintainer-list.patch
+sgi-gru-use-for_each_set_bit.patch
+linux-next.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-arm.patch
+hpet-use-for_each_set_bit.patch
+intel-iommu-use-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+ntfs-use-bitmap_weight.patch
+phonet-use-for_each_set_bit.patch
+atm-use-for_each_set_bit.patch
+bitops-remove-temporary-for_each_bit.patch
 
