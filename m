@@ -1,200 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 12:29:45 -0800
-Message-ID: <201003102029.o2AKTjRQ001915@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 12:30:09 -0800
+Message-ID: <201003102030.o2AKUAgM001957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757005Ab0CJUaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757039Ab0CJUa2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 15:30:16 -0500
+	Wed, 10 Mar 2010 15:30:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, andi@firstfloor.org, gregkh@suse.de, jirislaby@gmail.com, kay.sievers@suse.de, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: add proc_rcu_string to manage sysctls using rcu strings
+     sysctl-fix-up-remaining-references-to-uevent_helper-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
+     sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add proc_rcu_string to manage sysctls using rcu strings
-From: Andi Kleen <andi@firstfloor.org>
+Subject: sysctl-fix-up-remaining-references-to-uevent_helper-fix
+From: Neil Horman <nhorman@tuxdriver.com>
 
-Add a helper to use the new rcu strings for managing access to text
-sysctls.  Conversions will be in follow-on patches.
+Fix up a few remaining nits in uevent_helper
 
-An alternative would be to use seqlocks here, but RCU seemed cleaner.
+Fixes the remaining missed lock points in uevent_helper, as reported by
+Paul McKenney in his review.  Specifically adds a spin lock to guard the
+write side of usevent_helper from concurrent writes, and fixes two
+remaining missed read side points that failed to use rcu_read_lock
+properly.  Also fixe up a minor string parsing issue in uvent_helper_set
+(was terminating the string on the wrong buffer).
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+I've done minimal testing on this (as the things this fixes were reported
+by code audit, not any actual oops or other failure).  I did run this for
+a few hours though, with several processes reading/writing different
+values to /sys/kernel/uevent_helper, while issued a few module loads that
+required issuing udev events (which, when overlapping with a proper write
+to /sys/kernel/uevent), triggered a fork in the appropriate binary. 
+Nothing has fallen over in that time, so I'm satisfied with this.  Applies
+as an incremental on top of the latest -mm Neil
+
+Reported-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Tested-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Kay Sievers <kay.sievers@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 +
- kernel/sysctl.c        |   66 +++++++++++++++++++++++++++++++++++++++
- kernel/sysctl_check.c  |    1 
- 3 files changed, 69 insertions(+)
+ kernel/ksysfs.c      |   17 ++++++++++++-----
+ lib/kobject_uevent.c |    3 ++-
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings
-+++ a/include/linux/sysctl.h
-@@ -966,6 +966,8 @@ typedef int proc_handler (struct ctl_tab
+diff -puN kernel/ksysfs.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix kernel/ksysfs.c
+--- a/kernel/ksysfs.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix
++++ a/kernel/ksysfs.c
+@@ -16,6 +16,7 @@
+ #include <linux/kexec.h>
+ #include <linux/profile.h>
+ #include <linux/sched.h>
++#include <linux/spinlock.h>
  
- extern int proc_dostring(struct ctl_table *, int,
- 			 void __user *, size_t *, loff_t *);
-+extern int proc_rcu_string(struct ctl_table *, int,
-+			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec(struct ctl_table *, int,
- 			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_minmax(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings
-+++ a/kernel/sysctl.c
-@@ -49,6 +49,7 @@
- #include <linux/acpi.h>
- #include <linux/reboot.h>
- #include <linux/ftrace.h>
-+#include <linux/rcustring.h>
- #include <linux/slow-work.h>
- #include <linux/perf_event.h>
- #include <linux/kprobes.h>
-@@ -2042,6 +2043,60 @@ static int _proc_do_string(void* data, i
- }
- 
- /**
-+ * proc_rcu_string - sysctl string with rcu protection
-+ * @table: the sysctl table
-+ * @write: %TRUE if this is a write to the sysctl file
-+ * @buffer: the user buffer
-+ * @lenp: the size of the user buffer
-+ * @ppos: file position
-+ *
-+ * Handle a string sysctl similar to proc_dostring.
-+ * The main difference is that the data pointer in the table
-+ * points to a pointer to a string. The string should be initially
-+ * pointing to a statically allocated (as a C object, not on the heap)
-+ * default. When it is replaced old uses will be protected by
-+ * RCU. The reader should use rcu_read_lock()/unlock() or
-+ * access_rcu_string().
-+ */
-+int proc_rcu_string(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+
-+	if (write) {
-+		/* protect writers against each other */
-+		static DEFINE_MUTEX(rcu_string_mutex);
-+		char *old;
-+		char *new;
-+
-+		new = alloc_rcu_string(table->maxlen, GFP_KERNEL);
-+		if (!new)
-+			return -ENOMEM;
-+		mutex_lock(&rcu_string_mutex);
-+		old = *(char **)(table->data);
-+		strcpy(new, old);
-+		ret = _proc_do_string(new, table->maxlen, write, buffer, lenp, ppos);
-+		rcu_assign_pointer(*(char **)(table->data), new);
-+		/*
-+		 * For the first initialization allow constant strings.
-+		 */
-+		if (!kernel_address((unsigned long)old))
-+			free_rcu_string(old);
-+		mutex_unlock(&rcu_string_mutex);
-+	} else {
-+		char *str;
-+
-+		str = access_rcu_string((char **)(table->data), table->maxlen,
-+					GFP_KERNEL);
-+		if (!str)
-+			return -ENOMEM;
-+		ret = _proc_do_string(str, table->maxlen, write, buffer, lenp, ppos);
-+		kfree(str);
-+	}
-+	return ret;
-+}
-+
-+/**
-  * proc_dostring - read a string sysctl
-  * @table: the sysctl table
-  * @write: %TRUE if this is a write to the sysctl file
-@@ -2056,6 +2111,10 @@ static int _proc_do_string(void* data, i
-  * and a newline '\n' is added. It is truncated if the buffer is
-  * not large enough.
-  *
-+ * WARNING: this should be only used for read only strings
-+ * or when you have a wrapper with special locking. Otherwise
-+ * use proc_rcu_string to avoid races with the consumer.
-+ *
-  * Returns 0 on success.
-  */
- int proc_dostring(struct ctl_table *table, int write,
-@@ -2640,6 +2699,12 @@ int proc_dostring(struct ctl_table *tabl
- 	return -ENOSYS;
- }
- 
-+int proc_rcu_string(struct ctl_table *table, int write,
-+		  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return -ENOSYS;
-+}
-+
- int proc_dointvec(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos)
+ #define KERNEL_ATTR_RO(_name) \
+ static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
+@@ -37,13 +38,18 @@ KERNEL_ATTR_RO(uevent_seqnum);
+ static ssize_t uevent_helper_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
  {
-@@ -2696,6 +2761,7 @@ EXPORT_SYMBOL(proc_dointvec_minmax);
- EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
- EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
- EXPORT_SYMBOL(proc_dostring);
-+EXPORT_SYMBOL(proc_rcu_string);
- EXPORT_SYMBOL(proc_doulongvec_minmax);
- EXPORT_SYMBOL(proc_doulongvec_ms_jiffies_minmax);
- EXPORT_SYMBOL(register_sysctl_table);
-diff -puN kernel/sysctl_check.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings
-+++ a/kernel/sysctl_check.c
-@@ -131,6 +131,7 @@ int sysctl_check_table(struct nsproxy *n
- 				set_fail(&fail, table, "Directory with extra2");
- 		} else {
- 			if ((table->proc_handler == proc_dostring) ||
-+			    (table->proc_handler == proc_rcu_string) ||
- 			    (table->proc_handler == proc_dointvec) ||
- 			    (table->proc_handler == proc_dointvec_minmax) ||
- 			    (table->proc_handler == proc_dointvec_jiffies) ||
-_
-
-Patches currently in -mm which might be from andi@firstfloor.org are
-
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
-sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
-sysctl-add-call_usermodehelper_cleanup.patch
-sysctl-convert-modprobe_path-to-proc_rcu_string.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
-sysctl-fix-up-remaining-references-to-uevent_helper.patch
-sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
-
+-	return sprintf(buf, "%s\n", rcu_dereference(uevent_helper));
++	ssize_t count;
++	rcu_read_lock();
++	count = sprintf(buf, "%s\n", rcu_dereference(uevent_helper));
++	rcu_read_unlock();
++	return count;
+ }
+ 
+ struct uevent_helper_rcu {
+ 	char *oldptr;
+ 	struct rcu_head rcu;
+ };
++static DEFINE_SPINLOCK(uevent_helper_lock);
+ 
+ static void free_old_uevent_ptr(struct rcu_head *list)
+ {
+@@ -68,15 +74,16 @@ static ssize_t uevent_helper_store(struc
+ 	kbuf = kstrndup(buf, UEVENT_HELPER_PATH_LEN, GFP_KERNEL);
+ 	if (!kbuf)
+ 		return -ENOMEM;
+-	uevent_helper[count] = '\0';
+-	if (count && uevent_helper[count-1] == '\n')
+-		uevent_helper[count-1] = '\0';
++	kbuf[count] = '\0';
++	if (count && kbuf[count-1] == '\n')
++		kbuf[count-1] = '\0';
+ 	old = kmalloc(sizeof(struct uevent_helper_rcu), GFP_KERNEL);
+ 	if (!old)
+ 		goto out_free;
+-
++	spin_lock(&uevent_helper_lock);
+ 	old->oldptr = rcu_dereference(uevent_helper);
+ 	rcu_assign_pointer(uevent_helper, kbuf);
++	spin_unlock(&uevent_helper_lock);
+ 	call_rcu(&old->rcu, free_old_uevent_ptr);
+ 
+ 	return count;
+diff -puN lib/kobject_uevent.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix
++++ a/lib/kobject_uevent.c
+@@ -273,10 +273,11 @@ int kobject_uevent_env(struct kobject *k
+ #endif
+ 
+ 	/* call uevent_helper, usually only enabled during early boot */
++	rcu_read_lock();
+ 	helper = rcu_dereference(uevent_helper);
+ 	if (helper[0])
+ 		retval = uevent_call_helper(subsystem, env);
