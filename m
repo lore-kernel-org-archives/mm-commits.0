@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-extern-cleanup-binfmts-fix.patch added to -mm tree
-Date: Wed, 10 Mar 2010 12:35:21 -0800
-Message-ID: <201003102101.o2AL1etv003488@imap1.linux-foundation.org>
+Subject: + sysctl-extern-cleanup-module-fix.patch added to -mm tree
+Date: Wed, 10 Mar 2010 12:43:14 -0800
+Message-ID: <201003102109.o2AL9WZM003797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757113Ab0CJVCZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757113Ab0CJVJk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 16:02:25 -0500
+	Wed, 10 Mar 2010 16:09:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@xmission.com, hidave.darkstar@gmail.com, jmorris@namei.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     sysctl-extern-cleanup-binfmts-fix
+     sysctl-extern-cleanup-module-fix
 has been added to the -mm tree.  Its filename is
-     sysctl-extern-cleanup-binfmts-fix.patch
+     sysctl-extern-cleanup-module-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-extern-cleanup-binfmts-fix
+Subject: sysctl-extern-cleanup-module-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-not sure how that happened..
+More fallout from dropping Andi's rcustring changes.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Morris <jmorris@namei.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/binfmts.h |    2 +-
+ include/linux/kmod.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/binfmts.h~sysctl-extern-cleanup-binfmts-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~sysctl-extern-cleanup-binfmts-fix
-+++ a/include/linux/binfmts.h
-@@ -22,7 +22,7 @@ struct pt_regs;
+diff -puN include/linux/kmod.h~sysctl-extern-cleanup-module-fix include/linux/kmod.h
+--- a/include/linux/kmod.h~sysctl-extern-cleanup-module-fix
++++ a/include/linux/kmod.h
+@@ -27,7 +27,7 @@
+ #define KMOD_PATH_LEN 256
  
- /* for sysctl */
- extern int core_uses_pid;
--extern char *core_pattern;
-+extern char core_pattern[];
- extern unsigned int core_pipe_limit;
- 
- #define CORENAME_MAX_SIZE 128
+ #ifdef CONFIG_MODULES
+-extern char *modprobe_path; /* for sysctl */
++extern char modprobe_path[]; /* for sysctl */
+ /* modprobe exit status on success, -ve on error.  Return value
+  * usually useless though. */
+ extern int __request_module(bool wait, const char *name, ...) \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +75,7 @@ mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
 documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
 pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
 sysctl-extern-cleanup-binfmts-fix.patch
+sysctl-extern-cleanup-module-fix.patch
 linux-next.patch
 linux-next-fixups.patch
 next-remove-localversion.patch
