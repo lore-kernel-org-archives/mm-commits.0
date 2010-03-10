@@ -1,115 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-move-charges-of-anonymous-page-cleanup.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 14:54:12 -0800
-Message-ID: <201003102254.o2AMsCkc008709@imap1.linux-foundation.org>
+Subject: [folded] memcg-move-charges-of-anonymous-swap-fix-2.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 14:54:39 -0800
+Message-ID: <201003102254.o2AMsepi008718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757385Ab0CJWyZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757385Ab0CJWyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:54:25 -0500
+	Wed, 10 Mar 2010 17:54:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-move-charges-of-anonymous-page-cleanup
+     memcg-move-charges-of-anonymous-swap-fix-2
 has been removed from the -mm tree.  Its filename was
-     memcg-move-charges-of-anonymous-page-cleanup.patch
+     memcg-move-charges-of-anonymous-swap-fix-2.patch
 
-This patch was dropped because it was folded into memcg-move-charges-of-anonymous-page.patch
+This patch was dropped because it was folded into memcg-move-charges-of-anonymous-swap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-charges-of-anonymous-page-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-move-charges-of-anonymous-swap-fix-2
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-a little simplification
+Now, ia64 can't compile page_cgroup.c.
+because it include asm/cmpxhg.h but almost arch don't have arch specific
+cmpxhg.h. they use asm-generic/cmpxhg.h.
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Then, following errror occur.
+
+  CC      mm/page_cgroup.o
+  mm/page_cgroup.c:12:25: error: asm/cmpxchg.h: No such file or
+  directory
+  make[1]: *** [mm/page_cgroup.o] Error 1
+  make: *** [mm] Error 2
+
+Fortunately, memcg code don't use low layer cmpxchg directly. thus
+this patch remove this include line simply.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/page_cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-page-cleanup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-page-cleanup
-+++ a/mm/memcontrol.c
-@@ -248,14 +248,13 @@ enum move_type {
- 	MOVE_CHARGE_TYPE_ANON,	/* private anonymous page and swap of it */
- 	NR_MOVE_TYPE,
- };
-+
- /* "mc" and its members are protected by cgroup_mutex */
--struct move_charge_struct {
-+static struct move_charge_struct {
- 	struct mem_cgroup *from;
- 	struct mem_cgroup *to;
- 	unsigned long precharge;
--};
--static struct move_charge_struct mc;
--
-+} mc;
+diff -puN mm/page_cgroup.c~memcg-move-charges-of-anonymous-swap-fix-2 mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-move-charges-of-anonymous-swap-fix-2
++++ a/mm/page_cgroup.c
+@@ -9,7 +9,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/cgroup.h>
+ #include <linux/swapops.h>
+-#include <asm/cmpxchg.h>
  
- /*
-  * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
+ static void __meminit
+ __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-add-generic-sys_ipc-wrapper.patch
-broadsheetfb-support-storing-waveform.patch
-drivers-char-memc-cleanups.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-mn10300-remove-the-obsolete-and-unnecessary-dma-api-comments-fix.patch
-documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api-fix.patch
-pps-linuxpps-clients-support-v3-checkpatch-fixes.patch
-pps-serial-clients-support-warning-fixes.patch
-sysctl-extern-cleanup-binfmts-fix.patch
-sysctl-extern-cleanup-module-fix.patch
-linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+coredump-plug-a-memory-leak-situation-on-dump_seek.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix-2.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists-fix.patch
 reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
