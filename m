@@ -1,173 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 12:30:00 -0800
-Message-ID: <201003102030.o2AKU0QT001941@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-clean-up-vm-related-variable-declarations.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 12:30:12 -0800
+Message-ID: <201003102030.o2AKUCpI001960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757036Ab0CJUa2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757031Ab0CJUaX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 15:30:28 -0500
+	Wed, 10 Mar 2010 15:30:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, gregkh@suse.de, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: convert hotplug helper string to proc_rcu_string()
+     sysctl: clean up vm related variable declarations
 has been removed from the -mm tree.  Its filename was
-     sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
+     sysctl-clean-up-vm-related-variable-declarations.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: convert hotplug helper string to proc_rcu_string()
-From: Andi Kleen <andi@firstfloor.org>
+Subject: sysctl: clean up vm related variable declarations
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This avoids races with lockless sysctl.
+Presently there are many "extern" declaration in kernel/sysctl.c. 
+"extern" declaration in *.c file is not appreciated in general.  And
+Hmm...it seems there are a few redundant declarations.
 
-Also saves ~220 bytes in the data segment for default kernels.
+Because most of sysctl variables are defined in its own header file, they
+should be declared in the same style, be done in its own *.h file.
 
-I also moved the code into a separate function because the original
-was very long.
+This patch removes some VM(memory management) related sysctl's variable
+declaration from kernel/sysctl.c and move them to proper places.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+[rientjes@google.com: #ifdef fixlet]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kobject.h |    2 -
- kernel/sysctl.c         |    2 -
- lib/kobject_uevent.c    |   50 ++++++++++++++++++++++++--------------
- 3 files changed, 34 insertions(+), 20 deletions(-)
+ include/linux/mm.h     |    5 +++++
+ include/linux/mmzone.h |    1 +
+ include/linux/oom.h    |    5 +++++
+ kernel/sysctl.c        |   16 ++--------------
+ mm/mmap.c              |    5 +++++
+ 5 files changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/kobject.h~sysctl-convert-hotplug-helper-string-to-proc_rcu_string include/linux/kobject.h
---- a/include/linux/kobject.h~sysctl-convert-hotplug-helper-string-to-proc_rcu_string
-+++ a/include/linux/kobject.h
-@@ -31,7 +31,7 @@
- #define UEVENT_BUFFER_SIZE		2048	/* buffer for the variables */
+diff -puN include/linux/mm.h~sysctl-clean-up-vm-related-variable-declarations include/linux/mm.h
+--- a/include/linux/mm.h~sysctl-clean-up-vm-related-variable-declarations
++++ a/include/linux/mm.h
+@@ -1412,6 +1412,7 @@ int in_gate_area_no_task(unsigned long a
+ #define in_gate_area(task, addr) ({(void)task; in_gate_area_no_task(addr);})
+ #endif	/* __HAVE_ARCH_GATE_AREA */
  
- /* path to the userspace helper executed on an event */
--extern char uevent_helper[];
-+extern char *uevent_helper;
++extern int sysctl_drop_caches;
+ int drop_caches_sysctl_handler(struct ctl_table *, int,
+ 					void __user *, size_t *, loff_t *);
+ unsigned long shrink_slab(unsigned long scanned, gfp_t gfp_mask,
+@@ -1463,5 +1464,9 @@ extern int soft_offline_page(struct page
  
- /* counter to tag the uevent, read only except for the kobject core */
- extern u64 uevent_seqnum;
-diff -puN kernel/sysctl.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string
-+++ a/kernel/sysctl.c
-@@ -557,7 +557,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= &uevent_helper,
- 		.maxlen		= UEVENT_HELPER_PATH_LEN,
- 		.mode		= 0644,
--		.proc_handler	= proc_dostring,
-+		.proc_handler	= proc_rcu_string,
- 	},
- #endif
- #ifdef CONFIG_CHR_DEV_SG
-diff -puN lib/kobject_uevent.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~sysctl-convert-hotplug-helper-string-to-proc_rcu_string
-+++ a/lib/kobject_uevent.c
-@@ -22,11 +22,12 @@
- #include <linux/socket.h>
- #include <linux/skbuff.h>
- #include <linux/netlink.h>
-+#include <linux/rcustring.h>
- #include <net/sock.h>
+ extern void dump_page(struct page *page);
  
- 
- u64 uevent_seqnum;
--char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
-+char *uevent_helper = CONFIG_UEVENT_HELPER_PATH;
- static DEFINE_SPINLOCK(sequence_lock);
- #if defined(CONFIG_NET)
- static struct sock *uevent_sock;
-@@ -76,6 +77,34 @@ out:
- 	return ret;
++#ifndef CONFIG_MMU
++extern int sysctl_nr_trim_pages;
++#endif
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_MM_H */
+diff -puN include/linux/mmzone.h~sysctl-clean-up-vm-related-variable-declarations include/linux/mmzone.h
+--- a/include/linux/mmzone.h~sysctl-clean-up-vm-related-variable-declarations
++++ a/include/linux/mmzone.h
+@@ -749,6 +749,7 @@ int min_free_kbytes_sysctl_handler(struc
+ extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES-1];
+ int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *, int,
+ 					void __user *, size_t *, loff_t *);
++extern int percpu_pagelist_fraction; /* for sysctl */
+ int percpu_pagelist_fraction_sysctl_handler(struct ctl_table *, int,
+ 					void __user *, size_t *, loff_t *);
+ int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *, int,
+diff -puN include/linux/oom.h~sysctl-clean-up-vm-related-variable-declarations include/linux/oom.h
+--- a/include/linux/oom.h~sysctl-clean-up-vm-related-variable-declarations
++++ a/include/linux/oom.h
+@@ -43,5 +43,10 @@ static inline void oom_killer_enable(voi
+ {
+ 	oom_killer_disabled = false;
  }
- 
-+/* Call an external helper executable. */
-+static int uevent_call_helper(const char *subsystem, struct kobj_uevent_env *env)
-+{
-+	char *argv[3];
-+	char *helper;
-+	int retval;
++/* for sysctl */
++extern int sysctl_panic_on_oom;
++extern int sysctl_oom_kill_allocating_task;
++extern int sysctl_oom_dump_tasks;
 +
-+	helper = access_rcu_string(&uevent_helper, UEVENT_HELPER_PATH_LEN, GFP_KERNEL);
-+	if (!helper)
-+		return -ENOMEM;
-+
-+	retval = -E2BIG;
-+	argv[0] = helper;
-+	argv[1] = (char *)subsystem;
-+	argv[2] = NULL;
-+	retval = add_uevent_var(env, "HOME=/");
-+	if (retval)
-+		goto error;
-+	retval = add_uevent_var(env, "PATH=/sbin:/bin:/usr/sbin:/usr/bin");
-+	if (retval)
-+		goto error;
-+
-+	retval = call_usermodehelper(argv[0], argv, env->envp, UMH_WAIT_EXEC);
-+error:
-+	kfree(helper);
-+	return retval;
-+}
-+
- /**
-  * kobject_uevent_env - send an uevent with environmental data
-  *
-@@ -243,23 +272,8 @@ int kobject_uevent_env(struct kobject *k
+ #endif /* __KERNEL__*/
+ #endif /* _INCLUDE_LINUX_OOM_H */
+diff -puN kernel/sysctl.c~sysctl-clean-up-vm-related-variable-declarations kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-clean-up-vm-related-variable-declarations
++++ a/kernel/sysctl.c
+@@ -39,6 +39,8 @@
+ #include <linux/hugetlb.h>
+ #include <linux/initrd.h>
+ #include <linux/key.h>
++#include <linux/mman.h>
++#include <linux/oom.h>
+ #include <linux/times.h>
+ #include <linux/limits.h>
+ #include <linux/dcache.h>
+@@ -73,11 +75,6 @@
+ /* External variables not in a header file. */
+ extern int C_A_D;
+ extern int print_fatal_signals;
+-extern int sysctl_overcommit_memory;
+-extern int sysctl_overcommit_ratio;
+-extern int sysctl_panic_on_oom;
+-extern int sysctl_oom_kill_allocating_task;
+-extern int sysctl_oom_dump_tasks;
+ extern int max_threads;
+ extern int core_uses_pid;
+ extern int suid_dumpable;
+@@ -86,14 +83,9 @@ extern unsigned int core_pipe_limit;
+ extern int pid_max;
+ extern int min_free_kbytes;
+ extern int pid_max_min, pid_max_max;
+-extern int sysctl_drop_caches;
+-extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int latencytop_enabled;
+ extern int sysctl_nr_open_min, sysctl_nr_open_max;
+-#ifndef CONFIG_MMU
+-extern int sysctl_nr_trim_pages;
+-#endif
+ #ifdef CONFIG_RCU_TORTURE_TEST
+ extern int rcutorture_runnable;
+ #endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
+@@ -204,10 +196,6 @@ extern struct ctl_table inotify_table[];
+ extern struct ctl_table epoll_table[];
  #endif
  
- 	/* call uevent_helper, usually only enabled during early boot */
--	if (uevent_helper[0]) {
--		char *argv [3];
+-#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
+-int sysctl_legacy_va_layout;
+-#endif
 -
--		argv [0] = uevent_helper;
--		argv [1] = (char *)subsystem;
--		argv [2] = NULL;
--		retval = add_uevent_var(env, "HOME=/");
--		if (retval)
--			goto exit;
--		retval = add_uevent_var(env,
--					"PATH=/sbin:/bin:/usr/sbin:/usr/bin");
--		if (retval)
--			goto exit;
--
--		retval = call_usermodehelper(argv[0], argv,
--					     env->envp, UMH_WAIT_EXEC);
--	}
-+	if (uevent_helper[0])
-+		retval = uevent_call_helper(subsystem, env);
+ extern int prove_locking;
+ extern int lock_stat;
  
- exit:
- 	kfree(devpath);
+diff -puN mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations mm/mmap.c
+--- a/mm/mmap.c~sysctl-clean-up-vm-related-variable-declarations
++++ a/mm/mmap.c
+@@ -87,6 +87,11 @@ int sysctl_overcommit_ratio = 50;	/* def
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
+ struct percpu_counter vm_committed_as;
+ 
++#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
++/* Used by each architecture's private code and sysctl. */
++int sysctl_legacy_va_layout;
++#endif
++
+ /*
+  * Check that a process has enough memory to allocate a new virtual
+  * mapping. 0 means there is enough memory for the allocation to
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+nommu-fix-build-breakage.patch
+devmem-dont-allow-seek-to-last-page.patch
+drivers-char-memc-cleanups.patch
+drivers-char-memc-cleanups-fix.patch
+drivers-char-memc-cleanups-fix-fix.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
+cgroups-clean-up-cgroup_pidlist_find-a-bit.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
+memcg-move-charges-of-anonymous-swap-fix-3.patch
+memcg-move-charges-of-anonymous-swap-fix-3-fix.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-fixes-fix.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-implement-memory-thresholds-check-if-first-threshold-crossed.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+memcg-use-generic-percpu-instead-of-private-implementation.patch
+memcg-update-threshold-and-softlimit-at-commit-v2.patch
+memcg-share-event-counter-rather-than-duplicate-v2.patch
+memcg-update-memcg_testtxt.patch
+memcg-handle-panic_on_oom=always-case-v2.patch
+cgroups-fix-race-between-userspace-and-kernelspace.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation.patch
+cgroups-add-simple-listener-of-cgroup-events-to-documentation-fix.patch
+memcg-update-memcg_testtxt-to-describe-memory-thresholds.patch
+memcg-fix-oom-kill-behavior-v3.patch
+memcg-fix-oom-kill-behavior-v4.patch
+memcg-update-maintainer-list.patch
 linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
-sysctl-fix-up-remaining-references-to-uevent_helper.patch
-sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
+memory-hotplug-allow-setting-of-phys_device.patch
+memory-hotplug-s390-set-phys_device.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+sysctl-clean-up-vm-related-variable-declarations.patch
+sysctl-clean-up-vm-related-variable-declarations-fix.patch
 
