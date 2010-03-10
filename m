@@ -1,125 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch removed from -mm tree
-Date: Wed, 10 Mar 2010 12:30:09 -0800
-Message-ID: <201003102030.o2AKUAgM001957@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-convert-poweroff_command-to-proc_rcu_string.patch removed from -mm tree
+Date: Wed, 10 Mar 2010 12:29:57 -0800
+Message-ID: <201003102029.o2AKTvOq001937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757039Ab0CJUa2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757034Ab0CJUa2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 10 Mar 2010 15:30:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, andi@firstfloor.org, gregkh@suse.de, jirislaby@gmail.com, kay.sievers@suse.de, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl-fix-up-remaining-references-to-uevent_helper-fix
+     sysctl: convert poweroff_command to proc_rcu_string
 has been removed from the -mm tree.  Its filename was
-     sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
+     sysctl-convert-poweroff_command-to-proc_rcu_string.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-fix-up-remaining-references-to-uevent_helper-fix
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: sysctl: convert poweroff_command to proc_rcu_string
+From: Andi Kleen <andi@firstfloor.org>
 
-Fix up a few remaining nits in uevent_helper
+Avoids races with lockless sysctl.
 
-Fixes the remaining missed lock points in uevent_helper, as reported by
-Paul McKenney in his review.  Specifically adds a spin lock to guard the
-write side of usevent_helper from concurrent writes, and fixes two
-remaining missed read side points that failed to use rcu_read_lock
-properly.  Also fixe up a minor string parsing issue in uvent_helper_set
-(was terminating the string on the wrong buffer).
+Also saves ~220 bytes in the data segment for default kernels.
 
-I've done minimal testing on this (as the things this fixes were reported
-by code audit, not any actual oops or other failure).  I did run this for
-a few hours though, with several processes reading/writing different
-values to /sys/kernel/uevent_helper, while issued a few module loads that
-required issuing udev events (which, when overlapping with a proper write
-to /sys/kernel/uevent), triggered a fork in the appropriate binary. 
-Nothing has fallen over in that time, so I'm satisfied with this.  Applies
-as an incremental on top of the latest -mm Neil
-
-Reported-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Tested-by: Neil Horman <nhorman@tuxdriver.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Kay Sievers <kay.sievers@suse.de>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Russell King <rmk+lkml@arm.linux.org.uk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c      |   17 ++++++++++++-----
- lib/kobject_uevent.c |    3 ++-
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ include/linux/reboot.h |    2 +-
+ kernel/sys.c           |    8 ++++++--
+ kernel/sysctl.c        |    2 +-
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/ksysfs.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix kernel/ksysfs.c
---- a/kernel/ksysfs.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix
-+++ a/kernel/ksysfs.c
-@@ -16,6 +16,7 @@
- #include <linux/kexec.h>
- #include <linux/profile.h>
- #include <linux/sched.h>
-+#include <linux/spinlock.h>
+diff -puN include/linux/reboot.h~sysctl-convert-poweroff_command-to-proc_rcu_string include/linux/reboot.h
+--- a/include/linux/reboot.h~sysctl-convert-poweroff_command-to-proc_rcu_string
++++ a/include/linux/reboot.h
+@@ -67,7 +67,7 @@ extern void kernel_power_off(void);
+ void ctrl_alt_del(void);
  
- #define KERNEL_ATTR_RO(_name) \
- static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
-@@ -37,13 +38,18 @@ KERNEL_ATTR_RO(uevent_seqnum);
- static ssize_t uevent_helper_show(struct kobject *kobj,
- 				  struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%s\n", rcu_dereference(uevent_helper));
-+	ssize_t count;
-+	rcu_read_lock();
-+	count = sprintf(buf, "%s\n", rcu_dereference(uevent_helper));
-+	rcu_read_unlock();
-+	return count;
+ #define POWEROFF_CMD_PATH_LEN	256
+-extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
++extern char *poweroff_cmd;
+ 
+ extern int orderly_poweroff(bool force);
+ 
+diff -puN kernel/sys.c~sysctl-convert-poweroff_command-to-proc_rcu_string kernel/sys.c
+--- a/kernel/sys.c~sysctl-convert-poweroff_command-to-proc_rcu_string
++++ a/kernel/sys.c
+@@ -1789,7 +1789,7 @@ SYSCALL_DEFINE3(getcpu, unsigned __user 
+ 	return err ? -EFAULT : 0;
  }
  
- struct uevent_helper_rcu {
- 	char *oldptr;
- 	struct rcu_head rcu;
- };
-+static DEFINE_SPINLOCK(uevent_helper_lock);
+-char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
++char *poweroff_cmd = "/sbin/poweroff";
  
- static void free_old_uevent_ptr(struct rcu_head *list)
+ static void argv_cleanup(char **argv, char **envp)
  {
-@@ -68,15 +74,16 @@ static ssize_t uevent_helper_store(struc
- 	kbuf = kstrndup(buf, UEVENT_HELPER_PATH_LEN, GFP_KERNEL);
- 	if (!kbuf)
- 		return -ENOMEM;
--	uevent_helper[count] = '\0';
--	if (count && uevent_helper[count-1] == '\n')
--		uevent_helper[count-1] = '\0';
-+	kbuf[count] = '\0';
-+	if (count && kbuf[count-1] == '\n')
-+		kbuf[count-1] = '\0';
- 	old = kmalloc(sizeof(struct uevent_helper_rcu), GFP_KERNEL);
- 	if (!old)
- 		goto out_free;
--
-+	spin_lock(&uevent_helper_lock);
- 	old->oldptr = rcu_dereference(uevent_helper);
- 	rcu_assign_pointer(uevent_helper, kbuf);
-+	spin_unlock(&uevent_helper_lock);
- 	call_rcu(&old->rcu, free_old_uevent_ptr);
+@@ -1806,7 +1806,7 @@ static void argv_cleanup(char **argv, ch
+ int orderly_poweroff(bool force)
+ {
+ 	int argc;
+-	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
++	char **argv;
+ 	static char *envp[] = {
+ 		"HOME=/",
+ 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
+@@ -1815,6 +1815,10 @@ int orderly_poweroff(bool force)
+ 	int ret = -ENOMEM;
+ 	struct subprocess_info *info;
  
- 	return count;
-diff -puN lib/kobject_uevent.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~sysctl-fix-up-remaining-references-to-uevent_helper-fix
-+++ a/lib/kobject_uevent.c
-@@ -273,10 +273,11 @@ int kobject_uevent_env(struct kobject *k
- #endif
- 
- 	/* call uevent_helper, usually only enabled during early boot */
++	/* RCU protection for poweroff_cmd */
 +	rcu_read_lock();
- 	helper = rcu_dereference(uevent_helper);
- 	if (helper[0])
- 		retval = uevent_call_helper(subsystem, env);
++	argv = argv_split(GFP_ATOMIC, rcu_dereference(poweroff_cmd), &argc);
++	rcu_read_unlock();
+ 	if (argv == NULL) {
+ 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
+ 		       __func__, poweroff_cmd);
+diff -puN kernel/sysctl.c~sysctl-convert-poweroff_command-to-proc_rcu_string kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-convert-poweroff_command-to-proc_rcu_string
++++ a/kernel/sysctl.c
+@@ -886,7 +886,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &poweroff_cmd,
+ 		.maxlen		= POWEROFF_CMD_PATH_LEN,
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dostring,
++		.proc_handler	= proc_rcu_string,
+ 	},
+ #ifdef CONFIG_KEYS
+ 	{
+_
+
+Patches currently in -mm which might be from andi@firstfloor.org are
+
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+linux-next.patch
+hardware-latency-detector-remove-default-m.patch
+modpost-support-objects-with-more-than-64k-sections.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
+sysctl-convert-poweroff_command-to-proc_rcu_string.patch
+sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
+sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
+sysctl-fix-up-remaining-references-to-uevent_helper.patch
+sysctl-fix-up-remaining-references-to-uevent_helper-fix.patch
+
