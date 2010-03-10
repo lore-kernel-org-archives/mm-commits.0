@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-extern-cleanup-module-fix.patch added to -mm tree
-Date: Wed, 10 Mar 2010 12:43:14 -0800
-Message-ID: <201003102109.o2AL9WZM003797@imap1.linux-foundation.org>
+Subject: + drivers-i2c-busses-i2c-xiicc-is-borked.patch added to -mm tree
+Date: Wed, 10 Mar 2010 13:19:16 -0800
+Message-ID: <201003102145.o2ALjZkd005562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41446 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757113Ab0CJVJk (ORCPT
+	by vger.kernel.org with ESMTP id S932128Ab0CJVqS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Mar 2010 16:09:40 -0500
+	Wed, 10 Mar 2010 16:46:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, khali@linux-fr.org
 
 
 The patch titled
-     sysctl-extern-cleanup-module-fix
+     drivers/i2c/busses/i2c-xiic.c is borked
 has been added to the -mm tree.  Its filename is
-     sysctl-extern-cleanup-module-fix.patch
+     drivers-i2c-busses-i2c-xiicc-is-borked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-extern-cleanup-module-fix
+Subject: drivers/i2c/busses/i2c-xiic.c is borked
 From: Andrew Morton <akpm@linux-foundation.org>
 
-More fallout from dropping Andi's rcustring changes.
+Someone forgot to add i2c-xiic.h
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-xiic.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kmod.h~sysctl-extern-cleanup-module-fix include/linux/kmod.h
---- a/include/linux/kmod.h~sysctl-extern-cleanup-module-fix
-+++ a/include/linux/kmod.h
-@@ -27,7 +27,7 @@
- #define KMOD_PATH_LEN 256
+diff -puN drivers/i2c/busses/i2c-xiic.c~drivers-i2c-busses-i2c-xiicc-is-borked drivers/i2c/busses/i2c-xiic.c
+--- a/drivers/i2c/busses/i2c-xiic.c~drivers-i2c-busses-i2c-xiicc-is-borked
++++ a/drivers/i2c/busses/i2c-xiic.c
+@@ -36,7 +36,7 @@
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
+ #include <linux/wait.h>
+-#include <linux/i2c-xiic.h>
++//#include <linux/i2c-xiic.h>
+ #include <linux/io.h>
  
- #ifdef CONFIG_MODULES
--extern char *modprobe_path; /* for sysctl */
-+extern char modprobe_path[]; /* for sysctl */
- /* modprobe exit status on success, -ve on error.  Return value
-  * usually useless though. */
- extern int __request_module(bool wait, const char *name, ...) \
+ #define DRIVER_NAME "xiic-i2c"
+@@ -747,8 +747,8 @@ static int __devinit xiic_i2c_probe(stru
+ 	}
+ 
+ 	/* add in known devices to the bus */
+-	for (i = 0; i < pdata->num_devices; i++)
+-		i2c_new_device(&i2c->adap, pdata->devices + i);
++//	for (i = 0; i < pdata->num_devices; i++)
++//		i2c_new_device(&i2c->adap, pdata->devices + i);
+ 
+ 	return 0;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,4 +119,5 @@ put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 notify_change-callers-must-hold-i_mutex.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
 
