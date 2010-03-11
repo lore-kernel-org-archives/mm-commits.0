@@ -1,136 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig.patch removed from -mm tree
-Date: Thu, 11 Mar 2010 14:01:52 -0800
-Message-ID: <201003112201.o2BM1qi6013105@imap1.linux-foundation.org>
+Subject: [folded] usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch removed from -mm tree
+Date: Thu, 11 Mar 2010 14:10:26 -0800
+Message-ID: <201003112210.o2BMARRs013709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757330Ab0CKWCC (ORCPT
+	by vger.kernel.org with ESMTP id S1758459Ab0CKWKl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Mar 2010 17:02:02 -0500
+	Thu, 11 Mar 2010 17:10:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpagano@gentoo.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@lisas.de, daniel.sangorrin@gmail.com, gregkh@suse.de, liboska@uochb.cas.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/Kconfig: add VIDEO_DEV dependency as needed in drivers/media/video/Kconfig
+     usb-serial-ftdi-add-contec-vendor-and-product-id-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig.patch
+     usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into usb-serial-ftdi-add-contec-vendor-and-product-id.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/Kconfig: add VIDEO_DEV dependency as needed in drivers/media/video/Kconfig
-From: Mike Pagano <mpagano@gentoo.org>
+Subject: usb-serial-ftdi-add-contec-vendor-and-product-id-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add VIDEO_DEV as dependency of VIDEO_CAPTURE_DRIVERS and all of the
-devices listed under this setting.
+Keep the VIDs sorted a bit
 
-Signed-off-by: Mike Pagano <mpagano@gentoo.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Daniel Sangorrin <daniel.sangorrin@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Radek Liboska <liboska@uochb.cas.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Kconfig |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/usb/serial/ftdi_sio_ids.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/media/video/Kconfig~drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig
-+++ a/drivers/media/video/Kconfig
-@@ -51,14 +51,14 @@ config VIDEO_TUNER
+diff -puN drivers/usb/serial/ftdi_sio_ids.h~usb-serial-ftdi-add-contec-vendor-and-product-id-fix drivers/usb/serial/ftdi_sio_ids.h
+--- a/drivers/usb/serial/ftdi_sio_ids.h~usb-serial-ftdi-add-contec-vendor-and-product-id-fix
++++ a/drivers/usb/serial/ftdi_sio_ids.h
+@@ -501,6 +501,13 @@
+ #define CONTEC_COM1USBH_PID	0x8311	/* COM-1(USB)H */
  
- menuconfig VIDEO_CAPTURE_DRIVERS
- 	bool "Video capture adapters"
--	depends on VIDEO_V4L2
-+	depends on VIDEO_V4L2 && VIDEO_DEV
- 	default y
- 	---help---
- 	  Say Y here to enable selecting the video adapters for
- 	  webcams, analog TV, and hybrid analog/digital TV.
- 	  Some of those devices also supports FM radio.
+ /*
++ * Contec products (http://www.contec.com)
++ * Submitted by Daniel Sangorrin
++ */
++#define CONTEC_VID		0x06CE	/* Vendor ID */
++#define CONTEC_COM1USBH_PID	0x8311	/* COM-1(USB)H */
++
++/*
+  * Definitions for B&B Electronics products.
+  */
+ #define BANDB_VID		0x0856	/* B&B Electronics Vendor ID */
+@@ -1011,13 +1018,6 @@
+ #define EVO_RCM4_PID		0x0303	/* Evolution robotics RCM4 PID */
  
--if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
-+if VIDEO_DEV && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
- 
- config VIDEO_ADV_DEBUG
- 	bool "Enable advanced debug functionality"
-@@ -509,7 +509,7 @@ endmenu # encoder / decoder chips
- 
- config DISPLAY_DAVINCI_DM646X_EVM
- 	tristate "DM646x EVM Video Display"
--	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-+	depends on MACH_DAVINCI_DM6467_EVM
- 	select VIDEOBUF_DMA_CONTIG
- 	select VIDEO_DAVINCI_VPIF
- 	select VIDEO_ADV7343
-@@ -522,7 +522,7 @@ config DISPLAY_DAVINCI_DM646X_EVM
- 
- config CAPTURE_DAVINCI_DM646X_EVM
- 	tristate "DM646x EVM Video Capture"
--	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-+	depends on MACH_DAVINCI_DM6467_EVM
- 	select VIDEOBUF_DMA_CONTIG
- 	select VIDEO_DAVINCI_VPIF
- 	help
-@@ -542,7 +542,7 @@ config VIDEO_DAVINCI_VPIF
- 
- config VIDEO_VIVI
- 	tristate "Virtual Video Driver"
--	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-+	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64
- 	select VIDEOBUF_VMALLOC
- 	default n
- 	---help---
-@@ -910,7 +910,7 @@ config MX1_VIDEO
- 
- config VIDEO_MX1
- 	tristate "i.MX1/i.MXL CMOS Sensor Interface driver"
--	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
-+	depends on ARCH_MX1 && SOC_CAMERA
- 	select FIQ
- 	select VIDEOBUF_DMA_CONTIG
- 	select MX1_VIDEO
-@@ -922,7 +922,7 @@ config MX3_VIDEO
- 
- config VIDEO_MX3
- 	tristate "i.MX3x Camera Sensor Interface driver"
--	depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
-+	depends on MX3_IPU && SOC_CAMERA
- 	select VIDEOBUF_DMA_CONTIG
- 	select MX3_VIDEO
- 	---help---
-@@ -930,21 +930,21 @@ config VIDEO_MX3
- 
- config VIDEO_PXA27x
- 	tristate "PXA27x Quick Capture Interface driver"
--	depends on VIDEO_DEV && PXA27x && SOC_CAMERA
-+	depends on PXA27x && SOC_CAMERA
- 	select VIDEOBUF_DMA_SG
- 	---help---
- 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
- 
- config VIDEO_SH_MOBILE_CEU
- 	tristate "SuperH Mobile CEU Interface driver"
--	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
-+	depends on SOC_CAMERA && HAS_DMA && HAVE_CLK
- 	select VIDEOBUF_DMA_CONTIG
- 	---help---
- 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
- 
- config VIDEO_OMAP2
- 	tristate "OMAP2 Camera Capture Interface driver"
--	depends on VIDEO_DEV && ARCH_OMAP2
-+	depends on ARCH_OMAP2
- 	select VIDEOBUF_DMA_SG
- 	---help---
- 	  This is a v4l2 driver for the TI OMAP2 camera capture interface
+ /*
+- * Contec products (http://www.contec.com)
+- * Submitted by Daniel Sangorrin
+- */
+-#define CONTEC_VID		0x06CE	/* Vendor ID */
+-#define CONTEC_COM1USBH_PID	0x8311	/* COM-1(USB)H */
+-
+-/*
+  * MJS Gadgets HD Radio / XM Radio / Sirius Radio interfaces (using VID 0x0403)
+  */
+ #define MJSG_GENERIC_PID	0x9378
 _
 
-Patches currently in -mm which might be from mpagano@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig.patch
+add-generic-sys_ipc-wrapper.patch
+broadsheetfb-support-storing-waveform.patch
+drivers-char-memc-cleanups.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-implement-memory-thresholds.patch
+documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
+pps-linuxpps-clients-support.patch
+pps-serial-clients-support.patch
+linux-next.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-make-it-build.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
