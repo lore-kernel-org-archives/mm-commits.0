@@ -1,98 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm.patch removed from -mm tree
-Date: Thu, 11 Mar 2010 10:56:16 -0800
-Message-ID: <201003111856.o2BIuGUg003325@imap1.linux-foundation.org>
+Subject: + arch-x86-crypto-aesni-intel_asms-make-it-build.patch added to -mm tree
+Date: Thu, 11 Mar 2010 11:50:10 -0800
+Message-ID: <201003112016.o2BKGU7D008360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933501Ab0CKS5B (ORCPT
+	by vger.kernel.org with ESMTP id S1754606Ab0CKURH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Mar 2010 13:57:01 -0500
+	Thu, 11 Mar 2010 15:17:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@collabora.co.uk, johannes@sipsolutions.net, linville@tuxdriver.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, ying.huang@intel.com
 
 
 The patch titled
-     mac80211: give warning if building w/out rate ctrl algorithm
-has been removed from the -mm tree.  Its filename was
-     mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm.patch
+     arch/x86/crypto/aesni-intel_asm.S: make it build
+has been added to the -mm tree.  Its filename is
+     arch-x86-crypto-aesni-intel_asms-make-it-build.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: give warning if building w/out rate ctrl algorithm
-From: Andres Salomon <dilinger@collabora.co.uk>
+Subject: arch/x86/crypto/aesni-intel_asm.S: make it build
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I discovered that if EMBEDDED=y, one can accidentally build a mac80211
-stack and drivers w/ no rate control algorithm.  For drivers like RTL8187
-that don't supply their own RC algorithms, this will cause
-ieee80211_register_hw to fail (making the driver unusable).
-
-This will tell kconfig to provide a warning if no rate control algorithms
-have been selected.  That'll at least warn the user; users that know that
-their drivers supply a rate control algorithm can safely ignore the
-warning, and those who don't know (or who expect to be using multiple
-drivers) can select a default RC algorithm.
-
-Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: <stable@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/Kconfig |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/x86/crypto/aesni-intel_asm.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/mac80211/Kconfig~mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm net/mac80211/Kconfig
---- a/net/mac80211/Kconfig~mac80211-give-warning-if-building-w-out-rate-ctrl-algorithm
-+++ a/net/mac80211/Kconfig
-@@ -15,8 +15,12 @@ comment "CFG80211 needs to be enabled fo
+diff -puN arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-make-it-build arch/x86/crypto/aesni-intel_asm.S
+--- a/arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-make-it-build
++++ a/arch/x86/crypto/aesni-intel_asm.S
+@@ -749,8 +749,8 @@ _aesni_inc_init:
+ 	movaps IV, CTR
+ 	PSHUFB_XMM BSWAP_MASK CTR
+ 	mov $1, TCTR_LOW
+-	movq TCTR_LOW, INC
+-	movq CTR, TCTR_LOW
++//	movq TCTR_LOW, INC
++//	movq CTR, TCTR_LOW
+ 	ret
  
- if MAC80211 != n
- 
-+config MAC80211_HAS_RC
-+	def_bool n
-+
- config MAC80211_RC_PID
- 	bool "PID controller based rate control algorithm" if EMBEDDED
-+	select MAC80211_HAS_RC
- 	---help---
- 	  This option enables a TX rate control algorithm for
- 	  mac80211 that uses a PID controller to select the TX
-@@ -24,12 +28,14 @@ config MAC80211_RC_PID
- 
- config MAC80211_RC_MINSTREL
- 	bool "Minstrel" if EMBEDDED
-+	select MAC80211_HAS_RC
- 	default y
- 	---help---
- 	  This option enables the 'minstrel' TX rate control algorithm
- 
- choice
- 	prompt "Default rate control algorithm"
-+	depends on MAC80211_HAS_RC
- 	default MAC80211_RC_DEFAULT_MINSTREL
- 	---help---
- 	  This option selects the default rate control algorithm
-@@ -62,6 +68,9 @@ config MAC80211_RC_DEFAULT
- 
- endif
- 
-+comment "some wireless drivers require a rate control algorithm"
-+	depends on MAC80211_HAS_RC=n
-+
- config MAC80211_MESH
- 	bool "Enable mac80211 mesh networking (pre-802.11s) support"
- 	depends on MAC80211 && EXPERIMENTAL
+ /*
 _
 
-Patches currently in -mm which might be from dilinger@collabora.co.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+add-generic-sys_ipc-wrapper.patch
+broadsheetfb-support-storing-waveform.patch
+drivers-char-memc-cleanups.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-implement-memory-thresholds.patch
+documentation-convert-pci-dma-mappingtxt-to-use-the-generic-dma-api.patch
+pps-linuxpps-clients-support.patch
+pps-serial-clients-support.patch
 linux-next.patch
-cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-make-it-build.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+usb-serial-ftdi-add-contec-vendor-and-product-id-fix.patch
+drivers-char-tty_bufferc-fix-min-warnings.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
