@@ -1,88 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector.patch added to -mm tree
-Date: Fri, 12 Mar 2010 15:44:26 -0800
-Message-ID: <201003122344.o2CNiQg1014872@imap1.linux-foundation.org>
+Subject: [nacked] genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch removed from -mm tree
+Date: Fri, 12 Mar 2010 15:50:26 -0800
+Message-ID: <201003122350.o2CNoQxK015105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934726Ab0CLXoa (ORCPT
+	by vger.kernel.org with ESMTP id S932782Ab0CLXww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Mar 2010 18:44:30 -0500
+	Fri, 12 Mar 2010 18:52:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp, Daniel.Taylor@wdc.com, hpa@zytor.com, stable@kernel.org
+To: u.kleine-koenig@pengutronix.de, a.p.zijlstra@chello.nl, andrea.gallo@stericsson.com, dbrownell@users.sourceforge.net, eric.y.miao@gmail.com, hugh.dickins@tiscali.co.uk, jamie@shareabl
 
 
 The patch titled
-     fs/partition/msdos: fix unusable extended partition for > 512B sector
-has been added to the -mm tree.  Its filename is
-     fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector.patch
+     genirq: warn about IRQF_SHARED|IRQF_DISABLED at the right place
+has been removed from the -mm tree.  Its filename was
+     genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patc=
+h
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was nacked
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fs/partition/msdos: fix unusable extended partition for > 512B sector
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: genirq: warn about IRQF_SHARED|IRQF_DISABLED at the right plac=
+e
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Smaller size than a minimum blocksize can't be used, after all it's
-handled like 0 size.
+=46or shared irqs IRQF_DISABLED is only guaranteed for the first handle=
+r.=20
+So only warn starting at the second registration.
 
-For extended partition itself, this makes sure to use bigger size than one
-logical sector size at least.
+The warning is moved to __setup_irq having the additional benefit of
+catching actions registered using setup_irq not only register_irq.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Daniel Taylor <Daniel.Taylor@wdc.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>
+This doesn't fix the cases where setup order is wrong but it should rep=
+ort
+the broken cases more reliably.
+
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nicolas Pitre <nico@marvell.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Remy Bohmer <linux@bohmer.net>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Andrea Gallo <andrea.gallo@stericsson.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jamie Lokier <jamie@shareable.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/msdos.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ kernel/irq/manage.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN fs/partitions/msdos.c~fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector
-+++ a/fs/partitions/msdos.c
-@@ -492,9 +492,16 @@ int msdos_partition(struct parsed_partit
- 		if (!size)
- 			continue;
- 		if (is_extended_partition(p)) {
--			/* prevent someone doing mkfs or mkswap on an
--			   extended partition, but leave room for LILO */
--			put_partition(state, slot, start, size == 1 ? 1 : 2);
-+			/*
-+			 * prevent someone doing mkfs or mkswap on an
-+			 * extended partition, but leave room for LILO
-+			 * FIXME: this uses one logical sector for > 512b
-+			 * sector, although it may not be enough/proper.
-+			 */
-+			sector_t n = 2;
-+			n = min(size, max(sector_size, n));
-+			put_partition(state, slot, start, n);
+diff -puN kernel/irq/manage.c~genirq-warn-about-irqf_sharedirqf_disable=
+d-at-the-right-place kernel/irq/manage.c
+--- a/kernel/irq/manage.c~genirq-warn-about-irqf_sharedirqf_disabled-at=
+-the-right-place
++++ a/kernel/irq/manage.c
+@@ -702,6 +702,16 @@ __setup_irq(unsigned int irq, struct irq
+ 			goto mismatch;
+ #endif
+=20
++		/*
++		 * handle_IRQ_event() only honors IRQF_DISABLED for the _first_
++		 * irqaction.  As the first handler might reenable irqs all bets
++		 * are off for the later handlers even if the first one has
++		 * IRQF_DISABLED, too.
++		 */
++		if (new->flags & IRQF_DISABLED)
++			pr_warning("IRQ %d/%s: IRQF_DISABLED is not guaranteed "
++					"on shared IRQs\n", irq, new->name);
 +
- 			printk(" <");
- 			parse_extended(state, bdev, start, size);
- 			printk(" >");
-_
-
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
-
-devmem-dont-allow-seek-to-last-page.patch
-drivers-char-memc-cleanups.patch
-linux-next.patch
-fs-partitions-msdos-add-support-for-large-disks.patch
-fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector.patch
-
+ 		/* add new interrupt at end of irq queue */
+ 		do {
+ 			old_ptr =3D &old->next;
+@@ -1008,19 +1018,6 @@ int request_threaded_irq(unsigned int ir
+ 	struct irq_desc *desc;
+ 	int retval;
+=20
+-	/*
+-	 * handle_IRQ_event() always ignores IRQF_DISABLED except for
+-	 * the _first_ irqaction (sigh).  That can cause oopsing, but
+-	 * the behavior is classified as "will not fix" so we need to
+-	 * start nudging drivers away from using that idiom.
+-	 */
+-	if ((irqflags & (IRQF_SHARED|IRQF_DISABLED)) =3D=3D
+-					(IRQF_SHARED|IRQF_DISABLED)) {
+-		pr_warning(
+-		  "IRQ %d/%s: IRQF_DISABLED is not guaranteed on shared IRQs\n",
+-			irq, devname);
+-	}
