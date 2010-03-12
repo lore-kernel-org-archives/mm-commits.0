@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output.patch added to -mm tree
-Date: Fri, 12 Mar 2010 15:20:39 -0800
-Message-ID: <201003122320.o2CNKdxH013814@imap1.linux-foundation.org>
+Subject: + fs-partitions-msdos-add-support-for-large-disks.patch added to -mm tree
+Date: Fri, 12 Mar 2010 15:44:24 -0800
+Message-ID: <201003122344.o2CNiOf7014869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48050 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934689Ab0CLXU4 (ORCPT
+	by vger.kernel.org with ESMTP id S933475Ab0CLXo2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Mar 2010 18:20:56 -0500
+	Fri, 12 Mar 2010 18:44:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.grzeschik@pengutronix.de, dilinger@collabora.co.uk
+Cc: Daniel.Taylor@wdc.com, daniel.taylor@wdc.com, hirofumi@mail.parknet.co.jp, hpa@zytor.com, stable@kernel.org
 
 
 The patch titled
-     lxfb: set the H- and V-SYNC polarity of the flatpanel output
+     fs/partitions/msdos: add support for large disks
 has been added to the -mm tree.  Its filename is
-     lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output.patch
+     fs-partitions-msdos-add-support-for-large-disks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,258 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb: set the H- and V-SYNC polarity of the flatpanel output
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: fs/partitions/msdos: add support for large disks
+From: Daniel Taylor <Daniel.Taylor@wdc.com>
 
-Fixup for the flatpanel output.  The geode_modedb attribute flags are used
-to set the SYNC polarity of the flatpanel.  Without this patch our
-flatpanel registers stayed unconfigured, so we just saw garbage output.
+In order to use disks larger than 2TiB on Windows XP, it is necessary to
+use 4096-byte logical sectors in an MBR.
 
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-Cc: Andres Salomon <dilinger@collabora.co.uk>
+Although the kernel storage and functions called from msdos.c used
+"sector_t" internally, msdos.c still used u32 variables, which results in
+the ability to handle XP-compatible large disks.
+
+This patch changes the internal variables to "sector_t".
+
+Daniel said: "In the near future, WD will be releasing products that need
+this patch".
+
+[hirofumi@mail.parknet.co.jp: tweaks and fix]
+Signed-off-by: Daniel Taylor <daniel.taylor@wdc.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb.h     |    2 ++
- drivers/video/geode/lxfb_ops.c |   10 +++++++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ fs/partitions/msdos.c |   74 +++++++++++++++++++++-------------------
+ 1 file changed, 39 insertions(+), 35 deletions(-)
 
-diff -puN drivers/video/geode/lxfb.h~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output drivers/video/geode/lxfb.h
---- a/drivers/video/geode/lxfb.h~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output
-+++ a/drivers/video/geode/lxfb.h
-@@ -365,6 +365,8 @@ enum fp_registers {
- 	FP_CRC, /* 0x458 */
- };
+diff -puN fs/partitions/msdos.c~fs-partitions-msdos-add-support-for-large-disks fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~fs-partitions-msdos-add-support-for-large-disks
++++ a/fs/partitions/msdos.c
+@@ -31,14 +31,17 @@
+  */
+ #include <asm/unaligned.h>
  
-+#define FP_PT2_HSP			(1 << 22)
-+#define FP_PT2_VSP			(1 << 23)
- #define FP_PT2_SCRC			(1 << 27)	/* shfclk free */
- 
- #define FP_PM_P				(1 << 24)	/* panel power ctl */
-diff -puN drivers/video/geode/lxfb_ops.c~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output drivers/video/geode/lxfb_ops.c
---- a/drivers/video/geode/lxfb_ops.c~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output
-+++ a/drivers/video/geode/lxfb_ops.c
-@@ -274,7 +274,15 @@ static void lx_graphics_enable(struct fb
- 		u32 msrlo, msrhi;
- 
- 		write_fp(par, FP_PT1, 0);
--		write_fp(par, FP_PT2, FP_PT2_SCRC);
-+		temp = FP_PT2_SCRC;
+-#define SYS_IND(p)	(get_unaligned(&p->sys_ind))
+-#define NR_SECTS(p)	({ __le32 __a =	get_unaligned(&p->nr_sects);	\
+-				le32_to_cpu(__a); \
+-			})
+-
+-#define START_SECT(p)	({ __le32 __a =	get_unaligned(&p->start_sect);	\
+-				le32_to_cpu(__a); \
+-			})
++#define SYS_IND(p)	get_unaligned(&p->sys_ind)
 +
-+		if (info->var.sync & FB_SYNC_HOR_HIGH_ACT)
-+			temp |= FP_PT2_HSP;
++static inline sector_t nr_sects(struct partition *p)
++{
++	return (sector_t)get_unaligned_le32(&p->nr_sects);
++}
 +
-+		if (info->var.sync & FB_SYNC_VERT_HIGH_ACT)
-+			temp |= FP_PT2_VSP;
-+
-+		write_fp(par, FP_PT2, temp);
- 		write_fp(par, FP_DFC, FP_DFC_BC);
++static inline sector_t start_sect(struct partition *p)
++{
++	return (sector_t)get_unaligned_le32(&p->start_sect);
++}
  
- 		msrlo = MSR_LX_MSR_PADSEL_TFT_SEL_LOW;
+ static inline int is_extended_partition(struct partition *p)
+ {
+@@ -104,13 +107,13 @@ static int aix_magic_present(unsigned ch
+ 
+ static void
+ parse_extended(struct parsed_partitions *state, struct block_device *bdev,
+-			u32 first_sector, u32 first_size)
++			sector_t first_sector, sector_t first_size)
+ {
+ 	struct partition *p;
+ 	Sector sect;
+ 	unsigned char *data;
+-	u32 this_sector, this_size;
+-	int sector_size = bdev_logical_block_size(bdev) / 512;
++	sector_t this_sector, this_size;
++	sector_t sector_size = bdev_logical_block_size(bdev) / 512;
+ 	int loopct = 0;		/* number of links followed
+ 				   without finding a data partition */
+ 	int i;
+@@ -145,14 +148,14 @@ parse_extended(struct parsed_partitions 
+ 		 * First process the data partition(s)
+ 		 */
+ 		for (i=0; i<4; i++, p++) {
+-			u32 offs, size, next;
+-			if (!NR_SECTS(p) || is_extended_partition(p))
++			sector_t offs, size, next;
++			if (!nr_sects(p) || is_extended_partition(p))
+ 				continue;
+ 
+ 			/* Check the 3rd and 4th entries -
+ 			   these sometimes contain random garbage */
+-			offs = START_SECT(p)*sector_size;
+-			size = NR_SECTS(p)*sector_size;
++			offs = start_sect(p)*sector_size;
++			size = nr_sects(p)*sector_size;
+ 			next = this_sector + offs;
+ 			if (i >= 2) {
+ 				if (offs + size > this_size)
+@@ -179,13 +182,13 @@ parse_extended(struct parsed_partitions 
+ 		 */
+ 		p -= 4;
+ 		for (i=0; i<4; i++, p++)
+-			if (NR_SECTS(p) && is_extended_partition(p))
++			if (nr_sects(p) && is_extended_partition(p))
+ 				break;
+ 		if (i == 4)
+ 			goto done;	 /* nothing left to do */
+ 
+-		this_sector = first_sector + START_SECT(p) * sector_size;
+-		this_size = NR_SECTS(p) * sector_size;
++		this_sector = first_sector + start_sect(p) * sector_size;
++		this_size = nr_sects(p) * sector_size;
+ 		put_dev_sector(sect);
+ 	}
+ done:
+@@ -197,7 +200,7 @@ done:
+ 
+ static void
+ parse_solaris_x86(struct parsed_partitions *state, struct block_device *bdev,
+-			u32 offset, u32 size, int origin)
++			sector_t offset, sector_t size, int origin)
+ {
+ #ifdef CONFIG_SOLARIS_X86_PARTITION
+ 	Sector sect;
+@@ -244,7 +247,7 @@ parse_solaris_x86(struct parsed_partitio
+  */
+ static void
+ parse_bsd(struct parsed_partitions *state, struct block_device *bdev,
+-		u32 offset, u32 size, int origin, char *flavour,
++		sector_t offset, sector_t size, int origin, char *flavour,
+ 		int max_partitions)
+ {
+ 	Sector sect;
+@@ -263,7 +266,7 @@ parse_bsd(struct parsed_partitions *stat
+ 	if (le16_to_cpu(l->d_npartitions) < max_partitions)
+ 		max_partitions = le16_to_cpu(l->d_npartitions);
+ 	for (p = l->d_partitions; p - l->d_partitions < max_partitions; p++) {
+-		u32 bsd_start, bsd_size;
++		sector_t bsd_start, bsd_size;
+ 
+ 		if (state->next == state->limit)
+ 			break;
+@@ -290,7 +293,7 @@ parse_bsd(struct parsed_partitions *stat
+ 
+ static void
+ parse_freebsd(struct parsed_partitions *state, struct block_device *bdev,
+-		u32 offset, u32 size, int origin)
++		sector_t offset, sector_t size, int origin)
+ {
+ #ifdef CONFIG_BSD_DISKLABEL
+ 	parse_bsd(state, bdev, offset, size, origin,
+@@ -300,7 +303,7 @@ parse_freebsd(struct parsed_partitions *
+ 
+ static void
+ parse_netbsd(struct parsed_partitions *state, struct block_device *bdev,
+-		u32 offset, u32 size, int origin)
++		sector_t offset, sector_t size, int origin)
+ {
+ #ifdef CONFIG_BSD_DISKLABEL
+ 	parse_bsd(state, bdev, offset, size, origin,
+@@ -310,7 +313,7 @@ parse_netbsd(struct parsed_partitions *s
+ 
+ static void
+ parse_openbsd(struct parsed_partitions *state, struct block_device *bdev,
+-		u32 offset, u32 size, int origin)
++		sector_t offset, sector_t size, int origin)
+ {
+ #ifdef CONFIG_BSD_DISKLABEL
+ 	parse_bsd(state, bdev, offset, size, origin,
+@@ -324,7 +327,7 @@ parse_openbsd(struct parsed_partitions *
+  */
+ static void
+ parse_unixware(struct parsed_partitions *state, struct block_device *bdev,
+-		u32 offset, u32 size, int origin)
++		sector_t offset, sector_t size, int origin)
+ {
+ #ifdef CONFIG_UNIXWARE_DISKLABEL
+ 	Sector sect;
+@@ -348,7 +351,8 @@ parse_unixware(struct parsed_partitions 
+ 
+ 		if (p->s_label != UNIXWARE_FS_UNUSED)
+ 			put_partition(state, state->next++,
+-						START_SECT(p), NR_SECTS(p));
++				      le32_to_cpu(p->start_sect),
++				      le32_to_cpu(p->nr_sects));
+ 		p++;
+ 	}
+ 	put_dev_sector(sect);
+@@ -363,7 +367,7 @@ parse_unixware(struct parsed_partitions 
+  */
+ static void
+ parse_minix(struct parsed_partitions *state, struct block_device *bdev,
+-		u32 offset, u32 size, int origin)
++		sector_t offset, sector_t size, int origin)
+ {
+ #ifdef CONFIG_MINIX_SUBPARTITION
+ 	Sector sect;
+@@ -390,7 +394,7 @@ parse_minix(struct parsed_partitions *st
+ 			/* add each partition in use */
+ 			if (SYS_IND(p) == MINIX_PARTITION)
+ 				put_partition(state, state->next++,
+-					      START_SECT(p), NR_SECTS(p));
++					      start_sect(p), nr_sects(p));
+ 		}
+ 		printk(" >\n");
+ 	}
+@@ -401,7 +405,7 @@ parse_minix(struct parsed_partitions *st
+ static struct {
+ 	unsigned char id;
+ 	void (*parse)(struct parsed_partitions *, struct block_device *,
+-			u32, u32, int);
++			sector_t, sector_t, int);
+ } subtypes[] = {
+ 	{FREEBSD_PARTITION, parse_freebsd},
+ 	{NETBSD_PARTITION, parse_netbsd},
+@@ -415,7 +419,7 @@ static struct {
+  
+ int msdos_partition(struct parsed_partitions *state, struct block_device *bdev)
+ {
+-	int sector_size = bdev_logical_block_size(bdev) / 512;
++	sector_t sector_size = bdev_logical_block_size(bdev) / 512;
+ 	Sector sect;
+ 	unsigned char *data;
+ 	struct partition *p;
+@@ -483,8 +487,8 @@ int msdos_partition(struct parsed_partit
+ 
+ 	state->next = 5;
+ 	for (slot = 1 ; slot <= 4 ; slot++, p++) {
+-		u32 start = START_SECT(p)*sector_size;
+-		u32 size = NR_SECTS(p)*sector_size;
++		sector_t start = start_sect(p)*sector_size;
++		sector_t size = nr_sects(p)*sector_size;
+ 		if (!size)
+ 			continue;
+ 		if (is_extended_partition(p)) {
+@@ -513,7 +517,7 @@ int msdos_partition(struct parsed_partit
+ 		unsigned char id = SYS_IND(p);
+ 		int n;
+ 
+-		if (!NR_SECTS(p))
++		if (!nr_sects(p))
+ 			continue;
+ 
+ 		for (n = 0; subtypes[n].parse && id != subtypes[n].id; n++)
+@@ -521,8 +525,8 @@ int msdos_partition(struct parsed_partit
+ 
+ 		if (!subtypes[n].parse)
+ 			continue;
+-		subtypes[n].parse(state, bdev, START_SECT(p)*sector_size,
+-						NR_SECTS(p)*sector_size, slot);
++		subtypes[n].parse(state, bdev, start_sect(p)*sector_size,
++						nr_sects(p)*sector_size, slot);
+ 	}
+ 	put_dev_sector(sect);
+ 	return 1;
 _
 
-Patches currently in -mm which might be from m.grzeschik@pengutronix.de are
+Patches currently in -mm which might be from Daniel.Taylor@wdc.com are
 
-lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output.patch
+fs-partitions-msdos-add-support-for-large-disks.patch
+fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector.patch
 
