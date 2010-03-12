@@ -1,102 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpica-fix-acpi_ex_release_mutex-comment.patch removed from -mm tree
-Date: Fri, 12 Mar 2010 12:27:40 -0800
-Message-ID: <201003122027.o2CKReYN006220@imap1.linux-foundation.org>
+Subject: + firmware-correct-attribution-of-sierra-wireless-cis-files.patch added to -mm tree
+Date: Fri, 12 Mar 2010 12:35:39 -0800
+Message-ID: <201003122035.o2CKZdoD006510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934556Ab0CLU1p (ORCPT
+	by vger.kernel.org with ESMTP id S932683Ab0CLUgE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Mar 2010 15:27:45 -0500
+	Fri, 12 Mar 2010 15:36:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bzolnier@gmail.com, error27@gmail.com, lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ben@decadent.org.uk, ken_kawasaki@spring.nifty.jp
 
 
 The patch titled
-     acpica: fix acpi_ex_release_mutex() comment
-has been removed from the -mm tree.  Its filename was
-     acpica-fix-acpi_ex_release_mutex-comment.patch
+     firmware: correct attribution of Sierra Wireless CIS files
+has been added to the -mm tree.  Its filename is
+     firmware-correct-attribution-of-sierra-wireless-cis-files.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpica: fix acpi_ex_release_mutex() comment
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: firmware: correct attribution of Sierra Wireless CIS files
+From: Ben Hutchings <ben@decadent.org.uk>
 
-trivial, leftover from my NULL pointer dereference patch which got
-'superseded' by commit fbc3be2
+These files have nothing to do with the pcmcia-cs project and are
+distributed without any clear licence.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Dan Carpenter <error27@gmail.com>
+The only source I can find for these files is
+<http://www.sierrawireless.com/resources/faq/PC_Card/AirCard555/Aircard_Linux.tar> linked from <https://sierrawireless.custhelp.com/app/answers/detail/a_id/179/kw/linux>.
+
+David Hinds who ran the pcmcia-cs project disclaims any knowledge of
+these files.
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Ken Kawasaki <ken_kawasaki@spring.nifty.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpica/exmutex.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ firmware/WHENCE |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/acpica/exmutex.c~acpica-fix-acpi_ex_release_mutex-comment drivers/acpi/acpica/exmutex.c
---- a/drivers/acpi/acpica/exmutex.c~acpica-fix-acpi_ex_release_mutex-comment
-+++ a/drivers/acpi/acpica/exmutex.c
-@@ -234,8 +234,7 @@ acpi_ex_acquire_mutex(union acpi_operand
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
+diff -puN firmware/WHENCE~firmware-correct-attribution-of-sierra-wireless-cis-files firmware/WHENCE
+--- a/firmware/WHENCE~firmware-correct-attribution-of-sierra-wireless-cis-files
++++ a/firmware/WHENCE
+@@ -635,9 +635,6 @@ File: cis/MT5634ZLX.cis
+       cis/RS-COM-2P.cis
+       cis/COMpad2.cis
+       cis/COMpad4.cis
+-      cis/SW_555_SER.cis
+-      cis/SW_7xx_SER.cis
+-      cis/SW_8xx_SER.cis
  
--	/* Must have a valid thread ID */
--
-+	/* Must have a valid thread. */
- 	if (!walk_state->thread) {
- 		ACPI_ERROR((AE_INFO,
- 			    "Cannot acquire Mutex [%4.4s], null thread info",
+ Licence: GPL
+ 
+@@ -645,6 +642,18 @@ Originally developed by the pcmcia-cs pr
+ 
+ --------------------------------------------------------------------------
+ 
++Driver: SERIAL_8250_CS - Serial PCMCIA adapter
++
++File: cis/SW_555_SER.cis
++File: cis/SW_7xx_SER.cis
++File: cis/SW_8xx_SER.cis
++
++Licence: Unknown
++
++Distributed by Sierra Wireless
++
++--------------------------------------------------------------------------
++
+ Driver: PCMCIA_SMC91C92 - SMC 91Cxx PCMCIA
+ 
+ File: ositech/Xilinx7OD.bin
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
-drivers-block-floppyc-convert-some-include-asm-to-include-linux.patch
-drivers-block-floppyc-define-space-and-column-neatening.patch
-drivers-block-floppyc-use-pr_level.patch
-drivers-block-floppyc-remove-unnecessary-braces.patch
-drivers-block-floppyc-remove-used-once-check_ready-macro.patch
-drivers-block-floppyc-hoist-assigns-from-ifs-neatening.patch
-drivers-block-floppyc-remove-last_out-macro.patch
-drivers-block-floppyc-comment-neatening-and-remove-naked.patch
-drivers-block-floppyc-remove-clearstruct-macro-use-memset.patch
-drivers-block-floppyc-indent-a-comment.patch
-drivers-block-floppyc-remove-in-out-macros-indent-switch-case.patch
-drivers-block-floppyc-remove-a-few-spaces-from-function-casts.patch
-drivers-block-floppyc-remove-macro-lock_fdc.patch
-drivers-block-floppyc-add-debug_dcl-macro.patch
-drivers-block-floppyc-remove-clearf-setf-and-testf-macros.patch
-drivers-block-floppyc-remove-most-uses-of-call-and-ecall-macros.patch
-drivers-block-floppyc-remove-copyin-copyout-and-ecall-macros.patch
-drivers-block-floppyc-remove-macros-call-wait-and-iwait.patch
-drivers-block-floppyc-convert-int-1-0-to-bool-true-false.patch
-drivers-block-floppyc-move-leading-and-to-preceding-line.patch
-drivers-block-floppyc-remove-define-device_name-floppy.patch
-drivers-block-floppyc-convert-int-initialising-to-bool-initialized.patch
-drivers-block-floppyc-add-function-is_ready_state.patch
-drivers-block-floppyc-remove-unnecessary-return-and-braces.patch
-drivers-block-floppyc-remove-repeat-macro.patch
-drivers-block-floppyc-unclutter-redo_fd_request-logic.patch
-drivers-block-floppyc-remove-unnecessary-argument-from-reschedule_timeout.patch
-drivers-block-floppyc-remove-define-floppy_sanity_check.patch
-drivers-block-floppyc-dprint-neatening.patch
-drivers-block-floppyc-use-__func__-where-appropriate.patch
-drivers-block-floppyc-use-%pf-in-logging-messages.patch
-drivers-block-floppyc-remove-some-unnecessary-casting.patch
-drivers-block-floppyc-convert-raw_cmd_copyin-from-while1-to-label-goto.patch
-drivers-block-floppyc-add-__func__-to-debugt.patch
-drivers-block-floppyc-remove-obfuscating-code2size-macro.patch
-drivers-block-floppyc-remove-misleading-used-once-fd_ioctl_allowed-macro.patch
-drivers-block-floppyc-remove-unnecessary-casting-in-fd_ioctl.patch
-documentation-remove-obsolete-voyagertxt-file.patch
+video-fix-first-line-of-kernel-doc-for-a-few-functions.patch
 linux-next.patch
-acpica-fix-acpi_ex_release_mutex-comment.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+firmware-correct-attribution-of-sierra-wireless-cis-files.patch
+firmware-add-source-and-copyright-notice-for-cis-files-from-pcmcia-cs.patch
+mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch
 
