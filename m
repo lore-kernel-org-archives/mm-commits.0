@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-add-source-and-copyright-notice-for-cis-files-from-pcmcia-cs.patch added to -mm tree
-Date: Fri, 12 Mar 2010 12:37:01 -0800
-Message-ID: <201003122037.o2CKb1BG006665@imap1.linux-foundation.org>
+Subject: + serial-add-driver-for-the-altera-jtag-uart.patch added to -mm tree
+Date: Fri, 12 Mar 2010 12:49:07 -0800
+Message-ID: <201003122049.o2CKn77h007206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757221Ab0CLUiN (ORCPT
+	by vger.kernel.org with ESMTP id S1757208Ab0CLUtV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Mar 2010 15:38:13 -0500
+	Fri, 12 Mar 2010 15:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben@decadent.org.uk, dahinds@users.sourceforge.net, ken_kawasaki@spring.nifty.jp, linux@dominikbrodowski.net, rmk@arm.linux.org.uk
+Cc: tklauser@distanz.ch, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     firmware: add source and copyright notice for CIS files from pcmcia-cs
+     serial: add driver for the Altera JTAG UART
 has been added to the -mm tree.  Its filename is
-     firmware-add-source-and-copyright-notice-for-cis-files-from-pcmcia-cs.patch
+     serial-add-driver-for-the-altera-jtag-uart.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,422 +34,609 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware: add source and copyright notice for CIS files from pcmcia-cs
-From: Ben Hutchings <ben@decadent.org.uk>
+Subject: serial: add driver for the Altera JTAG UART
+From: Tobias Klauser <tklauser@distanz.ch>
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Ken Kawasaki <ken_kawasaki@spring.nifty.jp>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: David Hinds <dahinds@users.sourceforge.net>
+Add an UART driver for the JTAG UART component available as a SOPC (System
+on Programmable Chip) component for Altera FPGAs.
+
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- firmware/WHENCE                |   25 ++++++++++++++---
- firmware/cis/src/3CCFEM556.cis |   22 +++++++++++++++
- firmware/cis/src/3CXEM556.cis  |   22 +++++++++++++++
- firmware/cis/src/COMpad2.cis   |   20 ++++++++++++++
- firmware/cis/src/COMpad4.cis   |   14 +++++++++
- firmware/cis/src/DP83903.cis   |   24 ++++++++++++++++
- firmware/cis/src/LA-PCM.cis    |   44 +++++++++++++++++++++++++++++++
- firmware/cis/src/MT5634ZLX.cis |   18 ++++++++++++
- firmware/cis/src/NE2K.cis      |   10 +++++++
- firmware/cis/src/PCMLM28.cis   |   37 ++++++++++++++++++++++++++
- firmware/cis/src/PE-200.cis    |   11 +++++++
- firmware/cis/src/PE520.cis     |   11 +++++++
- firmware/cis/src/RS-COM-2P.cis |   14 +++++++++
- firmware/cis/src/tamarack.cis  |   17 +++++++++++
- 14 files changed, 285 insertions(+), 4 deletions(-)
+ drivers/serial/Kconfig           |   21 +
+ drivers/serial/Makefile          |    1 
+ drivers/serial/altera_jtaguart.c |  504 +++++++++++++++++++++++++++++
+ include/linux/altera_jtaguart.h  |   16 
+ include/linux/serial_core.h      |    3 
+ 5 files changed, 545 insertions(+)
 
-diff -puN firmware/WHENCE~firmware-add-source-and-copyright-notice-for-cis-files-from-pcmcia-cs firmware/WHENCE
---- a/firmware/WHENCE~firmware-add-source-and-copyright-notice-for-cis-files-from-pcmcia-cs
-+++ a/firmware/WHENCE
-@@ -602,30 +602,42 @@ File: cis/LA-PCM.cis
-       cis/tamarack.cis
-       cis/PE-200.cis
-       cis/PE520.cis
-+Source: cis/src/LA-PCM.cis
-+Source: cis/src/PCMLM28.cis
-+Source: cis/src/DP83903.cis
-+Source: cis/src/NE2K.cis
-+Source: cis/src/tamarack.cis
-+Source: cis/src/PE-200.cis
-+Source: cis/src/PE520.cis
+diff -puN drivers/serial/Kconfig~serial-add-driver-for-the-altera-jtag-uart drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-add-driver-for-the-altera-jtag-uart
++++ a/drivers/serial/Kconfig
+@@ -1506,4 +1506,25 @@ config SERIAL_GRLIB_GAISLER_APBUART_CONS
+ 	help
+ 	Support for running a console on the GRLIB APBUART
  
--Licence: GPL
-+Licence: Dual GPLv2/MPL
- 
- Originally developed by the pcmcia-cs project
-+Copyright (C) 1998, 1999, 2000 David A. Hinds
- 
- --------------------------------------------------------------------------
- 
- Driver: PCMCIA_3C589 - 3Com PCMCIA adapter
- 
- File: cis/3CXEM556.cis
-+Source: cis/src/3CXEM556.cis
- 
--Licence: GPL
-+Licence: Dual GPLv2/MPL
- 
- Originally developed by the pcmcia-cs project
-+Copyright (C) 1998, 1999, 2000 David A. Hinds
- 
- --------------------------------------------------------------------------
- 
- Driver: PCMCIA_3C574 - 3Com PCMCIA adapter
- 
- File: cis/3CCFEM556.cis
-+Source: cis/src/3CCFEM556.cis
- 
--Licence: GPL
-+Licence: Dual GPLv2/MPL
- 
- Originally developed by the pcmcia-cs project
-+Copyright (C) 1998, 1999, 2000 David A. Hinds
- 
- --------------------------------------------------------------------------
- 
-@@ -635,10 +647,15 @@ File: cis/MT5634ZLX.cis
-       cis/RS-COM-2P.cis
-       cis/COMpad2.cis
-       cis/COMpad4.cis
-+Source: cis/src/MT5634ZLX.cis
-+Source: cis/src/RS-COM-2P.cis
-+Source: cis/src/COMpad2.cis
-+Source: cis/src/COMpad4.cis
- 
--Licence: GPL
-+Licence: Dual GPLv2/MPL
- 
- Originally developed by the pcmcia-cs project
-+Copyright (C) 1998, 1999, 2000 David A. Hinds
- 
- --------------------------------------------------------------------------
- 
-diff -puN /dev/null firmware/cis/src/3CCFEM556.cis
---- /dev/null
-+++ a/firmware/cis/src/3CCFEM556.cis
-@@ -0,0 +1,22 @@
-+#
-+# This card is MFC-compliant, but identifies itself as single function
-+#
-+vers_1 5.0, "3Com", "Megahertz 3CCFEM556", "LAN + 56k Modem"
-+manfid 0x0101, 0x0556
-+funcid 0
++config SERIAL_ALTERA_JTAGUART
++	bool "Altera JTAG UART support"
++	select SERIAL_CORE
++	help
++	  This driver supports the Altera JTAG UART port.
 +
-+mfc {
-+  funcid network_adapter
-+  config base 0x1000 mask 0x267 last_index 0x07
-+  cftable_entry 0x07
-+    Vcc Vnom 5V
-+    irq mask 0xffff [level]
-+    io  0x0000-0x000f [8bit] [16bit]
-+}, {
-+  funcid serial_port
-+  config base 0x1100 mask 0x277 last_index 0x27
-+  cftable_entry 0x27
-+    Vcc Vnom 5V
-+    irq mask 0xffff [level]
-+    io  0x0000-0x0007 [8bit]
++config SERIAL_ALTERA_JTAGUART_CONSOLE
++	bool "Altera JTAG UART console support"
++	depends on SERIAL_ALTERA_JTAGUART
++	select SERIAL_CORE_CONSOLE
++	help
++	  Enable a Altera JTAG UART port to be the system console.
++
++config SERIAL_ALTERA_JTAGUART_CONSOLE_BYPASS
++	bool "Bypass output when no connection"
++	depends on SERIAL_ALTERA_JTAGUART_CONSOLE
++	select SERIAL_CORE_CONSOLE
++	help
++	  Bypass console output and keep going even if there is no
++	  JTAG terminal connection with the host.
++
+ endmenu
+diff -puN drivers/serial/Makefile~serial-add-driver-for-the-altera-jtag-uart drivers/serial/Makefile
+--- a/drivers/serial/Makefile~serial-add-driver-for-the-altera-jtag-uart
++++ a/drivers/serial/Makefile
+@@ -83,3 +83,4 @@ obj-$(CONFIG_KGDB_SERIAL_CONSOLE) += kgd
+ obj-$(CONFIG_SERIAL_QE) += ucc_uart.o
+ obj-$(CONFIG_SERIAL_TIMBERDALE)	+= timbuart.o
+ obj-$(CONFIG_SERIAL_GRLIB_GAISLER_APBUART) += apbuart.o
++obj-$(CONFIG_SERIAL_ALTERA_JTAGUART) += altera_jtaguart.o
+diff -puN /dev/null drivers/serial/altera_jtaguart.c
+--- /dev/null
++++ a/drivers/serial/altera_jtaguart.c
+@@ -0,0 +1,504 @@
++/*
++ * altera_jtaguart.c -- Altera JTAG UART driver
++ *
++ * Based on mcf.c -- Freescale ColdFire UART driver
++ *
++ * (C) Copyright 2003-2007, Greg Ungerer <gerg@snapgear.com>
++ * (C) Copyright 2008, Thomas Chou <thomas@wytron.com.tw>
++ * (C) Copyright 2010, Tobias Klauser <tklauser@distanz.ch>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/console.h>
++#include <linux/tty.h>
++#include <linux/tty_flip.h>
++#include <linux/serial.h>
++#include <linux/serial_core.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++#include <linux/altera_jtaguart.h>
++
++#define DRV_NAME "altera_jtaguart"
++
++/*
++ * Altera JTAG UART register definitions according to the Altera JTAG UART
++ * datasheet: http://www.altera.com/literature/hb/nios2/n2cpu_nii51009.pdf
++ */
++
++#define ALTERA_JTAGUART_SIZE			8
++
++#define ALTERA_JTAGUART_DATA_REG		0
++
++#define ALTERA_JTAGUART_DATA_DATA_MSK		0x000000FF
++#define ALTERA_JTAGUART_DATA_RVALID_MSK		0x00008000
++#define ALTERA_JTAGUART_DATA_RAVAIL_MSK		0xFFFF0000
++#define ALTERA_JTAGUART_DATA_RAVAIL_OFF		16
++
++#define ALTERA_JTAGUART_CONTROL_REG		4
++
++#define ALTERA_JTAGUART_CONTROL_RE_MSK		0x00000001
++#define ALTERA_JTAGUART_CONTROL_WE_MSK		0x00000002
++#define ALTERA_JTAGUART_CONTROL_RI_MSK		0x00000100
++#define ALTERA_JTAGUART_CONTROL_RI_OFF		8
++#define ALTERA_JTAGUART_CONTROL_WI_MSK		0x00000200
++#define ALTERA_JTAGUART_CONTROL_AC_MSK		0x00000400
++#define ALTERA_JTAGUART_CONTROL_WSPACE_MSK	0xFFFF0000
++#define ALTERA_JTAGUART_CONTROL_WSPACE_OFF	16
++
++/*
++ * Local per-uart structure.
++ */
++struct altera_jtaguart {
++	struct uart_port port;
++	unsigned int sigs;	/* Local copy of line sigs */
++	unsigned long imr;	/* Local IMR mirror */
++};
++
++static unsigned int altera_jtaguart_tx_empty(struct uart_port *port)
++{
++	return (readl(port->membase + ALTERA_JTAGUART_CONTROL_REG) &
++		ALTERA_JTAGUART_CONTROL_WSPACE_MSK) ? TIOCSER_TEMT : 0;
 +}
-diff -puN /dev/null firmware/cis/src/3CXEM556.cis
---- /dev/null
-+++ a/firmware/cis/src/3CXEM556.cis
-@@ -0,0 +1,22 @@
-+#
-+# This card is MFC-compliant, but identifies itself as single function
-+#
-+vers_1 5.0, "3Com", "Megahertz 3CXEM556", "LAN + 56k Modem"
-+manfid 0x0101, 0x0035
-+funcid 0
 +
-+mfc {
-+  funcid network_adapter
-+  config base 0x0800 mask 0x63 last_index 0x07
-+  cftable_entry 0x07
-+    Vcc Vnom 5V
-+    irq mask 0xffff [level]
-+    io  0x0000-0x000f [8bit] [16bit]
-+}, {
-+  funcid serial_port
-+  config base 0x900 mask 0x63 last_index 0x27
-+  cftable_entry 0x27
-+    Vcc Vnom 5V
-+    irq mask 0xffff [level]
-+    io  0x0000-0x0007 [8bit]
++static unsigned int altera_jtaguart_get_mctrl(struct uart_port *port)
++{
++	return TIOCM_CAR | TIOCM_DSR | TIOCM_CTS;
 +}
-diff -puN /dev/null firmware/cis/src/COMpad2.cis
---- /dev/null
-+++ a/firmware/cis/src/COMpad2.cis
-@@ -0,0 +1,20 @@
-+#
-+# Replacement CIS for Advantech COMpad-32/85
-+#
-+dev_info
-+  NULL 0ns, 512b
-+vers_1 4.1, "ADVANTECH", "COMpad-32/85", "1.0"
-+funcid serial_port [post]
-+config base 0x0100 mask 0x0003 last_index 0x05
-+cftable_entry 0x01 [default]
-+  [mwait]
-+  io 0x02e8-0x02ef, 0x03e8-0x03ef [lines=10] [8bit] [range]
-+  irq mask 0x9eb8 [level]
-+cftable_entry 0x02
-+  io 0x0330-0x033f [lines=10] [8bit] [range]
-+cftable_entry 0x03
-+  io 0x0340-0x034f [lines=10] [8bit] [range]
-+cftable_entry 0x04
-+  io 0x0350-0x035f [lines=10] [8bit] [range]
-+cftable_entry 0x05
-+  io 0x0360-0x036f [lines=10] [8bit] [range]
-diff -puN /dev/null firmware/cis/src/COMpad4.cis
---- /dev/null
-+++ a/firmware/cis/src/COMpad4.cis
-@@ -0,0 +1,14 @@
-+#
-+# Replacement CIS for Advantech COMpad-32/85B-4
-+#
-+dev_info
-+  NULL 0ns, 512b
-+vers_1 4.1, "ADVANTECH", "COMpad-32/85B-4"
-+funcid serial_port [post]
-+config base 0x0100 mask 0x0001 last_index 0x02
-+cftable_entry 0x01 [default]
-+  [mwait]
-+  io 0x0240-0x025f [lines=10] [8bit] [range]
-+  irq mask 0x9eb8 [level]
-+cftable_entry 0x02
-+  io 0x0340-0x035f [lines=10] [8bit] [range]
-diff -puN /dev/null firmware/cis/src/DP83903.cis
---- /dev/null
-+++ a/firmware/cis/src/DP83903.cis
-@@ -0,0 +1,24 @@
-+#
-+# This CIS is for cards based on the National Semiconductor
-+# DP83903 Multiple Function Interface Chip
-+#
-+vers_1 4.1, "Multifunction Card", "", "", "NSC MF LAN/Modem"
-+manfid 0x0175, 0x0000
-+funcid 0
 +
-+mfc {
-+  funcid network_adapter
-+  config base 0x1020 mask 0x277 last_index 0x17
-+  cftable_entry 0x17
-+    Vcc Vnom 5V
-+    irq mask 0xffff [level]
-+    io  0x0000-0x001f [8bit] [16bit]
-+    memory 0x0000-0x3fff @ 0x0000
-+}, {
-+  funcid serial_port
-+  config base 0x1040 mask 0x0277 last_index 0x07
-+  cftable_entry 0x07
-+    Vcc Vnom 5V
-+    irq mask 0xffff [level]
-+    io  0x0000-0x0007 [8bit]
++static void altera_jtaguart_set_mctrl(struct uart_port *port, unsigned int sigs)
++{
 +}
-diff -puN /dev/null firmware/cis/src/LA-PCM.cis
---- /dev/null
-+++ a/firmware/cis/src/LA-PCM.cis
-@@ -0,0 +1,44 @@
-+#
-+# Replacement CIS for Allied Telesis LA-PCM
-+#
-+dev_info
-+  fn_specific 100ns, 64kb
-+  FLASH 150ns, 60kb
-+attr_dev_info
-+  FLASH 150ns, 4kb
-+manfid 0xc00f, 0x0002
-+funcid network_adapter [post] [rom]
-+vers_1 4.1, "Allied Telesis,K.K", "Ethernet LAN Card", "CentreCOM", "LA-PCM"
-+config base 0x20000 mask 0x000b last_index 0x10
-+cftable_entry 0x01
-+  io 0x0200-0x021f [8bit] [16bit]
-+cftable_entry 0x02
-+  io 0x0220-0x023f [8bit] [16bit]
-+cftable_entry 0x03
-+  io 0x0240-0x025f [8bit] [16bit]
-+cftable_entry 0x04
-+  io 0x0260-0x027f [8bit] [16bit]
-+cftable_entry 0x05
-+  io 0x0280-0x029f [8bit] [16bit]
-+cftable_entry 0x06
-+  io 0x02a0-0x02bf [8bit] [16bit]
-+cftable_entry 0x07
-+  io 0x02c0-0x02df [8bit] [16bit]
-+cftable_entry 0x08
-+  io 0x02e0-0x02ff [8bit] [16bit]
-+cftable_entry 0x09
-+  io 0x0300-0x031f [8bit] [16bit]
-+cftable_entry 0x0a
-+  io 0x0320-0x033f [8bit] [16bit]
-+cftable_entry 0x0b
-+  io 0x0340-0x035f [8bit] [16bit]
-+cftable_entry 0x0c
-+  io 0x0360-0x037f [8bit] [16bit]
-+cftable_entry 0x0d
-+  io 0x0380-0x039f [8bit] [16bit]
-+cftable_entry 0x0e
-+  io 0x03a0-0x03bf [8bit] [16bit]
-+cftable_entry 0x0f
-+  io 0x03c0-0x03df [8bit] [16bit]
-+cftable_entry 0x10
-+  io 0x03e0-0x03ff [8bit] [16bit]
-diff -puN /dev/null firmware/cis/src/MT5634ZLX.cis
---- /dev/null
-+++ a/firmware/cis/src/MT5634ZLX.cis
-@@ -0,0 +1,18 @@
-+#
-+# Replacement CIS for Multitech MT5634ZLX modems
-+#
-+dev_info no_info
-+vers_1 4.1, "MultiTech", "PCMCIA 56K DataFax"
-+manfid 0x0200, 0x0001
-+funcid serial_port
-+config base 0xff80 mask 0x0067 last_index 0x27
-+cftable_entry 0x0f [default]
-+  [rdybsy] [audio] [pwrdown]
-+  Vcc Vnom 5V Vpp1 Vnom 5V Vpp2 Vnom 5V
-+  io 0x03f8-0x03ff [lines=10] [8bit]
-+cftable_entry 0x17
-+  io 0x02f8-0x02ff [lines=10] [8bit]
-+cftable_entry 0x1f
-+  io 0x03e8-0x03ef [lines=10] [8bit]
-+cftable_entry 0x27
-+  io 0x02e8-0x02ef [lines=10] [8bit]
-diff -puN /dev/null firmware/cis/src/NE2K.cis
---- /dev/null
-+++ a/firmware/cis/src/NE2K.cis
-@@ -0,0 +1,10 @@
-+#
-+# Replacement CIS for various busted NE2000-compatible cards
-+#
-+vers_1 4.1, "PCMCIA", "Ethernet"
-+funcid network_adapter
-+config base 0x03f8 mask 0x03 last_index 0x20
-+cftable_entry 0x20 [default]
-+  Vcc Vnom 5V
-+  irq mask 0xffff [level]
-+  io 0x0000-0x001f [8bit] [16bit]
-diff -puN /dev/null firmware/cis/src/PCMLM28.cis
---- /dev/null
-+++ a/firmware/cis/src/PCMLM28.cis
-@@ -0,0 +1,37 @@
-+#
-+# The on-card CIS says it is MFC-compliant, but it is not
-+#
-+vers_1 4.1, "LINKSYS", "PCMLM28"
-+manfid 0x0143, 0xc0ab
-+funcid 0
-+config base 0x03f8 mask 0x03 last_index 0x2f
 +
-+cftable_entry 0x24 [default]
-+  Vcc Vnom 5V
-+  irq mask 0xffff [level]
-+  io 0x0300-0x031f, 0x02f8-0x02ff [8bit] [16bit]
++static void altera_jtaguart_start_tx(struct uart_port *port)
++{
++	struct altera_jtaguart *pp =
++	    container_of(port, struct altera_jtaguart, port);
 +
-+cftable_entry 0x25
-+  io 0x0320-0x033f, 0x02f8-0x02ff [8bit] [16bit]
-+cftable_entry 0x26
-+  io 0x0340-0x035f, 0x02f8-0x02ff [8bit] [16bit]
-+cftable_entry 0x27
-+  io 0x0360-0x037f, 0x02f8-0x02ff [8bit] [16bit]
++	pp->imr |= ALTERA_JTAGUART_CONTROL_WE_MSK;
++	writel(pp->imr, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++}
 +
-+cftable_entry 0x28
-+  io 0x0300-0x031f, 0x03e8-0x03ef [8bit] [16bit]
-+cftable_entry 0x29
-+  io 0x0320-0x033f, 0x03e8-0x03ef [8bit] [16bit]
-+cftable_entry 0x2a
-+  io 0x0340-0x035f, 0x03e8-0x03ef [8bit] [16bit]
-+cftable_entry 0x2b
-+  io 0x0360-0x037f, 0x03e8-0x03ef [8bit] [16bit]
++static void altera_jtaguart_stop_tx(struct uart_port *port)
++{
++	struct altera_jtaguart *pp =
++	    container_of(port, struct altera_jtaguart, port);
 +
-+cftable_entry 0x2c
-+  io 0x0300-0x031f, 0x02e8-0x02ef [8bit] [16bit]
-+cftable_entry 0x2d
-+  io 0x0320-0x033f, 0x02e8-0x02ef [8bit] [16bit]
-+cftable_entry 0x2e
-+  io 0x0340-0x035f, 0x02e8-0x02ef [8bit] [16bit]
-+cftable_entry 0x2f
-+  io 0x0360-0x037f, 0x02e8-0x02ef [8bit] [16bit]
-diff -puN /dev/null firmware/cis/src/PE-200.cis
++	pp->imr &= ~ALTERA_JTAGUART_CONTROL_WE_MSK;
++	writel(pp->imr, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++}
++
++static void altera_jtaguart_stop_rx(struct uart_port *port)
++{
++	struct altera_jtaguart *pp =
++	    container_of(port, struct altera_jtaguart, port);
++
++	pp->imr &= ~ALTERA_JTAGUART_CONTROL_RE_MSK;
++	writel(pp->imr, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++}
++
++static void altera_jtaguart_break_ctl(struct uart_port *port, int break_state)
++{
++}
++
++static void altera_jtaguart_enable_ms(struct uart_port *port)
++{
++}
++
++static void altera_jtaguart_set_termios(struct uart_port *port,
++					struct ktermios *termios,
++					struct ktermios *old)
++{
++	/* Just copy the old termios settings back */
++	if (old)
++		tty_termios_copy_hw(termios, old);
++}
++
++static void altera_jtaguart_rx_chars(struct altera_jtaguart *pp)
++{
++	struct uart_port *port = &pp->port;
++	unsigned char ch, flag;
++	unsigned long status;
++
++	while ((status = readl(port->membase + ALTERA_JTAGUART_DATA_REG)) &
++	       ALTERA_JTAGUART_DATA_RVALID_MSK) {
++		ch = status & ALTERA_JTAGUART_DATA_DATA_MSK;
++		flag = TTY_NORMAL;
++		port->icount.rx++;
++
++		if (uart_handle_sysrq_char(port, ch))
++			continue;
++		uart_insert_char(port, 0, 0, ch, flag);
++	}
++
++	tty_flip_buffer_push(port->state->port.tty);
++}
++
++static void altera_jtaguart_tx_chars(struct altera_jtaguart *pp)
++{
++	struct uart_port *port = &pp->port;
++	struct circ_buf *xmit = &port->state->xmit;
++	unsigned int pending, count;
++
++	if (port->x_char) {
++		/* Send special char - probably flow control */
++		writel(port->x_char, port->membase + ALTERA_JTAGUART_DATA_REG);
++		port->x_char = 0;
++		port->icount.tx++;
++		return;
++	}
++
++	pending = uart_circ_chars_pending(xmit);
++	if (pending > 0) {
++		count = (readl(port->membase + ALTERA_JTAGUART_CONTROL_REG) &
++				ALTERA_JTAGUART_CONTROL_WSPACE_MSK) >>
++			ALTERA_JTAGUART_CONTROL_WSPACE_OFF;
++		if (count > pending)
++			count = pending;
++		if (count > 0) {
++			pending -= count;
++			while (count--) {
++				writel(xmit->buf[xmit->tail],
++				       port->membase + ALTERA_JTAGUART_DATA_REG);
++				xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
++				port->icount.tx++;
++			}
++			if (pending < WAKEUP_CHARS)
++				uart_write_wakeup(port);
++		}
++	}
++
++	if (pending == 0) {
++		pp->imr &= ~ALTERA_JTAGUART_CONTROL_WE_MSK;
++		writel(pp->imr, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++	}
++}
++
++static irqreturn_t altera_jtaguart_interrupt(int irq, void *data)
++{
++	struct uart_port *port = data;
++	struct altera_jtaguart *pp =
++	    container_of(port, struct altera_jtaguart, port);
++	unsigned int isr;
++
++	isr = (readl(port->membase + ALTERA_JTAGUART_CONTROL_REG) >>
++	       ALTERA_JTAGUART_CONTROL_RI_OFF) & pp->imr;
++
++	spin_lock(&port->lock);
++
++	if (isr & ALTERA_JTAGUART_CONTROL_RE_MSK)
++		altera_jtaguart_rx_chars(pp);
++	if (isr & ALTERA_JTAGUART_CONTROL_WE_MSK)
++		altera_jtaguart_tx_chars(pp);
++
++	spin_unlock(&port->lock);
++
++	return IRQ_RETVAL(isr);
++}
++
++static void altera_jtaguart_config_port(struct uart_port *port, int flags)
++{
++	port->type = PORT_ALTERA_JTAGUART;
++
++	/* Clear mask, so no surprise interrupts. */
++	writel(0, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++}
++
++static int altera_jtaguart_startup(struct uart_port *port)
++{
++	struct altera_jtaguart *pp =
++	    container_of(port, struct altera_jtaguart, port);
++	unsigned long flags;
++	int ret;
++
++	ret = request_irq(port->irq, altera_jtaguart_interrupt, IRQF_DISABLED,
++			DRV_NAME, port);
++	if (ret) {
++		pr_err(DRV_NAME ": unable to attach Altera JTAG UART %d "
++		       "interrupt vector=%d\n", port->line, port->irq);
++		return ret;
++	}
++
++	spin_lock_irqsave(&port->lock, flags);
++
++	/* Enable RX interrupts now */
++	pp->imr = ALTERA_JTAGUART_CONTROL_RE_MSK;
++	writel(pp->imr, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++
++	spin_unlock_irqrestore(&port->lock, flags);
++
++	return 0;
++}
++
++static void altera_jtaguart_shutdown(struct uart_port *port)
++{
++	struct altera_jtaguart *pp =
++	    container_of(port, struct altera_jtaguart, port);
++	unsigned long flags;
++
++	spin_lock_irqsave(&port->lock, flags);
++
++	/* Disable all interrupts now */
++	pp->imr = 0;
++	writel(pp->imr, port->membase + ALTERA_JTAGUART_CONTROL_REG);
++
++	spin_unlock_irqrestore(&port->lock, flags);
++
++	free_irq(port->irq, port);
++}
++
++static const char *altera_jtaguart_type(struct uart_port *port)
++{
++	return (port->type == PORT_ALTERA_JTAGUART) ? "Altera JTAG UART" : NULL;
++}
++
++static int altera_jtaguart_request_port(struct uart_port *port)
++{
++	/* UARTs always present */
++	return 0;
++}
++
++static void altera_jtaguart_release_port(struct uart_port *port)
++{
++	/* Nothing to release... */
++}
++
++static int altera_jtaguart_verify_port(struct uart_port *port,
++				       struct serial_struct *ser)
++{
++	if (ser->type != PORT_UNKNOWN && ser->type != PORT_ALTERA_JTAGUART)
++		return -EINVAL;
++	return 0;
++}
++
++/*
++ *	Define the basic serial functions we support.
++ */
++static struct uart_ops altera_jtaguart_ops = {
++	.tx_empty	= altera_jtaguart_tx_empty,
++	.get_mctrl	= altera_jtaguart_get_mctrl,
++	.set_mctrl	= altera_jtaguart_set_mctrl,
++	.start_tx	= altera_jtaguart_start_tx,
++	.stop_tx	= altera_jtaguart_stop_tx,
++	.stop_rx	= altera_jtaguart_stop_rx,
++	.enable_ms	= altera_jtaguart_enable_ms,
++	.break_ctl	= altera_jtaguart_break_ctl,
++	.startup	= altera_jtaguart_startup,
++	.shutdown	= altera_jtaguart_shutdown,
++	.set_termios	= altera_jtaguart_set_termios,
++	.type		= altera_jtaguart_type,
++	.request_port	= altera_jtaguart_request_port,
++	.release_port	= altera_jtaguart_release_port,
++	.config_port	= altera_jtaguart_config_port,
++	.verify_port	= altera_jtaguart_verify_port,
++};
++
++#define ALTERA_JTAGUART_MAXPORTS 1
++static struct altera_jtaguart altera_jtaguart_ports[ALTERA_JTAGUART_MAXPORTS];
++
++#if defined(CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE)
++
++int __init early_altera_jtaguart_setup(struct altera_jtaguart_platform_uart
++				       *platp)
++{
++	struct uart_port *port;
++	int i;
++
++	for (i = 0; i < ALTERA_JTAGUART_MAXPORTS && platp[i].mapbase; i++) {
++		port = &altera_jtaguart_ports[i].port;
++
++		port->line = i;
++		port->type = PORT_ALTERA_JTAGUART;
++		port->mapbase = platp[i].mapbase;
++		port->membase = ioremap(port->mapbase, ALTERA_JTAGUART_SIZE);
++		port->iotype = SERIAL_IO_MEM;
++		port->irq = platp[i].irq;
++		port->flags = ASYNC_BOOT_AUTOCONF;
++		port->ops = &altera_jtaguart_ops;
++	}
++
++	return 0;
++}
++
++#if defined(CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE_BYPASS)
++static void altera_jtaguart_console_putc(struct console *co, const char c)
++{
++	struct uart_port *port = &(altera_jtaguart_ports + co->index)->port;
++	unsigned long status;
++	unsigned long flags;
++
++	spin_lock_irqsave(&port->lock, flags);
++	while (((status = readl(port->membase + ALTERA_JTAGUART_CONTROL_REG)) &
++		ALTERA_JTAGUART_CONTROL_WSPACE_MSK) == 0) {
++		if ((status & ALTERA_JTAGUART_CONTROL_AC_MSK) == 0) {
++			spin_unlock_irqrestore(&port->lock, flags);
++			return;	/* no connection activity */
++		}
++		spin_unlock_irqrestore(&port->lock, flags);
++		cpu_relax();
++		spin_lock_irqsave(&port->lock, flags);
++	}
++	writel(c, port->membase + ALTERA_JTAGUART_DATA_REG);
++	spin_unlock_irqrestore(&port->lock, flags);
++}
++#else
++static void altera_jtaguart_console_putc(struct console *co, const char c)
++{
++	struct uart_port *port = &(altera_jtaguart_ports + co->index)->port;
++	unsigned long flags;
++
++	spin_lock_irqsave(&port->lock, flags);
++	while ((readl(port->membase + ALTERA_JTAGUART_CONTROL_REG) &
++		ALTERA_JTAGUART_CONTROL_WSPACE_MSK) == 0) {
++		spin_unlock_irqrestore(&port->lock, flags);
++		cpu_relax();
++		spin_lock_irqsave(&port->lock, flags);
++	}
++	writel(c, port->membase + ALTERA_JTAGUART_DATA_REG);
++	spin_unlock_irqrestore(&port->lock, flags);
++}
++#endif
++
++static void altera_jtaguart_console_write(struct console *co, const char *s,
++					  unsigned int count)
++{
++	for (; count; count--, s++) {
++		altera_jtaguart_console_putc(co, *s);
++		if (*s == '\n')
++			altera_jtaguart_console_putc(co, '\r');
++	}
++}
++
++static int __init altera_jtaguart_console_setup(struct console *co,
++						char *options)
++{
++	struct uart_port *port;
++
++	if (co->index < 0 || co->index >= ALTERA_JTAGUART_MAXPORTS)
++		return -EINVAL;
++	port = &altera_jtaguart_ports[co->index].port;
++	if (port->membase == 0)
++		return -ENODEV;
++	return 0;
++}
++
++static struct uart_driver altera_jtaguart_driver;
++
++static struct console altera_jtaguart_console = {
++	.name	= "ttyJ",
++	.write	= altera_jtaguart_console_write,
++	.device	= uart_console_device,
++	.setup	= altera_jtaguart_console_setup,
++	.flags	= CON_PRINTBUFFER,
++	.index	= -1,
++	.data	= &altera_jtaguart_driver,
++};
++
++static int __init altera_jtaguart_console_init(void)
++{
++	register_console(&altera_jtaguart_console);
++	return 0;
++}
++
++console_initcall(altera_jtaguart_console_init);
++
++#define	ALTERA_JTAGUART_CONSOLE	(&altera_jtaguart_console)
++
++#else
++
++#define	ALTERA_JTAGUART_CONSOLE	NULL
++
++#endif /* CONFIG_ALTERA_JTAGUART_CONSOLE */
++
++static struct uart_driver altera_jtaguart_driver = {
++	.owner		= THIS_MODULE,
++	.driver_name	= "altera_jtaguart",
++	.dev_name	= "ttyJ",
++	.major		= ALTERA_JTAGUART_MAJOR,
++	.minor		= ALTERA_JTAGUART_MINOR,
++	.nr		= ALTERA_JTAGUART_MAXPORTS,
++	.cons		= ALTERA_JTAGUART_CONSOLE,
++};
++
++static int __devinit altera_jtaguart_probe(struct platform_device *pdev)
++{
++	struct altera_jtaguart_platform_uart *platp = pdev->dev.platform_data;
++	struct uart_port *port;
++	int i;
++
++	for (i = 0; i < ALTERA_JTAGUART_MAXPORTS && platp[i].mapbase; i++) {
++		port = &altera_jtaguart_ports[i].port;
++
++		port->line = i;
++		port->type = PORT_ALTERA_JTAGUART;
++		port->mapbase = platp[i].mapbase;
++		port->membase = ioremap(port->mapbase, ALTERA_JTAGUART_SIZE);
++		port->iotype = SERIAL_IO_MEM;
++		port->irq = platp[i].irq;
++		port->ops = &altera_jtaguart_ops;
++		port->flags = ASYNC_BOOT_AUTOCONF;
++
++		uart_add_one_port(&altera_jtaguart_driver, port);
++	}
++
++	return 0;
++}
++
++static int __devexit altera_jtaguart_remove(struct platform_device *pdev)
++{
++	struct uart_port *port;
++	int i;
++
++	for (i = 0; i < ALTERA_JTAGUART_MAXPORTS; i++) {
++		port = &altera_jtaguart_ports[i].port;
++		if (port)
++			uart_remove_one_port(&altera_jtaguart_driver, port);
++	}
++
++	return 0;
++}
++
++static struct platform_driver altera_jtaguart_platform_driver = {
++	.probe	= altera_jtaguart_probe,
++	.remove	= __devexit_p(altera_jtaguart_remove),
++	.driver	= {
++		.name	= DRV_NAME,
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init altera_jtaguart_init(void)
++{
++	int rc;
++
++	rc = uart_register_driver(&altera_jtaguart_driver);
++	if (rc)
++		return rc;
++	rc = platform_driver_register(&altera_jtaguart_platform_driver);
++	if (rc) {
++		uart_unregister_driver(&altera_jtaguart_driver);
++		return rc;
++	}
++	return 0;
++}
++
++static void __exit altera_jtaguart_exit(void)
++{
++	platform_driver_unregister(&altera_jtaguart_platform_driver);
++	uart_unregister_driver(&altera_jtaguart_driver);
++}
++
++module_init(altera_jtaguart_init);
++module_exit(altera_jtaguart_exit);
++
++MODULE_DESCRIPTION("Altera JTAG UART driver");
++MODULE_AUTHOR("Thomas Chou <thomas@wytron.com.tw>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+diff -puN /dev/null include/linux/altera_jtaguart.h
 --- /dev/null
-+++ a/firmware/cis/src/PE-200.cis
-@@ -0,0 +1,11 @@
-+#
-+# Replacement CIS for PE-200 ethernet card
-+#
-+vers_1 4.1, "PMX   ", "PE-200", "ETHERNET", "R01"
-+funcid network_adapter [post] [rom]
-+config base 0x0100 mask 0x0001 last_index 0x01
-+cftable_entry 0x1 [default]
-+  [mwait]
-+  Vcc Vnom 5V
-+  irq mask 0xffff [level]
-+  io 0x0000-0x000f, 0x0010-0x001f [8bit] [16bit]
-diff -puN /dev/null firmware/cis/src/PE520.cis
---- /dev/null
-+++ a/firmware/cis/src/PE520.cis
-@@ -0,0 +1,11 @@
-+#
-+# Replacement CIS for LanPro EP-4000A ethernet card
-+#
-+vers_1 4.1, "KTI", "PE520 PLUS", "PCMCIA Ethernet"
-+manfid 0x0161, 0x0010
-+funcid network_adapter
-+config base 0x0fd0 mask 0x0b last_index 0x01
-+cftable_entry 0x01 [default]
-+  Vcc Vnom 5V
-+  irq mask 0xffff [level]
-+  io 0x0000-0x001f [8bit] [16bit]
-diff -puN /dev/null firmware/cis/src/RS-COM-2P.cis
---- /dev/null
-+++ a/firmware/cis/src/RS-COM-2P.cis
-@@ -0,0 +1,14 @@
-+#
-+# Replacement CIS for dual-serial-port IO card
-+#
-+vers_1 4.1, "PCMCIA", "RS-COM 2P"
-+funcid serial_port [post]
-+config base 0x0100 mask 0x0001 last_index 0x03
-+cftable_entry 0x01 [default]
-+  [mwait]
-+  io 0x03e8-0x03ef, 0x02e8-0x02ef [lines=10] [8bit] [range]
-+  irq mask 0x9eb8 [level]
-+cftable_entry 0x02
-+  io 0x0250-0x0257, 0x0258-0x025f [lines=10] [8bit] [range]
-+cftable_entry 0x03
-+  io 0x0260-0x0267, 0x0268-0x026f [lines=10] [8bit] [range]
-diff -puN /dev/null firmware/cis/src/tamarack.cis
---- /dev/null
-+++ a/firmware/cis/src/tamarack.cis
-@@ -0,0 +1,17 @@
-+#
-+# Replacement CIS for Surecom, Tamarack NE2000 cards
-+#
-+dev_info
-+  fn_specific 100ns, 512b
-+attr_dev_info
-+  EEPROM 250ns, 512b
-+vers_1 4.1, "TAMARACK", "Ethernet", "A", "004743118001"
-+funcid network_adapter
-+config base 0x03f8 mask 0x0003 last_index 0x20
-+cftable_entry 0x20 [default]
-+  [mwait]
-+  Vcc Vnom 5V Vmin 4500mV Vmax 5500mV Istatic 100mA
-+    Iavg 170mA Ipeak 200mA
-+  timing wait 15us
-+  io 0x0000-0x000f, 0x0010-0x001f [lines=5] [8bit] [16bit]
-+  irq mask 0xffff [level]
++++ a/include/linux/altera_jtaguart.h
+@@ -0,0 +1,16 @@
++/*
++ * altera_jtaguart.h -- Altera JTAG UART driver defines.
++ */
++
++#ifndef	__ALTJUART_H
++#define	__ALTJUART_H
++
++#define ALTERA_JTAGUART_MAJOR	204
++#define ALTERA_JTAGUART_MINOR	186
++
++struct altera_jtaguart_platform_uart {
++	unsigned long mapbase;	/* Physical address base */
++	unsigned int irq;	/* Interrupt vector */
++};
++
++#endif /* __ALTJUART_H */
+diff -puN include/linux/serial_core.h~serial-add-driver-for-the-altera-jtag-uart include/linux/serial_core.h
+--- a/include/linux/serial_core.h~serial-add-driver-for-the-altera-jtag-uart
++++ a/include/linux/serial_core.h
+@@ -182,6 +182,9 @@
+ /* Aeroflex Gaisler GRLIB APBUART */
+ #define PORT_APBUART    90
+ 
++/* Altera UARTs */
++#define PORT_ALTERA_JTAGUART	91
++
+ #ifdef __KERNEL__
+ 
+ #include <linux/compiler.h>
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
-video-fix-first-line-of-kernel-doc-for-a-few-functions.patch
 linux-next.patch
-firmware-correct-attribution-of-sierra-wireless-cis-files.patch
-firmware-add-source-and-copyright-notice-for-cis-files-from-pcmcia-cs.patch
-mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch
+cpm_uart-use-resource_size.patch
+serial-add-driver-for-the-altera-jtag-uart.patch
+serial-add-driver-for-the-altera-uart.patch
 
