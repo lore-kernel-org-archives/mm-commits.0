@@ -1,89 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-fixups.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:50:59 -0400
-Message-ID: <201003150651.o2F6pWh0015909@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Sun, 14 Mar 2010 23:51:34 -0400
+Message-ID: <201003150652.o2F6q7YG015938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33390 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756997Ab0COGve (ORCPT
+	by vger.kernel.org with ESMTP id S1756997Ab0COGwJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:51:34 -0400
+	Mon, 15 Mar 2010 02:52:09 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o2F6pXi1006521
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o2F6q7mY006555
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 14 Mar 2010 23:51:34 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 14 Mar 2010 23:52:08 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     linux-next-fixups
-has been removed from the -mm tree.  Its filename was
-     linux-next-fixups.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixups
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN kernel/sysctl.c~linux-next-fixups kernel/sysctl.c
---- a/kernel/sysctl.c~linux-next-fixups
-+++ a/kernel/sysctl.c
-@@ -50,12 +50,16 @@
- #include <linux/times.h>
- #include <linux/limits.h>
- #include <linux/dcache.h>
-+#include <linux/dnotify.h>
- #include <linux/binfmts.h>
- #include <linux/syscalls.h>
- #include <linux/vmstat.h>
- #include <linux/nfs_fs.h>
- #include <linux/acpi.h>
- #include <linux/reboot.h>
-+#ifdef CONFIG_INOTIFY_USER
-+#include <linux/inotify.h>
-+#endif
- #include <linux/ftrace.h>
- #include <linux/slow-work.h>
- #include <linux/perf_event.h>
-@@ -182,9 +186,6 @@ static struct ctl_table fs_table[];
- static struct ctl_table debug_table[];
- static struct ctl_table dev_table[];
- extern struct ctl_table random_table[];
--#ifdef CONFIG_INOTIFY_USER
--extern struct ctl_table inotify_table[];
--#endif
- #ifdef CONFIG_EPOLL
- extern struct ctl_table epoll_table[];
- #endif
-@@ -542,9 +543,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dostring,
- 	},
- #endif
--#ifdef CONFIG_INOTIFY_USER
--#include <linux/inotify.h>
--#endif
- #ifdef CONFIG_CHR_DEV_SG
- 	{
- 		.procname	= "sg-big-buff",
+diff -puN arch/x86/kernel/acpi/boot.c~linux-next-git-rejects arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~linux-next-git-rejects
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -1555,17 +1555,6 @@ static int __init parse_acpi(char *arg)
+ 	else if (strcmp(arg, "strict") == 0) {
+ 		acpi_strict = 1;
+ 	}
+-<<<<<<< HEAD
+-	/* Limit ACPI just to boot-time to enable HT */
+-	else if (strcmp(arg, "ht") == 0) {
+-		if (!acpi_force) {
+-			printk(KERN_WARNING "acpi=ht will be removed in Linux-2.6.35\n");
+-			disable_acpi();
+-		}
+-		acpi_ht = 1;
+-	}
+-=======
+->>>>>>> FETCH_HEAD
+ 	/* acpi=rsdt use RSDT instead of XSDT */
+ 	else if (strcmp(arg, "rsdt") == 0) {
+ 		acpi_rsdt_forced = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-fixups.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-crypto-aesni-intel_asms-make-it-build.patch
