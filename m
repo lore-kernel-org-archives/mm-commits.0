@@ -1,77 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-use-rlimit-helpers.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:01:31 -0400
-Message-ID: <201003150702.o2F724CR016835@imap1.linux-foundation.org>
+Subject: [merged] cris-arch-v32-use-generic-ptrace_resume-code.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:01:13 -0400
+Message-ID: <201003150701.o2F71kN6016814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935792Ab0COHCI (ORCPT
+	by vger.kernel.org with ESMTP id S935846Ab0COHCI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Mar 2010 03:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, mm-commits@vger.kernel.org
+To: hch@lst.de, jesper.nilsson@axis.com, oleg@redhat.com, roland@redhat.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: use rlimit helpers
+     cris arch-v32: use generic ptrace_resume code
 has been removed from the -mm tree.  Its filename was
-     ipc-use-rlimit-helpers.patch
+     cris-arch-v32-use-generic-ptrace_resume-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: use rlimit helpers
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: cris arch-v32: use generic ptrace_resume code
+From: Christoph Hellwig <hch@lst.de>
 
-Make sure compiler won't do weird things with limits.  E.g.  fetching them
-twice may return 2 different values after writable limits are implemented.
+Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
+PTRACE_KILL and PTRACE_SINGLESTEP.  This implies defining
+arch_has_single_step in <asm/ptrace.h> and implementing the
+user_enable_single_step and user_disable_single_step functions, which also
+causes the breakpoint information to be cleared on fork, which could be
+considered a bug fix.
 
-I.e.  either use rlimit helpers added in
-3e10e716abf3c71bdb5d86b8f507f9e72236c9cd ("resource: add helpers for
-fetching rlimits") or ACCESS_ONCE if not applicable.
+Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
+it previously wasn't which is consistent with all architectures using the
+modern ptrace code.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+The way breakpoints are disabled is entirely inconsistent currently, I
+tried to make some sense of it, but I suspect all of the content of
+ptrace_disable should be moved into user_disable_single_step, this
+defintively needs some revisting as the current patch changes behaviour in
+not quite designed ways.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
- ipc/shm.c    |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ arch/cris/arch-v32/kernel/ptrace.c       |  109 +++++----------------
+ arch/cris/include/arch-v32/arch/ptrace.h |    1 
+ 2 files changed, 31 insertions(+), 79 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-use-rlimit-helpers ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-use-rlimit-helpers
-+++ a/ipc/mqueue.c
-@@ -155,7 +155,7 @@ static struct inode *mqueue_get_inode(st
- 			spin_lock(&mq_lock);
- 			if (u->mq_bytes + mq_bytes < u->mq_bytes ||
- 		 	    u->mq_bytes + mq_bytes >
--			    p->signal->rlim[RLIMIT_MSGQUEUE].rlim_cur) {
-+			    task_rlimit(p, RLIMIT_MSGQUEUE)) {
- 				spin_unlock(&mq_lock);
- 				kfree(info->messages);
- 				goto out_inode;
-diff -puN ipc/shm.c~ipc-use-rlimit-helpers ipc/shm.c
---- a/ipc/shm.c~ipc-use-rlimit-helpers
-+++ a/ipc/shm.c
-@@ -764,8 +764,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 			if (euid != shp->shm_perm.uid &&
- 			    euid != shp->shm_perm.cuid)
- 				goto out_unlock;
--			if (cmd == SHM_LOCK &&
--			    !current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur)
-+			if (cmd == SHM_LOCK && !rlimit(RLIMIT_MEMLOCK))
- 				goto out_unlock;
- 		}
+diff -puN arch/cris/arch-v32/kernel/ptrace.c~cris-arch-v32-use-generic-ptrace_resume-code arch/cris/arch-v32/kernel/ptrace.c
+--- a/arch/cris/arch-v32/kernel/ptrace.c~cris-arch-v32-use-generic-ptrace_resume-code
++++ a/arch/cris/arch-v32/kernel/ptrace.c
+@@ -78,6 +78,35 @@ int put_reg(struct task_struct *task, un
+ 	return 0;
+ }
  
-_
-
-Patches currently in -mm which might be from jslaby@suse.cz are
-
-origin.patch
-linux-next.patch
-edac-add-__init-to-i7core_xeon_pci_fixup.patch
-
++void user_enable_single_step(struct task_struct *child)
++{
++	unsigned long tmp;
++
++	/*
++	 * Set up SPC if not set already (in which case we have no other
++	 * choice but to trust it).
++	 */
++	if (!get_reg(child, PT_SPC)) {
++		/* In case we're stopped in a delay slot. */
++		tmp = get_reg(child, PT_ERP) & ~1;
++		put_reg(child, PT_SPC, tmp);
++	}
++	tmp = get_reg(child, PT_CCS) | SBIT_USER;
++	put_reg(child, PT_CCS, tmp);
++}
++
++void user_disable_single_step(struct task_struct *child)
++{
++	put_reg(child, PT_SPC, 0);
++
++	if (!get_debugreg(child->pid, PT_BP_CTRL)) {
++		unsigned long tmp;
++		/* If no h/w bp configured, disable S bit. */
++		tmp = get_reg(child, PT_CCS) & ~SBIT_USER;
++		put_reg(child, PT_CCS, tmp);
++	}
++}
++
+ /*
+  * Called by kernel/ptrace.c when detaching.
+  *
+@@ -89,8 +118,7 @@ ptrace_disable(struct task_struct *child
+ 	unsigned long tmp;
+ 
+ 	/* Deconfigure SPC and S-bit. */
+-	tmp = get_reg(child, PT_CCS) & ~SBIT_USER;
+-	put_reg(child, PT_CCS, tmp);
++	user_disable_single_step(child);
+ 	put_reg(child, PT_SPC, 0);
+ 
+ 	/* Deconfigure any watchpoints associated with the child. */
+@@ -169,83 +197,6 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = 0;
+ 			break;
+ 
+-		case PTRACE_SYSCALL:
+-		case PTRACE_CONT:
+-			ret = -EIO;
+-
+-			if (!valid_signal(data))
+-				break;
+-
+-			/* Continue means no single-step. */
+-			put_reg(child, PT_SPC, 0);
+-
+-			if (!get_debugreg(child->pid, PT_BP_CTRL)) {
+-				unsigned long tmp;
+-				/* If no h/w bp configured, disable S bit. */
+-				tmp = get_reg(child, PT_CCS) & ~SBIT_USER;
+-				put_reg(child, PT_CCS, tmp);
+-			}
+-
+-			if (request == PTRACE_SYSCALL) {
+-				set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-			}
+-			else {
+-				clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-			}
+-
+-			child->exit_code = data;
+-
+-			/* TODO: make sure any pending breakpoint is killed */
+-			wake_up_process(child);
+-			ret = 0;
+-
+-			break;
+-
+-		/* Make the child exit by sending it a sigkill. */
+-		case PTRACE_KILL:
+-			ret = 0;
+-
+-			if (child->exit_state == EXIT_ZOMBIE)
+-				break;
+-
+-			child->exit_code = SIGKILL;
+-
+-			/* Deconfigure single-step and h/w bp. */
+-			ptrace_disable(child);
+-
+-			/* TODO: make sure any pending breakpoint is killed */
+-			wake_up_process(child);
+-			break;
+-
+-		/* Set the trap flag. */
+-		case PTRACE_SINGLESTEP:	{
+-			unsigned long tmp;
+-			ret = -EIO;
+-
+-			/* Set up SPC if not set already (in which case we have
+-			   no other choice but to trust it). */
+-			if (!get_reg(child, PT_SPC)) {
+-				/* In case we're stopped in a delay slot. */
+-				tmp = get_reg(child, PT_ERP) & ~1;
+-				put_reg(child, PT_SPC, tmp);
+-			}
+-			tmp = get_reg(child, PT_CCS) | SBIT_USER;
+-			put_reg(child, PT_CCS, tmp);
+-
+-			if (!valid_signal(data))
+-				break;
+-
+-			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-
+-			/* TODO: set some clever breakpoint mechanism... */
+-
+-			child->exit_code = data;
+-			wake_up_process(child);
+-			ret = 0;
+-			break;
+-
+-		}
