@@ -1,80 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] decompress-fix-new-decompressor-for-pic.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:04:45 -0400
-Message-ID: <201003150705.o2F75ILR017080@imap1.linux-foundation.org>
+Subject: [merged] acpiphp-execute-acpi-_reg-method-for-hotadded-devices.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:05:21 -0400
+Message-ID: <201003150705.o2F75sXx017127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759729Ab0COHFd (ORCPT
+	by vger.kernel.org with ESMTP id S933035Ab0COHGG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:33 -0400
+	Mon, 15 Mar 2010 03:06:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk@arm.linux.org.uk, alain@knaff.lu, rmk+kernel@arm.linux.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, jbarnes@virtuousgeek.org, lenb@kernel.org, pm@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     decompress: fix new decompressor for PIC
+     acpiphp: execute ACPI _REG method for hotadded devices
 has been removed from the -mm tree.  Its filename was
-     decompress-fix-new-decompressor-for-pic.patch
+     acpiphp-execute-acpi-_reg-method-for-hotadded-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: decompress: fix new decompressor for PIC
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: acpiphp: execute ACPI _REG method for hotadded devices
+From: Shaohua Li <shaohua.li@intel.com>
 
-The ARM kernel decompressor wants to be able to relocate r/w data
-independently from the rest of the image, and we do this by ensuring that
-r/w data has global visibility.  Define STATIC_RW_DATA to be empty to
-achieve this.
+Per ACPI spec, _ERG method should be executed before device driver gets
+control for hotpluged device.  Firmware might do some configuration there.
+ See http://bugzilla.kernel.org/show_bug.cgi?id=10805.  In this machine,
+_REG method of docked device will configure cardbus bridge.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: <stable@kernel.org>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Tested-by: Paul Martin <pm@debian.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/decompress/mm.h |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic include/linux/decompress/mm.h
---- a/include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic
-+++ a/include/linux/decompress/mm.h
-@@ -14,11 +14,21 @@
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-execute-acpi-_reg-method-for-hotadded-devices drivers/pci/hotplug/acpiphp_glue.c
+--- a/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-execute-acpi-_reg-method-for-hotadded-devices
++++ a/drivers/pci/hotplug/acpiphp_glue.c
+@@ -749,6 +749,24 @@ static int acpiphp_bus_trim(acpi_handle 
+ 	return retval;
+ }
  
- /* Code active when included from pre-boot environment: */
- 
-+/*
-+ * Some architectures want to ensure there is no local data in their
-+ * pre-boot environment, so that data can arbitarily relocated (via
-+ * GOT references).  This is achieved by defining STATIC_RW_DATA to
-+ * be null.
-+ */
-+#ifndef STATIC_RW_DATA
-+#define STATIC_RW_DATA static
-+#endif
++static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
++{
++	struct acpiphp_func *func;
++	union acpi_object params[2];
++	struct acpi_object_list arg_list;
 +
- /* A trivial malloc implementation, adapted from
-  *  malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
-  */
--static unsigned long malloc_ptr;
--static int malloc_count;
-+STATIC_RW_DATA unsigned long malloc_ptr;
-+STATIC_RW_DATA int malloc_count;
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		arg_list.count = 2;
++		arg_list.pointer = params;
++		params[0].type = ACPI_TYPE_INTEGER;
++		params[0].integer.value = ACPI_ADR_SPACE_PCI_CONFIG;
++		params[1].type = ACPI_TYPE_INTEGER;
++		params[1].integer.value = 1;
++		/* _REG is optional, we don't care about if there is failure */
++		acpi_evaluate_object(func->handle, "_REG", &arg_list, NULL);
++	}
++}
++
+ /**
+  * enable_device - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -805,6 +823,7 @@ static int __ref enable_device(struct ac
+ 	pci_bus_assign_resources(bus);
+ 	acpiphp_sanitize_bus(bus);
+ 	acpiphp_set_hpp_values(bus);
++	acpiphp_set_acpi_region(slot);
+ 	pci_enable_bridges(bus);
+ 	pci_bus_add_devices(bus);
  
- static void *malloc(int size)
- {
 _
 
-Patches currently in -mm which might be from rmk@arm.linux.org.uk are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-arm-convert-arm-to-arch_gettimeoffset.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
 
