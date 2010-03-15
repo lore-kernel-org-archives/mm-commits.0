@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-splicec-fix-mapping_gfp_mask-usage.patch added to -mm tree
-Date: Mon, 15 Mar 2010 13:37:44 -0700
-Message-ID: <201003152037.o2FKbikv021251@imap1.linux-foundation.org>
+Subject: + mm-remove-return-value-of-putback_lru_pages.patch added to -mm tree
+Date: Mon, 15 Mar 2010 13:38:52 -0700
+Message-ID: <201003152038.o2FKcqFA021266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932138Ab0COUiO (ORCPT
+	by vger.kernel.org with ESMTP id S1754678Ab0COUjZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:38:14 -0400
+	Mon, 15 Mar 2010 16:39:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jens.axboe@oracle.com
+Cc: minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     fs/splice.c: fix mapping_gfp_mask usage
+     mm: remove return value of putback_lru_pages()
 has been added to the -mm tree.  Its filename is
-     fs-splicec-fix-mapping_gfp_mask-usage.patch
+     mm-remove-return-value-of-putback_lru_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/splice.c: fix mapping_gfp_mask usage
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm: remove return value of putback_lru_pages()
+From: Minchan Kim <minchan.kim@gmail.com>
 
-mapping_gfp_mask() is not supposed to store allocation contex details,
-only page location details.  So mapping_gfp_mask should be applied to the
-pagecache page allocation, wheras normal (kernel mapped) memory should be
-used for surrounding allocations such as radix-tree nodes allocated by
-add_to_page_cache.  Context modifiers should be applied on a per-callsite
-basis.
+putback_lru_page() never can fail.  So it doesn't matter count of "the
+number of pages put back".
 
-So change splice to follow this convention (which is followed in similar
-code patterns in core code).
+In addition, users of this functions don't use return value.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Let's remove unnecessary code.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/migrate.h |    4 ++--
+ mm/migrate.c            |    7 +------
+ 2 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/splice.c~fs-splicec-fix-mapping_gfp_mask-usage fs/splice.c
---- a/fs/splice.c~fs-splicec-fix-mapping_gfp_mask-usage
-+++ a/fs/splice.c
-@@ -320,7 +320,7 @@ __generic_file_splice_read(struct file *
- 				break;
+diff -puN include/linux/migrate.h~mm-remove-return-value-of-putback_lru_pages include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-remove-return-value-of-putback_lru_pages
++++ a/include/linux/migrate.h
+@@ -9,7 +9,7 @@ typedef struct page *new_page_t(struct p
+ #ifdef CONFIG_MIGRATION
+ #define PAGE_MIGRATION 1
  
- 			error = add_to_page_cache_lru(page, mapping, index,
--						mapping_gfp_mask(mapping));
-+						GFP_KERNEL);
- 			if (unlikely(error)) {
- 				page_cache_release(page);
- 				if (error == -EEXIST)
+-extern int putback_lru_pages(struct list_head *l);
++extern void putback_lru_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+@@ -25,7 +25,7 @@ extern int migrate_vmas(struct mm_struct
+ #else
+ #define PAGE_MIGRATION 0
+ 
+-static inline int putback_lru_pages(struct list_head *l) { return 0; }
++static inline void putback_lru_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, int offlining) { return -ENOSYS; }
+ 
+diff -puN mm/migrate.c~mm-remove-return-value-of-putback_lru_pages mm/migrate.c
+--- a/mm/migrate.c~mm-remove-return-value-of-putback_lru_pages
++++ a/mm/migrate.c
+@@ -57,23 +57,18 @@ int migrate_prep(void)
+ /*
+  * Add isolated pages on the list back to the LRU under page lock
+  * to avoid leaking evictable pages back onto unevictable list.
+- *
+- * returns the number of pages put back.
+  */
+-int putback_lru_pages(struct list_head *l)
++void putback_lru_pages(struct list_head *l)
+ {
+ 	struct page *page;
+ 	struct page *page2;
+-	int count = 0;
+ 
+ 	list_for_each_entry_safe(page, page2, l, lru) {
+ 		list_del(&page->lru);
+ 		dec_zone_page_state(page, NR_ISOLATED_ANON +
+ 				page_is_file_cache(page));
+ 		putback_lru_page(page);
+-		count++;
+ 	}
+-	return count;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-origin.patch
-linux-next.patch
-fs-splicec-fix-mapping_gfp_mask-usage.patch
-reiser4.patch
+mm-remove-return-value-of-putback_lru_pages.patch
 
