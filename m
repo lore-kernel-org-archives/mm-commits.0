@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-compile-errors-in-dma-mapping-commonh.patch added to -mm tree
-Date: Mon, 15 Mar 2010 13:11:01 -0700
-Message-ID: <201003152011.o2FKB1Sr020034@imap1.linux-foundation.org>
+Subject: + fs-splicec-fix-mapping_gfp_mask-usage.patch added to -mm tree
+Date: Mon, 15 Mar 2010 13:37:44 -0700
+Message-ID: <201003152037.o2FKbikv021251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936641Ab0COULR (ORCPT
+	by vger.kernel.org with ESMTP id S932138Ab0COUiO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:11:17 -0400
+	Mon, 15 Mar 2010 16:38:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, mcree@orcon.net.nz
+Cc: npiggin@suse.de, jens.axboe@oracle.com
 
 
 The patch titled
-     alpha: fix compile errors in dma-mapping-common.h
+     fs/splice.c: fix mapping_gfp_mask usage
 has been added to the -mm tree.  Its filename is
-     alpha-fix-compile-errors-in-dma-mapping-commonh.patch
+     fs-splicec-fix-mapping_gfp_mask-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix compile errors in dma-mapping-common.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: fs/splice.c: fix mapping_gfp_mask usage
+From: Nick Piggin <npiggin@suse.de>
 
-Commit c186caca3dbe7f44da624cb4f9d78e1b1dfb13b8 ("dma-mapping: alpha: use
-include/linux/pci-dma-compat.h ") leads to the following errors with
-CONFIG_ALPHA_{TSUNAMI, TITAN, RAWHIDE, MARVEL}:
+mapping_gfp_mask() is not supposed to store allocation contex details,
+only page location details.  So mapping_gfp_mask should be applied to the
+pagecache page allocation, wheras normal (kernel mapped) memory should be
+used for surrounding allocations such as radix-tree nodes allocated by
+add_to_page_cache.  Context modifiers should be applied on a per-callsite
+basis.
 
-include/asm-generic/dma-mapping-common.h: In function `dma_map_sg_attrs':
-include/asm-generic/dma-mapping-common.h:49: error: implicit declaration of function `for_each_sg'
-include/asm-generic/dma-mapping-common.h:50: error: syntax error before "kmemcheck_mark_initialized"
+So change splice to follow this convention (which is followed in similar
+code patterns in core code).
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Reported-by: Michael Cree <mcree@orcon.net.nz>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/core_marvel.h  |    1 -
- arch/alpha/include/asm/core_mcpcia.h  |    1 -
- arch/alpha/include/asm/core_titan.h   |    1 -
- arch/alpha/include/asm/core_tsunami.h |    1 -
- 4 files changed, 4 deletions(-)
+ fs/splice.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/core_marvel.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_marvel.h
---- a/arch/alpha/include/asm/core_marvel.h~alpha-fix-compile-errors-in-dma-mapping-commonh
-+++ a/arch/alpha/include/asm/core_marvel.h
-@@ -12,7 +12,6 @@
- #define __ALPHA_MARVEL__H__
+diff -puN fs/splice.c~fs-splicec-fix-mapping_gfp_mask-usage fs/splice.c
+--- a/fs/splice.c~fs-splicec-fix-mapping_gfp_mask-usage
++++ a/fs/splice.c
+@@ -320,7 +320,7 @@ __generic_file_splice_read(struct file *
+ 				break;
  
- #include <linux/types.h>
--#include <linux/pci.h>
- #include <linux/spinlock.h>
- 
- #include <asm/compiler.h>
-diff -puN arch/alpha/include/asm/core_mcpcia.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_mcpcia.h
---- a/arch/alpha/include/asm/core_mcpcia.h~alpha-fix-compile-errors-in-dma-mapping-commonh
-+++ a/arch/alpha/include/asm/core_mcpcia.h
-@@ -6,7 +6,6 @@
- #define MCPCIA_ONE_HAE_WINDOW 1
- 
- #include <linux/types.h>
--#include <linux/pci.h>
- #include <asm/compiler.h>
- 
- /*
-diff -puN arch/alpha/include/asm/core_titan.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_titan.h
---- a/arch/alpha/include/asm/core_titan.h~alpha-fix-compile-errors-in-dma-mapping-commonh
-+++ a/arch/alpha/include/asm/core_titan.h
-@@ -2,7 +2,6 @@
- #define __ALPHA_TITAN__H__
- 
- #include <linux/types.h>
--#include <linux/pci.h>
- #include <asm/compiler.h>
- 
- /*
-diff -puN arch/alpha/include/asm/core_tsunami.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_tsunami.h
---- a/arch/alpha/include/asm/core_tsunami.h~alpha-fix-compile-errors-in-dma-mapping-commonh
-+++ a/arch/alpha/include/asm/core_tsunami.h
-@@ -2,7 +2,6 @@
- #define __ALPHA_TSUNAMI__H__
- 
- #include <linux/types.h>
--#include <linux/pci.h>
- #include <asm/compiler.h>
- 
- /*
+ 			error = add_to_page_cache_lru(page, mapping, index,
+-						mapping_gfp_mask(mapping));
++						GFP_KERNEL);
+ 			if (unlikely(error)) {
+ 				page_cache_release(page);
+ 				if (error == -EEXIST)
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-alpha-fix-compile-errors-in-dma-mapping-commonh.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
+fs-splicec-fix-mapping_gfp_mask-usage.patch
+reiser4.patch
 
