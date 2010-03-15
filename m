@@ -1,73 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Sun, 14 Mar 2010 23:51:34 -0400
-Message-ID: <201003150652.o2F6q7YG015938@imap1.linux-foundation.org>
+Subject: [obsolete] arch-x86-crypto-aesni-intel_asms-make-it-build.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:51:48 -0400
+Message-ID: <201003150652.o2F6qMq1015952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756997Ab0COGwJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756997Ab0COGxC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:52:09 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o2F6q7mY006555
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 14 Mar 2010 23:52:08 -0700
+	Mon, 15 Mar 2010 02:53:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, herbert@gondor.apana.org.au, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     arch/x86/crypto/aesni-intel_asm.S: make it build
+has been removed from the -mm tree.  Its filename was
+     arch-x86-crypto-aesni-intel_asms-make-it-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: arch/x86/crypto/aesni-intel_asm.S: make it build
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/boot.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ arch/x86/crypto/aesni-intel_asm.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/boot.c~linux-next-git-rejects arch/x86/kernel/acpi/boot.c
---- a/arch/x86/kernel/acpi/boot.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/acpi/boot.c
-@@ -1555,17 +1555,6 @@ static int __init parse_acpi(char *arg)
- 	else if (strcmp(arg, "strict") == 0) {
- 		acpi_strict = 1;
- 	}
--<<<<<<< HEAD
--	/* Limit ACPI just to boot-time to enable HT */
--	else if (strcmp(arg, "ht") == 0) {
--		if (!acpi_force) {
--			printk(KERN_WARNING "acpi=ht will be removed in Linux-2.6.35\n");
--			disable_acpi();
--		}
--		acpi_ht = 1;
--	}
--=======
-->>>>>>> FETCH_HEAD
- 	/* acpi=rsdt use RSDT instead of XSDT */
- 	else if (strcmp(arg, "rsdt") == 0) {
- 		acpi_rsdt_forced = 1;
+diff -puN arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-make-it-build arch/x86/crypto/aesni-intel_asm.S
+--- a/arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-make-it-build
++++ a/arch/x86/crypto/aesni-intel_asm.S
+@@ -749,8 +749,8 @@ _aesni_inc_init:
+ 	movaps IV, CTR
+ 	PSHUFB_XMM BSWAP_MASK CTR
+ 	mov $1, TCTR_LOW
+-	movq TCTR_LOW, INC
+-	movq CTR, TCTR_LOW
++//	movq TCTR_LOW, INC
++//	movq CTR, TCTR_LOW
+ 	ret
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
