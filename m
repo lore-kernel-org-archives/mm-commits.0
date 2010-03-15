@@ -1,335 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-improve-performance-in-moving-charge.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:58:49 -0400
-Message-ID: <201003150659.o2F6xNUD016540@imap1.linux-foundation.org>
+Subject: [merged] cgroups-blkio-subsystem-as-module.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:58:35 -0400
+Message-ID: <201003150659.o2F6x8Sp016505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935633Ab0COG7o (ORCPT
+	by vger.kernel.org with ESMTP id S935633Ab0COG7v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:59:44 -0400
+	Mon, 15 Mar 2010 02:59:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: bblum@andrew.cmu.edu, davem@davemloft.net, jens.axboe@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, vgoyal@redhat.com, mm-c
 
 
 The patch titled
-     memcg: improve performance in moving charge
+     cgroups: blkio subsystem as module
 has been removed from the -mm tree.  Its filename was
-     memcg-improve-performance-in-moving-charge.patch
+     cgroups-blkio-subsystem-as-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: improve performance in moving charge
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: cgroups: blkio subsystem as module
+From: Ben Blum <bblum@andrew.cmu.edu>
 
-Try to reduce overheads in moving charge by:
+Modify the Block I/O cgroup subsystem to be able to be built as a module. 
+As the CFQ disk scheduler optionally depends on blk-cgroup, config options
+in block/Kconfig, block/Kconfig.iosched, and block/blk-cgroup.h are
+enhanced to support the new module dependency.
 
-- Instead of calling res_counter_uncharge() against the old cgroup in
-  __mem_cgroup_move_account() everytime, call res_counter_uncharge() at the end
-  of task migration once.
-- removed css_get(&to->css) from __mem_cgroup_move_account() because callers
-  should have already called css_get(). And removed css_put(&to->css) too,
-  which was called by callers of move_account on success of move_account.
-- Instead of calling __mem_cgroup_try_charge(), i.e. res_counter_charge(),
-  repeatedly, call res_counter_charge(PAGE_SIZE * count) in can_attach() if
-  possible.
-- Instead of calling css_get()/css_put() repeatedly, make use of coalesce
-  __css_get()/__css_put() if possible.
-
-These changes reduces the overhead from 1.7sec to 0.6sec to move charges
-of 1G anonymous memory in my test environment.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  152 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 98 insertions(+), 54 deletions(-)
+ block/Kconfig             |    2 -
+ block/Kconfig.iosched     |    2 -
+ block/blk-cgroup.c        |   53 +++++++++++++++++++++++++++---------
+ block/blk-cgroup.h        |   10 +++++-
+ include/linux/iocontext.h |    2 -
+ kernel/cgroup.c           |    9 ++++++
+ 6 files changed, 61 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-improve-performance-in-moving-charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-improve-performance-in-moving-charge
-+++ a/mm/memcontrol.c
-@@ -253,6 +253,7 @@ static struct move_charge_struct {
- 	struct mem_cgroup *from;
- 	struct mem_cgroup *to;
- 	unsigned long precharge;
-+	unsigned long moved_charge;
- } mc;
+diff -puN block/Kconfig~cgroups-blkio-subsystem-as-module block/Kconfig
+--- a/block/Kconfig~cgroups-blkio-subsystem-as-module
++++ a/block/Kconfig
+@@ -78,7 +78,7 @@ config BLK_DEV_INTEGRITY
+ 	Protection.  If in doubt, say N.
  
- /*
-@@ -1536,14 +1537,23 @@ nomem:
-  * This function is for that and do uncharge, put css's refcnt.
-  * gotten by try_charge().
-  */
--static void mem_cgroup_cancel_charge(struct mem_cgroup *mem)
-+static void __mem_cgroup_cancel_charge(struct mem_cgroup *mem,
-+							unsigned long count)
+ config BLK_CGROUP
+-	bool
++	tristate
+ 	depends on CGROUPS
+ 	default n
+ 	---help---
+diff -puN block/Kconfig.iosched~cgroups-blkio-subsystem-as-module block/Kconfig.iosched
+--- a/block/Kconfig.iosched~cgroups-blkio-subsystem-as-module
++++ a/block/Kconfig.iosched
+@@ -23,6 +23,7 @@ config IOSCHED_DEADLINE
+ 
+ config IOSCHED_CFQ
+ 	tristate "CFQ I/O scheduler"
++	select BLK_CGROUP if CFQ_GROUP_IOSCHED
+ 	default y
+ 	---help---
+ 	  The CFQ I/O scheduler tries to distribute bandwidth equally
+@@ -35,7 +36,6 @@ config IOSCHED_CFQ
+ config CFQ_GROUP_IOSCHED
+ 	bool "CFQ Group Scheduling support"
+ 	depends on IOSCHED_CFQ && CGROUPS
+-	select BLK_CGROUP
+ 	default n
+ 	---help---
+ 	  Enable group IO scheduling in CFQ.
+diff -puN block/blk-cgroup.c~cgroups-blkio-subsystem-as-module block/blk-cgroup.c
+--- a/block/blk-cgroup.c~cgroups-blkio-subsystem-as-module
++++ a/block/blk-cgroup.c
+@@ -23,6 +23,31 @@ static LIST_HEAD(blkio_list);
+ struct blkio_cgroup blkio_root_cgroup = { .weight = 2*BLKIO_WEIGHT_DEFAULT };
+ EXPORT_SYMBOL_GPL(blkio_root_cgroup);
+ 
++static struct cgroup_subsys_state *blkiocg_create(struct cgroup_subsys *,
++						  struct cgroup *);
++static int blkiocg_can_attach(struct cgroup_subsys *, struct cgroup *,
++			      struct task_struct *, bool);
++static void blkiocg_attach(struct cgroup_subsys *, struct cgroup *,
++			   struct cgroup *, struct task_struct *, bool);
++static void blkiocg_destroy(struct cgroup_subsys *, struct cgroup *);
++static int blkiocg_populate(struct cgroup_subsys *, struct cgroup *);
++
++struct cgroup_subsys blkio_subsys = {
++	.name = "blkio",
++	.create = blkiocg_create,
++	.can_attach = blkiocg_can_attach,
++	.attach = blkiocg_attach,
++	.destroy = blkiocg_destroy,
++	.populate = blkiocg_populate,
++#ifdef CONFIG_BLK_CGROUP
++	/* note: blkio_subsys_id is otherwise defined in blk-cgroup.h */
++	.subsys_id = blkio_subsys_id,
++#endif
++	.use_id = 1,
++	.module = THIS_MODULE,
++};
++EXPORT_SYMBOL_GPL(blkio_subsys);
++
+ struct blkio_cgroup *cgroup_to_blkio_cgroup(struct cgroup *cgroup)
  {
- 	if (!mem_cgroup_is_root(mem)) {
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
-+		res_counter_uncharge(&mem->res, PAGE_SIZE * count);
- 		if (do_swap_account)
--			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
-+			res_counter_uncharge(&mem->memsw, PAGE_SIZE * count);
-+		VM_BUG_ON(test_bit(CSS_ROOT, &mem->css.flags));
-+		WARN_ON_ONCE(count > INT_MAX);
-+		__css_put(&mem->css, (int)count);
- 	}
--	css_put(&mem->css);
-+	/* we don't need css_put for root */
+ 	return container_of(cgroup_subsys_state(cgroup, blkio_subsys_id),
+@@ -253,7 +278,8 @@ remove_entry:
+ done:
+ 	free_css_id(&blkio_subsys, &blkcg->css);
+ 	rcu_read_unlock();
+-	kfree(blkcg);
++	if (blkcg != &blkio_root_cgroup)
++		kfree(blkcg);
+ }
+ 
+ static struct cgroup_subsys_state *
+@@ -319,17 +345,6 @@ static void blkiocg_attach(struct cgroup
+ 	task_unlock(tsk);
+ }
+ 
+-struct cgroup_subsys blkio_subsys = {
+-	.name = "blkio",
+-	.create = blkiocg_create,
+-	.can_attach = blkiocg_can_attach,
+-	.attach = blkiocg_attach,
+-	.destroy = blkiocg_destroy,
+-	.populate = blkiocg_populate,
+-	.subsys_id = blkio_subsys_id,
+-	.use_id = 1,
+-};
+-
+ void blkio_policy_register(struct blkio_policy_type *blkiop)
+ {
+ 	spin_lock(&blkio_list_lock);
+@@ -345,3 +360,17 @@ void blkio_policy_unregister(struct blki
+ 	spin_unlock(&blkio_list_lock);
+ }
+ EXPORT_SYMBOL_GPL(blkio_policy_unregister);
++
++static int __init init_cgroup_blkio(void)
++{
++	return cgroup_load_subsys(&blkio_subsys);
 +}
 +
-+static void mem_cgroup_cancel_charge(struct mem_cgroup *mem)
++static void __exit exit_cgroup_blkio(void)
 +{
-+	__mem_cgroup_cancel_charge(mem, 1);
++	cgroup_unload_subsys(&blkio_subsys);
++}
++
++module_init(init_cgroup_blkio);
++module_exit(exit_cgroup_blkio);
++MODULE_LICENSE("GPL");
+diff -puN block/blk-cgroup.h~cgroups-blkio-subsystem-as-module block/blk-cgroup.h
+--- a/block/blk-cgroup.h~cgroups-blkio-subsystem-as-module
++++ a/block/blk-cgroup.h
+@@ -15,7 +15,13 @@
+ 
+ #include <linux/cgroup.h>
+ 
+-#ifdef CONFIG_BLK_CGROUP
++#if defined(CONFIG_BLK_CGROUP) || defined(CONFIG_BLK_CGROUP_MODULE)
++
++#ifndef CONFIG_BLK_CGROUP
++/* When blk-cgroup is a module, its subsys_id isn't a compile-time constant */
++extern struct cgroup_subsys blkio_subsys;
++#define blkio_subsys_id blkio_subsys.subsys_id
++#endif
+ 
+ struct blkio_cgroup {
+ 	struct cgroup_subsys_state css;
+@@ -91,7 +97,7 @@ static inline void blkiocg_update_blkio_
+ 			struct blkio_group *blkg, unsigned long dequeue) {}
+ #endif
+ 
+-#ifdef CONFIG_BLK_CGROUP
++#if defined(CONFIG_BLK_CGROUP) || defined(CONFIG_BLK_CGROUP_MODULE)
+ extern struct blkio_cgroup blkio_root_cgroup;
+ extern struct blkio_cgroup *cgroup_to_blkio_cgroup(struct cgroup *cgroup);
+ extern void blkiocg_add_blkio_group(struct blkio_cgroup *blkcg,
+diff -puN include/linux/iocontext.h~cgroups-blkio-subsystem-as-module include/linux/iocontext.h
+--- a/include/linux/iocontext.h~cgroups-blkio-subsystem-as-module
++++ a/include/linux/iocontext.h
+@@ -42,7 +42,7 @@ struct io_context {
+ 	unsigned short ioprio;
+ 	unsigned short ioprio_changed;
+ 
+-#ifdef CONFIG_BLK_CGROUP
++#if defined(CONFIG_BLK_CGROUP) || defined(CONFIG_BLK_CGROUP_MODULE)
+ 	unsigned short cgroup_changed;
+ #endif
+ 
+diff -puN kernel/cgroup.c~cgroups-blkio-subsystem-as-module kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-blkio-subsystem-as-module
++++ a/kernel/cgroup.c
+@@ -705,6 +705,7 @@ void cgroup_lock(void)
+ {
+ 	mutex_lock(&cgroup_mutex);
  }
++EXPORT_SYMBOL_GPL(cgroup_lock);
+ 
+ /**
+  * cgroup_unlock - release lock on cgroup changes
+@@ -715,6 +716,7 @@ void cgroup_unlock(void)
+ {
+ 	mutex_unlock(&cgroup_mutex);
+ }
++EXPORT_SYMBOL_GPL(cgroup_unlock);
  
  /*
-@@ -1646,17 +1656,20 @@ static void __mem_cgroup_commit_charge(s
-  * @pc:	page_cgroup of the page.
-  * @from: mem_cgroup which the page is moved from.
-  * @to:	mem_cgroup which the page is moved to. @from != @to.
-+ * @uncharge: whether we should call uncharge and css_put against @from.
-  *
-  * The caller must confirm following.
-  * - page is not on LRU (isolate_page() is useful.)
-  * - the pc is locked, used, and ->mem_cgroup points to @from.
-  *
-- * This function does "uncharge" from old cgroup but doesn't do "charge" to
-- * new cgroup. It should be done by a caller.
-+ * This function doesn't do "charge" nor css_get to new cgroup. It should be
-+ * done by a caller(__mem_cgroup_try_charge would be usefull). If @uncharge is
-+ * true, this function does "uncharge" from old cgroup, but it doesn't if
-+ * @uncharge is false, so a caller should do "uncharge".
-  */
- 
- static void __mem_cgroup_move_account(struct page_cgroup *pc,
--	struct mem_cgroup *from, struct mem_cgroup *to)
-+	struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge)
- {
- 	struct page *page;
- 	int cpu;
-@@ -1669,10 +1682,6 @@ static void __mem_cgroup_move_account(st
- 	VM_BUG_ON(!PageCgroupUsed(pc));
- 	VM_BUG_ON(pc->mem_cgroup != from);
- 
--	if (!mem_cgroup_is_root(from))
--		res_counter_uncharge(&from->res, PAGE_SIZE);
--	mem_cgroup_charge_statistics(from, pc, false);
--
- 	page = pc->page;
- 	if (page_mapped(page) && !PageAnon(page)) {
- 		cpu = smp_processor_id();
-@@ -1688,12 +1697,12 @@ static void __mem_cgroup_move_account(st
- 		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_FILE_MAPPED,
- 						1);
- 	}
-+	mem_cgroup_charge_statistics(from, pc, false);
-+	if (uncharge)
-+		/* This is not "cancel", but cancel_charge does all we need. */
-+		mem_cgroup_cancel_charge(from);
- 
--	if (do_swap_account && !mem_cgroup_is_root(from))
--		res_counter_uncharge(&from->memsw, PAGE_SIZE);
--	css_put(&from->css);
--
--	css_get(&to->css);
-+	/* caller should have done css_get */
- 	pc->mem_cgroup = to;
- 	mem_cgroup_charge_statistics(to, pc, true);
- 	/*
-@@ -1710,12 +1719,12 @@ static void __mem_cgroup_move_account(st
-  * __mem_cgroup_move_account()
-  */
- static int mem_cgroup_move_account(struct page_cgroup *pc,
--				struct mem_cgroup *from, struct mem_cgroup *to)
-+		struct mem_cgroup *from, struct mem_cgroup *to, bool uncharge)
- {
- 	int ret = -EINVAL;
- 	lock_page_cgroup(pc);
- 	if (PageCgroupUsed(pc) && pc->mem_cgroup == from) {
--		__mem_cgroup_move_account(pc, from, to);
-+		__mem_cgroup_move_account(pc, from, to, uncharge);
- 		ret = 0;
- 	}
- 	unlock_page_cgroup(pc);
-@@ -1751,11 +1760,9 @@ static int mem_cgroup_move_parent(struct
- 	if (ret || !parent)
- 		goto put_back;
- 
--	ret = mem_cgroup_move_account(pc, child, parent);
--	if (!ret)
--		css_put(&parent->css);	/* drop extra refcnt by try_charge() */
--	else
--		mem_cgroup_cancel_charge(parent);	/* does css_put */
-+	ret = mem_cgroup_move_account(pc, child, parent, true);
-+	if (ret)
-+		mem_cgroup_cancel_charge(parent);
- put_back:
- 	putback_lru_page(page);
- put:
-@@ -3438,16 +3445,58 @@ static int mem_cgroup_populate(struct cg
+  * A couple of forward declarations required, due to cyclic reference loop:
+@@ -1639,6 +1641,7 @@ int cgroup_path(const struct cgroup *cgr
+ 	memmove(buf, start, buf + buflen - start);
+ 	return 0;
  }
++EXPORT_SYMBOL_GPL(cgroup_path);
  
- /* Handlers for move charge at task migration. */
--static int mem_cgroup_do_precharge(void)
-+#define PRECHARGE_COUNT_AT_ONCE	256
-+static int mem_cgroup_do_precharge(unsigned long count)
- {
--	int ret = -ENOMEM;
-+	int ret = 0;
-+	int batch_count = PRECHARGE_COUNT_AT_ONCE;
- 	struct mem_cgroup *mem = mc.to;
- 
--	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false, NULL);
--	if (ret || !mem)
--		return -ENOMEM;
--
--	mc.precharge++;
-+	if (mem_cgroup_is_root(mem)) {
-+		mc.precharge += count;
-+		/* we don't need css_get for root */
-+		return ret;
-+	}
-+	/* try to charge at once */
-+	if (count > 1) {
-+		struct res_counter *dummy;
-+		/*
-+		 * "mem" cannot be under rmdir() because we've already checked
-+		 * by cgroup_lock_live_cgroup() that it is not removed and we
-+		 * are still under the same cgroup_mutex. So we can postpone
-+		 * css_get().
-+		 */
-+		if (res_counter_charge(&mem->res, PAGE_SIZE * count, &dummy))
-+			goto one_by_one;
-+		if (do_swap_account && res_counter_charge(&mem->memsw,
-+						PAGE_SIZE * count, &dummy)) {
-+			res_counter_uncharge(&mem->res, PAGE_SIZE * count);
-+			goto one_by_one;
-+		}
-+		mc.precharge += count;
-+		VM_BUG_ON(test_bit(CSS_ROOT, &mem->css.flags));
-+		WARN_ON_ONCE(count > INT_MAX);
-+		__css_get(&mem->css, (int)count);
-+		return ret;
-+	}
-+one_by_one:
-+	/* fall back to one by one charge */
-+	while (count--) {
-+		if (signal_pending(current)) {
-+			ret = -EINTR;
-+			break;
-+		}
-+		if (!batch_count--) {
-+			batch_count = PRECHARGE_COUNT_AT_ONCE;
-+			cond_resched();
-+		}
-+		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem,
-+								false, NULL);
-+		if (ret || !mem)
-+			/* mem_cgroup_clear_mc() will do uncharge later */
-+			return -ENOMEM;
-+		mc.precharge++;
-+	}
- 	return ret;
- }
- 
-@@ -3570,34 +3619,25 @@ static unsigned long mem_cgroup_count_pr
- 	return precharge;
- }
- 
--#define PRECHARGE_AT_ONCE	256
- static int mem_cgroup_precharge_mc(struct mm_struct *mm)
- {
--	int ret = 0;
--	int count = PRECHARGE_AT_ONCE;
--	unsigned long precharge = mem_cgroup_count_precharge(mm);
--
--	while (!ret && precharge--) {
--		if (signal_pending(current)) {
--			ret = -EINTR;
--			break;
--		}
--		if (!count--) {
--			count = PRECHARGE_AT_ONCE;
--			cond_resched();
--		}
--		ret = mem_cgroup_do_precharge();
--	}
--
--	return ret;
-+	return mem_cgroup_do_precharge(mem_cgroup_count_precharge(mm));
- }
- 
- static void mem_cgroup_clear_mc(void)
- {
- 	/* we must uncharge all the leftover precharges from mc.to */
--	while (mc.precharge) {
--		mem_cgroup_cancel_charge(mc.to);
--		mc.precharge--;
-+	if (mc.precharge) {
-+		__mem_cgroup_cancel_charge(mc.to, mc.precharge);
-+		mc.precharge = 0;
-+	}
-+	/*
-+	 * we didn't uncharge from mc.from at mem_cgroup_move_account(), so
-+	 * we must uncharge here.
-+	 */
-+	if (mc.moved_charge) {
-+		__mem_cgroup_cancel_charge(mc.from, mc.moved_charge);
-+		mc.moved_charge = 0;
+ /**
+  * cgroup_attach_task - attach task 'tsk' to cgroup 'cgrp'
+@@ -1805,6 +1808,7 @@ bool cgroup_lock_live_group(struct cgrou
  	}
- 	mc.from = NULL;
- 	mc.to = NULL;
-@@ -3625,9 +3665,11 @@ static int mem_cgroup_can_attach(struct 
- 			VM_BUG_ON(mc.from);
- 			VM_BUG_ON(mc.to);
- 			VM_BUG_ON(mc.precharge);
-+			VM_BUG_ON(mc.moved_charge);
- 			mc.from = from;
- 			mc.to = mem;
- 			mc.precharge = 0;
-+			mc.moved_charge = 0;
+ 	return true;
+ }
++EXPORT_SYMBOL_GPL(cgroup_lock_live_group);
  
- 			ret = mem_cgroup_precharge_mc(mm);
- 			if (ret)
-@@ -3674,9 +3716,11 @@ retry:
- 			if (isolate_lru_page(page))
- 				goto put;
- 			pc = lookup_page_cgroup(page);
--			if (!mem_cgroup_move_account(pc, mc.from, mc.to)) {
--				css_put(&mc.to->css);
-+			if (!mem_cgroup_move_account(pc,
-+						mc.from, mc.to, false)) {
- 				mc.precharge--;
-+				/* we uncharge from mc.from later. */
-+				mc.moved_charge++;
- 			}
- 			putback_lru_page(page);
- put:			/* is_target_pte_for_mc() gets the page */
-@@ -3696,7 +3740,7 @@ put:			/* is_target_pte_for_mc() gets th
- 		 * charges to mc.to if we have failed in charge once in attach()
- 		 * phase.
- 		 */
--		ret = mem_cgroup_do_precharge();
-+		ret = mem_cgroup_do_precharge(1);
- 		if (!ret)
- 			goto retry;
- 	}
+ static int cgroup_release_agent_write(struct cgroup *cgrp, struct cftype *cft,
+ 				      const char *buffer)
+@@ -4082,6 +4086,7 @@ void __css_put(struct cgroup_subsys_stat
+ 	rcu_read_unlock();
+ 	WARN_ON_ONCE(val < 1);
+ }
++EXPORT_SYMBOL_GPL(__css_put);
+ 
+ /*
+  * Notify userspace when a cgroup is released, by running the
+@@ -4197,6 +4202,7 @@ unsigned short css_id(struct cgroup_subs
+ 		return cssid->id;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(css_id);
+ 
+ unsigned short css_depth(struct cgroup_subsys_state *css)
+ {
+@@ -4206,6 +4212,7 @@ unsigned short css_depth(struct cgroup_s
+ 		return cssid->depth;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(css_depth);
+ 
+ bool css_is_ancestor(struct cgroup_subsys_state *child,
+ 		    const struct cgroup_subsys_state *root)
+@@ -4242,6 +4249,7 @@ void free_css_id(struct cgroup_subsys *s
+ 	spin_unlock(&ss->id_lock);
+ 	call_rcu(&id->rcu_head, __free_css_id_cb);
+ }
++EXPORT_SYMBOL_GPL(free_css_id);
+ 
+ /*
+  * This is called by init or create(). Then, calls to this function are
+@@ -4358,6 +4366,7 @@ struct cgroup_subsys_state *css_lookup(s
+ 
+ 	return rcu_dereference(cssid->css);
+ }
++EXPORT_SYMBOL_GPL(css_lookup);
+ 
+ /**
+  * css_get_next - lookup next cgroup under specified hierarchy.
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from bblum@andrew.cmu.edu are
 
 origin.patch
-memcg-avoid-use-cmpxchg-in-swap-cgroup-maintainance.patch
+cgroups-net_cls-as-module.patch
 
