@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] devmem-dont-allow-seek-to-last-page.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:57:31 -0400
-Message-ID: <201003150658.o2F6w41M016410@imap1.linux-foundation.org>
+Subject: [merged] ufs-make-solaris-fsck-happy.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:57:40 -0400
+Message-ID: <201003150658.o2F6wDr4016431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51700 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935677Ab0COG6M (ORCPT
+	by vger.kernel.org with ESMTP id S935693Ab0COG6V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:58:12 -0400
+	Mon, 15 Mar 2010 02:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, hirofumi@mail.parknet.co.jp, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: dushistov@mail.ru, viskovatoff@imap.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     /dev/mem: dont allow seek to last page
+     ufs: make solaris fsck happy
 has been removed from the -mm tree.  Its filename was
-     devmem-dont-allow-seek-to-last-page.patch
+     ufs-make-solaris-fsck-happy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /dev/mem: dont allow seek to last page
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: ufs: make solaris fsck happy
+From: Evgeniy Dushistov <dushistov@mail.ru>
 
-So as to return a uniform error -EOVERFLOW instead of a random one:
+Alex Viskovatoff let me know that after copying data to solaris's ufs from
+linux, solaris's fsck sees some errors in cylinder summary information. 
+This is because of solaris expects find some data on another places, then
+curernt implementation save it.  This patch fixes this issue.  It is
+tested by me, and also Alex reported that it works for him.
 
-# kmem-seek 0xfffffffffffffff0
-seek /dev/kmem: Device or resource busy
-# kmem-seek 0xfffffffffffffff1
-seek /dev/kmem: Block device required
-
-Suggested by OGAWA Hirofumi.
-
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
+Reported-by: Alex Viskovatoff <viskovatoff@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ fs/ufs/ufs_fs.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/mem.c~devmem-dont-allow-seek-to-last-page drivers/char/mem.c
---- a/drivers/char/mem.c~devmem-dont-allow-seek-to-last-page
-+++ a/drivers/char/mem.c
-@@ -708,16 +708,23 @@ static loff_t memory_lseek(struct file *
+diff -puN fs/ufs/ufs_fs.h~ufs-make-solaris-fsck-happy fs/ufs/ufs_fs.h
+--- a/fs/ufs/ufs_fs.h~ufs-make-solaris-fsck-happy
++++ a/fs/ufs/ufs_fs.h
+@@ -233,11 +233,16 @@ typedef __u16 __bitwise __fs16;
+  */
+ #define ufs_cbtocylno(bno) \
+ 	((bno) * uspi->s_nspf / uspi->s_spc)
+-#define ufs_cbtorpos(bno) \
++#define ufs_cbtorpos(bno)				      \
++	((UFS_SB(sb)->s_flags & UFS_CG_SUN) ?		      \
++	 (((((bno) * uspi->s_nspf % uspi->s_spc) %	      \
++	    uspi->s_nsect) *				      \
++	   uspi->s_nrpos) / uspi->s_nsect)		      \
++	 :						      \
+ 	((((bno) * uspi->s_nspf % uspi->s_spc / uspi->s_nsect \
+ 	* uspi->s_trackskew + (bno) * uspi->s_nspf % uspi->s_spc \
+ 	% uspi->s_nsect * uspi->s_interleave) % uspi->s_nsect \
+-	* uspi->s_nrpos) / uspi->s_npsect)
++	  * uspi->s_nrpos) / uspi->s_npsect))
  
- 	mutex_lock(&file->f_path.dentry->d_inode->i_mutex);
- 	switch (orig) {
--		case 0:
-+		case SEEK_CUR:
-+			offset += file->f_pos;
-+			if ((unsigned long long)offset <
-+			    (unsigned long long)file->f_pos) {
-+				ret = -EOVERFLOW;
-+				break;
-+			}
-+		case SEEK_SET:
-+			/* to avoid userland mistaking f_pos=-9 as -EBADF=-9 */
-+			if ((unsigned long long)offset >= ~0xFFFULL) {
-+				ret = -EOVERFLOW;
-+				break;
-+			}
- 			file->f_pos = offset;
- 			ret = file->f_pos;
- 			force_successful_syscall_return();
- 			break;
--		case 1:
--			file->f_pos += offset;
--			ret = file->f_pos;
--			force_successful_syscall_return();
--			break;
- 		default:
- 			ret = -EINVAL;
- 	}
+ /*
+  * The following macros optimize certain frequently calculated
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from dushistov@mail.ru are
 
 origin.patch
-linux-next.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-add-super-operation-writeback_inodes.patch
 
