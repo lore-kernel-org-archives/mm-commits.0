@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-block-floppyc-add-function-is_ready_state.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:54:22 -0400
-Message-ID: <201003150654.o2F6stJX016100@imap1.linux-foundation.org>
+Subject: [merged] drivers-block-floppyc-remove-repeat-macro.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:54:28 -0400
+Message-ID: <201003150655.o2F6t1Nj016118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56558 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759624Ab0COGzB (ORCPT
+	by vger.kernel.org with ESMTP id S1759745Ab0COGzH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:55:01 -0400
+	Mon, 15 Mar 2010 02:55:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@gmail.com, shemminger@vyatta.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/block/floppy.c: add function is_ready_state
+     drivers/block/floppy.c: remove REPEAT macro
 has been removed from the -mm tree.  Its filename was
-     drivers-block-floppyc-add-function-is_ready_state.patch
+     drivers-block-floppyc-remove-repeat-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: add function is_ready_state
+Subject: drivers/block/floppy.c: remove REPEAT macro
 From: Joe Perches <joe@perches.com>
 
-Used a couple of times, might simplify the code a bit.
+Macros with hidden flow changes aren't nice.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -37,60 +37,48 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ drivers/block/floppy.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-add-function-is_ready_state drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-add-function-is_ready_state
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-remove-repeat-macro drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-remove-repeat-macro
 +++ a/drivers/block/floppy.c
-@@ -782,6 +782,12 @@ static inline int is_selected(int dor, i
- 	return ((dor & (0x10 << unit)) && (dor & 3) == unit);
- }
+@@ -2885,7 +2885,6 @@ static int make_raw_rw_request(void)
  
-+static bool is_ready_state(int status)
-+{
-+	int state = status & (STATUS_READY | STATUS_DIR | STATUS_DMA);
-+	return state == STATUS_READY;
-+}
-+
- static int set_dor(int fdc, char mask, char data)
+ static void redo_fd_request(void)
  {
- 	unsigned char unit;
-@@ -823,8 +829,10 @@ static void twaddle(void)
- 	DRS->select_date = jiffies;
- }
- 
--/* reset all driver information about the current fdc. This is needed after
-- * a reset, and after a raw command. */
-+/*
-+ * Reset all driver information about the current fdc.
-+ * This is needed after a reset, and after a raw command.
-+ */
- static void reset_fdc_info(int mode)
- {
+-#define REPEAT {request_done(0); continue; }
  	int drive;
-@@ -1162,7 +1170,8 @@ static int output_byte(char byte)
+ 	int tmp;
  
- 	if (status < 0)
- 		return -1;
--	if ((status & (STATUS_READY | STATUS_DIR | STATUS_DMA)) == STATUS_READY) {
-+
-+	if (is_ready_state(status)) {
- 		fd_outb(byte, FD_DATA);
- #ifdef FLOPPY_SANITY_CHECK
- 		output_log[output_log_pos].data = byte;
-@@ -1221,8 +1230,10 @@ static int need_more_output(void)
- 
- 	if (status < 0)
- 		return -1;
--	if ((status & (STATUS_READY | STATUS_DIR | STATUS_DMA)) == STATUS_READY)
-+
-+	if (is_ready_state(status))
- 		return MORE_OUTPUT;
-+
- 	return result();
+@@ -2920,7 +2919,8 @@ static void redo_fd_request(void)
+ 		if (test_bit(current_drive, &fake_change) ||
+ 		    test_bit(FD_DISK_CHANGED_BIT, &DRS->flags)) {
+ 			DPRINT("disk absent or changed during operation\n");
+-			REPEAT;
++			request_done(0);
++			continue;
+ 		}
+ 		if (!_floppy) {	/* Autodetection */
+ 			if (!probing) {
+@@ -2928,7 +2928,8 @@ static void redo_fd_request(void)
+ 				if (next_valid_format()) {
+ 					DPRINT("no autodetectable formats\n");
+ 					_floppy = NULL;
+-					REPEAT;
++					request_done(0);
++					continue;
+ 				}
+ 			}
+ 			probing = 1;
+@@ -2949,7 +2950,6 @@ static void redo_fd_request(void)
+ 		debugt("queue fd request");
+ 		return;
+ 	}
+-#undef REPEAT
  }
  
+ static struct cont_t rw_cont = {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
