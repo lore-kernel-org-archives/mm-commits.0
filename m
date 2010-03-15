@@ -1,74 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-email-clientstxt-update-gmail-information.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:58:04 -0400
-Message-ID: <201003150658.o2F6wboh016467@imap1.linux-foundation.org>
+Subject: [merged] documentation-remove-obsolete-voyagertxt-file.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:57:58 -0400
+Message-ID: <201003150658.o2F6wV3S016456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935214Ab0COG6l (ORCPT
+	by vger.kernel.org with ESMTP id S935711Ab0COG6h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:58:41 -0400
+	Mon, 15 Mar 2010 02:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mbligh@mbligh.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: bzolnier@gmail.com, James.Bottomley@HansenPartnership.com, corbet@lwn.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/email-clients.txt: update gmail information
+     Documentation: remove obsolete voyager.txt file
 has been removed from the -mm tree.  Its filename was
-     documentation-email-clientstxt-update-gmail-information.patch
+     documentation-remove-obsolete-voyagertxt-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/email-clients.txt: update gmail information
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: Documentation: remove obsolete voyager.txt file
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-Gmail web gui does not work for sending patches now even with firefox
-"view source with" extension.  It will use windows style line breaks to
-wrap lines automatically when sening email.
+x86/Voyager support has been removed a year ago.
 
-Rewrite the gmail web gui part of email client documentation.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Martin Bligh <mbligh@mbligh.org>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Inspired-by: Jonathan Corbet <corbet@lwn.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/email-clients.txt |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ Documentation/voyager.txt |   95 ------------------------------------
+ 1 file changed, 95 deletions(-)
 
-diff -puN Documentation/email-clients.txt~documentation-email-clientstxt-update-gmail-information Documentation/email-clients.txt
---- a/Documentation/email-clients.txt~documentation-email-clientstxt-update-gmail-information
-+++ a/Documentation/email-clients.txt
-@@ -216,26 +216,14 @@ Works.  Use "Insert file..." or external
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Gmail (Web GUI)
- 
--If you just have to use Gmail to send patches, it CAN be made to work.  It
--requires a bit of external help, though.
-+Does not work for sending patches.
- 
--The first problem is that Gmail converts tabs to spaces.  This will
--totally break your patches.  To prevent this, you have to use a different
--editor.  There is a firefox extension called "ViewSourceWith"
--(https://addons.mozilla.org/en-US/firefox/addon/394) which allows you to
--edit any text box in the editor of your choice.  Configure it to launch
--your favorite editor.  When you want to send a patch, use this technique.
--Once you have crafted your messsage + patch, save and exit the editor,
--which should reload the Gmail edit box.  GMAIL WILL PRESERVE THE TABS.
--Hoorah.  Apparently you can cut-n-paste literal tabs, but Gmail will
--convert those to spaces upon sending!
-+Gmail web client converts tabs to spaces automatically.
- 
--The second problem is that Gmail converts tabs to spaces on replies.  If
--you reply to a patch, don't expect to be able to apply it as a patch.
-+At the same time it wraps lines every 78 chars with CRLF style line breaks
-+although tab2space problem can be solved with external editor.
- 
--The last problem is that Gmail will base64-encode any message that has a
--non-ASCII character.  That includes things like European names.  Be aware.
+diff -puN Documentation/voyager.txt~documentation-remove-obsolete-voyagertxt-file /dev/null
+--- a/Documentation/voyager.txt
++++ /dev/null
+@@ -1,95 +0,0 @@
+-Running Linux on the Voyager Architecture
+-=========================================
+-
+-For full details and current project status, see
+-
+-http://www.hansenpartnership.com/voyager
+-
+-The voyager architecture was designed by NCR in the mid 80s to be a
+-fully SMP capable RAS computing architecture built around intel's 486
+-chip set.  The voyager came in three levels of architectural
+-sophistication: 3,4 and 5 --- 1 and 2 never made it out of prototype.
+-The linux patches support only the Level 5 voyager architecture (any
+-machine class 3435 and above).
+-
+-The Voyager Architecture
+-------------------------
+-
+-Voyager machines consist of a Baseboard with a 386 diagnostic
+-processor, a Power Supply Interface (PSI) a Primary and possibly
+-Secondary Microchannel bus and between 2 and 20 voyager slots.  The
+-voyager slots can be populated with memory and cpu cards (up to 4GB
+-memory and from 1 486 to 32 Pentium Pro processors).  Internally, the
+-voyager has a dual arbitrated system bus and a configuration and test
+-bus (CAT).  The voyager bus speed is 40MHz.  Therefore (since all
+-voyager cards are dual ported for each system bus) the maximum
+-transfer rate is 320Mb/s but only if you have your slot configuration
+-tuned (only memory cards can communicate with both busses at once, CPU
+-cards utilise them one at a time).
+-
+-Voyager SMP
+------------
+-
+-Since voyager was the first intel based SMP system, it is slightly
+-more primitive than the Intel IO-APIC approach to SMP.  Voyager allows
+-arbitrary interrupt routing (including processor affinity routing) of
+-all 16 PC type interrupts.  However it does this by using a modified
+-5259 master/slave chip set instead of an APIC bus.  Additionally,
+-voyager supports Cross Processor Interrupts (CPI) equivalent to the
+-APIC IPIs.  There are two routed voyager interrupt lines provided to
+-each slot.
+-
+-Processor Cards
+----------------
+-
+-These come in single, dyadic and quad configurations (the quads are
+-problematic--see later).  The maximum configuration is 8 quad cards
+-for 32 way SMP.
+-
+-Quad Processors
+----------------
+-
+-Because voyager only supplies two interrupt lines to each Processor
+-card, the Quad processors have to be configured (and Bootstrapped) in
+-as a pair of Master/Slave processors.
+-
+-In fact, most Quad cards only accept one VIC interrupt line, so they
+-have one interrupt handling processor (called the VIC extended
+-processor) and three non-interrupt handling processors.
+-
+-Current Status
+---------------
+-
+-The System will boot on Mono, Dyad and Quad cards.  There was
+-originally a Quad boot problem which has been fixed by proper gdt
+-alignment in the initial boot loader.  If you still cannot get your
+-voyager system to boot, email me at:
+-
+-<J.E.J.Bottomley@HansenPartnership.com>
+-
+-
+-The Quad cards now support using the separate Quad CPI vectors instead
+-of going through the VIC mailbox system.
+-
+-The Level 4 architecture (3430 and 3360 Machines) should also work
+-fine.
+-
+-Dump Switch
+------------
+-
+-The voyager dump switch sends out a broadcast NMI which the voyager
+-code intercepts and does a task dump.
+-
+-Power Switch
+-------------
+-
+-The front panel power switch is intercepted by the kernel and should
+-cause a system shutdown and power off.
+-
+-A Note About Mixed CPU Systems
+-------------------------------
