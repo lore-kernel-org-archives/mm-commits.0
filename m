@@ -1,193 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:01:34 -0400
-Message-ID: <201003150702.o2F727Kt016838@imap1.linux-foundation.org>
+Subject: [merged] edac-e752x-add-dram-scrubbing-support.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:02:13 -0400
+Message-ID: <201003150702.o2F72koX016883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935892Ab0COHCr (ORCPT
+	by vger.kernel.org with ESMTP id S935892Ab0COHCu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:02:47 -0400
+	Mon, 15 Mar 2010 03:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: martin.wilck@ts.fujitsu.com, cminyard@mvista.com, jdelvare@suse.de, mm-commits@vger.kernel.org
+To: ptyser@xes-inc.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipmi: add parameter to limit CPU usage in kipmid
+     edac: e752x: add dram scrubbing support
 has been removed from the -mm tree.  Its filename was
-     ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch
+     edac-e752x-add-dram-scrubbing-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: add parameter to limit CPU usage in kipmid
-From: Martin Wilck <martin.wilck@ts.fujitsu.com>
+Subject: edac: e752x: add dram scrubbing support
+From: Peter Tyser <ptyser@xes-inc.com>
 
-In some cases kipmid can use a lot of CPU.  This adds a way to tune the
-CPU used by kipmid to help in those cases.  By setting kipmid_max_busy_us
-to a value between 100 and 500, it is possible to bring down kipmid CPU
-load to practically 0 without loosing too much ipmi throughput
-performance.  Not setting the value, or setting the value to zero,
-operation is unaffected.
+Add support to scrub DRAM using the e752x integrated memory scrubbing
+engine.  The e7320/7520/e7525 chipsets support scrubbing at one rate while
+the i3100 chipset supports a normal and fast rate.
 
-Signed-off-by: Martin Wilck <martin.wilck@ts.fujitsu.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Jean Delvare <jdelvare@suse.de>
+A similar patch was originally sent back in 2008:
+http://sourceforge.net/mailarchive/forum.php?thread_name=1204835866.25206.70.camel@localhost.localdomain&forum_name=bluesmoke-devel
+
+This version has the following updates:
+- Use 16-bit PCI config cycles to access MCHSCRB register
+    e7320/7520/e7525 docs say register is 16bits wide, i3100 says 8.  I
+    tested 16bits on the i3100 to be safe.
+- Recalcuate and round actual scrub rates
+
+The changes have been tested on an i3100-based board.
+
+Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/IPMI.txt           |   12 +++++
- drivers/char/ipmi/ipmi_si_intf.c |   66 ++++++++++++++++++++++++++++-
- 2 files changed, 76 insertions(+), 2 deletions(-)
+ drivers/edac/e752x_edac.c |  107 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
 
-diff -puN Documentation/IPMI.txt~ipmi-add-parameter-to-limit-cpu-usage-in-kipmid Documentation/IPMI.txt
---- a/Documentation/IPMI.txt~ipmi-add-parameter-to-limit-cpu-usage-in-kipmid
-+++ a/Documentation/IPMI.txt
-@@ -365,6 +365,7 @@ You can change this at module load time 
-        regshifts=<shift1>,<shift2>,...
-        slave_addrs=<addr1>,<addr2>,...
-        force_kipmid=<enable1>,<enable2>,...
-+       kipmid_max_busy_us=<ustime1>,<ustime2>,...
-        unload_when_empty=[0|1]
+diff -puN drivers/edac/e752x_edac.c~edac-e752x-add-dram-scrubbing-support drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-e752x-add-dram-scrubbing-support
++++ a/drivers/edac/e752x_edac.c
+@@ -75,6 +75,14 @@ static struct edac_pci_ctl_info *e752x_p
+ #define E752X_NR_CSROWS		8	/* number of csrows */
  
- Each of these except si_trydefaults is a list, the first item for the
-@@ -433,6 +434,7 @@ kernel command line as:
-        ipmi_si.regshifts=<shift1>,<shift2>,...
-        ipmi_si.slave_addrs=<addr1>,<addr2>,...
-        ipmi_si.force_kipmid=<enable1>,<enable2>,...
-+       ipmi_si.kipmid_max_busy_us=<ustime1>,<ustime2>,...
+ /* E752X register addresses - device 0 function 0 */
++#define E752X_MCHSCRB		0x52	/* Memory Scrub register (16b) */
++					/*
++					 * 6:5     Scrub Completion Count
++					 * 3:2     Scrub Rate (i3100 only)
++					 *      01=fast 10=normal
++					 * 1:0     Scrub Mode enable
++					 *      00=off 10=on
++					 */
+ #define E752X_DRB		0x60	/* DRAM row boundary register (8b) */
+ #define E752X_DRA		0x70	/* DRAM row attribute register (8b) */
+ 					/*
+@@ -240,6 +248,41 @@ static const struct e752x_dev_info e752x
+ 		.ctl_name = "3100"},
+ };
  
- It works the same as the module parameters of the same names.
- 
-@@ -450,6 +452,16 @@ force this thread on or off.  If you for
- interrupts, the driver will run VERY slowly.  Don't blame me,
- these interfaces suck.
- 
-+Unfortunately, this thread can use a lot of CPU depending on the
-+interface's performance.  This can waste a lot of CPU and cause
-+various issues with detecting idle CPU and using extra power.  To
-+avoid this, the kipmid_max_busy_us sets the maximum amount of time, in
-+microseconds, that kipmid will spin before sleeping for a tick.  This
-+value sets a balance between performance and CPU waste and needs to be
-+tuned to your needs.  Maybe, someday, auto-tuning will be added, but
-+that's not a simple thing and even the auto-tuning would need to be
-+tuned to the user's desired performance.
-+
- The driver supports a hot add and remove of interfaces.  This way,
- interfaces can be added or removed after the kernel is up and running.
- This is done using /sys/modules/ipmi_si/parameters/hotmod, which is a
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-parameter-to-limit-cpu-usage-in-kipmid drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-parameter-to-limit-cpu-usage-in-kipmid
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -295,6 +295,9 @@ struct smi_info {
- static int force_kipmid[SI_MAX_PARMS];
- static int num_force_kipmid;
- 
-+static unsigned int kipmid_max_busy_us[SI_MAX_PARMS];
-+static int num_max_busy_us;
-+
- static int unload_when_empty = 1;
- 
- static int try_smi_init(struct smi_info *smi);
-@@ -925,23 +928,77 @@ static void set_run_to_completion(void *
- 	}
- }
- 
-+/*
-+ * Use -1 in the nsec value of the busy waiting timespec to tell that
-+ * we are spinning in kipmid looking for something and not delaying
-+ * between checks
++/* Valid scrub rates for the e752x/3100 hardware memory scrubber. We
++ * map the scrubbing bandwidth to a hardware register value. The 'set'
++ * operation finds the 'matching or higher value'.  Note that scrubbing
++ * on the e752x can only be enabled/disabled.  The 3100 supports
++ * a normal and fast mode.
 + */
-+static inline void ipmi_si_set_not_busy(struct timespec *ts)
-+{
-+	ts->tv_nsec = -1;
-+}
-+static inline int ipmi_si_is_busy(struct timespec *ts)
-+{
-+	return ts->tv_nsec != -1;
-+}
 +
-+static int ipmi_thread_busy_wait(enum si_sm_result smi_result,
-+				 const struct smi_info *smi_info,
-+				 struct timespec *busy_until)
-+{
-+	unsigned int max_busy_us = 0;
++#define SDRATE_EOT 0xFFFFFFFF
 +
-+	if (smi_info->intf_num < num_max_busy_us)
-+		max_busy_us = kipmid_max_busy_us[smi_info->intf_num];
-+	if (max_busy_us == 0 || smi_result != SI_SM_CALL_WITH_DELAY)
-+		ipmi_si_set_not_busy(busy_until);
-+	else if (!ipmi_si_is_busy(busy_until)) {
-+		getnstimeofday(busy_until);
-+		timespec_add_ns(busy_until, max_busy_us*NSEC_PER_USEC);
-+	} else {
-+		struct timespec now;
-+		getnstimeofday(&now);
-+		if (unlikely(timespec_compare(&now, busy_until) > 0)) {
-+			ipmi_si_set_not_busy(busy_until);
-+			return 0;
-+		}
-+	}
-+	return 1;
-+}
++struct scrubrate {
++	u32 bandwidth;	/* bandwidth consumed by scrubbing in bytes/sec */
++	u16 scrubval;	/* register value for scrub rate */
++};
 +
-+
-+/*
-+ * A busy-waiting loop for speeding up IPMI operation.
-+ *
-+ * Lousy hardware makes this hard.  This is only enabled for systems
-+ * that are not BT and do not have interrupts.  It starts spinning
-+ * when an operation is complete or until max_busy tells it to stop
-+ * (if that is enabled).  See the paragraph on kimid_max_busy_us in
-+ * Documentation/IPMI.txt for details.
++/* Rate below assumes same performance as i3100 using PC3200 DDR2 in
++ * normal mode.  e752x bridges don't support choosing normal or fast mode,
++ * so the scrubbing bandwidth value isn't all that important - scrubbing is
++ * either on or off.
 + */
- static int ipmi_thread(void *data)
++static const struct scrubrate scrubrates_e752x[] = {
++	{0,		0x00},	/* Scrubbing Off */
++	{500000,	0x02},	/* Scrubbing On */
++	{SDRATE_EOT,	0x00}	/* End of Table */
++};
++
++/* Fast mode: 2 GByte PC3200 DDR2 scrubbed in 33s = 63161283 bytes/s
++ * Normal mode: 125 (32000 / 256) times slower than fast mode.
++ */
++static const struct scrubrate scrubrates_i3100[] = {
++	{0,		0x00},	/* Scrubbing Off */
++	{500000,	0x0a},	/* Normal mode - 32k clocks */
++	{62500000,	0x06},	/* Fast mode - 256 clocks */
++	{SDRATE_EOT,	0x00}	/* End of Table */
++};
++
+ static unsigned long ctl_page_to_phys(struct mem_ctl_info *mci,
+ 				unsigned long page)
  {
- 	struct smi_info *smi_info = data;
- 	unsigned long flags;
- 	enum si_sm_result smi_result;
-+	struct timespec busy_until;
- 
-+	ipmi_si_set_not_busy(&busy_until);
- 	set_user_nice(current, 19);
- 	while (!kthread_should_stop()) {
-+		int busy_wait;
-+
- 		spin_lock_irqsave(&(smi_info->si_lock), flags);
- 		smi_result = smi_event_handler(smi_info, 0);
- 		spin_unlock_irqrestore(&(smi_info->si_lock), flags);
-+		busy_wait = ipmi_thread_busy_wait(smi_result, smi_info,
-+						  &busy_until);
- 		if (smi_result == SI_SM_CALL_WITHOUT_DELAY)
- 			; /* do nothing */
--		else if (smi_result == SI_SM_CALL_WITH_DELAY)
-+		else if (smi_result == SI_SM_CALL_WITH_DELAY && busy_wait)
- 			schedule();
- 		else
--			schedule_timeout_interruptible(1);
-+			schedule_timeout_interruptible(0);
- 	}
- 	return 0;
+@@ -915,6 +958,68 @@ static void e752x_check(struct mem_ctl_i
+ 	e752x_process_error_info(mci, &info, 1);
  }
-@@ -1212,6 +1269,11 @@ module_param(unload_when_empty, int, 0);
- MODULE_PARM_DESC(unload_when_empty, "Unload the module if no interfaces are"
- 		 " specified or found, default is 1.  Setting to 0"
- 		 " is useful for hot add of devices using hotmod.");
-+module_param_array(kipmid_max_busy_us, uint, &num_max_busy_us, 0644);
-+MODULE_PARM_DESC(kipmid_max_busy_us,
-+		 "Max time (in microseconds) to busy-wait for IPMI data before"
-+		 " sleeping. 0 (default) means to wait forever. Set to 100-500"
-+		 " if kipmid is using up a lot of CPU time.");
  
++/* Program byte/sec bandwidth scrub rate to hardware */
++static int set_sdram_scrub_rate(struct mem_ctl_info *mci, u32 *new_bw)
++{
++	const struct scrubrate *scrubrates;
++	struct e752x_pvt *pvt = (struct e752x_pvt *) mci->pvt_info;
++	struct pci_dev *pdev = pvt->dev_d0f0;
++	int i;
++
++	if (pvt->dev_info->ctl_dev == PCI_DEVICE_ID_INTEL_3100_0)
++		scrubrates = scrubrates_i3100;
++	else
++		scrubrates = scrubrates_e752x;
++
++	/* Translate the desired scrub rate to a e752x/3100 register value.
++	 * Search for the bandwidth that is equal or greater than the
++	 * desired rate and program the cooresponding register value.
++	 */
++	for (i = 0; scrubrates[i].bandwidth != SDRATE_EOT; i++)
++		if (scrubrates[i].bandwidth >= *new_bw)
++			break;
++
++	if (scrubrates[i].bandwidth == SDRATE_EOT)
++		return -1;
++
++	pci_write_config_word(pdev, E752X_MCHSCRB, scrubrates[i].scrubval);
++
++	return 0;
++}
++
++/* Convert current scrub rate value into byte/sec bandwidth */
++static int get_sdram_scrub_rate(struct mem_ctl_info *mci, u32 *bw)
++{
++	const struct scrubrate *scrubrates;
++	struct e752x_pvt *pvt = (struct e752x_pvt *) mci->pvt_info;
++	struct pci_dev *pdev = pvt->dev_d0f0;
++	u16 scrubval;
++	int i;
++
++	if (pvt->dev_info->ctl_dev == PCI_DEVICE_ID_INTEL_3100_0)
++		scrubrates = scrubrates_i3100;
++	else
++		scrubrates = scrubrates_e752x;
++
++	/* Find the bandwidth matching the memory scrubber configuration */
++	pci_read_config_word(pdev, E752X_MCHSCRB, &scrubval);
++	scrubval = scrubval & 0x0f;
++
++	for (i = 0; scrubrates[i].bandwidth != SDRATE_EOT; i++)
++		if (scrubrates[i].scrubval == scrubval)
++			break;
++
++	if (scrubrates[i].bandwidth == SDRATE_EOT) {
++		e752x_printk(KERN_WARNING,
++			"Invalid sdram scrub control value: 0x%x\n", scrubval);
++		return -1;
++	}
++
++	*bw = scrubrates[i].bandwidth;
++
++	return 0;
++}
++
+ /* Return 1 if dual channel mode is active.  Else return 0. */
+ static inline int dual_channel_active(u16 ddrcsr)
+ {
+@@ -1181,6 +1286,8 @@ static int e752x_probe1(struct pci_dev *
+ 	mci->dev_name = pci_name(pdev);
+ 	mci->edac_check = e752x_check;
+ 	mci->ctl_page_to_phys = ctl_page_to_phys;
++	mci->set_sdram_scrub_rate = set_sdram_scrub_rate;
++	mci->get_sdram_scrub_rate = get_sdram_scrub_rate;
  
- static void std_irq_cleanup(struct smi_info *info)
+ 	/* set the map type.  1 = normal, 0 = reversed
+ 	 * Must be set before e752x_init_csrows in case csrow mapping
 _
 
-Patches currently in -mm which might be from martin.wilck@ts.fujitsu.com are
+Patches currently in -mm which might be from ptyser@xes-inc.com are
 
 origin.patch
 
