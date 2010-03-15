@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-move-dereference-after-null-test.patch added to -mm tree
-Date: Mon, 15 Mar 2010 14:43:53 -0700
-Message-ID: <201003152143.o2FLhsjW024390@imap1.linux-foundation.org>
+Subject: + memcg-oom-wakeup-filter.patch added to -mm tree
+Date: Mon, 15 Mar 2010 15:00:29 -0700
+Message-ID: <201003152200.o2FM0UP2025089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40786 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932222Ab0COVoF (ORCPT
+	by vger.kernel.org with ESMTP id S936880Ab0COWBC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 17:44:05 -0400
+	Mon, 15 Mar 2010 18:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, m-karicheri2@ti.com, mchehab@infradead.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     drivers/media/video: move dereference after NULL test
+     memcg: oom wakeup filter
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-move-dereference-after-null-test.patch
+     memcg-oom-wakeup-filter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video: move dereference after NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: memcg: oom wakeup filter
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In quickcam_messenger.c, if the NULL test on uvd is needed, then the
-dereference should be after the NULL test.
+memcg's oom waitqueue is a system-wide wait_queue (for handling
+hierarchy.) So, it's better to add custom wake function and do filtering
+in wake up path.
 
-In vpif_display.c, std_info is initialized to the address of a structure
-field.  This seems unlikely to be NULL.  Test std_info->stdid instead.
+This patch adds a filtering feature for waking up oom-waiters.  Hierarchy
+is properly handled.
 
-In saa7134-alsa.c, the function is only called from one place, where the
-chip argument has already been dereferenced.  On the other hand, if it
-should be kept, then card should be initialized after it.
-
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
-
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
-
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/davinci/vpif_display.c        |    2 +-
- drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
- drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   61 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 44 insertions(+), 17 deletions(-)
 
-diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
---- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/davinci/vpif_display.c
-@@ -383,7 +383,7 @@ static int vpif_get_std_info(struct chan
- 	int index;
+diff -puN mm/memcontrol.c~memcg-oom-wakeup-filter mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-wakeup-filter
++++ a/mm/memcontrol.c
+@@ -1293,14 +1293,54 @@ static void mem_cgroup_oom_unlock(struct
+ static DEFINE_MUTEX(memcg_oom_mutex);
+ static DECLARE_WAIT_QUEUE_HEAD(memcg_oom_waitq);
  
- 	std_info->stdid = vid_ch->stdid;
--	if (!std_info)
-+	if (!std_info->stdid)
- 		return -1;
- 
- 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
-diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
---- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
- 	unsigned int idx;
- 	int err, addr;
- 
--	if (snd_BUG_ON(!chip))
--		return -EINVAL;
- 	strcpy(card->mixername, "SAA7134 Mixer");
- 
- 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
- 
- static void qcm_stop_data(struct uvd *uvd)
++struct oom_wait_info {
++	struct mem_cgroup *mem;
++	wait_queue_t	wait;
++};
++
++static int memcg_oom_wake_function(wait_queue_t *wait,
++	unsigned mode, int sync, void *arg)
++{
++	struct mem_cgroup *wake_mem = (struct mem_cgroup *)arg;
++	struct oom_wait_info *oom_wait_info;
++
++	/* both of oom_wait_info->mem and wake_mem are stable under us */
++	oom_wait_info = container_of(wait, struct oom_wait_info, wait);
++
++	if (oom_wait_info->mem == wake_mem)
++		goto wakeup;
++	/* if no hierarchy, no match */
++	if (!oom_wait_info->mem->use_hierarchy || !wake_mem->use_hierarchy)
++		return 0;
++	/* check hierarchy */
++	if (!css_is_ancestor(&oom_wait_info->mem->css, &wake_mem->css) &&
++	    !css_is_ancestor(&wake_mem->css, &oom_wait_info->mem->css))
++		return 0;
++
++wakeup:
++	return autoremove_wake_function(wait, mode, sync, arg);
++}
++
++static void memcg_wakeup_oom(struct mem_cgroup *mem)
++{
++	/* for filtering, pass "mem" as argument. */
++	__wake_up(&memcg_oom_waitq, TASK_NORMAL, 0, mem);
++}
++
+ /*
+  * try to call OOM killer. returns false if we should exit memory-reclaim loop.
+  */
+ bool mem_cgroup_handle_oom(struct mem_cgroup *mem, gfp_t mask)
  {
--	struct qcm *cam = (struct qcm *) uvd->user_data;
-+	struct qcm *cam;
- 	int i, j;
- 	int ret;
+-	DEFINE_WAIT(wait);
++	struct oom_wait_info owait;
+ 	bool locked;
  
- 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
- 		return;
-+	cam = (struct qcm *) uvd->user_data;
++	owait.mem = mem;
++	owait.wait.flags = 0;
++	owait.wait.func = memcg_oom_wake_function;
++	owait.wait.private = current;
++	INIT_LIST_HEAD(&owait.wait.task_list);
++
+ 	/* At first, try to OOM lock hierarchy under mem.*/
+ 	mutex_lock(&memcg_oom_mutex);
+ 	locked = mem_cgroup_oom_lock(mem);
+@@ -1310,31 +1350,18 @@ bool mem_cgroup_handle_oom(struct mem_cg
+ 	 * under OOM is always welcomed, use TASK_KILLABLE here.
+ 	 */
+ 	if (!locked)
+-		prepare_to_wait(&memcg_oom_waitq, &wait, TASK_KILLABLE);
++		prepare_to_wait(&memcg_oom_waitq, &owait.wait, TASK_KILLABLE);
+ 	mutex_unlock(&memcg_oom_mutex);
  
- 	ret = qcm_camera_off(uvd);
- 	if (ret)
+ 	if (locked)
+ 		mem_cgroup_out_of_memory(mem, mask);
+ 	else {
+ 		schedule();
+-		finish_wait(&memcg_oom_waitq, &wait);
++		finish_wait(&memcg_oom_waitq, &owait.wait);
+ 	}
+ 	mutex_lock(&memcg_oom_mutex);
+ 	mem_cgroup_oom_unlock(mem);
+-	/*
+-	 * Here, we use global waitq .....more fine grained waitq ?
+-	 * Assume following hierarchy.
+-	 * A/
+-	 *   01
+-	 *   02
+-	 * assume OOM happens both in A and 01 at the same time. Tthey are
+-	 * mutually exclusive by lock. (kill in 01 helps A.)
+-	 * When we use per memcg waitq, we have to wake up waiters on A and 02
+-	 * in addtion to waiters on 01. We use global waitq for avoiding mess.
+-	 * It will not be a big problem.
+-	 * (And a task may be moved to other groups while it's waiting for OOM.)
+-	 */
+-	wake_up_all(&memcg_oom_waitq);
++	memcg_wakeup_oom(mem);
+ 	mutex_unlock(&memcg_oom_mutex);
+ 
+ 	if (test_thread_flag(TIF_MEMDIE) || fatal_signal_pending(current))
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
+memcg-avoid-use-cmpxchg-in-swap-cgroup-maintainance.patch
+memory-hotplug-allow-setting-of-phys_device.patch
+memory-hotplug-s390-set-phys_device.patch
+memcg-disable-move-charge-in-no-mmu-case.patch
+memcontrol-fix-potential-null-deref.patch
 linux-next.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
-drivers-edac-introduce-missing-kfree.patch
+cgroups-net_cls-as-module.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+memcg-oom-wakeup-filter.patch
+memcg-oom-notifier.patch
+memcg-oom-notifier-fix.patch
+memcg-oom-kill-disable-and-oom-status.patch
 
