@@ -1,92 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:52:51 -0400
-Message-ID: <201003150653.o2F6rO8t015993@imap1.linux-foundation.org>
+Subject: [merged] drivers-block-floppyc-comment-neatening-and-remove-naked.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:53:24 -0400
+Message-ID: <201003150653.o2F6rwYF016029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759709Ab0COGyF (ORCPT
+	by vger.kernel.org with ESMTP id S1759712Ab0COGyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Mar 2010 02:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, penberg@cs.helsinki.fi, tj@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@gmail.com, shemminger@vyatta.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: do not iterate over NR_CPUS in __zone_pcp_update()
+     drivers/block/floppy.c: comment neatening and remove naked ;
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update.patch
+     drivers-block-floppyc-comment-neatening-and-remove-naked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: do not iterate over NR_CPUS in __zone_pcp_update()
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: drivers/block/floppy.c: comment neatening and remove naked ;
+From: Joe Perches <joe@perches.com>
 
-__zone_pcp_update() iterates over NR_CPUS instead of limiting the access
-to the possible cpus.  This might result in access to uninitialized areas
-as the per cpu allocator only populates the per cpu memory for possible
-cpus.
+Spacing, column alignment and a for loop with
+a naked semicolon converted to an assign and while
 
-This problem was created as a result of the dynamic allocation of pagesets
-from percpu memory that went in during the merge window - commit
-99dcc3e5a94ed491fbef402831d8c0bbb267f995 ("this_cpu: Page allocator
-conversion").
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/floppy.c |   55 +++++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 25 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update mm/page_alloc.c
---- a/mm/page_alloc.c~mm-do-not-iterate-over-nr_cpus-in-__zone_pcp_update
-+++ a/mm/page_alloc.c
-@@ -3224,7 +3224,7 @@ static int __zone_pcp_update(void *data)
- 	int cpu;
- 	unsigned long batch = zone_batchsize(zone), flags;
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-comment-neatening-and-remove-naked drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-comment-neatening-and-remove-naked
++++ a/drivers/block/floppy.c
+@@ -1262,9 +1262,12 @@ static inline void perpendicular_mode(vo
+ 		default:
+ 			DPRINT("Invalid data rate for perpendicular mode!\n");
+ 			cont->done(0);
+-			FDCS->reset = 1;	/* convenient way to return to
+-						 * redo without to much hassle (deep
+-						 * stack et al. */
++			FDCS->reset = 1;
++					/*
++					 * convenient way to return to
++					 * redo without too much hassle
++					 * (deep stack et al.)
++					 */
+ 			return;
+ 		}
+ 	} else
+@@ -1977,8 +1980,8 @@ static void floppy_ready(void)
+ #endif
+ 	if (!(raw_cmd->flags & FD_RAW_NO_MOTOR) &&
+ 	    disk_change(current_drive) && !DP->select_delay)
+-		twaddle();	/* this clears the dcl on certain drive/controller
+-				 * combinations */
++		twaddle();	/* this clears the dcl on certain
++				 * drive/controller combinations */
  
--	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-+	for_each_possible_cpu(cpu) {
- 		struct per_cpu_pageset *pset;
- 		struct per_cpu_pages *pcp;
+ #ifdef fd_chose_dma_mode
+ 	if ((raw_cmd->flags & FD_RAW_READ) || (raw_cmd->flags & FD_RAW_WRITE)) {
+@@ -2806,15 +2809,14 @@ static int make_raw_rw_request(void)
+ 	    ((CT(COMMAND) == FD_READ ||
+ 	      (!in_sector_offset && blk_rq_sectors(current_req) >= ssize)) &&
+ 	     max_sector > 2 * max_buffer_sectors + buffer_min &&
+-	     max_size + fsector_t > 2 * max_buffer_sectors + buffer_min)
+-	    /* not enough space */
+-	    ) {
++	     max_size + fsector_t > 2 * max_buffer_sectors + buffer_min)) {
++		/* not enough space */
+ 		buffer_track = -1;
+ 		buffer_drive = current_drive;
+ 		buffer_max = buffer_min = aligned_sector_t;
+ 	}
+ 	raw_cmd->kernel_data = floppy_track_buffer +
+-	    ((aligned_sector_t - buffer_min) << 9);
++		((aligned_sector_t - buffer_min) << 9);
  
+ 	if (CT(COMMAND) == FD_WRITE) {
+ 		/* copy write buffer to track buffer.
+@@ -3171,11 +3173,12 @@ static inline int raw_cmd_copyout(int cm
+ 		COPYOUT(*ptr);
+ 		param += sizeof(struct floppy_raw_cmd);
+ 		if ((ptr->flags & FD_RAW_READ) && ptr->buffer_length) {
+-			if (ptr->length >= 0
+-			    && ptr->length <= ptr->buffer_length)
+-				ECALL(fd_copyout
+-				      (ptr->data, ptr->kernel_data,
+-				       ptr->buffer_length - ptr->length));
++			if (ptr->length >= 0 &&
++			    ptr->length <= ptr->buffer_length) {
++				long length = ptr->buffer_length - ptr->length;
++				ECALL(fd_copyout(ptr->data, ptr->kernel_data,
++						 length));
++			}
+ 		}
+ 		ptr = ptr->next;
+ 	}
+@@ -3827,8 +3830,7 @@ static int check_floppy_change(struct ge
+  * a disk in the drive, and whether that disk is writable.
+  */
+ 
+-static void floppy_rb0_complete(struct bio *bio,
+-			       int err)
++static void floppy_rb0_complete(struct bio *bio, int err)
+ {
+ 	complete((struct completion *)bio->bi_private);
+ }
+@@ -4120,9 +4122,9 @@ static int __init floppy_setup(char *str
+ 				else
+ 					param = config_params[i].def_param;
+ 				if (config_params[i].fn)
+-					config_params[i].
+-					    fn(ints, param,
+-					       config_params[i].param2);
++					config_params[i].fn(ints, param,
++							    config_params[i].
++							    param2);
+ 				if (config_params[i].var) {
+ 					DPRINT("%s=%d\n", str, param);
+ 					*config_params[i].var = param;
+@@ -4180,8 +4182,8 @@ static const struct dev_pm_ops floppy_pm
+ 
+ static struct platform_driver floppy_driver = {
+ 	.driver = {
+-		.name = "floppy",
+-		.pm = &floppy_pm_ops,
++		   .name = "floppy",
++		   .pm = &floppy_pm_ops,
+ 	},
+ };
+ 
+@@ -4429,8 +4431,10 @@ static int floppy_request_regions(int fd
+ 	const struct io_region *p;
+ 
+ 	for (p = io_regions; p < ARRAY_END(io_regions); p++) {
+-		if (!request_region(FDCS->address + p->offset, p->size, "floppy")) {
+-			DPRINT("Floppy io-port 0x%04lx in use\n", FDCS->address + p->offset);
++		if (!request_region(FDCS->address + p->offset,
++				    p->size, "floppy")) {
++			DPRINT("Floppy io-port 0x%04lx in use\n",
++			       FDCS->address + p->offset);
+ 			floppy_release_allocated_regions(fdc, p);
+ 			return -EBUSY;
+ 		}
+@@ -4586,8 +4590,9 @@ static void __init parse_floppy_cfg_stri
+ 	char *ptr;
+ 
+ 	while (*cfg) {
+-		for (ptr = cfg; *cfg && *cfg != ' ' && *cfg != '\t'; cfg++)
+-			;
++		ptr = cfg;
++		while (*cfg && *cfg != ' ' && *cfg != '\t')
++			cfg++;
+ 		if (*cfg) {
+ 			*cfg = '\0';
+ 			cfg++;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-timers-introduce-the-concept-of-timer-slack-for-legacy-timers.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
-timer-print-function-name-for-timer-callbacks-modifying-preemption-count.patch
-time-clean-up-warp_clock.patch
-time-clean-up-direct-xtime-usage-in-xen.patch
-kernel-irq-procc-expose-the-irq_desc-node-in-proc-irq.patch
-genirq-introduce-irqf_allow_nested-flag-for-request_irq.patch
-xtensa-fix-unnecessary-setting-of-xtime.patch
-sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
-improve-sys_personality-for-compat-architectures.patch
-time-kill-off-config_generic_time.patch
+drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+vsprintfc-use-noinline_for_stack.patch
 
