@@ -1,154 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdio-recognize-io-card-without-powercycle.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:52:42 -0400
-Message-ID: <201003150653.o2F6rG53015983@imap1.linux-foundation.org>
+Subject: [merged] rtc-hctosys-only-claim-the-rtc-provided-the-system-time-if-it-did.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:52:38 -0400
+Message-ID: <201003150653.o2F6rBR8015980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756997Ab0COGxS (ORCPT
+	by vger.kernel.org with ESMTP id S1756997Ab0COGx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:53:18 -0400
+	Mon, 15 Mar 2010 02:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdio: recognize io card without powercycle
+     rtc/hctosys: only claim the RTC provided the system time if it did
 has been removed from the -mm tree.  Its filename was
-     sdio-recognize-io-card-without-powercycle.patch
+     rtc-hctosys-only-claim-the-rtc-provided-the-system-time-if-it-did.=
+patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sdio: recognize io card without powercycle
-From: Albert Herranz <albert_herranz@yahoo.es>
+Subject: rtc/hctosys: only claim the RTC provided the system time if it=
+ did
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-SDIO Simplified Specification V2.00 states that it is strongly recommended
-that the host executes either a power reset or issues a CMD52 (I/O Reset)
-to re-initialize an I/O only card or the I/O portion of a combo card. 
-Additionally, the CMD52 must be issued first because it cannot be issued
-after a CMD0.
+Without this patch /sys/class/rtc/$CONFIG_RTC_HCTOSYS_DEVICE/hctosys
+contains a 1 (meaning "This rtc was used to initialize the system clock=
+")
+even if reading the time at bootup failed.
 
-With this patch the Nintendo Wii SDIO-based WLAN card is detected after a
-system reset, without requiring a complete system powercycle.
+Moreover change error handling in rtc_hctosys() to use goto and so redu=
+ce
+the indention level.
 
-Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c     |    1 
- drivers/mmc/core/sdio_ops.c |   36 ++++++++++++++++++++++++++++------
- drivers/mmc/core/sdio_ops.h |    1 
- 3 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/rtc/hctosys.c   |   63 +++++++++++++++++++++-----------------
+ drivers/rtc/rtc-sysfs.c |    5 +--
+ include/linux/rtc.h     |    6 +++
+ 3 files changed, 45 insertions(+), 29 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle
-+++ a/drivers/mmc/core/core.c
-@@ -1089,6 +1089,7 @@ void mmc_rescan(struct work_struct *work
- 	mmc_claim_host(host);
- 
- 	mmc_power_up(host);
-+	sdio_reset(host);
- 	mmc_go_idle(host);
- 
- 	mmc_send_if_cond(host, host->ocr_avail);
-diff -puN drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle drivers/mmc/core/sdio_ops.c
---- a/drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle
-+++ a/drivers/mmc/core/sdio_ops.c
-@@ -67,13 +67,13 @@ int mmc_send_io_op_cond(struct mmc_host 
- 	return err;
- }
- 
--int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
--	unsigned addr, u8 in, u8* out)
-+static int mmc_io_rw_direct_host(struct mmc_host *host, int write, unsigned fn,
-+	unsigned addr, u8 in, u8 *out)
+diff -puN drivers/rtc/hctosys.c~rtc-hctosys-only-claim-the-rtc-provided=
+-the-system-time-if-it-did drivers/rtc/hctosys.c
+--- a/drivers/rtc/hctosys.c~rtc-hctosys-only-claim-the-rtc-provided-the=
+-system-time-if-it-did
++++ a/drivers/rtc/hctosys.c
+@@ -22,48 +22,57 @@
+  * the best guess is to add 0.5s.
+  */
+=20
++int rtc_hctosys_ret =3D -ENODEV;
++
+ static int __init rtc_hctosys(void)
  {
- 	struct mmc_command cmd;
- 	int err;
- 
--	BUG_ON(!card);
-+	BUG_ON(!host);
- 	BUG_ON(fn > 7);
- 
- 	/* sanity check */
-@@ -90,11 +90,11 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	cmd.arg |= in;
- 	cmd.flags = MMC_RSP_SPI_R5 | MMC_RSP_R5 | MMC_CMD_AC;
- 
--	err = mmc_wait_for_cmd(card->host, &cmd, 0);
-+	err = mmc_wait_for_cmd(host, &cmd, 0);
- 	if (err)
- 		return err;
- 
--	if (mmc_host_is_spi(card->host)) {
-+	if (mmc_host_is_spi(host)) {
- 		/* host driver already reported errors */
- 	} else {
- 		if (cmd.resp[0] & R5_ERROR)
-@@ -106,7 +106,7 @@ int mmc_io_rw_direct(struct mmc_card *ca
+-	int err;
++	int err =3D -ENODEV;
+ 	struct rtc_time tm;
++	struct timespec tv =3D {
++		.tv_nsec =3D NSEC_PER_SEC >> 1,
++	};
+ 	struct rtc_device *rtc =3D rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
+=20
+ 	if (rtc =3D=3D NULL) {
+-		printk("%s: unable to open rtc device (%s)\n",
++		pr_err("%s: unable to open rtc device (%s)\n",
+ 			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+-		return -ENODEV;
++		goto err_open;
  	}
- 
- 	if (out) {
--		if (mmc_host_is_spi(card->host))
-+		if (mmc_host_is_spi(host))
- 			*out = (cmd.resp[0] >> 8) & 0xFF;
- 		else
- 			*out = cmd.resp[0] & 0xFF;
-@@ -115,6 +115,13 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	return 0;
- }
- 
-+int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
-+	unsigned addr, u8 in, u8 *out)
-+{
-+	BUG_ON(!card);
-+	return mmc_io_rw_direct_host(card->host, write, fn, addr, in, out);
-+}
+=20
+ 	err =3D rtc_read_time(rtc, &tm);
+-	if (err =3D=3D 0) {
+-		err =3D rtc_valid_tm(&tm);
+-		if (err =3D=3D 0) {
+-			struct timespec tv;
+-
+-			tv.tv_nsec =3D NSEC_PER_SEC >> 1;
+-
+-			rtc_tm_to_time(&tm, &tv.tv_sec);
+-
+-			do_settimeofday(&tv);
+-
+-			dev_info(rtc->dev.parent,
+-				"setting system clock to "
+-				"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
+-				tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+-				tm.tm_hour, tm.tm_min, tm.tm_sec,
+-				(unsigned int) tv.tv_sec);
+-		}
+-		else
+-			dev_err(rtc->dev.parent,
+-				"hctosys: invalid date/time\n");
+-	}
+-	else
++	if (err) {
+ 		dev_err(rtc->dev.parent,
+ 			"hctosys: unable to read the hardware clock\n");
++		goto err_read;
 +
- int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
- 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz)
++	}
+=20
++	err =3D rtc_valid_tm(&tm);
++	if (err) {
++		dev_err(rtc->dev.parent,
++			"hctosys: invalid date/time\n");
++		goto err_invalid;
++	}
++
++	rtc_tm_to_time(&tm, &tv.tv_sec);
++
++	do_settimeofday(&tv);
++
++	dev_info(rtc->dev.parent,
++		"setting system clock to "
++		"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
++		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
++		tm.tm_hour, tm.tm_min, tm.tm_sec,
++		(unsigned int) tv.tv_sec);
++
++err_invalid:
++err_read:
+ 	rtc_class_close(rtc);
+=20
+-	return 0;
++err_open:
++	rtc_hctosys_ret =3D err;
++
++	return err;
+ }
+=20
+ late_initcall(rtc_hctosys);
+diff -puN drivers/rtc/rtc-sysfs.c~rtc-hctosys-only-claim-the-rtc-provid=
+ed-the-system-time-if-it-did drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc-hctosys-only-claim-the-rtc-provided-t=
+he-system-time-if-it-did
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -107,8 +107,9 @@ rtc_sysfs_show_hctosys(struct device *de
+ 		char *buf)
  {
-@@ -182,3 +189,20 @@ int mmc_io_rw_extended(struct mmc_card *
- 	return 0;
- }
- 
-+int sdio_reset(struct mmc_host *host)
-+{
-+	int ret;
-+	u8 abort;
-+
-+	/* SDIO Simplified Specification V2.0, 4.4 Reset for SDIO */
-+
-+	ret = mmc_io_rw_direct_host(host, 0, 0, SDIO_CCCR_ABORT, 0, &abort);
-+	if (ret)
-+		abort = 0x08;
-+	else
-+		abort |= 0x08;
-+
-+	ret = mmc_io_rw_direct_host(host, 1, 0, SDIO_CCCR_ABORT, abort, NULL);
-+	return ret;
-+}
-+
-diff -puN drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle drivers/mmc/core/sdio_ops.h
---- a/drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle
-+++ a/drivers/mmc/core/sdio_ops.h
-@@ -17,6 +17,7 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	unsigned addr, u8 in, u8* out);
- int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
- 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz);
-+int sdio_reset(struct mmc_host *host);
- 
+ #ifdef CONFIG_RTC_HCTOSYS_DEVICE
+-	if (strcmp(dev_name(&to_rtc_device(dev)->dev),
+-		   CONFIG_RTC_HCTOSYS_DEVICE) =3D=3D 0)
++	if (rtc_hctosys_ret =3D=3D 0 &&
++			strcmp(dev_name(&to_rtc_device(dev)->dev),
++				CONFIG_RTC_HCTOSYS_DEVICE) =3D=3D 0)
+ 		return sprintf(buf, "1\n");
+ 	else
  #endif
- 
+diff -puN include/linux/rtc.h~rtc-hctosys-only-claim-the-rtc-provided-t=
+he-system-time-if-it-did include/linux/rtc.h
+--- a/include/linux/rtc.h~rtc-hctosys-only-claim-the-rtc-provided-the-s=
+ystem-time-if-it-did
++++ a/include/linux/rtc.h
+@@ -238,6 +238,12 @@ static inline bool is_leap_year(unsigned
+ 	return (!(year % 4) && (year % 100)) || !(year % 400);
+ }
+=20
++#ifdef CONFIG_RTC_HCTOSYS
++extern int rtc_hctosys_ret;
++#else
++#define rtc_hctosys_ret -ENODEV
++#endif
++
+ #endif /* __KERNEL__ */
+=20
+ #endif /* _LINUX_RTC_H_ */
 _
 
-Patches currently in -mm which might be from albert_herranz@yahoo.es are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 origin.patch
+linux-next.patch
+hrtimer-correct-a-few-numbers-in-comments.patch
+clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
+timer-print-function-name-for-timer-callbacks-modifying-preemption-coun=
+t.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
