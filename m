@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-disable-move-charge-in-no-mmu-case.patch added to -mm tree
-Date: Mon, 15 Mar 2010 13:47:01 -0700
-Message-ID: <201003152047.o2FKl1Cj021697@imap1.linux-foundation.org>
+Subject: + cgroups-remove-duplicate-include.patch added to -mm tree
+Date: Mon, 15 Mar 2010 13:48:05 -0700
+Message-ID: <201003152048.o2FKm5cc021722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932221Ab0COUrO (ORCPT
+	by vger.kernel.org with ESMTP id S932252Ab0COUsP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:47:14 -0400
+	Mon, 15 Mar 2010 16:48:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: d-nishimura@mtf.biglobe.ne.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     memcg: disable move charge in no mmu case
+     cgroups: remove duplicate include
 has been added to the -mm tree.  Its filename is
-     memcg-disable-move-charge-in-no-mmu-case.patch
+     cgroups-remove-duplicate-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: disable move charge in no mmu case
-From: Daisuke Nishimura <d-nishimura@mtf.biglobe.ne.jp>
+Subject: cgroups: remove duplicate include
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-In commit 02491447 ("memcg: move charges of anonymous swap"), I tried to
-disable move charge feature in no mmu case by enclosing all the related
-functions with "#ifdef CONFIG_MMU", but the commit places these ifdefs in
-wrong place.  (it seems that it's mangled while handling some fixes...)
+commit e6a1105b ("cgroups: subsystem module loading interface") and commit
+c50cc752 ("sched, cgroups: Fix module export") result in duplicate
+including of module.h
 
-This patch fixes it up.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   44 ++++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ kernel/cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-disable-move-charge-in-no-mmu-case mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-disable-move-charge-in-no-mmu-case
-+++ a/mm/memcontrol.c
-@@ -3946,28 +3946,6 @@ one_by_one:
- 	}
- 	return ret;
- }
--#else	/* !CONFIG_MMU */
--static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
--				struct cgroup *cgroup,
--				struct task_struct *p,
--				bool threadgroup)
--{
--	return 0;
--}
--static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
--				struct cgroup *cgroup,
--				struct task_struct *p,
--				bool threadgroup)
--{
--}
--static void mem_cgroup_move_task(struct cgroup_subsys *ss,
--				struct cgroup *cont,
--				struct cgroup *old_cont,
--				struct task_struct *p,
--				bool threadgroup)
--{
--}
--#endif
+diff -puN kernel/cgroup.c~cgroups-remove-duplicate-include kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-remove-duplicate-include
++++ a/kernel/cgroup.c
+@@ -27,7 +27,6 @@
+  */
  
- /**
-  * is_target_pte_for_mc - check a pte whether it is valid for move charge
-@@ -4330,6 +4308,28 @@ static void mem_cgroup_move_task(struct 
- 	}
- 	mem_cgroup_clear_mc();
- }
-+#else	/* !CONFIG_MMU */
-+static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+	return 0;
-+}
-+static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-+				struct cgroup *cont,
-+				struct cgroup *old_cont,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+#endif
- 
- struct cgroup_subsys mem_cgroup_subsys = {
- 	.name = "memory",
+ #include <linux/cgroup.h>
+-#include <linux/module.h>
+ #include <linux/ctype.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
 _
 
-Patches currently in -mm which might be from d-nishimura@mtf.biglobe.ne.jp are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-memcg-disable-move-charge-in-no-mmu-case.patch
+origin.patch
+memcg-avoid-use-cmpxchg-in-swap-cgroup-maintainance.patch
+cgroups-remove-duplicate-include.patch
+cgroups-net_cls-as-module.patch
+sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path.patch
 
