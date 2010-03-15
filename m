@@ -1,73 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-extern-cleanup-acct.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:05:11 -0400
-Message-ID: <201003150705.o2F75iYC017110@imap1.linux-foundation.org>
+Subject: [merged] decompress-fix-new-decompressor-for-pic.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:04:45 -0400
+Message-ID: <201003150705.o2F75ILR017080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933035Ab0COHFq (ORCPT
+	by vger.kernel.org with ESMTP id S1759729Ab0COHFd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:46 -0400
+	Mon, 15 Mar 2010 03:05:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
+To: rmk@arm.linux.org.uk, alain@knaff.lu, rmk+kernel@arm.linux.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl extern cleanup: acct
+     decompress: fix new decompressor for PIC
 has been removed from the -mm tree.  Its filename was
-     sysctl-extern-cleanup-acct.patch
+     decompress-fix-new-decompressor-for-pic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: acct
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: decompress: fix new decompressor for PIC
+From: Russell King <rmk@arm.linux.org.uk>
 
-Extern declarations in sysctl.c should be moved to their own header file,
-and then include them in relavant .c files.
+The ARM kernel decompressor wants to be able to relocate r/w data
+independently from the rest of the image, and we do this by ensuring that
+r/w data has global visibility.  Define STATIC_RW_DATA to be empty to
+achieve this.
 
-Move acct_parm extern declaration to linux/acct.h
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acct.h |    1 +
- kernel/sysctl.c      |    7 +++----
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/decompress/mm.h |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/acct.h~sysctl-extern-cleanup-acct include/linux/acct.h
---- a/include/linux/acct.h~sysctl-extern-cleanup-acct
-+++ a/include/linux/acct.h
-@@ -121,6 +121,7 @@ struct vfsmount;
- struct super_block;
- struct pacct_struct;
- struct pid_namespace;
-+extern int acct_parm[]; /* for sysctl */
- extern void acct_auto_close_mnt(struct vfsmount *m);
- extern void acct_auto_close(struct super_block *sb);
- extern void acct_collect(long exitcode, int group_dead);
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-acct kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-acct
-+++ a/kernel/sysctl.c
-@@ -69,6 +69,9 @@
- #include <asm/stacktrace.h>
- #include <asm/io.h>
- #endif
-+#ifdef CONFIG_BSD_PROCESS_ACCT
-+#include <linux/acct.h>
-+#endif
- #ifdef CONFIG_CHR_DEV_SG
- #include <scsi/sg.h>
- #endif
-@@ -135,10 +138,6 @@ extern int sysctl_userprocess_debug;
- extern int spin_retry;
- #endif
+diff -puN include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic include/linux/decompress/mm.h
+--- a/include/linux/decompress/mm.h~decompress-fix-new-decompressor-for-pic
++++ a/include/linux/decompress/mm.h
+@@ -14,11 +14,21 @@
  
--#ifdef CONFIG_BSD_PROCESS_ACCT
--extern int acct_parm[];
--#endif
+ /* Code active when included from pre-boot environment: */
+ 
++/*
++ * Some architectures want to ensure there is no local data in their
++ * pre-boot environment, so that data can arbitarily relocated (via
++ * GOT references).  This is achieved by defining STATIC_RW_DATA to
++ * be null.
++ */
++#ifndef STATIC_RW_DATA
++#define STATIC_RW_DATA static
++#endif
++
+ /* A trivial malloc implementation, adapted from
+  *  malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
+  */
+-static unsigned long malloc_ptr;
+-static int malloc_count;
++STATIC_RW_DATA unsigned long malloc_ptr;
++STATIC_RW_DATA int malloc_count;
+ 
+ static void *malloc(int size)
+ {
+_
+
+Patches currently in -mm which might be from rmk@arm.linux.org.uk are
+
+origin.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+arm-convert-arm-to-arch_gettimeoffset.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+
