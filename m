@@ -1,95 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-mmtimerc-eliminate-useless-code.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:04:40 -0400
-Message-ID: <201003150705.o2F75DYt017074@imap1.linux-foundation.org>
+Subject: [merged] serial-8250-enable-pps-support.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:04:26 -0400
+Message-ID: <201003150705.o2F74x12017053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759722Ab0COHF2 (ORCPT
+	by vger.kernel.org with ESMTP id S1759737Ab0COHFk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:28 -0400
+	Mon, 15 Mar 2010 03:05:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, sivanich@sgi.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/mmtimer.c: eliminate useless code
+     serial 8250: enable PPS support
 has been removed from the -mm tree.  Its filename was
-     drivers-char-mmtimerc-eliminate-useless-code.patch
+     serial-8250-enable-pps-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/mmtimer.c: eliminate useless code
-From: Julia Lawall <julia@diku.dk>
+Subject: serial 8250: enable PPS support
+From: Rodolfo Giometti <giometti@linux.it>
 
-The variable x is initialized twice to the same (side effect-free)
-expression.  Drop one initialization.
+Automagically function serial8250_enable_ms() is called when PPS ldisc
+is selected.
 
-A simplified version of the semantic match that finds this problem is:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@forall@
-idexpression *x;
-identifier f!=ERR_PTR;
-@@
-
-x = f(...)
-... when != x
-(
-x = f(...,<+...x...+>,...)
-|
-* x = f(...)
-)
-// </smpl>
-
-Stefan observed:
-
-  The next x = rb_entry(mn->next, struct mmtimer, list); is preceded by a
-  test whether mn->next is NULL.
-
-  Unless that test is redundant too, your patch fixes a potential NULL
-  pointer dereference, introduced by commit cbacdd95 "SGI Altix mmtimer:
-  allow larger number of timers per node" in 2.6.26.
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Dimitri Sivanich <sivanich@sgi.com>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mmtimer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN drivers/char/mmtimer.c~drivers-char-mmtimerc-eliminate-useless-code drivers/char/mmtimer.c
---- a/drivers/char/mmtimer.c~drivers-char-mmtimerc-eliminate-useless-code
-+++ a/drivers/char/mmtimer.c
-@@ -546,7 +546,7 @@ static void mmtimer_tasklet(unsigned lon
- {
- 	int nodeid = data;
- 	struct mmtimer_node *mn = &timers[nodeid];
--	struct mmtimer *x = rb_entry(mn->next, struct mmtimer, list);
-+	struct mmtimer *x;
- 	struct k_itimer *t;
- 	unsigned long flags;
+diff -puN drivers/serial/8250.c~serial-8250-enable-pps-support drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-8250-enable-pps-support
++++ a/drivers/serial/8250.c
+@@ -2408,6 +2408,21 @@ serial8250_set_termios(struct uart_port 
+ }
  
+ static void
++serial8250_set_ldisc(struct uart_port *port)
++{
++	int line = port->line;
++
++	if (line >= port->state->port.tty->driver->num)
++		return;
++
++	if (port->state->port.tty->ldisc->ops->num == N_PPS) {
++		port->flags |= UPF_HARDPPS_CD;
++		serial8250_enable_ms(port);
++	} else
++		port->flags &= ~UPF_HARDPPS_CD;
++}
++
++static void
+ serial8250_pm(struct uart_port *port, unsigned int state,
+ 	      unsigned int oldstate)
+ {
+@@ -2628,6 +2643,7 @@ static struct uart_ops serial8250_pops =
+ 	.startup	= serial8250_startup,
+ 	.shutdown	= serial8250_shutdown,
+ 	.set_termios	= serial8250_set_termios,
++	.set_ldisc	= serial8250_set_ldisc,
+ 	.pm		= serial8250_pm,
+ 	.type		= serial8250_type,
+ 	.release_port	= serial8250_release_port,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from giometti@linux.it are
 
 origin.patch
-linux-next.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
-drivers-edac-introduce-missing-kfree.patch
 
