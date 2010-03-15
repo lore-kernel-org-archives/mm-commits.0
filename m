@@ -1,35 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-introduce-strict-parameter-checking.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:56:28 -0400
-Message-ID: <201003150657.o2F6v1Us016340@imap1.linux-foundation.org>
+Subject: [merged] viafb-split-color-mode-setting-up.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:56:31 -0400
+Message-ID: <201003150657.o2F6v4w9016343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934519Ab0COG5F (ORCPT
+	by vger.kernel.org with ESMTP id S934519Ab0COG5I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:57:05 -0400
+	Mon, 15 Mar 2010 02:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: introduce strict parameter checking
+     viafb: split color mode setting up
 has been removed from the -mm tree.  Its filename was
-     viafb-introduce-strict-parameter-checking.patch
+     viafb-split-color-mode-setting-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: introduce strict parameter checking
+Subject: viafb: split color mode setting up
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Refuse to work if wrong parameters are given.  This should improve the
-user experience as it will be clear that something is wrong and not
-silently ignored.
+This patch splits color mode setting up in seperate functions.  Some
+hardware initialization that was previously mixed with it is moved to
+viafb_setmode.  As are the calls to the newly created function.  This is
+yet another little step towards controlling each IGA on its own.
+
+As this patch really aims too mimic the old behaviour no regressions are
+expected.  However I noticed that 8bpp (or 6bpp?) seems actually a bit
+broken before and after the patch.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Scott Fang <ScottFang@viatech.com.cn>
@@ -37,182 +42,149 @@ Cc: Joseph Chan <JosephChan@via.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   67 ++++++++++++++++++---------------
- 1 file changed, 38 insertions(+), 29 deletions(-)
+ drivers/video/via/hw.c  |   85 +++++++++++++++++++++++---------------
+ drivers/video/via/hw.h  |    1 
+ drivers/video/via/lcd.c |    2 
+ 3 files changed, 53 insertions(+), 35 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-introduce-strict-parameter-checking drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-introduce-strict-parameter-checking
-+++ a/drivers/video/via/viafbdev.c
-@@ -31,13 +31,13 @@ static char *viafb_name = "Via";
- static u32 pseudo_pal[17];
- 
- /* video mode */
--static char *viafb_mode = "640x480";
--static char *viafb_mode1 = "640x480";
-+static char *viafb_mode;
-+static char *viafb_mode1;
- 
- static int viafb_accel = 1;
- 
- /* Added for specifying active devices.*/
--char *viafb_active_dev = "";
-+char *viafb_active_dev;
- 
- /*Added for specify lcd output port*/
- char *viafb_lcd_port = "";
-@@ -1327,7 +1327,7 @@ static void retrieve_device_setting(stru
- 	setting_info->lcd_attributes.lcd_mode = viafb_lcd_mode;
+diff -puN drivers/video/via/hw.c~viafb-split-color-mode-setting-up drivers/video/via/hw.c
+--- a/drivers/video/via/hw.c~viafb-split-color-mode-setting-up
++++ a/drivers/video/via/hw.c
+@@ -685,6 +685,54 @@ void viafb_set_secondary_pitch(u32 pitch
+ 	viafb_write_reg_mask(0x71, VIACR, (pitch >> (10 - 7)) & 0x80, 0x80);
  }
  
--static void parse_active_dev(void)
-+static int parse_active_dev(void)
- {
- 	viafb_CRT_ON = STATE_OFF;
- 	viafb_DVI_ON = STATE_OFF;
-@@ -1338,60 +1338,63 @@ static void parse_active_dev(void)
- 	   IGA path to devices in SAMM case. */
- 	/*    Note: The previous of active_dev is primary device,
- 	   and the following is secondary device. */
--	if (!strncmp(viafb_active_dev, "CRT+DVI", 7)) {
-+	if (!viafb_active_dev) {
-+		viafb_CRT_ON = STATE_ON;
-+		viafb_SAMM_ON = STATE_OFF;
-+	} else if (!strcmp(viafb_active_dev, "CRT+DVI")) {
- 		/* CRT+DVI */
- 		viafb_CRT_ON = STATE_ON;
- 		viafb_DVI_ON = STATE_ON;
- 		viafb_primary_dev = CRT_Device;
--	} else if (!strncmp(viafb_active_dev, "DVI+CRT", 7)) {
-+	} else if (!strcmp(viafb_active_dev, "DVI+CRT")) {
- 		/* DVI+CRT */
- 		viafb_CRT_ON = STATE_ON;
- 		viafb_DVI_ON = STATE_ON;
- 		viafb_primary_dev = DVI_Device;
--	} else if (!strncmp(viafb_active_dev, "CRT+LCD", 7)) {
-+	} else if (!strcmp(viafb_active_dev, "CRT+LCD")) {
- 		/* CRT+LCD */
- 		viafb_CRT_ON = STATE_ON;
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_primary_dev = CRT_Device;
--	} else if (!strncmp(viafb_active_dev, "LCD+CRT", 7)) {
-+	} else if (!strcmp(viafb_active_dev, "LCD+CRT")) {
- 		/* LCD+CRT */
- 		viafb_CRT_ON = STATE_ON;
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_primary_dev = LCD_Device;
--	} else if (!strncmp(viafb_active_dev, "DVI+LCD", 7)) {
-+	} else if (!strcmp(viafb_active_dev, "DVI+LCD")) {
- 		/* DVI+LCD */
- 		viafb_DVI_ON = STATE_ON;
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_primary_dev = DVI_Device;
--	} else if (!strncmp(viafb_active_dev, "LCD+DVI", 7)) {
-+	} else if (!strcmp(viafb_active_dev, "LCD+DVI")) {
- 		/* LCD+DVI */
- 		viafb_DVI_ON = STATE_ON;
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_primary_dev = LCD_Device;
--	} else if (!strncmp(viafb_active_dev, "LCD+LCD2", 8)) {
-+	} else if (!strcmp(viafb_active_dev, "LCD+LCD2")) {
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_LCD2_ON = STATE_ON;
- 		viafb_primary_dev = LCD_Device;
--	} else if (!strncmp(viafb_active_dev, "LCD2+LCD", 8)) {
-+	} else if (!strcmp(viafb_active_dev, "LCD2+LCD")) {
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_LCD2_ON = STATE_ON;
- 		viafb_primary_dev = LCD2_Device;
--	} else if (!strncmp(viafb_active_dev, "CRT", 3)) {
-+	} else if (!strcmp(viafb_active_dev, "CRT")) {
- 		/* CRT only */
- 		viafb_CRT_ON = STATE_ON;
- 		viafb_SAMM_ON = STATE_OFF;
--	} else if (!strncmp(viafb_active_dev, "DVI", 3)) {
-+	} else if (!strcmp(viafb_active_dev, "DVI")) {
- 		/* DVI only */
- 		viafb_DVI_ON = STATE_ON;
- 		viafb_SAMM_ON = STATE_OFF;
--	} else if (!strncmp(viafb_active_dev, "LCD", 3)) {
-+	} else if (!strcmp(viafb_active_dev, "LCD")) {
- 		/* LCD only */
- 		viafb_LCD_ON = STATE_ON;
- 		viafb_SAMM_ON = STATE_OFF;
--	} else {
--		viafb_CRT_ON = STATE_ON;
--		viafb_SAMM_ON = STATE_OFF;
--	}
-+	} else
-+		return -EINVAL;
++void viafb_set_primary_color_depth(u8 depth)
++{
++	u8 value;
 +
-+	return 0;
- }
- 
- static int parse_port(char *opt_str, int *output_interface)
-@@ -1820,24 +1823,25 @@ static void viafb_remove_proc(struct pro
- 	remove_proc_entry("viafb", NULL);
- }
- 
--static void parse_mode(const char *str, u32 *xres, u32 *yres)
-+static int parse_mode(const char *str, u32 *xres, u32 *yres)
- {
- 	char *ptr;
- 
-+	if (!str) {
-+		*xres = 640;
-+		*yres = 480;
-+		return 0;
++	DEBUG_MSG(KERN_DEBUG "viafb_set_primary_color_depth(%d)\n", depth);
++	switch (depth) {
++	case 6:
++		value = 0x00;
++		break;
++	case 16:
++		value = 0x14;
++		break;
++	case 24:
++		value = 0x0C;
++		break;
++	default:
++		printk(KERN_WARNING "viafb_set_primary_color_depth: "
++			"Unsupported depth: %d\n", depth);
++		return;
 +	}
 +
- 	*xres = simple_strtoul(str, &ptr, 10);
- 	if (ptr[0] != 'x')
--		goto out_default;
-+		return -EINVAL;
- 
- 	*yres = simple_strtoul(&ptr[1], &ptr, 10);
- 	if (ptr[0])
--		goto out_default;
--
--	return;
-+		return -EINVAL;
- 
--out_default:
--	printk(KERN_WARNING "viafb received invalid mode string: %s\n", str);
--	*xres = 640;
--	*yres = 480;
-+	return 0;
++	viafb_write_reg_mask(0x15, VIASR, value, 0x1C);
++}
++
++void viafb_set_secondary_color_depth(u8 depth)
++{
++	u8 value;
++
++	DEBUG_MSG(KERN_DEBUG "viafb_set_secondary_color_depth(%d)\n", depth);
++	switch (depth) {
++	case 6:
++		value = 0x00;
++		break;
++	case 16:
++		value = 0x40;
++		break;
++	case 24:
++		value = 0xC0;
++		break;
++	default:
++		printk(KERN_WARNING "viafb_set_secondary_color_depth: "
++			"Unsupported depth: %d\n", depth);
++		return;
++	}
++
++	viafb_write_reg_mask(0x67, VIACR, value, 0xC0);
++}
++
+ void viafb_set_output_path(int device, int set_iga, int output_interface)
+ {
+ 	switch (device) {
+@@ -1761,35 +1809,6 @@ void viafb_load_crtc_timing(struct displ
+ 	viafb_lock_crt();
  }
  
- static int __devinit via_pci_probe(struct pci_dev *pdev,
-@@ -1874,7 +1878,6 @@ static int __devinit via_pci_probe(struc
- 
- 	if (viafb_dual_fb)
- 		viafb_SAMM_ON = 1;
--	parse_active_dev();
- 	parse_lcd_port();
- 	parse_dvi_port();
- 
-@@ -2192,12 +2195,18 @@ static struct pci_driver viafb_driver = 
- 
- static int __init viafb_init(void)
+-void viafb_set_color_depth(int bpp_byte, int set_iga)
+-{
+-	if (set_iga == IGA1) {
+-		switch (bpp_byte) {
+-		case MODE_8BPP:
+-			viafb_write_reg_mask(SR15, VIASR, 0x22, 0x7E);
+-			break;
+-		case MODE_16BPP:
+-			viafb_write_reg_mask(SR15, VIASR, 0xB6, 0xFE);
+-			break;
+-		case MODE_32BPP:
+-			viafb_write_reg_mask(SR15, VIASR, 0xAE, 0xFE);
+-			break;
+-		}
+-	} else {
+-		switch (bpp_byte) {
+-		case MODE_8BPP:
+-			viafb_write_reg_mask(CR67, VIACR, 0x00, BIT6 + BIT7);
+-			break;
+-		case MODE_16BPP:
+-			viafb_write_reg_mask(CR67, VIACR, 0x40, BIT6 + BIT7);
+-			break;
+-		case MODE_32BPP:
+-			viafb_write_reg_mask(CR67, VIACR, 0xC0, BIT6 + BIT7);
+-			break;
+-		}
+-	}
+-}
+-
+ void viafb_fill_crtc_timing(struct crt_mode_table *crt_table,
+ 	struct VideoModeTable *video_mode, int bpp_byte, int set_iga)
  {
-+	u32 dummy;
- #ifndef MODULE
- 	char *option = NULL;
- 	if (fb_get_options("viafb", &option))
- 		return -ENODEV;
- 	viafb_setup(option);
- #endif
-+	if (parse_mode(viafb_mode, &dummy, &dummy)
-+		|| parse_mode(viafb_mode1, &dummy, &dummy)
-+		|| parse_active_dev())
-+		return -EINVAL;
-+
- 	printk(KERN_INFO
-        "VIA Graphics Intergration Chipset framebuffer %d.%d initializing\n",
- 	       VERSION_MAJOR, VERSION_MINOR);
-_
-
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
-
-origin.patch
-
+@@ -1867,9 +1886,6 @@ void viafb_fill_crtc_timing(struct crt_m
+ 	    && (viaparinfo->chip_info->gfx_chip_name != UNICHROME_K400))
+ 		viafb_load_FIFO_reg(set_iga, h_addr, v_addr);
+ 
+-	/* load SR Register About Memory and Color part */
+-	viafb_set_color_depth(bpp_byte, set_iga);
+-
+ 	pll_D_N = viafb_get_clk_value(crt_table[index].clk);
+ 	DEBUG_MSG(KERN_INFO "PLL=%x", pll_D_N);
+ 	viafb_set_vclock(pll_D_N, set_iga);
+@@ -2206,6 +2222,8 @@ int viafb_setmode(struct VideoModeTable 
+ 		outb(VPIT.SR[i - 1], VIASR + 1);
+ 	}
+ 
++	viafb_write_reg_mask(0x15, VIASR, viafbinfo->fix.visual
++		== FB_VISUAL_PSEUDOCOLOR ? 0x22 : 0xA2, 0xA2);
+ 	viafb_set_iga_path();
+ 
+ 	/* Write CRTC */
+@@ -2245,6 +2263,9 @@ int viafb_setmode(struct VideoModeTable 
+ 	viafb_set_primary_pitch(viafbinfo->fix.line_length);
+ 	viafb_set_secondary_pitch(viafb_dual_fb ? viafbinfo1->fix.line_length
+ 		: viafbinfo->fix.line_length);
++	viafb_set_primary_color_depth(viaparinfo->depth);
++	viafb_set_secondary_color_depth(viafb_dual_fb ? viaparinfo1->depth
++		: viaparinfo->depth);
+ 	/* Update Refresh Rate Setting */
+ 
+ 	/* Clear On Screen */
+diff -puN drivers/video/via/hw.h~viafb-split-color-mode-setting-up drivers/video/via/hw.h
+--- a/drivers/video/via/hw.h~viafb-split-color-mode-setting-up
++++ a/drivers/video/via/hw.h
+@@ -895,7 +895,6 @@ void viafb_load_fetch_count_reg(int h_ad
+ void viafb_write_regx(struct io_reg RegTable[], int ItemNum);
+ u32 viafb_get_clk_value(int clk);
+ void viafb_load_FIFO_reg(int set_iga, int hor_active, int ver_active);
+-void viafb_set_color_depth(int bpp_byte, int set_iga);
+ void viafb_set_dpa_gfx(int output_interface, struct GFX_DPA_SETTING\
+ 					*p_gfx_dpa_setting);
+ 
+diff -puN drivers/video/via/lcd.c~viafb-split-color-mode-setting-up drivers/video/via/lcd.c
+--- a/drivers/video/via/lcd.c~viafb-split-color-mode-setting-up
++++ a/drivers/video/via/lcd.c
+@@ -1006,8 +1006,6 @@ void viafb_lcd_set_mode(struct crt_mode_
+ 		if ((viaparinfo->chip_info->gfx_chip_name != UNICHROME_CLE266)
+ 		    && (viaparinfo->chip_info->gfx_chip_name != UNICHROME_K400))
+ 			viafb_load_FIFO_reg(set_iga, set_hres, set_vres);
