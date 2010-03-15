@@ -1,134 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-remove-obsolete-voyagertxt-file.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:57:58 -0400
-Message-ID: <201003150658.o2F6wV3S016456@imap1.linux-foundation.org>
+Subject: [merged] obsolete-config-in-kernel-source-lwmon5.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:57:12 -0400
+Message-ID: <201003150657.o2F6vj64016397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935711Ab0COG6h (ORCPT
+	by vger.kernel.org with ESMTP id S934967Ab0COG6C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:58:37 -0400
+	Mon, 15 Mar 2010 02:58:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bzolnier@gmail.com, James.Bottomley@HansenPartnership.com, corbet@lwn.net, mm-commits@vger.kernel.org
+To: siccegge@stud.informatik.uni-erlangen.de, virtuoso@slind.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: remove obsolete voyager.txt file
+     obsolete config in kernel source: LWMON5
 has been removed from the -mm tree.  Its filename was
-     documentation-remove-obsolete-voyagertxt-file.patch
+     obsolete-config-in-kernel-source-lwmon5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: remove obsolete voyager.txt file
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: obsolete config in kernel source: LWMON5
+From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
 
-x86/Voyager support has been removed a year ago.
+There was some conditionalizing for the LWMON5 boards in kernel source. 
+However infrastructure for enabling this isn't here so probably the
+special case code can go as well.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Inspired-by: Jonathan Corbet <corbet@lwn.net>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Acked-by: Alexander Shishkin <virtuoso@slind.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/voyager.txt |   95 ------------------------------------
- 1 file changed, 95 deletions(-)
+ drivers/video/mb862xx/mb862xxfb.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN Documentation/voyager.txt~documentation-remove-obsolete-voyagertxt-file /dev/null
---- a/Documentation/voyager.txt
-+++ /dev/null
-@@ -1,95 +0,0 @@
--Running Linux on the Voyager Architecture
--=========================================
+diff -puN drivers/video/mb862xx/mb862xxfb.c~obsolete-config-in-kernel-source-lwmon5 drivers/video/mb862xx/mb862xxfb.c
+--- a/drivers/video/mb862xx/mb862xxfb.c~obsolete-config-in-kernel-source-lwmon5
++++ a/drivers/video/mb862xx/mb862xxfb.c
+@@ -31,15 +31,6 @@
+ #define CARMINE_MEM_SIZE	0x8000000
+ #define DRV_NAME		"mb862xxfb"
+ 
+-#if defined(CONFIG_LWMON5)
+-static struct mb862xx_gc_mode lwmon5_gc_mode = {
+-	/* Mode for Sharp LQ104V1DG61 TFT LCD Panel */
+-	{ "640x480", 60, 640, 480, 40000, 48, 16, 32, 11, 96, 2, 0, 0, 0 },
+-	/* 16 bits/pixel, 32MB, 100MHz, SDRAM memory mode value */
+-	16, 0x2000000, GC_CCF_COT_100, 0x414fb7f2
+-};
+-#endif
 -
--For full details and current project status, see
--
--http://www.hansenpartnership.com/voyager
--
--The voyager architecture was designed by NCR in the mid 80s to be a
--fully SMP capable RAS computing architecture built around intel's 486
--chip set.  The voyager came in three levels of architectural
--sophistication: 3,4 and 5 --- 1 and 2 never made it out of prototype.
--The linux patches support only the Level 5 voyager architecture (any
--machine class 3435 and above).
--
--The Voyager Architecture
--------------------------
--
--Voyager machines consist of a Baseboard with a 386 diagnostic
--processor, a Power Supply Interface (PSI) a Primary and possibly
--Secondary Microchannel bus and between 2 and 20 voyager slots.  The
--voyager slots can be populated with memory and cpu cards (up to 4GB
--memory and from 1 486 to 32 Pentium Pro processors).  Internally, the
--voyager has a dual arbitrated system bus and a configuration and test
--bus (CAT).  The voyager bus speed is 40MHz.  Therefore (since all
--voyager cards are dual ported for each system bus) the maximum
--transfer rate is 320Mb/s but only if you have your slot configuration
--tuned (only memory cards can communicate with both busses at once, CPU
--cards utilise them one at a time).
--
--Voyager SMP
-------------
--
--Since voyager was the first intel based SMP system, it is slightly
--more primitive than the Intel IO-APIC approach to SMP.  Voyager allows
--arbitrary interrupt routing (including processor affinity routing) of
--all 16 PC type interrupts.  However it does this by using a modified
--5259 master/slave chip set instead of an APIC bus.  Additionally,
--voyager supports Cross Processor Interrupts (CPI) equivalent to the
--APIC IPIs.  There are two routed voyager interrupt lines provided to
--each slot.
--
--Processor Cards
-----------------
--
--These come in single, dyadic and quad configurations (the quads are
--problematic--see later).  The maximum configuration is 8 quad cards
--for 32 way SMP.
--
--Quad Processors
-----------------
--
--Because voyager only supplies two interrupt lines to each Processor
--card, the Quad processors have to be configured (and Bootstrapped) in
--as a pair of Master/Slave processors.
--
--In fact, most Quad cards only accept one VIC interrupt line, so they
--have one interrupt handling processor (called the VIC extended
--processor) and three non-interrupt handling processors.
--
--Current Status
----------------
--
--The System will boot on Mono, Dyad and Quad cards.  There was
--originally a Quad boot problem which has been fixed by proper gdt
--alignment in the initial boot loader.  If you still cannot get your
--voyager system to boot, email me at:
--
--<J.E.J.Bottomley@HansenPartnership.com>
--
--
--The Quad cards now support using the separate Quad CPI vectors instead
--of going through the VIC mailbox system.
--
--The Level 4 architecture (3430 and 3360 Machines) should also work
--fine.
--
--Dump Switch
-------------
--
--The voyager dump switch sends out a broadcast NMI which the voyager
--code intercepts and does a task dump.
--
--Power Switch
--------------
--
--The front panel power switch is intercepted by the kernel and should
--cause a system shutdown and power off.
--
--A Note About Mixed CPU Systems
--------------------------------
+ #if defined(CONFIG_SOCRATES)
+ static struct mb862xx_gc_mode socrates_gc_mode = {
+ 	/* Mode for Prime View PM070WL4 TFT LCD Panel */
+@@ -600,10 +591,6 @@ static int __devinit of_platform_mb862xx
+ 		goto irqdisp;
+ 	}
+ 
+-#if defined(CONFIG_LWMON5)
+-	par->gc_mode = &lwmon5_gc_mode;
+-#endif
