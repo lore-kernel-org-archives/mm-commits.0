@@ -1,86 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpiphp-execute-acpi-_reg-method-for-hotadded-devices.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:05:21 -0400
-Message-ID: <201003150705.o2F75sXx017127@imap1.linux-foundation.org>
+Subject: [merged] sysctl-extern-cleanup-rcu.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:05:02 -0400
+Message-ID: <201003150705.o2F75ZVm017101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933035Ab0COHGG (ORCPT
+	by vger.kernel.org with ESMTP id S933035Ab0COHFr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:06:06 -0400
+	Mon, 15 Mar 2010 03:05:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, jbarnes@virtuousgeek.org, lenb@kernel.org, pm@debian.org, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, josh@joshtriplett.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpiphp: execute ACPI _REG method for hotadded devices
+     sysctl extern cleanup: rcu
 has been removed from the -mm tree.  Its filename was
-     acpiphp-execute-acpi-_reg-method-for-hotadded-devices.patch
+     sysctl-extern-cleanup-rcu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpiphp: execute ACPI _REG method for hotadded devices
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: sysctl extern cleanup: rcu
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Per ACPI spec, _ERG method should be executed before device driver gets
-control for hotpluged device.  Firmware might do some configuration there.
- See http://bugzilla.kernel.org/show_bug.cgi?id=10805.  In this machine,
-_REG method of docked device will configure cardbus bridge.
+Extern declarations in sysctl.c should be moved to their own header file,
+and then include them in relavant .c files.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Tested-by: Paul Martin <pm@debian.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Len Brown <lenb@kernel.org>
+Move rcutorture_runnable extern declaration to linux/rcupdate.h
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Acked-by: Josh Triplett <josh@joshtriplett.org>
+Reviewed-by: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/acpiphp_glue.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ include/linux/rcupdate.h |    4 ++++
+ kernel/sysctl.c          |    3 ---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-execute-acpi-_reg-method-for-hotadded-devices drivers/pci/hotplug/acpiphp_glue.c
---- a/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-execute-acpi-_reg-method-for-hotadded-devices
-+++ a/drivers/pci/hotplug/acpiphp_glue.c
-@@ -749,6 +749,24 @@ static int acpiphp_bus_trim(acpi_handle 
- 	return retval;
- }
+diff -puN include/linux/rcupdate.h~sysctl-extern-cleanup-rcu include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~sysctl-extern-cleanup-rcu
++++ a/include/linux/rcupdate.h
+@@ -41,6 +41,10 @@
+ #include <linux/lockdep.h>
+ #include <linux/completion.h>
  
-+static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
-+{
-+	struct acpiphp_func *func;
-+	union acpi_object params[2];
-+	struct acpi_object_list arg_list;
-+
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		arg_list.count = 2;
-+		arg_list.pointer = params;
-+		params[0].type = ACPI_TYPE_INTEGER;
-+		params[0].integer.value = ACPI_ADR_SPACE_PCI_CONFIG;
-+		params[1].type = ACPI_TYPE_INTEGER;
-+		params[1].integer.value = 1;
-+		/* _REG is optional, we don't care about if there is failure */
-+		acpi_evaluate_object(func->handle, "_REG", &arg_list, NULL);
-+	}
-+}
++#ifdef CONFIG_RCU_TORTURE_TEST
++extern int rcutorture_runnable; /* for sysctl */
++#endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
 +
  /**
-  * enable_device - enable, configure a slot
-  * @slot: slot to be enabled
-@@ -805,6 +823,7 @@ static int __ref enable_device(struct ac
- 	pci_bus_assign_resources(bus);
- 	acpiphp_sanitize_bus(bus);
- 	acpiphp_set_hpp_values(bus);
-+	acpiphp_set_acpi_region(slot);
- 	pci_enable_bridges(bus);
- 	pci_bus_add_devices(bus);
- 
+  * struct rcu_head - callback structure for use with RCU
+  * @next: next update requests in a list
+diff -puN kernel/sysctl.c~sysctl-extern-cleanup-rcu kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-extern-cleanup-rcu
++++ a/kernel/sysctl.c
+@@ -82,9 +82,6 @@ extern int percpu_pagelist_fraction;
+ #ifndef CONFIG_MMU
+ extern int sysctl_nr_trim_pages;
+ #endif
+-#ifdef CONFIG_RCU_TORTURE_TEST
+-extern int rcutorture_runnable;
+-#endif /* #ifdef CONFIG_RCU_TORTURE_TEST */
+ #ifdef CONFIG_BLOCK
+ extern int blk_iopoll_enabled;
+ #endif
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
+linux-next.patch
 
