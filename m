@@ -1,343 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-some-dvi-cleanup.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:56:12 -0400
-Message-ID: <201003150656.o2F6ukSE016320@imap1.linux-foundation.org>
+Subject: [merged] viafb-yet-another-dead-code-removal.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:56:16 -0400
+Message-ID: <201003150656.o2F6un75016323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934463Ab0COG4w (ORCPT
+	by vger.kernel.org with ESMTP id S934463Ab0COG4y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:56:52 -0400
+	Mon, 15 Mar 2010 02:56:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: some dvi cleanup
+     viafb: yet another dead code removal
 has been removed from the -mm tree.  Its filename was
-     viafb-some-dvi-cleanup.patch
+     viafb-yet-another-dead-code-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: some dvi cleanup
+Subject: viafb: yet another dead code removal
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Remove some unused variables, move some dvi code around and store the
-detected maximum resolution for later use.  The vertical resolution is
-handled as the old code did it but I hope it can be read from the hardware
-some day.
-
-No runtime change expected.
+Remove some functions that were never executed and a related undocumented
+module parameter.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
 Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Joseph Chan <JosephChan@via.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/chip.h |    9 ---
- drivers/video/via/dvi.c  |  107 ++++++++++++++++---------------------
- drivers/video/via/dvi.h  |    3 -
- drivers/video/via/hw.c   |   11 ---
- 4 files changed, 55 insertions(+), 75 deletions(-)
+ drivers/video/via/Makefile   |    2 
+ drivers/video/via/global.c   |    1 
+ drivers/video/via/global.h   |    1 
+ drivers/video/via/iface.c    |   78 ---------------------------------
+ drivers/video/via/iface.h    |   38 ----------------
+ drivers/video/via/viafbdev.c |    2 
+ drivers/video/via/viafbdev.h |    1 
+ 7 files changed, 1 insertion(+), 122 deletions(-)
 
-diff -puN drivers/video/via/chip.h~viafb-some-dvi-cleanup drivers/video/via/chip.h
---- a/drivers/video/via/chip.h~viafb-some-dvi-cleanup
-+++ a/drivers/video/via/chip.h
-@@ -107,7 +107,6 @@
- struct tmds_chip_information {
- 	int tmds_chip_name;
- 	int tmds_chip_slave_addr;
--	int dvi_panel_id;
- 	int data_mode;
- 	int output_interface;
- 	int i2c_port;
-@@ -142,13 +141,9 @@ struct tmds_setting_information {
- 	int iga_path;
- 	int h_active;
- 	int v_active;
--	int bpp;
--	int refresh_rate;
--	int get_dvi_size_method;
- 	int max_pixel_clock;
--	int dvi_panel_hres;
--	int dvi_panel_vres;
--	int native_size;
-+	int max_hres;
-+	int max_vres;
- };
+diff -puN drivers/video/via/Makefile~viafb-yet-another-dead-code-removal drivers/video/via/Makefile
+--- a/drivers/video/via/Makefile~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/Makefile
+@@ -4,4 +4,4 @@
  
- struct lvds_setting_information {
-diff -puN drivers/video/via/dvi.c~viafb-some-dvi-cleanup drivers/video/via/dvi.c
---- a/drivers/video/via/dvi.c~viafb-some-dvi-cleanup
-+++ a/drivers/video/via/dvi.c
-@@ -23,9 +23,10 @@
- static void tmds_register_write(int index, u8 data);
- static int tmds_register_read(int index);
- static int tmds_register_read_bytes(int index, u8 *buff, int buff_len);
--static void dvi_get_panel_size_from_DDCv1(void);
--static void dvi_get_panel_size_from_DDCv2(void);
--static void dvi_get_panel_info(void);
-+static void dvi_get_panel_size_from_DDCv1(struct tmds_chip_information
-+	*tmds_chip, struct tmds_setting_information *tmds_setting);
-+static void dvi_get_panel_size_from_DDCv2(struct tmds_chip_information
-+	*tmds_chip, struct tmds_setting_information *tmds_setting);
- static int viafb_dvi_query_EDID(void);
+ obj-$(CONFIG_FB_VIA) += viafb.o
  
- static int check_tmds_chip(int device_id_subaddr, int device_id)
-@@ -36,23 +37,24 @@ static int check_tmds_chip(int device_id
- 		return FAIL;
- }
+-viafb-y	:=viafbdev.o hw.o iface.o  via_i2c.o dvi.o lcd.o ioctl.o accel.o via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o
++viafb-y	:=viafbdev.o hw.o via_i2c.o dvi.o lcd.o ioctl.o accel.o via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o
+diff -puN drivers/video/via/global.c~viafb-yet-another-dead-code-removal drivers/video/via/global.c
+--- a/drivers/video/via/global.c~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/global.c
+@@ -23,7 +23,6 @@ int viafb_platform_epia_dvi = STATE_OFF;
+ int viafb_device_lcd_dualedge = STATE_OFF;
+ int viafb_bus_width = 12;
+ int viafb_display_hardware_layout = HW_LAYOUT_LCD_DVI;
+-int viafb_memsize;
+ int viafb_DeviceStatus = CRT_Device;
+ int viafb_hotplug;
+ int viafb_refresh = 60;
+diff -puN drivers/video/via/global.h~viafb-yet-another-dead-code-removal drivers/video/via/global.h
+--- a/drivers/video/via/global.h~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/global.h
+@@ -35,7 +35,6 @@
  
--void viafb_init_dvi_size(void)
-+void viafb_init_dvi_size(struct tmds_chip_information *tmds_chip,
-+	struct tmds_setting_information *tmds_setting)
- {
- 	DEBUG_MSG(KERN_INFO "viafb_init_dvi_size()\n");
--	DEBUG_MSG(KERN_INFO
--		"viaparinfo->tmds_setting_info->get_dvi_size_method %d\n",
--		  viaparinfo->tmds_setting_info->get_dvi_size_method);
+ #include "debug.h"
  
--	switch (viaparinfo->tmds_setting_info->get_dvi_size_method) {
--	case GET_DVI_SIZE_BY_SYSTEM_BIOS:
-+	viafb_dvi_sense();
-+	switch (viafb_dvi_query_EDID()) {
-+	case 1:
-+		dvi_get_panel_size_from_DDCv1(tmds_chip, tmds_setting);
- 		break;
--	case GET_DVI_SZIE_BY_HW_STRAPPING:
-+	case 2:
-+		dvi_get_panel_size_from_DDCv2(tmds_chip, tmds_setting);
- 		break;
--	case GET_DVI_SIZE_BY_VGA_BIOS:
- 	default:
--		dvi_get_panel_info();
-+		printk(KERN_WARNING "viafb_init_dvi_size: DVI panel size undetected!\n");
- 		break;
- 	}
-+
- 	return;
- }
- 
-@@ -314,11 +316,9 @@ static int viafb_dvi_query_EDID(void)
- 		return false;
- }
- 
--/* void dvi_get_panel_size_from_DDCv1(void)
-- *
-- *     - Get Panel Size Using EDID1 Table
-- */
--static void dvi_get_panel_size_from_DDCv1(void)
-+/* Get Panel Size Using EDID1 Table */
-+static void dvi_get_panel_size_from_DDCv1(struct tmds_chip_information
-+	*tmds_chip, struct tmds_setting_information *tmds_setting)
- {
- 	int i, max_h = 0, tmp, restore;
- 	unsigned char rData;
-@@ -326,8 +326,8 @@ static void dvi_get_panel_size_from_DDCv
- 
- 	DEBUG_MSG(KERN_INFO "\n dvi_get_panel_size_from_DDCv1 \n");
- 
--	restore = viaparinfo->chip_info->tmds_chip_info.tmds_chip_slave_addr;
--	viaparinfo->chip_info->tmds_chip_info.tmds_chip_slave_addr = 0xA0;
-+	restore = tmds_chip->tmds_chip_slave_addr;
-+	tmds_chip->tmds_chip_slave_addr = 0xA0;
- 
- 	rData = tmds_register_read(0x23);
- 	if (rData & 0x3C)
-@@ -373,8 +373,8 @@ static void dvi_get_panel_size_from_DDCv
- 				/* The first two byte must be zero. */
- 				if (EDID_DATA[3] == 0xFD) {
- 					/* To get max pixel clock. */
--					viaparinfo->tmds_setting_info->
--					max_pixel_clock = EDID_DATA[9] * 10;
-+					tmds_setting->max_pixel_clock =
-+						EDID_DATA[9] * 10;
- 				}
- 			}
- 			break;
-@@ -384,23 +384,31 @@ static void dvi_get_panel_size_from_DDCv
- 		}
- 	}
- 
-+	tmds_setting->max_hres = max_h;
- 	switch (max_h) {
- 	case 640:
-+		tmds_setting->max_vres = 480;
- 		break;
- 	case 800:
-+		tmds_setting->max_vres = 600;
- 		break;
- 	case 1024:
-+		tmds_setting->max_vres = 768;
- 		break;
- 	case 1280:
-+		tmds_setting->max_vres = 1024;
- 		break;
- 	case 1400:
-+		tmds_setting->max_vres = 1050;
- 		break;
- 	case 1440:
-+		tmds_setting->max_vres = 1050;
- 		break;
- 	case 1600:
-+		tmds_setting->max_vres = 1200;
- 		break;
- 	case 1920:
+-#include "iface.h"
+ #include "viafbdev.h"
+ #include "chip.h"
+ #include "accel.h"
+diff -puN drivers/video/via/iface.c~viafb-yet-another-dead-code-removal /dev/null
+--- a/drivers/video/via/iface.c
++++ /dev/null
+@@ -1,78 +0,0 @@
+-/*
+- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
+- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 -
-+		tmds_setting->max_vres = 1080;
- 		break;
- 	default:
- 		DEBUG_MSG(KERN_INFO "Unknown panel size max resolution = %d !\
-@@ -409,72 +417,55 @@ static void dvi_get_panel_size_from_DDCv
- 	}
- 
- 	DEBUG_MSG(KERN_INFO "DVI max pixelclock = %d\n",
--		  viaparinfo->tmds_setting_info->max_pixel_clock);
--	viaparinfo->chip_info->tmds_chip_info.tmds_chip_slave_addr = restore;
-+		tmds_setting->max_pixel_clock);
-+	tmds_chip->tmds_chip_slave_addr = restore;
- }
- 
--/* void dvi_get_panel_size_from_DDCv2(void)
-- *
-- *     - Get Panel Size Using EDID2 Table
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation;
+- * either version 2, or (at your option) any later version.
+-
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
+- * the implied warranty of MERCHANTABILITY or FITNESS FOR
+- * A PARTICULAR PURPOSE.See the GNU General Public License
+- * for more details.
+-
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 - */
--static void dvi_get_panel_size_from_DDCv2(void)
-+/* Get Panel Size Using EDID2 Table */
-+static void dvi_get_panel_size_from_DDCv2(struct tmds_chip_information
-+	*tmds_chip, struct tmds_setting_information *tmds_setting)
- {
--	int HSize = 0, restore;
-+	int restore;
- 	unsigned char R_Buffer[2];
- 
- 	DEBUG_MSG(KERN_INFO "\n dvi_get_panel_size_from_DDCv2 \n");
- 
--	restore = viaparinfo->chip_info->tmds_chip_info.tmds_chip_slave_addr;
--	viaparinfo->chip_info->tmds_chip_info.tmds_chip_slave_addr = 0xA2;
-+	restore = tmds_chip->tmds_chip_slave_addr;
-+	tmds_chip->tmds_chip_slave_addr = 0xA2;
- 
- 	/* Horizontal: 0x76, 0x77 */
- 	tmds_register_read_bytes(0x76, R_Buffer, 2);
--	HSize = R_Buffer[0];
--	HSize += R_Buffer[1] << 8;
-+	tmds_setting->max_hres = R_Buffer[0] + (R_Buffer[1] << 8);
- 
--	switch (HSize) {
-+	switch (tmds_setting->max_hres) {
- 	case 640:
-+		tmds_setting->max_vres = 480;
- 		break;
- 	case 800:
-+		tmds_setting->max_vres = 600;
- 		break;
- 	case 1024:
-+		tmds_setting->max_vres = 768;
- 		break;
- 	case 1280:
-+		tmds_setting->max_vres = 1024;
- 		break;
- 	case 1400:
-+		tmds_setting->max_vres = 1050;
- 		break;
- 	case 1440:
-+		tmds_setting->max_vres = 1050;
- 		break;
- 	case 1600:
-+		tmds_setting->max_vres = 1200;
- 		break;
- 	default:
- 		DEBUG_MSG(KERN_INFO "Unknown panel size max resolution = %d!\
--					set default panel size.\n", HSize);
-+			set default panel size.\n", tmds_setting->max_hres);
- 		break;
- 	}
- 
--	viaparinfo->chip_info->tmds_chip_info.tmds_chip_slave_addr = restore;
+-
+-#include "global.h"
+-
+-/* Get frame buffer size from VGA BIOS */
+-
+-unsigned int viafb_get_memsize(void)
+-{
+-	unsigned int m;
+-
+-	/* If memory size provided by user */
+-	if (viafb_memsize)
+-		m = viafb_memsize * Mb;
+-	else {
+-		m = (unsigned int)viafb_read_reg(VIASR, SR39);
+-		m = m * (4 * Mb);
+-
+-		if ((m < (16 * Mb)) || (m > (64 * Mb)))
+-			m = 16 * Mb;
+-	}
+-	DEBUG_MSG(KERN_INFO "framebuffer size = %d Mb\n", m / Mb);
+-	return m;
 -}
 -
--/* unsigned char dvi_get_panel_info(void)
-- *
-- *     - Get Panel Size
-- */
--static void dvi_get_panel_info(void)
--{
--	DEBUG_MSG(KERN_INFO "dvi_get_panel_info! \n");
+-/* Get Video Buffer Starting Physical Address(back door)*/
 -
--	viafb_dvi_sense();
--	switch (viafb_dvi_query_EDID()) {
--	case 1:
--		dvi_get_panel_size_from_DDCv1();
--		break;
--	case 2:
--		dvi_get_panel_size_from_DDCv2();
--		break;
--	default:
--		break;
+-unsigned long viafb_get_videobuf_addr(void)
+-{
+-	struct pci_dev *pdev = NULL;
+-	unsigned char sys_mem;
+-	unsigned char video_mem;
+-	unsigned long sys_mem_size;
+-	unsigned long video_mem_size;
+-	/*system memory = 256 MB, video memory 64 MB */
+-	unsigned long vmem_starting_adr = 0x0C000000;
+-
+-	pdev =
+-	    (struct pci_dev *)pci_get_device(VIA_K800_BRIDGE_VID,
+-					     VIA_K800_BRIDGE_DID, NULL);
+-	if (pdev != NULL) {
+-		pci_read_config_byte(pdev, VIA_K800_SYSTEM_MEMORY_REG,
+-				     &sys_mem);
+-		pci_read_config_byte(pdev, VIA_K800_VIDEO_MEMORY_REG,
+-				     &video_mem);
+-		video_mem = (video_mem & 0x70) >> 4;
+-		sys_mem_size = ((unsigned long)sys_mem) << 24;
+-		if (video_mem != 0)
+-			video_mem_size = (1 << (video_mem)) * 1024 * 1024;
+-		else
+-			video_mem_size = 0;
+-
+-		vmem_starting_adr = sys_mem_size - video_mem_size;
+-		pci_dev_put(pdev);
 -	}
-+	tmds_chip->tmds_chip_slave_addr = restore;
- }
+-
+-	DEBUG_MSG(KERN_INFO "Video Memory Starting Address = %lx \n",
+-		  vmem_starting_adr);
+-	return vmem_starting_adr;
+-}
+diff -puN drivers/video/via/iface.h~viafb-yet-another-dead-code-removal /dev/null
+--- a/drivers/video/via/iface.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/*
+- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
+- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
+-
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation;
+- * either version 2, or (at your option) any later version.
+-
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
+- * the implied warranty of MERCHANTABILITY or FITNESS FOR
+- * A PARTICULAR PURPOSE.See the GNU General Public License
+- * for more details.
+-
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#ifndef __IFACE_H__
+-#define __IFACE_H__
+-
+-#define Kb  (1024)
+-#define Mb  (Kb*Kb)
+-
+-#define VIA_K800_BRIDGE_VID         0x1106
+-#define VIA_K800_BRIDGE_DID         0x3204
+-
+-#define VIA_K800_SYSTEM_MEMORY_REG  0x47
+-#define VIA_K800_VIDEO_MEMORY_REG   0xA1
+-
+-extern int viafb_memsize;
+-unsigned int viafb_get_memsize(void);
+-unsigned long viafb_get_videobuf_addr(void);
+-
+-#endif /* __IFACE_H__ */
+diff -puN drivers/video/via/viafbdev.c~viafb-yet-another-dead-code-removal drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/viafbdev.c
+@@ -2215,8 +2215,6 @@ module_init(viafb_init);
+ module_exit(viafb_exit);
  
- /* If Disable DVI, turn off pad */
-diff -puN drivers/video/via/dvi.h~viafb-some-dvi-cleanup drivers/video/via/dvi.h
---- a/drivers/video/via/dvi.h~viafb-some-dvi-cleanup
-+++ a/drivers/video/via/dvi.h
-@@ -57,7 +57,8 @@ int viafb_dvi_sense(void);
- void viafb_dvi_disable(void);
- void viafb_dvi_enable(void);
- int viafb_tmds_trasmitter_identify(void);
--void viafb_init_dvi_size(void);
-+void viafb_init_dvi_size(struct tmds_chip_information *tmds_chip,
-+	struct tmds_setting_information *tmds_setting);
- void viafb_dvi_set_mode(struct VideoModeTable *videoMode, int mode_bpp,
- 	int set_iga);
- 
-diff -puN drivers/video/via/hw.c~viafb-some-dvi-cleanup drivers/video/via/hw.c
---- a/drivers/video/via/hw.c~viafb-some-dvi-cleanup
-+++ a/drivers/video/via/hw.c
-@@ -1911,9 +1911,6 @@ void viafb_update_device_setting(int hre
- 
- 		viaparinfo->tmds_setting_info->h_active = hres;
- 		viaparinfo->tmds_setting_info->v_active = vres;
--		viaparinfo->tmds_setting_info->bpp = bpp;
--		viaparinfo->tmds_setting_info->refresh_rate =
--			vmode_refresh;
- 
- 		viaparinfo->lvds_setting_info->h_active = hres;
- 		viaparinfo->lvds_setting_info->v_active = vres;
-@@ -1930,9 +1927,6 @@ void viafb_update_device_setting(int hre
- 		if (viaparinfo->tmds_setting_info->iga_path == IGA2) {
- 			viaparinfo->tmds_setting_info->h_active = hres;
- 			viaparinfo->tmds_setting_info->v_active = vres;
--			viaparinfo->tmds_setting_info->bpp = bpp;
--			viaparinfo->tmds_setting_info->refresh_rate =
--				vmode_refresh;
- 		}
- 
- 		if (viaparinfo->lvds_setting_info->iga_path == IGA2) {
-@@ -2031,9 +2025,8 @@ static void init_tmds_chip_info(void)
- 
- 	DEBUG_MSG(KERN_INFO "TMDS Chip = %d\n",
- 		  viaparinfo->chip_info->tmds_chip_info.tmds_chip_name);
--	viaparinfo->tmds_setting_info->get_dvi_size_method =
--		GET_DVI_SIZE_BY_VGA_BIOS;
--	viafb_init_dvi_size();
-+	viafb_init_dvi_size(&viaparinfo->shared->chip_info.tmds_chip_info,
-+		&viaparinfo->shared->tmds_setting_info);
- }
- 
- static void init_lvds_chip_info(void)
-_
-
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
-
-origin.patch
-
+ #ifdef MODULE
+-module_param(viafb_memsize, int, S_IRUSR);
