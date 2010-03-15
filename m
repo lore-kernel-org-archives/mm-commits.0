@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-block-floppyc-dprint-neatening.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:54:40 -0400
-Message-ID: <201003150655.o2F6tDS1016140@imap1.linux-foundation.org>
+Subject: [merged] drivers-block-floppyc-use-__func__-where-appropriate.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:54:43 -0400
+Message-ID: <201003150655.o2F6tGkv016143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759753Ab0COGzT (ORCPT
+	by vger.kernel.org with ESMTP id S1759755Ab0COGzW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:55:19 -0400
+	Mon, 15 Mar 2010 02:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, bzolnier@gmail.com, jens.axboe@oracle.com, marcin.slusarz@gmail.com, shemminger@vyatta.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/block/floppy.c: DPRINT neatening
+     drivers/block/floppy.c: use __func__ where appropriate
 has been removed from the -mm tree.  Its filename was
-     drivers-block-floppyc-dprint-neatening.patch
+     drivers-block-floppyc-use-__func__-where-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/floppy.c: DPRINT neatening
+Subject: drivers/block/floppy.c: use __func__ where appropriate
 From: Joe Perches <joe@perches.com>
 
-Move DPRINT macro definition above 1st use Consolidate a format string
-(>80 columns) Add a newline to an unterminated message Comment neatened
+Add and use __func__ to is_alive.
+Use __func__ in some DPRINTs.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
@@ -38,71 +38,105 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/block/floppy.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/block/floppy.c~drivers-block-floppyc-dprint-neatening drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-floppyc-dprint-neatening
+diff -puN drivers/block/floppy.c~drivers-block-floppyc-use-__func__-where-appropriate drivers/block/floppy.c
+--- a/drivers/block/floppy.c~drivers-block-floppyc-use-__func__-where-appropriate
 +++ a/drivers/block/floppy.c
-@@ -149,8 +149,11 @@
- #define REALLY_SLOW_IO
+@@ -631,12 +631,12 @@ static DEFINE_TIMER(fd_timeout, floppy_s
  
- #define DEBUGT 2
--#define DCL_DEBUG		/* debug disk change line */
+ static const char *timeout_message;
  
-+#define DPRINT(format, args...) \
-+	pr_info("floppy%d: " format, current_drive, ##args)
-+
-+#define DCL_DEBUG		/* debug disk change line */
- #ifdef DCL_DEBUG
- #define debug_dcl(test, fmt, args...) \
- 	do { if ((test) & FD_DEBUG) DPRINT(fmt, ##args); } while (0)
-@@ -159,7 +162,6 @@
- 	do { if (0) DPRINT(fmt, ##args); } while (0)
- #endif
- 
--
- /* do print messages for unexpected interrupts */
- static int print_unex = 1;
- #include <linux/module.h>
-@@ -308,9 +310,6 @@ static bool initialized;
- #define UDRWE	(&write_errors[drive])
- #define UFDCS	(&fdc_state[FDC(drive)])
- 
--#define DPRINT(format, args...) \
--	pr_info("floppy%d: " format, current_drive, ##args)
--
- #define PH_HEAD(floppy, head) (((((floppy)->stretch & 2) >> 1) ^ head) << 2)
- #define STRETCH(floppy)	((floppy)->stretch & FD_STRETCH)
- 
-@@ -345,7 +344,7 @@ static bool initialized;
-  */
- #define MAX_REPLIES 16
- static unsigned char reply_buffer[MAX_REPLIES];
--static int inr;			/* size of reply buffer, when called from interrupt */
-+static int inr;		/* size of reply buffer, when called from interrupt */
- #define ST0		(reply_buffer[0])
- #define ST1		(reply_buffer[1])
- #define ST2		(reply_buffer[2])
-@@ -755,8 +754,7 @@ static int disk_change(int drive)
- 		if (UDRS->keep_data >= 0) {
- 			if ((UDP->flags & FTD_MSG) &&
- 			    current_type[drive] != NULL)
--				DPRINT("Disk type is undefined after "
--				       "disk change\n");
-+				DPRINT("Disk type is undefined after disk change\n");
- 			current_type[drive] = NULL;
- 			floppy_sizes[TOMINOR(drive)] = MAX_DISK_SIZE << 1;
- 		}
-@@ -1447,7 +1445,7 @@ static int interpret_errors(void)
- 	char bad;
- 
- 	if (inr != 7) {
--		DPRINT("-- FDC reply error");
-+		DPRINT("-- FDC reply error\n");
- 		FDCS->reset = 1;
- 		return 1;
+-static void is_alive(const char *message)
++static void is_alive(const char *func, const char *message)
+ {
+ 	/* this routine checks whether the floppy driver is "alive" */
+ 	if (test_bit(0, &fdc_busy) && command_status < 2 &&
+ 	    !timer_pending(&fd_timeout)) {
+-		DPRINT("timeout handler died: %s\n", message);
++		DPRINT("%s: timeout handler died.  %s\n", func, message);
  	}
+ }
+ 
+@@ -1734,7 +1734,7 @@ irqreturn_t floppy_interrupt(int irq, vo
+ 		pr_info("DOR0=%x\n", fdc_state[0].dor);
+ 		pr_info("floppy interrupt on bizarre fdc %d\n", fdc);
+ 		pr_info("handler=%p\n", handler);
+-		is_alive("bizarre fdc");
++		is_alive(__func__, "bizarre fdc");
+ 		return IRQ_NONE;
+ 	}
+ 
+@@ -1769,7 +1769,7 @@ irqreturn_t floppy_interrupt(int irq, vo
+ 		return IRQ_NONE;
+ 	}
+ 	schedule_bh(handler);
+-	is_alive("normal interrupt end");
++	is_alive(__func__, "normal interrupt end");
+ 
+ 	/* FIXME! Was it really for us? */
+ 	return IRQ_HANDLED;
+@@ -1894,7 +1894,7 @@ static void floppy_shutdown(unsigned lon
+ 		pr_info("no cont in shutdown!\n");
+ 		process_fd_request();
+ 	}
+-	is_alive("floppy shutdown");
++	is_alive(__func__, "");
+ }
+ 
+ /* start motor, check media-changed condition and write protection */
+@@ -2027,7 +2027,7 @@ static int wait_til_done(void (*handler)
+ 			if (command_status >= 2 || !NO_SIGNAL)
+ 				break;
+ 
+-			is_alive("wait_til_done");
++			is_alive(__func__, "");
+ 			schedule();
+ 		}
+ 
+@@ -2602,7 +2602,7 @@ static int make_raw_rw_request(void)
+ 		raw_cmd->flags |= FD_RAW_WRITE;
+ 		COMMAND = FM_MODE(_floppy, FD_WRITE);
+ 	} else {
+-		DPRINT("make_raw_rw_request: unknown command\n");
++		DPRINT("%s: unknown command\n", __func__);
+ 		return 0;
+ 	}
+ 
+@@ -2743,7 +2743,7 @@ static int make_raw_rw_request(void)
+ 			raw_cmd->kernel_data = current_req->buffer;
+ 			raw_cmd->length = current_count_sectors << 9;
+ 			if (raw_cmd->length == 0) {
+-				DPRINT("zero dma transfer attempted from make_raw_request\n");
++				DPRINT("%s: zero dma transfer attempted\n", __func__);
+ 				DPRINT("indirect=%d direct=%d fsector_t=%d\n",
+ 				       indirect, direct, fsector_t);
+ 				return 0;
+@@ -2938,7 +2938,7 @@ static void process_fd_request(void)
+ static void do_fd_request(struct request_queue *q)
+ {
+ 	if (max_buffer_sectors == 0) {
+-		pr_info("VFS: do_fd_request called on non-open device\n");
++		pr_info("VFS: %s called on non-open device\n", __func__);
+ 		return;
+ 	}
+ 
+@@ -2953,12 +2953,12 @@ static void do_fd_request(struct request
+ 	if (test_bit(0, &fdc_busy)) {
+ 		/* fdc busy, this new request will be treated when the
+ 		   current one is done */
+-		is_alive("do fd request, old request running");
++		is_alive(__func__, "old request running");
+ 		return;
+ 	}
+ 	lock_fdc(MAXTIMEOUT, false);
+ 	process_fd_request();
+-	is_alive("do fd request");
++	is_alive(__func__, "");
+ }
+ 
+ static struct cont_t poll_cont = {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
