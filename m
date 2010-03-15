@@ -1,187 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cris-arch-v32-use-generic-ptrace_resume-code.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:01:13 -0400
-Message-ID: <201003150701.o2F71kN6016814@imap1.linux-foundation.org>
+Subject: [merged] copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:01:22 -0400
+Message-ID: <201003150701.o2F71t3i016823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935846Ab0COHCI (ORCPT
+	by vger.kernel.org with ESMTP id S935850Ab0COHCI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Mar 2010 03:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, jesper.nilsson@axis.com, oleg@redhat.com, roland@redhat.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: vfalico@redhat.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris arch-v32: use generic ptrace_resume code
+     copy_signal() cleanup: kill taskstats_tgid_init() and acct_init_pacct()
 has been removed from the -mm tree.  Its filename was
-     cris-arch-v32-use-generic-ptrace_resume-code.patch
+     copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris arch-v32: use generic ptrace_resume code
-From: Christoph Hellwig <hch@lst.de>
+Subject: copy_signal() cleanup: kill taskstats_tgid_init() and acct_init_pacct()
+From: Veaceslav Falico <vfalico@redhat.com>
 
-Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
-PTRACE_KILL and PTRACE_SINGLESTEP.  This implies defining
-arch_has_single_step in <asm/ptrace.h> and implementing the
-user_enable_single_step and user_disable_single_step functions, which also
-causes the breakpoint information to be cleared on fork, which could be
-considered a bug fix.
+Kill unused functions taskstats_tgid_init() and acct_init_pacct() because
+we don't use them anywhere after using kmem_cache_zalloc() in
+copy_signal().
 
-Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
-it previously wasn't which is consistent with all architectures using the
-modern ptrace code.
-
-The way breakpoints are disabled is entirely inconsistent currently, I
-tried to make some sense of it, but I suspect all of the content of
-ptrace_disable should be moved into user_disable_single_step, this
-defintively needs some revisting as the current patch changes behaviour in
-not quite designed ways.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/kernel/ptrace.c       |  109 +++++----------------
- arch/cris/include/arch-v32/arch/ptrace.h |    1 
- 2 files changed, 31 insertions(+), 79 deletions(-)
+ include/linux/acct.h           |    2 --
+ include/linux/taskstats_kern.h |    7 -------
+ kernel/acct.c                  |   10 ----------
+ 3 files changed, 19 deletions(-)
 
-diff -puN arch/cris/arch-v32/kernel/ptrace.c~cris-arch-v32-use-generic-ptrace_resume-code arch/cris/arch-v32/kernel/ptrace.c
---- a/arch/cris/arch-v32/kernel/ptrace.c~cris-arch-v32-use-generic-ptrace_resume-code
-+++ a/arch/cris/arch-v32/kernel/ptrace.c
-@@ -78,6 +78,35 @@ int put_reg(struct task_struct *task, un
- 	return 0;
+diff -puN include/linux/acct.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct include/linux/acct.h
+--- a/include/linux/acct.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
++++ a/include/linux/acct.h
+@@ -123,14 +123,12 @@ struct pacct_struct;
+ struct pid_namespace;
+ extern void acct_auto_close_mnt(struct vfsmount *m);
+ extern void acct_auto_close(struct super_block *sb);
+-extern void acct_init_pacct(struct pacct_struct *pacct);
+ extern void acct_collect(long exitcode, int group_dead);
+ extern void acct_process(void);
+ extern void acct_exit_ns(struct pid_namespace *);
+ #else
+ #define acct_auto_close_mnt(x)	do { } while (0)
+ #define acct_auto_close(x)	do { } while (0)
+-#define acct_init_pacct(x)	do { } while (0)
+ #define acct_collect(x,y)	do { } while (0)
+ #define acct_process()		do { } while (0)
+ #define acct_exit_ns(ns)	do { } while (0)
+diff -puN include/linux/taskstats_kern.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct include/linux/taskstats_kern.h
+--- a/include/linux/taskstats_kern.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
++++ a/include/linux/taskstats_kern.h
+@@ -14,11 +14,6 @@
+ extern struct kmem_cache *taskstats_cache;
+ extern struct mutex taskstats_exit_mutex;
+ 
+-static inline void taskstats_tgid_init(struct signal_struct *sig)
+-{
+-	sig->stats = NULL;
+-}
+-
+ static inline void taskstats_tgid_free(struct signal_struct *sig)
+ {
+ 	if (sig->stats)
+@@ -30,8 +25,6 @@ extern void taskstats_init_early(void);
+ #else
+ static inline void taskstats_exit(struct task_struct *tsk, int group_dead)
+ {}
+-static inline void taskstats_tgid_init(struct signal_struct *sig)
+-{}
+ static inline void taskstats_tgid_free(struct signal_struct *sig)
+ {}
+ static inline void taskstats_init_early(void)
+diff -puN kernel/acct.c~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct kernel/acct.c
+--- a/kernel/acct.c~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
++++ a/kernel/acct.c
+@@ -588,16 +588,6 @@ out:
  }
  
-+void user_enable_single_step(struct task_struct *child)
-+{
-+	unsigned long tmp;
-+
-+	/*
-+	 * Set up SPC if not set already (in which case we have no other
-+	 * choice but to trust it).
-+	 */
-+	if (!get_reg(child, PT_SPC)) {
-+		/* In case we're stopped in a delay slot. */
-+		tmp = get_reg(child, PT_ERP) & ~1;
-+		put_reg(child, PT_SPC, tmp);
-+	}
-+	tmp = get_reg(child, PT_CCS) | SBIT_USER;
-+	put_reg(child, PT_CCS, tmp);
-+}
-+
-+void user_disable_single_step(struct task_struct *child)
-+{
-+	put_reg(child, PT_SPC, 0);
-+
-+	if (!get_debugreg(child->pid, PT_BP_CTRL)) {
-+		unsigned long tmp;
-+		/* If no h/w bp configured, disable S bit. */
-+		tmp = get_reg(child, PT_CCS) & ~SBIT_USER;
-+		put_reg(child, PT_CCS, tmp);
-+	}
-+}
-+
- /*
-  * Called by kernel/ptrace.c when detaching.
-  *
-@@ -89,8 +118,7 @@ ptrace_disable(struct task_struct *child
- 	unsigned long tmp;
- 
- 	/* Deconfigure SPC and S-bit. */
--	tmp = get_reg(child, PT_CCS) & ~SBIT_USER;
--	put_reg(child, PT_CCS, tmp);
-+	user_disable_single_step(child);
- 	put_reg(child, PT_SPC, 0);
- 
- 	/* Deconfigure any watchpoints associated with the child. */
-@@ -169,83 +197,6 @@ long arch_ptrace(struct task_struct *chi
- 			ret = 0;
- 			break;
- 
--		case PTRACE_SYSCALL:
--		case PTRACE_CONT:
--			ret = -EIO;
--
--			if (!valid_signal(data))
--				break;
--
--			/* Continue means no single-step. */
--			put_reg(child, PT_SPC, 0);
--
--			if (!get_debugreg(child->pid, PT_BP_CTRL)) {
--				unsigned long tmp;
--				/* If no h/w bp configured, disable S bit. */
--				tmp = get_reg(child, PT_CCS) & ~SBIT_USER;
--				put_reg(child, PT_CCS, tmp);
--			}
--
--			if (request == PTRACE_SYSCALL) {
--				set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--			}
--			else {
--				clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--			}
--
--			child->exit_code = data;
--
--			/* TODO: make sure any pending breakpoint is killed */
--			wake_up_process(child);
--			ret = 0;
--
--			break;
--
--		/* Make the child exit by sending it a sigkill. */
--		case PTRACE_KILL:
--			ret = 0;
--
--			if (child->exit_state == EXIT_ZOMBIE)
--				break;
--
--			child->exit_code = SIGKILL;
--
--			/* Deconfigure single-step and h/w bp. */
--			ptrace_disable(child);
--
--			/* TODO: make sure any pending breakpoint is killed */
--			wake_up_process(child);
--			break;
--
--		/* Set the trap flag. */
--		case PTRACE_SINGLESTEP:	{
--			unsigned long tmp;
--			ret = -EIO;
--
--			/* Set up SPC if not set already (in which case we have
--			   no other choice but to trust it). */
--			if (!get_reg(child, PT_SPC)) {
--				/* In case we're stopped in a delay slot. */
--				tmp = get_reg(child, PT_ERP) & ~1;
--				put_reg(child, PT_SPC, tmp);
--			}
--			tmp = get_reg(child, PT_CCS) | SBIT_USER;
--			put_reg(child, PT_CCS, tmp);
--
--			if (!valid_signal(data))
--				break;
--
--			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
--
--			/* TODO: set some clever breakpoint mechanism... */
--
--			child->exit_code = data;
--			wake_up_process(child);
--			ret = 0;
--			break;
--
--		}
+ /**
+- * acct_init_pacct - initialize a new pacct_struct
+- * @pacct: per-process accounting info struct to initialize
+- */
+-void acct_init_pacct(struct pacct_struct *pacct)
+-{
+-	memset(pacct, 0, sizeof(struct pacct_struct));
+-	pacct->ac_utime = pacct->ac_stime = cputime_zero;
+-}
