@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-oom-wakeup-filter.patch added to -mm tree
-Date: Mon, 15 Mar 2010 15:00:29 -0700
-Message-ID: <201003152200.o2FM0UP2025089@imap1.linux-foundation.org>
+Subject: + memcg-oom-notifier.patch added to -mm tree
+Date: Mon, 15 Mar 2010 15:00:33 -0700
+Message-ID: <201003152200.o2FM0XjG025099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936880Ab0COWBC (ORCPT
+	by vger.kernel.org with ESMTP id S936914Ab0COWBH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 18:01:02 -0400
+	Mon, 15 Mar 2010 18:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, davidel@xmailserver.org, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     memcg: oom wakeup filter
+     memcg: oom notifier
 has been added to the -mm tree.  Its filename is
-     memcg-oom-wakeup-filter.patch
+     memcg-oom-notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,265 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: oom wakeup filter
+Subject: memcg: oom notifier
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-memcg's oom waitqueue is a system-wide wait_queue (for handling
-hierarchy.) So, it's better to add custom wake function and do filtering
-in wake up path.
+Considering containers or other resource management softwares in userland,
+event notification of OOM in memcg should be implemented.  Now, memcg has
+"threshold" notifier which uses eventfd, we can make use of it for oom
+notification.
 
-This patch adds a filtering feature for waking up oom-waiters.  Hierarchy
-is properly handled.
+This patch adds oom notification eventfd callback for memcg.  The usage is
+very similar to threshold notifier, but control file is memory.oom_control
+and no arguments other than eventfd is required.
+
+	% cgroup_event_notifier /cgroup/A/memory.oom_control dummy
+	(About cgroup_event_notifier, see Documentation/cgroup/)
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   61 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 44 insertions(+), 17 deletions(-)
+ Documentation/cgroups/memory.txt |   20 +++++
+ mm/memcontrol.c                  |  104 ++++++++++++++++++++++++++---
+ 2 files changed, 115 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-oom-wakeup-filter mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-oom-wakeup-filter
+diff -puN Documentation/cgroups/memory.txt~memcg-oom-notifier Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-oom-notifier
++++ a/Documentation/cgroups/memory.txt
+@@ -184,6 +184,9 @@ limits on the root cgroup.
+ 
+ Note2: When panic_on_oom is set to "2", the whole system will panic.
+ 
++When oom event notifier is registered, event will be delivered.
++(See oom_control section)
++
+ 2. Locking
+ 
+ The memory controller uses the following hierarchy
+@@ -488,7 +491,22 @@ threshold in any direction.
+ 
+ It's applicable for root and non-root cgroup.
+ 
+-10. TODO
++10. OOM Control
++
++Memory controler implements oom notifier using cgroup notification
++API (See cgroups.txt). It allows to register multiple oom notification
++delivery and gets notification when oom happens.
++
++To register a notifier, application need:
++ - create an eventfd using eventfd(2)
++ - open memory.oom_control file
++ - write string like "<event_fd> <memory.oom_control>" to cgroup.event_control
++
++Application will be notifier through eventfd when oom happens.
++OOM notification doesn't work for root cgroup.
++
++
++11. TODO
+ 
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
+diff -puN mm/memcontrol.c~memcg-oom-notifier mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-notifier
 +++ a/mm/memcontrol.c
-@@ -1293,14 +1293,54 @@ static void mem_cgroup_oom_unlock(struct
- static DEFINE_MUTEX(memcg_oom_mutex);
- static DECLARE_WAIT_QUEUE_HEAD(memcg_oom_waitq);
+@@ -149,6 +149,7 @@ struct mem_cgroup_threshold {
+ 	u64 threshold;
+ };
  
-+struct oom_wait_info {
-+	struct mem_cgroup *mem;
-+	wait_queue_t	wait;
++/* For threshold */
+ struct mem_cgroup_threshold_ary {
+ 	/* An array index points to threshold just below usage. */
+ 	atomic_t current_threshold;
+@@ -157,8 +158,14 @@ struct mem_cgroup_threshold_ary {
+ 	/* Array of thresholds */
+ 	struct mem_cgroup_threshold entries[0];
+ };
++/* for OOM */
++struct mem_cgroup_eventfd_list {
++	struct list_head list;
++	struct eventfd_ctx *eventfd;
 +};
-+
-+static int memcg_oom_wake_function(wait_queue_t *wait,
-+	unsigned mode, int sync, void *arg)
-+{
-+	struct mem_cgroup *wake_mem = (struct mem_cgroup *)arg;
-+	struct oom_wait_info *oom_wait_info;
-+
-+	/* both of oom_wait_info->mem and wake_mem are stable under us */
-+	oom_wait_info = container_of(wait, struct oom_wait_info, wait);
-+
-+	if (oom_wait_info->mem == wake_mem)
-+		goto wakeup;
-+	/* if no hierarchy, no match */
-+	if (!oom_wait_info->mem->use_hierarchy || !wake_mem->use_hierarchy)
-+		return 0;
-+	/* check hierarchy */
-+	if (!css_is_ancestor(&oom_wait_info->mem->css, &wake_mem->css) &&
-+	    !css_is_ancestor(&wake_mem->css, &oom_wait_info->mem->css))
-+		return 0;
-+
-+wakeup:
-+	return autoremove_wake_function(wait, mode, sync, arg);
-+}
-+
-+static void memcg_wakeup_oom(struct mem_cgroup *mem)
-+{
-+	/* for filtering, pass "mem" as argument. */
-+	__wake_up(&memcg_oom_waitq, TASK_NORMAL, 0, mem);
-+}
-+
- /*
-  * try to call OOM killer. returns false if we should exit memory-reclaim loop.
-  */
- bool mem_cgroup_handle_oom(struct mem_cgroup *mem, gfp_t mask)
- {
--	DEFINE_WAIT(wait);
-+	struct oom_wait_info owait;
- 	bool locked;
  
-+	owait.mem = mem;
-+	owait.wait.flags = 0;
-+	owait.wait.func = memcg_oom_wake_function;
-+	owait.wait.private = current;
-+	INIT_LIST_HEAD(&owait.wait.task_list);
+ static void mem_cgroup_threshold(struct mem_cgroup *mem);
++static void mem_cgroup_oom_notify(struct mem_cgroup *mem);
+ 
+ /*
+  * The memory controller data structure. The memory controller controls both
+@@ -220,6 +227,9 @@ struct mem_cgroup {
+ 	/* thresholds for mem+swap usage. RCU-protected */
+ 	struct mem_cgroup_threshold_ary *memsw_thresholds;
+ 
++	/* For oom notifier event fd */
++	struct list_head oom_notify;
 +
- 	/* At first, try to OOM lock hierarchy under mem.*/
- 	mutex_lock(&memcg_oom_mutex);
- 	locked = mem_cgroup_oom_lock(mem);
-@@ -1310,31 +1350,18 @@ bool mem_cgroup_handle_oom(struct mem_cg
- 	 * under OOM is always welcomed, use TASK_KILLABLE here.
+ 	/*
+ 	 * Should we move charges of a task when a task is moved into this
+ 	 * mem_cgroup ? And what type of charges should we move ?
+@@ -282,9 +292,12 @@ enum charge_type {
+ /* for encoding cft->private value on file */
+ #define _MEM			(0)
+ #define _MEMSWAP		(1)
++#define _OOM_TYPE		(2)
+ #define MEMFILE_PRIVATE(x, val)	(((x) << 16) | (val))
+ #define MEMFILE_TYPE(val)	(((val) >> 16) & 0xffff)
+ #define MEMFILE_ATTR(val)	((val) & 0xffff)
++/* Used for OOM nofiier */
++#define OOM_CONTROL		(0)
+ 
+ /*
+  * Reclaim flags for mem_cgroup_hierarchical_reclaim
+@@ -1351,6 +1364,8 @@ bool mem_cgroup_handle_oom(struct mem_cg
  	 */
  	if (!locked)
--		prepare_to_wait(&memcg_oom_waitq, &wait, TASK_KILLABLE);
-+		prepare_to_wait(&memcg_oom_waitq, &owait.wait, TASK_KILLABLE);
+ 		prepare_to_wait(&memcg_oom_waitq, &owait.wait, TASK_KILLABLE);
++	else
++		mem_cgroup_oom_notify(mem);
  	mutex_unlock(&memcg_oom_mutex);
  
  	if (locked)
- 		mem_cgroup_out_of_memory(mem, mask);
- 	else {
- 		schedule();
--		finish_wait(&memcg_oom_waitq, &wait);
-+		finish_wait(&memcg_oom_waitq, &owait.wait);
- 	}
- 	mutex_lock(&memcg_oom_mutex);
- 	mem_cgroup_oom_unlock(mem);
--	/*
--	 * Here, we use global waitq .....more fine grained waitq ?
--	 * Assume following hierarchy.
--	 * A/
--	 *   01
--	 *   02
--	 * assume OOM happens both in A and 01 at the same time. Tthey are
--	 * mutually exclusive by lock. (kill in 01 helps A.)
--	 * When we use per memcg waitq, we have to wake up waiters on A and 02
--	 * in addtion to waiters on 01. We use global waitq for avoiding mess.
--	 * It will not be a big problem.
--	 * (And a task may be moved to other groups while it's waiting for OOM.)
--	 */
--	wake_up_all(&memcg_oom_waitq);
-+	memcg_wakeup_oom(mem);
- 	mutex_unlock(&memcg_oom_mutex);
+@@ -3398,8 +3413,22 @@ static int compare_thresholds(const void
+ 	return _a->threshold - _b->threshold;
+ }
  
- 	if (test_thread_flag(TIF_MEMDIE) || fatal_signal_pending(current))
+-static int mem_cgroup_register_event(struct cgroup *cgrp, struct cftype *cft,
+-		struct eventfd_ctx *eventfd, const char *args)
++static int mem_cgroup_oom_notify_cb(struct mem_cgroup *mem, void *data)
++{
++	struct mem_cgroup_eventfd_list *ev;
++
++	list_for_each_entry(ev, &mem->oom_notify, list)
++		eventfd_signal(ev->eventfd, 1);
++	return 0;
++}
++
++static void mem_cgroup_oom_notify(struct mem_cgroup *mem)
++{
++	mem_cgroup_walk_tree(mem, NULL, mem_cgroup_oom_notify_cb);
++}
++
++static int mem_cgroup_usage_register_event(struct cgroup *cgrp,
++	struct cftype *cft, struct eventfd_ctx *eventfd, const char *args)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
+ 	struct mem_cgroup_threshold_ary *thresholds, *thresholds_new;
+@@ -3483,8 +3512,8 @@ unlock:
+ 	return ret;
+ }
+ 
+-static int mem_cgroup_unregister_event(struct cgroup *cgrp, struct cftype *cft,
+-		struct eventfd_ctx *eventfd)
++static int mem_cgroup_usage_unregister_event(struct cgroup *cgrp,
++	struct cftype *cft, struct eventfd_ctx *eventfd)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
+ 	struct mem_cgroup_threshold_ary *thresholds, *thresholds_new;
+@@ -3568,13 +3597,65 @@ unlock:
+ 	return ret;
+ }
+ 
++static int mem_cgroup_oom_register_event(struct cgroup *cgrp,
++	struct cftype *cft, struct eventfd_ctx *eventfd, const char *args)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
++	struct mem_cgroup_eventfd_list *event;
++	int type = MEMFILE_TYPE(cft->private);
++	int ret = -ENOMEM;
++
++	BUG_ON(type != _OOM_TYPE);
++
++	mutex_lock(&memcg_oom_mutex);
++
++	event = kmalloc(sizeof(*event),	GFP_KERNEL);
++	if (!event)
++		goto unlock;
++
++	event->eventfd = eventfd;
++	list_add(&event->list, &memcg->oom_notify);
++
++	/* already in OOM ? */
++	if (atomic_read(&memcg->oom_lock))
++		eventfd_signal(eventfd, 1);
++	ret = 0;
++unlock:
++	mutex_unlock(&memcg_oom_mutex);
++
++	return ret;
++}
++
++static int mem_cgroup_oom_unregister_event(struct cgroup *cgrp,
++	struct cftype *cft, struct eventfd_ctx *eventfd)
++{
++	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
++	struct mem_cgroup_eventfd_list *ev, *tmp;
++	int type = MEMFILE_TYPE(cft->private);
++
++	BUG_ON(type != _OOM_TYPE);
++
++	mutex_lock(&memcg_oom_mutex);
++
++	list_for_each_entry_safe(ev, tmp, &mem->oom_notify, list) {
++		if (ev->eventfd == eventfd) {
++			list_del(&ev->list);
++			kfree(ev);
++		}
++	}
++
++	mutex_unlock(&memcg_oom_mutex);
++
++	return 0;
++}
++
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_USAGE),
+ 		.read_u64 = mem_cgroup_read,
+-		.register_event = mem_cgroup_register_event,
+-		.unregister_event = mem_cgroup_unregister_event,
++		.register_event = mem_cgroup_usage_register_event,
++		.unregister_event = mem_cgroup_usage_unregister_event,
+ 	},
+ 	{
+ 		.name = "max_usage_in_bytes",
+@@ -3623,6 +3704,12 @@ static struct cftype mem_cgroup_files[] 
+ 		.read_u64 = mem_cgroup_move_charge_read,
+ 		.write_u64 = mem_cgroup_move_charge_write,
+ 	},
++	{
++		.name = "oom_control",
++		.register_event = mem_cgroup_oom_register_event,
++		.unregister_event = mem_cgroup_oom_unregister_event,
++		.private = MEMFILE_PRIVATE(_OOM_TYPE, OOM_CONTROL),
++	},
+ };
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+@@ -3631,8 +3718,8 @@ static struct cftype memsw_cgroup_files[
+ 		.name = "memsw.usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
+ 		.read_u64 = mem_cgroup_read,
+-		.register_event = mem_cgroup_register_event,
+-		.unregister_event = mem_cgroup_unregister_event,
++		.register_event = mem_cgroup_usage_register_event,
++		.unregister_event = mem_cgroup_usage_unregister_event,
+ 	},
+ 	{
+ 		.name = "memsw.max_usage_in_bytes",
+@@ -3878,6 +3965,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	}
+ 	mem->last_scanned_child = 0;
+ 	spin_lock_init(&mem->reclaim_param_lock);
++	INIT_LIST_HEAD(&mem->oom_notify);
+ 
+ 	if (parent)
+ 		mem->swappiness = get_swappiness(parent);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
