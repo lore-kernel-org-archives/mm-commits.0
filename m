@@ -1,96 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] copy_signal-cleanup-use-zalloc-and-remove-initializations.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:01:19 -0400
-Message-ID: <201003150701.o2F71qDb016820@imap1.linux-foundation.org>
+Subject: [merged] um-use-generic-ptrace_resume-code.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:01:03 -0400
+Message-ID: <201003150701.o2F71aAK016783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935837Ab0COHCG (ORCPT
+	by vger.kernel.org with ESMTP id S935814Ab0COHCF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:02:06 -0400
+	Mon, 15 Mar 2010 03:02:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vfalico@redhat.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: hch@lst.de, jdike@addtoit.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     copy_signal() cleanup: use zalloc and remove initializations
+     um: use generic ptrace_resume code
 has been removed from the -mm tree.  Its filename was
-     copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
+     um-use-generic-ptrace_resume-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: copy_signal() cleanup: use zalloc and remove initializations
-From: Veaceslav Falico <vfalico@redhat.com>
+Subject: um: use generic ptrace_resume code
+From: Christoph Hellwig <hch@lst.de>
 
-Use kmem_cache_zalloc() on signal creation and remove unneeded
-initialization lines in copy_signal().
+Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
+PTRACE_KILL and PTRACE_SINGLESTEP.  This implies defining
+arch_has_single_step in <asm/ptrace.h> and implementing the
+user_enable_single_step and user_disable_single_step functions, which also
+causes the breakpoint information to be cleared on fork, which could be
+considered a bug fix.
 
-Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
+it previously wasn't which is consistent with all architectures using the
+modern ptrace code.
+
+XXX: I'm not sure arch_has_single_step() is placed in the exactly correct
+location, please verify in which of the ptrace headers it should really
+be.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   27 +--------------------------
- 1 file changed, 1 insertion(+), 26 deletions(-)
+ arch/um/include/asm/ptrace-generic.h |    2 
+ arch/um/kernel/ptrace.c              |   70 +++++--------------------
+ 2 files changed, 18 insertions(+), 54 deletions(-)
 
-diff -puN kernel/fork.c~copy_signal-cleanup-use-zalloc-and-remove-initializations kernel/fork.c
---- a/kernel/fork.c~copy_signal-cleanup-use-zalloc-and-remove-initializations
-+++ a/kernel/fork.c
-@@ -863,7 +863,7 @@ static int copy_signal(unsigned long clo
- 	if (clone_flags & CLONE_THREAD)
- 		return 0;
+diff -puN arch/um/include/asm/ptrace-generic.h~um-use-generic-ptrace_resume-code arch/um/include/asm/ptrace-generic.h
+--- a/arch/um/include/asm/ptrace-generic.h~um-use-generic-ptrace_resume-code
++++ a/arch/um/include/asm/ptrace-generic.h
+@@ -16,6 +16,8 @@ struct pt_regs {
+ 	struct uml_pt_regs regs;
+ };
  
--	sig = kmem_cache_alloc(signal_cachep, GFP_KERNEL);
-+	sig = kmem_cache_zalloc(signal_cachep, GFP_KERNEL);
- 	tsk->signal = sig;
- 	if (!sig)
- 		return -ENOMEM;
-@@ -871,46 +871,21 @@ static int copy_signal(unsigned long clo
- 	atomic_set(&sig->count, 1);
- 	atomic_set(&sig->live, 1);
- 	init_waitqueue_head(&sig->wait_chldexit);
--	sig->flags = 0;
- 	if (clone_flags & CLONE_NEWPID)
- 		sig->flags |= SIGNAL_UNKILLABLE;
--	sig->group_exit_code = 0;
--	sig->group_exit_task = NULL;
--	sig->group_stop_count = 0;
- 	sig->curr_target = tsk;
- 	init_sigpending(&sig->shared_pending);
- 	INIT_LIST_HEAD(&sig->posix_timers);
++#define arch_has_single_step()	(1)
++
+ #define EMPTY_REGS { .regs = EMPTY_UML_PT_REGS }
  
- 	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
--	sig->it_real_incr.tv64 = 0;
- 	sig->real_timer.function = it_real_fn;
+ #define PT_REGS_IP(r) UPT_IP(&(r)->regs)
+diff -puN arch/um/kernel/ptrace.c~um-use-generic-ptrace_resume-code arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~um-use-generic-ptrace_resume-code
++++ a/arch/um/kernel/ptrace.c
+@@ -12,16 +12,25 @@
+ #endif
+ #include "skas_ptrace.h"
  
--	sig->leader = 0;	/* session leadership doesn't inherit */
--	sig->tty_old_pgrp = NULL;
--	sig->tty = NULL;
+-static inline void set_singlestepping(struct task_struct *child, int on)
++
++
++void user_enable_single_step(struct task_struct *child)
+ {
+-	if (on)
+-		child->ptrace |= PT_DTRACE;
+-	else
+-		child->ptrace &= ~PT_DTRACE;
++	child->ptrace |= PT_DTRACE;
+ 	child->thread.singlestep_syscall = 0;
+ 
+ #ifdef SUBARCH_SET_SINGLESTEPPING
+-	SUBARCH_SET_SINGLESTEPPING(child, on);
++	SUBARCH_SET_SINGLESTEPPING(child, 1);
++#endif
++}
++
++void user_disable_single_step(struct task_struct *child)
++{
++	child->ptrace &= ~PT_DTRACE;
++	child->thread.singlestep_syscall = 0;
++
++#ifdef SUBARCH_SET_SINGLESTEPPING
++	SUBARCH_SET_SINGLESTEPPING(child, 0);
+ #endif
+ }
+ 
+@@ -30,7 +39,7 @@ static inline void set_singlestepping(st
+  */
+ void ptrace_disable(struct task_struct *child)
+ {
+-	set_singlestepping(child,0);
++	user_disable_single_step(child);
+ }
+ 
+ extern int peek_user(struct task_struct * child, long addr, long data);
+@@ -69,53 +78,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = -EIO;
+ 		break;
+ 
+-	/* continue and stop at next (return from) syscall */
+-	case PTRACE_SYSCALL:
+-	/* restart after signal. */
+-	case PTRACE_CONT: {
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
 -
--	sig->utime = sig->stime = sig->cutime = sig->cstime = cputime_zero;
--	sig->gtime = cputime_zero;
--	sig->cgtime = cputime_zero;
--#ifndef CONFIG_VIRT_CPU_ACCOUNTING
--	sig->prev_utime = sig->prev_stime = cputime_zero;
--#endif
--	sig->nvcsw = sig->nivcsw = sig->cnvcsw = sig->cnivcsw = 0;
--	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
--	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
--	sig->maxrss = sig->cmaxrss = 0;
--	task_io_accounting_init(&sig->ioac);
--	sig->sum_sched_runtime = 0;
--	taskstats_tgid_init(sig);
+-		set_singlestepping(child, 0);
+-		if (request == PTRACE_SYSCALL)
+-			set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		else clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		child->exit_code = data;
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-	}
 -
- 	task_lock(current->group_leader);
- 	memcpy(sig->rlim, current->signal->rlim, sizeof sig->rlim);
- 	task_unlock(current->group_leader);
- 
- 	posix_cpu_timers_init_group(sig);
- 
--	acct_init_pacct(&sig->pacct);
+-/*
+- * make the child exit.  Best I can do is send it a sigkill.
+- * perhaps it should be put in the status that it wants to
+- * exit.
+- */
+-	case PTRACE_KILL: {
+-		ret = 0;
+-		if (child->exit_state == EXIT_ZOMBIE)	/* already dead */
+-			break;
+-
+-		set_singlestepping(child, 0);
+-		child->exit_code = SIGKILL;
+-		wake_up_process(child);
+-		break;
+-	}
+-
+-	case PTRACE_SINGLESTEP: {  /* set the trap flag. */
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
+-		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		set_singlestepping(child, 1);
+-		child->exit_code = data;
+-		/* give it a chance to run. */
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-	}
