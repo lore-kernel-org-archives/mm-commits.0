@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-remove-redundant-code.patch added to -mm tree
-Date: Mon, 15 Mar 2010 13:55:29 -0700
-Message-ID: <201003152055.o2FKtTEG021972@imap1.linux-foundation.org>
+Subject: + memcontrol-fix-potential-null-deref.patch added to -mm tree
+Date: Mon, 15 Mar 2010 14:13:41 -0700
+Message-ID: <201003152113.o2FLDf5u022965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757064Ab0COU46 (ORCPT
+	by vger.kernel.org with ESMTP id S932738Ab0COVNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:56:58 -0400
+	Mon, 15 Mar 2010 17:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, rientjes@google.com
+Cc: error27@gmail.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mempolicy: remove redundant code
+     memcontrol: fix potential null deref
 has been added to the -mm tree.  Its filename is
-     mempolicy-remove-redundant-code.patch
+     memcontrol-fix-potential-null-deref.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: remove redundant code
-From: Bob Liu <lliubbo@gmail.com>
+Subject: memcontrol: fix potential null deref
+From: Dan Carpenter <error27@gmail.com>
 
-1.  In funtion is_valid_nodemask(), varibable k will be inited to 0 in
-   the following loop, needn't init to policy_zone anymore.
+There was a potential null deref introduced in c62b1a3b31b5 ("memcg: use
+generic percpu instead of private implementation").
 
-2. (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES) has already defined
-   to MPOL_MODE_FLAGS in mempolicy.h.
-
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memcontrol.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-remove-redundant-code mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-remove-redundant-code
-+++ a/mm/mempolicy.c
-@@ -128,9 +128,6 @@ static int is_valid_nodemask(const nodem
- {
- 	int nd, k;
+diff -puN mm/memcontrol.c~memcontrol-fix-potential-null-deref mm/memcontrol.c
+--- a/mm/memcontrol.c~memcontrol-fix-potential-null-deref
++++ a/mm/memcontrol.c
+@@ -3691,8 +3691,10 @@ static struct mem_cgroup *mem_cgroup_all
+ 	else
+ 		mem = vmalloc(size);
  
--	/* Check that there is something useful in this mask */
--	k = policy_zone;
+-	if (mem)
+-		memset(mem, 0, size);
++	if (!mem)
++		return NULL;
++
++	memset(mem, 0, size);
+ 	mem->stat = alloc_percpu(struct mem_cgroup_stat_cpu);
+ 	if (!mem->stat) {
+ 		if (size < PAGE_SIZE)
+_
+
+Patches currently in -mm which might be from error27@gmail.com are
+
+origin.patch
+memcontrol-fix-potential-null-deref.patch
+linux-next.patch
+dpt_i20-several-use-after-free-issues.patch
+i915-fix-small-leak-on-error-path.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+goku_udc-potential-null-dereference.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+proc-cleanup-remove-unused-assignments.patch
+
