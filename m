@@ -1,81 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-amba-pl010-enable-pps-support.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:04:31 -0400
-Message-ID: <201003150705.o2F754Tf017057@imap1.linux-foundation.org>
+Subject: [merged] sysctl-extern-cleanup-acct.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:05:11 -0400
+Message-ID: <201003150705.o2F75iYC017110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759716Ab0COHF3 (ORCPT
+	by vger.kernel.org with ESMTP id S933035Ab0COHFq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:29 -0400
+	Mon, 15 Mar 2010 03:05:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@linux.it, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, greg@kroah.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial amba-pl010: enable PPS support
+     sysctl extern cleanup: acct
 has been removed from the -mm tree.  Its filename was
-     serial-amba-pl010-enable-pps-support.patch
+     sysctl-extern-cleanup-acct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial amba-pl010: enable PPS support
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: sysctl extern cleanup: acct
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Function pl010_enable_ms() is automagically called when PPS ldisc
-is selected.
+Extern declarations in sysctl.c should be moved to their own header file,
+and then include them in relavant .c files.
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Move acct_parm extern declaration to linux/acct.h
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/amba-pl010.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/linux/acct.h |    1 +
+ kernel/sysctl.c      |    7 +++----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/amba-pl010.c~serial-amba-pl010-enable-pps-support drivers/serial/amba-pl010.c
---- a/drivers/serial/amba-pl010.c~serial-amba-pl010-enable-pps-support
-+++ a/drivers/serial/amba-pl010.c
-@@ -471,6 +471,20 @@ pl010_set_termios(struct uart_port *port
- 	spin_unlock_irqrestore(&uap->port.lock, flags);
- }
+diff -puN include/linux/acct.h~sysctl-extern-cleanup-acct include/linux/acct.h
+--- a/include/linux/acct.h~sysctl-extern-cleanup-acct
++++ a/include/linux/acct.h
+@@ -121,6 +121,7 @@ struct vfsmount;
+ struct super_block;
+ struct pacct_struct;
+ struct pid_namespace;
++extern int acct_parm[]; /* for sysctl */
+ extern void acct_auto_close_mnt(struct vfsmount *m);
+ extern void acct_auto_close(struct super_block *sb);
+ extern void acct_collect(long exitcode, int group_dead);
+diff -puN kernel/sysctl.c~sysctl-extern-cleanup-acct kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-extern-cleanup-acct
++++ a/kernel/sysctl.c
+@@ -69,6 +69,9 @@
+ #include <asm/stacktrace.h>
+ #include <asm/io.h>
+ #endif
++#ifdef CONFIG_BSD_PROCESS_ACCT
++#include <linux/acct.h>
++#endif
+ #ifdef CONFIG_CHR_DEV_SG
+ #include <scsi/sg.h>
+ #endif
+@@ -135,10 +138,6 @@ extern int sysctl_userprocess_debug;
+ extern int spin_retry;
+ #endif
  
-+static void pl010_set_ldisc(struct uart_port *port)
-+{
-+	int line = port->line;
-+
-+	if (line >= port->state->port.tty->driver->num)
-+		return;
-+
-+	if (port->state->port.tty->ldisc->ops->num == N_PPS) {
-+		port->flags |= UPF_HARDPPS_CD;
-+		pl010_enable_ms(port);
-+	} else
-+		port->flags &= ~UPF_HARDPPS_CD;
-+}
-+
- static const char *pl010_type(struct uart_port *port)
- {
- 	return port->type == PORT_AMBA ? "AMBA" : NULL;
-@@ -531,6 +545,7 @@ static struct uart_ops amba_pl010_pops =
- 	.startup	= pl010_startup,
- 	.shutdown	= pl010_shutdown,
- 	.set_termios	= pl010_set_termios,
-+	.set_ldisc	= pl010_set_ldisc,
- 	.type		= pl010_type,
- 	.release_port	= pl010_release_port,
- 	.request_port	= pl010_request_port,
-_
-
-Patches currently in -mm which might be from giometti@linux.it are
-
-origin.patch
-
+-#ifdef CONFIG_BSD_PROCESS_ACCT
+-extern int acct_parm[];
+-#endif
