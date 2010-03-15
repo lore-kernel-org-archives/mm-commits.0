@@ -1,121 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-video-cx23885-needs-kfifo-conversion.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 13:39:21 -0700
-Message-ID: <201003152039.o2FKdMGr021287@imap1.linux-foundation.org>
+Subject: + serial-two-branches-the-same-in-timbuart_set_mctrl.patch added to -mm tree
+Date: Mon, 15 Mar 2010 13:41:19 -0700
+Message-ID: <201003152041.o2FKfJXM021420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932138Ab0COUj6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753206Ab0COUl4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:39:58 -0400
+	Mon, 15 Mar 2010 16:41:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, stefani@seibold.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, richard.rojfors@pelagicore.com
 
 
 The patch titled
-     drivers/media/video/cx23885 needs kfifo conversion
-has been removed from the -mm tree.  Its filename was
-     drivers-media-video-cx23885-needs-kfifo-conversion.patch
+     serial: two branches the same in timbuart_set_mctrl()
+has been added to the -mm tree.  Its filename is
+     serial-two-branches-the-same-in-timbuart_set_mctrl.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/cx23885 needs kfifo conversion
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial: two branches the same in timbuart_set_mctrl()
+=46rom: Roel Kluin <roel.kluin@gmail.com>
 
-linux-next:
+CTS is a read only bit and we are to stop signal RTS if modem line
+TIOCM_RTS is not set.
 
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_irq_handler':
-drivers/media/video/cx23885/cx23888-ir.c:597: error: implicit declaration of function 'kfifo_put'
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_rx_read':
-drivers/media/video/cx23885/cx23888-ir.c:660: error: implicit declaration of function 'kfifo_get'
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_probe':
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: assignment makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: assignment makes pointer from integer without a cast
+Thanks for suggestions by Richard R=F6jfors.
 
-Cc: Stefani Seibold <stefani@seibold.net>
-DESC
-drivers/media/video/cx23885: needs kfifo updates
-EDESC
-
-linux-next again.
-
-Cc: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx231xx/Kconfig |    1 +
- drivers/media/video/cx23885/Kconfig |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/serial/timbuart.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx231xx/Kconfig
---- a/drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-+++ a/drivers/media/video/cx231xx/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_CX231XX
- 	tristate "Conexant cx231xx USB video capture support"
- 	depends on VIDEO_DEV && I2C && INPUT
-+	depends on BROKEN
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
-diff -puN drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx23885/Kconfig
---- a/drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-+++ a/drivers/media/video/cx23885/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_CX23885
- 	tristate "Conexant cx23885 (2388x successor) support"
- 	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
-+	depends on BROKEN
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEO_TUNER
+diff -puN drivers/serial/timbuart.c~serial-two-branches-the-same-in-tim=
+buart_set_mctrl drivers/serial/timbuart.c
+--- a/drivers/serial/timbuart.c~serial-two-branches-the-same-in-timbuar=
+t_set_mctrl
++++ a/drivers/serial/timbuart.c
+@@ -219,7 +219,7 @@ static void timbuart_set_mctrl(struct ua
+ 	if (mctrl & TIOCM_RTS)
+ 		iowrite8(TIMBUART_CTRL_RTS, port->membase + TIMBUART_CTRL);
+ 	else
+-		iowrite8(TIMBUART_CTRL_RTS, port->membase + TIMBUART_CTRL);
++		iowrite8(0, port->membase + TIMBUART_CTRL);
+ }
+=20
+ static void timbuart_mctrl_check(struct uart_port *port, u32 isr, u32 =
+*ier)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-usb-serial-ftdi-add-contec-vendor-and-product-id.patch
-drivers-char-tty_bufferc-fix-min-warnings.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+isdn-misplaced-parenthesis-in-pof_handle_data.patch
+obsolete-config-in-kernel-source-use_internal_timer.patch
+serial-two-branches-the-same-in-timbuart_set_mctrl.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.pat=
+ch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.p=
+atch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-add-a-new-vt-mode-which-is-like-vt_process-but-doesnt-require-a-vt_reldisp-ioctl-call-checkpatch-fixes.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
