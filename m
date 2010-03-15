@@ -1,46 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-fix-race-between-userspace-and-kernelspace.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:00:02 -0400
-Message-ID: <201003150700.o2F70Z4D016646@imap1.linux-foundation.org>
+Subject: [merged] cgroups-remove-events-before-destroying-subsystem-state-objects.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:00:05 -0400
+Message-ID: <201003150700.o2F70caE016649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757247Ab0COHAz (ORCPT
+	by vger.kernel.org with ESMTP id S935755Ab0COHBA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:00:55 -0400
+	Mon, 15 Mar 2010 03:01:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill@shutemov.name, balbir@linux.vnet.ibm.com, dan@embeddedalley.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, xemul@open
+To: kirill@shutemov.name, balbir@linux.vnet.ibm.com, dan@embeddedalley.com, kamezawa.hioryu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, xemul@open
 
 
 The patch titled
-     cgroups: fix race between userspace and kernelspace
+     cgroups: remove events before destroying subsystem state objects
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-race-between-userspace-and-kernelspace.patch
+     cgroups-remove-events-before-destroying-subsystem-state-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix race between userspace and kernelspace
+Subject: cgroups: remove events before destroying subsystem state objects
 From: "Kirill A. Shutemov" <kirill@shutemov.name>
 
-Notify userspace about cgroup removing only after rmdir of cgroup
-directory to avoid race between userspace and kernelspace.
-
-eventfd are used to notify about two types of event:
- - control file-specific, like crossing memory threshold;
- - cgroup removing.
-
-To understand what really happen, userspace can check if the cgroup still
-exists.  To avoid race beetween userspace and kernelspace we have to
-notify userspace about cgroup removing only after rmdir of cgroup
-directory.
+Events should be removed after rmdir of cgroup directory, but before
+destroying subsystem state objects.  Let's take reference to cgroup
+directory dentry to do that.
 
 Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hioryu@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
 Acked-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -50,90 +42,68 @@ Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ include/linux/cgroup.h |    3 ---
+ kernel/cgroup.c        |    8 ++++++++
+ mm/memcontrol.c        |    9 ---------
+ 3 files changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-race-between-userspace-and-kernelspace kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-race-between-userspace-and-kernelspace
+diff -puN include/linux/cgroup.h~cgroups-remove-events-before-destroying-subsystem-state-objects include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-remove-events-before-destroying-subsystem-state-objects
++++ a/include/linux/cgroup.h
+@@ -396,9 +396,6 @@ struct cftype {
+ 	 * closes the eventfd or on cgroup removing.
+ 	 * This callback must be implemented, if you want provide
+ 	 * notification functionality.
+-	 *
+-	 * Be careful. It can be called after destroy(), so you have
+-	 * to keep all nesessary data, until all events are removed.
+ 	 */
+ 	int (*unregister_event)(struct cgroup *cgrp, struct cftype *cft,
+ 			struct eventfd_ctx *eventfd);
+diff -puN kernel/cgroup.c~cgroups-remove-events-before-destroying-subsystem-state-objects kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-remove-events-before-destroying-subsystem-state-objects
 +++ a/kernel/cgroup.c
-@@ -795,28 +795,15 @@ static struct inode *cgroup_new_inode(mo
- static int cgroup_call_pre_destroy(struct cgroup *cgrp)
- {
- 	struct cgroup_subsys *ss;
--	struct cgroup_event *event, *tmp;
- 	int ret = 0;
- 
- 	for_each_subsys(cgrp->root, ss)
- 		if (ss->pre_destroy) {
- 			ret = ss->pre_destroy(ss, cgrp);
- 			if (ret)
--				goto out;
-+				break;
- 		}
- 
--	/*
--	 * Unregister events and notify userspace.
--	 */
--	spin_lock(&cgrp->event_list_lock);
--	list_for_each_entry_safe(event, tmp, &cgrp->event_list, list) {
--		list_del(&event->list);
--		eventfd_signal(event->eventfd, 1);
--		schedule_work(&event->remove);
--	}
--	spin_unlock(&cgrp->event_list_lock);
--
--out:
- 	return ret;
- }
- 
-@@ -3006,7 +2993,6 @@ static void cgroup_event_remove(struct w
- 	event->cft->unregister_event(cgrp, event->cft, event->eventfd);
+@@ -2994,6 +2994,7 @@ static void cgroup_event_remove(struct w
  
  	eventfd_ctx_put(event->eventfd);
--	remove_wait_queue(event->wqh, &event->wait);
  	kfree(event);
++	dput(cgrp->dentry);
  }
  
-@@ -3024,6 +3010,7 @@ static int cgroup_event_wake(wait_queue_
- 	unsigned long flags = (unsigned long)key;
- 
- 	if (flags & POLLHUP) {
-+		remove_wait_queue_locked(event->wqh, &event->wait);
- 		spin_lock(&cgrp->event_list_lock);
- 		list_del(&event->list);
- 		spin_unlock(&cgrp->event_list_lock);
-@@ -3472,6 +3459,7 @@ static int cgroup_rmdir(struct inode *un
- 	struct dentry *d;
- 	struct cgroup *parent;
- 	DEFINE_WAIT(wait);
-+	struct cgroup_event *event, *tmp;
- 	int ret;
- 
- 	/* the vfs holds both inode->i_mutex already */
-@@ -3555,6 +3543,20 @@ again:
- 	set_bit(CGRP_RELEASABLE, &parent->flags);
- 	check_for_release(parent);
+ /*
+@@ -3114,6 +3115,13 @@ static int cgroup_write_event_control(st
+ 		goto fail;
+ 	}
  
 +	/*
-+	 * Unregister events and notify userspace.
-+	 * Notify userspace about cgroup removing only after rmdir of cgroup
-+	 * directory to avoid race between userspace and kernelspace
++	 * Events should be removed after rmdir of cgroup directory, but before
++	 * destroying subsystem state objects. Let's take reference to cgroup
++	 * directory dentry to do that.
 +	 */
-+	spin_lock(&cgrp->event_list_lock);
-+	list_for_each_entry_safe(event, tmp, &cgrp->event_list, list) {
-+		list_del(&event->list);
-+		remove_wait_queue(event->wqh, &event->wait);
-+		eventfd_signal(event->eventfd, 1);
-+		schedule_work(&event->remove);
-+	}
-+	spin_unlock(&cgrp->event_list_lock);
++	dget(cgrp->dentry);
 +
- 	mutex_unlock(&cgroup_mutex);
- 	return 0;
- }
-_
-
-Patches currently in -mm which might be from kirill@shutemov.name are
-
-origin.patch
-
+ 	spin_lock(&cgrp->event_list_lock);
+ 	list_add(&event->list, &cgrp->event_list);
+ 	spin_unlock(&cgrp->event_list_lock);
+diff -puN mm/memcontrol.c~cgroups-remove-events-before-destroying-subsystem-state-objects mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroups-remove-events-before-destroying-subsystem-state-objects
++++ a/mm/memcontrol.c
+@@ -3361,12 +3361,6 @@ static int mem_cgroup_register_event(str
+ 		}
+ 	}
+ 
+-	/*
+-	 * We need to increment refcnt to be sure that all thresholds
+-	 * will be unregistered before calling __mem_cgroup_free()
+-	 */
+-	mem_cgroup_get(memcg);
+-
+ 	if (type == _MEM)
+ 		rcu_assign_pointer(memcg->thresholds, thresholds_new);
+ 	else
+@@ -3460,9 +3454,6 @@ assign:
+ 	/* To be sure that nobody uses thresholds before freeing it */
+ 	synchronize_rcu();
+ 
+-	for (i = 0; i < thresholds->size - size; i++)
+-		mem_cgroup_put(memcg);
