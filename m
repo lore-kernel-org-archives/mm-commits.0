@@ -1,131 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:05:25 -0400
-Message-ID: <201003150705.o2F75w6r017132@imap1.linux-foundation.org>
+Subject: + alpha-fix-compile-errors-in-dma-mapping-commonh.patch added to -mm tree
+Date: Mon, 15 Mar 2010 13:11:01 -0700
+Message-ID: <201003152011.o2FKB1Sr020034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935985Ab0COHGQ (ORCPT
+	by vger.kernel.org with ESMTP id S936641Ab0COULR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:06:16 -0400
+	Mon, 15 Mar 2010 16:11:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luca@luca-barbieri.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, mcree@orcon.net.nz
 
 
 The patch titled
-     core kernel: make sparse work with inline spinlocks and rwlocks
-has been removed from the -mm tree.  Its filename was
-     core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks.patch
+     alpha: fix compile errors in dma-mapping-common.h
+has been added to the -mm tree.  Its filename is
+     alpha-fix-compile-errors-in-dma-mapping-commonh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: core kernel: make sparse work with inline spinlocks and rwlocks
-From: Luca Barbieri <luca@luca-barbieri.com>
+Subject: alpha: fix compile errors in dma-mapping-common.h
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Currently sparse does not work with inline spinlock and rwlock functions. 
-The problem is that they do not use the __acquires/__releases out-of-line
-functions, but use inline functions with no sparse annotations.
+Commit c186caca3dbe7f44da624cb4f9d78e1b1dfb13b8 ("dma-mapping: alpha: use
+include/linux/pci-dma-compat.h ") leads to the following errors with
+CONFIG_ALPHA_{TSUNAMI, TITAN, RAWHIDE, MARVEL}:
 
-This patch adds the appropriate annotations to make it work properly.
+include/asm-generic/dma-mapping-common.h: In function `dma_map_sg_attrs':
+include/asm-generic/dma-mapping-common.h:49: error: implicit declaration of function `for_each_sg'
+include/asm-generic/dma-mapping-common.h:50: error: syntax error before "kmemcheck_mark_initialized"
 
-Signed-off-by: Luca Barbieri <luca@luca-barbieri.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Reported-by: Michael Cree <mcree@orcon.net.nz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwlock.h   |   20 ++++++++++----------
- include/linux/spinlock.h |   13 ++++++++-----
- 2 files changed, 18 insertions(+), 15 deletions(-)
+ arch/alpha/include/asm/core_marvel.h  |    1 -
+ arch/alpha/include/asm/core_mcpcia.h  |    1 -
+ arch/alpha/include/asm/core_titan.h   |    1 -
+ arch/alpha/include/asm/core_tsunami.h |    1 -
+ 4 files changed, 4 deletions(-)
 
-diff -puN include/linux/rwlock.h~core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks include/linux/rwlock.h
---- a/include/linux/rwlock.h~core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks
-+++ a/include/linux/rwlock.h
-@@ -29,25 +29,25 @@ do {								\
- #endif
+diff -puN arch/alpha/include/asm/core_marvel.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_marvel.h
+--- a/arch/alpha/include/asm/core_marvel.h~alpha-fix-compile-errors-in-dma-mapping-commonh
++++ a/arch/alpha/include/asm/core_marvel.h
+@@ -12,7 +12,6 @@
+ #define __ALPHA_MARVEL__H__
  
- #ifdef CONFIG_DEBUG_SPINLOCK
-- extern void do_raw_read_lock(rwlock_t *lock);
-+ extern void do_raw_read_lock(rwlock_t *lock) __acquires(lock);
- #define do_raw_read_lock_flags(lock, flags) do_raw_read_lock(lock)
-  extern int do_raw_read_trylock(rwlock_t *lock);
-- extern void do_raw_read_unlock(rwlock_t *lock);
-- extern void do_raw_write_lock(rwlock_t *lock);
-+ extern void do_raw_read_unlock(rwlock_t *lock) __releases(lock);
-+ extern void do_raw_write_lock(rwlock_t *lock) __acquires(lock);
- #define do_raw_write_lock_flags(lock, flags) do_raw_write_lock(lock)
-  extern int do_raw_write_trylock(rwlock_t *lock);
-- extern void do_raw_write_unlock(rwlock_t *lock);
-+ extern void do_raw_write_unlock(rwlock_t *lock) __releases(lock);
- #else
--# define do_raw_read_lock(rwlock)	arch_read_lock(&(rwlock)->raw_lock)
-+# define do_raw_read_lock(rwlock)	do {__acquire(lock); arch_read_lock(&(rwlock)->raw_lock); } while (0)
- # define do_raw_read_lock_flags(lock, flags) \
--		arch_read_lock_flags(&(lock)->raw_lock, *(flags))
-+		do {__acquire(lock); arch_read_lock_flags(&(lock)->raw_lock, *(flags)); } while (0)
- # define do_raw_read_trylock(rwlock)	arch_read_trylock(&(rwlock)->raw_lock)
--# define do_raw_read_unlock(rwlock)	arch_read_unlock(&(rwlock)->raw_lock)
--# define do_raw_write_lock(rwlock)	arch_write_lock(&(rwlock)->raw_lock)
-+# define do_raw_read_unlock(rwlock)	do {arch_read_unlock(&(rwlock)->raw_lock); __release(lock); } while (0)
-+# define do_raw_write_lock(rwlock)	do {__acquire(lock); arch_write_lock(&(rwlock)->raw_lock); } while (0)
- # define do_raw_write_lock_flags(lock, flags) \
--		arch_write_lock_flags(&(lock)->raw_lock, *(flags))
-+		do {__acquire(lock); arch_write_lock_flags(&(lock)->raw_lock, *(flags)); } while (0)
- # define do_raw_write_trylock(rwlock)	arch_write_trylock(&(rwlock)->raw_lock)
--# define do_raw_write_unlock(rwlock)	arch_write_unlock(&(rwlock)->raw_lock)
-+# define do_raw_write_unlock(rwlock)	do {arch_write_unlock(&(rwlock)->raw_lock); __release(lock); } while (0)
- #endif
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <linux/spinlock.h>
  
- #define read_can_lock(rwlock)		arch_read_can_lock(&(rwlock)->raw_lock)
-diff -puN include/linux/spinlock.h~core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks include/linux/spinlock.h
---- a/include/linux/spinlock.h~core-kernel-make-sparse-work-with-inline-spinlocks-and-rwlocks
-+++ a/include/linux/spinlock.h
-@@ -128,19 +128,21 @@ static inline void smp_mb__after_lock(vo
- #define raw_spin_unlock_wait(lock)	arch_spin_unlock_wait(&(lock)->raw_lock)
+ #include <asm/compiler.h>
+diff -puN arch/alpha/include/asm/core_mcpcia.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_mcpcia.h
+--- a/arch/alpha/include/asm/core_mcpcia.h~alpha-fix-compile-errors-in-dma-mapping-commonh
++++ a/arch/alpha/include/asm/core_mcpcia.h
+@@ -6,7 +6,6 @@
+ #define MCPCIA_ONE_HAE_WINDOW 1
  
- #ifdef CONFIG_DEBUG_SPINLOCK
-- extern void do_raw_spin_lock(raw_spinlock_t *lock);
-+ extern void do_raw_spin_lock(raw_spinlock_t *lock) __acquires(lock);
- #define do_raw_spin_lock_flags(lock, flags) do_raw_spin_lock(lock)
-  extern int do_raw_spin_trylock(raw_spinlock_t *lock);
-- extern void do_raw_spin_unlock(raw_spinlock_t *lock);
-+ extern void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock);
- #else
--static inline void do_raw_spin_lock(raw_spinlock_t *lock)
-+static inline void do_raw_spin_lock(raw_spinlock_t *lock) __acquires(lock)
- {
-+	__acquire(lock);
- 	arch_spin_lock(&lock->raw_lock);
- }
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <asm/compiler.h>
  
- static inline void
--do_raw_spin_lock_flags(raw_spinlock_t *lock, unsigned long *flags)
-+do_raw_spin_lock_flags(raw_spinlock_t *lock, unsigned long *flags) __acquires(lock)
- {
-+	__acquire(lock);
- 	arch_spin_lock_flags(&lock->raw_lock, *flags);
- }
+ /*
+diff -puN arch/alpha/include/asm/core_titan.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_titan.h
+--- a/arch/alpha/include/asm/core_titan.h~alpha-fix-compile-errors-in-dma-mapping-commonh
++++ a/arch/alpha/include/asm/core_titan.h
+@@ -2,7 +2,6 @@
+ #define __ALPHA_TITAN__H__
  
-@@ -149,9 +151,10 @@ static inline int do_raw_spin_trylock(ra
- 	return arch_spin_trylock(&(lock)->raw_lock);
- }
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <asm/compiler.h>
  
--static inline void do_raw_spin_unlock(raw_spinlock_t *lock)
-+static inline void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock)
- {
- 	arch_spin_unlock(&lock->raw_lock);
-+	__release(lock);
- }
- #endif
+ /*
+diff -puN arch/alpha/include/asm/core_tsunami.h~alpha-fix-compile-errors-in-dma-mapping-commonh arch/alpha/include/asm/core_tsunami.h
+--- a/arch/alpha/include/asm/core_tsunami.h~alpha-fix-compile-errors-in-dma-mapping-commonh
++++ a/arch/alpha/include/asm/core_tsunami.h
+@@ -2,7 +2,6 @@
+ #define __ALPHA_TSUNAMI__H__
  
+ #include <linux/types.h>
+-#include <linux/pci.h>
+ #include <asm/compiler.h>
+ 
+ /*
 _
 
-Patches currently in -mm which might be from luca@luca-barbieri.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 origin.patch
+alpha-fix-compile-errors-in-dma-mapping-commonh.patch
+linux-next.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+ssb-add-dma_dev-to-ssb_device-structure.patch
+b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+ssb-remove-the-ssb-dma-api.patch
 
