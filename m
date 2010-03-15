@@ -1,92 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pid_ns-zap_pid_ns_processes-use-send_sig_noinfo-instead-of-force_sig.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:01:41 -0400
-Message-ID: <201003150702.o2F72Eu2016858@imap1.linux-foundation.org>
+Subject: [merged] m32r-use-generic-ptrace_resume-code.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:01:16 -0400
+Message-ID: <201003150701.o2F71nSj016817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59792 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935855Ab0COHCW (ORCPT
+	by vger.kernel.org with ESMTP id S935855Ab0COHCV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:02:22 -0400
+	Mon, 15 Mar 2010 03:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, roland@redhat.com, serue@us.ibm.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: hch@lst.de, oleg@redhat.com, roland@redhat.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid_ns: zap_pid_ns_processes: use SEND_SIG_NOINFO instead of force_sig()
+     m32r: use generic ptrace_resume code
 has been removed from the -mm tree.  Its filename was
-     pid_ns-zap_pid_ns_processes-use-send_sig_noinfo-instead-of-force_sig.patch
+     m32r-use-generic-ptrace_resume-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pid_ns: zap_pid_ns_processes: use SEND_SIG_NOINFO instead of force_sig()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: m32r: use generic ptrace_resume code
+From: Christoph Hellwig <hch@lst.de>
 
-zap_pid_ns_processes() uses force_sig(SIGKILL) to ensure SIGKILL will be
-delivered to sub-namespace inits as well.  This is correct, but we are
-going to change force_sig_info() semantics.  See
-http://bugzilla.kernel.org/show_bug.cgi?id=15395#c31
+Use the generic ptrace_resume code for PTRACE_SYSCALL, PTRACE_CONT,
+PTRACE_KILL and PTRACE_SINGLESTEP.  This implies defining
+arch_has_single_step in <asm/ptrace.h> and implementing the
+user_enable_single_step and user_disable_single_step functions, which also
+causes the breakpoint information to be cleared on fork, which could be
+considered a bug fix.
 
-We can use send_sig_info(SEND_SIG_NOINFO) instead, since
-614c517d7c00af1b26ded20646b329397d6f51a1 ("signals: SEND_SIG_NOINFO should
-be considered as SI_FROMUSER()") SEND_SIG_NOINFO means "from user" and
-therefore send_signal() will get the correct from_ancestor_ns = T flag.
+Also the TIF_SYSCALL_TRACE thread flag is now cleared on PTRACE_KILL which
+it previously wasn't, which is consistent with all architectures using the
+modern ptrace code.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Acked-by: Roland McGrath <roland@redhat.com>
+The old code only disables the breakpoints on PTRACE_KILL, while after
+this patch this also happens for PTRACE_CONT and PTRACE_SYSCALL which
+matches the behaviour of the other architetures.  I think this is a
+bugfixes, but please double verify this is correct.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/m32r/include/asm/ptrace.h |    2 
+ arch/m32r/kernel/ptrace.c      |   97 +++++++++----------------------
+ 2 files changed, 31 insertions(+), 68 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pid_ns-zap_pid_ns_processes-use-send_sig_noinfo-instead-of-force_sig kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pid_ns-zap_pid_ns_processes-use-send_sig_noinfo-instead-of-force_sig
-+++ a/kernel/pid_namespace.c
-@@ -161,13 +161,12 @@ void zap_pid_ns_processes(struct pid_nam
- 		rcu_read_lock();
+diff -puN arch/m32r/include/asm/ptrace.h~m32r-use-generic-ptrace_resume-code arch/m32r/include/asm/ptrace.h
+--- a/arch/m32r/include/asm/ptrace.h~m32r-use-generic-ptrace_resume-code
++++ a/arch/m32r/include/asm/ptrace.h
+@@ -120,6 +120,8 @@ struct pt_regs {
  
- 		/*
--		 * Use force_sig() since it clears SIGNAL_UNKILLABLE ensuring
--		 * any nested-container's init processes don't ignore the
--		 * signal
-+		 * Any nested-container's init processes won't ignore the
-+		 * SEND_SIG_NOINFO signal, see send_signal()->si_fromuser().
- 		 */
- 		task = pid_task(find_vpid(nr), PIDTYPE_PID);
- 		if (task)
--			force_sig(SIGKILL, task);
-+			send_sig_info(SIGKILL, SEND_SIG_NOINFO, task);
+ #include <asm/m32r.h>		/* M32R_PSW_BSM, M32R_PSW_BPM */
  
- 		rcu_read_unlock();
++#define arch_has_single_step() (1)
++
+ struct task_struct;
+ extern void init_debug_traps(struct task_struct *);
+ #define arch_ptrace_attach(child) \
+diff -puN arch/m32r/kernel/ptrace.c~m32r-use-generic-ptrace_resume-code arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~m32r-use-generic-ptrace_resume-code
++++ a/arch/m32r/kernel/ptrace.c
+@@ -580,6 +580,35 @@ init_debug_traps(struct task_struct *chi
+ 	}
+ }
  
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-origin.patch
-linux-next.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-proc-cleanup-remove-unused-assignments.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-utrace-core-utrace-fix-utrace_maybe_reap-vs-find_matching_engine-race.patch
-
++void user_enable_single_step(struct task_struct *child)
++{
++	unsigned long next_pc;
++	unsigned long pc, insn;
++
++	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
++
++	/* Compute next pc.  */
++	pc = get_stack_long(child, PT_BPC);
++
++	if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
++	    != sizeof(insn))
++		break;
++
++	compute_next_pc(insn, pc, &next_pc, child);
++	if (next_pc & 0x80000000)
++		break;
++
++	if (embed_debug_trap(child, next_pc))
++		break;
++
++	invalidate_cache();
++}
++
++void user_disable_single_step(struct task_struct *child)
++{
++	unregister_all_debug_traps(child);
++	invalidate_cache();
++}
+ 
+ /*
+  * Called by kernel/ptrace.c when detaching..
+@@ -630,74 +659,6 @@ arch_ptrace(struct task_struct *child, l
+ 		ret = ptrace_write_user(child, addr, data);
+ 		break;
+ 
+-	/*
+-	 * continue/restart and stop at next (return from) syscall
+-	 */
+-	case PTRACE_SYSCALL:
+-	case PTRACE_CONT:
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
+-		if (request == PTRACE_SYSCALL)
+-			set_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		else
+-			clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-		child->exit_code = data;
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-
+-	/*
+-	 * make the child exit.  Best I can do is send it a sigkill.
+-	 * perhaps it should be put in the status that it wants to
+-	 * exit.
+-	 */
+-	case PTRACE_KILL: {
+-		ret = 0;
+-		unregister_all_debug_traps(child);
+-		invalidate_cache();
+-		if (child->exit_state == EXIT_ZOMBIE)	/* already dead */
+-			break;
+-		child->exit_code = SIGKILL;
+-		wake_up_process(child);
+-		break;
+-	}
+-
+-	/*
+-	 * execute single instruction.
+-	 */
+-	case PTRACE_SINGLESTEP: {
+-		unsigned long next_pc;
+-		unsigned long pc, insn;
+-
+-		ret = -EIO;
+-		if (!valid_signal(data))
+-			break;
+-		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+-
+-		/* Compute next pc.  */
+-		pc = get_stack_long(child, PT_BPC);
+-
+-		if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
+-		    != sizeof(insn))
+-			break;
+-
+-		compute_next_pc(insn, pc, &next_pc, child);
+-		if (next_pc & 0x80000000)
+-			break;
+-
+-		if (embed_debug_trap(child, next_pc))
+-			break;
+-
+-		invalidate_cache();
+-		child->exit_code = data;
+-
+-		/* give it a chance to run. */
+-		wake_up_process(child);
+-		ret = 0;
+-		break;
+-	}
