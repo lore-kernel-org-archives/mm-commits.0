@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-media-video-move-dereference-after-null-test.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 14:43:10 -0700
-Message-ID: <201003152143.o2FLhBG5024370@imap1.linux-foundation.org>
+Subject: + drivers-media-video-move-dereference-after-null-test.patch added to -mm tree
+Date: Mon, 15 Mar 2010 14:43:53 -0700
+Message-ID: <201003152143.o2FLhsjW024390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932222Ab0COVnX (ORCPT
+	by vger.kernel.org with ESMTP id S932222Ab0COVoF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 17:43:23 -0400
+	Mon, 15 Mar 2010 17:44:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, m-karicheri2@ti.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: julia@diku.dk, m-karicheri2@ti.com, mchehab@infradead.org
 
 
 The patch titled
      drivers/media/video: move dereference after NULL test
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      drivers-media-video-move-dereference-after-null-test.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -31,9 +41,7 @@ In quickcam_messenger.c, if the NULL test on uvd is needed, then the
 dereference should be after the NULL test.
 
 In vpif_display.c, std_info is initialized to the address of a structure
-field.  This seems unlikely to be NULL.  If it could somehow be NULL, then
-the assignment should be moved after the NULL test.  Alternatively, perhaps
-the NULL test is intended to test std_info->stdid rather than std_info?
+field.  This seems unlikely to be NULL.  Test std_info->stdid instead.
 
 In saa7134-alsa.c, the function is only called from one place, where the
 chip argument has already been dereferenced.  On the other hand, if it
@@ -54,27 +62,28 @@ identifier fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/davinci/vpif_display.c        |    2 --
+ drivers/media/video/davinci/vpif_display.c        |    2 +-
  drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
  drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
 diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
 --- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
 +++ a/drivers/media/video/davinci/vpif_display.c
-@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
+@@ -383,7 +383,7 @@ static int vpif_get_std_info(struct chan
  	int index;
  
  	std_info->stdid = vid_ch->stdid;
 -	if (!std_info)
--		return -1;
++	if (!std_info->stdid)
+ 		return -1;
  
  	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
- 		config = &ch_params[index];
 diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
 --- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
 +++ a/drivers/media/video/saa7134/saa7134-alsa.c
