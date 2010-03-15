@@ -1,199 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-support-color-depth-15-and-30.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:56:49 -0400
-Message-ID: <201003150657.o2F6vMOG016366@imap1.linux-foundation.org>
+Subject: [merged] broadsheetfb-add-mmio-hooks.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:56:52 -0400
+Message-ID: <201003150657.o2F6vPEM016369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934519Ab0COG51 (ORCPT
+	by vger.kernel.org with ESMTP id S1756997Ab0COG5k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:57:27 -0400
+	Mon, 15 Mar 2010 02:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, mm-commits@vger.kernel.org
+To: jayakumar.lkml@gmail.com, geert@linux-m68k.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: support color depth 15 and 30
+     broadsheetfb: add MMIO hooks
 has been removed from the -mm tree.  Its filename was
-     viafb-support-color-depth-15-and-30.patch
+     broadsheetfb-add-mmio-hooks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: support color depth 15 and 30
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: broadsheetfb: add MMIO hooks
+From: Jaya Kumar <jayakumar.lkml@gmail.com>
 
-Add support for the color depth 15 on IGA1 and 30 on IGA1 and IGA2.  To
-allow the usage of those the driver now refuses color depth that are
-totally off and otherwise the selection in viafb_check_var is used. 
-Therefore the first call to this for the first framebuffer was delayed a
-bit.  It only enables the new formats if they are requested exactly
-(viafb_bpp=15|30).
+Allow boards with GP-MMIO controllers to provide hooks to broadsheetfb in
+order to offload cmd/data writes and data reads instead of relying only on
+host based GPIO wiggling.
 
-As this is a new feature, no regressions are expected.  The color depth 15
-was successfully tested.  Didn't get anything usable for 30 but that might
-be the programs fault.  I would like to get some feedback whether it works
-as expected or not if somebody knows a program/configuration where it
-should.
-
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
+Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/hw.c       |    9 ++++++
- drivers/video/via/viafbdev.c |   43 +++++++++++++++++++--------------
- 2 files changed, 34 insertions(+), 18 deletions(-)
+ drivers/video/broadsheetfb.c |  110 ++++++++++++++++++++++++++++-----
+ include/video/broadsheetfb.h |   17 +++--
+ 2 files changed, 107 insertions(+), 20 deletions(-)
 
-diff -puN drivers/video/via/hw.c~viafb-support-color-depth-15-and-30 drivers/video/via/hw.c
---- a/drivers/video/via/hw.c~viafb-support-color-depth-15-and-30
-+++ a/drivers/video/via/hw.c
-@@ -694,12 +694,18 @@ void viafb_set_primary_color_depth(u8 de
- 	case 8:
- 		value = 0x00;
- 		break;
-+	case 15:
-+		value = 0x04;
-+		break;
- 	case 16:
- 		value = 0x14;
- 		break;
- 	case 24:
- 		value = 0x0C;
- 		break;
-+	case 30:
-+		value = 0x08;
-+		break;
- 	default:
- 		printk(KERN_WARNING "viafb_set_primary_color_depth: "
- 			"Unsupported depth: %d\n", depth);
-@@ -724,6 +730,9 @@ void viafb_set_secondary_color_depth(u8 
- 	case 24:
- 		value = 0xC0;
- 		break;
-+	case 30:
-+		value = 0x80;
-+		break;
- 	default:
- 		printk(KERN_WARNING "viafb_set_secondary_color_depth: "
- 			"Unsupported depth: %d\n", depth);
-diff -puN drivers/video/via/viafbdev.c~viafb-support-color-depth-15-and-30 drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-support-color-depth-15-and-30
-+++ a/drivers/video/via/viafbdev.c
-@@ -80,6 +80,15 @@ static void viafb_fill_var_color_info(st
- 		var->green.length = 8;
- 		var->blue.length = 8;
- 		break;
-+	case 15:
-+		var->bits_per_pixel = 16;
-+		var->red.offset = 10;
-+		var->green.offset = 5;
-+		var->blue.offset = 0;
-+		var->red.length = 5;
-+		var->green.length = 5;
-+		var->blue.length = 5;
-+		break;
- 	case 16:
- 		var->bits_per_pixel = 16;
- 		var->red.offset = 11;
-@@ -98,6 +107,15 @@ static void viafb_fill_var_color_info(st
- 		var->green.length = 8;
- 		var->blue.length = 8;
- 		break;
-+	case 30:
-+		var->bits_per_pixel = 32;
-+		var->red.offset = 20;
-+		var->green.offset = 10;
-+		var->blue.offset = 0;
-+		var->red.length = 10;
-+		var->green.length = 10;
-+		var->blue.length = 10;
-+		break;
- 	}
+diff -puN drivers/video/broadsheetfb.c~broadsheetfb-add-mmio-hooks drivers/video/broadsheetfb.c
+--- a/drivers/video/broadsheetfb.c~broadsheetfb-add-mmio-hooks
++++ a/drivers/video/broadsheetfb.c
+@@ -115,30 +115,30 @@ static struct fb_var_screeninfo broadshe
+ };
+ 
+ /* main broadsheetfb functions */
+-static void broadsheet_issue_data(struct broadsheetfb_par *par, u16 data)
++static void broadsheet_gpio_issue_data(struct broadsheetfb_par *par, u16 data)
+ {
+ 	par->board->set_ctl(par, BS_WR, 0);
+ 	par->board->set_hdb(par, data);
+ 	par->board->set_ctl(par, BS_WR, 1);
  }
  
-@@ -171,6 +189,10 @@ static int viafb_check_var(struct fb_var
- 		return -EINVAL;
- 	else if (!depth)
- 		depth = 24;
-+	else if (depth == 15 && viafb_dual_fb && ppar->iga_path == IGA1)
-+		depth = 15;
-+	else if (depth == 30)
-+		depth = 30;
- 	else if (depth <= 8)
- 		depth = 8;
- 	else if (depth <= 16)
-@@ -1811,19 +1833,6 @@ static int __devinit via_pci_probe(struc
- 			viafb_second_virtual_yres = viafb_second_yres;
- 	}
+-static void broadsheet_issue_cmd(struct broadsheetfb_par *par, u16 data)
++static void broadsheet_gpio_issue_cmd(struct broadsheetfb_par *par, u16 data)
+ {
+ 	par->board->set_ctl(par, BS_DC, 0);
+-	broadsheet_issue_data(par, data);
++	broadsheet_gpio_issue_data(par, data);
+ }
  
--	switch (viafb_bpp) {
--	case 0 ... 8:
--		viafb_bpp = 8;
--		break;
--	case 9 ... 16:
--		viafb_bpp = 16;
--		break;
--	case 17 ... 32:
--		viafb_bpp = 32;
--		break;
--	default:
--		viafb_bpp = 8;
--	}
- 	default_var.xres = default_xres;
- 	default_var.yres = default_yres;
- 	switch (default_xres) {
-@@ -1836,8 +1845,6 @@ static int __devinit via_pci_probe(struc
- 	}
- 	default_var.yres_virtual = default_yres;
- 	default_var.bits_per_pixel = viafb_bpp;
--	if (default_var.bits_per_pixel == 15)
--		default_var.bits_per_pixel = 16;
- 	default_var.pixclock =
- 	    viafb_get_pixclock(default_xres, default_yres, viafb_refresh);
- 	default_var.left_margin = (default_xres >> 3) & 0xf8;
-@@ -1847,7 +1854,6 @@ static int __devinit via_pci_probe(struc
- 	default_var.hsync_len = default_var.left_margin;
- 	default_var.vsync_len = 4;
- 	viafb_setup_fixinfo(&viafbinfo->fix, viaparinfo);
--	viafb_check_var(&default_var, viafbinfo);
- 	viafbinfo->var = default_var;
+-static void broadsheet_send_command(struct broadsheetfb_par *par, u16 data)
++static void broadsheet_gpio_send_command(struct broadsheetfb_par *par, u16 data)
+ {
+ 	par->board->wait_for_rdy(par);
  
- 	if (viafb_dual_fb) {
-@@ -1883,8 +1889,6 @@ static int __devinit via_pci_probe(struc
- 		default_var.yres = viafb_second_yres;
- 		default_var.xres_virtual = viafb_second_virtual_xres;
- 		default_var.yres_virtual = viafb_second_virtual_yres;
--		if (viafb_bpp1 != viafb_bpp)
--			viafb_bpp1 = viafb_bpp;
- 		default_var.bits_per_pixel = viafb_bpp1;
- 		default_var.pixclock =
- 		    viafb_get_pixclock(viafb_second_xres, viafb_second_yres,
-@@ -1904,6 +1908,7 @@ static int __devinit via_pci_probe(struc
- 			&viafbinfo1->fix);
- 	}
+ 	par->board->set_ctl(par, BS_CS, 0);
+-	broadsheet_issue_cmd(par, data);
++	broadsheet_gpio_issue_cmd(par, data);
+ 	par->board->set_ctl(par, BS_DC, 1);
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
  
-+	viafb_check_var(&viafbinfo->var, viafbinfo);
- 	viafb_update_fix(viafbinfo);
- 	viaparinfo->depth = fb_get_color_depth(&viafbinfo->var,
- 		&viafbinfo->fix);
-@@ -2070,6 +2075,8 @@ static int __init viafb_init(void)
+-static void broadsheet_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
++static void broadsheet_gpio_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
+ 					int argc, u16 *argv)
+ {
+ 	int i;
+@@ -146,15 +146,43 @@ static void broadsheet_send_cmdargs(stru
+ 	par->board->wait_for_rdy(par);
+ 
+ 	par->board->set_ctl(par, BS_CS, 0);
+-	broadsheet_issue_cmd(par, cmd);
++	broadsheet_gpio_issue_cmd(par, cmd);
+ 	par->board->set_ctl(par, BS_DC, 1);
+ 
+ 	for (i = 0; i < argc; i++)
+-		broadsheet_issue_data(par, argv[i]);
++		broadsheet_gpio_issue_data(par, argv[i]);
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
+-static void broadsheet_burst_write(struct broadsheetfb_par *par, int size,
++static void broadsheet_mmio_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
++				    int argc, u16 *argv)
++{
++	int i;
++
++	par->board->mmio_write(par, BS_MMIO_CMD, cmd);
++
++	for (i = 0; i < argc; i++)
++		par->board->mmio_write(par, BS_MMIO_DATA, argv[i]);
++}
++
++static void broadsheet_send_command(struct broadsheetfb_par *par, u16 data)
++{
++	if (par->board->mmio_write)
++		par->board->mmio_write(par, BS_MMIO_CMD, data);
++	else
++		broadsheet_gpio_send_command(par, data);
++}
++
++static void broadsheet_send_cmdargs(struct broadsheetfb_par *par, u16 cmd,
++				    int argc, u16 *argv)
++{
++	if (par->board->mmio_write)
++		broadsheet_mmio_send_cmdargs(par, cmd, argc, argv);
++	else
++		broadsheet_gpio_send_cmdargs(par, cmd, argc, argv);
++}
++
++static void broadsheet_gpio_burst_write(struct broadsheetfb_par *par, int size,
+ 					u16 *data)
+ {
+ 	int i;
+@@ -174,7 +202,30 @@ static void broadsheet_burst_write(struc
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
+-static u16 broadsheet_get_data(struct broadsheetfb_par *par)
++static void broadsheet_mmio_burst_write(struct broadsheetfb_par *par, int size,
++				   u16 *data)
++{
++	int i;
++	u16 tmp;
++
++	for (i = 0; i < size; i++) {
++		tmp = (data[i] & 0x0F) << 4;
++		tmp |= (data[i] & 0x0F00) << 4;
++		par->board->mmio_write(par, BS_MMIO_DATA, tmp);
++	}
++
++}
++
++static void broadsheet_burst_write(struct broadsheetfb_par *par, int size,
++				   u16 *data)
++{
++	if (par->board->mmio_write)
++		broadsheet_mmio_burst_write(par, size, data);
++	else
++		broadsheet_gpio_burst_write(par, size, data);
++}
++
++static u16 broadsheet_gpio_get_data(struct broadsheetfb_par *par)
+ {
+ 	u16 res;
+ 	/* wait for ready to go hi. (lo is busy) */
+@@ -194,7 +245,16 @@ static u16 broadsheet_get_data(struct br
+ 	return res;
+ }
+ 
+-static void broadsheet_write_reg(struct broadsheetfb_par *par, u16 reg,
++
++static u16 broadsheet_get_data(struct broadsheetfb_par *par)
++{
++	if (par->board->mmio_read)
++		return par->board->mmio_read(par);
++	else
++		return broadsheet_gpio_get_data(par);
++}
++
++static void broadsheet_gpio_write_reg(struct broadsheetfb_par *par, u16 reg,
+ 					u16 data)
+ {
+ 	/* wait for ready to go hi. (lo is busy) */
+@@ -203,16 +263,34 @@ static void broadsheet_write_reg(struct 
+ 	/* cs lo, dc lo for cmd, we lo for each data, db as usual */
+ 	par->board->set_ctl(par, BS_CS, 0);
+ 
+-	broadsheet_issue_cmd(par, BS_CMD_WR_REG);
++	broadsheet_gpio_issue_cmd(par, BS_CMD_WR_REG);
+ 
+ 	par->board->set_ctl(par, BS_DC, 1);
+ 
+-	broadsheet_issue_data(par, reg);
+-	broadsheet_issue_data(par, data);
++	broadsheet_gpio_issue_data(par, reg);
++	broadsheet_gpio_issue_data(par, data);
+ 
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
++static void broadsheet_mmio_write_reg(struct broadsheetfb_par *par, u16 reg,
++				 u16 data)
++{
++	par->board->mmio_write(par, BS_MMIO_CMD, BS_CMD_WR_REG);
++	par->board->mmio_write(par, BS_MMIO_DATA, reg);
++	par->board->mmio_write(par, BS_MMIO_DATA, data);
++
++}
++
++static void broadsheet_write_reg(struct broadsheetfb_par *par, u16 reg,
++					u16 data)
++{
++	if (par->board->mmio_write)
++		broadsheet_mmio_write_reg(par, reg, data);
++	else
++		broadsheet_gpio_write_reg(par, reg, data);
++}
++
+ static void broadsheet_write_reg32(struct broadsheetfb_par *par, u16 reg,
+ 					u32 data)
+ {
+@@ -223,8 +301,8 @@ static void broadsheet_write_reg32(struc
+ 
+ static u16 broadsheet_read_reg(struct broadsheetfb_par *par, u16 reg)
+ {
+-	broadsheet_send_command(par, reg);
+-	msleep(100);
++	broadsheet_send_cmdargs(par, BS_CMD_RD_REG, 1, &reg);
++	par->board->wait_for_rdy(par);
+ 	return broadsheet_get_data(par);
+ }
+ 
+diff -puN include/video/broadsheetfb.h~broadsheetfb-add-mmio-hooks include/video/broadsheetfb.h
+--- a/include/video/broadsheetfb.h~broadsheetfb-add-mmio-hooks
++++ a/include/video/broadsheetfb.h
+@@ -34,6 +34,10 @@
+ #define BS_DC 	0x02
+ #define BS_WR 	0x03
+ 
++/* Broadsheet IO interface specific defines */
++#define BS_MMIO_CMD	0x01
++#define BS_MMIO_DATA	0x02
++
+ /* struct used by broadsheet. board specific stuff comes from *board */
+ struct broadsheetfb_par {
+ 	struct fb_info *info;
+@@ -49,12 +53,17 @@ struct broadsheet_board {
+ 	struct module *owner;
+ 	int (*init)(struct broadsheetfb_par *);
+ 	int (*wait_for_rdy)(struct broadsheetfb_par *);
+-	void (*set_ctl)(struct broadsheetfb_par *, unsigned char, u8);
+-	void (*set_hdb)(struct broadsheetfb_par *, u16);
+-	u16 (*get_hdb)(struct broadsheetfb_par *);
+ 	void (*cleanup)(struct broadsheetfb_par *);
+ 	int (*get_panel_type)(void);
+ 	int (*setup_irq)(struct fb_info *);
+-};
+ 
++	/* Functions for boards that use GPIO */
++	void (*set_ctl)(struct broadsheetfb_par *, unsigned char, u8);
++	void (*set_hdb)(struct broadsheetfb_par *, u16);
++	u16 (*get_hdb)(struct broadsheetfb_par *);
++
++	/* Functions for boards that have specialized MMIO */
++	void (*mmio_write)(struct broadsheetfb_par *, int type, u16);
++	u16 (*mmio_read)(struct broadsheetfb_par *);
++};
  #endif
- 	if (parse_mode(viafb_mode, &dummy, &dummy)
- 		|| parse_mode(viafb_mode1, &dummy, &dummy)
-+		|| viafb_bpp < 0 || viafb_bpp > 32
-+		|| viafb_bpp1 < 0 || viafb_bpp1 > 32
- 		|| parse_active_dev())
- 		return -EINVAL;
- 
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
 
 origin.patch
 
