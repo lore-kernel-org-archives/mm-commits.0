@@ -1,642 +1,292 @@
 From: akpm@linux-foundation.org
-Subject: [merged] add-generic-sys_olduname.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:55:40 -0400
-Message-ID: <201003150656.o2F6uDmS016270@imap1.linux-foundation.org>
+Subject: [merged] memcg-add-interface-to-move-charge-at-task-migration.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:58:41 -0400
+Message-ID: <201003150659.o2F6xEvh016516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59694 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934876Ab0COG7I (ORCPT
+	by vger.kernel.org with ESMTP id S935031Ab0COG72 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:59:08 -0400
+	Mon, 15 Mar 2010 02:59:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, jdike@addtoit.com, jmorris@namei.org, lethal@linux-sh.org, mingo@elte.hu, ralf@linux-mip
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add generic sys_olduname()
+     memcg: add interface to move charge at task migration
 has been removed from the -mm tree.  Its filename was
-     add-generic-sys_olduname.patch
+     memcg-add-interface-to-move-charge-at-task-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add generic sys_olduname()
-From: Christoph Hellwig <hch@lst.de>
+Subject: memcg: add interface to move charge at task migration
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Add generic implementations of the old and really old uname system calls. 
-Note that sh only implements sys_olduname but not sys_oldolduname, but I'm
-not going to bother with another ifdef for that special case.
+In current memcg, charges associated with a task aren't moved to the new
+cgroup at task migration.  Some users feel this behavior to be strange. 
+These patches are for this feature, that is, for charging to the new
+cgroup and, of course, uncharging from the old cgroup at task migration.
 
-m32r implemented an old uname but never wired it up, so kill it, too.
+This patch adds "memory.move_charge_at_immigrate" file, which is a flag
+file to determine whether charges should be moved to the new cgroup at
+task migration or not and what type of charges should be moved.  This
+patch also adds read and write handlers of the file.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
+This patch also adds no-op handlers for this feature.  These handlers will
+be implemented in later patches.  And you cannot write any values other
+than 0 to move_charge_at_immigrate yet.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/sys_m32r.c       |   11 -----
- arch/mips/include/asm/unistd.h    |    1 
- arch/mips/kernel/syscall.c        |   42 --------------------
- arch/powerpc/include/asm/unistd.h |    1 
- arch/powerpc/kernel/syscalls.c    |   57 ----------------------------
- arch/sh/include/asm/syscalls.h    |    3 -
- arch/sh/include/asm/unistd_32.h   |    1 
- arch/sh/include/asm/unistd_64.h   |    1 
- arch/sh/kernel/sys_sh.c           |   11 -----
- arch/um/kernel/syscall.c          |   45 ----------------------
- arch/x86/ia32/ia32entry.S         |    4 -
- arch/x86/ia32/sys_ia32.c          |   52 -------------------------
- arch/x86/include/asm/sys_ia32.h   |    5 --
- arch/x86/include/asm/syscalls.h   |    7 ---
- arch/x86/include/asm/unistd_32.h  |    1 
- arch/x86/include/asm/unistd_64.h  |    1 
- arch/x86/kernel/sys_i386_32.c     |   49 ------------------------
- include/linux/syscalls.h          |    4 +
- kernel/sys.c                      |   54 ++++++++++++++++++++++++++
- 19 files changed, 66 insertions(+), 284 deletions(-)
+ Documentation/cgroups/memory.txt |   56 ++++++++++++++++
+ mm/memcontrol.c                  |   97 +++++++++++++++++++++++++++--
+ 2 files changed, 147 insertions(+), 6 deletions(-)
 
-diff -puN arch/m32r/kernel/sys_m32r.c~add-generic-sys_olduname arch/m32r/kernel/sys_m32r.c
---- a/arch/m32r/kernel/sys_m32r.c~add-generic-sys_olduname
-+++ a/arch/m32r/kernel/sys_m32r.c
-@@ -76,17 +76,6 @@ asmlinkage int sys_tas(int __user *addr)
- 	return oldval;
- }
+diff -puN Documentation/cgroups/memory.txt~memcg-add-interface-to-move-charge-at-task-migration Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-add-interface-to-move-charge-at-task-migration
++++ a/Documentation/cgroups/memory.txt
+@@ -262,10 +262,12 @@ some of the pages cached in the cgroup (
+ 4.2 Task migration
  
--asmlinkage int sys_uname(struct old_utsname __user * name)
--{
--	int err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof (*name));
--	up_read(&uts_sem);
--	return err?-EFAULT:0;
--}
--
- asmlinkage int sys_cacheflush(void *addr, int bytes, int cache)
- {
- 	/* This should flush more selectively ...  */
-diff -puN arch/mips/include/asm/unistd.h~add-generic-sys_olduname arch/mips/include/asm/unistd.h
---- a/arch/mips/include/asm/unistd.h~add-generic-sys_olduname
-+++ a/arch/mips/include/asm/unistd.h
-@@ -1014,6 +1014,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/mips/kernel/syscall.c~add-generic-sys_olduname arch/mips/kernel/syscall.c
---- a/arch/mips/kernel/syscall.c~add-generic-sys_olduname
-+++ a/arch/mips/kernel/syscall.c
-@@ -215,48 +215,6 @@ out:
- 	return error;
- }
+ When a task migrates from one cgroup to another, it's charge is not
+-carried forward. The pages allocated from the original cgroup still
++carried forward by default. The pages allocated from the original cgroup still
+ remain charged to it, the charge is dropped when the page is freed or
+ reclaimed.
  
--/*
-- * Compacrapability ...
-- */
--SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
--{
--	if (name && !copy_to_user(name, utsname(), sizeof (*name)))
--		return 0;
--	return -EFAULT;
--}
--
--/*
-- * Compacrapability ...
-- */
--SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
--{
--	int error;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error -= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error -= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error -= __put_user(0, name->release + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error -= __put_user(0, name->version + __OLD_UTS_LEN);
--	error -= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error = __put_user(0, name->machine + __OLD_UTS_LEN);
--	error = error ? -EFAULT : 0;
--
--	return error;
--}
--
- SYSCALL_DEFINE1(set_thread_area, unsigned long, addr)
- {
- 	struct thread_info *ti = task_thread_info(current);
-diff -puN arch/powerpc/include/asm/unistd.h~add-generic-sys_olduname arch/powerpc/include/asm/unistd.h
---- a/arch/powerpc/include/asm/unistd.h~add-generic-sys_olduname
-+++ a/arch/powerpc/include/asm/unistd.h
-@@ -377,6 +377,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/powerpc/kernel/syscalls.c~add-generic-sys_olduname arch/powerpc/kernel/syscalls.c
---- a/arch/powerpc/kernel/syscalls.c~add-generic-sys_olduname
-+++ a/arch/powerpc/kernel/syscalls.c
-@@ -116,63 +116,6 @@ long ppc64_personality(unsigned long per
- }
- #endif
++Note: You can move charges of a task along with task migration. See 8.
++
+ 4.3 Removing a cgroup
  
--#ifdef CONFIG_PPC64
--#define OVERRIDE_MACHINE    (personality(current->personality) == PER_LINUX32)
--#else
--#define OVERRIDE_MACHINE    0
--#endif
--
--static inline int override_machine(char __user *mach)
--{
--	if (OVERRIDE_MACHINE) {
--		/* change ppc64 to ppc */
--		if (__put_user(0, mach+3) || __put_user(0, mach+4))
--			return -EFAULT;
--	}
--	return 0;
--}
--
--int sys_uname(struct old_utsname __user *name)
--{
--	int err = 0;
--	
--	down_read(&uts_sem);
--	if (copy_to_user(name, utsname(), sizeof(*name)))
--		err = -EFAULT;
--	up_read(&uts_sem);
--	if (!err)
--		err = override_machine(name->machine);
--	return err;
--}
--
--int sys_olduname(struct oldold_utsname __user *name)
--{
--	int error;
--
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--  
--	down_read(&uts_sem);
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->release + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->version + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error |= override_machine(name->machine);
--	up_read(&uts_sem);
--
--	return error? -EFAULT: 0;
--}
--
- long ppc_fadvise64_64(int fd, int advice, u32 offset_high, u32 offset_low,
- 		      u32 len_high, u32 len_low)
- {
-diff -puN arch/sh/include/asm/syscalls.h~add-generic-sys_olduname arch/sh/include/asm/syscalls.h
---- a/arch/sh/include/asm/syscalls.h~add-generic-sys_olduname
-+++ a/arch/sh/include/asm/syscalls.h
-@@ -3,15 +3,12 @@
+ A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
+@@ -414,7 +416,57 @@ NOTE1: Soft limits take effect over a lo
+ NOTE2: It is recommended to set the soft limit always below the hard limit,
+        otherwise the hard limit will take precedence.
  
- #ifdef __KERNEL__
+-8. TODO
++8. Move charges at task migration
++
++Users can move charges associated with a task along with task migration, that
++is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
++
++8.1 Interface
++
++This feature is disabled by default. It can be enabled(and disabled again) by
++writing to memory.move_charge_at_immigrate of the destination cgroup.
++
++If you want to enable it:
++
++# echo (some positive value) > memory.move_charge_at_immigrate
++
++Note: Each bits of move_charge_at_immigrate has its own meaning about what type
++      of charges should be moved. See 8.2 for details.
++Note: Charges are moved only when you move mm->owner, IOW, a leader of a thread
++      group.
++Note: If we cannot find enough space for the task in the destination cgroup, we
++      try to make space by reclaiming memory. Task migration may fail if we
++      cannot make enough space.
++Note: It can take several seconds if you move charges in giga bytes order.
++
++And if you want disable it again:
++
++# echo 0 > memory.move_charge_at_immigrate
++
++8.2 Type of charges which can be move
++
++Each bits of move_charge_at_immigrate has its own meaning about what type of
++charges should be moved.
++
++  bit | what type of charges would be moved ?
++ -----+------------------------------------------------------------------------
++   0  | A charge of an anonymous page(or swap of it) used by the target task.
++      | Those pages and swaps must be used only by the target task. You must
++      | enable Swap Extension(see 2.4) to enable move of swap charges.
++
++Note: Those pages and swaps must be charged to the old cgroup.
++Note: More type of pages(e.g. file cache, shmem,) will be supported by other
++      bits in future.
++
++8.3 TODO
++
++- Add support for other types of pages(e.g. file cache, shmem, etc.).
++- Implement madvise(2) to let users decide the vma to be moved or not to be
++  moved.
++- All of moving charge operations are done under cgroup_mutex. It's not good
++  behavior to hold the mutex too long, so we may need some trick.
++
++9. TODO
  
--struct old_utsname;
--
- asmlinkage int old_mmap(unsigned long addr, unsigned long len,
- 			unsigned long prot, unsigned long flags,
- 			int fd, unsigned long off);
- asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
- 			  unsigned long prot, unsigned long flags,
- 			  unsigned long fd, unsigned long pgoff);
--asmlinkage int sys_uname(struct old_utsname __user *name);
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
+diff -puN mm/memcontrol.c~memcg-add-interface-to-move-charge-at-task-migration mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-interface-to-move-charge-at-task-migration
++++ a/mm/memcontrol.c
+@@ -226,11 +226,26 @@ struct mem_cgroup {
+ 	bool		memsw_is_minimum;
  
- #ifdef CONFIG_SUPERH32
- # include "syscalls_32.h"
-diff -puN arch/sh/include/asm/unistd_32.h~add-generic-sys_olduname arch/sh/include/asm/unistd_32.h
---- a/arch/sh/include/asm/unistd_32.h~add-generic-sys_olduname
-+++ a/arch/sh/include/asm/unistd_32.h
-@@ -371,6 +371,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/sh/include/asm/unistd_64.h~add-generic-sys_olduname arch/sh/include/asm/unistd_64.h
---- a/arch/sh/include/asm/unistd_64.h~add-generic-sys_olduname
-+++ a/arch/sh/include/asm/unistd_64.h
-@@ -411,6 +411,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/sh/kernel/sys_sh.c~add-generic-sys_olduname arch/sh/kernel/sys_sh.c
---- a/arch/sh/kernel/sys_sh.c~add-generic-sys_olduname
-+++ a/arch/sh/kernel/sys_sh.c
-@@ -93,14 +93,3 @@ asmlinkage int sys_cacheflush(unsigned l
- 	up_read(&current->mm->mmap_sem);
+ 	/*
++	 * Should we move charges of a task when a task is moved into this
++	 * mem_cgroup ? And what type of charges should we move ?
++	 */
++	unsigned long 	move_charge_at_immigrate;
++
++	/*
+ 	 * statistics. This must be placed at the end of memcg.
+ 	 */
+ 	struct mem_cgroup_stat stat;
+ };
+ 
++/* Stuffs for move charges at task migration. */
++/*
++ * Types of charges to be moved. "move_charge_at_immitgrate" is treated as a
++ * left-shifted bitmap of these types.
++ */
++enum move_type {
++	NR_MOVE_TYPE,
++};
++
+ /*
+  * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
+  * limit reclaim to prevent infinite loops, if they ever occur.
+@@ -2865,6 +2880,31 @@ static int mem_cgroup_reset(struct cgrou
  	return 0;
  }
--
--asmlinkage int sys_uname(struct old_utsname __user *name)
--{
--	int err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof(*name));
--	up_read(&uts_sem);
--	return err?-EFAULT:0;
--}
-diff -puN arch/um/kernel/syscall.c~add-generic-sys_olduname arch/um/kernel/syscall.c
---- a/arch/um/kernel/syscall.c~add-generic-sys_olduname
-+++ a/arch/um/kernel/syscall.c
-@@ -51,51 +51,6 @@ long old_mmap(unsigned long addr, unsign
- 	return err;
- }
  
--long sys_uname(struct old_utsname __user * name)
--{
--	long err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof (*name));
--	up_read(&uts_sem);
--	return err?-EFAULT:0;
--}
--
--long sys_olduname(struct oldold_utsname __user * name)
--{
--	long error;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE,name,sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	down_read(&uts_sem);
--
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->release + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->version + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
--
--	up_read(&uts_sem);
--
--	error = error ? -EFAULT : 0;
--
--	return error;
--}
--
- int kernel_execve(const char *filename, char *const argv[], char *const envp[])
- {
- 	mm_segment_t fs;
-diff -puN arch/x86/ia32/ia32entry.S~add-generic-sys_olduname arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~add-generic-sys_olduname
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -563,7 +563,7 @@ ia32_sys_call_table:
- 	.quad quiet_ni_syscall			/* old mpx syscall holder */
- 	.quad sys_setpgid
- 	.quad quiet_ni_syscall			/* old ulimit syscall holder */
--	.quad sys32_olduname
-+	.quad sys_olduname
- 	.quad sys_umask		/* 60 */
- 	.quad sys_chroot
- 	.quad compat_sys_ustat
-@@ -613,7 +613,7 @@ ia32_sys_call_table:
- 	.quad compat_sys_newstat
- 	.quad compat_sys_newlstat
- 	.quad compat_sys_newfstat
--	.quad sys32_uname
-+	.quad sys_uname
- 	.quad stub32_iopl		/* 110 */
- 	.quad sys_vhangup
- 	.quad quiet_ni_syscall	/* old "idle" system call */
-diff -puN arch/x86/ia32/sys_ia32.c~add-generic-sys_olduname arch/x86/ia32/sys_ia32.c
---- a/arch/x86/ia32/sys_ia32.c~add-generic-sys_olduname
-+++ a/arch/x86/ia32/sys_ia32.c
-@@ -448,58 +448,6 @@ asmlinkage long sys32_sendfile(int out_f
++static u64 mem_cgroup_move_charge_read(struct cgroup *cgrp,
++					struct cftype *cft)
++{
++	return mem_cgroup_from_cont(cgrp)->move_charge_at_immigrate;
++}
++
++static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
++					struct cftype *cft, u64 val)
++{
++	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
++
++	if (val >= (1 << NR_MOVE_TYPE))
++		return -EINVAL;
++	/*
++	 * We check this value several times in both in can_attach() and
++	 * attach(), so we need cgroup lock to prevent this value from being
++	 * inconsistent.
++	 */
++	cgroup_lock();
++	mem->move_charge_at_immigrate = val;
++	cgroup_unlock();
++
++	return 0;
++}
++
+ 
+ /* For read statistics */
+ enum {
+@@ -3098,6 +3138,11 @@ static struct cftype mem_cgroup_files[] 
+ 		.read_u64 = mem_cgroup_swappiness_read,
+ 		.write_u64 = mem_cgroup_swappiness_write,
+ 	},
++	{
++		.name = "move_charge_at_immigrate",
++		.read_u64 = mem_cgroup_move_charge_read,
++		.write_u64 = mem_cgroup_move_charge_write,
++	},
+ };
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+@@ -3345,6 +3390,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	if (parent)
+ 		mem->swappiness = get_swappiness(parent);
+ 	atomic_set(&mem->refcnt, 1);
++	mem->move_charge_at_immigrate = 0;
+ 	return &mem->css;
+ free_out:
+ 	__mem_cgroup_free(mem);
+@@ -3381,16 +3427,57 @@ static int mem_cgroup_populate(struct cg
  	return ret;
  }
  
--asmlinkage long sys32_olduname(struct oldold_utsname __user *name)
--{
--	char *arch = "x86_64";
--	int err;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	down_read(&uts_sem);
--
--	err = __copy_to_user(&name->sysname, &utsname()->sysname,
--			     __OLD_UTS_LEN);
--	err |= __put_user(0, name->sysname+__OLD_UTS_LEN);
--	err |= __copy_to_user(&name->nodename, &utsname()->nodename,
--			      __OLD_UTS_LEN);
--	err |= __put_user(0, name->nodename+__OLD_UTS_LEN);
--	err |= __copy_to_user(&name->release, &utsname()->release,
--			      __OLD_UTS_LEN);
--	err |= __put_user(0, name->release+__OLD_UTS_LEN);
--	err |= __copy_to_user(&name->version, &utsname()->version,
--			      __OLD_UTS_LEN);
--	err |= __put_user(0, name->version+__OLD_UTS_LEN);
--
--	if (personality(current->personality) == PER_LINUX32)
--		arch = "i686";
--
--	err |= __copy_to_user(&name->machine, arch, strlen(arch) + 1);
--
--	up_read(&uts_sem);
--
--	err = err ? -EFAULT : 0;
--
--	return err;
--}
--
--long sys32_uname(struct old_utsname __user *name)
--{
--	int err;
--
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof(*name));
--	up_read(&uts_sem);
--	if (personality(current->personality) == PER_LINUX32)
--		err |= copy_to_user(&name->machine, "i686", 5);
--
--	return err ? -EFAULT : 0;
--}
--
- asmlinkage long sys32_execve(char __user *name, compat_uptr_t __user *argv,
- 			     compat_uptr_t __user *envp, struct pt_regs *regs)
++/* Handlers for move charge at task migration. */
++static int mem_cgroup_can_move_charge(void)
++{
++	return 0;
++}
++
++static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
++				struct cgroup *cgroup,
++				struct task_struct *p,
++				bool threadgroup)
++{
++	int ret = 0;
++	struct mem_cgroup *mem = mem_cgroup_from_cont(cgroup);
++
++	if (mem->move_charge_at_immigrate) {
++		struct mm_struct *mm;
++		struct mem_cgroup *from = mem_cgroup_from_task(p);
++
++		VM_BUG_ON(from == mem);
++
++		mm = get_task_mm(p);
++		if (!mm)
++			return 0;
++
++		/* We move charges only when we move a owner of the mm */
++		if (mm->owner == p)
++			ret = mem_cgroup_can_move_charge();
++
++		mmput(mm);
++	}
++	return ret;
++}
++
++static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
++				struct cgroup *cgroup,
++				struct task_struct *p,
++				bool threadgroup)
++{
++}
++
++static void mem_cgroup_move_charge(void)
++{
++}
++
+ static void mem_cgroup_move_task(struct cgroup_subsys *ss,
+ 				struct cgroup *cont,
+ 				struct cgroup *old_cont,
+ 				struct task_struct *p,
+ 				bool threadgroup)
  {
-diff -puN arch/x86/include/asm/sys_ia32.h~add-generic-sys_olduname arch/x86/include/asm/sys_ia32.h
---- a/arch/x86/include/asm/sys_ia32.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/sys_ia32.h
-@@ -54,11 +54,6 @@ asmlinkage long sys32_pwrite(unsigned in
- asmlinkage long sys32_personality(unsigned long);
- asmlinkage long sys32_sendfile(int, int, compat_off_t __user *, s32);
- 
--struct oldold_utsname;
--struct old_utsname;
--asmlinkage long sys32_olduname(struct oldold_utsname __user *);
--long sys32_uname(struct old_utsname __user *);
--
- asmlinkage long sys32_execve(char __user *, compat_uptr_t __user *,
- 			     compat_uptr_t __user *, struct pt_regs *);
- asmlinkage long sys32_clone(unsigned int, unsigned int, struct pt_regs *);
-diff -puN arch/x86/include/asm/syscalls.h~add-generic-sys_olduname arch/x86/include/asm/syscalls.h
---- a/arch/x86/include/asm/syscalls.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/syscalls.h
-@@ -50,13 +50,6 @@ asmlinkage int sys_sigaction(int, const 
- 			     struct old_sigaction __user *);
- unsigned long sys_sigreturn(struct pt_regs *);
- 
--/* kernel/sys_i386_32.c */
--struct oldold_utsname;
--struct old_utsname;
--
--asmlinkage int sys_uname(struct old_utsname __user *);
--asmlinkage int sys_olduname(struct oldold_utsname __user *);
--
- /* kernel/vm86_32.c */
- int sys_vm86old(struct vm86_struct __user *, struct pt_regs *);
- int sys_vm86(unsigned long, unsigned long, struct pt_regs *);
-diff -puN arch/x86/include/asm/unistd_32.h~add-generic-sys_olduname arch/x86/include/asm/unistd_32.h
---- a/arch/x86/include/asm/unistd_32.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/unistd_32.h
-@@ -367,6 +367,7 @@
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLD_MMAP
- #define __ARCH_WANT_SYS_OLD_SELECT
- #define __ARCH_WANT_SYS_OLDUMOUNT
-diff -puN arch/x86/include/asm/unistd_64.h~add-generic-sys_olduname arch/x86/include/asm/unistd_64.h
---- a/arch/x86/include/asm/unistd_64.h~add-generic-sys_olduname
-+++ a/arch/x86/include/asm/unistd_64.h
-@@ -680,6 +680,7 @@ __SYSCALL(__NR_recvmmsg, sys_recvmmsg)
- #define __ARCH_WANT_SYS_LLSEEK
- #define __ARCH_WANT_SYS_NICE
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
-+#define __ARCH_WANT_SYS_OLD_UNAME
- #define __ARCH_WANT_SYS_OLDUMOUNT
- #define __ARCH_WANT_SYS_SIGPENDING
- #define __ARCH_WANT_SYS_SIGPROCMASK
-diff -puN arch/x86/kernel/sys_i386_32.c~add-generic-sys_olduname arch/x86/kernel/sys_i386_32.c
---- a/arch/x86/kernel/sys_i386_32.c~add-generic-sys_olduname
-+++ a/arch/x86/kernel/sys_i386_32.c
-@@ -25,55 +25,6 @@
- #include <asm/syscalls.h>
- 
- /*
-- * Old cruft
-- */
--asmlinkage int sys_uname(struct old_utsname __user *name)
--{
--	int err;
--	if (!name)
--		return -EFAULT;
--	down_read(&uts_sem);
--	err = copy_to_user(name, utsname(), sizeof(*name));
--	up_read(&uts_sem);
--	return err? -EFAULT:0;
--}
--
--asmlinkage int sys_olduname(struct oldold_utsname __user *name)
--{
--	int error;
--
--	if (!name)
--		return -EFAULT;
--	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
--		return -EFAULT;
--
--	down_read(&uts_sem);
--
--	error = __copy_to_user(&name->sysname, &utsname()->sysname,
--			       __OLD_UTS_LEN);
--	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->release, &utsname()->release,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->release + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->version, &utsname()->version,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->version + __OLD_UTS_LEN);
--	error |= __copy_to_user(&name->machine, &utsname()->machine,
--				__OLD_UTS_LEN);
--	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
--
--	up_read(&uts_sem);
--
--	error = error ? -EFAULT : 0;
--
--	return error;
--}
--
--
--/*
-  * Do a system call from kernel instead of calling sys_execve so we
-  * end up with proper pt_regs.
-  */
-diff -puN include/linux/syscalls.h~add-generic-sys_olduname include/linux/syscalls.h
---- a/include/linux/syscalls.h~add-generic-sys_olduname
-+++ a/include/linux/syscalls.h
-@@ -31,6 +31,8 @@ struct msqid_ds;
- struct new_utsname;
- struct nfsctl_arg;
- struct __old_kernel_stat;
-+struct oldold_utsname;
-+struct old_utsname;
- struct pollfd;
- struct rlimit;
- struct rusage;
-@@ -655,6 +657,8 @@ asmlinkage long sys_gethostname(char __u
- asmlinkage long sys_sethostname(char __user *name, int len);
- asmlinkage long sys_setdomainname(char __user *name, int len);
- asmlinkage long sys_newuname(struct new_utsname __user *name);
-+asmlinkage long sys_uname(struct old_utsname __user *);
-+asmlinkage long sys_olduname(struct oldold_utsname __user *);
- 
- asmlinkage long sys_getrlimit(unsigned int resource,
- 				struct rlimit __user *rlim);
-diff -puN kernel/sys.c~add-generic-sys_olduname kernel/sys.c
---- a/kernel/sys.c~add-generic-sys_olduname
-+++ a/kernel/sys.c
-@@ -1138,6 +1138,60 @@ SYSCALL_DEFINE1(newuname, struct new_uts
- 	return errno;
+-	/*
+-	 * FIXME: It's better to move charges of this process from old
+-	 * memcg to new memcg. But it's just on TODO-List now.
+-	 */
++	mem_cgroup_move_charge();
  }
  
-+#ifdef __ARCH_WANT_SYS_OLD_UNAME
-+/*
-+ * Old cruft
-+ */
-+SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
-+{
-+	int error = 0;
-+
-+	if (!name)
-+		return -EFAULT;
-+
-+	down_read(&uts_sem);
-+	if (copy_to_user(name, utsname(), sizeof(*name)))
-+		error = -EFAULT;
-+	up_read(&uts_sem);
-+
-+	if (!error && override_architecture(name))
-+		error = -EFAULT;
-+	return error;
-+}
-+
-+SYSCALL_DEFINE1(olduname, struct oldold_utsname __user *, name)
-+{
-+	int error;
-+
-+	if (!name)
-+		return -EFAULT;
-+	if (!access_ok(VERIFY_WRITE, name, sizeof(struct oldold_utsname)))
-+		return -EFAULT;
-+
-+	down_read(&uts_sem);
-+	error = __copy_to_user(&name->sysname, &utsname()->sysname,
-+			       __OLD_UTS_LEN);
-+	error |= __put_user(0, name->sysname + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->nodename, &utsname()->nodename,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->nodename + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->release, &utsname()->release,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->release + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->version, &utsname()->version,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->version + __OLD_UTS_LEN);
-+	error |= __copy_to_user(&name->machine, &utsname()->machine,
-+				__OLD_UTS_LEN);
-+	error |= __put_user(0, name->machine + __OLD_UTS_LEN);
-+	up_read(&uts_sem);
-+
-+	if (!error && override_architecture(name))
-+		error = -EFAULT;
-+	return error ? -EFAULT : 0;
-+}
-+#endif
-+
- SYSCALL_DEFINE2(sethostname, char __user *, name, int, len)
- {
- 	int errno;
+ struct cgroup_subsys mem_cgroup_subsys = {
+@@ -3400,6 +3487,8 @@ struct cgroup_subsys mem_cgroup_subsys =
+ 	.pre_destroy = mem_cgroup_pre_destroy,
+ 	.destroy = mem_cgroup_destroy,
+ 	.populate = mem_cgroup_populate,
++	.can_attach = mem_cgroup_can_attach,
++	.cancel_attach = mem_cgroup_cancel_attach,
+ 	.attach = mem_cgroup_move_task,
+ 	.early_init = 0,
+ 	.use_id = 1,
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
-linux-next.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-improve-sys_personality-for-compat-architectures.patch
+memcg-avoid-use-cmpxchg-in-swap-cgroup-maintainance.patch
 
