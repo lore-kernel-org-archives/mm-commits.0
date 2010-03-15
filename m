@@ -1,493 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-move-charges-of-anonymous-swap.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:58:55 -0400
-Message-ID: <201003150659.o2F6xSdt016548@imap1.linux-foundation.org>
+Subject: [merged] memcg-improve-performance-in-moving-swap-charge.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:58:58 -0400
+Message-ID: <201003150659.o2F6xVJc016557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934472Ab0COG7n (ORCPT
+	by vger.kernel.org with ESMTP id S935638Ab0COG7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Mar 2010 02:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: move charges of anonymous swap
+     memcg: improve performance in moving swap charge
 has been removed from the -mm tree.  Its filename was
-     memcg-move-charges-of-anonymous-swap.patch
+     memcg-improve-performance-in-moving-swap-charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: move charges of anonymous swap
+Subject: memcg: improve performance in moving swap charge
 From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-This patch is another core part of this move-charge-at-task-migration
-feature.  It enables moving charges of anonymous swaps.
+Try to reduce overheads in moving swap charge by:
 
-To move the charge of swap, we need to exchange swap_cgroup's record.
+- Adds a new function(__mem_cgroup_put), which takes "count" as a arg and
+  decrement mem->refcnt by "count".
+- Removed res_counter_uncharge, css_put, and mem_cgroup_put from the path
+  of moving swap account, and consolidate all of them into mem_cgroup_clear_mc.
+  We cannot do that about mc.to->refcnt.
 
-In current implementation, swap_cgroup's record is protected by:
+These changes reduces the overhead from 1.35sec to 0.9sec to move charges
+of 1G anonymous memory(including 500MB swap) in my test environment.
 
-  - page lock: if the entry is on swap cache.
-  - swap_lock: if the entry is not on swap cache.
-
-This works well in usual swap-in/out activity.
-
-But this behavior make the feature of moving swap charge check many
-conditions to exchange swap_cgroup's record safely.
-
-So I changed modification of swap_cgroup's recored(swap_cgroup_record())
-to use xchg, and define a new function to cmpxchg swap_cgroup's record.
-
-This patch also enables moving charge of non pte_present but not uncharged
-swap caches, which can be exist on swap-out path, by getting the target
-pages via find_get_page() as do_mincore() does.
-
-[kosaki.motohiro@jp.fujitsu.com: fix ia64 build]
-[akpm@linux-foundation.org: fix typos]
 Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 
- include/linux/page_cgroup.h      |    2 
- include/linux/swap.h             |    9 +
- mm/memcontrol.c                  |  183 +++++++++++++++++++++++------
- mm/page_cgroup.c                 |   34 +++++
- mm/swapfile.c                    |   31 ++++
- 6 files changed, 223 insertions(+), 38 deletions(-)
+ mm/memcontrol.c |   75 ++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 60 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-move-charges-of-anonymous-swap
-+++ a/Documentation/cgroups/memory.txt
-@@ -420,6 +420,8 @@ NOTE2: It is recommended to set the soft
- 
- Users can move charges associated with a task along with task migration, that
- is, uncharge task's pages from the old cgroup and charge them to the new cgroup.
-+This feature is not supported in !CONFIG_MMU environments because of lack of
-+page tables.
- 
- 8.1 Interface
- 
-diff -puN include/linux/page_cgroup.h~memcg-move-charges-of-anonymous-swap include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~memcg-move-charges-of-anonymous-swap
-+++ a/include/linux/page_cgroup.h
-@@ -118,6 +118,8 @@ static inline void __init page_cgroup_in
- #include <linux/swap.h>
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
-+extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
-+					unsigned short old, unsigned short new);
- extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
- extern unsigned short lookup_swap_cgroup(swp_entry_t ent);
- extern int swap_cgroup_swapon(int type, unsigned long max_pages);
-diff -puN include/linux/swap.h~memcg-move-charges-of-anonymous-swap include/linux/swap.h
---- a/include/linux/swap.h~memcg-move-charges-of-anonymous-swap
-+++ a/include/linux/swap.h
-@@ -355,6 +355,7 @@ static inline void disable_swap_token(vo
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- extern void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
-+extern int mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep);
- #else
- static inline void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout)
-@@ -485,6 +486,14 @@ mem_cgroup_uncharge_swapcache(struct pag
- {
- }
- 
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+static inline int
-+mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep)
-+{
-+	return 0;
-+}
-+#endif
-+
- #endif /* CONFIG_SWAP */
- #endif /* __KERNEL__*/
- #endif /* _LINUX_SWAP_H */
-diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-swap mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-swap
+diff -puN mm/memcontrol.c~memcg-improve-performance-in-moving-swap-charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-improve-performance-in-moving-swap-charge
 +++ a/mm/memcontrol.c
-@@ -33,6 +33,7 @@
- #include <linux/rbtree.h>
- #include <linux/slab.h>
- #include <linux/swap.h>
-+#include <linux/swapops.h>
- #include <linux/spinlock.h>
- #include <linux/fs.h>
- #include <linux/seq_file.h>
-@@ -2270,6 +2271,54 @@ void mem_cgroup_uncharge_swap(swp_entry_
- 	}
- 	rcu_read_unlock();
- }
-+
-+/**
-+ * mem_cgroup_move_swap_account - move swap charge and swap_cgroup's record.
-+ * @entry: swap entry to be moved
-+ * @from:  mem_cgroup which the entry is moved from
-+ * @to:  mem_cgroup which the entry is moved to
-+ *
-+ * It succeeds only when the swap_cgroup's record for this entry is the same
-+ * as the mem_cgroup's id of @from.
-+ *
-+ * Returns 0 on success, -EINVAL on failure.
-+ *
-+ * The caller must have charged to @to, IOW, called res_counter_charge() about
-+ * both res and memsw, and called css_get().
-+ */
-+static int mem_cgroup_move_swap_account(swp_entry_t entry,
-+				struct mem_cgroup *from, struct mem_cgroup *to)
-+{
-+	unsigned short old_id, new_id;
-+
-+	old_id = css_id(&from->css);
-+	new_id = css_id(&to->css);
-+
-+	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
-+		if (!mem_cgroup_is_root(from))
-+			res_counter_uncharge(&from->memsw, PAGE_SIZE);
-+		mem_cgroup_swap_statistics(from, false);
-+		mem_cgroup_put(from);
-+		/*
-+		 * we charged both to->res and to->memsw, so we should uncharge
-+		 * to->res.
-+		 */
-+		if (!mem_cgroup_is_root(to))
-+			res_counter_uncharge(&to->res, PAGE_SIZE);
-+		mem_cgroup_swap_statistics(to, true);
-+		mem_cgroup_get(to);
-+		css_put(&to->css);
-+
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+#else
-+static inline int mem_cgroup_move_swap_account(swp_entry_t entry,
-+				struct mem_cgroup *from, struct mem_cgroup *to)
-+{
-+	return -EINVAL;
-+}
- #endif
- 
- /*
-@@ -2949,6 +2998,7 @@ static u64 mem_cgroup_move_charge_read(s
- 	return mem_cgroup_from_cont(cgrp)->move_charge_at_immigrate;
- }
- 
-+#ifdef CONFIG_MMU
- static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
- 					struct cftype *cft, u64 val)
- {
-@@ -2967,6 +3017,13 @@ static int mem_cgroup_move_charge_write(
- 
- 	return 0;
- }
-+#else
-+static int mem_cgroup_move_charge_write(struct cgroup *cgrp,
-+					struct cftype *cft, u64 val)
-+{
-+	return -ENOSYS;
-+}
-+#endif
- 
- 
- /* For read statistics */
-@@ -3489,6 +3546,7 @@ static int mem_cgroup_populate(struct cg
- 	return ret;
- }
- 
-+#ifdef CONFIG_MMU
- /* Handlers for move charge at task migration. */
- #define PRECHARGE_COUNT_AT_ONCE	256
- static int mem_cgroup_do_precharge(unsigned long count)
-@@ -3544,77 +3602,124 @@ one_by_one:
- 	}
- 	return ret;
- }
-+#else	/* !CONFIG_MMU */
-+static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+	return 0;
-+}
-+static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-+				struct cgroup *cont,
-+				struct cgroup *old_cont,
-+				struct task_struct *p,
-+				bool threadgroup)
-+{
-+}
-+#endif
- 
- /**
-  * is_target_pte_for_mc - check a pte whether it is valid for move charge
-  * @vma: the vma the pte to be checked belongs
-  * @addr: the address corresponding to the pte to be checked
-  * @ptent: the pte to be checked
-- * @target: the pointer the target page will be stored(can be NULL)
-+ * @target: the pointer the target page or swap ent will be stored(can be NULL)
+@@ -255,6 +255,7 @@ static struct move_charge_struct {
+ 	struct mem_cgroup *to;
+ 	unsigned long precharge;
+ 	unsigned long moved_charge;
++	unsigned long moved_swap;
+ 	struct task_struct *moving_task;	/* a task moving charges */
+ 	wait_queue_head_t waitq;		/* a waitq for other context */
+ } mc = {
+@@ -2277,6 +2278,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+  * @entry: swap entry to be moved
+  * @from:  mem_cgroup which the entry is moved from
+  * @to:  mem_cgroup which the entry is moved to
++ * @need_fixup: whether we should fixup res_counters and refcounts.
   *
-  * Returns
-  *   0(MC_TARGET_NONE): if the pte is not a target for move charge.
-  *   1(MC_TARGET_PAGE): if the page corresponding to this pte is a target for
-  *     move charge. if @target is not NULL, the page is stored in target->page
-  *     with extra refcnt got(Callers should handle it).
-+ *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
-+ *     target for charge migration. if @target is not NULL, the entry is stored
-+ *     in target->ent.
-  *
-  * Called with pte lock held.
+  * It succeeds only when the swap_cgroup's record for this entry is the same
+  * as the mem_cgroup's id of @from.
+@@ -2287,7 +2289,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+  * both res and memsw, and called css_get().
   */
--/* We add a new member later. */
- union mc_target {
- 	struct page	*page;
-+	swp_entry_t	ent;
- };
- 
--/* We add a new type later. */
- enum mc_target_type {
- 	MC_TARGET_NONE,	/* not used */
- 	MC_TARGET_PAGE,
-+	MC_TARGET_SWAP,
- };
- 
- static int is_target_pte_for_mc(struct vm_area_struct *vma,
- 		unsigned long addr, pte_t ptent, union mc_target *target)
+ static int mem_cgroup_move_swap_account(swp_entry_t entry,
+-				struct mem_cgroup *from, struct mem_cgroup *to)
++		struct mem_cgroup *from, struct mem_cgroup *to, bool need_fixup)
  {
--	struct page *page;
-+	struct page *page = NULL;
- 	struct page_cgroup *pc;
- 	int ret = 0;
-+	swp_entry_t ent = { .val = 0 };
-+	int usage_count = 0;
- 	bool move_anon = test_bit(MOVE_CHARGE_TYPE_ANON,
- 					&mc.to->move_charge_at_immigrate);
+ 	unsigned short old_id, new_id;
  
--	if (!pte_present(ptent))
--		return 0;
+@@ -2295,27 +2297,36 @@ static int mem_cgroup_move_swap_account(
+ 	new_id = css_id(&to->css);
+ 
+ 	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
+-		if (!mem_cgroup_is_root(from))
+-			res_counter_uncharge(&from->memsw, PAGE_SIZE);
+ 		mem_cgroup_swap_statistics(from, false);
+-		mem_cgroup_put(from);
++		mem_cgroup_swap_statistics(to, true);
+ 		/*
+-		 * we charged both to->res and to->memsw, so we should uncharge
+-		 * to->res.
++		 * This function is only called from task migration context now.
++		 * It postpones res_counter and refcount handling till the end
++		 * of task migration(mem_cgroup_clear_mc()) for performance
++		 * improvement. But we cannot postpone mem_cgroup_get(to)
++		 * because if the process that has been moved to @to does
++		 * swap-in, the refcount of @to might be decreased to 0.
+ 		 */
+-		if (!mem_cgroup_is_root(to))
+-			res_counter_uncharge(&to->res, PAGE_SIZE);
+-		mem_cgroup_swap_statistics(to, true);
+ 		mem_cgroup_get(to);
+-		css_put(&to->css);
 -
--	page = vm_normal_page(vma, addr, ptent);
--	if (!page || !page_mapped(page))
--		return 0;
--	/*
--	 * TODO: We don't move charges of file(including shmem/tmpfs) pages for
--	 * now.
--	 */
--	if (!move_anon || !PageAnon(page))
--		return 0;
--	/*
--	 * TODO: We don't move charges of shared(used by multiple processes)
--	 * pages for now.
--	 */
--	if (page_mapcount(page) > 1)
--		return 0;
--	if (!get_page_unless_zero(page))
-+	if (!pte_present(ptent)) {
-+		/* TODO: handle swap of shmes/tmpfs */
-+		if (pte_none(ptent) || pte_file(ptent))
-+			return 0;
-+		else if (is_swap_pte(ptent)) {
-+			ent = pte_to_swp_entry(ptent);
-+			if (!move_anon || non_swap_entry(ent))
-+				return 0;
-+			usage_count = mem_cgroup_count_swap_user(ent, &page);
++		if (need_fixup) {
++			if (!mem_cgroup_is_root(from))
++				res_counter_uncharge(&from->memsw, PAGE_SIZE);
++			mem_cgroup_put(from);
++			/*
++			 * we charged both to->res and to->memsw, so we should
++			 * uncharge to->res.
++			 */
++			if (!mem_cgroup_is_root(to))
++				res_counter_uncharge(&to->res, PAGE_SIZE);
++			css_put(&to->css);
 +		}
-+	} else {
-+		page = vm_normal_page(vma, addr, ptent);
-+		if (!page || !page_mapped(page))
-+			return 0;
-+		/*
-+		 * TODO: We don't move charges of file(including shmem/tmpfs)
-+		 * pages for now.
-+		 */
-+		if (!move_anon || !PageAnon(page))
-+			return 0;
-+		if (!get_page_unless_zero(page))
-+			return 0;
-+		usage_count = page_mapcount(page);
-+	}
-+	if (usage_count > 1) {
-+		/*
-+		 * TODO: We don't move charges of shared(used by multiple
-+		 * processes) pages for now.
-+		 */
-+		if (page)
-+			put_page(page);
  		return 0;
--
--	pc = lookup_page_cgroup(page);
--	/*
--	 * Do only loose check w/o page_cgroup lock. mem_cgroup_move_account()
--	 * checks the pc is valid or not under the lock.
--	 */
--	if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
--		ret = MC_TARGET_PAGE;
-+	}
-+	if (page) {
-+		pc = lookup_page_cgroup(page);
-+		/*
-+		 * Do only loose check w/o page_cgroup lock.
-+		 * mem_cgroup_move_account() checks the pc is valid or not under
-+		 * the lock.
-+		 */
-+		if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
-+			ret = MC_TARGET_PAGE;
-+			if (target)
-+				target->page = page;
-+		}
-+		if (!ret || !target)
-+			put_page(page);
-+	}
-+	/* throught */
-+	if (ent.val && do_swap_account && !ret &&
-+			css_id(&mc.from->css) == lookup_swap_cgroup(ent)) {
-+		ret = MC_TARGET_SWAP;
- 		if (target)
--			target->page = page;
-+			target->ent = ent;
  	}
--
--	if (!ret || !target)
--		put_page(page);
--
- 	return ret;
+ 	return -EINVAL;
+ }
+ #else
+ static inline int mem_cgroup_move_swap_account(swp_entry_t entry,
+-				struct mem_cgroup *from, struct mem_cgroup *to)
++		struct mem_cgroup *from, struct mem_cgroup *to, bool need_fixup)
+ {
+ 	return -EINVAL;
+ }
+@@ -3398,9 +3409,9 @@ static void mem_cgroup_get(struct mem_cg
+ 	atomic_inc(&mem->refcnt);
  }
  
-@@ -3754,6 +3859,7 @@ retry:
- 		int type;
- 		struct page *page;
- 		struct page_cgroup *pc;
-+		swp_entry_t ent;
+-static void mem_cgroup_put(struct mem_cgroup *mem)
++static void __mem_cgroup_put(struct mem_cgroup *mem, int count)
+ {
+-	if (atomic_dec_and_test(&mem->refcnt)) {
++	if (atomic_sub_and_test(count, &mem->refcnt)) {
+ 		struct mem_cgroup *parent = parent_mem_cgroup(mem);
+ 		__mem_cgroup_free(mem);
+ 		if (parent)
+@@ -3408,6 +3419,11 @@ static void mem_cgroup_put(struct mem_cg
+ 	}
+ }
  
- 		if (!mc.precharge)
++static void mem_cgroup_put(struct mem_cgroup *mem)
++{
++	__mem_cgroup_put(mem, 1);
++}
++
+ /*
+  * Returns the parent mem_cgroup in memcgroup hierarchy with hierarchy enabled.
+  */
+@@ -3789,6 +3805,29 @@ static void mem_cgroup_clear_mc(void)
+ 		__mem_cgroup_cancel_charge(mc.from, mc.moved_charge);
+ 		mc.moved_charge = 0;
+ 	}
++	/* we must fixup refcnts and charges */
++	if (mc.moved_swap) {
++		WARN_ON_ONCE(mc.moved_swap > INT_MAX);
++		/* uncharge swap account from the old cgroup */
++		if (!mem_cgroup_is_root(mc.from))
++			res_counter_uncharge(&mc.from->memsw,
++						PAGE_SIZE * mc.moved_swap);
++		__mem_cgroup_put(mc.from, mc.moved_swap);
++
++		if (!mem_cgroup_is_root(mc.to)) {
++			/*
++			 * we charged both to->res and to->memsw, so we should
++			 * uncharge to->res.
++			 */
++			res_counter_uncharge(&mc.to->res,
++						PAGE_SIZE * mc.moved_swap);
++			VM_BUG_ON(test_bit(CSS_ROOT, &mc.to->css.flags));
++			__css_put(&mc.to->css, mc.moved_swap);
++		}
++		/* we've already done mem_cgroup_get(mc.to) */
++
++		mc.moved_swap = 0;
++	}
+ 	mc.from = NULL;
+ 	mc.to = NULL;
+ 	mc.moving_task = NULL;
+@@ -3818,11 +3857,13 @@ static int mem_cgroup_can_attach(struct 
+ 			VM_BUG_ON(mc.to);
+ 			VM_BUG_ON(mc.precharge);
+ 			VM_BUG_ON(mc.moved_charge);
++			VM_BUG_ON(mc.moved_swap);
+ 			VM_BUG_ON(mc.moving_task);
+ 			mc.from = from;
+ 			mc.to = mem;
+ 			mc.precharge = 0;
+ 			mc.moved_charge = 0;
++			mc.moved_swap = 0;
+ 			mc.moving_task = current;
+ 
+ 			ret = mem_cgroup_precharge_mc(mm);
+@@ -3883,8 +3924,12 @@ put:			/* is_target_pte_for_mc() gets th
  			break;
-@@ -3775,6 +3881,11 @@ retry:
- put:			/* is_target_pte_for_mc() gets the page */
- 			put_page(page);
+ 		case MC_TARGET_SWAP:
+ 			ent = target.ent;
+-			if (!mem_cgroup_move_swap_account(ent, mc.from, mc.to))
++			if (!mem_cgroup_move_swap_account(ent,
++						mc.from, mc.to, false)) {
+ 				mc.precharge--;
++				/* we fixup refcnts and charges later. */
++				mc.moved_swap++;
++			}
  			break;
-+		case MC_TARGET_SWAP:
-+			ent = target.ent;
-+			if (!mem_cgroup_move_swap_account(ent, mc.from, mc.to))
-+				mc.precharge--;
-+			break;
  		default:
  			break;
- 		}
-diff -puN mm/page_cgroup.c~memcg-move-charges-of-anonymous-swap mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-move-charges-of-anonymous-swap
-+++ a/mm/page_cgroup.c
-@@ -335,6 +335,37 @@ not_enough_page:
- }
- 
- /**
-+ * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
-+ * @end: swap entry to be cmpxchged
-+ * @old: old id
-+ * @new: new id
-+ *
-+ * Returns old id at success, 0 at failure.
-+ * (There is no mem_cgroup useing 0 as its id)
-+ */
-+unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
-+					unsigned short old, unsigned short new)
-+{
-+	int type = swp_type(ent);
-+	unsigned long offset = swp_offset(ent);
-+	unsigned long idx = offset / SC_PER_PAGE;
-+	unsigned long pos = offset & SC_POS_MASK;
-+	struct swap_cgroup_ctrl *ctrl;
-+	struct page *mappage;
-+	struct swap_cgroup *sc;
-+
-+	ctrl = &swap_cgroup_ctrl[type];
-+
-+	mappage = ctrl->map[idx];
-+	sc = page_address(mappage);
-+	sc += pos;
-+	if (cmpxchg(&sc->id, old, new) == old)
-+		return old;
-+	else
-+		return 0;
-+}
-+
-+/**
-  * swap_cgroup_record - record mem_cgroup for this swp_entry.
-  * @ent: swap entry to be recorded into
-  * @mem: mem_cgroup to be recorded
-@@ -358,8 +389,7 @@ unsigned short swap_cgroup_record(swp_en
- 	mappage = ctrl->map[idx];
- 	sc = page_address(mappage);
- 	sc += pos;
--	old = sc->id;
--	sc->id = id;
-+	old = xchg(&sc->id, id);
- 
- 	return old;
- }
-diff -puN mm/swapfile.c~memcg-move-charges-of-anonymous-swap mm/swapfile.c
---- a/mm/swapfile.c~memcg-move-charges-of-anonymous-swap
-+++ a/mm/swapfile.c
-@@ -723,6 +723,37 @@ int free_swap_and_cache(swp_entry_t entr
- 	return p != NULL;
- }
- 
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+/**
-+ * mem_cgroup_count_swap_user - count the user of a swap entry
-+ * @ent: the swap entry to be checked
-+ * @pagep: the pointer for the swap cache page of the entry to be stored
-+ *
-+ * Returns the number of the user of the swap entry. The number is valid only
-+ * for swaps of anonymous pages.
-+ * If the entry is found on swap cache, the page is stored to pagep with
-+ * refcount of it being incremented.
-+ */
-+int mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep)
-+{
-+	struct page *page;
-+	struct swap_info_struct *p;
-+	int count = 0;
-+
-+	page = find_get_page(&swapper_space, ent.val);
-+	if (page)
-+		count += page_mapcount(page);
-+	p = swap_info_get(ent);
-+	if (p) {
-+		count += swap_count(p->swap_map[swp_offset(ent)]);
-+		spin_unlock(&swap_lock);
-+	}
-+
-+	*pagep = page;
-+	return count;
-+}
-+#endif
-+
- #ifdef CONFIG_HIBERNATION
- /*
-  * Find the swap type that corresponds to given device (if any).
 _
 
 Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
