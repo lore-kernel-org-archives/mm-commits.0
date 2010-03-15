@@ -1,92 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sgi-gru-use-for_each_set_bit.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:04:43 -0400
-Message-ID: <201003150705.o2F75Gqd017077@imap1.linux-foundation.org>
+Subject: [merged] w1-mxc_w1-move-probe-and-remove-to-the-dev-text-area.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:04:37 -0400
+Message-ID: <201003150705.o2F75AEZ017070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759706Ab0COHFV (ORCPT
+	by vger.kernel.org with ESMTP id S1759708Ab0COHF1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:21 -0400
+	Mon, 15 Mar 2010 03:05:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, steiner@sgi.com, mm-commits@vger.kernel.org
+To: maramaopercheseimorto@gmail.com, johnpol@2ka.mipt.ru, s.hauer@pengutronix.de, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-gru: use for_each_set_bit()
+     w1: mxc_w1: move probe() and remove() to the dev* text area
 has been removed from the -mm tree.  Its filename was
-     sgi-gru-use-for_each_set_bit.patch
+     w1-mxc_w1-move-probe-and-remove-to-the-dev-text-area.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sgi-gru: use for_each_set_bit()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: w1: mxc_w1: move probe() and remove() to the dev* text area
+=46rom: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 
-Replace open-coded loop with for_each_set_bit().
+This fixes the section mismatch warning for mxc_w1_probe()
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jack Steiner <steiner@sgi.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grutables.h |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/w1/masters/mxc_w1.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grutables.h~sgi-gru-use-for_each_set_bit drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~sgi-gru-use-for_each_set_bit
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -516,8 +516,7 @@ struct gru_blade_state {
- 
- /* Scan all active GRUs in a GRU bitmap */
- #define for_each_gru_in_bitmap(gid, map)				\
--	for ((gid) = find_first_bit((map), GRU_MAX_GRUS); (gid) < GRU_MAX_GRUS;\
--		(gid)++, (gid) = find_next_bit((map), GRU_MAX_GRUS, (gid)))
-+	for_each_set_bit((gid), (map), GRU_MAX_GRUS)
- 
- /* Scan all active GRUs on a specific blade */
- #define for_each_gru_on_blade(gru, nid, i)				\
-@@ -536,23 +535,17 @@ struct gru_blade_state {
- 
- /* Scan each CBR whose bit is set in a TFM (or copy of) */
- #define for_each_cbr_in_tfm(i, map)					\
--	for ((i) = find_first_bit(map, GRU_NUM_CBE);			\
--			(i) < GRU_NUM_CBE;				\
--			(i)++, (i) = find_next_bit(map, GRU_NUM_CBE, i))
-+	for_each_set_bit((i), (map), GRU_NUM_CBE)
- 
- /* Scan each CBR in a CBR bitmap. Note: multiple CBRs in an allocation unit */
- #define for_each_cbr_in_allocation_map(i, map, k)			\
--	for ((k) = find_first_bit(map, GRU_CBR_AU); (k) < GRU_CBR_AU;	\
--			(k) = find_next_bit(map, GRU_CBR_AU, (k) + 1)) 	\
-+	for_each_set_bit((k), (map), GRU_CBR_AU)			\
- 		for ((i) = (k)*GRU_CBR_AU_SIZE;				\
- 				(i) < ((k) + 1) * GRU_CBR_AU_SIZE; (i)++)
- 
- /* Scan each DSR in a DSR bitmap. Note: multiple DSRs in an allocation unit */
- #define for_each_dsr_in_allocation_map(i, map, k)			\
--	for ((k) = find_first_bit((const unsigned long *)map, GRU_DSR_AU);\
--			(k) < GRU_DSR_AU;				\
--			(k) = find_next_bit((const unsigned long *)map,	\
--					  GRU_DSR_AU, (k) + 1))		\
-+	for_each_set_bit((k), (const unsigned long *)(map), GRU_DSR_AU)	\
- 		for ((i) = (k) * GRU_DSR_AU_CL;				\
- 				(i) < ((k) + 1) * GRU_DSR_AU_CL; (i)++)
- 
+diff -puN drivers/w1/masters/mxc_w1.c~w1-mxc_w1-move-probe-and-remove-t=
+o-the-dev-text-area drivers/w1/masters/mxc_w1.c
+--- a/drivers/w1/masters/mxc_w1.c~w1-mxc_w1-move-probe-and-remove-to-th=
+e-dev-text-area
++++ a/drivers/w1/masters/mxc_w1.c
+@@ -102,7 +102,7 @@ static u8 mxc_w1_ds2_touch_bit(void *dat
+ 	return ((__raw_readb(ctrl_addr)) >> 3) & 0x1;
+ }
+=20
+-static int __init mxc_w1_probe(struct platform_device *pdev)
++static int __devinit mxc_w1_probe(struct platform_device *pdev)
+ {
+ 	struct mxc_w1_device *mdev;
+ 	struct resource *res;
+@@ -166,7 +166,7 @@ failed_clk:
+ /*
+  * disassociate the w1 device from the driver
+  */
+-static int mxc_w1_remove(struct platform_device *pdev)
++static int __devexit mxc_w1_remove(struct platform_device *pdev)
+ {
+ 	struct mxc_w1_device *mdev =3D platform_get_drvdata(pdev);
+ 	struct resource *res;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from maramaopercheseimorto@gmai=
+l.com are
 
 origin.patch
-ntfs-use-bitmap_weight.patch
-hpet-use-for_each_set_bit.patch
-intel-iommu-use-for_each_set_bit.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-phonet-use-for_each_set_bit.patch
-atm-use-for_each_set_bit.patch
-bitops-remove-temporary-for_each_bit.patch
+linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
