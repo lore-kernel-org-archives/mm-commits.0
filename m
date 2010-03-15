@@ -1,71 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-extern-cleanup-c_a_d.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:04:57 -0400
-Message-ID: <201003150705.o2F75UF7017094@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-mmtimerc-eliminate-useless-code.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:04:40 -0400
+Message-ID: <201003150705.o2F75DYt017074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759731Ab0COHFd (ORCPT
+	by vger.kernel.org with ESMTP id S1759722Ab0COHF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:33 -0400
+	Mon, 15 Mar 2010 03:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, sivanich@sgi.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl extern cleanup: C_A_D
+     drivers/char/mmtimer.c: eliminate useless code
 has been removed from the -mm tree.  Its filename was
-     sysctl-extern-cleanup-c_a_d.patch
+     drivers-char-mmtimerc-eliminate-useless-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: C_A_D
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: drivers/char/mmtimer.c: eliminate useless code
+From: Julia Lawall <julia@diku.dk>
 
-Extern declarations in sysctl.c should be moved to their own header file,
-and then include them in relavant .c files.
+The variable x is initialized twice to the same (side effect-free)
+expression.  Drop one initialization.
 
-Move C_A_D extern variable declaration to linux/reboot.h
+A simplified version of the semantic match that finds this problem is:
+(http://coccinelle.lip6.fr/)
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+// <smpl>
+@forall@
+idexpression *x;
+identifier f!=ERR_PTR;
+@@
+
+x = f(...)
+... when != x
+(
+x = f(...,<+...x...+>,...)
+|
+* x = f(...)
+)
+// </smpl>
+
+Stefan observed:
+
+  The next x = rb_entry(mn->next, struct mmtimer, list); is preceded by a
+  test whether mn->next is NULL.
+
+  Unless that test is redundant too, your patch fixes a potential NULL
+  pointer dereference, introduced by commit cbacdd95 "SGI Altix mmtimer:
+  allow larger number of timers per node" in 2.6.26.
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |    1 +
- kernel/sysctl.c        |    1 -
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mmtimer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/reboot.h~sysctl-extern-cleanup-c_a_d include/linux/reboot.h
---- a/include/linux/reboot.h~sysctl-extern-cleanup-c_a_d
-+++ a/include/linux/reboot.h
-@@ -64,6 +64,7 @@ extern void kernel_restart(char *cmd);
- extern void kernel_halt(void);
- extern void kernel_power_off(void);
+diff -puN drivers/char/mmtimer.c~drivers-char-mmtimerc-eliminate-useless-code drivers/char/mmtimer.c
+--- a/drivers/char/mmtimer.c~drivers-char-mmtimerc-eliminate-useless-code
++++ a/drivers/char/mmtimer.c
+@@ -546,7 +546,7 @@ static void mmtimer_tasklet(unsigned lon
+ {
+ 	int nodeid = data;
+ 	struct mmtimer_node *mn = &timers[nodeid];
+-	struct mmtimer *x = rb_entry(mn->next, struct mmtimer, list);
++	struct mmtimer *x;
+ 	struct k_itimer *t;
+ 	unsigned long flags;
  
-+extern int C_A_D; /* for sysctl */
- void ctrl_alt_del(void);
- 
- #define POWEROFF_CMD_PATH_LEN	256
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-c_a_d kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-c_a_d
-+++ a/kernel/sysctl.c
-@@ -65,7 +65,6 @@
- #if defined(CONFIG_SYSCTL)
- 
- /* External variables not in a header file. */
--extern int C_A_D;
- extern int print_fatal_signals;
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-edac-introduce-missing-kfree.patch
 
