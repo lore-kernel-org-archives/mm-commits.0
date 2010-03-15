@@ -1,393 +1,426 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-subsystem-module-unloading.patch removed from -mm tree
-Date: Sun, 14 Mar 2010 23:58:24 -0400
-Message-ID: <201003150658.o2F6wwPB016496@imap1.linux-foundation.org>
+Subject: [merged] memcg-move-charges-of-anonymous-page.patch removed from -mm tree
+Date: Sun, 14 Mar 2010 23:58:44 -0400
+Message-ID: <201003150659.o2F6xHmO016531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934472Ab0COG7j (ORCPT
+	by vger.kernel.org with ESMTP id S935633Ab0COG7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 02:59:39 -0400
+	Mon, 15 Mar 2010 02:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bblum@andrew.cmu.edu, davem@davemloft.net, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: subsystem module unloading
+     memcg: move charges of anonymous page
 has been removed from the -mm tree.  Its filename was
-     cgroups-subsystem-module-unloading.patch
+     memcg-move-charges-of-anonymous-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: subsystem module unloading
-From: Ben Blum <bblum@andrew.cmu.edu>
+Subject: memcg: move charges of anonymous page
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Provides support for unloading modular subsystems.
+This patch is the core part of this move-charge-at-task-migration feature.
+ It implements functions to move charges of anonymous pages mapped only by
+the target task.
 
-This patch adds a new function cgroup_unload_subsys which is to be used
-for removing a loaded subsystem during module deletion.  Reference
-counting of the subsystems' modules is moved from once (at load time) to
-once per attached hierarchy (in parse_cgroupfs_options and
-rebind_subsystems) (i.e., 0 or 1).
+Implementation:
+- define struct move_charge_struct and a valuable of it(mc) to remember the
+  count of pre-charges and other information.
+- At can_attach(), get anon_rss of the target mm, call __mem_cgroup_try_charge()
+  repeatedly and count up mc.precharge.
+- At attach(), parse the page table, find a target page to be move, and call
+  mem_cgroup_move_account() about the page.
+- Cancel all precharges if mc.precharge > 0 on failure or at the end of
+  task move.
 
-Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
-Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+[akpm@linux-foundation.org: a little simplification]
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    5 
- include/linux/cgroup.h            |    4 
- kernel/cgroup.c                   |  167 +++++++++++++++++++++++-----
- 3 files changed, 148 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |  292 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 283 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-subsystem-module-unloading Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-subsystem-module-unloading
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -489,8 +489,9 @@ Each subsystem should:
- - define a cgroup_subsys object called <name>_subsys
+diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-page mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-page
++++ a/mm/memcontrol.c
+@@ -21,6 +21,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+ #include <linux/mm.h>
++#include <linux/hugetlb.h>
+ #include <linux/pagemap.h>
+ #include <linux/smp.h>
+ #include <linux/page-flags.h>
+@@ -243,9 +244,17 @@ struct mem_cgroup {
+  * left-shifted bitmap of these types.
+  */
+ enum move_type {
++	MOVE_CHARGE_TYPE_ANON,	/* private anonymous page and swap of it */
+ 	NR_MOVE_TYPE,
+ };
  
- If a subsystem can be compiled as a module, it should also have in its
--module initcall a call to cgroup_load_subsys(&its_subsys_struct). It
--should also set its_subsys.module = THIS_MODULE in its .c file.
-+module initcall a call to cgroup_load_subsys(), and in its exitcall a
-+call to cgroup_unload_subsys(). It should also set its_subsys.module =
-+THIS_MODULE in its .c file.
- 
- Each subsystem may export the following methods. The only mandatory
- methods are create/destroy. Any others that are null are presumed to
-diff -puN include/linux/cgroup.h~cgroups-subsystem-module-unloading include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-subsystem-module-unloading
-+++ a/include/linux/cgroup.h
-@@ -38,6 +38,7 @@ extern void cgroup_exit(struct task_stru
- extern int cgroupstats_build(struct cgroupstats *stats,
- 				struct dentry *dentry);
- extern int cgroup_load_subsys(struct cgroup_subsys *ss);
-+extern void cgroup_unload_subsys(struct cgroup_subsys *ss);
- 
- extern const struct file_operations proc_cgroup_operations;
- 
-@@ -271,7 +272,8 @@ struct css_set {
- 	/*
- 	 * Set of subsystem states, one for each subsystem. This array
- 	 * is immutable after creation apart from the init_css_set
--	 * during subsystem registration (at boot time).
-+	 * during subsystem registration (at boot time) and modular subsystem
-+	 * loading/unloading.
++/* "mc" and its members are protected by cgroup_mutex */
++static struct move_charge_struct {
++	struct mem_cgroup *from;
++	struct mem_cgroup *to;
++	unsigned long precharge;
++} mc;
++
+ /*
+  * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
+  * limit reclaim to prevent infinite loops, if they ever occur.
+@@ -1513,7 +1522,7 @@ charged:
+ 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
+ 	 * if they exceeds softlimit.
  	 */
- 	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
- 
-diff -puN kernel/cgroup.c~cgroups-subsystem-module-unloading kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-subsystem-module-unloading
-+++ a/kernel/cgroup.c
-@@ -894,7 +894,9 @@ void cgroup_release_and_wakeup_rmdir(str
+-	if (mem_cgroup_soft_limit_check(mem))
++	if (page && mem_cgroup_soft_limit_check(mem))
+ 		mem_cgroup_update_tree(mem, page);
+ done:
+ 	return 0;
+@@ -1690,8 +1699,9 @@ static void __mem_cgroup_move_account(st
+ 	/*
+ 	 * We charges against "to" which may not have any tasks. Then, "to"
+ 	 * can be under rmdir(). But in current implementation, caller of
+-	 * this function is just force_empty() and it's garanteed that
+-	 * "to" is never removed. So, we don't check rmdir status here.
++	 * this function is just force_empty() and move charge, so it's
++	 * garanteed that "to" is never removed. So, we don't check rmdir
++	 * status here.
+ 	 */
  }
  
- /*
-- * Call with cgroup_mutex held.
-+ * Call with cgroup_mutex held. Drops reference counts on modules, including
-+ * any duplicate ones that parse_cgroupfs_options took. If this function
-+ * returns an error, no reference counts are touched.
-  */
- static int rebind_subsystems(struct cgroupfs_root *root,
- 			      unsigned long final_bits)
-@@ -950,6 +952,7 @@ static int rebind_subsystems(struct cgro
- 			if (ss->bind)
- 				ss->bind(ss, cgrp);
- 			mutex_unlock(&ss->hierarchy_mutex);
-+			/* refcount was already taken, and we're keeping it */
- 		} else if (bit & removed_bits) {
- 			/* We're removing this subsystem */
- 			BUG_ON(ss == NULL);
-@@ -963,10 +966,20 @@ static int rebind_subsystems(struct cgro
- 			subsys[i]->root = &rootnode;
- 			list_move(&ss->sibling, &rootnode.subsys_list);
- 			mutex_unlock(&ss->hierarchy_mutex);
-+			/* subsystem is now free - drop reference on module */
-+			module_put(ss->module);
- 		} else if (bit & final_bits) {
- 			/* Subsystem state should already exist */
- 			BUG_ON(ss == NULL);
- 			BUG_ON(!cgrp->subsys[i]);
-+			/*
-+			 * a refcount was taken, but we already had one, so
-+			 * drop the extra reference.
-+			 */
-+			module_put(ss->module);
-+#ifdef CONFIG_MODULE_UNLOAD
-+			BUG_ON(ss->module && !module_refcount(ss->module));
-+#endif
- 		} else {
- 			/* Subsystem state shouldn't exist */
- 			BUG_ON(cgrp->subsys[i]);
-@@ -1010,13 +1023,16 @@ struct cgroup_sb_opts {
+@@ -3428,11 +3438,171 @@ static int mem_cgroup_populate(struct cg
+ }
  
- /*
-  * Convert a hierarchy specifier into a bitmask of subsystems and flags. Call
-- * with cgroup_mutex held to protect the subsys[] array.
-+ * with cgroup_mutex held to protect the subsys[] array. This function takes
-+ * refcounts on subsystems to be used, unless it returns error, in which case
-+ * no refcounts are taken.
-  */
--static int parse_cgroupfs_options(char *data,
--				     struct cgroup_sb_opts *opts)
-+static int parse_cgroupfs_options(char *data, struct cgroup_sb_opts *opts)
+ /* Handlers for move charge at task migration. */
+-static int mem_cgroup_can_move_charge(void)
++static int mem_cgroup_do_precharge(void)
  {
- 	char *token, *o = data ?: "all";
- 	unsigned long mask = (unsigned long)-1;
-+	int i;
-+	bool module_pin_failed = false;
- 
- 	BUG_ON(!mutex_is_locked(&cgroup_mutex));
- 
-@@ -1031,7 +1047,6 @@ static int parse_cgroupfs_options(char *
- 			return -EINVAL;
- 		if (!strcmp(token, "all")) {
- 			/* Add all non-disabled subsystems */
--			int i;
- 			opts->subsys_bits = 0;
- 			for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
- 				struct cgroup_subsys *ss = subsys[i];
-@@ -1054,7 +1069,6 @@ static int parse_cgroupfs_options(char *
- 			if (!opts->release_agent)
- 				return -ENOMEM;
- 		} else if (!strncmp(token, "name=", 5)) {
--			int i;
- 			const char *name = token + 5;
- 			/* Can't specify an empty name */
- 			if (!strlen(name))
-@@ -1078,7 +1092,6 @@ static int parse_cgroupfs_options(char *
- 				return -ENOMEM;
- 		} else {
- 			struct cgroup_subsys *ss;
--			int i;
- 			for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
- 				ss = subsys[i];
- 				if (ss == NULL)
-@@ -1117,9 +1130,54 @@ static int parse_cgroupfs_options(char *
- 	if (!opts->subsys_bits && !opts->name)
- 		return -EINVAL;
- 
-+	/*
-+	 * Grab references on all the modules we'll need, so the subsystems
-+	 * don't dance around before rebind_subsystems attaches them. This may
-+	 * take duplicate reference counts on a subsystem that's already used,
-+	 * but rebind_subsystems handles this case.
-+	 */
-+	for (i = CGROUP_BUILTIN_SUBSYS_COUNT; i < CGROUP_SUBSYS_COUNT; i++) {
-+		unsigned long bit = 1UL << i;
++	int ret = -ENOMEM;
++	struct mem_cgroup *mem = mc.to;
 +
-+		if (!(bit & opts->subsys_bits))
++	ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false, NULL);
++	if (ret || !mem)
++		return -ENOMEM;
++
++	mc.precharge++;
++	return ret;
++}
++
++/**
++ * is_target_pte_for_mc - check a pte whether it is valid for move charge
++ * @vma: the vma the pte to be checked belongs
++ * @addr: the address corresponding to the pte to be checked
++ * @ptent: the pte to be checked
++ * @target: the pointer the target page will be stored(can be NULL)
++ *
++ * Returns
++ *   0(MC_TARGET_NONE): if the pte is not a target for move charge.
++ *   1(MC_TARGET_PAGE): if the page corresponding to this pte is a target for
++ *     move charge. if @target is not NULL, the page is stored in target->page
++ *     with extra refcnt got(Callers should handle it).
++ *
++ * Called with pte lock held.
++ */
++/* We add a new member later. */
++union mc_target {
++	struct page	*page;
++};
++
++/* We add a new type later. */
++enum mc_target_type {
++	MC_TARGET_NONE,	/* not used */
++	MC_TARGET_PAGE,
++};
++
++static int is_target_pte_for_mc(struct vm_area_struct *vma,
++		unsigned long addr, pte_t ptent, union mc_target *target)
++{
++	struct page *page;
++	struct page_cgroup *pc;
++	int ret = 0;
++	bool move_anon = test_bit(MOVE_CHARGE_TYPE_ANON,
++					&mc.to->move_charge_at_immigrate);
++
++	if (!pte_present(ptent))
++		return 0;
++
++	page = vm_normal_page(vma, addr, ptent);
++	if (!page || !page_mapped(page))
++		return 0;
++	/*
++	 * TODO: We don't move charges of file(including shmem/tmpfs) pages for
++	 * now.
++	 */
++	if (!move_anon || !PageAnon(page))
++		return 0;
++	/*
++	 * TODO: We don't move charges of shared(used by multiple processes)
++	 * pages for now.
++	 */
++	if (page_mapcount(page) > 1)
++		return 0;
++	if (!get_page_unless_zero(page))
++		return 0;
++
++	pc = lookup_page_cgroup(page);
++	/*
++	 * Do only loose check w/o page_cgroup lock. mem_cgroup_move_account()
++	 * checks the pc is valid or not under the lock.
++	 */
++	if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
++		ret = MC_TARGET_PAGE;
++		if (target)
++			target->page = page;
++	}
++
++	if (!ret || !target)
++		put_page(page);
++
++	return ret;
++}
++
++static int mem_cgroup_count_precharge_pte_range(pmd_t *pmd,
++					unsigned long addr, unsigned long end,
++					struct mm_walk *walk)
++{
++	struct vm_area_struct *vma = walk->private;
++	pte_t *pte;
++	spinlock_t *ptl;
++
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	for (; addr != end; pte++, addr += PAGE_SIZE)
++		if (is_target_pte_for_mc(vma, addr, *pte, NULL))
++			mc.precharge++;	/* increment precharge temporarily */
++	pte_unmap_unlock(pte - 1, ptl);
++	cond_resched();
++
+ 	return 0;
+ }
+ 
++static unsigned long mem_cgroup_count_precharge(struct mm_struct *mm)
++{
++	unsigned long precharge;
++	struct vm_area_struct *vma;
++
++	down_read(&mm->mmap_sem);
++	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++		struct mm_walk mem_cgroup_count_precharge_walk = {
++			.pmd_entry = mem_cgroup_count_precharge_pte_range,
++			.mm = mm,
++			.private = vma,
++		};
++		if (is_vm_hugetlb_page(vma))
 +			continue;
-+		if (!try_module_get(subsys[i]->module)) {
-+			module_pin_failed = true;
++		/* TODO: We don't move charges of shmem/tmpfs pages for now. */
++		if (vma->vm_flags & VM_SHARED)
++			continue;
++		walk_page_range(vma->vm_start, vma->vm_end,
++					&mem_cgroup_count_precharge_walk);
++	}
++	up_read(&mm->mmap_sem);
++
++	precharge = mc.precharge;
++	mc.precharge = 0;
++
++	return precharge;
++}
++
++#define PRECHARGE_AT_ONCE	256
++static int mem_cgroup_precharge_mc(struct mm_struct *mm)
++{
++	int ret = 0;
++	int count = PRECHARGE_AT_ONCE;
++	unsigned long precharge = mem_cgroup_count_precharge(mm);
++
++	while (!ret && precharge--) {
++		if (signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++		if (!count--) {
++			count = PRECHARGE_AT_ONCE;
++			cond_resched();
++		}
++		ret = mem_cgroup_do_precharge();
++	}
++
++	return ret;
++}
++
++static void mem_cgroup_clear_mc(void)
++{
++	/* we must uncharge all the leftover precharges from mc.to */
++	while (mc.precharge) {
++		mem_cgroup_cancel_charge(mc.to);
++		mc.precharge--;
++	}
++	mc.from = NULL;
++	mc.to = NULL;
++}
++
+ static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
+ 				struct cgroup *cgroup,
+ 				struct task_struct *p,
+@@ -3450,11 +3620,19 @@ static int mem_cgroup_can_attach(struct 
+ 		mm = get_task_mm(p);
+ 		if (!mm)
+ 			return 0;
+-
+ 		/* We move charges only when we move a owner of the mm */
+-		if (mm->owner == p)
+-			ret = mem_cgroup_can_move_charge();
++		if (mm->owner == p) {
++			VM_BUG_ON(mc.from);
++			VM_BUG_ON(mc.to);
++			VM_BUG_ON(mc.precharge);
++			mc.from = from;
++			mc.to = mem;
++			mc.precharge = 0;
+ 
++			ret = mem_cgroup_precharge_mc(mm);
++			if (ret)
++				mem_cgroup_clear_mc();
++		}
+ 		mmput(mm);
+ 	}
+ 	return ret;
+@@ -3465,10 +3643,95 @@ static void mem_cgroup_cancel_attach(str
+ 				struct task_struct *p,
+ 				bool threadgroup)
+ {
++	mem_cgroup_clear_mc();
++}
++
++static int mem_cgroup_move_charge_pte_range(pmd_t *pmd,
++				unsigned long addr, unsigned long end,
++				struct mm_walk *walk)
++{
++	int ret = 0;
++	struct vm_area_struct *vma = walk->private;
++	pte_t *pte;
++	spinlock_t *ptl;
++
++retry:
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	for (; addr != end; addr += PAGE_SIZE) {
++		pte_t ptent = *(pte++);
++		union mc_target target;
++		int type;
++		struct page *page;
++		struct page_cgroup *pc;
++
++		if (!mc.precharge)
++			break;
++
++		type = is_target_pte_for_mc(vma, addr, ptent, &target);
++		switch (type) {
++		case MC_TARGET_PAGE:
++			page = target.page;
++			if (isolate_lru_page(page))
++				goto put;
++			pc = lookup_page_cgroup(page);
++			if (!mem_cgroup_move_account(pc, mc.from, mc.to)) {
++				css_put(&mc.to->css);
++				mc.precharge--;
++			}
++			putback_lru_page(page);
++put:			/* is_target_pte_for_mc() gets the page */
++			put_page(page);
++			break;
++		default:
 +			break;
 +		}
 +	}
-+	if (module_pin_failed) {
-+		/*
-+		 * oops, one of the modules was going away. this means that we
-+		 * raced with a module_delete call, and to the user this is
-+		 * essentially a "subsystem doesn't exist" case.
-+		 */
-+		for (i--; i >= CGROUP_BUILTIN_SUBSYS_COUNT; i--) {
-+			/* drop refcounts only on the ones we took */
-+			unsigned long bit = 1UL << i;
++	pte_unmap_unlock(pte - 1, ptl);
++	cond_resched();
 +
-+			if (!(bit & opts->subsys_bits))
-+				continue;
-+			module_put(subsys[i]->module);
-+		}
-+		return -ENOENT;
++	if (addr != end) {
++		/*
++		 * We have consumed all precharges we got in can_attach().
++		 * We try charge one by one, but don't do any additional
++		 * charges to mc.to if we have failed in charge once in attach()
++		 * phase.
++		 */
++		ret = mem_cgroup_do_precharge();
++		if (!ret)
++			goto retry;
 +	}
 +
- 	return 0;
++	return ret;
  }
  
-+static void drop_parsed_module_refcounts(unsigned long subsys_bits)
-+{
-+	int i;
-+	for (i = CGROUP_BUILTIN_SUBSYS_COUNT; i < CGROUP_SUBSYS_COUNT; i++) {
-+		unsigned long bit = 1UL << i;
-+
-+		if (!(bit & subsys_bits))
-+			continue;
-+		module_put(subsys[i]->module);
-+	}
-+}
-+
- static int cgroup_remount(struct super_block *sb, int *flags, char *data)
+-static void mem_cgroup_move_charge(void)
++static void mem_cgroup_move_charge(struct mm_struct *mm)
  {
- 	int ret = 0;
-@@ -1136,21 +1194,19 @@ static int cgroup_remount(struct super_b
- 	if (ret)
- 		goto out_unlock;
- 
--	/* Don't allow flags to change at remount */
--	if (opts.flags != root->flags) {
--		ret = -EINVAL;
--		goto out_unlock;
--	}
--
--	/* Don't allow name to change at remount */
--	if (opts.name && strcmp(opts.name, root->name)) {
-+	/* Don't allow flags or name to change at remount */
-+	if (opts.flags != root->flags ||
-+	    (opts.name && strcmp(opts.name, root->name))) {
- 		ret = -EINVAL;
-+		drop_parsed_module_refcounts(opts.subsys_bits);
- 		goto out_unlock;
- 	}
- 
- 	ret = rebind_subsystems(root, opts.subsys_bits);
--	if (ret)
-+	if (ret) {
-+		drop_parsed_module_refcounts(opts.subsys_bits);
- 		goto out_unlock;
++	struct vm_area_struct *vma;
++
++	lru_add_drain_all();
++	down_read(&mm->mmap_sem);
++	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++		int ret;
++		struct mm_walk mem_cgroup_move_charge_walk = {
++			.pmd_entry = mem_cgroup_move_charge_pte_range,
++			.mm = mm,
++			.private = vma,
++		};
++		if (is_vm_hugetlb_page(vma))
++			continue;
++		/* TODO: We don't move charges of shmem/tmpfs pages for now. */
++		if (vma->vm_flags & VM_SHARED)
++			continue;
++		ret = walk_page_range(vma->vm_start, vma->vm_end,
++						&mem_cgroup_move_charge_walk);
++		if (ret)
++			/*
++			 * means we have consumed all precharges and failed in
++			 * doing additional charge. Just abandon here.
++			 */
++			break;
 +	}
++	up_read(&mm->mmap_sem);
+ }
  
- 	/* (re)populate subsystem files */
- 	cgroup_populate_dir(cgrp);
-@@ -1349,7 +1405,7 @@ static int cgroup_get_sb(struct file_sys
- 	new_root = cgroup_root_from_opts(&opts);
- 	if (IS_ERR(new_root)) {
- 		ret = PTR_ERR(new_root);
--		goto out_err;
-+		goto drop_modules;
- 	}
- 	opts.new_root = new_root;
- 
-@@ -1358,7 +1414,7 @@ static int cgroup_get_sb(struct file_sys
- 	if (IS_ERR(sb)) {
- 		ret = PTR_ERR(sb);
- 		cgroup_drop_root(opts.new_root);
--		goto out_err;
-+		goto drop_modules;
- 	}
- 
- 	root = sb->s_fs_info;
-@@ -1414,6 +1470,11 @@ static int cgroup_get_sb(struct file_sys
- 			free_cg_links(&tmp_cg_links);
- 			goto drop_new_super;
- 		}
-+		/*
-+		 * There must be no failure case after here, since rebinding
-+		 * takes care of subsystems' refcounts, which are explicitly
-+		 * dropped in the failure exit path.
-+		 */
- 
- 		/* EBUSY should be the only error here */
- 		BUG_ON(ret);
-@@ -1452,6 +1513,8 @@ static int cgroup_get_sb(struct file_sys
- 		 * any) is not needed
- 		 */
- 		cgroup_drop_root(opts.new_root);
-+		/* no subsys rebinding, so refcounts don't change */
-+		drop_parsed_module_refcounts(opts.subsys_bits);
- 	}
- 
- 	simple_set_mnt(mnt, sb);
-@@ -1461,6 +1524,8 @@ static int cgroup_get_sb(struct file_sys
- 
-  drop_new_super:
- 	deactivate_locked_super(sb);
-+ drop_modules:
-+	drop_parsed_module_refcounts(opts.subsys_bits);
-  out_err:
- 	kfree(opts.release_agent);
- 	kfree(opts.name);
-@@ -3422,13 +3487,6 @@ int __init_or_module cgroup_load_subsys(
- 	lockdep_set_class(&ss->hierarchy_mutex, &ss->subsys_key);
- 	ss->active = 1;
- 
--	/*
--	 * pin the subsystem's module so it doesn't go away. this shouldn't
--	 * fail, since the module's initcall calls us.
--	 * TODO: with module unloading, move this elsewhere
--	 */
--	BUG_ON(!try_module_get(ss->module));
--
- 	/* success! */
- 	mutex_unlock(&cgroup_mutex);
- 	return 0;
-@@ -3436,6 +3494,65 @@ int __init_or_module cgroup_load_subsys(
- EXPORT_SYMBOL_GPL(cgroup_load_subsys);
- 
- /**
-+ * cgroup_unload_subsys: unload a modular subsystem
-+ * @ss: the subsystem to unload
-+ *
-+ * This function should be called in a modular subsystem's exitcall. When this
-+ * function is invoked, the refcount on the subsystem's module will be 0, so
-+ * the subsystem will not be attached to any hierarchy.
-+ */
-+void cgroup_unload_subsys(struct cgroup_subsys *ss)
-+{
-+	struct cg_cgroup_link *link;
-+	struct hlist_head *hhead;
+ static void mem_cgroup_move_task(struct cgroup_subsys *ss,
+@@ -3477,7 +3740,18 @@ static void mem_cgroup_move_task(struct 
+ 				struct task_struct *p,
+ 				bool threadgroup)
+ {
+-	mem_cgroup_move_charge();
++	struct mm_struct *mm;
 +
-+	BUG_ON(ss->module == NULL);
++	if (!mc.to)
++		/* no need to move charge */
++		return;
 +
-+	/*
-+	 * we shouldn't be called if the subsystem is in use, and the use of
-+	 * try_module_get in parse_cgroupfs_options should ensure that it
-+	 * doesn't start being used while we're killing it off.
-+	 */
-+	BUG_ON(ss->root != &rootnode);
-+
-+	mutex_lock(&cgroup_mutex);
-+	/* deassign the subsys_id */
-+	BUG_ON(ss->subsys_id < CGROUP_BUILTIN_SUBSYS_COUNT);
-+	subsys[ss->subsys_id] = NULL;
-+
-+	/* remove subsystem from rootnode's list of subsystems */
-+	list_del(&ss->sibling);
-+
-+	/*
-+	 * disentangle the css from all css_sets attached to the dummytop. as
-+	 * in loading, we need to pay our respects to the hashtable gods.
-+	 */
-+	write_lock(&css_set_lock);
-+	list_for_each_entry(link, &dummytop->css_sets, cgrp_link_list) {
-+		struct css_set *cg = link->cg;
-+
-+		hlist_del(&cg->hlist);
-+		BUG_ON(!cg->subsys[ss->subsys_id]);
-+		cg->subsys[ss->subsys_id] = NULL;
-+		hhead = css_set_hash(cg->subsys);
-+		hlist_add_head(&cg->hlist, hhead);
++	mm = get_task_mm(p);
++	if (mm) {
++		mem_cgroup_move_charge(mm);
++		mmput(mm);
 +	}
-+	write_unlock(&css_set_lock);
-+
-+	/*
-+	 * remove subsystem's css from the dummytop and free it - need to free
-+	 * before marking as null because ss->destroy needs the cgrp->subsys
-+	 * pointer to find their state. note that this also takes care of
-+	 * freeing the css_id.
-+	 */
-+	ss->destroy(ss, dummytop);
-+	dummytop->subsys[ss->subsys_id] = NULL;
-+
-+	mutex_unlock(&cgroup_mutex);
-+}
-+EXPORT_SYMBOL_GPL(cgroup_unload_subsys);
-+
-+/**
-  * cgroup_init_early - cgroup initialization at system boot
-  *
-  * Initialize cgroups at system boot, and initialize any
++	mem_cgroup_clear_mc();
+ }
+ 
+ struct cgroup_subsys mem_cgroup_subsys = {
 _
 
-Patches currently in -mm which might be from bblum@andrew.cmu.edu are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
-cgroups-net_cls-as-module.patch
+memcg-avoid-use-cmpxchg-in-swap-cgroup-maintainance.patch
 
