@@ -1,82 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-extern-cleanup-signal.patch removed from -mm tree
-Date: Mon, 15 Mar 2010 00:04:59 -0400
-Message-ID: <201003150705.o2F75WkB017098@imap1.linux-foundation.org>
+Subject: [merged] mxcmmc-fixed-max_seg_size-value-on-initialization.patch removed from -mm tree
+Date: Mon, 15 Mar 2010 00:04:54 -0400
+Message-ID: <201003150705.o2F75RZ7017089__12226.8650834032$1268636788$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933525Ab0COHFq (ORCPT
+	by vger.kernel.org with ESMTP id S1759741Ab0COHFo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Mar 2010 03:05:46 -0400
+	Mon, 15 Mar 2010 03:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: vzapolskiy@gmail.com, linux-mmc@vger.kernel.org, pierre@ossman.eu, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl extern cleanup: signal
+     mxcmmc: fixed max_seg_size value on initialization
 has been removed from the -mm tree.  Its filename was
-     sysctl-extern-cleanup-signal.patch
+     mxcmmc-fixed-max_seg_size-value-on-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl extern cleanup: signal
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: mxcmmc: fixed max_seg_size value on initialization
+From: Vladimir Zapolskiy <vzapolskiy@gmail.com>
 
-Extern declarations in sysctl.c should be moved to their own header file,
-and then include them in relavant .c files.
+This unpleasant typo appeared while porting the driver from Freescale
+original sources, where anyone can easily find the correct version.
 
-Move print_fatal_signals extern declaration to linux/signal.h
+Current incorrect version potentially can influence segment and merge
+handling in block subsystem via MMC request queue settings.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |    2 ++
- kernel/sysctl.c        |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/mmc/host/mxcmmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/signal.h~sysctl-extern-cleanup-signal include/linux/signal.h
---- a/include/linux/signal.h~sysctl-extern-cleanup-signal
-+++ a/include/linux/signal.h
-@@ -7,6 +7,8 @@
- #ifdef __KERNEL__
- #include <linux/list.h>
+diff -puN drivers/mmc/host/mxcmmc.c~mxcmmc-fixed-max_seg_size-value-on-initialization drivers/mmc/host/mxcmmc.c
+--- a/drivers/mmc/host/mxcmmc.c~mxcmmc-fixed-max_seg_size-value-on-initialization
++++ a/drivers/mmc/host/mxcmmc.c
+@@ -708,7 +708,7 @@ static int mxcmci_probe(struct platform_
+ 	mmc->max_blk_size = 2048;
+ 	mmc->max_blk_count = 65535;
+ 	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
+-	mmc->max_seg_size = mmc->max_seg_size;
++	mmc->max_seg_size = mmc->max_req_size;
  
-+/* for sysctl */
-+extern int print_fatal_signals;
- /*
-  * Real Time signals may be queued.
-  */
-diff -puN kernel/sysctl.c~sysctl-extern-cleanup-signal kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-extern-cleanup-signal
-+++ a/kernel/sysctl.c
-@@ -23,6 +23,7 @@
- #include <linux/swap.h>
- #include <linux/slab.h>
- #include <linux/sysctl.h>
-+#include <linux/signal.h>
- #include <linux/proc_fs.h>
- #include <linux/security.h>
- #include <linux/ctype.h>
-@@ -65,7 +66,6 @@
- #if defined(CONFIG_SYSCTL)
- 
- /* External variables not in a header file. */
--extern int print_fatal_signals;
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern int sysctl_panic_on_oom;
+ 	host = mmc_priv(mmc);
+ 	host->base = ioremap(r->start, resource_size(r));
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from vzapolskiy@gmail.com are
 
 origin.patch
-linux-next.patch
 
