@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-typo-in-memcg-documentation.patch added to -mm tree
-Date: Thu, 18 Mar 2010 15:35:24 -0700
-Message-ID: <201003182235.o2IMZOum019734@imap1.linux-foundation.org>
+Subject: + mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch added to -mm tree
+Date: Thu, 18 Mar 2010 15:58:44 -0700
+Message-ID: <201003182258.o2IMwiP8020680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751204Ab0CRWf3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752857Ab0CRW7Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 18:35:29 -0400
+	Thu, 18 Mar 2010 18:59:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gthelen@google.com
+Cc: schwalbe@inf.tu-dresden.de, evan.mcclain@gatech.edu, mjg@redhat.com, rpurdie@rpsys.net
 
 
 The patch titled
-     memcg: fix typo in memcg documentation
+     mbp_nvidia_bl: add support for older MacBookPro and MacBook 6,1.
 has been added to the -mm tree.  Its filename is
-     memcg-fix-typo-in-memcg-documentation.patch
+     mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix typo in memcg documentation
-From: Greg Thelen <gthelen@google.com>
+Subject: mbp_nvidia_bl: add support for older MacBookPro and MacBook 6,1.
+From: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
 
-Update memory.txt to be more consistent: s/swapiness/swappiness/
+Add support for all remaining models not yet present in Linus'/Richard
+Purdie's tree nor Evan McClain's patch to finally complete the list.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
+Signed-off-by: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Evan McClain <evan.mcclain@gatech.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/mbp_nvidia_bl.c |   45 ++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-fix-typo-in-memcg-documentation Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-fix-typo-in-memcg-documentation
-+++ a/Documentation/cgroups/memory.txt
-@@ -340,7 +340,7 @@ Note:
- 5.3 swappiness
-   Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
- 
--  Following cgroups' swapiness can't be changed.
-+  Following cgroups' swappiness can't be changed.
-   - root cgroup (uses /proc/sys/vm/swappiness).
-   - a cgroup which uses hierarchy and it has child cgroup.
-   - a cgroup which uses hierarchy and not the root of hierarchy.
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61 drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -184,6 +184,42 @@ static const struct dmi_system_id __init
+ 	},
+ 	{
+ 		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 1,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro1,1"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 1,2",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro1,2"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 2,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro2,1"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
++		.ident		= "MacBookPro 2,2",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro2,2"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookPro 3,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+@@ -238,6 +274,15 @@ static const struct dmi_system_id __init
+ 	},
+ 	{
+ 		.callback	= mbp_dmi_match,
++		.ident		= "MacBook 6,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBook6,1"),
++		},
++		.driver_data	= (void *)&nvidia_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBookAir 2,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from schwalbe@inf.tu-dresden.de are
 
-memcg-fix-typo-in-memcg-documentation.patch
-linux-next.patch
-sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
+mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch
 
