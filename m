@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-use-kasprintf-fix.patch added to -mm tree
-Date: Thu, 18 Mar 2010 16:25:53 -0700
-Message-ID: <201003182325.o2INPrjY021788@imap1.linux-foundation.org>
+Subject: + arch-powerpc-platforms-pseries-use-kasprintf.patch added to -mm tree
+Date: Thu, 18 Mar 2010 16:26:26 -0700
+Message-ID: <201003182326.o2INQQfZ021886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172Ab0CRXZ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752289Ab0CRX0m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 19:25:57 -0400
+	Thu, 18 Mar 2010 19:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, julia@diku.dk, lenb@kernel.org
+Cc: julia@diku.dk, benh@kernel.crashing.org, nfont@austin.ibm.com
 
 
 The patch titled
-     drivers-acpi-use-kasprintf-fix
+     arch/powerpc/platforms/pseries: use kasprintf
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-use-kasprintf-fix.patch
+     arch-powerpc-platforms-pseries-use-kasprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-acpi-use-kasprintf-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/powerpc/platforms/pseries: use kasprintf
+From: Julia Lawall <julia@diku.dk>
 
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Len Brown <lenb@kernel.org>
+kasprintf combines kmalloc and sprintf, and takes care of the size
+calculation itself.
+
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression a,flag;
+expression list args;
+statement S;
+@@
+
+  a =
+-  \(kmalloc\|kzalloc\)(...,flag)
++  kasprintf(flag,args)
+  <... when != a
+  if (a == NULL || ...) S
+  ...>
+- sprintf(a,args);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Nathan Fontenot <nfont@austin.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/pseries/dlpar.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/video.c~drivers-acpi-use-kasprintf-fix drivers/acpi/video.c
---- a/drivers/acpi/video.c~drivers-acpi-use-kasprintf-fix
-+++ a/drivers/acpi/video.c
-@@ -1006,9 +1006,10 @@ static void acpi_video_device_find_cap(s
- 		result = acpi_video_init_brightness(device);
- 		if (result)
- 			return;
--		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
-+		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
- 		if (!name)
- 			return;
-+		count++;
+diff -puN arch/powerpc/platforms/pseries/dlpar.c~arch-powerpc-platforms-pseries-use-kasprintf arch/powerpc/platforms/pseries/dlpar.c
+--- a/arch/powerpc/platforms/pseries/dlpar.c~arch-powerpc-platforms-pseries-use-kasprintf
++++ a/arch/powerpc/platforms/pseries/dlpar.c
+@@ -78,13 +78,12 @@ static struct device_node *dlpar_parse_c
+ 	 * prepend this to the full_name.
+ 	 */
+ 	name = (char *)ccwa + ccwa->name_offset;
+-	dn->full_name = kmalloc(strlen(name) + 2, GFP_KERNEL);
++	dn->full_name = kasprintf(GFP_KERNEL, "/%s", name);
+ 	if (!dn->full_name) {
+ 		kfree(dn);
+ 		return NULL;
+ 	}
  
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.max_brightness = device->brightness->count - 3;
-@@ -1058,9 +1059,10 @@ static void acpi_video_device_find_cap(s
- 		if (device->cap._DCS && device->cap._DSS) {
- 			static int count;
- 			char *name;
--			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
-+			name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
- 			if (!name)
- 				return;
-+			count++;
- 			device->output_dev = video_output_register(name,
- 					NULL, device, &acpi_output_properties);
- 			kfree(name);
+-	sprintf(dn->full_name, "/%s", name);
+ 	return dn;
+ }
+ 
+@@ -409,15 +408,13 @@ static ssize_t dlpar_cpu_probe(const cha
+ 	 * directory of the device tree.  CPUs actually live in the
+ 	 * cpus directory so we need to fixup the full_name.
+ 	 */
+-	cpu_name = kzalloc(strlen(dn->full_name) + strlen("/cpus") + 1,
+-			   GFP_KERNEL);
++	cpu_name = kasprintf(GFP_KERNEL, "/cpus%s", dn->full_name);
+ 	if (!cpu_name) {
+ 		dlpar_free_cc_nodes(dn);
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+-	sprintf(cpu_name, "/cpus%s", dn->full_name);
+ 	kfree(dn->full_name);
+ 	dn->full_name = cpu_name;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-rtc-davinci-rtc-driver-checkpatch-fixes.patch
-c2port-fix-device_create-return-value-check-fix.patch
+drivers-acpi-use-kasprintf.patch
 drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-kernel-schedc-suppress-unused-var-warning.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-memcg-oom-notifier-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+arch-x86-pci-use-kasprintf.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+arch-powerpc-platforms-pseries-use-kasprintf.patch
+drivers-base-modulec-use-kasprintf.patch
+drivers-mtd-use-kasprintf.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-char-ppdevc-use-kasprintf.patch
+drivers-edac-introduce-missing-kfree.patch
 
