@@ -1,119 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] obsolete-config-in-kernel-source-use_internal_timer.patch removed from -mm tree
-Date: Thu, 18 Mar 2010 11:08:58 -0400
-Message-ID: <201003181809.o2II9dU4007584@imap1.linux-foundation.org>
+Subject: + mmc-omap-add-support-for-16-bit-and-32-bit-registers.patch added to -mm tree
+Date: Thu, 18 Mar 2010 11:52:54 -0700
+Message-ID: <201003181852.o2IIqsFW009584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897Ab0CRSRf (ORCPT
+	by vger.kernel.org with ESMTP id S1751070Ab0CRSyd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 14:17:35 -0400
+	Thu, 18 Mar 2010 14:54:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: siccegge@stud.informatik.uni-erlangen.de, davem@davemloft.net, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: marek.belisko@open-nandra.com, ben@fluff.org, darkstar6262@gmail.com, ladis@linux-mips.org, linux-mmc@vger.kernel.org, tony@atomide.com
 
 
 The patch titled
-     obsolete config in kernel source: USE_INTERNAL_TIMER
-has been removed from the -mm tree.  Its filename was
-     obsolete-config-in-kernel-source-use_internal_timer.patch
+     mmc-omap: add support for 16-bit and 32-bit registers
+has been added to the -mm tree.  Its filename is
+     mmc-omap-add-support-for-16-bit-and-32-bit-registers.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: obsolete config in kernel source: USE_INTERNAL_TIMER
-From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Subject: mmc-omap: add support for 16-bit and 32-bit registers
+From: Marek Belisko <marek.belisko@open-nandra.com>
 
-CONFIG_USE_INTERNAL_TIMER seems to be the remainings of some experiment. 
-It is explicitely #undef-ed as not working, only referenced from one
-source file and rather aged.
+The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
+a modification of the register addresses in the mmc-omap driver.  To
+resolve this, a bit shift is performed on base register addresses, either
+by 1 or 2 bits depending on the CPU in use.  This yields the correct
+registers for each CPU.
 
-Hereby cleaning it from the kernel tree.
-
-Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Acked-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>
+Cc: Ben Dooks <ben@fluff.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/w83977af_ir.c |   36 -------------------------------
- 1 file changed, 36 deletions(-)
+ drivers/mmc/host/omap.c |   62 ++++++++++++++++++++------------------
+ 1 file changed, 33 insertions(+), 29 deletions(-)
 
-diff -puN drivers/net/irda/w83977af_ir.c~obsolete-config-in-kernel-source-use_internal_timer drivers/net/irda/w83977af_ir.c
---- a/drivers/net/irda/w83977af_ir.c~obsolete-config-in-kernel-source-use_internal_timer
-+++ a/drivers/net/irda/w83977af_ir.c
-@@ -65,7 +65,6 @@
- #undef  CONFIG_NETWINDER_TX_DMA_PROBLEMS /* Not needed */
- #define CONFIG_NETWINDER_RX_DMA_PROBLEMS /* Must have this one! */
- #endif
--#undef  CONFIG_USE_INTERNAL_TIMER  /* Just cannot make that timer work */
- #define CONFIG_USE_W977_PNP        /* Currently needed */
- #define PIO_MAX_SPEED       115200 
+diff -puN drivers/mmc/host/omap.c~mmc-omap-add-support-for-16-bit-and-32-bit-registers drivers/mmc/host/omap.c
+--- a/drivers/mmc/host/omap.c~mmc-omap-add-support-for-16-bit-and-32-bit-registers
++++ a/drivers/mmc/host/omap.c
+@@ -38,30 +38,30 @@
+ #include <plat/fpga.h>
  
-@@ -533,25 +532,6 @@ static netdev_tx_t w83977af_hard_xmit(st
- 		self->tx_buff.len = skb->len;
- 		
- 		mtt = irda_get_mtt(skb);
--#ifdef CONFIG_USE_INTERNAL_TIMER
--	        if (mtt > 50) {
--			/* Adjust for timer resolution */
--			mtt /= 1000+1;
--
--			/* Setup timer */
--			switch_bank(iobase, SET4);
--			outb(mtt & 0xff, iobase+TMRL);
--			outb((mtt >> 8) & 0x0f, iobase+TMRH);
--			
--			/* Start timer */
--			outb(IR_MSL_EN_TMR, iobase+IR_MSL);
--			self->io.direction = IO_XMIT;
--			
--			/* Enable timer interrupt */
--			switch_bank(iobase, SET0);
--			outb(ICR_ETMRI, iobase+ICR);
--		} else {
--#endif
- 			IRDA_DEBUG(4, "%s(%ld), mtt=%d\n", __func__ , jiffies, mtt);
- 			if (mtt)
- 				udelay(mtt);
-@@ -560,9 +540,6 @@ static netdev_tx_t w83977af_hard_xmit(st
- 			switch_bank(iobase, SET0);
- 	 		outb(ICR_EDMAI, iobase+ICR);
- 	     		w83977af_dma_write(self, iobase);
--#ifdef CONFIG_USE_INTERNAL_TIMER
--		}
--#endif
+ #define	OMAP_MMC_REG_CMD	0x00
+-#define	OMAP_MMC_REG_ARGL	0x04
+-#define	OMAP_MMC_REG_ARGH	0x08
+-#define	OMAP_MMC_REG_CON	0x0c
+-#define	OMAP_MMC_REG_STAT	0x10
+-#define	OMAP_MMC_REG_IE		0x14
+-#define	OMAP_MMC_REG_CTO	0x18
+-#define	OMAP_MMC_REG_DTO	0x1c
+-#define	OMAP_MMC_REG_DATA	0x20
+-#define	OMAP_MMC_REG_BLEN	0x24
+-#define	OMAP_MMC_REG_NBLK	0x28
+-#define	OMAP_MMC_REG_BUF	0x2c
+-#define OMAP_MMC_REG_SDIO	0x34
+-#define	OMAP_MMC_REG_REV	0x3c
+-#define	OMAP_MMC_REG_RSP0	0x40
+-#define	OMAP_MMC_REG_RSP1	0x44
+-#define	OMAP_MMC_REG_RSP2	0x48
+-#define	OMAP_MMC_REG_RSP3	0x4c
+-#define	OMAP_MMC_REG_RSP4	0x50
+-#define	OMAP_MMC_REG_RSP5	0x54
+-#define	OMAP_MMC_REG_RSP6	0x58
+-#define	OMAP_MMC_REG_RSP7	0x5c
+-#define	OMAP_MMC_REG_IOSR	0x60
+-#define	OMAP_MMC_REG_SYSC	0x64
+-#define	OMAP_MMC_REG_SYSS	0x68
++#define	OMAP_MMC_REG_ARGL	0x01
++#define	OMAP_MMC_REG_ARGH	0x02
++#define	OMAP_MMC_REG_CON	0x03
++#define	OMAP_MMC_REG_STAT	0x04
++#define	OMAP_MMC_REG_IE		0x05
++#define	OMAP_MMC_REG_CTO	0x06
++#define	OMAP_MMC_REG_DTO	0x07
++#define	OMAP_MMC_REG_DATA	0x08
++#define	OMAP_MMC_REG_BLEN	0x09
++#define	OMAP_MMC_REG_NBLK	0x0a
++#define	OMAP_MMC_REG_BUF	0x0b
++#define	OMAP_MMC_REG_SDIO	0x0d
++#define	OMAP_MMC_REG_REV	0x0f
++#define	OMAP_MMC_REG_RSP0	0x10
++#define	OMAP_MMC_REG_RSP1	0x11
++#define	OMAP_MMC_REG_RSP2	0x12
++#define	OMAP_MMC_REG_RSP3	0x13
++#define	OMAP_MMC_REG_RSP4	0x14
++#define	OMAP_MMC_REG_RSP5	0x15
++#define	OMAP_MMC_REG_RSP6	0x16
++#define	OMAP_MMC_REG_RSP7	0x17
++#define	OMAP_MMC_REG_IOSR	0x18
++#define	OMAP_MMC_REG_SYSC	0x19
++#define	OMAP_MMC_REG_SYSS	0x1a
+ 
+ #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
+ #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
+@@ -77,8 +77,9 @@
+ #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
+ #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
+ 
+-#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
+-#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
++#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
++#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
++#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
+ 
+ /*
+  * Command types
+@@ -132,6 +133,7 @@ struct mmc_omap_host {
+ 	int			irq;
+ 	unsigned char		bus_mode;
+ 	unsigned char		hw_bus_mode;
++	unsigned int		reg_shift;
+ 
+ 	struct work_struct	cmd_abort_work;
+ 	unsigned		abort:1;
+@@ -679,9 +681,9 @@ mmc_omap_xfer_data(struct mmc_omap_host 
+ 	host->data->bytes_xfered += n;
+ 
+ 	if (write) {
+-		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
++		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
  	} else {
- 		self->tx_buff.data = self->tx_buff.head;
- 		self->tx_buff.len = async_wrap_skb(skb, self->tx_buff.data, 
-@@ -876,20 +853,7 @@ static int w83977af_dma_receive_complete
- 			/* Check if we have transferred all data to memory */
- 			switch_bank(iobase, SET0);
- 			if (inb(iobase+USR) & USR_RDR) {
--#ifdef CONFIG_USE_INTERNAL_TIMER
--				/* Put this entry back in fifo */
--				st_fifo->head--;
--				st_fifo->len++;
--				st_fifo->entries[st_fifo->head].status = status;
--				st_fifo->entries[st_fifo->head].len = len;
--				
--				/* Restore set register */
--				outb(set, iobase+SSR);
--			
--				return FALSE; 	/* I'll be back! */
--#else
- 				udelay(80); /* Should be enough!? */
--#endif
- 			}
- 						
- 			skb = dev_alloc_skb(len+1);
+-		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
++		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+ 	}
+ }
+ 
+@@ -899,7 +901,7 @@ mmc_omap_prepare_dma(struct mmc_omap_hos
+ 	int dst_port = 0;
+ 	int sync_dev = 0;
+ 
+-	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
++	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
+ 	frame = data->blksz;
+ 	count = sg_dma_len(sg);
+ 
+@@ -1492,6 +1494,8 @@ static int __init mmc_omap_probe(struct 
+ 		}
+ 	}
+ 
++	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
++
+ 	return 0;
+ 
+ err_plat_cleanup:
 _
 
-Patches currently in -mm which might be from siccegge@stud.informatik.uni-erlangen.de are
+Patches currently in -mm which might be from marek.belisko@open-nandra.com are
 
-origin.patch
-linux-next.patch
+mmc-omap-add-support-for-16-bit-and-32-bit-registers.patch
 
