@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-remove-redundant-code.patch added to -mm tree
-Date: Thu, 18 Mar 2010 12:20:50 -0700
-Message-ID: <201003181920.o2IJKoVr010846@imap1.linux-foundation.org>
+Subject: + iscsi-change-to.patch added to -mm tree
+Date: Thu, 18 Mar 2010 12:24:23 -0700
+Message-ID: <201003181924.o2IJONt5011034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45618 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986Ab0CRTU5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751181Ab0CRTYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 15:20:57 -0400
+	Thu, 18 Mar 2010 15:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shijie8@gmail.com, hugh.dickins@tiscali.co.uk, minchan.kim@gmail.com
+Cc: error27@gmail.com, James.Bottomley@HansenPartnership.com, michaelc@cs.wisc.edu
 
 
 The patch titled
-     shmem: remove redundant code
+     iscsi: change & to &&
 has been added to the -mm tree.  Its filename is
-     shmem-remove-redundant-code.patch
+     iscsi-change-to.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem: remove redundant code
-From: Huang Shijie <shijie8@gmail.com>
+Subject: iscsi: change & to &&
+From: Dan Carpenter <error27@gmail.com>
 
-prep_new_page() will call set_page_private(page, 0) to initialise the
-page, so the code is redundant.
+This change is basically a clean up.
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+datadgst_en is an int which comes from the user.  I didn't see anything
+limiting it to 1 and 0 although obviously that's what it's supposed to be.
+ If the user passed in 2 this test would fail.
+
+This same if condition is repeated in another function and it uses &&
+there.
+
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/scsi/libiscsi_tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-remove-redundant-code mm/shmem.c
---- a/mm/shmem.c~shmem-remove-redundant-code
-+++ a/mm/shmem.c
-@@ -433,8 +433,6 @@ static swp_entry_t *shmem_swp_alloc(stru
+diff -puN drivers/scsi/libiscsi_tcp.c~iscsi-change-to drivers/scsi/libiscsi_tcp.c
+--- a/drivers/scsi/libiscsi_tcp.c~iscsi-change-to
++++ a/drivers/scsi/libiscsi_tcp.c
+@@ -420,7 +420,7 @@ iscsi_tcp_data_recv_prep(struct iscsi_tc
+ 	struct iscsi_conn *conn = tcp_conn->iscsi_conn;
+ 	struct hash_desc *rx_hash = NULL;
  
- 		spin_unlock(&info->lock);
- 		page = shmem_dir_alloc(mapping_gfp_mask(inode->i_mapping));
--		if (page)
--			set_page_private(page, 0);
- 		spin_lock(&info->lock);
+-	if (conn->datadgst_en &
++	if (conn->datadgst_en &&
+ 	    !(conn->session->tt->caps & CAP_DIGEST_OFFLOAD))
+ 		rx_hash = tcp_conn->rx_hash;
  
- 		if (!page) {
 _
 
-Patches currently in -mm which might be from shijie8@gmail.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
+origin.patch
+memcontrol-fix-potential-null-deref.patch
+rtc-mc13783-fix-use-after-free-bug.patch
 linux-next.patch
-shmem-remove-redundant-code.patch
+dpt_i20-several-use-after-free-issues.patch
+i915-fix-small-leak-on-error-path.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+proc-cleanup-remove-unused-assignments.patch
 
