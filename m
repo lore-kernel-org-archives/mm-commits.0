@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-enable-debug_section_mismatch.patch added to -mm tree
-Date: Thu, 18 Mar 2010 14:45:14 -0700
-Message-ID: <201003182145.o2ILjE1Z017421@imap1.linux-foundation.org>
+Subject: + get_maintainer-repair-stdin-usage.patch added to -mm tree
+Date: Thu, 18 Mar 2010 15:32:48 -0700
+Message-ID: <201003182232.o2IMWmtk019693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751704Ab0CRVpo (ORCPT
+	by vger.kernel.org with ESMTP id S1751353Ab0CRWdE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 17:45:44 -0400
+	Thu, 18 Mar 2010 18:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org
+Cc: w.sang@pengutronix.de, joe@perches.com, shemminger@vyatta.com
 
 
 The patch titled
-     blackfin: enable DEBUG_SECTION_MISMATCH
+     get_maintainer: Repair STDIN usage
 has been added to the -mm tree.  Its filename is
-     blackfin-enable-debug_section_mismatch.patch
+     get_maintainer-repair-stdin-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: enable DEBUG_SECTION_MISMATCH
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: get_maintainer: Repair STDIN usage
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-We see only one section mismatch now after thousands of randconfigs, and a
-bug has been filed about that one.
+Commit 22dd5b0cba50a197aaa3bd2790a29ee2e8e4e372 (fix perlcritic warnings)
+broke the ability to handle STDIN because the three argument version of
+open() cannot handle standard IO-streams (which is mentioned in
+PerlBestPractices, too).
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~blackfin-enable-debug_section_mismatch lib/Kconfig.debug
---- a/lib/Kconfig.debug~blackfin-enable-debug_section_mismatch
-+++ a/lib/Kconfig.debug
-@@ -103,7 +103,8 @@ config HEADERS_CHECK
+diff -puN scripts/get_maintainer.pl~get_maintainer-repair-stdin-usage scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-repair-stdin-usage
++++ a/scripts/get_maintainer.pl
+@@ -284,7 +284,7 @@ foreach my $file (@ARGV) {
+ 	my $file_cnt = @files;
+ 	my $lastfile;
  
- config DEBUG_SECTION_MISMATCH
- 	bool "Enable full Section mismatch analysis"
--	depends on UNDEFINED
-+	depends on UNDEFINED || (BLACKFIN)
-+	default y
- 	# This option is on purpose disabled for now.
- 	# It will be enabled when we are down to a reasonable number
- 	# of section mismatch warnings (< 10 for an allyesconfig build)
+-	open(my $patch, '<', $file)
++	open(my $patch, "< $file")
+ 	    or die "$P: Can't open $file: $!\n";
+ 	while (<$patch>) {
+ 	    my $patch_line = $_;
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
-blackfin-enable-debug_section_mismatch.patch
+get_maintainer-repair-stdin-usage.patch
 linux-next.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
 
