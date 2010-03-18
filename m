@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + led-driver-for-the-soekris-net5501-board-fix-2.patch added to -mm tree
-Date: Thu, 18 Mar 2010 16:15:57 -0700
-Message-ID: <201003182315.o2INFvF2021368@imap1.linux-foundation.org>
+Subject: + scsi-fix-convert-scsi_scanc-kernel-doc.patch added to -mm tree
+Date: Thu, 18 Mar 2010 16:17:29 -0700
+Message-ID: <201003182317.o2INHTuE021492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080Ab0CRXQs (ORCPT
+	by vger.kernel.org with ESMTP id S1751622Ab0CRXSF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 19:16:48 -0400
+	Thu, 18 Mar 2010 19:18:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, a.zummo@towertech.it, gurligebis@gentoo.org, rpurdie@rpsys.net
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     leds: fix net5501 kconfig
+     scsi: fix/convert scsi_scan.c kernel-doc
 has been added to the -mm tree.  Its filename is
-     led-driver-for-the-soekris-net5501-board-fix-2.patch
+     scsi-fix-convert-scsi_scanc-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: fix net5501 kconfig
+Subject: scsi: fix/convert scsi_scan.c kernel-doc
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-LEDS_NET5501 selects LEDS_TRIGGER_DEFAULT_ON even when the symbol
-LEDS_TRIGGERS is not enabled.  This causes build errors, so make
-LEDS_NET5501 depend on LEDS_TRIGGERS to prevent the build errors.
-
-drivers/leds/ledtrig-default-on.c:25: error: variable 'defon_led_trigger' has initializer but incomplete type
-drivers/leds/ledtrig-default-on.c:26: error: unknown field 'name' specified in initializer
-drivers/leds/ledtrig-default-on.c:26: warning: excess elements in struct initializer
-drivers/leds/ledtrig-default-on.c:26: warning: (near initialization for 'defon_led_trigger')
-drivers/leds/ledtrig-default-on.c:27: error: unknown field 'activate' specified in initializer
-drivers/leds/ledtrig-default-on.c:27: warning: excess elements in struct initializer
-drivers/leds/ledtrig-default-on.c:27: warning: (near initialization for 'defon_led_trigger')
-drivers/leds/ledtrig-default-on.c:32: error: implicit declaration of function 'led_trigger_register'
-drivers/leds/ledtrig-default-on.c:37: error: implicit declaration of function 'led_trigger_unregister'
+scsi_scan.c: fix incorrectly formatted kernel-doc notation & convert
+documentation of 2 functions into kernel-doc.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bjarke Istrup Pedersen <gurligebis@gentoo.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/scsi/scsi_scan.c |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN drivers/leds/Kconfig~led-driver-for-the-soekris-net5501-board-fix-2 drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~led-driver-for-the-soekris-net5501-board-fix-2
-+++ a/drivers/leds/Kconfig
-@@ -69,7 +69,8 @@ config LEDS_NET48XX
+diff -puN drivers/scsi/scsi_scan.c~scsi-fix-convert-scsi_scanc-kernel-doc drivers/scsi/scsi_scan.c
+--- a/drivers/scsi/scsi_scan.c~scsi-fix-convert-scsi_scanc-kernel-doc
++++ a/drivers/scsi/scsi_scan.c
+@@ -1220,7 +1220,7 @@ static void scsi_sequential_lun_scan(str
+ }
  
- config LEDS_NET5501
- 	tristate "LED Support for Soekris net5501 series Error LED"
--	depends on LEDS_CLASS && LEDS_GPIO_PLATFORM && GPIO_CS5535
-+	depends on LEDS_CLASS && LEDS_TRIGGERS
-+	depends on LEDS_GPIO_PLATFORM && GPIO_CS5535
- 	select LEDS_TRIGGER_DEFAULT_ON
- 	default n
- 	help
+ /**
+- * scsilun_to_int: convert a scsi_lun to an int
++ * scsilun_to_int - convert a scsi_lun to an int
+  * @scsilun:	struct scsi_lun to be converted.
+  *
+  * Description:
+@@ -1252,7 +1252,7 @@ int scsilun_to_int(struct scsi_lun *scsi
+ EXPORT_SYMBOL(scsilun_to_int);
+ 
+ /**
+- * int_to_scsilun: reverts an int into a scsi_lun
++ * int_to_scsilun - reverts an int into a scsi_lun
+  * @lun:        integer to be reverted
+  * @scsilun:	struct scsi_lun to be set.
+  *
+@@ -1876,12 +1876,9 @@ void scsi_forget_host(struct Scsi_Host *
+ 	spin_unlock_irqrestore(shost->host_lock, flags);
+ }
+ 
+-/*
+- * Function:    scsi_get_host_dev()
+- *
+- * Purpose:     Create a scsi_device that points to the host adapter itself.
+- *
+- * Arguments:   SHpnt   - Host that needs a scsi_device
++/**
++ * scsi_get_host_dev - Create a scsi_device that points to the host adapter itself
++ * @shost: Host that needs a scsi_device
+  *
+  * Lock status: None assumed.
+  *
+@@ -1894,7 +1891,7 @@ void scsi_forget_host(struct Scsi_Host *
+  *
+  *	Note - this device is not accessible from any high-level
+  *	drivers (including generics), which is probably not
+- *	optimal.  We can add hooks later to attach 
++ *	optimal.  We can add hooks later to attach.
+  */
+ struct scsi_device *scsi_get_host_dev(struct Scsi_Host *shost)
+ {
+@@ -1920,18 +1917,13 @@ struct scsi_device *scsi_get_host_dev(st
+ }
+ EXPORT_SYMBOL(scsi_get_host_dev);
+ 
+-/*
+- * Function:    scsi_free_host_dev()
+- *
+- * Purpose:     Free a scsi_device that points to the host adapter itself.
+- *
+- * Arguments:   SHpnt   - Host that needs a scsi_device
++/**
++ * scsi_free_host_dev - Free a scsi_device that points to the host adapter itself
++ * @sdev: Host device to be freed
+  *
+  * Lock status: None assumed.
+  *
+  * Returns:     Nothing
+- *
+- * Notes:
+  */
+ void scsi_free_host_dev(struct scsi_device *sdev)
+ {
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -85,6 +127,8 @@ vmwgfx-depends-on-fb.patch
 dib3000mc-reduce-large-stack-usage.patch
 dib7000p-reduce-large-stack-usage.patch
 led-driver-for-the-soekris-net5501-board-fix-2.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
 reiser4-export-remove_from_page_cache-fix.patch
 mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
