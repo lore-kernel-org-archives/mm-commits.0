@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5.patch added to -mm tree
-Date: Thu, 18 Mar 2010 13:57:06 -0700
-Message-ID: <201003182057.o2IKv6PK015217@imap1.linux-foundation.org>
+Subject: + nommu-allow-private-mappings-of-read-only-devices.patch added to -mm tree
+Date: Thu, 18 Mar 2010 14:23:59 -0700
+Message-ID: <201003182123.o2ILNxrX016417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346Ab0CRU6L (ORCPT
+	by vger.kernel.org with ESMTP id S1751379Ab0CRVY1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 16:58:11 -0400
+	Thu, 18 Mar 2010 17:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kerstin.jonsson@ericsson.com, avi@redhat.com, ebiederm@xmission.com, hpa@zytor.com, jbohac@novell.com, mingo@elte.hu, tglx@linutronix.de, trenn@suse.de, yinghai@kernel.org
+Cc: bernds_cb1@t-online.de, davidm@snapgear.com, dhowells@redhat.com, gerg@uclinux.org, hugh.dickins@tiscali.co.uk, lethal@linux-sh.org, vapier@gentoo.org
 
 
 The patch titled
-     x86 apic: ack all pending irqs when crashed/on kexec
+     nommu: allow private mappings of read-only devices
 has been added to the -mm tree.  Its filename is
-     x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5.patch
+     nommu-allow-private-mappings-of-read-only-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,142 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 apic: ack all pending irqs when crashed/on kexec
-From: Kerstin Jonsson <kerstin.jonsson@ericsson.com>
+Subject: nommu: allow private mappings of read-only devices
+From: Bernd Schmidt <bernds_cb1@t-online.de>
 
-When the SMP kernel decides to crash_kexec() the local APICs may have
-pending interrupts in their vector tables.
+Slightly rearrange the logic that determines capabilities and vm_flags. 
+Disable BDI_CAP_MAP_DIRECT in all cases if the device can't support the
+protections.  Allow private readonly mappings of readonly backing devices.
 
-The setup routine for the local APIC has a deficient mechanism for
-clearing these interrupts, it only handles interrupts that has already
-been dispatched to the local core for servicing (the ISR register) safely,
-it doesn't consider lower prioritized queued interrupts stored in the IRR
-register.
-
-If you have more than one pending interrupt within the same 32 bit word in
-the LAPIC vector table registers you may find yourself entering the IO
-APIC setup with pending interrupts left in the LAPIC.  This is a situation
-for wich the IO APIC setup is not prepared.  Depending of what/which
-interrupt vector/vectors are stuck in the APIC tables your system may show
-various degrees of malfunctioning.  That was the reason why the
-check_timer() failed in our system, the timer interrupts was blocked by
-pending interrupts from the old kernel when routed trough the IO APIC.
-
-Additional comment from Jiri Bohac:
-==============
-If this should go into stable release,
-I'd add some kind of limit on the number of iterations, just to be safe from
-hard to debug lock-ups:
-
-+if (loops++  > MAX_LOOPS) {
-+        printk("LAPIC pending clean-up")
-+        break;
-+}
- while (queued);
-
-with MAX_LOOPS something like 1E9 this would leave plenty of time for the
-pending IRQs to be cleared and would and still cause at most a second of delay
-if the loop were to lock-up for whatever reason.
-
-[trenn@suse.de:
-
-V2: Use tsc if avail to bail out after 1 sec due to possible virtual
-    apic_read calls which may take rather long (suggested by: Avi Kivity
-    <avi@redhat.com>) If no tsc is available bail out quickly after
-    cpu_khz, if we broke out too early and still have irqs pending (which
-    should never happen?) we still get a WARN_ON...
-
-V3: - Fixed indentation -> checkpatch clean
-    - max_loops must be signed
-
-V4: - Fix typo, mixed up tsc and ntsc in first rdtscll() call
-
-V5: Adjust WARN_ON() condition to also catch error in cpu_has_tsc case]
-
-Cc: <jbohac@novell.com>
-Cc: "Yinghai Lu" <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Kerstin Jonsson" <kerstin.jonsson@ericsson.com>
-Cc: "Avi Kivity" <avi@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Bernd Schmidt <bernds_cb1@t-online.de>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: David McCullough <davidm@snapgear.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic/apic.c |   41 +++++++++++++++++++++++++++-------
- 1 file changed, 33 insertions(+), 8 deletions(-)
+ mm/nommu.c |   32 ++++++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/kernel/apic/apic.c~x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5 arch/x86/kernel/apic/apic.c
---- a/arch/x86/kernel/apic/apic.c~x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5
-+++ a/arch/x86/kernel/apic/apic.c
-@@ -51,6 +51,7 @@
- #include <asm/smp.h>
- #include <asm/mce.h>
- #include <asm/kvm_para.h>
-+#include <asm/tsc.h>
+diff -puN mm/nommu.c~nommu-allow-private-mappings-of-read-only-devices mm/nommu.c
+--- a/mm/nommu.c~nommu-allow-private-mappings-of-read-only-devices
++++ a/mm/nommu.c
+@@ -918,14 +918,6 @@ static int validate_mmap_request(struct 
+ 			if (!(capabilities & BDI_CAP_MAP_DIRECT))
+ 				return -ENODEV;
  
- unsigned int num_processors;
+-			if (((prot & PROT_READ)  && !(capabilities & BDI_CAP_READ_MAP))  ||
+-			    ((prot & PROT_WRITE) && !(capabilities & BDI_CAP_WRITE_MAP)) ||
+-			    ((prot & PROT_EXEC)  && !(capabilities & BDI_CAP_EXEC_MAP))
+-			    ) {
+-				printk("MAP_SHARED not completely supported on !MMU\n");
+-				return -EINVAL;
+-			}
+-
+ 			/* we mustn't privatise shared mappings */
+ 			capabilities &= ~BDI_CAP_MAP_COPY;
+ 		}
+@@ -941,6 +933,20 @@ static int validate_mmap_request(struct 
+ 				capabilities &= ~BDI_CAP_MAP_DIRECT;
+ 		}
  
-@@ -1151,8 +1152,13 @@ static void __cpuinit lapic_setup_esr(vo
-  */
- void __cpuinit setup_local_APIC(void)
- {
--	unsigned int value;
--	int i, j;
-+	unsigned int value, queued;
-+	int i, j, acked = 0;
-+	unsigned long long tsc = 0, ntsc;
-+	long long max_loops = cpu_khz;
-+
-+	if (cpu_has_tsc)
-+		rdtscll(tsc);
- 
- 	if (disable_apic) {
- 		arch_disable_smp_support();
-@@ -1204,13 +1210,32 @@ void __cpuinit setup_local_APIC(void)
- 	 * the interrupt. Hence a vector might get locked. It was noticed
- 	 * for timer irq (vector 0x31). Issue an extra EOI to clear ISR.
- 	 */
--	for (i = APIC_ISR_NR - 1; i >= 0; i--) {
--		value = apic_read(APIC_ISR + i*0x10);
--		for (j = 31; j >= 0; j--) {
--			if (value & (1<<j))
--				ack_APIC_irq();
-+	do {
-+		queued = 0;
-+		for (i = APIC_ISR_NR - 1; i >= 0; i--)
-+			queued |= apic_read(APIC_IRR + i*0x10);
-+
-+		for (i = APIC_ISR_NR - 1; i >= 0; i--) {
-+			value = apic_read(APIC_ISR + i*0x10);
-+			for (j = 31; j >= 0; j--) {
-+				if (value & (1<<j)) {
-+					ack_APIC_irq();
-+					acked++;
++		if (capabilities & BDI_CAP_MAP_DIRECT) {
++			if (((prot & PROT_READ)  && !(capabilities & BDI_CAP_READ_MAP))  ||
++			    ((prot & PROT_WRITE) && !(capabilities & BDI_CAP_WRITE_MAP)) ||
++			    ((prot & PROT_EXEC)  && !(capabilities & BDI_CAP_EXEC_MAP))
++			    ) {
++				capabilities &= ~BDI_CAP_MAP_DIRECT;
++				if (flags & MAP_SHARED) {
++					printk(KERN_WARNING
++					       "MAP_SHARED not completely supported on !MMU\n");
++					return -EINVAL;
 +				}
 +			}
- 		}
--	}
-+		if (acked > 256) {
-+			printk(KERN_ERR "LAPIC pending interrupts after %d EOI\n",
-+			       acked);
-+			break;
 +		}
-+		if (cpu_has_tsc) {
-+			rdtscll(ntsc);
-+			max_loops = (cpu_khz << 10) - (ntsc - tsc);
-+		} else
-+			max_loops--;
-+	} while (queued && max_loops > 0);
-+	WARN_ON(max_loops <= 0);
++
+ 		/* handle executable mappings and implied executable
+ 		 * mappings */
+ 		if (file->f_path.mnt->mnt_flags & MNT_NOEXEC) {
+@@ -996,22 +1002,20 @@ static unsigned long determine_vm_flags(
+ 	unsigned long vm_flags;
  
- 	/*
- 	 * Now that we are all set up, enable the APIC
+ 	vm_flags = calc_vm_prot_bits(prot) | calc_vm_flag_bits(flags);
+-	vm_flags |= VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+ 	/* vm_flags |= mm->def_flags; */
+ 
+ 	if (!(capabilities & BDI_CAP_MAP_DIRECT)) {
+ 		/* attempt to share read-only copies of mapped file chunks */
++		vm_flags |= VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+ 		if (file && !(prot & PROT_WRITE))
+ 			vm_flags |= VM_MAYSHARE;
+-	}
+-	else {
++	} else {
+ 		/* overlay a shareable mapping on the backing device or inode
+ 		 * if possible - used for chardevs, ramfs/tmpfs/shmfs and
+ 		 * romfs/cramfs */
++		vm_flags |= VM_MAYSHARE | (capabilities & BDI_CAP_VMFLAGS);
+ 		if (flags & MAP_SHARED)
+-			vm_flags |= VM_MAYSHARE | VM_SHARED;
+-		else if ((((vm_flags & capabilities) ^ vm_flags) & BDI_CAP_VMFLAGS) == 0)
+-			vm_flags |= VM_MAYSHARE;
++			vm_flags |= VM_SHARED;
+ 	}
+ 
+ 	/* refuse to let anyone share private mappings with this process if
 _
 
-Patches currently in -mm which might be from kerstin.jonsson@ericsson.com are
+Patches currently in -mm which might be from bernds_cb1@t-online.de are
 
-x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5.patch
+nommu-allow-private-mappings-of-read-only-devices.patch
 
