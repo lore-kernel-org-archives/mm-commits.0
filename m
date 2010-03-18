@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-kernel-doc-handle-struct-member-__aligned.patch added to -mm tree
-Date: Thu, 18 Mar 2010 12:05:52 -0700
-Message-ID: <201003181905.o2IJ5qNV010152@imap1.linux-foundation.org>
+Subject: + shmem-remove-redundant-code.patch added to -mm tree
+Date: Thu, 18 Mar 2010 12:20:50 -0700
+Message-ID: <201003181920.o2IJKoVr010846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143Ab0CRTG2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751986Ab0CRTU5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 15:06:28 -0400
+	Thu, 18 Mar 2010 15:20:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: shijie8@gmail.com, hugh.dickins@tiscali.co.uk, minchan.kim@gmail.com
 
 
 The patch titled
-     scripts/kernel-doc: handle struct member __aligned
+     shmem: remove redundant code
 has been added to the -mm tree.  Its filename is
-     scripts-kernel-doc-handle-struct-member-__aligned.patch
+     shmem-remove-redundant-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/kernel-doc: handle struct member __aligned
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: shmem: remove redundant code
+From: Huang Shijie <shijie8@gmail.com>
 
-scripts/kernel-doc erroneously says:
+prep_new_page() will call set_page_private(page, 0) to initialise the
+page, so the code is redundant.
 
-Warning(include/linux/skbuff.h:410): Excess struct/union/enum/typedef member 'cb' description in 'sk_buff'
-
-on this line in struct sk_buff:
-	char			cb[48] __aligned(8);
-
-due to treating the last field as the struct member name, so teach
-kernel-doc to ignore __aligned(x) in structs.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Huang Shijie <shijie8@gmail.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/shmem.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned scripts/kernel-doc
---- a/scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned
-+++ a/scripts/kernel-doc
-@@ -1424,6 +1424,8 @@ sub dump_struct($$) {
- 	$nested =~ s/\/\*.*?\*\///gos;
- 	# strip kmemcheck_bitfield_{begin,end}.*;
- 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
-+	# strip attributes
-+	$members =~ s/__aligned\s*\(\d+\)//gos;
+diff -puN mm/shmem.c~shmem-remove-redundant-code mm/shmem.c
+--- a/mm/shmem.c~shmem-remove-redundant-code
++++ a/mm/shmem.c
+@@ -433,8 +433,6 @@ static swp_entry_t *shmem_swp_alloc(stru
  
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+ 		spin_unlock(&info->lock);
+ 		page = shmem_dir_alloc(mapping_gfp_mask(inode->i_mapping));
+-		if (page)
+-			set_page_private(page, 0);
+ 		spin_lock(&info->lock);
+ 
+ 		if (!page) {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from shijie8@gmail.com are
 
-origin.patch
-scripts-kernel-doc-handle-struct-member-__aligned.patch
 linux-next.patch
-vmwgfx-depends-on-fb.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+shmem-remove-redundant-code.patch
 
