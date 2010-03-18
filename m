@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-platforms-pseries-use-kasprintf.patch added to -mm tree
-Date: Thu, 18 Mar 2010 16:26:26 -0700
-Message-ID: <201003182326.o2INQQfZ021886@imap1.linux-foundation.org>
+Subject: + arch-x86-pci-use-kasprintf.patch added to -mm tree
+Date: Thu, 18 Mar 2010 16:26:09 -0700
+Message-ID: <201003182326.o2INQ9HV021807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752289Ab0CRX0m (ORCPT
+	by vger.kernel.org with ESMTP id S1751712Ab0CRX1R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 19:26:42 -0400
+	Thu, 18 Mar 2010 19:27:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, benh@kernel.crashing.org, nfont@austin.ibm.com
+Cc: julia@diku.dk, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     arch/powerpc/platforms/pseries: use kasprintf
+     arch/x86/pci: use kasprintf
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-platforms-pseries-use-kasprintf.patch
+     arch-x86-pci-use-kasprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/platforms/pseries: use kasprintf
+Subject: arch/x86/pci: use kasprintf
 From: Julia Lawall <julia@diku.dk>
 
 kasprintf combines kmalloc and sprintf, and takes care of the size
@@ -60,49 +60,30 @@ statement S;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Nathan Fontenot <nfont@austin.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/dlpar.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/x86/pci/acpi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/dlpar.c~arch-powerpc-platforms-pseries-use-kasprintf arch/powerpc/platforms/pseries/dlpar.c
---- a/arch/powerpc/platforms/pseries/dlpar.c~arch-powerpc-platforms-pseries-use-kasprintf
-+++ a/arch/powerpc/platforms/pseries/dlpar.c
-@@ -78,13 +78,12 @@ static struct device_node *dlpar_parse_c
- 	 * prepend this to the full_name.
- 	 */
- 	name = (char *)ccwa + ccwa->name_offset;
--	dn->full_name = kmalloc(strlen(name) + 2, GFP_KERNEL);
-+	dn->full_name = kasprintf(GFP_KERNEL, "/%s", name);
- 	if (!dn->full_name) {
- 		kfree(dn);
- 		return NULL;
- 	}
+diff -puN arch/x86/pci/acpi.c~arch-x86-pci-use-kasprintf arch/x86/pci/acpi.c
+--- a/arch/x86/pci/acpi.c~arch-x86-pci-use-kasprintf
++++ a/arch/x86/pci/acpi.c
+@@ -198,10 +198,9 @@ get_current_resources(struct acpi_device
+ 	if (!info.res)
+ 		goto res_alloc_fail;
  
--	sprintf(dn->full_name, "/%s", name);
- 	return dn;
- }
+-	info.name = kmalloc(16, GFP_KERNEL);
++	info.name = kasprintf(GFP_KERNEL, "PCI Bus %04x:%02x", domain, busnum);
+ 	if (!info.name)
+ 		goto name_alloc_fail;
+-	sprintf(info.name, "PCI Bus %04x:%02x", domain, busnum);
  
-@@ -409,15 +408,13 @@ static ssize_t dlpar_cpu_probe(const cha
- 	 * directory of the device tree.  CPUs actually live in the
- 	 * cpus directory so we need to fixup the full_name.
- 	 */
--	cpu_name = kzalloc(strlen(dn->full_name) + strlen("/cpus") + 1,
--			   GFP_KERNEL);
-+	cpu_name = kasprintf(GFP_KERNEL, "/cpus%s", dn->full_name);
- 	if (!cpu_name) {
- 		dlpar_free_cc_nodes(dn);
- 		rc = -ENOMEM;
- 		goto out;
- 	}
- 
--	sprintf(cpu_name, "/cpus%s", dn->full_name);
- 	kfree(dn->full_name);
- 	dn->full_name = cpu_name;
- 
+ 	info.res_num = 0;
+ 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, setup_resource,
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
