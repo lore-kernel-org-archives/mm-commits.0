@@ -1,66 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] goku_udc-potential-null-dereference.patch removed from -mm tree
-Date: Thu, 18 Mar 2010 11:09:14 -0400
-Message-ID: <201003181809.o2II9tL7007604@imap1.linux-foundation.org>
+Subject: [merged] i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names.patch removed from -mm tree
+Date: Thu, 18 Mar 2010 11:08:49 -0400
+Message-ID: <201003181809.o2II9Udu007568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752676Ab0CRSKW (ORCPT
+	by vger.kernel.org with ESMTP id S1753156Ab0CRSKT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 14:10:22 -0400
+	Thu, 18 Mar 2010 14:10:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: imunsie@au.ibm.com, isdn@linux-pingi.de, mac@melware.de, sgayda2@uiuc.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     goku_udc: potential null dereference
+     i4l: change magic numbers in Eicon DIVA ISDN driver to symbolic names
 has been removed from the -mm tree.  Its filename was
-     goku_udc-potential-null-dereference.patch
+     i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: goku_udc: potential null dereference
-From: Dan Carpenter <error27@gmail.com>
+Subject: i4l: change magic numbers in Eicon DIVA ISDN driver to symbolic names
+From: Ian Munsie <imunsie@au.ibm.com>
 
-"dev" is always null here.  In the end it's only used to get the
-pci_name() of "pdev" which is redundant information and so I removed it.
+Replace references to the '20' magic number found throughout the Eicon
+ISDN driver for the length of the station_id field in the T30_INFO struct
+with the T30_MAX_STATION_ID_LENGTH symbolic constant.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Ian Munsie <imunsie@au.ibm.com>
+Cc: Armin Schindler <mac@melware.de>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Stoyan Gaydarov <sgayda2@uiuc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/goku_udc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/hardware/eicon/message.c |   32 ++++++++++++------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN drivers/usb/gadget/goku_udc.c~goku_udc-potential-null-dereference drivers/usb/gadget/goku_udc.c
---- a/drivers/usb/gadget/goku_udc.c~goku_udc-potential-null-dereference
-+++ a/drivers/usb/gadget/goku_udc.c
-@@ -1768,7 +1768,7 @@ static int goku_probe(struct pci_dev *pd
- 	 * usb_gadget_driver_{register,unregister}() must change.
- 	 */
- 	if (the_controller) {
--		WARNING(dev, "ignoring %s\n", pci_name(pdev));
-+		pr_warning("ignoring %s\n", pci_name(pdev));
- 		return -EBUSY;
- 	}
- 	if (!pdev->irq) {
+diff -puN drivers/isdn/hardware/eicon/message.c~i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~i4l-change-magic-numbers-in-eicon-diva-isdn-driver-to-symbolic-names
++++ a/drivers/isdn/hardware/eicon/message.c
+@@ -2754,7 +2754,7 @@ static byte connect_b3_req(dword Id, wor
+                     for (i = 0; i < w; i++)
+                       ((T30_INFO   *)(plci->fax_connect_info_buffer))->station_id[i] = fax_parms[4].info[1+i];
+                     ((T30_INFO   *)(plci->fax_connect_info_buffer))->head_line_len = 0;
+-                    len = offsetof(T30_INFO, station_id) + 20;
++                    len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
+                     w = fax_parms[5].length;
+                     if (w > 20)
+                       w = 20;
+@@ -2892,7 +2892,7 @@ static byte connect_b3_res(dword Id, wor
+     && (plci->nsf_control_bits & T30_NSF_CONTROL_BIT_ENABLE_NSF)
+     && (plci->nsf_control_bits & T30_NSF_CONTROL_BIT_NEGOTIATE_RESP))
+    {
+-            len = offsetof(T30_INFO, station_id) + 20;
++            len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
+             if (plci->fax_connect_info_length < len)
+             {
+               ((T30_INFO *)(plci->fax_connect_info_buffer))->station_id_len = 0;
+@@ -3802,7 +3802,7 @@ static byte manufacturer_res(dword Id, w
+       break;
+     }
+     ncpi = &m_parms[1];
+-    len = offsetof(T30_INFO, station_id) + 20;
++    len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
+     if (plci->fax_connect_info_length < len)
+     {
+       ((T30_INFO *)(plci->fax_connect_info_buffer))->station_id_len = 0;
+@@ -6830,7 +6830,7 @@ static void nl_ind(PLCI *plci)
+         if(((T30_INFO   *)plci->NL.RBuffer->P)->station_id_len)
+         {
+           plci->ncpi_buffer[len] = 20;
+-          for (i = 0; i < 20; i++)
++          for (i = 0; i < T30_MAX_STATION_ID_LENGTH; i++)
+             plci->ncpi_buffer[++len] = ((T30_INFO   *)plci->NL.RBuffer->P)->station_id[i];
+         }
+         if (((plci->NL.Ind & 0x0f) == N_DISC) || ((plci->NL.Ind & 0x0f) == N_DISC_ACK))
+@@ -6844,7 +6844,7 @@ static void nl_ind(PLCI *plci)
+         if ((plci->requested_options_conn | plci->requested_options | a->requested_options_table[plci->appl->Id-1])
+           & ((1L << PRIVATE_FAX_SUB_SEP_PWD) | (1L << PRIVATE_FAX_NONSTANDARD)))
+         {
+-          i = offsetof(T30_INFO, station_id) + 20 + ((T30_INFO   *)plci->NL.RBuffer->P)->head_line_len;
++          i = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + ((T30_INFO   *)plci->NL.RBuffer->P)->head_line_len;
+           while (i < plci->NL.RBuffer->length)
+             plci->ncpi_buffer[++len] = plci->NL.RBuffer->P[i++];
+         }
+@@ -8400,7 +8400,7 @@ static word add_b23(PLCI *plci, API_PARS
+         }
+       }
+       /* copy station id to NLC */
+-      for(i=0; i<20; i++)
++      for(i=0; i < T30_MAX_STATION_ID_LENGTH; i++)
+       {
+         if(i<b3_config_parms[2].length)
+         {
+@@ -8411,29 +8411,29 @@ static word add_b23(PLCI *plci, API_PARS
+           ((T30_INFO *)&nlc[1])->station_id[i] = ' ';
+         }
+       }
+-      ((T30_INFO *)&nlc[1])->station_id_len = 20;
++      ((T30_INFO *)&nlc[1])->station_id_len = T30_MAX_STATION_ID_LENGTH;
+       /* copy head line to NLC */
+       if(b3_config_parms[3].length)
+       {
+ 
+-        pos = (byte)(fax_head_line_time (&(((T30_INFO *)&nlc[1])->station_id[20])));
++        pos = (byte)(fax_head_line_time (&(((T30_INFO *)&nlc[1])->station_id[T30_MAX_STATION_ID_LENGTH])));
+         if (pos != 0)
+         {
+           if (CAPI_MAX_DATE_TIME_LENGTH + 2 + b3_config_parms[3].length > CAPI_MAX_HEAD_LINE_SPACE)
+             pos = 0;
+           else
+           {
+-            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
+-            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
++            nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
++            nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
+             len = (byte)b3_config_parms[2].length;
+             if (len > 20)
+               len = 20;
+             if (CAPI_MAX_DATE_TIME_LENGTH + 2 + len + 2 + b3_config_parms[3].length <= CAPI_MAX_HEAD_LINE_SPACE)
+             {
+               for (i = 0; i < len; i++)
+-                nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
+-              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
+-              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
++                nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
++              nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
++              nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] = ' ';
+             }
+           }
+         }
+@@ -8444,7 +8444,7 @@ static word add_b23(PLCI *plci, API_PARS
+         ((T30_INFO *)&nlc[1])->head_line_len = (byte)(pos + len);
+         nlc[0] += (byte)(pos + len);
+         for (i = 0; i < len; i++)
+-          nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] =  ((byte   *)b3_config_parms[3].info)[1+i];
++          nlc[1 + offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH + pos++] =  ((byte   *)b3_config_parms[3].info)[1+i];
+       } else
+         ((T30_INFO *)&nlc[1])->head_line_len = 0;
+ 
+@@ -8472,7 +8472,7 @@ static word add_b23(PLCI *plci, API_PARS
+             fax_control_bits |= T30_CONTROL_BIT_ACCEPT_SEL_POLLING;
+           }
+             len = nlc[0];
+-          pos = offsetof(T30_INFO, station_id) + 20;
++          pos = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
+    if (pos < plci->fax_connect_info_length)
+    {
+      for (i = 1 + plci->fax_connect_info_buffer[pos]; i != 0; i--)
+@@ -8524,7 +8524,7 @@ static word add_b23(PLCI *plci, API_PARS
+       }
+ 
+       PUT_WORD(&(((T30_INFO *)&nlc[1])->control_bits_low), fax_control_bits);
+-      len = offsetof(T30_INFO, station_id) + 20;
++      len = offsetof(T30_INFO, station_id) + T30_MAX_STATION_ID_LENGTH;
+       for (i = 0; i < len; i++)
+         plci->fax_connect_info_buffer[i] = nlc[1+i];
+       ((T30_INFO   *) plci->fax_connect_info_buffer)->head_line_len = 0;
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from imunsie@au.ibm.com are
 
-origin.patch
-memcontrol-fix-potential-null-deref.patch
 linux-next.patch
-dpt_i20-several-use-after-free-issues.patch
-i915-fix-small-leak-on-error-path.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-proc-cleanup-remove-unused-assignments.patch
 
