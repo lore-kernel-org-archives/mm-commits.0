@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-use-tab-not-spaces-for-delimiter.patch added to -mm tree
-Date: Thu, 18 Mar 2010 16:18:05 -0700
-Message-ID: <201003182318.o2INI52d021506@imap1.linux-foundation.org>
+Subject: + drivers-acpi-use-kasprintf.patch added to -mm tree
+Date: Thu, 18 Mar 2010 16:25:51 -0700
+Message-ID: <201003182325.o2INPpWK021785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751968Ab0CRXSl (ORCPT
+	by vger.kernel.org with ESMTP id S1752014Ab0CRXZ4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 19:18:41 -0400
+	Thu, 18 Mar 2010 19:25:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: julia@diku.dk, lenb@kernel.org
 
 
 The patch titled
-     MAINTAINERS: use tab not spaces for delimiter
+     drivers/acpi: use kasprintf
 has been added to the -mm tree.  Its filename is
-     maintainers-use-tab-not-spaces-for-delimiter.patch
+     drivers-acpi-use-kasprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: use tab not spaces for delimiter
-From: Joe Perches <joe@perches.com>
+Subject: drivers/acpi: use kasprintf
+From: Julia Lawall <julia@diku.dk>
 
-Keeps MAINTAINERS a bit more consistent.
-done via sed -r -i -e 's/^([A-Z]):[ \t]+/\1:\t/g' MAINTAINERS
+kasprintf combines kmalloc and sprintf, and takes care of the size
+calculation itself.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression a,flag;
+expression list args;
+statement S;
+@@
+
+  a =
+-  \(kmalloc\|kzalloc\)(...,flag)
++  kasprintf(flag,args)
+  <... when != a
+  if (a == NULL || ...) S
+  ...>
+- sprintf(a,args);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ drivers/acpi/video.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-use-tab-not-spaces-for-delimiter MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tab-not-spaces-for-delimiter
-+++ a/MAINTAINERS
-@@ -797,12 +797,12 @@ M:	Michael Petchkovsky <mkpetch@internod
- S:	Maintained
+diff -puN drivers/acpi/video.c~drivers-acpi-use-kasprintf drivers/acpi/video.c
+--- a/drivers/acpi/video.c~drivers-acpi-use-kasprintf
++++ a/drivers/acpi/video.c
+@@ -1006,11 +1006,10 @@ static void acpi_video_device_find_cap(s
+ 		result = acpi_video_init_brightness(device);
+ 		if (result)
+ 			return;
+-		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
+ 		if (!name)
+ 			return;
  
- ARM/NOMADIK ARCHITECTURE
--M:     Alessandro Rubini <rubini@unipv.it>
--M:     STEricsson <STEricsson_nomadik_linux@list.st.com>
--L:     linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:     Maintained
--F:     arch/arm/mach-nomadik/
--F:     arch/arm/plat-nomadik/
-+M:	Alessandro Rubini <rubini@unipv.it>
-+M:	STEricsson <STEricsson_nomadik_linux@list.st.com>
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+S:	Maintained
-+F:	arch/arm/mach-nomadik/
-+F:	arch/arm/plat-nomadik/
- 
- ARM/OPENMOKO NEO FREERUNNER (GTA02) MACHINE SUPPORT
- M:	Nelson Castillo <arhuaco@freaks-unidos.net>
-@@ -1927,17 +1927,17 @@ F:	drivers/scsi/dpt*
- F:	drivers/scsi/dpt/
- 
- DRBD DRIVER
--P:     Philipp Reisner
--P:     Lars Ellenberg
--M:     drbd-dev@lists.linbit.com
--L:     drbd-user@lists.linbit.com
--W:     http://www.drbd.org
--T:     git git://git.drbd.org/linux-2.6-drbd.git drbd
--T:     git git://git.drbd.org/drbd-8.3.git
--S:     Supported
--F:     drivers/block/drbd/
--F:     lib/lru_cache.c
--F:     Documentation/blockdev/drbd/
-+P:	Philipp Reisner
-+P:	Lars Ellenberg
-+M:	drbd-dev@lists.linbit.com
-+L:	drbd-user@lists.linbit.com
-+W:	http://www.drbd.org
-+T:	git git://git.drbd.org/linux-2.6-drbd.git drbd
-+T:	git git://git.drbd.org/drbd-8.3.git
-+S:	Supported
-+F:	drivers/block/drbd/
-+F:	lib/lru_cache.c
-+F:	Documentation/blockdev/drbd/
- 
- DRIVER CORE, KOBJECTS, AND SYSFS
- M:	Greg Kroah-Hartman <gregkh@suse.de>
-@@ -3539,8 +3539,8 @@ F:	drivers/scsi/sym53c8xx_2/
- LTP (Linux Test Project)
- M:	Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
- M:	Garrett Cooper <yanegomi@gmail.com>
--M:     Mike Frysinger <vapier@gentoo.org>
--M:     Subrata Modak <subrata@linux.vnet.ibm.com>
-+M:	Mike Frysinger <vapier@gentoo.org>
-+M:	Subrata Modak <subrata@linux.vnet.ibm.com>
- L:	ltp-list@lists.sourceforge.net (subscribers-only)
- W:	http://ltp.sourceforge.net/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/galak/ltp.git
-@@ -6247,7 +6247,7 @@ F:	arch/x86/
- X86 PLATFORM DRIVERS
- M:	Matthew Garrett <mjg@redhat.com>
- L:	platform-driver-x86@vger.kernel.org
--T:      git git://git.kernel.org/pub/scm/linux/kernel/git/mjg59/platform-drivers-x86.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mjg59/platform-drivers-x86.git
- S:	Maintained
- F:	drivers/platform/x86
- 
+-		sprintf(name, "acpi_video%d", count++);
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.max_brightness = device->brightness->count - 3;
+ 		device->backlight = backlight_device_register(name, NULL, device,
+@@ -1059,10 +1058,9 @@ static void acpi_video_device_find_cap(s
+ 		if (device->cap._DCS && device->cap._DSS) {
+ 			static int count;
+ 			char *name;
+-			name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
+ 			if (!name)
+ 				return;
+-			sprintf(name, "acpi_video%d", count++);
+ 			device->output_dev = video_output_register(name,
+ 					NULL, device, &acpi_output_properties);
+ 			kfree(name);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-get_maintainer-repair-stdin-usage.patch
-maintainers-use-tab-not-spaces-for-delimiter.patch
 linux-next.patch
-drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+drivers-acpi-use-kasprintf.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-x86-pci-use-kasprintf.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+arch-powerpc-platforms-pseries-use-kasprintf.patch
+drivers-base-modulec-use-kasprintf.patch
+drivers-mtd-use-kasprintf.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
 drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-vsprintfc-use-noinline_for_stack.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-char-ppdevc-use-kasprintf.patch
+drivers-edac-introduce-missing-kfree.patch
 
