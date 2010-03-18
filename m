@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-repair-stdin-usage.patch added to -mm tree
-Date: Thu, 18 Mar 2010 15:32:48 -0700
-Message-ID: <201003182232.o2IMWmtk019693@imap1.linux-foundation.org>
+Subject: + memcg-fix-typo-in-memcg-documentation.patch added to -mm tree
+Date: Thu, 18 Mar 2010 15:35:24 -0700
+Message-ID: <201003182235.o2IMZOum019734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38793 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751353Ab0CRWdE (ORCPT
+	by vger.kernel.org with ESMTP id S1751204Ab0CRWf3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 18:33:04 -0400
+	Thu, 18 Mar 2010 18:35:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: w.sang@pengutronix.de, joe@perches.com, shemminger@vyatta.com
+Cc: gthelen@google.com
 
 
 The patch titled
-     get_maintainer: Repair STDIN usage
+     memcg: fix typo in memcg documentation
 has been added to the -mm tree.  Its filename is
-     get_maintainer-repair-stdin-usage.patch
+     memcg-fix-typo-in-memcg-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get_maintainer: Repair STDIN usage
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: memcg: fix typo in memcg documentation
+From: Greg Thelen <gthelen@google.com>
 
-Commit 22dd5b0cba50a197aaa3bd2790a29ee2e8e4e372 (fix perlcritic warnings)
-broke the ability to handle STDIN because the three argument version of
-open() cannot handle standard IO-streams (which is mentioned in
-PerlBestPractices, too).
+Update memory.txt to be more consistent: s/swapiness/swappiness/
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: Joe Perches <joe@perches.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 +-
+ Documentation/cgroups/memory.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-repair-stdin-usage scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-repair-stdin-usage
-+++ a/scripts/get_maintainer.pl
-@@ -284,7 +284,7 @@ foreach my $file (@ARGV) {
- 	my $file_cnt = @files;
- 	my $lastfile;
+diff -puN Documentation/cgroups/memory.txt~memcg-fix-typo-in-memcg-documentation Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-fix-typo-in-memcg-documentation
++++ a/Documentation/cgroups/memory.txt
+@@ -340,7 +340,7 @@ Note:
+ 5.3 swappiness
+   Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
  
--	open(my $patch, '<', $file)
-+	open(my $patch, "< $file")
- 	    or die "$P: Can't open $file: $!\n";
- 	while (<$patch>) {
- 	    my $patch_line = $_;
+-  Following cgroups' swapiness can't be changed.
++  Following cgroups' swappiness can't be changed.
+   - root cgroup (uses /proc/sys/vm/swappiness).
+   - a cgroup which uses hierarchy and it has child cgroup.
+   - a cgroup which uses hierarchy and not the root of hierarchy.
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from gthelen@google.com are
 
-origin.patch
-get_maintainer-repair-stdin-usage.patch
+memcg-fix-typo-in-memcg-documentation.patch
 linux-next.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
 
