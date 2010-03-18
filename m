@@ -1,76 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5.patch removed from -mm tree
-Date: Thu, 18 Mar 2010 11:09:11 -0400
-Message-ID: <201003181809.o2II9qUP007600@imap1.linux-foundation.org>
+Subject: [merged] i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver.patch removed from -mm tree
+Date: Thu, 18 Mar 2010 11:08:45 -0400
+Message-ID: <201003181809.o2II9QvW007562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752554Ab0CRSKQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752554Ab0CRSKS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 14:10:16 -0400
+	Thu, 18 Mar 2010 14:10:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huang.ying.caritas@gmail.com, gregkh@suse.de, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: imunsie@au.ibm.com, isdn@linux-pingi.de, mac@melware.de, sgayda2@uiuc.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/serial/option.c: add support for a variant of DLink DWM 652 U5
+     i4l: silence compiler warnings for array access in Eicon DIVA ISDN driver
 has been removed from the -mm tree.  Its filename was
-     usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5.patch
+     i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/option.c: add support for a variant of DLink DWM 652 U5
-From: Huang Ying <huang.ying.caritas@gmail.com>
+Subject: i4l: silence compiler warnings for array access in Eicon DIVA ISDN driver
+From: Ian Munsie <imunsie@au.ibm.com>
 
-I found a DLink DWM 652 U5 USB 3G modem has product ID 0xce1e instead of
-orignal 0xce16.  The new ID is added.
+When compiling this driver, the compiler throws the following warnings:
 
-And I found there are two entries for 0xce16, one has raw number, the
-other has symbol DLINK_PRODUCT_DWM_652_U5.  This is fixed too.
+drivers/isdn/hardware/eicon/message.c:8426: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8427: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8434: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8435: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8436: warning: array subscript is above array bounds
+drivers/isdn/hardware/eicon/message.c:8447: warning: array subscript is above array bounds
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Greg KH <gregkh@suse.de>
+This arises from the particular semantics the driver is using to write to
+the nlc array (static byte[256]).  The array has a length in byte 0
+followed by a T30_INFO struct starting at byte 1.
+
+The T30_INFO struct has a number of variable length strings after the
+station_id entry, which cannot be explicitly defined in the struct and the
+driver accesses them with an array index to station_id beyond the length
+of station_id.
+
+This patch merely changes the semantics that the driver uses to access the
+entries after the station_id entry to use the original 256 byte nlc array
+taking the offset and length of the station_id entry to calculate where to
+write in the array, thereby silencing the warning.
+
+Signed-off-by: Ian Munsie <imunsie@au.ibm.com>
+Cc: Armin Schindler <mac@melware.de>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Stoyan Gaydarov <sgayda2@uiuc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/isdn/hardware/eicon/message.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5 drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-option-add-support-for-a-variant-of-dlink-dwm-652-u5
-+++ a/drivers/usb/serial/option.c
-@@ -309,6 +309,7 @@ static int  option_resume(struct usb_ser
- #define DLINK_VENDOR_ID				0x1186
- #define DLINK_PRODUCT_DWM_652			0x3e04
- #define DLINK_PRODUCT_DWM_652_U5		0xce16
-+#define DLINK_PRODUCT_DWM_652_U5A		0xce1e
+diff -puN drivers/isdn/hardware/eicon/message.c~i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~i4l-silence-compiler-warnings-for-array-access-in-eicon-diva-isdn-driver
++++ a/drivers/isdn/hardware/eicon/message.c
+@@ -8423,17 +8423,17 @@ static word add_b23(PLCI *plci, API_PARS
+             pos = 0;
+           else
+           {
+-            ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
+-            ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
++            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
++            nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
+             len = (byte)b3_config_parms[2].length;
+             if (len > 20)
+               len = 20;
+             if (CAPI_MAX_DATE_TIME_LENGTH + 2 + len + 2 + b3_config_parms[3].length <= CAPI_MAX_HEAD_LINE_SPACE)
+             {
+               for (i = 0; i < len; i++)
+-                ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
+-              ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
+-              ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ' ';
++                nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ((byte   *)b3_config_parms[2].info)[1+i];
++              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
++              nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] = ' ';
+             }
+           }
+         }
+@@ -8444,9 +8444,8 @@ static word add_b23(PLCI *plci, API_PARS
+         ((T30_INFO *)&nlc[1])->head_line_len = (byte)(pos + len);
+         nlc[0] += (byte)(pos + len);
+         for (i = 0; i < len; i++)
+-          ((T30_INFO *)&nlc[1])->station_id[20 + pos++] = ((byte   *)b3_config_parms[3].info)[1+i];
+-        }
+-      else
++          nlc[1 + offsetof(T30_INFO, station_id) + 20 + pos++] =  ((byte   *)b3_config_parms[3].info)[1+i];
++      } else
+         ((T30_INFO *)&nlc[1])->head_line_len = 0;
  
- #define QISDA_VENDOR_ID				0x1da5
- #define QISDA_PRODUCT_H21_4512			0x4512
-@@ -659,6 +660,7 @@ static const struct usb_device_id option
- 	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_H10) },
- 	{ USB_DEVICE(DLINK_VENDOR_ID, DLINK_PRODUCT_DWM_652) },
- 	{ USB_DEVICE(ALINK_VENDOR_ID, DLINK_PRODUCT_DWM_652_U5) }, /* Yes, ALINK_VENDOR_ID */
-+	{ USB_DEVICE(ALINK_VENDOR_ID, DLINK_PRODUCT_DWM_652_U5A) },
- 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H21_4512) },
- 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H21_4523) },
- 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H20_4515) },
-@@ -666,7 +668,6 @@ static const struct usb_device_id option
- 	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_G450) },
- 	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_HSDPA_MINICARD ) }, /* Toshiba 3G HSDPA == Novatel Expedite EU870D MiniCard */
- 	{ USB_DEVICE(ALINK_VENDOR_ID, 0x9000) },
--	{ USB_DEVICE(ALINK_VENDOR_ID, 0xce16) },
- 	{ USB_DEVICE_AND_INTERFACE_INFO(ALINK_VENDOR_ID, ALINK_PRODUCT_3GU, 0xff, 0xff, 0xff) },
- 	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X060S) },
- 	{ USB_DEVICE(AIRPLUS_VENDOR_ID, AIRPLUS_PRODUCT_MCD650) },
+       plci->nsf_control_bits = 0;
 _
 
-Patches currently in -mm which might be from huang.ying.caritas@gmail.com are
+Patches currently in -mm which might be from imunsie@au.ibm.com are
 
 linux-next.patch
 
