@@ -1,120 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-video-move-dereference-after-null-test.patch removed from -mm tree
-Date: Thu, 18 Mar 2010 11:08:40 -0400
-Message-ID: <201003181809.o2II9L6c007553@imap1.linux-foundation.org>
+Subject: [merged] phonet-use-for_each_set_bit.patch removed from -mm tree
+Date: Thu, 18 Mar 2010 11:08:52 -0400
+Message-ID: <201003181809.o2II9XeC007571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751145Ab0CRSJ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751313Ab0CRSKC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 14:09:57 -0400
+	Thu, 18 Mar 2010 14:10:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, m-karicheri2@ti.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, davem@davemloft.net, remi.denis-courmont@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video: move dereference after NULL test
+     phonet: use for_each_set_bit()
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-move-dereference-after-null-test.patch
+     phonet-use-for_each_set_bit.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drivers/media/video: move dereference after NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: phonet: use for_each_set_bit()
+=46rom: Akinobu Mita <akinobu.mita@gmail.com>
 
-In quickcam_messenger.c, if the NULL test on uvd is needed, then the
-dereference should be after the NULL test.
+Replace open-coded loop with for_each_set_bit().
 
-In vpif_display.c, std_info is initialized to the address of a structure
-field.  This seems unlikely to be NULL.  Test std_info->stdid instead.
-
-In saa7134-alsa.c, the function is only called from one place, where the
-chip argument has already been dereferenced.  On the other hand, if it
-should be kept, then card should be initialized after it.
-
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
-
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
-
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: R=E9mi Denis-Courmont <remi.denis-courmont@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/davinci/vpif_display.c        |    2 +-
- drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
- drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ net/phonet/pn_dev.c     |    3 +--
+ net/phonet/pn_netlink.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
---- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/davinci/vpif_display.c
-@@ -383,7 +383,7 @@ static int vpif_get_std_info(struct chan
- 	int index;
- 
- 	std_info->stdid = vid_ch->stdid;
--	if (!std_info)
-+	if (!std_info->stdid)
- 		return -1;
- 
- 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
-diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
---- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
- 	unsigned int idx;
- 	int err, addr;
- 
--	if (snd_BUG_ON(!chip))
--		return -EINVAL;
- 	strcpy(card->mixername, "SAA7134 Mixer");
- 
- 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
- 
- static void qcm_stop_data(struct uvd *uvd)
- {
--	struct qcm *cam = (struct qcm *) uvd->user_data;
-+	struct qcm *cam;
- 	int i, j;
- 	int ret;
- 
- 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
- 		return;
-+	cam = (struct qcm *) uvd->user_data;
- 
- 	ret = qcm_camera_off(uvd);
- 	if (ret)
+diff -puN net/phonet/pn_dev.c~phonet-use-for_each_set_bit net/phonet/pn=
+_dev.c
+--- a/net/phonet/pn_dev.c~phonet-use-for_each_set_bit
++++ a/net/phonet/pn_dev.c
+@@ -107,8 +107,7 @@ static void phonet_device_destroy(struct
+ 	if (pnd) {
+ 		u8 addr;
+=20
+-		for (addr =3D find_first_bit(pnd->addrs, 64); addr < 64;
+-			addr =3D find_next_bit(pnd->addrs, 64, 1+addr))
++		for_each_set_bit(addr, pnd->addrs, 64)
+ 			phonet_address_notify(RTM_DELADDR, dev, addr);
+ 		kfree(pnd);
+ 	}
+diff -puN net/phonet/pn_netlink.c~phonet-use-for_each_set_bit net/phone=
+t/pn_netlink.c
+--- a/net/phonet/pn_netlink.c~phonet-use-for_each_set_bit
++++ a/net/phonet/pn_netlink.c
+@@ -141,8 +141,7 @@ static int getaddr_dumpit(struct sk_buff
+ 			continue;
+=20
+ 		addr_idx =3D 0;
+-		for (addr =3D find_first_bit(pnd->addrs, 64); addr < 64;
+-			addr =3D find_next_bit(pnd->addrs, 64, 1+addr)) {
++		for_each_set_bit(addr, pnd->addrs, 64) {
+ 			if (addr_idx++ < addr_start_idx)
+ 				continue;
+=20
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+ntfs-use-bitmap_weight.patch
+hpet-use-for_each_set_bit.patch
 linux-next.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
-drivers-edac-introduce-missing-kfree.patch
+intel-iommu-use-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+bitops-remove-temporary-for_each_bit.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
