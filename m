@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch added to -mm tree
-Date: Thu, 18 Mar 2010 15:58:44 -0700
-Message-ID: <201003182258.o2IMwiP8020680@imap1.linux-foundation.org>
+Subject: + drivers-gpio-max730xc-add-license-macro.patch added to -mm tree
+Date: Thu, 18 Mar 2010 16:00:05 -0700
+Message-ID: <201003182300.o2IN050s020720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752857Ab0CRW7Z (ORCPT
+	by vger.kernel.org with ESMTP id S1753015Ab0CRXA0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 18:59:25 -0400
+	Thu, 18 Mar 2010 19:00:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwalbe@inf.tu-dresden.de, evan.mcclain@gatech.edu, mjg@redhat.com, rpurdie@rpsys.net
+Cc: richard.rojfors@pelagicore.com, w.sang@pengutronix.de
 
 
 The patch titled
-     mbp_nvidia_bl: add support for older MacBookPro and MacBook 6,1.
+     drivers/gpio/max730x.c: add license macro
 has been added to the -mm tree.  Its filename is
-     mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch
+     drivers-gpio-max730xc-add-license-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,95 +29,53 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mbp_nvidia_bl: add support for older MacBookPro and MacBook 6,1.
-From: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Subject: drivers/gpio/max730x.c: add license macro
+=46rom: Richard R=F6jfors <richard.rojfors@pelagicore.com>
 
-Add support for all remaining models not yet present in Linus'/Richard
-Purdie's tree nor Evan McClain's patch to finally complete the list.
+According to the header in max730x it is licensed GPLv2.
 
-Signed-off-by: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Evan McClain <evan.mcclain@gatech.edu>
+Add a MODULE_LICENSE to avoid getting the kernel tainted.
+
+Signed-off-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/mbp_nvidia_bl.c |   45 ++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ drivers/gpio/max730x.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/backlight/mbp_nvidia_bl.c~mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61 drivers/video/backlight/mbp_nvidia_bl.c
---- a/drivers/video/backlight/mbp_nvidia_bl.c~mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61
-+++ a/drivers/video/backlight/mbp_nvidia_bl.c
-@@ -184,6 +184,42 @@ static const struct dmi_system_id __init
- 	},
- 	{
- 		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookPro 1,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro1,1"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookPro 1,2",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro1,2"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookPro 2,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro2,1"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
-+		.ident		= "MacBookPro 2,2",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro2,2"),
-+		},
-+		.driver_data	= (void *)&intel_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
- 		.ident		= "MacBookPro 3,1",
- 		.matches	= {
- 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-@@ -238,6 +274,15 @@ static const struct dmi_system_id __init
- 	},
- 	{
- 		.callback	= mbp_dmi_match,
-+		.ident		= "MacBook 6,1",
-+		.matches	= {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MacBook6,1"),
-+		},
-+		.driver_data	= (void *)&nvidia_chipset_data,
-+	},
-+	{
-+		.callback	= mbp_dmi_match,
- 		.ident		= "MacBookAir 2,1",
- 		.matches	= {
- 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+diff -puN drivers/gpio/max730x.c~drivers-gpio-max730xc-add-license-macr=
+o drivers/gpio/max730x.c
+--- a/drivers/gpio/max730x.c~drivers-gpio-max730xc-add-license-macro
++++ a/drivers/gpio/max730x.c
+@@ -242,3 +242,5 @@ int __devexit __max730x_remove(struct de
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__max730x_remove);
++
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from schwalbe@inf.tu-dresden.de are
+Patches currently in -mm which might be from richard.rojfors@pelagicore=
+=2Ecom are
 
-mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch
+origin.patch
+drivers-gpio-max730xc-add-license-macro.patch
+linux-next.patch
+serial-two-branches-the-same-in-timbuart_set_mctrl.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
