@@ -1,74 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] isdn-misplaced-parenthesis-in-pof_handle_data.patch removed from -mm tree
-Date: Thu, 18 Mar 2010 11:08:42 -0400
-Message-ID: <201003181809.o2II9Npa007557@imap1.linux-foundation.org>
+Subject: [merged] drivers-media-video-move-dereference-after-null-test.patch removed from -mm tree
+Date: Thu, 18 Mar 2010 11:08:40 -0400
+Message-ID: <201003181809.o2II9L6c007553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751145Ab0CRSJv (ORCPT
+	by vger.kernel.org with ESMTP id S1751145Ab0CRSJ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Mar 2010 14:09:51 -0400
+	Thu, 18 Mar 2010 14:09:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, isdn@linux-pingi.de, mm-commits@vger.kernel.org
+To: julia@diku.dk, m-karicheri2@ti.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: misplaced parenthesis in pof_handle_data()
+     drivers/media/video: move dereference after NULL test
 has been removed from the -mm tree.  Its filename was
-     isdn-misplaced-parenthesis-in-pof_handle_data.patch
+     drivers-media-video-move-dereference-after-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: misplaced parenthesis in pof_handle_data()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/media/video: move dereference after NULL test
+From: Julia Lawall <julia@diku.dk>
 
-The parenthesis was misplaced.
+In quickcam_messenger.c, if the NULL test on uvd is needed, then the
+dereference should be after the NULL test.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+In vpif_display.c, std_info is initialized to the address of a structure
+field.  This seems unlikely to be NULL.  Test std_info->stdid instead.
+
+In saa7134-alsa.c, the function is only called from one place, where the
+chip argument has already been dereferenced.  On the other hand, if it
+should be kept, then card should be initialized after it.
+
+A simplified version of the semantic match that detects this problem is as
+follows (http://coccinelle.lip6.fr/):
+
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+@@
+
+* x->fld
+  ... when != \(x = E\|&x\)
+* x == NULL
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_boot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/davinci/vpif_display.c        |    2 +-
+ drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
+ drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_boot.c~isdn-misplaced-parenthesis-in-pof_handle_data drivers/isdn/hysdn/hysdn_boot.c
---- a/drivers/isdn/hysdn/hysdn_boot.c~isdn-misplaced-parenthesis-in-pof_handle_data
-+++ a/drivers/isdn/hysdn/hysdn_boot.c
-@@ -143,7 +143,7 @@ pof_handle_data(hysdn_card * card, int d
- 					     (boot->pof_recid == TAG_CABSDATA) ? "CABSDATA" : "ABSDATA",
- 					     datlen, boot->pof_recoffset);
+diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
+--- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
++++ a/drivers/media/video/davinci/vpif_display.c
+@@ -383,7 +383,7 @@ static int vpif_get_std_info(struct chan
+ 	int index;
  
--			if ((boot->last_error = card->writebootseq(card, boot->buf.BootBuf, datlen) < 0))
-+			if ((boot->last_error = card->writebootseq(card, boot->buf.BootBuf, datlen)) < 0)
- 				return (boot->last_error);	/* error writing data */
+ 	std_info->stdid = vid_ch->stdid;
+-	if (!std_info)
++	if (!std_info->stdid)
+ 		return -1;
  
- 			if (boot->pof_recoffset + datlen >= boot->pof_reclen)
+ 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
+diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
+--- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
++++ a/drivers/media/video/saa7134/saa7134-alsa.c
+@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
+ 	unsigned int idx;
+ 	int err, addr;
+ 
+-	if (snd_BUG_ON(!chip))
+-		return -EINVAL;
+ 	strcpy(card->mixername, "SAA7134 Mixer");
+ 
+ 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
+diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
+--- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
++++ a/drivers/media/video/usbvideo/quickcam_messenger.c
+@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
+ 
+ static void qcm_stop_data(struct uvd *uvd)
+ {
+-	struct qcm *cam = (struct qcm *) uvd->user_data;
++	struct qcm *cam;
+ 	int i, j;
+ 	int ret;
+ 
+ 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
+ 		return;
++	cam = (struct qcm *) uvd->user_data;
+ 
+ 	ret = qcm_camera_off(uvd);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-serial-two-branches-the-same-in-timbuart_set_mctrl.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-edac-introduce-missing-kfree.patch
 
