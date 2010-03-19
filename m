@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-cleanup-ispipe-code.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:09:10 -0700
-Message-ID: <201003192209.o2JM9Ack015091@imap1.linux-foundation.org>
+Subject: + exit-exit_notify-can-trust-signal-notify_count-0.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:12:19 -0700
+Message-ID: <201003192212.o2JMCJ5l015265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751260Ab0CSWJj (ORCPT
+	by vger.kernel.org with ESMTP id S1751038Ab0CSWMc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:09:39 -0400
+	Fri, 19 Mar 2010 18:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, andi@firstfloor.org, dhowells@redhat.com, nhorman@tuxdriver.com, roland@redhat.com
+Cc: oleg@redhat.com, roland@redhat.com, vfalico@redhat.com
 
 
 The patch titled
-     coredump: cleanup "ispipe" code
+     exit: exit_notify() can trust signal->notify_count < 0
 has been added to the -mm tree.  Its filename is
-     coredump-cleanup-ispipe-code.patch
+     exit-exit_notify-can-trust-signal-notify_count-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: cleanup "ispipe" code
+Subject: exit: exit_notify() can trust signal->notify_count < 0
 From: Oleg Nesterov <oleg@redhat.com>
 
-- kill "int dump_count", argv_split(argcp) accepts argcp == NULL.
+signal_struct->count in its current form must die.
 
-- move "int dump_count" under " if (ispipe)" branch, fail_dropcount
-  can check ispipe.
+- it has no reasons to be atomic_t
 
-- move "char **helper_argv" as well, change the code to do argv_free()
-  right after call_usermodehelper_fns().
+- it looks like a reference counter, but it is not
 
-- If call_usermodehelper_fns() fails goto close_fail label instead
-  of closing the file by hand.
+- otoh, we really need to make task->signal refcountable, just look at
+  the extremely ugly task_rq_unlock_wait() called from __exit_signals().
+
+- we should change the lifetime rules for task->signal, it should be
+  pinned to task_struct.  We have a lot of code which can be simplified
+  after that.
+
+- it is not needed!  while the code is correct, any usage of this
+  counter is artificial, except fs/proc uses it correctly to show the
+  number of threads.
+
+This series removes the usage of sig->count from exit pathes.
+
+
+
+This patch:
+
+Now that Veaceslav changed copy_signal() to use zalloc(), exit_notify()
+can just check notify_count < 0 to ensure the execing sub-threads needs
+the notification from us.  No need to do other checks, notify_count != 0
+must always mean ->group_exit_task != NULL is waiting for us.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Veaceslav Falico <vfalico@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   39 +++++++++++++++++----------------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ kernel/exit.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/exec.c~coredump-cleanup-ispipe-code fs/exec.c
---- a/fs/exec.c~coredump-cleanup-ispipe-code
-+++ a/fs/exec.c
-@@ -1838,10 +1838,7 @@ void do_coredump(long signr, int exit_co
- 	struct cred *cred;
- 	int retval = 0;
- 	int flag = 0;
--	int ispipe = 0;
--	char **helper_argv = NULL;
--	int helper_argc = 0;
--	int dump_count = 0;
-+	int ispipe;
- 	static atomic_t core_dump_count = ATOMIC_INIT(0);
- 	struct coredump_params cprm = {
- 		.signr = signr,
-@@ -1911,6 +1908,9 @@ void do_coredump(long signr, int exit_co
- 	unlock_kernel();
+diff -puN kernel/exit.c~exit-exit_notify-can-trust-signal-notify_count-0 kernel/exit.c
+--- a/kernel/exit.c~exit-exit_notify-can-trust-signal-notify_count-0
++++ a/kernel/exit.c
+@@ -857,12 +857,9 @@ static void exit_notify(struct task_stru
  
-  	if (ispipe) {
-+		int dump_count;
-+		char **helper_argv;
-+
- 		if (cprm.limit == 1) {
- 			/*
- 			 * Normally core limits are irrelevant to pipes, since
-@@ -1932,6 +1932,7 @@ void do_coredump(long signr, int exit_co
- 			printk(KERN_WARNING "Aborting core\n");
- 			goto fail_unlock;
- 		}
-+		cprm.limit = RLIM_INFINITY;
+ 	tsk->exit_state = signal == DEATH_REAP ? EXIT_DEAD : EXIT_ZOMBIE;
  
- 		dump_count = atomic_inc_return(&core_dump_count);
- 		if (core_pipe_limit && (core_pipe_limit < dump_count)) {
-@@ -1941,26 +1942,21 @@ void do_coredump(long signr, int exit_co
- 			goto fail_dropcount;
- 		}
- 
--		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
-+		helper_argv = argv_split(GFP_KERNEL, corename+1, NULL);
- 		if (!helper_argv) {
- 			printk(KERN_WARNING "%s failed to allocate memory\n",
- 			       __func__);
- 			goto fail_dropcount;
- 		}
- 
--		cprm.limit = RLIM_INFINITY;
+-	/* mt-exec, de_thread() is waiting for us */
+-	if (thread_group_leader(tsk) &&
+-	    tsk->signal->group_exit_task &&
+-	    tsk->signal->notify_count < 0)
++	/* mt-exec, de_thread() is waiting for group leader */
++	if (unlikely(tsk->signal->notify_count < 0))
+ 		wake_up_process(tsk->signal->group_exit_task);
 -
--		/* SIGPIPE can happen, but it's just never processed */
--		cprm.file = NULL;
--		if (call_usermodehelper_fns(helper_argv[0], helper_argv, NULL,
--					    UMH_WAIT_EXEC, umh_pipe_setup,
--					    NULL, &cprm)) {
--			if (cprm.file)
--				filp_close(cprm.file, NULL);
--
-+		retval = call_usermodehelper_fns(helper_argv[0], helper_argv,
-+					NULL, UMH_WAIT_EXEC, umh_pipe_setup,
-+					NULL, &cprm);
-+		argv_free(helper_argv);
-+		if (retval) {
-  			printk(KERN_INFO "Core dump to %s pipe failed\n",
- 			       corename);
--			goto fail_dropcount;
-+			goto close_fail;
-  		}
- 	} else {
- 		struct inode *inode;
-@@ -2000,17 +1996,16 @@ void do_coredump(long signr, int exit_co
- 	retval = binfmt->core_dump(&cprm);
- 	if (retval)
- 		current->signal->group_exit_code |= 0x80;
--close_fail:
-+
- 	if (ispipe && core_pipe_limit)
- 		wait_for_dump_helpers(cprm.file);
--	filp_close(cprm.file, NULL);
-+close_fail:
-+	if (cprm.file)
-+		filp_close(cprm.file, NULL);
- fail_dropcount:
--	if (dump_count)
-+	if (ispipe)
- 		atomic_dec(&core_dump_count);
- fail_unlock:
--	if (helper_argv)
--		argv_free(helper_argv);
--
- 	revert_creds(old_cred);
- 	put_cred(cred);
- 	coredump_finish(mm);
+ 	write_unlock_irq(&tasklist_lock);
+ 
+ 	tracehook_report_death(tsk, signal, cookie, group_dead);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -175,4 +118,8 @@ coredump-factor-out-the-not-ispipe-file-checks.patch
 coredump-cleanup-ispipe-code.patch
 coredump-factor-out-put_cred-calls.patch
 coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
 
