@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-convert-rdc321x_wdt-to-use-southbridge-accessors.patch added to -mm tree
-Date: Fri, 19 Mar 2010 13:52:37 -0700
-Message-ID: <201003192052.o2JKqbuB011802@imap1.linux-foundation.org>
+Subject: + inotify-dont-leak-user-struct-on-inotify-release.patch added to -mm tree
+Date: Fri, 19 Mar 2010 13:56:16 -0700
+Message-ID: <201003192056.o2JKuGT8012007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751618Ab0CSUyF (ORCPT
+	by vger.kernel.org with ESMTP id S1751905Ab0CSU40 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 16:54:05 -0400
+	Fri, 19 Mar 2010 16:56:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian@openwrt.org, david-b@pacbell.net, mingo@elte.hu, sameo@linux.intel.com, wim@iguana.be
+Cc: xemul@openvz.org, eparis@parisplace.org, stable@kernel.org
 
 
 The patch titled
-     watchdog: convert rdc321x_wdt to use southbridge accessors
+     inotify: don't leak user struct on inotify release
 has been added to the -mm tree.  Its filename is
-     watchdog-convert-rdc321x_wdt-to-use-southbridge-accessors.patch
+     inotify-dont-leak-user-struct-on-inotify-release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,155 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: convert rdc321x_wdt to use southbridge accessors
-From: Florian Fainelli <florian@openwrt.org>
+Subject: inotify: don't leak user struct on inotify release
+From: Pavel Emelyanov <xemul@openvz.org>
 
-With the introduction of the MFD driver which abstracts access to the PCI
-device configuration space the watchdog driver must be converted to use
-these accessors and provide safe register read/write.  As a result we now
-use the memory resource which comes with the platform device.
+inotify_new_group() receives a get_uid-ed user_struct and saves the
+reference on group->inotify_data.user.  The problem is that free_uid() is
+never called on it.
 
-Signed-off-by: Florian Fainelli <florian@openwrt.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: David Brownell <david-b@pacbell.net>
+Issue seem to be introduced by 63c882a0 (inotify: reimplement inotify
+using fsnotify) after 2.6.30.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Eric Paris <eparis@parisplace.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/rdc321x_wdt.c |   38 ++++++++++++++++++++-----------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ fs/notify/inotify/inotify_fsnotify.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/watchdog/rdc321x_wdt.c~watchdog-convert-rdc321x_wdt-to-use-southbridge-accessors drivers/watchdog/rdc321x_wdt.c
---- a/drivers/watchdog/rdc321x_wdt.c~watchdog-convert-rdc321x_wdt-to-use-southbridge-accessors
-+++ a/drivers/watchdog/rdc321x_wdt.c
-@@ -1,7 +1,7 @@
- /*
-  * RDC321x watchdog driver
-  *
-- * Copyright (C) 2007 Florian Fainelli <florian@openwrt.org>
-+ * Copyright (C) 2007-2010 Florian Fainelli <florian@openwrt.org>
-  *
-  * This driver is highly inspired from the cpu5_wdt driver
-  *
-@@ -36,8 +36,7 @@
- #include <linux/watchdog.h>
- #include <linux/io.h>
- #include <linux/uaccess.h>
--
--#include <asm/rdc321x_defs.h>
-+#include <linux/mfd/rdc321x.h>
+diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -28,6 +28,7 @@
+ #include <linux/path.h> /* struct path */
+ #include <linux/slab.h> /* kmem_* */
+ #include <linux/types.h>
++#include <linux/sched.h>
  
- #define RDC_WDT_MASK	0x80000000 /* Mask */
- #define RDC_WDT_EN	0x00800000 /* Enable bit */
-@@ -63,6 +62,7 @@ static struct {
- 	int default_ticks;
- 	unsigned long inuse;
- 	spinlock_t lock;
-+	int base_reg;
- } rdc321x_wdt_device;
+ #include "inotify.h"
  
- /* generic helper functions */
-@@ -70,14 +70,16 @@ static struct {
- static void rdc321x_wdt_trigger(unsigned long unused)
- {
- 	unsigned long flags;
-+	u32 val;
- 
- 	if (rdc321x_wdt_device.running)
- 		ticks--;
- 
- 	/* keep watchdog alive */
- 	spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
--	outl(RDC_WDT_EN | inl(RDC3210_CFGREG_DATA),
--		RDC3210_CFGREG_DATA);
-+	rdc321x_pci_read(rdc321x_wdt_device.base_reg, &val);
-+	val |= RDC_WDT_EN;
-+	rdc321x_pci_write(rdc321x_wdt_device.base_reg, val);
- 	spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
- 
- 	/* requeue?? */
-@@ -105,10 +107,11 @@ static void rdc321x_wdt_start(void)
- 
- 		/* Clear the timer */
- 		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
--		outl(RDC_CLS_TMR, RDC3210_CFGREG_ADDR);
-+		rdc321x_pci_write(rdc321x_wdt_device.base_reg, RDC_CLS_TMR);
- 
- 		/* Enable watchdog and set the timeout to 81.92 us */
--		outl(RDC_WDT_EN | RDC_WDT_CNT, RDC3210_CFGREG_DATA);
-+		rdc321x_pci_write(rdc321x_wdt_device.base_reg,
-+					RDC_WDT_EN | RDC_WDT_CNT);
- 		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
- 
- 		mod_timer(&rdc321x_wdt_device.timer,
-@@ -148,7 +151,7 @@ static long rdc321x_wdt_ioctl(struct fil
- 				unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
--	unsigned int value;
-+	u32 value;
- 	static const struct watchdog_info ident = {
- 		.options = WDIOF_CARDRESET,
- 		.identity = "RDC321x WDT",
-@@ -162,9 +165,9 @@ static long rdc321x_wdt_ioctl(struct fil
- 	case WDIOC_GETSTATUS:
- 		/* Read the value from the DATA register */
- 		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
--		value = inl(RDC3210_CFGREG_DATA);
-+		rdc321x_pci_read(rdc321x_wdt_device.base_reg, &value);
- 		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
--		if (copy_to_user(argp, &value, sizeof(int)))
-+		if (copy_to_user(argp, &value, sizeof(u32)))
- 			return -EFAULT;
- 		break;
- 	case WDIOC_GETSUPPORT:
-@@ -219,17 +222,26 @@ static struct miscdevice rdc321x_wdt_mis
- static int __devinit rdc321x_wdt_probe(struct platform_device *pdev)
- {
- 	int err;
-+	struct resource *r;
-+
-+	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "wdt-reg");
-+	if (!r) {
-+		dev_err(&pdev->dev, "failed to get wdt-reg resource\n");
-+		return -ENODEV;
-+	}
-+
-+	rdc321x_wdt_device.base_reg = r->start;
- 
- 	err = misc_register(&rdc321x_wdt_misc);
- 	if (err < 0) {
--		printk(KERN_ERR PFX "watchdog misc_register failed\n");
-+		dev_err(&pdev->dev, "misc_register failed\n");
- 		return err;
- 	}
- 
- 	spin_lock_init(&rdc321x_wdt_device.lock);
- 
- 	/* Reset the watchdog */
--	outl(RDC_WDT_RST, RDC3210_CFGREG_DATA);
-+	rdc321x_pci_write(rdc321x_wdt_device.base_reg, RDC_WDT_RST);
- 
- 	init_completion(&rdc321x_wdt_device.stop);
- 	rdc321x_wdt_device.queue = 0;
-@@ -240,7 +252,7 @@ static int __devinit rdc321x_wdt_probe(s
- 
- 	rdc321x_wdt_device.default_ticks = ticks;
- 
--	printk(KERN_INFO PFX "watchdog init success\n");
-+	dev_info(&pdev->dev, "watchdog init success\n");
- 
- 	return 0;
+@@ -200,6 +201,7 @@ static void inotify_free_group_priv(stru
+ 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
+ 	idr_remove_all(&group->inotify_data.idr);
+ 	idr_destroy(&group->inotify_data.idr);
++	free_uid(group->inotify_data.user);
  }
+ 
+ void inotify_free_event_priv(struct fsnotify_event_private_data *fsn_event_priv)
 _
 
-Patches currently in -mm which might be from florian@openwrt.org are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-x86-remove-rdc321x_defsh.patch
-mfd-add-support-for-the-rdc321x-southbridge.patch
-mfd-add-support-for-the-rdc321x-southbridge-fix.patch
-gpio-add-support-for-rdc321x-gpio-controller.patch
-watchdog-convert-rdc321x_wdt-to-use-southbridge-accessors.patch
+inotify-dont-leak-user-struct-on-inotify-release.patch
+reiser4.patch
 
