@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-dont-leak-user-struct-on-inotify-release.patch added to -mm tree
-Date: Fri, 19 Mar 2010 13:56:16 -0700
-Message-ID: <201003192056.o2JKuGT8012007@imap1.linux-foundation.org>
+Subject: + ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch added to -mm tree
+Date: Fri, 19 Mar 2010 14:23:50 -0700
+Message-ID: <201003192123.o2JLNonK013150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751905Ab0CSU40 (ORCPT
+	by vger.kernel.org with ESMTP id S1751324Ab0CSVX5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 16:56:26 -0400
+	Fri, 19 Mar 2010 17:23:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, eparis@parisplace.org, stable@kernel.org
+Cc: myron.stowe@hp.com, bjorn.helgaas@hp.com, lenb@kernel.org, minyard@acm.org, yakui.zhao@intel.com
 
 
 The patch titled
-     inotify: don't leak user struct on inotify release
+     ipmi: raise precedence of PNP based discovery mechanisms (ACPI, PCI)
 has been added to the -mm tree.  Its filename is
-     inotify-dont-leak-user-struct-on-inotify-release.patch
+     ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: don't leak user struct on inotify release
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: ipmi: raise precedence of PNP based discovery mechanisms (ACPI, PCI)
+From: Myron Stowe <myron.stowe@hp.com>
 
-inotify_new_group() receives a get_uid-ed user_struct and saves the
-reference on group->inotify_data.user.  The problem is that free_uid() is
-never called on it.
+This raises the precedence of PNP discovery mechanisms, ACPI and PCI,
+above SMBIOS and SPMI as indicated by Appendix C1 of the IPMI
+specification.
 
-Issue seem to be introduced by 63c882a0 (inotify: reimplement inotify
-using fsnotify) after 2.6.30.
+Reference: IPMI - Intelligent Platform Management Interface Specification
+           v2.0, Document Revision 1.0, 05.05.2005 Markup
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Eric Paris <eparis@parisplace.org>
-Cc: <stable@kernel.org>
+  Appendix C1 - Locating IPMI System Interfaces via SMBIOS Tables
+      "Note that the settings that this structure reports may be over-
+      ridden by `Plug-and-Play' reassignment by the OS.  Therefore, this
+      structure should be used only when the interface cannot be
+      discovered via `Plug-and-Play' discovery mechanisms incorporated
+      in interfaces such as PCI and ACPI."
+
+Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_fsnotify.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/ipmi/ipmi_si_intf.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release fs/notify/inotify/inotify_fsnotify.c
---- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -28,6 +28,7 @@
- #include <linux/path.h> /* struct path */
- #include <linux/slab.h> /* kmem_* */
- #include <linux/types.h>
-+#include <linux/sched.h>
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -3260,13 +3260,6 @@ static __devinit int init_ipmi_si(void)
  
- #include "inotify.h"
+ 	hardcode_find_bmc();
  
-@@ -200,6 +201,7 @@ static void inotify_free_group_priv(stru
- 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
- 	idr_remove_all(&group->inotify_data.idr);
- 	idr_destroy(&group->inotify_data.idr);
-+	free_uid(group->inotify_data.user);
- }
+-#ifdef CONFIG_DMI
+-	dmi_find_bmc();
+-#endif
+-
+-#ifdef CONFIG_ACPI
+-	spmi_find_bmc();
+-#endif
+ #ifdef CONFIG_ACPI
+ 	pnp_register_driver(&ipmi_pnp_driver);
+ #endif
+@@ -3283,6 +3276,14 @@ static __devinit int init_ipmi_si(void)
+ 	of_register_platform_driver(&ipmi_of_platform_driver);
+ #endif
  
- void inotify_free_event_priv(struct fsnotify_event_private_data *fsn_event_priv)
++#ifdef CONFIG_DMI
++	dmi_find_bmc();
++#endif
++
++#ifdef CONFIG_ACPI
++	spmi_find_bmc();
++#endif
++
+ 	if (si_trydefaults) {
+ 		mutex_lock(&smi_infos_lock);
+ 		if (list_empty(&smi_infos)) {
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from myron.stowe@hp.com are
 
-origin.patch
-inotify-dont-leak-user-struct-on-inotify-release.patch
-reiser4.patch
+ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch
+ipmi-convert-tracking-of-the-acpi-device-pointer-to-a-pnp-device.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs.patch
 
