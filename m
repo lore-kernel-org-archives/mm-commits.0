@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + exit-exit_notify-can-trust-signal-notify_count-0.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:12:19 -0700
-Message-ID: <201003192212.o2JMCJ5l015265@imap1.linux-foundation.org>
+Subject: + exit-change-zap_other_threads-to-count-sub-threads.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:12:20 -0700
+Message-ID: <201003192212.o2JMCKTQ015268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038Ab0CSWMc (ORCPT
+	by vger.kernel.org with ESMTP id S1751038Ab0CSWMe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:12:32 -0400
+	Fri, 19 Mar 2010 18:12:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, roland@redhat.com, vfalico@redhat.com
 
 
 The patch titled
-     exit: exit_notify() can trust signal->notify_count < 0
+     exit: change zap_other_threads() to count sub-threads
 has been added to the -mm tree.  Its filename is
-     exit-exit_notify-can-trust-signal-notify_count-0.patch
+     exit-change-zap_other_threads-to-count-sub-threads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit: exit_notify() can trust signal->notify_count < 0
+Subject: exit: change zap_other_threads() to count sub-threads
 From: Oleg Nesterov <oleg@redhat.com>
 
-signal_struct->count in its current form must die.
+Change zap_other_threads() to return the number of other sub-threads found
+on ->thread_group list.
 
-- it has no reasons to be atomic_t
+Other changes are cosmetic:
 
-- it looks like a reference counter, but it is not
+	- change the code to use while_each_thread() helper
 
-- otoh, we really need to make task->signal refcountable, just look at
-  the extremely ugly task_rq_unlock_wait() called from __exit_signals().
-
-- we should change the lifetime rules for task->signal, it should be
-  pinned to task_struct.  We have a lot of code which can be simplified
-  after that.
-
-- it is not needed!  while the code is correct, any usage of this
-  counter is artificial, except fs/proc uses it correctly to show the
-  number of threads.
-
-This series removes the usage of sig->count from exit pathes.
-
-
-
-This patch:
-
-Now that Veaceslav changed copy_signal() to use zalloc(), exit_notify()
-can just check notify_count < 0 to ensure the execing sub-threads needs
-the notification from us.  No need to do other checks, notify_count != 0
-must always mean ->group_exit_task != NULL is waiting for us.
+	- remove the obsolete comment about SIGKILL/SIGSTOP
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -71,27 +52,58 @@ Cc: Veaceslav Falico <vfalico@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/linux/sched.h |    2 +-
+ kernel/signal.c       |   17 +++++++++--------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN kernel/exit.c~exit-exit_notify-can-trust-signal-notify_count-0 kernel/exit.c
---- a/kernel/exit.c~exit-exit_notify-can-trust-signal-notify_count-0
-+++ a/kernel/exit.c
-@@ -857,12 +857,9 @@ static void exit_notify(struct task_stru
+diff -puN include/linux/sched.h~exit-change-zap_other_threads-to-count-sub-threads include/linux/sched.h
+--- a/include/linux/sched.h~exit-change-zap_other_threads-to-count-sub-threads
++++ a/include/linux/sched.h
+@@ -2038,7 +2038,7 @@ extern int do_notify_parent(struct task_
+ extern void __wake_up_parent(struct task_struct *p, struct task_struct *parent);
+ extern void force_sig(int, struct task_struct *);
+ extern int send_sig(int, struct task_struct *, int);
+-extern void zap_other_threads(struct task_struct *p);
++extern int zap_other_threads(struct task_struct *p);
+ extern struct sigqueue *sigqueue_alloc(void);
+ extern void sigqueue_free(struct sigqueue *);
+ extern int send_sigqueue(struct sigqueue *,  struct task_struct *, int group);
+diff -puN kernel/signal.c~exit-change-zap_other_threads-to-count-sub-threads kernel/signal.c
+--- a/kernel/signal.c~exit-change-zap_other_threads-to-count-sub-threads
++++ a/kernel/signal.c
+@@ -1083,23 +1083,24 @@ force_sig_info(int sig, struct siginfo *
+ /*
+  * Nuke all other threads in the group.
+  */
+-void zap_other_threads(struct task_struct *p)
++int zap_other_threads(struct task_struct *p)
+ {
+-	struct task_struct *t;
++	struct task_struct *t = p;
++	int count = 0;
  
- 	tsk->exit_state = signal == DEATH_REAP ? EXIT_DEAD : EXIT_ZOMBIE;
+ 	p->signal->group_stop_count = 0;
  
--	/* mt-exec, de_thread() is waiting for us */
--	if (thread_group_leader(tsk) &&
--	    tsk->signal->group_exit_task &&
--	    tsk->signal->notify_count < 0)
-+	/* mt-exec, de_thread() is waiting for group leader */
-+	if (unlikely(tsk->signal->notify_count < 0))
- 		wake_up_process(tsk->signal->group_exit_task);
+-	for (t = next_thread(p); t != p; t = next_thread(t)) {
+-		/*
+-		 * Don't bother with already dead threads
+-		 */
++	while_each_thread(p, t) {
++		count++;
++
++		/* Don't bother with already dead threads */
+ 		if (t->exit_state)
+ 			continue;
 -
- 	write_unlock_irq(&tasklist_lock);
+-		/* SIGKILL will be handled before any pending SIGSTOP */
+ 		sigaddset(&t->pending.signal, SIGKILL);
+ 		signal_wake_up(t, 1);
+ 	}
++
++	return count;
+ }
  
- 	tracehook_report_death(tsk, signal, cookie, group_dead);
+ struct sighand_struct *lock_task_sighand(struct task_struct *tsk, unsigned long *flags)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
