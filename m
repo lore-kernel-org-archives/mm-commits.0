@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:15:53 -0700
-Message-ID: <201003192215.o2JMFrCn015345@imap1.linux-foundation.org>
+Subject: + signals-clear-signal-tty-when-the-last-thread-exits.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:18:31 -0700
+Message-ID: <201003192218.o2JMIVpH015489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751079Ab0CSWQO (ORCPT
+	by vger.kernel.org with ESMTP id S1750986Ab0CSWSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:16:14 -0400
+	Fri, 19 Mar 2010 18:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, roland@redhat.com
+Cc: oleg@redhat.com, alan@linux.intel.com, mingo@elte.hu, peterz@infradead.org, roland@redhat.com
 
 
 The patch titled
-     fork/exit: move tty_kref_put() outside of __cleanup_signal()
+     signals: clear signal->tty when the last thread exits
 has been added to the -mm tree.  Its filename is
-     fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+     signals-clear-signal-tty-when-the-last-thread-exits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fork/exit: move tty_kref_put() outside of __cleanup_signal()
+Subject: signals: clear signal->tty when the last thread exits
 From: Oleg Nesterov <oleg@redhat.com>
 
-tty_kref_put() has two callsites in copy_process() paths,
+When the last thread exits signal->tty is freed, but the pointer is not
+cleared and points to nowhere.
 
-	1. if copy_process() suceeds it is called before we copy
-	   signal->tty from parent
+This is OK.  Nobody should use signal->tty lockless, and it is no longer
+possible to take ->siglock.  However this looks wrong even if correct, and
+the nice OOPS is better than subtle and hard to find bugs.
 
-	2. otherwise it is called from __cleanup_signal() under
-	   bad_fork_cleanup_signal: label
+Change __exit_signal() to clear signal->tty under ->siglock.
 
-In both cases tty_kref_put() is not right and unneeded because we don't
-have the balancing tty_kref_get().  Fortunately, this is harmless because
-this can only happen without CLONE_THREAD, and in this case signal->tty
-must be NULL.
-
-Remove tty_kref_put() from copy_process() and __cleanup_signal(), and
-change another caller of __cleanup_signal(), __exit_signal(), to call
-tty_kref_put() by hand.
-
-I hope this change makes sense by itself, but it is also needed to make
-->signal refcountable.
+Note: __exit_signal() needs more cleanups.  It should not check "sig !=
+NULL" to detect the all-dead case and we have the same issues with
+signal->stats.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    1 +
- kernel/fork.c |    2 --
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/exit.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~fork-exit-move-tty_kref_put-outside-of-__cleanup_signal kernel/exit.c
---- a/kernel/exit.c~fork-exit-move-tty_kref_put-outside-of-__cleanup_signal
+diff -puN kernel/exit.c~signals-clear-signal-tty-when-the-last-thread-exits kernel/exit.c
+--- a/kernel/exit.c~signals-clear-signal-tty-when-the-last-thread-exits
 +++ a/kernel/exit.c
-@@ -150,6 +150,7 @@ static void __exit_signal(struct task_st
+@@ -81,6 +81,7 @@ static void __exit_signal(struct task_st
+ {
+ 	struct signal_struct *sig = tsk->signal;
+ 	struct sighand_struct *sighand;
++	struct tty_struct *tty;
+ 
+ 	BUG_ON(!sig);
+ 	BUG_ON(!atomic_read(&sig->count));
+@@ -94,6 +95,8 @@ static void __exit_signal(struct task_st
+ 	posix_cpu_timers_exit(tsk);
+ 	if (thread_group_leader(tsk)) {
+ 		posix_cpu_timers_exit_group(tsk);
++		tty = sig->tty;
++		sig->tty = NULL;
+ 	} else {
+ 		/*
+ 		 * If there is any task waiting for the group exit
+@@ -148,7 +151,7 @@ static void __exit_signal(struct task_st
  		 * see account_group_exec_runtime().
  		 */
  		task_rq_unlock_wait(tsk);
-+		tty_kref_put(sig->tty);
- 		__cleanup_signal(sig);
+-		tty_kref_put(sig->tty);
++		tty_kref_put(tty);
  	}
  }
-diff -puN kernel/fork.c~fork-exit-move-tty_kref_put-outside-of-__cleanup_signal kernel/fork.c
---- a/kernel/fork.c~fork-exit-move-tty_kref_put-outside-of-__cleanup_signal
-+++ a/kernel/fork.c
-@@ -892,7 +892,6 @@ static int copy_signal(unsigned long clo
- void __cleanup_signal(struct signal_struct *sig)
- {
- 	thread_group_cputime_free(sig);
--	tty_kref_put(sig->tty);
- 	kmem_cache_free(signal_cachep, sig);
- }
  
-@@ -1260,7 +1259,6 @@ static struct task_struct *copy_process(
- 				p->nsproxy->pid_ns->child_reaper = p;
- 
- 			p->signal->leader_pid = pid;
--			tty_kref_put(p->signal->tty);
- 			p->signal->tty = tty_kref_get(current->signal->tty);
- 			attach_pid(p, PIDTYPE_PGID, task_pgrp(current));
- 			attach_pid(p, PIDTYPE_SID, task_session(current));
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -131,4 +123,7 @@ exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
 posix-cpu-timers-avoid-task-signal-=-null-checks.patch
 ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
 fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
 
