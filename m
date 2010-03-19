@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + posix-cpu-timers-avoid-task-signal-=-null-checks.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:14:22 -0700
-Message-ID: <201003192214.o2JMEM44015308@imap1.linux-foundation.org>
+Subject: + ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:14:25 -0700
+Message-ID: <201003192214.o2JMEP7s015311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038Ab0CSWOj (ORCPT
+	by vger.kernel.org with ESMTP id S1751038Ab0CSWOn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:14:39 -0400
+	Fri, 19 Mar 2010 18:14:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, fenghua.yu@intel.com, roland@redhat.com, sgruszka@redhat.co
 
 
 The patch titled
-     posix-cpu-timers: avoid "task->signal != NULL" checks
+     ia64: ptrace_attach_sync_user_rbs: avoid "task->signal != NULL" checks
 has been added to the -mm tree.  Its filename is
-     posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+     ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-cpu-timers: avoid "task->signal != NULL" checks
+Subject: ia64: ptrace_attach_sync_user_rbs: avoid "task->signal != NULL" checks
 From: Oleg Nesterov <oleg@redhat.com>
 
 Preparation to make task->signal immutable, no functional changes.
 
-posix-cpu-timers.c checks task->signal != NULL to ensure this task is
-alive and didn't pass __exit_signal().  This is correct but we are going
-to change the lifetime rules for ->signal and never reset this pointer.
+It doesn't matter which pointer we check under tasklist to ensure the task
+was not released, ->signal or ->sighand.  But we are going to make
+->signal refcountable, change the code to use ->sighand.
 
-Change the code to check ->sighand instead, it doesn't matter which
-pointer we check under tasklist, they both are cleared simultaneously.
-
-As Roland pointed out, some of these changes are not strictly needed and
-probably it makes sense to revert them later, when ->signal will be pinned
-to task_struct.  But this patch tries to ensure the subsequent changes in
-fork/exit can't make any visible impact on posix cpu timers.
+Note: this code doesn't need this check and tasklist_lock at all, it
+should be converted to use lock_task_sighand().  And, the code under
+SIGNAL_STOP_STOPPED check looks wrong.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
@@ -60,61 +56,30 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/ia64/kernel/ptrace.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~posix-cpu-timers-avoid-task-signal-=-null-checks kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~posix-cpu-timers-avoid-task-signal-=-null-checks
-+++ a/kernel/posix-cpu-timers.c
-@@ -362,7 +362,7 @@ int posix_cpu_clock_get(const clockid_t 
- 				}
- 			} else {
- 				read_lock(&tasklist_lock);
--				if (thread_group_leader(p) && p->signal) {
-+				if (thread_group_leader(p) && p->sighand) {
- 					error =
- 					    cpu_clock_sample_group(which_clock,
- 							           p, &rtn);
-@@ -438,7 +438,7 @@ int posix_cpu_timer_del(struct k_itimer 
- 
- 	if (likely(p != NULL)) {
- 		read_lock(&tasklist_lock);
--		if (unlikely(p->signal == NULL)) {
-+		if (unlikely(p->sighand == NULL)) {
- 			/*
- 			 * We raced with the reaping of the task.
- 			 * The deletion should have cleared us off the list.
-@@ -690,10 +690,10 @@ int posix_cpu_timer_set(struct k_itimer 
- 	read_lock(&tasklist_lock);
- 	/*
- 	 * We need the tasklist_lock to protect against reaping that
--	 * clears p->signal.  If p has just been reaped, we can no
-+	 * clears p->sighand.  If p has just been reaped, we can no
- 	 * longer get any information about it at all.
+diff -puN arch/ia64/kernel/ptrace.c~ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks arch/ia64/kernel/ptrace.c
+--- a/arch/ia64/kernel/ptrace.c~ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks
++++ a/arch/ia64/kernel/ptrace.c
+@@ -639,7 +639,7 @@ ptrace_attach_sync_user_rbs (struct task
  	 */
--	if (unlikely(p->signal == NULL)) {
-+	if (unlikely(p->sighand == NULL)) {
- 		read_unlock(&tasklist_lock);
- 		put_task_struct(p);
- 		timer->it.cpu.task = NULL;
-@@ -862,7 +862,7 @@ void posix_cpu_timer_get(struct k_itimer
- 		clear_dead = p->exit_state;
- 	} else {
- 		read_lock(&tasklist_lock);
--		if (unlikely(p->signal == NULL)) {
-+		if (unlikely(p->sighand == NULL)) {
- 			/*
- 			 * The process has been reaped.
- 			 * We can't even collect a sample any more.
-@@ -1198,7 +1198,7 @@ void posix_cpu_timer_schedule(struct k_i
- 		spin_lock(&p->sighand->siglock);
- 	} else {
- 		read_lock(&tasklist_lock);
--		if (unlikely(p->signal == NULL)) {
-+		if (unlikely(p->sighand == NULL)) {
- 			/*
- 			 * The process has been reaped.
- 			 * We can't even collect a sample any more.
+ 
+ 	read_lock(&tasklist_lock);
+-	if (child->signal) {
++	if (child->sighand) {
+ 		spin_lock_irq(&child->sighand->siglock);
+ 		if (child->state == TASK_STOPPED &&
+ 		    !test_and_set_tsk_thread_flag(child, TIF_RESTORE_RSE)) {
+@@ -663,7 +663,7 @@ ptrace_attach_sync_user_rbs (struct task
+ 	 * job control stop, so that SIGCONT can be used to wake it up.
+ 	 */
+ 	read_lock(&tasklist_lock);
+-	if (child->signal) {
++	if (child->sighand) {
+ 		spin_lock_irq(&child->sighand->siglock);
+ 		if (child->state == TASK_TRACED &&
+ 		    (child->signal->flags & SIGNAL_STOP_STOPPED)) {
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
