@@ -1,124 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-allow-setting-of-phys_device.patch removed from -mm tree
-Date: Fri, 19 Mar 2010 12:49:11 -0400
-Message-ID: <201003191949.o2JJnsaD009009@imap1.linux-foundation.org>
+Subject: [merged] omap2_mcspic-null-pointer-dereference.patch removed from -mm tree
+Date: Fri, 19 Mar 2010 12:49:17 -0400
+Message-ID: <201003191950.o2JJo0Uk009021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38867 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750966Ab0CSTuP (ORCPT
+	by vger.kernel.org with ESMTP id S1750966Ab0CSTuZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 15:50:15 -0400
+	Fri, 19 Mar 2010 15:50:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, gerald.schaefer@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: scott@jumpnowtek.com, Aaro.Koskinen@nokia.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca, khilman@deeprootsystems.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory hotplug: allow setting of phys_device
+     omap2_mcspi.c: NULL pointer dereference
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-allow-setting-of-phys_device.patch
+     omap2_mcspic-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: allow setting of phys_device
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: omap2_mcspi.c: NULL pointer dereference
+From: Scott Ellis <scott@jumpnowtek.com>
 
-/sys/devices/system/memory/memoryX/phys_device is supposed to contain the
-number of the physical device that the corresponding piece of memory
-belongs to.
+Check spi->controller_state before dereferencing.
 
-In case a physical device should be replaced or taken offline for whatever
-reason it is necessary to set all corresponding memory pieces offline. 
-The current implementation always sets phys_device to '0' and there is no
-way or hook to change that.  Seems like there was a plan to implement that
-but it wasn't finished for whatever reason.
+Shows up NULL here when using spi_alloc_device()/spi_add_device()
+and spi_add_device() fails before spi_setup(). Calling spi_dev_put()
+on the leftover spi_device results in the error.
 
-So add a weak function which architectures can override to actually set
-the phys_device from within add_memory_block().
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   15 ++++++++++-----
- include/linux/memory.h |    2 ++
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/spi/omap2_mcspi.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-allow-setting-of-phys_device drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-allow-setting-of-phys_device
-+++ a/drivers/base/memory.c
-@@ -429,12 +429,16 @@ static inline int memory_fail_init(void)
-  * differentiation between which *physical* devices each
-  * section belongs to...
-  */
-+int __weak arch_get_memory_phys_device(unsigned long start_pfn)
-+{
-+	return 0;
-+}
+diff -puN drivers/spi/omap2_mcspi.c~omap2_mcspic-null-pointer-dereference drivers/spi/omap2_mcspi.c
+--- a/drivers/spi/omap2_mcspi.c~omap2_mcspic-null-pointer-dereference
++++ a/drivers/spi/omap2_mcspi.c
+@@ -751,11 +751,13 @@ static void omap2_mcspi_cleanup(struct s
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
  
- static int add_memory_block(int nid, struct mem_section *section,
--			unsigned long state, int phys_device,
--			enum mem_add_context context)
-+			unsigned long state, enum mem_add_context context)
- {
- 	struct memory_block *mem = kzalloc(sizeof(*mem), GFP_KERNEL);
-+	unsigned long start_pfn;
- 	int ret = 0;
+-	/* Unlink controller state from context save list */
+-	cs = spi->controller_state;
+-	list_del(&cs->node);
++	if (spi->controller_state) {
++		/* Unlink controller state from context save list */
++		cs = spi->controller_state;
++		list_del(&cs->node);
  
- 	if (!mem)
-@@ -443,7 +447,8 @@ static int add_memory_block(int nid, str
- 	mem->phys_index = __section_nr(section);
- 	mem->state = state;
- 	mutex_init(&mem->state_mutex);
--	mem->phys_device = phys_device;
-+	start_pfn = section_nr_to_pfn(mem->phys_index);
-+	mem->phys_device = arch_get_memory_phys_device(start_pfn);
+-	kfree(spi->controller_state);
++		kfree(spi->controller_state);
++	}
  
- 	ret = register_memory(mem, section);
- 	if (!ret)
-@@ -515,7 +520,7 @@ int remove_memory_block(unsigned long no
-  */
- int register_new_memory(int nid, struct mem_section *section)
- {
--	return add_memory_block(nid, section, MEM_OFFLINE, 0, HOTPLUG);
-+	return add_memory_block(nid, section, MEM_OFFLINE, HOTPLUG);
- }
- 
- int unregister_memory_section(struct mem_section *section)
-@@ -548,7 +553,7 @@ int __init memory_dev_init(void)
- 		if (!present_section_nr(i))
- 			continue;
- 		err = add_memory_block(0, __nr_to_section(i), MEM_ONLINE,
--					0, BOOT);
-+				       BOOT);
- 		if (!ret)
- 			ret = err;
- 	}
-diff -puN include/linux/memory.h~memory-hotplug-allow-setting-of-phys_device include/linux/memory.h
---- a/include/linux/memory.h~memory-hotplug-allow-setting-of-phys_device
-+++ a/include/linux/memory.h
-@@ -36,6 +36,8 @@ struct memory_block {
- 	struct sys_device sysdev;
- };
- 
-+int arch_get_memory_phys_device(unsigned long start_pfn);
-+
- /* These states are exposed to userspace as text strings in sysfs */
- #define	MEM_ONLINE		(1<<0) /* exposed to userspace */
- #define	MEM_GOING_OFFLINE	(1<<1) /* exposed to userspace */
+ 	if (mcspi_dma->dma_rx_channel != -1) {
+ 		omap_free_dma(mcspi_dma->dma_rx_channel);
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from scott@jumpnowtek.com are
 
 origin.patch
-linux-next.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-improve-sys_personality-for-compat-architectures.patch
 
