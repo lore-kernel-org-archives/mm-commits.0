@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-add-init-function-to-usermodehelper.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:04:47 -0700
-Message-ID: <201003192204.o2JM4l2d014893@imap1.linux-foundation.org>
+Subject: + call_usermodehelper-no-need-to-unblock-signals.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:06:50 -0700
+Message-ID: <201003192206.o2JM6o5w015037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751228Ab0CSWFO (ORCPT
+	by vger.kernel.org with ESMTP id S1751228Ab0CSWHE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:05:14 -0400
+	Fri, 19 Mar 2010 18:07:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nhorman@tuxdriver.com, andi@firstfloor.org, oleg@redhat.com
+Cc: oleg@redhat.com
 
 
 The patch titled
-     kmod: add init function to usermodehelper
+     call_usermodehelper: no need to unblock signals
 has been added to the -mm tree.  Its filename is
-     kmod-add-init-function-to-usermodehelper.patch
+     call_usermodehelper-no-need-to-unblock-signals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,306 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kmod: add init function to usermodehelper
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: call_usermodehelper: no need to unblock signals
+From: Oleg Nesterov <oleg@redhat.com>
 
-About 6 months ago, I made a set of changes to how the core-dump-to-a-pipe
-feature in the kernel works.  We had reports of several races, including
-some reports of apps bypassing our recursion check so that a process that
-was forked as part of a core_pattern setup could infinitely crash and
-refork until the system crashed.
+____call_usermodehelper() correctly calls flush_signal_handlers() to set
+SIG_DFL, but sigemptyset(->blocked) and recalc_sigpending() are not
+needed.
 
-We fixed those by improving our recursion checks.  The new check basically
-refuses to fork a process if its core limit is zero, which works well.
+This kthread was forked by workqueue thread, all signals must be unblocked
+and ignored, no pending signal is possible.
 
-Unfortunately, I've been getting grief from maintainer of user space
-programs that are inserted as the forked process of core_pattern.  They
-contend that in order for their programs (such as abrt and apport) to
-work, all the running processes in a system must have their core limits
-set to a non-zero value, to which I say 'yes'.  I did this by design, and
-think thats the right way to do things.
-
-But I've been asked to ease this burden on user space enough times that I
-thought I would take a look at it.  The first suggestion was to make the
-recursion check fail on a non-zero 'special' number, like one.  That way
-the core collector process could set its core size ulimit to 1, and enable
-the kernel's recursion detection.  This isn't a bad idea on the surface,
-but I don't like it since its opt-in, in that if a program like abrt or
-apport has a bug and fails to set such a core limit, we're left with a
-recursively crashing system again.
-
-So I've come up with this.  What I've done is modify the
-call_usermodehelper api such that an extra parameter is added, a function
-pointer which will be called by the user helper task, after it forks, but
-before it exec's the required process.  This will give the caller the
-opportunity to get a call back in the processes context, allowing it to do
-whatever it needs to to the process in the kernel prior to exec-ing the
-user space code.  In the case of do_coredump, this callback is ues to set
-the core ulimit of the helper process to 1.  This elimnates the opt-in
-problem that I had above, as it allows the ulimit for core sizes to be set
-to the value of 1, which is what the recursion check looks for in
-do_coredump.
-
-
-This patch:
-
-Create new function call_usermodehelper_fns() and allow it to assign both
-an init and cleanup function, as we'll as arbitrary data.
-
-The init function is called from the context of the forked process and
-allows for customization of the helper process prior to calling exec.  Its
-return code gates the continuation of the process, or causes its exit. 
-Also add an arbitrary data pointer to the subprocess_info struct allowing
-for data to be passed from the caller to the new process, and the
-subsequent cleanup process
-
-Also, use this patch to cleanup the cleanup function.  It currently takes
-an argp and envp pointer for freeing, which is ugly.  Lets instead just
-make the subprocess_info structure public, and pass that to the cleanup
-and init routines
-
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |   51 ++++++++++++++++++++++++++++++++---------
- kernel/kmod.c        |   51 +++++++++++++++++++++++------------------
- kernel/sys.c         |    6 ++--
- 3 files changed, 73 insertions(+), 35 deletions(-)
+ kernel/kmod.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/kmod.h~kmod-add-init-function-to-usermodehelper include/linux/kmod.h
---- a/include/linux/kmod.h~kmod-add-init-function-to-usermodehelper
-+++ a/include/linux/kmod.h
-@@ -23,6 +23,7 @@
- #include <linux/stddef.h>
- #include <linux/errno.h>
- #include <linux/compiler.h>
-+#include <linux/workqueue.h>
- 
- #define KMOD_PATH_LEN 256
- 
-@@ -45,7 +46,27 @@ static inline int request_module_nowait(
- 
- struct key;
- struct file;
--struct subprocess_info;
-+
-+enum umh_wait {
-+	UMH_NO_WAIT = -1,	/* don't wait at all */
-+	UMH_WAIT_EXEC = 0,	/* wait for the exec, but not the process */
-+	UMH_WAIT_PROC = 1,	/* wait for the process to complete */
-+};
-+
-+struct subprocess_info {
-+	struct work_struct work;
-+	struct completion *complete;
-+	struct cred *cred;
-+	char *path;
-+	char **argv;
-+	char **envp;
-+	enum umh_wait wait;
-+	int retval;
-+	struct file *stdin;
-+	int (*init)(struct subprocess_info *info);
-+	void (*cleanup)(struct subprocess_info *info);
-+	void *data;
-+};
- 
- /* Allocate a subprocess_info structure */
- struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
-@@ -56,14 +77,10 @@ void call_usermodehelper_setkeys(struct 
- 				 struct key *session_keyring);
- int call_usermodehelper_stdinpipe(struct subprocess_info *sub_info,
- 				  struct file **filp);
--void call_usermodehelper_setcleanup(struct subprocess_info *info,
--				    void (*cleanup)(char **argv, char **envp));
--
--enum umh_wait {
--	UMH_NO_WAIT = -1,	/* don't wait at all */
--	UMH_WAIT_EXEC = 0,	/* wait for the exec, but not the process */
--	UMH_WAIT_PROC = 1,	/* wait for the process to complete */
--};
-+void call_usermodehelper_setfns(struct subprocess_info *info,
-+		    int (*init)(struct subprocess_info *info),
-+		    void (*cleanup)(struct subprocess_info *info),
-+		    void *data);
- 
- /* Actually execute the sub-process */
- int call_usermodehelper_exec(struct subprocess_info *info, enum umh_wait wait);
-@@ -73,18 +90,32 @@ int call_usermodehelper_exec(struct subp
- void call_usermodehelper_freeinfo(struct subprocess_info *info);
- 
- static inline int
--call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
-+call_usermodehelper_fns(char *path, char **argv, char **envp,
-+			enum umh_wait wait,
-+			int (*init)(struct subprocess_info *info),
-+			void (*cleanup)(struct subprocess_info *), void *data)
- {
- 	struct subprocess_info *info;
- 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
- 
- 	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
-+
- 	if (info == NULL)
- 		return -ENOMEM;
-+
-+	call_usermodehelper_setfns(info, init, cleanup, data);
-+
- 	return call_usermodehelper_exec(info, wait);
- }
- 
- static inline int
-+call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
-+{
-+	return call_usermodehelper_fns(path, argv, envp, wait,
-+				       NULL, NULL, NULL);
-+}
-+
-+static inline int
- call_usermodehelper_keys(char *path, char **argv, char **envp,
- 			 struct key *session_keyring, enum umh_wait wait)
- {
-diff -puN kernel/kmod.c~kmod-add-init-function-to-usermodehelper kernel/kmod.c
---- a/kernel/kmod.c~kmod-add-init-function-to-usermodehelper
+diff -puN kernel/kmod.c~call_usermodehelper-no-need-to-unblock-signals kernel/kmod.c
+--- a/kernel/kmod.c~call_usermodehelper-no-need-to-unblock-signals
 +++ a/kernel/kmod.c
-@@ -116,27 +116,16 @@ int __request_module(bool wait, const ch
+@@ -134,11 +134,8 @@ static int ____call_usermodehelper(void 
+ 	struct subprocess_info *sub_info = data;
+ 	int retval;
  
- 	trace_module_request(module_name, wait, _RET_IP_);
+-	/* Unblock all signals */
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	flush_signal_handlers(current, 1);
+-	sigemptyset(&current->blocked);
+-	recalc_sigpending();
+ 	spin_unlock_irq(&current->sighand->siglock);
  
--	ret = call_usermodehelper(modprobe_path, argv, envp,
--			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
-+	ret = call_usermodehelper_fns(modprobe_path, argv, envp,
-+			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC,
-+			NULL, NULL, NULL);
-+
- 	atomic_dec(&kmod_concurrent);
- 	return ret;
- }
- EXPORT_SYMBOL(__request_module);
- #endif /* CONFIG_MODULES */
- 
--struct subprocess_info {
--	struct work_struct work;
--	struct completion *complete;
--	struct cred *cred;
--	char *path;
--	char **argv;
--	char **envp;
--	enum umh_wait wait;
--	int retval;
--	struct file *stdin;
--	void (*cleanup)(char **argv, char **envp);
--};
--
- /*
-  * This is the task which runs the usermode application
-  */
-@@ -184,9 +173,16 @@ static int ____call_usermodehelper(void 
- 	 */
- 	set_user_nice(current, 0);
- 
-+	if (sub_info->init) {
-+		retval = sub_info->init(sub_info);
-+		if (retval)
-+			goto fail;
-+	}
-+
- 	retval = kernel_execve(sub_info->path, sub_info->argv, sub_info->envp);
- 
- 	/* Exec failed? */
-+fail:
- 	sub_info->retval = retval;
- 	do_exit(0);
- }
-@@ -194,7 +190,7 @@ static int ____call_usermodehelper(void 
- void call_usermodehelper_freeinfo(struct subprocess_info *info)
- {
- 	if (info->cleanup)
--		(*info->cleanup)(info->argv, info->envp);
-+		(*info->cleanup)(info);
- 	if (info->cred)
- 		put_cred(info->cred);
- 	kfree(info);
-@@ -406,21 +402,31 @@ void call_usermodehelper_setkeys(struct 
- EXPORT_SYMBOL(call_usermodehelper_setkeys);
- 
- /**
-- * call_usermodehelper_setcleanup - set a cleanup function
-+ * call_usermodehelper_setfns - set a cleanup/init function
-  * @info: a subprocess_info returned by call_usermodehelper_setup
-  * @cleanup: a cleanup function
-+ * @init: an init function
-+ * @data: arbitrary context sensitive data
-+ *
-+ * The init function is used to customize the helper process prior to
-+ * exec.  A non-zero return code causes the process to error out, exit,
-+ * and return the failure to the calling process
-  *
-- * The cleanup function is just befor ethe subprocess_info is about to
-+ * The cleanup function is just before ethe subprocess_info is about to
-  * be freed.  This can be used for freeing the argv and envp.  The
-  * Function must be runnable in either a process context or the
-  * context in which call_usermodehelper_exec is called.
-  */
--void call_usermodehelper_setcleanup(struct subprocess_info *info,
--				    void (*cleanup)(char **argv, char **envp))
-+void call_usermodehelper_setfns(struct subprocess_info *info,
-+		    int (*init)(struct subprocess_info *info),
-+		    void (*cleanup)(struct subprocess_info *info),
-+		    void *data)
- {
- 	info->cleanup = cleanup;
-+	info->init = init;
-+	info->data = data;
- }
--EXPORT_SYMBOL(call_usermodehelper_setcleanup);
-+EXPORT_SYMBOL(call_usermodehelper_setfns);
- 
- /**
-  * call_usermodehelper_stdinpipe - set up a pipe to be used for stdin
-@@ -515,7 +521,8 @@ int call_usermodehelper_pipe(char *path,
- 	struct subprocess_info *sub_info;
- 	int ret;
- 
--	sub_info = call_usermodehelper_setup(path, argv, envp, GFP_KERNEL);
-+	sub_info = call_usermodehelper_setup(path, argv, envp,
-+					     GFP_KERNEL);
- 	if (sub_info == NULL)
- 		return -ENOMEM;
- 
-diff -puN kernel/sys.c~kmod-add-init-function-to-usermodehelper kernel/sys.c
---- a/kernel/sys.c~kmod-add-init-function-to-usermodehelper
-+++ a/kernel/sys.c
-@@ -1765,9 +1765,9 @@ SYSCALL_DEFINE3(getcpu, unsigned __user 
- 
- char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
- 
--static void argv_cleanup(char **argv, char **envp)
-+static void argv_cleanup(struct subprocess_info *info)
- {
--	argv_free(argv);
-+	argv_free(info->argv);
- }
- 
- /**
-@@ -1801,7 +1801,7 @@ int orderly_poweroff(bool force)
- 		goto out;
- 	}
- 
--	call_usermodehelper_setcleanup(info, argv_cleanup);
-+	call_usermodehelper_setfns(info, NULL, argv_cleanup, NULL);
- 
- 	ret = call_usermodehelper_exec(info, UMH_NO_WAIT);
- 
+ 	/* We can run anywhere, unlike our parent keventd(). */
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
+posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+proc-cleanup-remove-unused-assignments.patch
 kmod-add-init-function-to-usermodehelper.patch
 exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
 
