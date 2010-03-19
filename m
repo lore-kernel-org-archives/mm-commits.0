@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-oom-notifier-update.patch added to -mm tree
-Date: Fri, 19 Mar 2010 16:03:06 -0700
-Message-ID: <201003192303.o2JN36Vp017350@imap1.linux-foundation.org>
+Subject: + memcg-oom-kill-disable-and-oom-status-update.patch added to -mm tree
+Date: Fri, 19 Mar 2010 16:03:09 -0700
+Message-ID: <201003192303.o2JN395n017359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750751Ab0CSXDs (ORCPT
+	by vger.kernel.org with ESMTP id S1750751Ab0CSXDx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 19:03:48 -0400
+	Fri, 19 Mar 2010 19:03:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, davidel@xmailserver.org, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     memcg-oom-notifier-update
+     memcg-oom-kill-disable-and-oom-status-update
 has been added to the -mm tree.  Its filename is
-     memcg-oom-notifier-update.patch
+     memcg-oom-kill-disable-and-oom-status-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-oom-notifier-update
+Subject: memcg-oom-kill-disable-and-oom-status-update
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
- - moved kmalloc to out of lock. Then, removed unnecessary label and goto.
+ - rewrote Documentation.
+ - changed oom_kill_disable from unsigned long to int.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ Documentation/cgroups/memory.txt |    6 +++++-
+ mm/memcontrol.c                  |    4 ++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-oom-notifier-update mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-oom-notifier-update
-+++ a/mm/memcontrol.c
-@@ -3605,15 +3605,13 @@ static int mem_cgroup_oom_register_event
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
- 	struct mem_cgroup_eventfd_list *event;
- 	int type = MEMFILE_TYPE(cft->private);
--	int ret = -ENOMEM;
- 
- 	BUG_ON(type != _OOM_TYPE);
--
--	mutex_lock(&memcg_oom_mutex);
--
- 	event = kmalloc(sizeof(*event),	GFP_KERNEL);
- 	if (!event)
--		goto unlock;
-+		return -ENOMEM;
+diff -puN Documentation/cgroups/memory.txt~memcg-oom-kill-disable-and-oom-status-update Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-oom-kill-disable-and-oom-status-update
++++ a/Documentation/cgroups/memory.txt
+@@ -514,10 +514,14 @@ As.
+ This operation is only allowed to the top cgroup of subhierarchy.
+ If oom-killer is disabled, tasks under cgroup will hang/sleep
+ in memcg's oom-waitq when they request accountable memory.
 +
-+	mutex_lock(&memcg_oom_mutex);
+ For running them, you have to relax the memcg's oom sitaution by
+-	* enlarge limit
++	* enlarge limit or reduce usage.
++To reduce usage,
+ 	* kill some tasks.
+ 	* move some tasks to other group with account migration.
++	* remove some files (on tmpfs?)
++
+ Then, stopped tasks will work again.
  
- 	event->eventfd = eventfd;
- 	list_add(&event->list, &memcg->oom_notify);
-@@ -3621,11 +3619,9 @@ static int mem_cgroup_oom_register_event
- 	/* already in OOM ? */
- 	if (atomic_read(&memcg->oom_lock))
- 		eventfd_signal(eventfd, 1);
--	ret = 0;
--unlock:
- 	mutex_unlock(&memcg_oom_mutex);
+ At reading, current status of OOM is shown.
+diff -puN mm/memcontrol.c~memcg-oom-kill-disable-and-oom-status-update mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-kill-disable-and-oom-status-update
++++ a/mm/memcontrol.c
+@@ -214,6 +214,8 @@ struct mem_cgroup {
+ 	atomic_t	refcnt;
  
--	return ret;
-+	return 0;
- }
+ 	unsigned int	swappiness;
++	/* OOM-Killer disable */
++	int 		oom_kill_disable;
  
- static int mem_cgroup_oom_unregister_event(struct cgroup *cgrp,
+ 	/* set when res.limit == memsw.limit */
+ 	bool		memsw_is_minimum;
+@@ -235,8 +237,6 @@ struct mem_cgroup {
+ 	 * mem_cgroup ? And what type of charges should we move ?
+ 	 */
+ 	unsigned long 	move_charge_at_immigrate;
+-	/* Disable OOM killer */
+-	unsigned long	oom_kill_disable;
+ 	/*
+ 	 * percpu counter.
+ 	 */
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
