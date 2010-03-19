@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + exit-change-zap_other_threads-to-count-sub-threads.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:12:20 -0700
-Message-ID: <201003192212.o2JMCKTQ015268@imap1.linux-foundation.org>
+Subject: + exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:12:22 -0700
+Message-ID: <201003192212.o2JMCN2p015271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038Ab0CSWMe (ORCPT
+	by vger.kernel.org with ESMTP id S1751038Ab0CSWMg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:12:34 -0400
+	Fri, 19 Mar 2010 18:12:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, roland@redhat.com, vfalico@redhat.com
 
 
 The patch titled
-     exit: change zap_other_threads() to count sub-threads
+     exit: avoid sig->count in de_thread/__exit_signal synchronization
 has been added to the -mm tree.  Its filename is
-     exit-change-zap_other_threads-to-count-sub-threads.patch
+     exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit: change zap_other_threads() to count sub-threads
+Subject: exit: avoid sig->count in de_thread/__exit_signal synchronization
 From: Oleg Nesterov <oleg@redhat.com>
 
-Change zap_other_threads() to return the number of other sub-threads found
-on ->thread_group list.
+de_thread() and __exit_signal() use signal_struct->count/notify_count for
+synchronization.  We can simplify the code and use ->notify_count only. 
+Instead of comparing these two counters, we can change de_thread() to set
+->notify_count = nr_of_sub_threads, then change __exit_signal() to
+dec-and-test this counter and notify group_exit_task.
 
-Other changes are cosmetic:
-
-	- change the code to use while_each_thread() helper
-
-	- remove the obsolete comment about SIGKILL/SIGSTOP
+Note that __exit_signal() checks "notify_count > 0" just for symmetry with
+exit_notify(), we could just check it is != 0.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -52,58 +52,52 @@ Cc: Veaceslav Falico <vfalico@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- kernel/signal.c       |   17 +++++++++--------
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ fs/exec.c     |   11 +++++------
+ kernel/exit.c |    2 +-
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/sched.h~exit-change-zap_other_threads-to-count-sub-threads include/linux/sched.h
---- a/include/linux/sched.h~exit-change-zap_other_threads-to-count-sub-threads
-+++ a/include/linux/sched.h
-@@ -2038,7 +2038,7 @@ extern int do_notify_parent(struct task_
- extern void __wake_up_parent(struct task_struct *p, struct task_struct *parent);
- extern void force_sig(int, struct task_struct *);
- extern int send_sig(int, struct task_struct *, int);
--extern void zap_other_threads(struct task_struct *p);
-+extern int zap_other_threads(struct task_struct *p);
- extern struct sigqueue *sigqueue_alloc(void);
- extern void sigqueue_free(struct sigqueue *);
- extern int send_sigqueue(struct sigqueue *,  struct task_struct *, int group);
-diff -puN kernel/signal.c~exit-change-zap_other_threads-to-count-sub-threads kernel/signal.c
---- a/kernel/signal.c~exit-change-zap_other_threads-to-count-sub-threads
-+++ a/kernel/signal.c
-@@ -1083,23 +1083,24 @@ force_sig_info(int sig, struct siginfo *
- /*
-  * Nuke all other threads in the group.
-  */
--void zap_other_threads(struct task_struct *p)
-+int zap_other_threads(struct task_struct *p)
- {
--	struct task_struct *t;
-+	struct task_struct *t = p;
-+	int count = 0;
+diff -puN fs/exec.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization fs/exec.c
+--- a/fs/exec.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization
++++ a/fs/exec.c
+@@ -763,7 +763,6 @@ static int de_thread(struct task_struct 
+ 	struct signal_struct *sig = tsk->signal;
+ 	struct sighand_struct *oldsighand = tsk->sighand;
+ 	spinlock_t *lock = &oldsighand->siglock;
+-	int count;
  
- 	p->signal->group_stop_count = 0;
- 
--	for (t = next_thread(p); t != p; t = next_thread(t)) {
--		/*
--		 * Don't bother with already dead threads
--		 */
-+	while_each_thread(p, t) {
-+		count++;
-+
-+		/* Don't bother with already dead threads */
- 		if (t->exit_state)
- 			continue;
--
--		/* SIGKILL will be handled before any pending SIGSTOP */
- 		sigaddset(&t->pending.signal, SIGKILL);
- 		signal_wake_up(t, 1);
+ 	if (thread_group_empty(tsk))
+ 		goto no_thread_group;
+@@ -780,13 +779,13 @@ static int de_thread(struct task_struct 
+ 		spin_unlock_irq(lock);
+ 		return -EAGAIN;
  	}
 +
-+	return count;
- }
+ 	sig->group_exit_task = tsk;
+-	zap_other_threads(tsk);
++	sig->notify_count = zap_other_threads(tsk);
++	if (!thread_group_leader(tsk))
++		sig->notify_count--;
  
- struct sighand_struct *lock_task_sighand(struct task_struct *tsk, unsigned long *flags)
+-	/* Account for the thread group leader hanging around: */
+-	count = thread_group_leader(tsk) ? 1 : 2;
+-	sig->notify_count = count;
+-	while (atomic_read(&sig->count) > count) {
++	while (sig->notify_count) {
+ 		__set_current_state(TASK_UNINTERRUPTIBLE);
+ 		spin_unlock_irq(lock);
+ 		schedule();
+diff -puN kernel/exit.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization kernel/exit.c
+--- a/kernel/exit.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization
++++ a/kernel/exit.c
+@@ -98,7 +98,7 @@ static void __exit_signal(struct task_st
+ 		 * If there is any task waiting for the group exit
+ 		 * then notify it:
+ 		 */
+-		if (sig->group_exit_task && atomic_read(&sig->count) == sig->notify_count)
++		if (sig->notify_count > 0 && !--sig->notify_count)
+ 			wake_up_process(sig->group_exit_task);
+ 
+ 		if (tsk == sig->curr_target)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
