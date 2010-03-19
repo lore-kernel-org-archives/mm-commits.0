@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-support-for-rdc321x-gpio-controller.patch added to -mm tree
-Date: Fri, 19 Mar 2010 13:52:34 -0700
-Message-ID: <201003192052.o2JKqYH1011795@imap1.linux-foundation.org>
+Subject: + mfd-add-support-for-the-rdc321x-southbridge.patch added to -mm tree
+Date: Fri, 19 Mar 2010 13:52:30 -0700
+Message-ID: <201003192052.o2JKqUvN011787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752304Ab0CSUwy (ORCPT
+	by vger.kernel.org with ESMTP id S1752119Ab0CSUyC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 16:52:54 -0400
+	Fri, 19 Mar 2010 16:54:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: florian@openwrt.org, david-b@pacbell.net, mingo@elte.hu, sameo@linux.intel.c
 
 
 The patch titled
-     gpio: add support for RDC321x GPIO controller
+     mfd: add support for the RDC321x southbridge
 has been added to the -mm tree.  Its filename is
-     gpio-add-support-for-rdc321x-gpio-controller.patch
+     mfd-add-support-for-the-rdc321x-southbridge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: add support for RDC321x GPIO controller
+Subject: mfd: add support for the RDC321x southbridge
 From: Florian Fainelli <florian@openwrt.org>
 
-Add a new GPIO driver for the RDC321x SoC GPIO controller.
+Add a new MFD driver for the RDC321x southbridge.  This southbridge is
+always present in the RDC321x System-on-a-Chip and provides access to some
+GPIOs as well as a watchdog.  Access to these two functions is done using
+the southbridge PCI device configuration space.
 
 Signed-off-by: Florian Fainelli <florian@openwrt.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -47,49 +50,51 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig        |    8 +
- drivers/gpio/Makefile       |    1 
- drivers/gpio/rdc321x-gpio.c |  237 ++++++++++++++++++++++++++++++++++
- 3 files changed, 245 insertions(+), 1 deletion(-)
+ drivers/mfd/Kconfig               |    9 +
+ drivers/mfd/Makefile              |    1 
+ drivers/mfd/rdc321x-southbridge.c |  148 ++++++++++++++++++++++++++++
+ include/linux/mfd/rdc321x.h       |   24 ++++
+ 4 files changed, 181 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-add-support-for-rdc321x-gpio-controller drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-add-support-for-rdc321x-gpio-controller
-+++ a/drivers/gpio/Kconfig
-@@ -275,6 +275,14 @@ config GPIO_TIMBERDALE
- 	---help---
- 	Add support for the GPIO IP in the timberdale FPGA.
+diff -puN drivers/mfd/Kconfig~mfd-add-support-for-the-rdc321x-southbridge drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-add-support-for-the-rdc321x-southbridge
++++ a/drivers/mfd/Kconfig
+@@ -399,6 +399,15 @@ config LPC_SCH
+ 	  LPC bridge function of the Intel SCH provides support for
+ 	  System Management Bus and General Purpose I/O.
  
-+config GPIO_RDC321X
-+	tristate "RDC R-321x GPIO support"
-+	depends on PCI && GPIOLIB
-+	select MFD_RDC321X
++config MFD_RDC321X
++	tristate "Support for RDC-R321x southbridge"
++	select MFD_CORE
++	depends on PCI
 +	help
-+	  Support for the RDC R321x SoC GPIOs over southbridge
-+	  PCI configuration space.
++	  Say yes here if you want to have support for the RDC R-321x SoC
++	  southbridge which provides access to GPIOs and Watchdog using the
++	  southbridge PCI device configuration space.
 +
- comment "SPI GPIO expanders:"
+ endmenu
  
- config GPIO_MAX7301
-diff -puN drivers/gpio/Makefile~gpio-add-support-for-rdc321x-gpio-controller drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpio-add-support-for-rdc321x-gpio-controller
-+++ a/drivers/gpio/Makefile
-@@ -27,4 +27,5 @@ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.
- obj-$(CONFIG_GPIO_WM831X)	+= wm831x-gpio.o
- obj-$(CONFIG_GPIO_WM8350)	+= wm8350-gpiolib.o
- obj-$(CONFIG_GPIO_WM8994)	+= wm8994-gpio.o
--obj-$(CONFIG_GPIO_SCH)		+= sch_gpio.o
+ menu "Multimedia Capabilities Port drivers"
+diff -puN drivers/mfd/Makefile~mfd-add-support-for-the-rdc321x-southbridge drivers/mfd/Makefile
+--- a/drivers/mfd/Makefile~mfd-add-support-for-the-rdc321x-southbridge
++++ a/drivers/mfd/Makefile
+@@ -62,4 +62,5 @@ obj-$(CONFIG_AB3100_OTP)	+= ab3100-otp.o
+ obj-$(CONFIG_AB4500_CORE)	+= ab4500-core.o
+ obj-$(CONFIG_MFD_TIMBERDALE)    += timberdale.o
+ obj-$(CONFIG_PMIC_ADP5520)	+= adp5520.o
+-obj-$(CONFIG_LPC_SCH)		+= lpc_sch.o
 \ No newline at end of file
-+obj-$(CONFIG_GPIO_SCH)		+= sch_gpio.o
-+obj-$(CONFIG_GPIO_RDC321X)	+= rdc321x-gpio.o
-diff -puN /dev/null drivers/gpio/rdc321x-gpio.c
++obj-$(CONFIG_LPC_SCH)		+= lpc_sch.o
++obj-$(CONFIG_MFD_RDC321X)	+= rdc321x-southbridge.o
+diff -puN /dev/null drivers/mfd/rdc321x-southbridge.c
 --- /dev/null
-+++ a/drivers/gpio/rdc321x-gpio.c
-@@ -0,0 +1,237 @@
++++ a/drivers/mfd/rdc321x-southbridge.c
+@@ -0,0 +1,148 @@
 +/*
-+ * RDC321x GPIO driver
++ * RDC321x MFD southbrige driver
 + *
-+ * Copyright (C) 2008, Volker Weiss <dev@tintuc.de>
 + * Copyright (C) 2007-2010 Florian Fainelli <florian@openwrt.org>
++ * Copyright (C) 2010 Bernhard Loos <bernhardloos@googlemail.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -106,222 +111,161 @@ diff -puN /dev/null drivers/gpio/rdc321x-gpio.c
 + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + *
 + */
++#include <linux/init.h>
 +#include <linux/module.h>
 +#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/spinlock.h>
 +#include <linux/platform_device.h>
 +#include <linux/pci.h>
-+#include <linux/gpio.h>
++#include <linux/mfd/core.h>
 +#include <linux/mfd/rdc321x.h>
 +
-+struct rdc321x_gpio {
-+	spinlock_t		lock;
-+	u32 			data_reg[2];
-+	int			reg1_ctrl_base;
-+	int			reg1_data_base;
-+	int			reg2_ctrl_base;
-+	int			reg2_data_base;
-+	struct gpio_chip	chip;
-+};
-+
-+/* read GPIO pin */
-+static int rdc_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
-+{
-+	struct rdc321x_gpio *gpch =
-+				container_of(chip, struct rdc321x_gpio, chip);
-+	u32 value = 0;
-+	int reg;
-+
-+	reg = gpio < 32 ? gpch->reg1_data_base : gpch->reg2_data_base;
-+
-+	spin_lock(&gpch->lock);
-+	rdc321x_pci_write(reg, gpch->data_reg[gpio < 32 ? 0 : 1]);
-+	rdc321x_pci_read(reg, &value);
-+	spin_unlock(&gpch->lock);
-+
-+	return (1 << (gpio & 0x1f)) & value ? 1 : 0;
-+}
-+
-+static void rdc_gpio_set_value_impl(struct gpio_chip *chip,
-+				unsigned gpio, int value)
-+{
-+	struct rdc321x_gpio *gpch =
-+				container_of(chip, struct rdc321x_gpio, chip);
-+	int reg = (gpio < 32) ? 0 : 1;
-+
-+	if (value)
-+		gpch->data_reg[reg] |= 1 << (gpio & 0x1f);
-+	else
-+		gpch->data_reg[reg] &= ~(1 << (gpio & 0x1f));
-+
-+	rdc321x_pci_write(reg ? gpch->reg1_data_base : gpch->reg2_data_base,
-+			       gpch->data_reg[reg]);
-+}
-+
-+/* set GPIO pin to value */
-+static void rdc_gpio_set_value(struct gpio_chip *chip,
-+				unsigned gpio, int value)
-+{
-+	struct rdc321x_gpio *gpch =
-+				container_of(chip, struct rdc321x_gpio, chip);
-+	spin_lock(&gpch->lock);
-+	rdc_gpio_set_value_impl(chip, gpio, value);
-+	spin_unlock(&gpch->lock);
-+}
-+
-+static int rdc_gpio_config(struct gpio_chip *chip,
-+				unsigned gpio, int value)
-+{
-+	struct rdc321x_gpio *gpch =
-+			container_of(chip, struct rdc321x_gpio, chip);
-+	int err;
-+	u32 reg;
-+
-+	spin_lock(&gpch->lock);
-+	err = rdc321x_pci_read(gpio < 32 ?
-+			gpch->reg1_ctrl_base : gpch->reg2_ctrl_base, &reg);
-+	if (err)
-+		goto unlock;
-+
-+	reg |= 1 << (gpio & 0x1f);
-+
-+	err = rdc321x_pci_write(gpio < 32 ?
-+			gpch->reg1_ctrl_base : gpch->reg2_ctrl_base, reg);
-+	if (err)
-+		goto unlock;
-+
-+	rdc_gpio_set_value_impl(chip, gpio, value);
-+
-+unlock:
-+	spin_unlock(&gpch->lock);
-+
-+	return err;
-+}
-+
-+/* configure GPIO pin as input */
-+static int rdc_gpio_direction_input(struct gpio_chip *chip, unsigned gpio)
-+{
-+	return rdc_gpio_config(chip, gpio, 1);
-+}
++static struct pci_dev *rdc321x_sb_pdev;
 +
 +/*
-+ * Cache the initial value of both GPIO data registers
++ * Unlocked PCI configuration space accessors
 + */
-+static int __devinit rdc321x_gpio_probe(struct platform_device *pdev)
++int rdc321x_pci_read(int reg, u32 *val)
 +{
 +	int err;
-+	struct resource *r;
-+	struct rdc321x_gpio *rdc321x_gpio_dev;
-+	struct rdc321x_gpio_pdata *pdata;
 +
-+	pdata = pdev->dev.platform_data;
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "no platform data supplied\n");
-+		return -ENODEV;
-+	}
-+
-+	rdc321x_gpio_dev = kzalloc(sizeof(struct rdc321x_gpio), GFP_KERNEL);
-+	if (!rdc321x_gpio_dev) {
-+		dev_err(&pdev->dev, "failed to allocate private data\n");
-+		return -ENOMEM;
-+	}
-+
-+	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "gpio-reg1");
-+	if (!r) {
-+		dev_err(&pdev->dev, "failed to get gpio-reg1 resource\n");
-+		err = -ENODEV;
-+		goto out_free;
-+	}
-+
-+	rdc321x_gpio_dev->reg1_ctrl_base = r->start;
-+	rdc321x_gpio_dev->reg1_data_base = r->start + 0x4;
-+
-+	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "gpio-reg2");
-+	if (!r) {
-+		dev_err(&pdev->dev, "failed to get gpio-reg2 resource\n");
-+		err = -ENODEV;
-+		goto out_free;
-+	}
-+
-+	rdc321x_gpio_dev->reg2_ctrl_base = r->start;
-+	rdc321x_gpio_dev->reg2_data_base = r->start + 0x4;
-+
-+	rdc321x_gpio_dev->chip.label = "rdc321x-gpio";
-+	rdc321x_gpio_dev->chip.direction_input = rdc_gpio_direction_input;
-+	rdc321x_gpio_dev->chip.direction_output = rdc_gpio_config;
-+	rdc321x_gpio_dev->chip.get = rdc_gpio_get_value;
-+	rdc321x_gpio_dev->chip.set = rdc_gpio_set_value;
-+	rdc321x_gpio_dev->chip.base = 0;
-+	rdc321x_gpio_dev->chip.ngpio = pdata->max_gpios;
-+
-+	platform_set_drvdata(pdev, rdc321x_gpio_dev);
-+
-+	/* This might not be, what others (BIOS, bootloader, etc.)
-+	   wrote to these registers before, but it's a good guess. Still
-+	   better than just using 0xffffffff. */
-+	err = rdc321x_pci_read(rdc321x_gpio_dev->reg1_data_base,
-+					&rdc321x_gpio_dev->data_reg[0]);
++	err = pci_read_config_dword(rdc321x_sb_pdev, reg, val);
 +	if (err)
-+		goto out_drvdata;
++		return err;
 +
-+	err = rdc321x_pci_read(rdc321x_gpio_dev->reg2_data_base,
-+					&rdc321x_gpio_dev->data_reg[1]);
-+	if (err)
-+		goto out_drvdata;
-+
-+	spin_lock_init(&rdc321x_gpio_dev->lock);
-+
-+	printk(KERN_INFO "rdc321x-gpio: registering %d GPIOs\n",
-+					rdc321x_gpio_dev->chip.ngpio);
-+	return gpiochip_add(&rdc321x_gpio_dev->chip);
-+
-+out_drvdata:
-+	platform_set_drvdata(pdev, NULL);
-+out_free:
-+	kfree(rdc321x_gpio_dev);
 +	return err;
 +}
++EXPORT_SYMBOL(rdc321x_pci_read);
 +
-+static int __devexit rdc321x_gpio_remove(struct platform_device *pdev)
++int rdc321x_pci_write(int reg, u32 val)
 +{
-+	int ret;
-+	struct rdc321x_gpio *rdc321x_gpio_dev = platform_get_drvdata(pdev);
++	int err;
 +
-+	ret = gpiochip_remove(&rdc321x_gpio_dev->chip);
-+	if (ret)
-+		dev_err(&pdev->dev, "failed to unregister chip\n");
++	err = pci_write_config_dword(rdc321x_sb_pdev, reg, val);
++	if (err)
++		return err;
 +
-+	kfree(rdc321x_gpio_dev);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	return ret;
++	return err;
 +}
++EXPORT_SYMBOL(rdc321x_pci_write);
 +
-+static struct platform_driver rdc321x_gpio_driver = {
-+	.driver.name	= "rdc321x-gpio",
-+	.driver.owner	= THIS_MODULE,
-+	.probe		= rdc321x_gpio_probe,
-+	.remove		= __devexit_p(rdc321x_gpio_remove),
++static struct resource rdc321x_wdt_resource[] = {
++	{
++		.name	= "wdt-reg",
++		.start	= RDC321X_WDT_CTRL,
++		.end	= RDC321X_WDT_CTRL + 0x3,
++		.flags	= IORESOURCE_MEM,
++	}
 +};
 +
-+static int __init rdc321x_gpio_init(void)
++static struct rdc321x_gpio_pdata rdc321x_gpio_pdata = {
++	.max_gpios	= RDC321X_MAX_GPIO,
++};
++
++static struct resource rdc321x_gpio_resources[] = {
++	{
++		.name	= "gpio-reg1",
++		.start	= RDC321X_GPIO_CTRL_REG1,
++		.end	= RDC321X_GPIO_CTRL_REG1 + 0x7,
++		.flags	= IORESOURCE_MEM,
++	}, {
++		.name	= "gpio-reg2",
++		.start	= RDC321X_GPIO_CTRL_REG2,
++		.end	= RDC321X_GPIO_CTRL_REG2 + 0x7,
++		.flags	= IORESOURCE_MEM,
++	}
++};
++
++static struct mfd_cell rdc321x_sb_cells[] = {
++	{
++		.name		= "rdc321x-wdt",
++		.resources	= rdc321x_wdt_resource,
++		.num_resources	= ARRAY_SIZE(rdc321x_wdt_resource),
++	}, {
++		.name 		= "rdc321x-gpio",
++		.resources	= rdc321x_gpio_resources,
++		.num_resources	= ARRAY_SIZE(rdc321x_gpio_resources),
++		.driver_data	= &rdc321x_gpio_pdata,
++	},
++};
++
++static int __devinit rdc321x_sb_probe(struct pci_dev *pdev,
++					const struct pci_device_id *ent)
 +{
-+	return platform_driver_register(&rdc321x_gpio_driver);
++	int err;
++
++	err = pci_enable_device(pdev);
++	if (err) {
++		printk(KERN_ERR "failed to enable device\n");
++		return err;
++	}
++
++	rdc321x_sb_pdev = pdev;
++
++	return mfd_add_devices(&pdev->dev, -1,
++		rdc321x_sb_cells, ARRAY_SIZE(rdc321x_sb_cells), NULL, 0);
 +}
 +
-+static void __exit rdc321x_gpio_exit(void)
++static void __devexit rdc321x_sb_remove(struct pci_dev *pdev)
 +{
-+	platform_driver_unregister(&rdc321x_gpio_driver);
++	mfd_remove_devices(&pdev->dev);
 +}
 +
-+module_init(rdc321x_gpio_init);
-+module_exit(rdc321x_gpio_exit);
++static struct pci_device_id rdc321x_sb_table[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030) },
++	{}
++};
++
++static struct pci_driver rdc321x_sb_driver = {
++	.name 		= "RDC321x Southbridge",
++	.id_table 	= rdc321x_sb_table,
++	.probe 		= rdc321x_sb_probe,
++	.remove		= __devexit_p(rdc321x_sb_remove),
++};
++
++static int __init rdc321x_sb_init(void)
++{
++	return pci_register_driver(&rdc321x_sb_driver);
++}
++
++static void __exit rdc321x_sb_exit(void)
++{
++	pci_unregister_driver(&rdc321x_sb_driver);
++}
++
++module_init(rdc321x_sb_init);
++module_exit(rdc321x_sb_exit);
 +
 +MODULE_AUTHOR("Florian Fainelli <florian@openwrt.org>");
-+MODULE_DESCRIPTION("RDC321x GPIO driver");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:rdc321x-gpio");
++MODULE_DESCRIPTION("RDC R-321x MFD southbridge driver");
+diff -puN /dev/null include/linux/mfd/rdc321x.h
+--- /dev/null
++++ a/include/linux/mfd/rdc321x.h
+@@ -0,0 +1,24 @@
++#ifndef __RDC321X_MFD_H
++#define __RDC321X_MFD_H
++
++#include <linux/types.h>
++
++/* Offsets to be accessed in the southbridge PCI
++ * device configuration register */
++#define RDC321X_WDT_CTRL	0x44
++#define RDC321X_GPIO_CTRL_REG1	0x48
++#define RDC321X_GPIO_DATA_REG1	0x4c
++#define RDC321X_GPIO_CTRL_REG2	0x84
++#define RDC321X_GPIO_DATA_REG2	0x88
++
++#define RDC321X_MAX_GPIO	58
++
++/* Definitions for the shared southbridge accessors */
++int rdc321x_pci_write(int reg, u32 val);
++int rdc321x_pci_read(int reg, u32 *val);
++
++struct rdc321x_gpio_pdata {
++	unsigned max_gpios;
++};
++
++#endif /* __RDC321X_MFD_H */
 _
 
 Patches currently in -mm which might be from florian@openwrt.org are
