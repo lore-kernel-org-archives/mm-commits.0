@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-mpol=bind-0-dont-cause-mount-error.patch added to -mm tree
-Date: Fri, 19 Mar 2010 16:10:45 -0700
-Message-ID: <201003192310.o2JNAk46017620@imap1.linux-foundation.org>
+Subject: + doc-add-the-documentation-for-mpol=local.patch added to -mm tree
+Date: Fri, 19 Mar 2010 16:10:51 -0700
+Message-ID: <201003192310.o2JNAqhx017630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751153Ab0CSXMa (ORCPT
+	by vger.kernel.org with ESMTP id S1751695Ab0CSXMc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 19:12:30 -0400
+	Fri, 19 Mar 2010 19:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hugh.dickins@tiscal
 
 
 The patch titled
-     tmpfs: mpol=bind:0 don't cause mount error.
+     doc: add the documentation for mpol=local
 has been added to the -mm tree.  Its filename is
-     tmpfs-mpol=bind-0-dont-cause-mount-error.patch
+     doc-add-the-documentation-for-mpol=local.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: mpol=bind:0 don't cause mount error.
+Subject: doc: add the documentation for mpol=local
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently, following mount operation cause mount error.
+commit 3f226aa1c (mempolicy: support mpol=local tmpfs mount option) added
+new mpol=local mount option.  but it didn't add a documentation.
 
-% mount -t tmpfs -ompol=bind:0 none /tmp
-
-Because commit 71fe804b6d5 (mempolicy: use struct mempolicy pointer in
-shmem_sb_info) corrupted MPOL_BIND parse code.
-
-This patch restore the needed one.
+This patch does it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Ravikiran Thirumalai <kiran@scalex86.org>
@@ -56,29 +52,33 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ Documentation/filesystems/tmpfs.txt |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~tmpfs-mpol=bind-0-dont-cause-mount-error mm/mempolicy.c
---- a/mm/mempolicy.c~tmpfs-mpol=bind-0-dont-cause-mount-error
-+++ a/mm/mempolicy.c
-@@ -2222,9 +2222,13 @@ int mpol_parse_str(char *str, struct mem
- 		if (!nodelist)
- 			err = 0;
- 		goto out;
--	/*
--	 * case MPOL_BIND:    mpol_new() enforces non-empty nodemask.
--	 */
-+	case MPOL_BIND:
-+		/*
-+		 * Insist on a nodelist
-+		 */
-+		if (!nodelist)
-+			goto out;
-+		err = 0;
- 	}
+diff -puN Documentation/filesystems/tmpfs.txt~doc-add-the-documentation-for-mpol=local Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~doc-add-the-documentation-for-mpol=local
++++ a/Documentation/filesystems/tmpfs.txt
+@@ -82,11 +82,13 @@ tmpfs has a mount option to set the NUMA
+ all files in that instance (if CONFIG_NUMA is enabled) - which can be
+ adjusted on the fly via 'mount -o remount ...'
  
- 	mode_flags = 0;
+-mpol=default             prefers to allocate memory from the local node
++mpol=default             use the process allocation policy
++                         (see set_mempolicy(2))
+ mpol=prefer:Node         prefers to allocate memory from the given Node
+ mpol=bind:NodeList       allocates memory only from nodes in NodeList
+ mpol=interleave          prefers to allocate from each node in turn
+ mpol=interleave:NodeList allocates from each node of NodeList in turn
++mpol=local		 prefers to allocate memory from the local node
+ 
+ NodeList format is a comma-separated list of decimal numbers and ranges,
+ a range being two hyphen-separated decimal numbers, the smallest and
+@@ -134,3 +136,5 @@ Author:
+    Christoph Rohland <cr@sap.com>, 1.12.01
+ Updated:
+    Hugh Dickins, 4 June 2007
++Updated:
++   KOSAKI Motohiro, 16 Mar 2010
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
