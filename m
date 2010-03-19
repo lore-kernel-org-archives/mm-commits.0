@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-shift-down_writemmap_sem-into-coredump_wait.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:09:14 -0700
-Message-ID: <201003192209.o2JM9Edh015097@imap1.linux-foundation.org>
+Subject: + coredump-factor-out-put_cred-calls.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:09:12 -0700
+Message-ID: <201003192209.o2JM9Cmx015094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751260Ab0CSWJg (ORCPT
+	by vger.kernel.org with ESMTP id S1751260Ab0CSWJh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:09:36 -0400
+	Fri, 19 Mar 2010 18:09:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, andi@firstfloor.org, dhowells@redhat.com, nhorman@tuxdriver
 
 
 The patch titled
-     coredump: shift down_write(mmap_sem) into coredump_wait()
+     coredump: factor out put_cred() calls
 has been added to the -mm tree.  Its filename is
-     coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+     coredump-factor-out-put_cred-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: shift down_write(mmap_sem) into coredump_wait()
+Subject: coredump: factor out put_cred() calls
 From: Oleg Nesterov <oleg@redhat.com>
 
-- move the cprm.mm_flags checks up, before we take mmap_sem
-
-- move down_write(mmap_sem) and ->core_state check from do_coredump()
-  to coredump_wait()
-
-This simplifies the code and makes the locking symmetrical.
+Given that do_coredump() calls put_cred() on exit path, it is a bit ugly
+to do put_cred() + "goto fail" twice, just add the new "fail_creds" label.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -52,53 +48,59 @@ Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ fs/exec.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN fs/exec.c~coredump-shift-down_writemmap_sem-into-coredump_wait fs/exec.c
---- a/fs/exec.c~coredump-shift-down_writemmap_sem-into-coredump_wait
+diff -puN fs/exec.c~coredump-factor-out-put_cred-calls fs/exec.c
+--- a/fs/exec.c~coredump-factor-out-put_cred-calls
 +++ a/fs/exec.c
-@@ -1659,12 +1659,15 @@ static int coredump_wait(int exit_code, 
- 	struct task_struct *tsk = current;
- 	struct mm_struct *mm = tsk->mm;
- 	struct completion *vfork_done;
--	int core_waiters;
-+	int core_waiters = -EBUSY;
- 
- 	init_completion(&core_state->startup);
- 	core_state->dumper.task = tsk;
- 	core_state->dumper.next = NULL;
--	core_waiters = zap_threads(tsk, mm, core_state, exit_code);
-+
-+	down_write(&mm->mmap_sem);
-+	if (!mm->core_state)
-+		core_waiters = zap_threads(tsk, mm, core_state, exit_code);
- 	up_write(&mm->mmap_sem);
- 
- 	if (unlikely(core_waiters < 0))
-@@ -1857,20 +1860,12 @@ void do_coredump(long signr, int exit_co
- 	binfmt = mm->binfmt;
- 	if (!binfmt || !binfmt->core_dump)
+@@ -1859,10 +1859,8 @@ void do_coredump(long signr, int exit_co
  		goto fail;
-+	if (!__get_dumpable(cprm.mm_flags))
-+		goto fail;
  
  	cred = prepare_creds();
- 	if (!cred)
+-	if (!cred) {
+-		retval = -ENOMEM;
++	if (!cred)
  		goto fail;
--
--	down_write(&mm->mmap_sem);
--	/*
--	 * If another thread got here first, or we are not dumpable, bail out.
--	 */
--	if (mm->core_state || !__get_dumpable(cprm.mm_flags)) {
--		up_write(&mm->mmap_sem);
--		goto fail_creds;
 -	}
--
+ 
+ 	down_write(&mm->mmap_sem);
  	/*
- 	 *	We cannot trust fsuid as being the "true" uid of the
- 	 *	process nor do we know its entire history. We only know it
+@@ -1870,8 +1868,7 @@ void do_coredump(long signr, int exit_co
+ 	 */
+ 	if (mm->core_state || !__get_dumpable(cprm.mm_flags)) {
+ 		up_write(&mm->mmap_sem);
+-		put_cred(cred);
+-		goto fail;
++		goto fail_creds;
+ 	}
+ 
+ 	/*
+@@ -1886,10 +1883,8 @@ void do_coredump(long signr, int exit_co
+ 	}
+ 
+ 	retval = coredump_wait(exit_code, &core_state);
+-	if (retval < 0) {
+-		put_cred(cred);
+-		goto fail;
+-	}
++	if (retval < 0)
++		goto fail_creds;
+ 
+ 	old_cred = override_creds(cred);
+ 
+@@ -2006,9 +2001,10 @@ fail_dropcount:
+ 	if (ispipe)
+ 		atomic_dec(&core_dump_count);
+ fail_unlock:
++	coredump_finish(mm);
+ 	revert_creds(old_cred);
++fail_creds:
+ 	put_cred(cred);
+-	coredump_finish(mm);
+ fail:
+ 	return;
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
