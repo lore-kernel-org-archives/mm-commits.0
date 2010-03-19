@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:12:22 -0700
-Message-ID: <201003192212.o2JMCN2p015271@imap1.linux-foundation.org>
+Subject: + exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch added to -mm tree
+Date: Fri, 19 Mar 2010 15:12:24 -0700
+Message-ID: <201003192212.o2JMCPeX015274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038Ab0CSWMg (ORCPT
+	by vger.kernel.org with ESMTP id S1751038Ab0CSWMi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:12:36 -0400
+	Fri, 19 Mar 2010 18:12:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, roland@redhat.com, vfalico@redhat.com
 
 
 The patch titled
-     exit: avoid sig->count in de_thread/__exit_signal synchronization
+     exit: avoid sig->count in __exit_signal() to detect the group-dead case
 has been added to the -mm tree.  Its filename is
-     exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+     exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit: avoid sig->count in de_thread/__exit_signal synchronization
+Subject: exit: avoid sig->count in __exit_signal() to detect the group-dead case
 From: Oleg Nesterov <oleg@redhat.com>
 
-de_thread() and __exit_signal() use signal_struct->count/notify_count for
-synchronization.  We can simplify the code and use ->notify_count only. 
-Instead of comparing these two counters, we can change de_thread() to set
-->notify_count = nr_of_sub_threads, then change __exit_signal() to
-dec-and-test this counter and notify group_exit_task.
+Change __exit_signal() to check thread_group_leader() instead of
+atomic_dec_and_test(&sig->count).  This must be equivalent, the group
+leader must be released only after all other threads have exited and
+passed __exit_signal().
 
-Note that __exit_signal() checks "notify_count > 0" just for symmetry with
-exit_notify(), we could just check it is != 0.
+Henceforth sig->count is not actually used, except in fs/proc for
+get_nr_threads/etc.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -52,52 +51,27 @@ Cc: Veaceslav Falico <vfalico@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |   11 +++++------
- kernel/exit.c |    2 +-
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ kernel/exit.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization fs/exec.c
---- a/fs/exec.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization
-+++ a/fs/exec.c
-@@ -763,7 +763,6 @@ static int de_thread(struct task_struct 
- 	struct signal_struct *sig = tsk->signal;
- 	struct sighand_struct *oldsighand = tsk->sighand;
- 	spinlock_t *lock = &oldsighand->siglock;
--	int count;
- 
- 	if (thread_group_empty(tsk))
- 		goto no_thread_group;
-@@ -780,13 +779,13 @@ static int de_thread(struct task_struct 
- 		spin_unlock_irq(lock);
- 		return -EAGAIN;
- 	}
-+
- 	sig->group_exit_task = tsk;
--	zap_other_threads(tsk);
-+	sig->notify_count = zap_other_threads(tsk);
-+	if (!thread_group_leader(tsk))
-+		sig->notify_count--;
- 
--	/* Account for the thread group leader hanging around: */
--	count = thread_group_leader(tsk) ? 1 : 2;
--	sig->notify_count = count;
--	while (atomic_read(&sig->count) > count) {
-+	while (sig->notify_count) {
- 		__set_current_state(TASK_UNINTERRUPTIBLE);
- 		spin_unlock_irq(lock);
- 		schedule();
-diff -puN kernel/exit.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization kernel/exit.c
---- a/kernel/exit.c~exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization
+diff -puN kernel/exit.c~exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case kernel/exit.c
+--- a/kernel/exit.c~exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case
 +++ a/kernel/exit.c
-@@ -98,7 +98,7 @@ static void __exit_signal(struct task_st
+@@ -89,11 +89,12 @@ static void __exit_signal(struct task_st
+ 					rcu_read_lock_held() ||
+ 					lockdep_tasklist_lock_is_held());
+ 	spin_lock(&sighand->siglock);
++	atomic_dec(&sig->count);
+ 
+ 	posix_cpu_timers_exit(tsk);
+-	if (atomic_dec_and_test(&sig->count))
++	if (thread_group_leader(tsk)) {
+ 		posix_cpu_timers_exit_group(tsk);
+-	else {
++	} else {
+ 		/*
  		 * If there is any task waiting for the group exit
  		 * then notify it:
- 		 */
--		if (sig->group_exit_task && atomic_read(&sig->count) == sig->notify_count)
-+		if (sig->notify_count > 0 && !--sig->notify_count)
- 			wake_up_process(sig->group_exit_task);
- 
- 		if (tsk == sig->curr_target)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
