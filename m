@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-oom-wakeup-filter-update.patch added to -mm tree
-Date: Fri, 19 Mar 2010 16:03:03 -0700
-Message-ID: <201003192303.o2JN33OE017347@imap1.linux-foundation.org>
+Subject: + memcg-oom-notifier-update.patch added to -mm tree
+Date: Fri, 19 Mar 2010 16:03:06 -0700
+Message-ID: <201003192303.o2JN36Vp017350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750751Ab0CSXDw (ORCPT
+	by vger.kernel.org with ESMTP id S1750751Ab0CSXDs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 19:03:52 -0400
+	Fri, 19 Mar 2010 19:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, davidel@xmailserver.org, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     memcg-oom-wakeup-filter-update.txt
+     memcg-oom-notifier-update
 has been added to the -mm tree.  Its filename is
-     memcg-oom-wakeup-filter-update.patch
+     memcg-oom-notifier-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-oom-wakeup-filter-update.txt
+Subject: memcg-oom-notifier-update
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Updated comments.
+ - moved kmalloc to out of lock. Then, removed unnecessary label and goto.
 
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-oom-wakeup-filter-update mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-oom-wakeup-filter-update
+diff -puN mm/memcontrol.c~memcg-oom-notifier-update mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-notifier-update
 +++ a/mm/memcontrol.c
-@@ -1304,7 +1304,6 @@ static int memcg_oom_wake_function(wait_
- 	struct mem_cgroup *wake_mem = (struct mem_cgroup *)arg;
- 	struct oom_wait_info *oom_wait_info;
+@@ -3605,15 +3605,13 @@ static int mem_cgroup_oom_register_event
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
+ 	struct mem_cgroup_eventfd_list *event;
+ 	int type = MEMFILE_TYPE(cft->private);
+-	int ret = -ENOMEM;
  
--	/* both of oom_wait_info->mem and wake_mem are stable under us */
- 	oom_wait_info = container_of(wait, struct oom_wait_info, wait);
+ 	BUG_ON(type != _OOM_TYPE);
+-
+-	mutex_lock(&memcg_oom_mutex);
+-
+ 	event = kmalloc(sizeof(*event),	GFP_KERNEL);
+ 	if (!event)
+-		goto unlock;
++		return -ENOMEM;
++
++	mutex_lock(&memcg_oom_mutex);
  
- 	if (oom_wait_info->mem == wake_mem)
-@@ -1312,7 +1311,10 @@ static int memcg_oom_wake_function(wait_
- 	/* if no hierarchy, no match */
- 	if (!oom_wait_info->mem->use_hierarchy || !wake_mem->use_hierarchy)
- 		return 0;
--	/* check hierarchy */
-+	/*
-+	 * Both of oom_wait_info->mem and wake_mem are stable under us.
-+	 * Then we can use css_is_ancestor without taking care of RCU.
-+	 */
- 	if (!css_is_ancestor(&oom_wait_info->mem->css, &wake_mem->css) &&
- 	    !css_is_ancestor(&wake_mem->css, &oom_wait_info->mem->css))
- 		return 0;
+ 	event->eventfd = eventfd;
+ 	list_add(&event->list, &memcg->oom_notify);
+@@ -3621,11 +3619,9 @@ static int mem_cgroup_oom_register_event
+ 	/* already in OOM ? */
+ 	if (atomic_read(&memcg->oom_lock))
+ 		eventfd_signal(eventfd, 1);
+-	ret = 0;
+-unlock:
+ 	mutex_unlock(&memcg_oom_mutex);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int mem_cgroup_oom_unregister_event(struct cgroup *cgrp,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
