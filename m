@@ -1,140 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: + signals-kill-the-awful-task_rq_unlock_wait-hack.patch added to -mm tree
-Date: Fri, 19 Mar 2010 15:18:33 -0700
-Message-ID: <201003192218.o2JMIY14015493@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-oom-notifier-fix.patch removed from -mm tree
+Date: Fri, 19 Mar 2010 16:00:17 -0700
+Message-ID: <201003192300.o2JN0HPh017183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751315Ab0CSWTC (ORCPT
+	by vger.kernel.org with ESMTP id S1751212Ab0CSXAf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 18:19:02 -0400
+	Fri, 19 Mar 2010 19:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, alan@linux.intel.com, mingo@elte.hu, peterz@infradead.org, roland@redhat.com
+To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: kill the awful task_rq_unlock_wait() hack
-has been added to the -mm tree.  Its filename is
-     signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+     memcg-oom-notifier-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-oom-notifier-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: kill the awful task_rq_unlock_wait() hack
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg-oom-notifier-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now that task->signal can't go away we can revert the horrible hack added
-by ad474caca3e2a0550b7ce0706527ad5ab389a4d4 ("fix for
-account_group_exec_runtime(), make sure ->signal can't be freed under
-rq->lock").
+Move kmalloc() outside mutex_lock(&memcg_oom_mutex).
 
-And we can do more cleanups sched_stats.h/posix-cpu-timers.c later.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 -
- kernel/exit.c         |    5 -----
- kernel/sched.c        |    8 --------
- 3 files changed, 14 deletions(-)
+ mm/memcontrol.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/sched.h~signals-kill-the-awful-task_rq_unlock_wait-hack include/linux/sched.h
---- a/include/linux/sched.h~signals-kill-the-awful-task_rq_unlock_wait-hack
-+++ a/include/linux/sched.h
-@@ -269,7 +269,6 @@ extern void init_idle(struct task_struct
- extern void init_idle_bootup_task(struct task_struct *idle);
+diff -puN mm/memcontrol.c~memcg-oom-notifier-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-notifier-fix
++++ a/mm/memcontrol.c
+@@ -3603,27 +3603,23 @@ static int mem_cgroup_oom_register_event
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
+ 	struct mem_cgroup_eventfd_list *event;
+ 	int type = MEMFILE_TYPE(cft->private);
+-	int ret = -ENOMEM;
  
- extern int runqueue_is_locked(int cpu);
--extern void task_rq_unlock_wait(struct task_struct *p);
+ 	BUG_ON(type != _OOM_TYPE);
  
- extern cpumask_var_t nohz_cpu_mask;
- #if defined(CONFIG_SMP) && defined(CONFIG_NO_HZ)
-diff -puN kernel/exit.c~signals-kill-the-awful-task_rq_unlock_wait-hack kernel/exit.c
---- a/kernel/exit.c~signals-kill-the-awful-task_rq_unlock_wait-hack
-+++ a/kernel/exit.c
-@@ -146,11 +146,6 @@ static void __exit_signal(struct task_st
- 	if (sig) {
- 		flush_sigqueue(&sig->shared_pending);
- 		taskstats_tgid_free(sig);
--		/*
--		 * Make sure ->signal can't go away under rq->lock,
--		 * see account_group_exec_runtime().
--		 */
--		task_rq_unlock_wait(tsk);
- 		tty_kref_put(tty);
- 	}
- }
-diff -puN kernel/sched.c~signals-kill-the-awful-task_rq_unlock_wait-hack kernel/sched.c
---- a/kernel/sched.c~signals-kill-the-awful-task_rq_unlock_wait-hack
-+++ a/kernel/sched.c
-@@ -957,14 +957,6 @@ static struct rq *task_rq_lock(struct ta
- 	}
- }
- 
--void task_rq_unlock_wait(struct task_struct *p)
--{
--	struct rq *rq = task_rq(p);
+-	mutex_lock(&memcg_oom_mutex);
 -
--	smp_mb(); /* spin-unlock-wait is not a full memory barrier */
--	raw_spin_unlock_wait(&rq->lock);
--}
--
- static void __task_rq_unlock(struct rq *rq)
- 	__releases(rq->lock)
- {
+ 	event = kmalloc(sizeof(*event),	GFP_KERNEL);
+ 	if (!event)
+-		goto unlock;
++		return -ENOMEM;
+ 
++	mutex_lock(&memcg_oom_mutex);
+ 	event->eventfd = eventfd;
+ 	list_add(&event->list, &memcg->oom_notify);
+ 
+ 	/* already in OOM ? */
+ 	if (atomic_read(&memcg->oom_lock))
+ 		eventfd_signal(eventfd, 1);
+-	ret = 0;
+-unlock:
+ 	mutex_unlock(&memcg_oom_mutex);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int mem_cgroup_oom_unregister_event(struct cgroup *cgrp,
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-proc-cleanup-remove-unused-assignments.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-call_usermodehelper-no-need-to-unblock-signals.patch
-wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
-call_usermodehelper-simplify-fix-umh_no_wait-case.patch
-call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-exit-exit_notify-can-trust-signal-notify_count-0.patch
-exit-change-zap_other_threads-to-count-sub-threads.patch
-exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
-exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
-signals-make-task_struct-signal-immutable-refcountable.patch
-signals-clear-signal-tty-when-the-last-thread-exits.patch
-signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+rtc-davinci-rtc-driver-checkpatch-fixes.patch
+c2port-fix-device_create-return-value-check-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+kernel-schedc-suppress-unused-var-warning.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+memcg-oom-notifier-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
