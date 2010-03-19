@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-lpfc-fix-lock-imbalances.patch added to -mm tree
-Date: Fri, 19 Mar 2010 16:56:21 -0700
-Message-ID: <201003192356.o2JNuLYQ019497@imap1.linux-foundation.org>
+Subject: + scsi-be2iscsi-fix-lock-imbalance.patch added to -mm tree
+Date: Fri, 19 Mar 2010 16:56:18 -0700
+Message-ID: <201003192356.o2JNuIc9019494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752262Ab0CSX47 (ORCPT
+	by vger.kernel.org with ESMTP id S1752275Ab0CSX5F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Mar 2010 19:56:59 -0400
+	Fri, 19 Mar 2010 19:57:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, James.Bottomley@HansenPartnership.com, james.smart@emulex.com
+Cc: jslaby@suse.cz, James.Bottomley@HansenPartnership.com, jayamohank@serverengines.com, michaelc@cs.wisc.edu
 
 
 The patch titled
-     scsi: lpfc, fix lock imbalances
+     scsi: be2iscsi, fix lock imbalance
 has been added to the -mm tree.  Its filename is
-     scsi-lpfc-fix-lock-imbalances.patch
+     scsi-be2iscsi-fix-lock-imbalance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: lpfc, fix lock imbalances
+Subject: scsi: be2iscsi, fix lock imbalance
 From: Jiri Slaby <jslaby@suse.cz>
 
-Stanse found that two error paths in lpfc_bsg_rport_els_cmp and
-lpfc_issue_ct_rsp_cmp omits to unlock phba->ct_ev_lock.  It is because
-they wrongly unlock phba->hbalock instead.  Fix that.
+Stanse found that one error path in mgmt_invalidate_icds omits to unlock
+ctrl->mbox_lock. Fix that.
+
+Added in 756d29c8c7ed8887ed7d752371ce2f (Enable async mode for mcc rings)
+where the spinlock was moved.
 
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Acked-by: James Smart <james.smart@emulex.com>
+Cc: Jayamohan Kallickal <jayamohank@serverengines.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_bsg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/be2iscsi/be_mgmt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/lpfc/lpfc_bsg.c~scsi-lpfc-fix-lock-imbalances drivers/scsi/lpfc/lpfc_bsg.c
---- a/drivers/scsi/lpfc/lpfc_bsg.c~scsi-lpfc-fix-lock-imbalances
-+++ a/drivers/scsi/lpfc/lpfc_bsg.c
-@@ -432,7 +432,7 @@ lpfc_bsg_rport_els_cmp(struct lpfc_hba *
- 	dd_data = cmdiocbq->context1;
- 	/* normal completion and timeout crossed paths, already done */
- 	if (!dd_data) {
--		spin_unlock_irqrestore(&phba->hbalock, flags);
-+		spin_unlock_irqrestore(&phba->ct_ev_lock, flags);
- 		return;
+diff -puN drivers/scsi/be2iscsi/be_mgmt.c~scsi-be2iscsi-fix-lock-imbalance drivers/scsi/be2iscsi/be_mgmt.c
+--- a/drivers/scsi/be2iscsi/be_mgmt.c~scsi-be2iscsi-fix-lock-imbalance
++++ a/drivers/scsi/be2iscsi/be_mgmt.c
+@@ -169,6 +169,7 @@ unsigned char mgmt_invalidate_icds(struc
+ 		SE_DEBUG(DBG_LVL_1,
+ 			 "Failed to allocate memory for"
+ 			 "mgmt_invalidate_icds \n");
++		spin_unlock(&ctrl->mbox_lock);
+ 		return -1;
  	}
- 
-@@ -1195,7 +1195,7 @@ lpfc_issue_ct_rsp_cmp(struct lpfc_hba *p
- 	dd_data = cmdiocbq->context1;
- 	/* normal completion and timeout crossed paths, already done */
- 	if (!dd_data) {
--		spin_unlock_irqrestore(&phba->hbalock, flags);
-+		spin_unlock_irqrestore(&phba->ct_ev_lock, flags);
- 		return;
- 	}
- 
+ 	nonemb_cmd.size = sizeof(struct invalidate_commands_params_in);
 _
 
 Patches currently in -mm which might be from jslaby@suse.cz are
