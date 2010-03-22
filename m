@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-pltfm-do-not-print-errors-in-case-of-an-extended-iomem-size.patch added to -mm tree
-Date: Mon, 22 Mar 2010 12:31:02 -0700
-Message-ID: <201003221931.o2MJV2Yx022738__37363.3763673299$1269286288$gmane$org@imap1.linux-foundation.org>
+Subject: + sdhci-implement-cap_clock_base_broken-quirk.patch added to -mm tree
+Date: Mon, 22 Mar 2010 12:30:57 -0700
+Message-ID: <201003221930.o2MJUv3H022731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750918Ab0CVTbU (ORCPT
+	by vger.kernel.org with ESMTP id S1752932Ab0CVTbU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 22 Mar 2010 15:31:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -19,10 +19,9 @@ Cc: avorontsov@ru.mvista.com, ben@simtec.co.uk, david.vrabel@csr.com, linux-mmc@
 
 
 The patch titled
-     sdhci-pltfm: do not print errors in case of an extended iomem size
+     sdhci: implement CAP_CLOCK_BASE_BROKEN quirk
 has been added to the -mm tree.  Its filename is
-     sdhci-pltfm-do-not-print-errors-in-case-of-an-extended-iomem-size.=
-patch
+     sdhci-implement-cap_clock_base_broken-quirk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,16 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: sdhci-pltfm: do not print errors in case of an extended iomem =
-size
+Subject: sdhci: implement CAP_CLOCK_BASE_BROKEN quirk
 =46rom: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Some hosts have an extended SDHCI iomem size, so the driver should
-only print errors if the iomem size is less than 0x100.
+Some hosts (e.g.  as found in CNS3xxx SOCs) report wrong value in
+CLOCK_BASE capability field, and currently there is no way to force the
+SDHCI core to use the platform-provided base clock value.
+
+This patch implements CAP_CLOCK_BASE_BROKEN quirk.  When enabled, the
+SDHCI core will always use base clock frequency provided by the platfor=
+m.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Richard R=F6jfors <richard.rojfors@pelagicore.com>
@@ -56,23 +59,39 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-pltfm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/sdhci.c |    3 ++-
+ drivers/mmc/host/sdhci.h |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-do-not-print-error=
-s-in-case-of-an-extended-iomem-size drivers/mmc/host/sdhci-pltfm.c
---- a/drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-do-not-print-errors-in=
--case-of-an-extended-iomem-size
-+++ a/drivers/mmc/host/sdhci-pltfm.c
-@@ -61,7 +61,7 @@ static int __devinit sdhci_pltfm_probe(s
- 		goto err;
- 	}
+diff -puN drivers/mmc/host/sdhci.c~sdhci-implement-cap_clock_base_broke=
+n-quirk drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-implement-cap_clock_base_broken-qu=
+irk
++++ a/drivers/mmc/host/sdhci.c
+@@ -1743,7 +1743,8 @@ int sdhci_add_host(struct sdhci_host *ho
+ 	host->max_clk =3D
+ 		(caps & SDHCI_CLOCK_BASE_MASK) >> SDHCI_CLOCK_BASE_SHIFT;
+ 	host->max_clk *=3D 1000000;
+-	if (host->max_clk =3D=3D 0) {
++	if (host->max_clk =3D=3D 0 || host->quirks &
++			SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN) {
+ 		if (!host->ops->get_max_clock) {
+ 			printk(KERN_ERR
+ 			       "%s: Hardware doesn't specify base clock "
+diff -puN drivers/mmc/host/sdhci.h~sdhci-implement-cap_clock_base_broke=
+n-quirk drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-implement-cap_clock_base_broken-qu=
+irk
++++ a/drivers/mmc/host/sdhci.h
+@@ -236,6 +236,8 @@ struct sdhci_host {
+ #define SDHCI_QUIRK_DELAY_AFTER_POWER			(1<<23)
+ /* Controller uses SDCLK instead of TMCLK for data timeouts */
+ #define SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK		(1<<24)
++/* Controller reports wrong base clock capability */
++#define SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN		(1<<25)
 =20
--	if (resource_size(iomem) !=3D 0x100)
-+	if (resource_size(iomem) < 0x100)
- 		dev_err(&pdev->dev, "Invalid iomem size. You may "
- 			"experience problems.\n");
-=20
+ 	int			irq;		/* Device IRQ */
+ 	void __iomem *		ioaddr;		/* Mapped address */
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com a=
