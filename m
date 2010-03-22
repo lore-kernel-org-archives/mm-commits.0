@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + it8761e_gpio-fix-bug-in-gpio-numbering.patch added to -mm tree
-Date: Mon, 22 Mar 2010 13:58:48 -0700
-Message-ID: <201003222058.o2MKwm5C026995@imap1.linux-foundation.org>
+Subject: + reiserfs-properly-honor-read-only-devices.patch added to -mm tree
+Date: Mon, 22 Mar 2010 14:28:52 -0700
+Message-ID: <201003222128.o2MLSqQe028567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752137Ab0CVU65 (ORCPT
+	by vger.kernel.org with ESMTP id S1754552Ab0CVV3S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 16:58:57 -0400
+	Mon, 22 Mar 2010 17:29:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: denis@compulab.co.il, david-b@pacbell.net
+Cc: jeffm@suse.com
 
 
 The patch titled
-     it8761e_gpio: fix bug in gpio numbering
+     reiserfs: properly honor read-only devices
 has been added to the -mm tree.  Its filename is
-     it8761e_gpio-fix-bug-in-gpio-numbering.patch
+     reiserfs-properly-honor-read-only-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: it8761e_gpio: fix bug in gpio numbering
-From: Denis Turischev <denis@compulab.co.il>
+Subject: reiserfs: properly honor read-only devices
+From: Jeff Mahoney <jeffm@suse.com>
 
--ENOCHANGELOG
+The reiserfs journal behaves inconsistently when determining whether to
+allow a mount of a read-only device.
 
-Signed-off-by: Denis Turischev <denis@compulab.co.il>
-Cc: David Brownell <david-b@pacbell.net>
+This is due to the use of the continue_replay variable to short circuit
+the journal scanning.  If it's set, it's assumed that there are
+transactions to replay, but there may not be.  If it's unset, it's assumed
+that there aren't any, and that may not be the case either.
+
+I've observed two failure cases:
+1) Where a clean file system on a read-only device refuses to mount
+2) Where a clean file system on a read-only device passes the
+   optimization and then tries writing the journal header to update
+   the latest mount id.
+
+The former is easily observable by using a freshly created file system on
+a read-only loopback device.
+
+This patch moves the check into journal_read_transaction, where it can
+bail out before it's about to replay a transaction.  That way it can go
+through and skip transactions where appropriate, yet still refuse to mount
+a file system with outstanding transactions.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/it8761e_gpio.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/reiserfs/journal.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/gpio/it8761e_gpio.c~it8761e_gpio-fix-bug-in-gpio-numbering drivers/gpio/it8761e_gpio.c
---- a/drivers/gpio/it8761e_gpio.c~it8761e_gpio-fix-bug-in-gpio-numbering
-+++ a/drivers/gpio/it8761e_gpio.c
-@@ -80,8 +80,8 @@ static int it8761e_gpio_get(struct gpio_
- 	u16 reg;
- 	u8 bit;
+diff -puN fs/reiserfs/journal.c~reiserfs-properly-honor-read-only-devices fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-properly-honor-read-only-devices
++++ a/fs/reiserfs/journal.c
+@@ -2217,6 +2217,15 @@ static int journal_read_transaction(stru
+ 		brelse(d_bh);
+ 		return 1;
+ 	}
++
++	if (bdev_read_only(sb->s_bdev)) {
++		reiserfs_warning(sb, "clm-2076",
++				 "device is readonly, unable to replay log");
++		brelse(c_bh);
++		brelse(d_bh);
++		return -EROFS;
++	}
++
+ 	trans_id = get_desc_trans_id(desc);
+ 	/* now we know we've got a good transaction, and it was inside the valid time ranges */
+ 	log_blocks = kmalloc(get_desc_trans_len(desc) *
+@@ -2459,12 +2468,6 @@ static int journal_read(struct super_blo
+ 		goto start_log_replay;
+ 	}
  
--	bit = gpio_num % 7;
--	reg = (gpio_num >= 7) ? gpio_ba + 1 : gpio_ba;
-+	bit = gpio_num % 8;
-+	reg = (gpio_num >= 8) ? gpio_ba + 1 : gpio_ba;
- 
- 	return !!(inb(reg) & (1 << bit));
- }
-@@ -91,8 +91,8 @@ static int it8761e_gpio_direction_in(str
- 	u8 curr_dirs;
- 	u8 io_reg, bit;
- 
--	bit = gpio_num % 7;
--	io_reg = (gpio_num >= 7) ? GPIO2X_IO : GPIO1X_IO;
-+	bit = gpio_num % 8;
-+	io_reg = (gpio_num >= 8) ? GPIO2X_IO : GPIO1X_IO;
- 
- 	spin_lock(&sio_lock);
- 
-@@ -116,8 +116,8 @@ static void it8761e_gpio_set(struct gpio
- 	u8 curr_vals, bit;
- 	u16 reg;
- 
--	bit = gpio_num % 7;
--	reg = (gpio_num >= 7) ? gpio_ba + 1 : gpio_ba;
-+	bit = gpio_num % 8;
-+	reg = (gpio_num >= 8) ? gpio_ba + 1 : gpio_ba;
- 
- 	spin_lock(&sio_lock);
- 
-@@ -135,8 +135,8 @@ static int it8761e_gpio_direction_out(st
- {
- 	u8 curr_dirs, io_reg, bit;
- 
--	bit = gpio_num % 7;
--	io_reg = (gpio_num >= 7) ? GPIO2X_IO : GPIO1X_IO;
-+	bit = gpio_num % 8;
-+	io_reg = (gpio_num >= 8) ? GPIO2X_IO : GPIO1X_IO;
- 
- 	it8761e_gpio_set(gc, gpio_num, val);
- 
-@@ -200,7 +200,7 @@ static int __init it8761e_gpio_init(void
- 		return -EBUSY;
- 
- 	it8761e_gpio_chip.base = -1;
--	it8761e_gpio_chip.ngpio = 14;
-+	it8761e_gpio_chip.ngpio = 16;
- 
- 	err = gpiochip_add(&it8761e_gpio_chip);
- 	if (err < 0)
-_
-
-Patches currently in -mm which might be from denis@compulab.co.il are
-
-it8761e_gpio-fix-bug-in-gpio-numbering.patch
-
+-	if (continue_replay && bdev_read_only(sb->s_bdev)) {
+-		reiserfs_warning(sb, "clm-2076",
+-				 "device is readonly, unable to replay log");
+-		return -1;
+-	}
