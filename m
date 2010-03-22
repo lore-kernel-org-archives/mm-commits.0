@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch added to -mm tree
-Date: Mon, 22 Mar 2010 16:58:13 -0700
-Message-ID: <201003222358.o2MNwEQs002475@imap1.linux-foundation.org>
+Subject: + mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch added to -mm tree
+Date: Mon, 22 Mar 2010 16:58:11 -0700
+Message-ID: <201003222358.o2MNwBnH002472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752475Ab0CVX60 (ORCPT
+	by vger.kernel.org with ESMTP id S1752475Ab0CVX6Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 19:58:26 -0400
+	Mon, 22 Mar 2010 19:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     mempolicy: lose unnecessary loop variable in mpol_parse_str()
+     mempolicy: don't call mpol_set_nodemask() when no_context
 has been added to the -mm tree.  Its filename is
-     mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
+     mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: lose unnecessary loop variable in mpol_parse_str()
+Subject: mempolicy: don't call mpol_set_nodemask() when no_context
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-We don't really need the extra variable 'i' in mpol_parse_str().  The only
-use is as the the loop variable.  Then, it's assigned to 'mode'.  Just use
-mode, and loose the 'uninitialized_var()' macro.
+No need to call mpol_set_nodemask() when we have no context for the
+mempolicy.  This can occur when we're parsing a tmpfs 'mpol' mount option.
+ Just save the raw nodemask in the mempolicy's w.user_nodemask member for
+use when a tmpfs/shmem file is created.  mpol_shared_policy_init() will
+"contextualize" the policy for the new file based on the creating task's
+context.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
@@ -50,43 +53,35 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/mempolicy.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str
+diff -puN mm/mempolicy.c~mempolicy-dont-call-mpol_set_nodemask-when-no_context mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-dont-call-mpol_set_nodemask-when-no_context
 +++ a/mm/mempolicy.c
-@@ -2193,12 +2193,11 @@ static const char * const policy_types[]
- int mpol_parse_str(char *str, struct mempolicy **mpol, int no_context)
- {
- 	struct mempolicy *new = NULL;
--	unsigned short uninitialized_var(mode);
-+	unsigned short mode;
- 	unsigned short uninitialized_var(mode_flags);
- 	nodemask_t nodes;
- 	char *nodelist = strchr(str, ':');
- 	char *flags = strchr(str, '=');
--	int i;
- 	int err = 1;
- 
- 	if (nodelist) {
-@@ -2214,13 +2213,12 @@ int mpol_parse_str(char *str, struct mem
- 	if (flags)
- 		*flags++ = '\0';	/* terminate mode string */
- 
--	for (i = 0; i <= MPOL_LOCAL; i++) {
--		if (!strcmp(str, policy_types[i])) {
--			mode = i;
-+	for (mode = 0; mode <= MPOL_LOCAL; mode++) {
-+		if (!strcmp(str, policy_types[mode])) {
- 			break;
- 		}
- 	}
--	if (i > MPOL_LOCAL)
-+	if (mode > MPOL_LOCAL)
+@@ -2284,7 +2284,10 @@ int mpol_parse_str(char *str, struct mem
+ 	if (IS_ERR(new))
  		goto out;
  
- 	switch (mode) {
+-	{
++	if (no_context) {
++		/* save for contextualization */
++		new->w.user_nodemask = nodes;
++	} else {
+ 		int ret;
+ 		NODEMASK_SCRATCH(scratch);
+ 		if (scratch) {
+@@ -2300,10 +2303,6 @@ int mpol_parse_str(char *str, struct mem
+ 		}
+ 	}
+ 	err = 0;
+-	if (no_context) {
+-		/* save for contextualization */
+-		new->w.user_nodemask = nodes;
+-	}
+ 
+ out:
+ 	/* Restore string for error message */
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
