@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-i915-add-sony-vgn-bz12vn-to-acpi-lid-quirk-list.patch added to -mm tree
-Date: Mon, 22 Mar 2010 16:29:07 -0700
-Message-ID: <201003222329.o2MNT7tm001265@imap1.linux-foundation.org>
+Subject: + hpet-clean-up-io-mapping-when-hpet_alloc-fails.patch added to -mm tree
+Date: Mon, 22 Mar 2010 16:39:06 -0700
+Message-ID: <201003222339.o2MNd6wN001704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755953Ab0CVXaV (ORCPT
+	by vger.kernel.org with ESMTP id S1755613Ab0CVXjO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 19:30:21 -0400
+	Mon, 22 Mar 2010 19:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@hubertscorner.de, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org, yakui.zhao@intel.com
+Cc: bjorn.helgaas@hp.com, clemens@ladisch.de, venki@google.com
 
 
 The patch titled
-     drm/i915: add Sony VGN-BZ12VN to ACPI LID quirk list
+     hpet: clean up io mapping when hpet_alloc() fails
 has been added to the -mm tree.  Its filename is
-     drm-i915-add-sony-vgn-bz12vn-to-acpi-lid-quirk-list.patch
+     hpet-clean-up-io-mapping-when-hpet_alloc-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/i915: add Sony VGN-BZ12VN to ACPI LID quirk list
-From: Hubert Hesse <linux@hubertscorner.de>
+Subject: hpet: clean up io mapping when hpet_alloc() fails
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The Sony Vaio VGN-BZ12VN laptop always reports the LID
-status as closed, therefore add it into the acpi lid quirk list.
+When hpet_alloc() fails, we should iounmap() the timer so we don't leak
+the mapping.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=15473
-
-Signed-off-by: Hubert Hesse <linux@hubertscorner.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Venkatesh Pallipadi <venki@google.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_lvds.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/char/hpet.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_lvds.c~drm-i915-add-sony-vgn-bz12vn-to-acpi-lid-quirk-list drivers/gpu/drm/i915/intel_lvds.c
---- a/drivers/gpu/drm/i915/intel_lvds.c~drm-i915-add-sony-vgn-bz12vn-to-acpi-lid-quirk-list
-+++ a/drivers/gpu/drm/i915/intel_lvds.c
-@@ -638,6 +638,13 @@ static const struct dmi_system_id bad_li
- 		},
- 	},
- 	{
-+		.ident = "Sony VGN-BZ12VN",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-BZ12VN"),
-+		},
-+	},
-+	{
- 		.ident = "PC-81005",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "MALATA"),
+diff -puN drivers/char/hpet.c~hpet-clean-up-io-mapping-when-hpet_alloc-fails drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-clean-up-io-mapping-when-hpet_alloc-fails
++++ a/drivers/char/hpet.c
+@@ -949,7 +949,7 @@ static int hpet_pnp_add(struct pnp_dev *
+ {
+ 	struct hpet_data data;
+ 	struct resource *mem, *irq;
+-	int i;
++	int i, ret;
+ 
+ 	memset(&data, 0, sizeof(data));
+ 
+@@ -969,7 +969,11 @@ static int hpet_pnp_add(struct pnp_dev *
+ 	data.hd_phys_address = mem->start;
+ 	data.hd_address = ioremap(mem->start, resource_size(mem));
+ 
+-	return hpet_alloc(&data);
++	ret = hpet_alloc(&data);
++	if (ret)
++		iounmap(data.hd_address);
++
++	return ret;
+ }
+ 
+ static void hpet_pnp_remove(struct pnp_dev *dev)
 _
 
-Patches currently in -mm which might be from linux@hubertscorner.de are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-drm-i915-add-sony-vgn-bz12vn-to-acpi-lid-quirk-list.patch
+linux-next.patch
+hpet-convert-from-acpi-to-pnp-driver.patch
+hpet-pass-physical-address-not-entire-hpet_data-to-hpet_is_known.patch
+hpet-clean-up-io-mapping-when-hpet_alloc-fails.patch
+maintainers-remove-obsolete-hpet-acpi-entry.patch
+ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch
+ipmi-convert-tracking-of-the-acpi-device-pointer-to-a-pnp-device.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs.patch
 
