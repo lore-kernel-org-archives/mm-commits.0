@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + oom-default-to-killing-current-for-pagefault-ooms.patch added to -mm tree
-Date: Mon, 22 Mar 2010 13:22:12 -0700
-Message-ID: <201003222022.o2MKMDsh025254@imap1.linux-foundation.org>
+Subject: + oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch added to -mm tree
+Date: Mon, 22 Mar 2010 13:22:16 -0700
+Message-ID: <201003222022.o2MKMGbW025257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755905Ab0CVUWt (ORCPT
+	by vger.kernel.org with ESMTP id S1755905Ab0CVUXB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 16:22:49 -0400
+	Mon, 22 Mar 2010 16:23:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.c
 
 
 The patch titled
-     oom: default to killing current for pagefault ooms
+     oom: avoid race for oom killed tasks detaching mm prior to exit
 has been added to the -mm tree.  Its filename is
-     oom-default-to-killing-current-for-pagefault-ooms.patch
+     oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: default to killing current for pagefault ooms
+Subject: oom: avoid race for oom killed tasks detaching mm prior to exit
 From: David Rientjes <rientjes@google.com>
 
-The pagefault oom handler does not know the context (gfp_mask, order, etc)
-in which memory was not found when a VM_FAULT_OOM is generated.  The only
-information known is that current is trying to allocate in that context,
-so killing it is a legitimate response (and is the default for
-architectures that do not even use the pagefault oom handler such as ia64
-and powerpc).
+Tasks detach its ->mm prior to exiting so it's possible that in progress
+oom kills or already exiting tasks may be missed during the oom killer's
+tasklist scan.  When an eligible task is found with either TIF_MEMDIE or
+PF_EXITING set, the oom killer is supposed to be a no-op to avoid
+needlessly killing additional tasks.  This closes the race between a task
+detaching its ->mm and being removed from the tasklist.
 
-When a VM_FAULT_OOM occurs, the pagefault oom handler will now attempt to
-kill current by default.  If it is unkillable, the oom killer is called to
-find a memory-hogging task to kill instead that will lead to future memory
-freeing.
+Out of memory conditions as the result of memory controllers will
+automatically filter tasks that have detached their ->mm (since
+task_in_mem_cgroup() will return 0).  This is acceptable, however, since
+memcg constrained ooms aren't the result of a lack of memory resources but
+rather a limit imposed by userspace that requires a task be killed
+regardless.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -59,41 +61,38 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/oom_kill.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-default-to-killing-current-for-pagefault-ooms mm/oom_kill.c
---- a/mm/oom_kill.c~oom-default-to-killing-current-for-pagefault-ooms
+diff -puN mm/oom_kill.c~oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit
 +++ a/mm/oom_kill.c
-@@ -711,15 +711,23 @@ void out_of_memory(struct zonelist *zone
- }
+@@ -290,12 +290,6 @@ static struct task_struct *select_bad_pr
+ 	for_each_process(p) {
+ 		unsigned int points;
  
- /*
-- * The pagefault handler calls here because it is out of memory, so kill a
-- * memory-hogging task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel
-- * oom killing is already in progress so do nothing.  If a task is found with
-- * TIF_MEMDIE set, it has been killed so do nothing and allow it to exit.
-+ * The pagefault handler calls here because it is out of memory, so kill current
-+ * by default.  If it's unkillable, then fallback to killing a memory-hogging
-+ * task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel oom killing is
-+ * already in progress so do nothing.  If a task is found with TIF_MEMDIE set,
-+ * it has been killed so do nothing and allow it to exit.
-  */
- void pagefault_out_of_memory(void)
- {
-+	unsigned long totalpages;
-+	int err;
-+
- 	if (try_set_system_oom()) {
--		out_of_memory(NULL, 0, 0, NULL);
-+		constrained_alloc(NULL, 0, NULL, &totalpages);
-+		err = oom_kill_process(current, 0, 0, 0, totalpages, NULL,
-+					"Out of memory (pagefault)");
-+		if (err)
-+			out_of_memory(NULL, 0, 0, NULL);
- 		clear_system_oom();
- 	}
- 	if (!test_thread_flag(TIF_MEMDIE))
+-		/*
+-		 * skip kernel threads and tasks which have already released
+-		 * their mm.
+-		 */
+-		if (!p->mm)
+-			continue;
+ 		/* skip the init task */
+ 		if (is_global_init(p))
+ 			continue;
+@@ -336,6 +330,12 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = 1000;
+ 		}
+ 
++		/*
++		 * skip kernel threads and tasks which have already released
++		 * their mm.
++		 */
++		if (!p->mm)
++			continue;
+ 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
