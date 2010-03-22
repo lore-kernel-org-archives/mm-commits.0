@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-remove-tickadj.patch added to -mm tree
-Date: Mon, 22 Mar 2010 15:11:14 -0700
-Message-ID: <201003222211.o2MMBEZ4030418@imap1.linux-foundation.org>
+Subject: + ntp-make-time_adjust-static.patch added to -mm tree
+Date: Mon, 22 Mar 2010 15:11:12 -0700
+Message-ID: <201003222211.o2MMBCfH030415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755512Ab0CVWLy (ORCPT
+	by vger.kernel.org with ESMTP id S1755512Ab0CVWLt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 18:11:54 -0400
+	Mon, 22 Mar 2010 18:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     ntp: remove tickadj
+     ntp: make time_adjust static
 has been added to the -mm tree.  Its filename is
-     ntp-remove-tickadj.patch
+     ntp-make-time_adjust-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: remove tickadj
+Subject: ntp: make time_adjust static
 From: John Stultz <johnstul@us.ibm.com>
 
-There are zero users of tickadj.  So remove it.
+Now that no arches are accessing time_adjust directly, make it static.
 
 Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/timex.h |    1 -
+ kernel/time/ntp.c     |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/timex.h~ntp-remove-tickadj include/linux/timex.h
---- a/include/linux/timex.h~ntp-remove-tickadj
+diff -puN include/linux/timex.h~ntp-make-time_adjust-static include/linux/timex.h
+--- a/include/linux/timex.h~ntp-make-time_adjust-static
 +++ a/include/linux/timex.h
-@@ -232,7 +232,6 @@ struct timex {
-  */
- extern unsigned long tick_usec;		/* USER_HZ period (usec) */
- extern unsigned long tick_nsec;		/* ACTHZ          period (nsec) */
--extern int tickadj;			/* amount of adjustment per tick */
- 
- /*
+@@ -238,7 +238,6 @@ extern int tickadj;			/* amount of adjus
   * phase-lock loop variables
-@@ -270,9 +269,6 @@ extern void second_overflow(void);
- extern void update_ntp_one_tick(void);
- extern int do_adjtimex(struct timex *);
+  */
+ extern int time_status;		/* clock synchronization status bits */
+-extern long time_adjust;	/* The amount of adjtime left */
  
--/* Don't use! Compatibility define for existing users. */
--#define tickadj	(500/HZ ? : 1)
+ extern void ntp_init(void);
+ extern void ntp_clear(void);
+diff -puN kernel/time/ntp.c~ntp-make-time_adjust-static kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-make-time_adjust-static
++++ a/kernel/time/ntp.c
+@@ -69,7 +69,7 @@ static s64			time_freq;
+ /* time at last adjustment (secs):					*/
+ static long			time_reftime;
+ 
+-long				time_adjust;
++static long			time_adjust;
+ 
+ /* constant (boot-param configurable) NTP tick adjustment (upscaled)	*/
+ static s64			ntp_tick_adj;
+_
+
+Patches currently in -mm which might be from johnstul@us.ibm.com are
+
+linux-next.patch
+cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
+time-clean-up-warp_clock.patch
+time-clean-up-direct-xtime-usage-in-xen.patch
+ntp-make-time_adjust-static.patch
+ntp-remove-tickadj.patch
+xtensa-fix-unnecessary-setting-of-xtime.patch
+time-kill-off-config_generic_time.patch
+
