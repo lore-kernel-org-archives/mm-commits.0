@@ -1,92 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-schedc-suppress-unused-var-warning.patch removed from -mm tree
-Date: Mon, 22 Mar 2010 11:31:36 -0400
-Message-ID: <201003221832.o2MIWQh4020007@imap1.linux-foundation.org>
+Subject: [merged] clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch removed from -mm tree
+Date: Mon, 22 Mar 2010 11:31:22 -0400
+Message-ID: <201003221832.o2MIWCAS019990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754828Ab0CVScl (ORCPT
+	by vger.kernel.org with ESMTP id S1755638Ab0CVSco (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 14:32:41 -0400
+	Mon, 22 Mar 2010 14:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, a.p.zijlstra@chello.nl, luming.yu@gmail.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sched.c: suppress unused var warning
+     clockevents: ensure that min_delta_ns is increased in error path
 has been removed from the -mm tree.  Its filename was
-     kernel-schedc-suppress-unused-var-warning.patch
+     clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.pa=
+tch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: kernel/sched.c: suppress unused var warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: clockevents: ensure that min_delta_ns is increased in error pa=
+th
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-On UP:
+tick_dev_program_event failed to increase min_delta_ns if the initial
+value was 1.
 
-kernel/sched.c: In function 'wake_up_new_task':
-kernel/sched.c:2631: warning: unused variable 'cpu'
-
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Luming Yu <luming.yu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
+ kernel/time/tick-oneshot.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~kernel-schedc-suppress-unused-var-warning kernel/sched.c
---- a/kernel/sched.c~kernel-schedc-suppress-unused-var-warning
-+++ a/kernel/sched.c
-@@ -2650,7 +2650,7 @@ void wake_up_new_task(struct task_struct
- {
- 	unsigned long flags;
- 	struct rq *rq;
--	int cpu = get_cpu();
-+	int cpu __maybe_unused = get_cpu();
- 
- #ifdef CONFIG_SMP
- 	/*
+diff -puN kernel/time/tick-oneshot.c~clockevents-ensure-taht-min_delta_=
+ns-is-increased-in-error-path kernel/time/tick-oneshot.c
+--- a/kernel/time/tick-oneshot.c~clockevents-ensure-taht-min_delta_ns-i=
+s-increased-in-error-path
++++ a/kernel/time/tick-oneshot.c
+@@ -44,7 +44,7 @@ int tick_dev_program_event(struct clock_
+ 		 */
+ 		if (++i > 2) {
+ 			/* Increase the min. delta and try again */
+-			if (!dev->min_delta_ns)
++			if (dev->min_delta_ns <=3D 1)
+ 				dev->min_delta_ns =3D 5000;
+ 			else
+ 				dev->min_delta_ns +=3D dev->min_delta_ns >> 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
+rtc-mc13783-fix-use-after-free-bug.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-rtc-davinci-rtc-driver-checkpatch-fixes.patch
-c2port-fix-device_create-return-value-check-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+timer-print-function-name-for-timer-callbacks-modifying-preemption-coun=
+t.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
