@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled.patch added to -mm tree
-Date: Mon, 22 Mar 2010 14:28:49 -0700
-Message-ID: <201003222128.o2MLSn5X028564@imap1.linux-foundation.org>
+Subject: + notifier-change-notifier_from_errno0-to-return-notify_ok.patch added to -mm tree
+Date: Mon, 22 Mar 2010 14:49:07 -0700
+Message-ID: <201003222149.o2MLn804029424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754552Ab0CVV3R (ORCPT
+	by vger.kernel.org with ESMTP id S1756521Ab0CVVtK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 17:29:17 -0400
+	Mon, 22 Mar 2010 17:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     reiserfs: fix oops while creating privroot with selinux enabled
+     notifier: change notifier_from_errno(0) to return NOTIFY_OK
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled.patch
+     notifier-change-notifier_from_errno0-to-return-notify_ok.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix oops while creating privroot with selinux enabled
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: notifier: change notifier_from_errno(0) to return NOTIFY_OK
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Commit 57fe60df ("reiserfs: add atomic addition of selinux attributes
-during inode creation") contains a bug that will cause it to oops when
-mounting a file system that didn't previously contain extended attributes
-on a system using security.* xattrs.
+This changes notifier_from_errno(0) to be NOTIFY_OK instead of
+NOTIFY_STOP_MASK | NOTIFY_OK.
 
-The issue is that while creating the privroot during mount
-reiserfs_security_init calls reiserfs_xattr_jcreate_nblocks which
-dereferences the xattr root.  The xattr root doesn't exist, so we get an
-oops.
+Currently, the notifiers which return encapsulated errno value have to
+do something like this:
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=15309
+	err = do_something(); // returns -errno
+	if (err)
+		return notifier_from_errno(err);
+	else
+		return NOTIFY_OK;
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+This change makes the above code simple:
+
+	err = do_something(); // returns -errno
+
+	return return notifier_from_errno(err);
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr_security.c   |    2 +-
- include/linux/reiserfs_xattr.h |    5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ include/linux/notifier.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/xattr_security.c~reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled fs/reiserfs/xattr_security.c
---- a/fs/reiserfs/xattr_security.c~reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled
-+++ a/fs/reiserfs/xattr_security.c
-@@ -76,7 +76,7 @@ int reiserfs_security_init(struct inode 
- 		return error;
- 	}
- 
--	if (sec->length) {
-+	if (sec->length && reiserfs_xattrs_initialized(inode->i_sb)) {
- 		blocks = reiserfs_xattr_jcreate_nblocks(inode) +
- 			 reiserfs_xattr_nblocks(inode, sec->length);
- 		/* We don't want to count the directories twice if we have
-diff -puN include/linux/reiserfs_xattr.h~reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled include/linux/reiserfs_xattr.h
---- a/include/linux/reiserfs_xattr.h~reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled
-+++ a/include/linux/reiserfs_xattr.h
-@@ -70,6 +70,11 @@ int reiserfs_security_write(struct reise
- void reiserfs_security_free(struct reiserfs_security_handle *sec);
- #endif
- 
-+static inline int reiserfs_xattrs_initialized(struct super_block *sb)
-+{
-+	return REISERFS_SB(sb)->priv_root != NULL;
-+}
-+
- #define xattr_size(size) ((size) + sizeof(struct reiserfs_xattr_header))
- static inline loff_t reiserfs_xattr_nblocks(struct inode *inode, loff_t size)
+diff -puN include/linux/notifier.h~notifier-change-notifier_from_errno0-to-return-notify_ok include/linux/notifier.h
+--- a/include/linux/notifier.h~notifier-change-notifier_from_errno0-to-return-notify_ok
++++ a/include/linux/notifier.h
+@@ -164,7 +164,10 @@ extern int __srcu_notifier_call_chain(st
+ /* Encapsulate (negative) errno value (in particular, NOTIFY_BAD <=> EPERM). */
+ static inline int notifier_from_errno(int err)
  {
+-	return NOTIFY_STOP_MASK | (NOTIFY_OK - err);
++	if (err)
++		return NOTIFY_STOP_MASK | (NOTIFY_OK - err);
++
++	return NOTIFY_OK;
+ }
+ 
+ /* Restore (negative) errno value from notify return value. */
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-reiserfs-fix-oops-while-creating-privroot-with-selinux-enabled.patch
-reiserfs-properly-honor-read-only-devices.patch
-delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
+intel-iommu-use-for_each_set_bit.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail.patch
+cpu-hotplug-return-better-errno-on-cpu-hotplug-failure.patch
+notifier-change-notifier_from_errno0-to-return-notify_ok.patch
+x86-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+topology-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+kernel-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+slab-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+iucv-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+ehca-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+s390-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+md-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+fault-injection-add-cpu-notifier-error-injection-module.patch
+bitops-remove-temporary-for_each_bit.patch
 
