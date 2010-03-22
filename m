@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-fix-oops-after-umount.patch added to -mm tree
-Date: Mon, 22 Mar 2010 15:56:17 -0700
-Message-ID: <201003222256.o2MMuHGf032338@imap1.linux-foundation.org>
+Subject: + sbshc-acpi_device_class-smbus_host_controller-too-long.patch added to -mm tree
+Date: Mon, 22 Mar 2010 16:02:42 -0700
+Message-ID: <201003222302.o2MN2ga0032599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41397 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756297Ab0CVW46 (ORCPT
+	by vger.kernel.org with ESMTP id S1750861Ab0CVXDR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 18:56:58 -0400
+	Mon, 22 Mar 2010 19:03:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lk@c--e.de, eparis@redhat.com, kirkland@canonical.com, rjw@sisk.pl, tyhicks@linux.vnet.ibm.com
+Cc: error27@gmail.com, astarikovskiy@suse.de, lenb@kernel.org
 
 
 The patch titled
-     ecryptfs: fix OOPs after umount
+     sbshc: acpi_device_class "smbus_host_controller" too long
 has been added to the -mm tree.  Its filename is
-     ecryptfs-fix-oops-after-umount.patch
+     sbshc-acpi_device_class-smbus_host_controller-too-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: fix OOPs after umount
-From: Christian Ehrhardt <lk@c--e.de>
+Subject: sbshc: acpi_device_class "smbus_host_controller" too long
+From: Dan Carpenter <error27@gmail.com>
 
-Remove a d_drop in ecryptfs that is bogus IMHO.  This d_drop unhashes a
-perfectly valid and reachable dentry in the lower FS.  The patch fixes
-this perfectly reproducible kernel oops:
+acpi_device_class can only be 19 characters and a NULL terminator.
 
-    https://bugzilla.kernel.org/show_bug.cgi?id=10907
+With the current name we get a buffer overflow in acpi_smbus_hc_add()
+when we do:
+	strcpy(acpi_device_class(device), ACPI_SMB_HC_CLASS);
 
-It and may or may not be related to this ecryptfs bug:
-
-   https://bugs.launchpad.net/ecryptfs/+bug/363734
-
-At least the BUG_ON is on a dentry that should not be unhashed but is.
-
-      regards   Christian
-
-Signed-off-by: Christian Ehrhardt <lk@c--e.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Cc: Dustin Kirkland <kirkland@canonical.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/super.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/sbshc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/super.c~ecryptfs-fix-oops-after-umount fs/ecryptfs/super.c
---- a/fs/ecryptfs/super.c~ecryptfs-fix-oops-after-umount
-+++ a/fs/ecryptfs/super.c
-@@ -85,7 +85,6 @@ static void ecryptfs_destroy_inode(struc
- 		if (lower_dentry->d_inode) {
- 			fput(inode_info->lower_file);
- 			inode_info->lower_file = NULL;
--			d_drop(lower_dentry);
- 		}
- 	}
- 	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
+diff -puN drivers/acpi/sbshc.c~sbshc-acpi_device_class-smbus_host_controller-too-long drivers/acpi/sbshc.c
+--- a/drivers/acpi/sbshc.c~sbshc-acpi_device_class-smbus_host_controller-too-long
++++ a/drivers/acpi/sbshc.c
+@@ -17,7 +17,7 @@
+ 
+ #define PREFIX "ACPI: "
+ 
+-#define ACPI_SMB_HC_CLASS	"smbus_host_controller"
++#define ACPI_SMB_HC_CLASS	"smbus_host_ctl"
+ #define ACPI_SMB_HC_DEVICE_NAME	"ACPI SMBus HC"
+ 
+ struct acpi_smb_hc {
 _
 
-Patches currently in -mm which might be from lk@c--e.de are
+Patches currently in -mm which might be from error27@gmail.com are
 
-ecryptfs-fix-oops-after-umount.patch
+origin.patch
+memcontrol-fix-potential-null-deref.patch
+rtc-mc13783-fix-use-after-free-bug.patch
+linux-next.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+i915-fix-small-leak-on-error-path.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+proc-cleanup-remove-unused-assignments.patch
 
