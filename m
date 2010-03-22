@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + notifier-change-notifier_from_errno0-to-return-notify_ok.patch added to -mm tree
-Date: Mon, 22 Mar 2010 14:49:07 -0700
-Message-ID: <201003222149.o2MLn804029424@imap1.linux-foundation.org>
+Subject: + cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail.patch added to -mm tree
+Date: Mon, 22 Mar 2010 14:49:02 -0700
+Message-ID: <201003222149.o2MLn2MW029413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756521Ab0CVVtK (ORCPT
+	by vger.kernel.org with ESMTP id S1756536Ab0CVVtJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 17:49:10 -0400
+	Mon, 22 Mar 2010 17:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: akinobu.mita@gmail.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     notifier: change notifier_from_errno(0) to return NOTIFY_OK
+     cpu-hotplug: introduce cpu_notify(), __cpu_notify(), cpu_notify_nofail()
 has been added to the -mm tree.  Its filename is
-     notifier-change-notifier_from_errno0-to-return-notify_ok.patch
+     cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: notifier: change notifier_from_errno(0) to return NOTIFY_OK
+Subject: cpu-hotplug: introduce cpu_notify(), __cpu_notify(), cpu_notify_nofail()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This changes notifier_from_errno(0) to be NOTIFY_OK instead of
-NOTIFY_STOP_MASK | NOTIFY_OK.
-
-Currently, the notifiers which return encapsulated errno value have to
-do something like this:
-
-	err = do_something(); // returns -errno
-	if (err)
-		return notifier_from_errno(err);
-	else
-		return NOTIFY_OK;
-
-This change makes the above code simple:
-
-	err = do_something(); // returns -errno
-
-	return return notifier_from_errno(err);
+No functional change.  These are just wrappers of
+raw_cpu_notifier_call_chain.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/notifier.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/cpu.c |   55 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 23 deletions(-)
 
-diff -puN include/linux/notifier.h~notifier-change-notifier_from_errno0-to-return-notify_ok include/linux/notifier.h
---- a/include/linux/notifier.h~notifier-change-notifier_from_errno0-to-return-notify_ok
-+++ a/include/linux/notifier.h
-@@ -164,7 +164,10 @@ extern int __srcu_notifier_call_chain(st
- /* Encapsulate (negative) errno value (in particular, NOTIFY_BAD <=> EPERM). */
- static inline int notifier_from_errno(int err)
- {
--	return NOTIFY_STOP_MASK | (NOTIFY_OK - err);
-+	if (err)
-+		return NOTIFY_STOP_MASK | (NOTIFY_OK - err);
-+
-+	return NOTIFY_OK;
+diff -puN kernel/cpu.c~cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail kernel/cpu.c
+--- a/kernel/cpu.c~cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail
++++ a/kernel/cpu.c
+@@ -133,6 +133,26 @@ int __ref register_cpu_notifier(struct n
+ 	return ret;
  }
  
- /* Restore (negative) errno value from notify return value. */
++static int __cpu_notify(unsigned long val, void *v, int nr_to_call,
++			int *nr_calls)
++{
++	return __raw_notifier_call_chain(&cpu_chain, val, v, nr_to_call,
++					nr_calls);
++}
++
++static int cpu_notify(unsigned long val, void *v)
++{
++	return __cpu_notify(val, v, -1, NULL);
++}
++
++static void cpu_notify_nofail(unsigned long val, void *v)
++{
++	int err;
++
++	err = cpu_notify(val, v);
++	BUG_ON(err == NOTIFY_BAD);
++}
++
+ #ifdef CONFIG_HOTPLUG_CPU
+ 
+ EXPORT_SYMBOL(register_cpu_notifier);
+@@ -178,8 +198,7 @@ static int __ref take_cpu_down(void *_pa
+ 	if (err < 0)
+ 		return err;
+ 
+-	raw_notifier_call_chain(&cpu_chain, CPU_DYING | param->mod,
+-				param->hcpu);
++	cpu_notify(CPU_DYING | param->mod, param->hcpu);
+ 
+ 	/* Force idle task to run as soon as we yield: it should
+ 	   immediately notice cpu is offline and die quickly. */
+@@ -210,14 +229,12 @@ static int __ref _cpu_down(unsigned int 
+ 
+ 	cpu_hotplug_begin();
+ 	set_cpu_active(cpu, false);
+-	err = __raw_notifier_call_chain(&cpu_chain, CPU_DOWN_PREPARE | mod,
+-					hcpu, -1, &nr_calls);
++	err = __cpu_notify(CPU_DOWN_PREPARE | mod, hcpu, -1, &nr_calls);
+ 	if (err == NOTIFY_BAD) {
+ 		set_cpu_active(cpu, true);
+ 
+ 		nr_calls--;
+-		__raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED | mod,
+-					  hcpu, nr_calls, NULL);
++		__cpu_notify(CPU_DOWN_FAILED | mod, hcpu, nr_calls, NULL);
+ 		printk("%s: attempt to take down CPU %u failed\n",
+ 				__func__, cpu);
+ 		err = -EINVAL;
+@@ -232,9 +249,7 @@ static int __ref _cpu_down(unsigned int 
+ 	if (err) {
+ 		set_cpu_active(cpu, true);
+ 		/* CPU didn't die: tell everyone.  Can't complain. */
+-		if (raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED | mod,
+-					    hcpu) == NOTIFY_BAD)
+-			BUG();
++		cpu_notify_nofail(CPU_DOWN_FAILED | mod, hcpu);
+ 
+ 		goto out_allowed;
+ 	}
+@@ -248,9 +263,7 @@ static int __ref _cpu_down(unsigned int 
+ 	__cpu_die(cpu);
+ 
+ 	/* CPU is completely dead: tell everyone.  Too late to complain. */
+-	if (raw_notifier_call_chain(&cpu_chain, CPU_DEAD | mod,
+-				    hcpu) == NOTIFY_BAD)
+-		BUG();
++	cpu_notify_nofail(CPU_DEAD | mod, hcpu);
+ 
+ 	check_for_tasks(cpu);
+ 
+@@ -258,11 +271,9 @@ out_allowed:
+ 	set_cpus_allowed_ptr(current, old_allowed);
+ out_release:
+ 	cpu_hotplug_done();
+-	if (!err) {
+-		if (raw_notifier_call_chain(&cpu_chain, CPU_POST_DEAD | mod,
+-					    hcpu) == NOTIFY_BAD)
+-			BUG();
+-	}
++	if (!err)
++		cpu_notify_nofail(CPU_POST_DEAD | mod, hcpu);
++
+ 	free_cpumask_var(old_allowed);
+ 	return err;
+ }
+@@ -302,8 +313,7 @@ static int __cpuinit _cpu_up(unsigned in
+ 		return -EINVAL;
+ 
+ 	cpu_hotplug_begin();
+-	ret = __raw_notifier_call_chain(&cpu_chain, CPU_UP_PREPARE | mod, hcpu,
+-							-1, &nr_calls);
++	ret = __cpu_notify(CPU_UP_PREPARE | mod, hcpu, -1, &nr_calls);
+ 	if (ret == NOTIFY_BAD) {
+ 		nr_calls--;
+ 		printk("%s: attempt to bring up CPU %u failed\n",
+@@ -321,12 +331,11 @@ static int __cpuinit _cpu_up(unsigned in
+ 	set_cpu_active(cpu, true);
+ 
+ 	/* Now call notifier in preparation. */
+-	raw_notifier_call_chain(&cpu_chain, CPU_ONLINE | mod, hcpu);
++	cpu_notify(CPU_ONLINE | mod, hcpu);
+ 
+ out_notify:
+ 	if (ret != 0)
+-		__raw_notifier_call_chain(&cpu_chain,
+-				CPU_UP_CANCELED | mod, hcpu, nr_calls, NULL);
++		__cpu_notify(CPU_UP_CANCELED | mod, hcpu, nr_calls, NULL);
+ 	cpu_hotplug_done();
+ 
+ 	return ret;
+@@ -466,7 +475,7 @@ void __cpuinit notify_cpu_starting(unsig
+ 	if (frozen_cpus != NULL && cpumask_test_cpu(cpu, frozen_cpus))
+ 		val = CPU_STARTING_FROZEN;
+ #endif /* CONFIG_PM_SLEEP_SMP */
+-	raw_notifier_call_chain(&cpu_chain, val, (void *)(long)cpu);
++	cpu_notify(val, (void *)(long)cpu);
+ }
+ 
+ #endif /* CONFIG_SMP */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
