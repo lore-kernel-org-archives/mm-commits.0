@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-recalculate-symbol-value-before-showing-search-results.patch added to -mm tree
-Date: Mon, 22 Mar 2010 15:46:56 -0700
-Message-ID: <201003222246.o2MMkur6031923@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-oops-after-umount.patch added to -mm tree
+Date: Mon, 22 Mar 2010 15:56:17 -0700
+Message-ID: <201003222256.o2MMuHGf032338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41397 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751031Ab0CVWrg (ORCPT
+	by vger.kernel.org with ESMTP id S1756297Ab0CVW46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 18:47:36 -0400
+	Mon, 22 Mar 2010 18:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, mmarek@suse.cz
+Cc: lk@c--e.de, eparis@redhat.com, kirkland@canonical.com, rjw@sisk.pl, tyhicks@linux.vnet.ibm.com
 
 
 The patch titled
-     kconfig: recalculate symbol value before showing search results
+     ecryptfs: fix OOPs after umount
 has been added to the -mm tree.  Its filename is
-     kconfig-recalculate-symbol-value-before-showing-search-results.patch
+     ecryptfs-fix-oops-after-umount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: recalculate symbol value before showing search results
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: ecryptfs: fix OOPs after umount
+From: Christian Ehrhardt <lk@c--e.de>
 
-A symbol's value won't be recalculated until we save the config file or
-enter the menu where the symbol sits.
+Remove a d_drop in ecryptfs that is bogus IMHO.  This d_drop unhashes a
+perfectly valid and reachable dentry in the lower FS.  The patch fixes
+this perfectly reproducible kernel oops:
 
-So If I enable OPTIMIZE_FOR_SIZE, and search FUNCTION_GRAPH_TRACER:
+    https://bugzilla.kernel.org/show_bug.cgi?id=10907
 
-  Symbol: FUNCTION_GRAPH_TRACER [=y]
-  Prompt: Kernel Function Graph Tracer
-    Defined at kernel/trace/Kconfig:140
-    Depends on: ... [=y] && (!X86_32 [=y] || !CC_OPTIMIZE_FOR_SIZE [=y])
-    ...
+It and may or may not be related to this ecryptfs bug:
 
-Via the dependency it should result in FUNCTION_GRAPH_TRACER=n, but it
-still shows FUNCTION_GRAPH_TRACER=y.
+   https://bugs.launchpad.net/ecryptfs/+bug/363734
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Michal Marek <mmarek@suse.cz>
+At least the BUG_ON is on a dentry that should not be unhashed but is.
+
+      regards   Christian
+
+Signed-off-by: Christian Ehrhardt <lk@c--e.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
+Cc: Dustin Kirkland <kirkland@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/symbol.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ecryptfs/super.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/kconfig/symbol.c~kconfig-recalculate-symbol-value-before-showing-search-results scripts/kconfig/symbol.c
---- a/scripts/kconfig/symbol.c~kconfig-recalculate-symbol-value-before-showing-search-results
-+++ a/scripts/kconfig/symbol.c
-@@ -755,6 +755,7 @@ struct symbol **sym_re_search(const char
- 				return NULL;
- 			}
+diff -puN fs/ecryptfs/super.c~ecryptfs-fix-oops-after-umount fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~ecryptfs-fix-oops-after-umount
++++ a/fs/ecryptfs/super.c
+@@ -85,7 +85,6 @@ static void ecryptfs_destroy_inode(struc
+ 		if (lower_dentry->d_inode) {
+ 			fput(inode_info->lower_file);
+ 			inode_info->lower_file = NULL;
+-			d_drop(lower_dentry);
  		}
-+		sym_calc_value(sym);
- 		sym_arr[cnt++] = sym;
  	}
- 	if (sym_arr)
+ 	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from lk@c--e.de are
 
-cgroups-remove-duplicate-include.patch
-linux-next.patch
-cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch
-cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack.patch
-kconfig-recalculate-symbol-value-before-showing-search-results.patch
-cgroups-net_cls-as-module.patch
-sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path.patch
+ecryptfs-fix-oops-after-umount.patch
 
