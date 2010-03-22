@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch added to -mm tree
-Date: Mon, 22 Mar 2010 16:58:11 -0700
-Message-ID: <201003222358.o2MNwBnH002472@imap1.linux-foundation.org>
+Subject: + mempolicy-factor-mpol_shared_policy_init-return-paths.patch added to -mm tree
+Date: Mon, 22 Mar 2010 16:58:19 -0700
+Message-ID: <201003222358.o2MNwJbk002481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752475Ab0CVX6Z (ORCPT
+	by vger.kernel.org with ESMTP id S1752475Ab0CVX6d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 19:58:25 -0400
+	Mon, 22 Mar 2010 19:58:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     mempolicy: don't call mpol_set_nodemask() when no_context
+     mempolicy: factor mpol_shared_policy_init() return paths
 has been added to the -mm tree.  Its filename is
-     mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
+     mempolicy-factor-mpol_shared_policy_init-return-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: don't call mpol_set_nodemask() when no_context
+Subject: mempolicy: factor mpol_shared_policy_init() return paths
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-No need to call mpol_set_nodemask() when we have no context for the
-mempolicy.  This can occur when we're parsing a tmpfs 'mpol' mount option.
- Just save the raw nodemask in the mempolicy's w.user_nodemask member for
-use when a tmpfs/shmem file is created.  mpol_shared_policy_init() will
-"contextualize" the policy for the new file based on the creating task's
-context.
+Factor out duplicate put/frees in mpol_shared_policy_init() to a common
+return path.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
@@ -53,35 +49,45 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/mempolicy.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-dont-call-mpol_set_nodemask-when-no_context mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-dont-call-mpol_set_nodemask-when-no_context
+diff -puN mm/mempolicy.c~mempolicy-factor-mpol_shared_policy_init-return-paths mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-factor-mpol_shared_policy_init-return-paths
 +++ a/mm/mempolicy.c
-@@ -2284,7 +2284,10 @@ int mpol_parse_str(char *str, struct mem
- 	if (IS_ERR(new))
- 		goto out;
+@@ -2040,26 +2040,22 @@ void mpol_shared_policy_init(struct shar
+ 			return;
+ 		/* contextualize the tmpfs mount point mempolicy */
+ 		new = mpol_new(mpol->mode, mpol->flags, &mpol->w.user_nodemask);
+-		if (IS_ERR(new)) {
+-			mpol_put(mpol);	/* drop our ref on sb mpol */
+-			NODEMASK_SCRATCH_FREE(scratch);
+-			return;		/* no valid nodemask intersection */
+-		}
++		if (IS_ERR(new))
++			goto put_free; /* no valid nodemask intersection */
  
--	{
-+	if (no_context) {
-+		/* save for contextualization */
-+		new->w.user_nodemask = nodes;
-+	} else {
- 		int ret;
- 		NODEMASK_SCRATCH(scratch);
- 		if (scratch) {
-@@ -2300,10 +2303,6 @@ int mpol_parse_str(char *str, struct mem
- 		}
+ 		task_lock(current);
+ 		ret = mpol_set_nodemask(new, &mpol->w.user_nodemask, scratch);
+ 		task_unlock(current);
+ 		mpol_put(mpol);	/* drop our ref on sb mpol */
+-		if (ret) {
+-			NODEMASK_SCRATCH_FREE(scratch);
+-			mpol_put(new);
+-			return;
+-		}
++		if (ret)
++			goto put_free;
+ 
+ 		/* Create pseudo-vma that contains just the policy */
+ 		memset(&pvma, 0, sizeof(struct vm_area_struct));
+ 		pvma.vm_end = TASK_SIZE;	/* policy covers entire file */
+ 		mpol_set_shared_policy(sp, &pvma, new); /* adds ref */
++
++put_free:
+ 		mpol_put(new);			/* drop initial ref */
+ 		NODEMASK_SCRATCH_FREE(scratch);
  	}
- 	err = 0;
--	if (no_context) {
--		/* save for contextualization */
--		new->w.user_nodemask = nodes;
--	}
- 
- out:
- 	/* Restore string for error message */
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
