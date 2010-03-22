@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ratelimit-annotate-___ratelimit.patch added to -mm tree
-Date: Mon, 22 Mar 2010 13:08:08 -0700
-Message-ID: <201003222008.o2MK88Kf024593@imap1.linux-foundation.org>
+Subject: + ratelimit-annotate-___ratelimit-fix.patch added to -mm tree
+Date: Mon, 22 Mar 2010 13:08:10 -0700
+Message-ID: <201003222008.o2MK8AeT024596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754777Ab0CVUIP (ORCPT
+	by vger.kernel.org with ESMTP id S1753687Ab0CVUIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 16:08:15 -0400
+	Mon, 22 Mar 2010 16:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yong.zhang@windriver.com, hidave.darkstar@gmail.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu, yong.zhang@windriver.com
 
 
 The patch titled
-     ratelimit: annotate ___ratelimit()
+     ratelimit-annotate-___ratelimit-fix
 has been added to the -mm tree.  Its filename is
-     ratelimit-annotate-___ratelimit.patch
+     ratelimit-annotate-___ratelimit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ratelimit: annotate ___ratelimit()
-From: Yong Zhang <yong.zhang@windriver.com>
+Subject: ratelimit-annotate-___ratelimit-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-To prevent from wrongly using the return value.
+fix spello
 
-Signed-off-by: Yong Zhang <yong.zhang@windriver.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yong Zhang <yong.zhang@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ lib/ratelimit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/ratelimit.c~ratelimit-annotate-___ratelimit lib/ratelimit.c
---- a/lib/ratelimit.c~ratelimit-annotate-___ratelimit
+diff -puN lib/ratelimit.c~ratelimit-annotate-___ratelimit-fix lib/ratelimit.c
+--- a/lib/ratelimit.c~ratelimit-annotate-___ratelimit-fix
 +++ a/lib/ratelimit.c
-@@ -16,9 +16,14 @@
- /*
-  * __ratelimit - rate limiting
-  * @rs: ratelimit_state data
-+ * @func: name of calling function
+@@ -22,7 +22,7 @@
+  * in every @rs->interval
   *
-- * This enforces a rate limit: not more than @rs->ratelimit_burst callbacks
-- * in every @rs->ratelimit_jiffies
-+ * This enforces a rate limit: not more than @rs->burst callbacks
-+ * in every @rs->interval
-+ *
-+ * RETURNS:
-+ * 0 means callbacks will be suppuressed.
-+ * 1 means go ahead and do it.
+  * RETURNS:
+- * 0 means callbacks will be suppuressed.
++ * 0 means callbacks will be suppressed.
+  * 1 means go ahead and do it.
   */
  int ___ratelimit(struct ratelimit_state *rs, const char *func)
- {
 _
 
-Patches currently in -mm which might be from yong.zhang@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ratelimit-annotate-___ratelimit.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+rtc-davinci-rtc-driver-checkpatch-fixes.patch
+c2port-fix-device_create-return-value-check-fix.patch
 ratelimit-annotate-___ratelimit-fix.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
-ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
