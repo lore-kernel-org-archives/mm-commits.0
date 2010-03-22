@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-factor-timer-allocate-from-open-fix.patch added to -mm tree
-Date: Mon, 22 Mar 2010 15:22:04 -0700
-Message-ID: <201003222222.o2MMM4DS030893@imap1.linux-foundation.org>
+Subject: + mmc-fix-incorrect-interpretation-of-card-type-bits.patch added to -mm tree
+Date: Mon, 22 Mar 2010 15:43:34 -0700
+Message-ID: <201003222243.o2MMhYW5031755__7574.56535143337$1269297858$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755655Ab0CVWWq (ORCPT
+	by vger.kernel.org with ESMTP id S1755135Ab0CVWoJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 18:22:46 -0400
+	Mon, 22 Mar 2010 18:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clemens@ladisch.de, johnstul@us.ibm.com, maglyx@gmail.com, tglx@linutronix.de
+Cc: adrian.hunter@nokia.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     hpet-factor-timer-allocate-from-open-fix
+     mmc: fix incorrect interpretation of card type bits
 has been added to the -mm tree.  Its filename is
-     hpet-factor-timer-allocate-from-open-fix.patch
+     mmc-fix-incorrect-interpretation-of-card-type-bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpet-factor-timer-allocate-from-open-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: fix incorrect interpretation of card type bits
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-coding-style tweaks
+In the extended CSD register the CARD_TYPE is an 8-bit value of which the
+upper 6 bits were reserved in JEDEC specifications prior to version 4.4. 
+In version 4.4 two of the reserved bits were designated for identifying
+support for the newly added High-Speed Dual Data Rate.  Unfortunately the
+mmc_read_ext_csd() function required that the reserved bits be zero
+instead of ignoring them as it should.
 
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: Magnus Lynch <maglyx@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+This patch makes mmc_read_ext_csd() ignore the CARD_TYPE bits that are
+reserved or not yet supported.  It also stops the function jumping to the
+end as though an error occurred, when it is only warns that the CARD_TYPE
+bits (that it does interpret) are invalid.
+
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mmc/core/mmc.c  |    3 +--
+ include/linux/mmc/mmc.h |    1 +
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix
-+++ a/drivers/char/hpet.c
-@@ -405,8 +405,9 @@ static int hpet_mmap(struct file *file, 
- static int hpet_fasync(int fd, struct file *file, int on)
- {
- 	struct hpet_dev *devp;
-+	int r;
+diff -puN drivers/mmc/core/mmc.c~mmc-fix-incorrect-interpretation-of-card-type-bits drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-fix-incorrect-interpretation-of-card-type-bits
++++ a/drivers/mmc/core/mmc.c
+@@ -225,7 +225,7 @@ static int mmc_read_ext_csd(struct mmc_c
+ 			mmc_card_set_blockaddr(card);
+ 	}
  
--	int r = hpet_alloc_timer(file);
-+	r = hpet_alloc_timer(file);
- 	if (r < 0)
- 		return r;
+-	switch (ext_csd[EXT_CSD_CARD_TYPE]) {
++	switch (ext_csd[EXT_CSD_CARD_TYPE] & EXT_CSD_CARD_TYPE_MASK) {
+ 	case EXT_CSD_CARD_TYPE_52 | EXT_CSD_CARD_TYPE_26:
+ 		card->ext_csd.hs_max_dtr = 52000000;
+ 		break;
+@@ -237,7 +237,6 @@ static int mmc_read_ext_csd(struct mmc_c
+ 		printk(KERN_WARNING "%s: card is mmc v4 but doesn't "
+ 			"support any high-speed modes.\n",
+ 			mmc_hostname(card->host));
+-		goto out;
+ 	}
  
-@@ -466,8 +467,9 @@ hpet_ioctl(struct inode *inode, struct f
- 	   unsigned long arg)
- {
- 	struct hpet_dev *devp;
-+	int r;
+ 	if (card->ext_csd.rev >= 3) {
+diff -puN include/linux/mmc/mmc.h~mmc-fix-incorrect-interpretation-of-card-type-bits include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~mmc-fix-incorrect-interpretation-of-card-type-bits
++++ a/include/linux/mmc/mmc.h
+@@ -268,6 +268,7 @@ struct _mmc_csd {
  
--	int r = hpet_alloc_timer(file);
-+	r = hpet_alloc_timer(file);
- 	if (r < 0)
- 		return r;
+ #define EXT_CSD_CARD_TYPE_26	(1<<0)	/* Card can run at 26MHz */
+ #define EXT_CSD_CARD_TYPE_52	(1<<1)	/* Card can run at 52MHz */
++#define EXT_CSD_CARD_TYPE_MASK	0x3	/* Mask out reserved and DDR bits */
  
+ #define EXT_CSD_BUS_WIDTH_1	0	/* Card is in 1 bit mode */
+ #define EXT_CSD_BUS_WIDTH_4	1	/* Card is in 4 bit mode */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-rtc-davinci-rtc-driver-checkpatch-fixes.patch
-c2port-fix-device_create-return-value-check-fix.patch
-ratelimit-annotate-___ratelimit-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+mmc-fix-incorrect-interpretation-of-card-type-bits.patch
 
