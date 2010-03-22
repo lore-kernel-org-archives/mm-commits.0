@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iucv-convert-cpu-notifier-to-return-encapsulate-errno-value.patch added to -mm tree
-Date: Mon, 22 Mar 2010 14:49:20 -0700
-Message-ID: <201003222149.o2MLnL21029443@imap1.linux-foundation.org>
+Subject: + x86-convert-cpu-notifier-to-return-encapsulate-errno-value.patch added to -mm tree
+Date: Mon, 22 Mar 2010 14:49:09 -0700
+Message-ID: <201003222149.o2MLnASD029428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756554Ab0CVVt1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756554Ab0CVVt3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 17:49:27 -0400
+	Mon, 22 Mar 2010 17:49:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, ursula.braun@de.ibm.com
+Cc: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     iucv: convert cpu notifier to return encapsulate errno value
+     x86: convert cpu notifier to return encapsulate errno value
 has been added to the -mm tree.  Its filename is
-     iucv-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
+     x86-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iucv: convert cpu notifier to return encapsulate errno value
+Subject: x86: convert cpu notifier to return encapsulate errno value
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 By the previous modification, the cpu notifier can return encapsulate
-errno value.  This converts the cpu notifiers for iucv.
+errno value.  This converts the cpu notifiers for msr, cpuid, and
+therm_throt.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ursula Braun <ursula.braun@de.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/iucv/iucv.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |    2 +-
+ arch/x86/kernel/cpuid.c                  |    2 +-
+ arch/x86/kernel/msr.c                    |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN net/iucv/iucv.c~iucv-convert-cpu-notifier-to-return-encapsulate-errno-value net/iucv/iucv.c
---- a/net/iucv/iucv.c~iucv-convert-cpu-notifier-to-return-encapsulate-errno-value
-+++ a/net/iucv/iucv.c
-@@ -632,13 +632,14 @@ static int __cpuinit iucv_cpu_notify(str
- 		iucv_irq_data[cpu] = kmalloc_node(sizeof(struct iucv_irq_data),
- 					GFP_KERNEL|GFP_DMA, cpu_to_node(cpu));
- 		if (!iucv_irq_data[cpu])
--			return NOTIFY_BAD;
-+			return notifier_from_errno(-ENOMEM);
-+
- 		iucv_param[cpu] = kmalloc_node(sizeof(union iucv_param),
- 				     GFP_KERNEL|GFP_DMA, cpu_to_node(cpu));
- 		if (!iucv_param[cpu]) {
- 			kfree(iucv_irq_data[cpu]);
- 			iucv_irq_data[cpu] = NULL;
--			return NOTIFY_BAD;
-+			return notifier_from_errno(-ENOMEM);
- 		}
- 		iucv_param_irq[cpu] = kmalloc_node(sizeof(union iucv_param),
- 					GFP_KERNEL|GFP_DMA, cpu_to_node(cpu));
-@@ -647,7 +648,7 @@ static int __cpuinit iucv_cpu_notify(str
- 			iucv_param[cpu] = NULL;
- 			kfree(iucv_irq_data[cpu]);
- 			iucv_irq_data[cpu] = NULL;
--			return NOTIFY_BAD;
-+			return notifier_from_errno(-ENOMEM);
- 		}
+diff -puN arch/x86/kernel/cpu/mcheck/therm_throt.c~x86-convert-cpu-notifier-to-return-encapsulate-errno-value arch/x86/kernel/cpu/mcheck/therm_throt.c
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c~x86-convert-cpu-notifier-to-return-encapsulate-errno-value
++++ a/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -190,7 +190,7 @@ thermal_throttle_cpu_callback(struct not
+ 		mutex_unlock(&therm_cpu_lock);
  		break;
- 	case CPU_UP_CANCELED:
-@@ -677,7 +678,7 @@ static int __cpuinit iucv_cpu_notify(str
- 		cpu_clear(cpu, cpumask);
- 		if (cpus_empty(cpumask))
- 			/* Can't offline last IUCV enabled cpu. */
--			return NOTIFY_BAD;
-+			return notifier_from_errno(-EINVAL);
- 		smp_call_function_single(cpu, iucv_retrieve_cpu, NULL, 1);
- 		if (cpus_empty(iucv_irq_cpumask))
- 			smp_call_function_single(first_cpu(iucv_buffer_cpumask),
+ 	}
+-	return err ? NOTIFY_BAD : NOTIFY_OK;
++	return notifier_from_errno(err);
+ }
+ 
+ static struct notifier_block thermal_throttle_cpu_notifier __cpuinitdata =
+diff -puN arch/x86/kernel/cpuid.c~x86-convert-cpu-notifier-to-return-encapsulate-errno-value arch/x86/kernel/cpuid.c
+--- a/arch/x86/kernel/cpuid.c~x86-convert-cpu-notifier-to-return-encapsulate-errno-value
++++ a/arch/x86/kernel/cpuid.c
+@@ -169,7 +169,7 @@ static int __cpuinit cpuid_class_cpu_cal
+ 		cpuid_device_destroy(cpu);
+ 		break;
+ 	}
+-	return err ? NOTIFY_BAD : NOTIFY_OK;
++	return notifier_from_errno(err);
+ }
+ 
+ static struct notifier_block __refdata cpuid_class_cpu_notifier =
+diff -puN arch/x86/kernel/msr.c~x86-convert-cpu-notifier-to-return-encapsulate-errno-value arch/x86/kernel/msr.c
+--- a/arch/x86/kernel/msr.c~x86-convert-cpu-notifier-to-return-encapsulate-errno-value
++++ a/arch/x86/kernel/msr.c
+@@ -229,7 +229,7 @@ static int __cpuinit msr_class_cpu_callb
+ 		msr_device_destroy(cpu);
+ 		break;
+ 	}
+-	return err ? NOTIFY_BAD : NOTIFY_OK;
++	return notifier_from_errno(err);
+ }
+ 
+ static struct notifier_block __refdata msr_class_cpu_notifier = {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
