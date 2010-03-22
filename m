@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch added to -mm tree
-Date: Mon, 22 Mar 2010 13:08:14 -0700
-Message-ID: <201003222008.o2MK8Enm024603@imap1.linux-foundation.org>
+Subject: + oom-select-task-from-tasklist-for-mempolicy-ooms.patch added to -mm tree
+Date: Mon, 22 Mar 2010 13:21:34 -0700
+Message-ID: <201003222021.o2MKLYju025191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753687Ab0CVUI2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754769Ab0CVUWN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 16:08:28 -0400
+	Mon, 22 Mar 2010 16:22:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yong.zhang@windriver.com, borntraeger@de.ibm.com, mingo@elte.hu
+Cc: rientjes@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     ratelimit: fix the return value when __ratelimit() fails to acquire the lock
+     oom: select task from tasklist for mempolicy ooms
 has been added to the -mm tree.  Its filename is
-     ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch
+     oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,329 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ratelimit: fix the return value when __ratelimit() fails to acquire the lock
-From: Yong Zhang <yong.zhang@windriver.com>
+Subject: oom: select task from tasklist for mempolicy ooms
+From: David Rientjes <rientjes@google.com>
 
-The log of commit edaac8e3167501cda336231d00611bf59c164346 ("ratelimit:
-Fix/allow use in atomic contexts"), indicates that we want to suppress the
-callback when the trylock fails.
+The oom killer presently kills current whenever there is no more memory
+free or reclaimable on its mempolicy's nodes.  There is no guarantee that
+current is a memory-hogging task or that killing it will free any
+substantial amount of memory, however.
 
-Signed-off-by: Yong Zhang <yong.zhang@windriver.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+In such situations, it is better to scan the tasklist for nodes that are
+allowed to allocate on current's set of nodes and kill the task with the
+highest badness() score.  This ensures that the most memory-hogging task,
+or the one configured by the user with /proc/pid/oom_adj, is always
+selected in such scenarios.
+
+It is necessary to synchronize the detachment of task->mempolicy with
+task_lock(task) to ensure it is not prematurely destroyed while a user is
+operating on it.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mempolicy.h |   13 +++++-
+ kernel/exit.c             |    8 +--
+ mm/mempolicy.c            |   44 ++++++++++++++++++++
+ mm/oom_kill.c             |   77 +++++++++++++++++++++---------------
+ 4 files changed, 107 insertions(+), 35 deletions(-)
 
-diff -puN lib/ratelimit.c~ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock lib/ratelimit.c
---- a/lib/ratelimit.c~ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock
-+++ a/lib/ratelimit.c
-@@ -40,7 +40,7 @@ int ___ratelimit(struct ratelimit_state 
- 	 * the entity that is holding the lock already:
- 	 */
- 	if (!spin_trylock_irqsave(&rs->lock, flags))
--		return 1;
-+		return 0;
+diff -puN include/linux/mempolicy.h~oom-select-task-from-tasklist-for-mempolicy-ooms include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~oom-select-task-from-tasklist-for-mempolicy-ooms
++++ a/include/linux/mempolicy.h
+@@ -202,6 +202,8 @@ extern struct zonelist *huge_zonelist(st
+ 				unsigned long addr, gfp_t gfp_flags,
+ 				struct mempolicy **mpol, nodemask_t **nodemask);
+ extern bool init_nodemask_of_mempolicy(nodemask_t *mask);
++extern bool mempolicy_nodemask_intersects(struct task_struct *tsk,
++				const nodemask_t *mask);
+ extern unsigned slab_node(struct mempolicy *policy);
  
- 	if (!rs->begin)
- 		rs->begin = jiffies;
+ extern enum zone_type policy_zone;
+@@ -329,7 +331,16 @@ static inline struct zonelist *huge_zone
+ 	return node_zonelist(0, gfp_flags);
+ }
+ 
+-static inline bool init_nodemask_of_mempolicy(nodemask_t *m) { return false; }
++static inline bool init_nodemask_of_mempolicy(nodemask_t *m)
++{
++	return false;
++}
++
++static inline bool mempolicy_nodemask_intersects(struct task_struct *tsk,
++			const nodemask_t *mask)
++{
++	return false;
++}
+ 
+ static inline int do_migrate_pages(struct mm_struct *mm,
+ 			const nodemask_t *from_nodes,
+diff -puN kernel/exit.c~oom-select-task-from-tasklist-for-mempolicy-ooms kernel/exit.c
+--- a/kernel/exit.c~oom-select-task-from-tasklist-for-mempolicy-ooms
++++ a/kernel/exit.c
+@@ -697,6 +697,10 @@ static void exit_mm(struct task_struct *
+ 	enter_lazy_tlb(mm, current);
+ 	/* We don't want this task to be frozen prematurely */
+ 	clear_freeze_flag(tsk);
++#ifdef CONFIG_NUMA
++	mpol_put(tsk->mempolicy);
++	tsk->mempolicy = NULL;
++#endif
+ 	task_unlock(tsk);
+ 	mm_update_next_owner(mm);
+ 	mmput(mm);
+@@ -1001,10 +1005,6 @@ NORET_TYPE void do_exit(long code)
+ 	perf_event_exit_task(tsk);
+ 
+ 	exit_notify(tsk, group_dead);
+-#ifdef CONFIG_NUMA
+-	mpol_put(tsk->mempolicy);
+-	tsk->mempolicy = NULL;
+-#endif
+ #ifdef CONFIG_FUTEX
+ 	if (unlikely(current->pi_state_cache))
+ 		kfree(current->pi_state_cache);
+diff -puN mm/mempolicy.c~oom-select-task-from-tasklist-for-mempolicy-ooms mm/mempolicy.c
+--- a/mm/mempolicy.c~oom-select-task-from-tasklist-for-mempolicy-ooms
++++ a/mm/mempolicy.c
+@@ -1635,6 +1635,50 @@ bool init_nodemask_of_mempolicy(nodemask
+ }
+ #endif
+ 
++/*
++ * mempolicy_nodemask_intersects
++ *
++ * If tsk's mempolicy is "default" [NULL], return 'true' to indicate default
++ * policy.  Otherwise, check for intersection between mask and the policy
++ * nodemask for 'bind' or 'interleave' policy.  For 'perferred' or 'local'
++ * policy, always return true since it may allocate elsewhere on fallback.
++ *
++ * Takes task_lock(tsk) to prevent freeing of its mempolicy.
++ */
++bool mempolicy_nodemask_intersects(struct task_struct *tsk,
++					const nodemask_t *mask)
++{
++	struct mempolicy *mempolicy;
++	bool ret = true;
++
++	if (!mask)
++		return ret;
++	task_lock(tsk);
++	mempolicy = tsk->mempolicy;
++	if (!mempolicy)
++		goto out;
++
++	switch (mempolicy->mode) {
++	case MPOL_PREFERRED:
++		/*
++		 * MPOL_PREFERRED and MPOL_F_LOCAL are only preferred nodes to
++		 * allocate from, they may fallback to other nodes when oom.
++		 * Thus, it's possible for tsk to have allocated memory from
++		 * nodes in mask.
++		 */
++		break;
++	case MPOL_BIND:
++	case MPOL_INTERLEAVE:
++		ret = nodes_intersects(mempolicy->v.nodes, *mask);
++		break;
++	default:
++		BUG();
++	}
++out:
++	task_unlock(tsk);
++	return ret;
++}
++
+ /* Allocate a page in interleaved policy.
+    Own path because it needs to do special accounting. */
+ static struct page *alloc_page_interleave(gfp_t gfp, unsigned order,
+diff -puN mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms
++++ a/mm/oom_kill.c
+@@ -26,6 +26,7 @@
+ #include <linux/module.h>
+ #include <linux/notifier.h>
+ #include <linux/memcontrol.h>
++#include <linux/mempolicy.h>
+ #include <linux/security.h>
+ 
+ int sysctl_panic_on_oom;
+@@ -36,19 +37,35 @@ static DEFINE_SPINLOCK(zone_scan_lock);
+ 
+ /*
+  * Do all threads of the target process overlap our allowed nodes?
++ * @tsk: task struct of which task to consider
++ * @mask: nodemask passed to page allocator for mempolicy ooms
+  */
+-static int has_intersects_mems_allowed(struct task_struct *tsk)
++static bool has_intersects_mems_allowed(struct task_struct *tsk,
++						const nodemask_t *mask)
+ {
+-	struct task_struct *t;
++	struct task_struct *start = tsk;
+ 
+-	t = tsk;
+ 	do {
+-		if (cpuset_mems_allowed_intersects(current, t))
+-			return 1;
+-		t = next_thread(t);
+-	} while (t != tsk);
+-
+-	return 0;
++		if (mask) {
++			/*
++			 * If this is a mempolicy constrained oom, tsk's
++			 * cpuset is irrelevant.  Only return true if its
++			 * mempolicy intersects current, otherwise it may be
++			 * needlessly killed.
++			 */
++			if (mempolicy_nodemask_intersects(tsk, mask))
++				return true;
++		} else {
++			/*
++			 * This is not a mempolicy constrained oom, so only
++			 * check the mems of tsk's cpuset.
++			 */
++			if (cpuset_mems_allowed_intersects(current, tsk))
++				return true;
++		}
++		tsk = next_thread(tsk);
++	} while (tsk != start);
++	return false;
+ }
+ 
+ /**
+@@ -236,7 +253,8 @@ static enum oom_constraint constrained_a
+  * (not docbooked, we don't want this one cluttering up the manual)
+  */
+ static struct task_struct *select_bad_process(unsigned long *ppoints,
+-						struct mem_cgroup *mem)
++		struct mem_cgroup *mem, enum oom_constraint constraint,
++		const nodemask_t *mask)
+ {
+ 	struct task_struct *p;
+ 	struct task_struct *chosen = NULL;
+@@ -258,7 +276,9 @@ static struct task_struct *select_bad_pr
+ 			continue;
+ 		if (mem && !task_in_mem_cgroup(p, mem))
+ 			continue;
+-		if (!has_intersects_mems_allowed(p))
++		if (!has_intersects_mems_allowed(p,
++				constraint == CONSTRAINT_MEMORY_POLICY ? mask :
++									 NULL))
+ 			continue;
+ 
+ 		/*
+@@ -482,7 +502,7 @@ void mem_cgroup_out_of_memory(struct mem
+ 		panic("out of memory(memcg). panic_on_oom is selected.\n");
+ 	read_lock(&tasklist_lock);
+ retry:
+-	p = select_bad_process(&points, mem);
++	p = select_bad_process(&points, mem, CONSTRAINT_NONE, NULL);
+ 	if (PTR_ERR(p) == -1UL)
+ 		goto out;
+ 
+@@ -564,7 +584,8 @@ void clear_zonelist_oom(struct zonelist 
+ /*
+  * Must be called with tasklist_lock held for read.
+  */
+-static void __out_of_memory(gfp_t gfp_mask, int order)
++static void __out_of_memory(gfp_t gfp_mask, int order,
++			enum oom_constraint constraint, const nodemask_t *mask)
+ {
+ 	struct task_struct *p;
+ 	unsigned long points;
+@@ -578,7 +599,7 @@ retry:
+ 	 * Rambo mode: Shoot down a process and hope it solves whatever
+ 	 * issues we may have.
+ 	 */
+-	p = select_bad_process(&points, NULL);
++	p = select_bad_process(&points, NULL, constraint, mask);
+ 
+ 	if (PTR_ERR(p) == -1UL)
+ 		return;
+@@ -612,7 +633,8 @@ void pagefault_out_of_memory(void)
+ 		panic("out of memory from page fault. panic_on_oom is selected.\n");
+ 
+ 	read_lock(&tasklist_lock);
+-	__out_of_memory(0, 0); /* unknown gfp_mask and order */
++	/* unknown gfp_mask and order */
++	__out_of_memory(0, 0, CONSTRAINT_NONE, NULL);
+ 	read_unlock(&tasklist_lock);
+ 
+ 	/*
+@@ -628,6 +650,7 @@ void pagefault_out_of_memory(void)
+  * @zonelist: zonelist pointer
+  * @gfp_mask: memory allocation flags
+  * @order: amount of memory being requested as a power of 2
++ * @nodemask: nodemask passed to page allocator
+  *
+  * If we run out of memory, we have the choice between either
+  * killing a random task (bad), letting the system crash (worse)
+@@ -656,24 +679,18 @@ void out_of_memory(struct zonelist *zone
+ 	 */
+ 	constraint = constrained_alloc(zonelist, gfp_mask, nodemask);
+ 	read_lock(&tasklist_lock);
+-
+-	switch (constraint) {
+-	case CONSTRAINT_MEMORY_POLICY:
+-		oom_kill_process(current, gfp_mask, order, 0, NULL,
+-				"No available memory (MPOL_BIND)");
+-		break;
+-
+-	case CONSTRAINT_NONE:
+-		if (sysctl_panic_on_oom) {
++	if (unlikely(sysctl_panic_on_oom)) {
++		/*
++		 * panic_on_oom only affects CONSTRAINT_NONE, the kernel
++		 * should not panic for cpuset or mempolicy induced memory
++		 * failures.
++		 */
++		if (constraint == CONSTRAINT_NONE) {
+ 			dump_header(NULL, gfp_mask, order, NULL);
+-			panic("out of memory. panic_on_oom is selected\n");
++			panic("Out of memory: panic_on_oom is enabled\n");
+ 		}
+-		/* Fall-through */
+-	case CONSTRAINT_CPUSET:
+-		__out_of_memory(gfp_mask, order);
+-		break;
+ 	}
+-
++	__out_of_memory(gfp_mask, order, constraint, nodemask);
+ 	read_unlock(&tasklist_lock);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from yong.zhang@windriver.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-ratelimit-annotate-___ratelimit.patch
-ratelimit-annotate-___ratelimit-fix.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
-ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch
+linux-next.patch
+cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch
+cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack.patch
+mempolicy-remove-redundant-code.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+memcg-oom-wakeup-filter.patch
+memcg-oom-wakeup-filter-update.patch
+memcg-oom-notifier.patch
+memcg-oom-notifier-update.patch
+memcg-oom-kill-disable-and-oom-status.patch
+memcg-oom-kill-disable-and-oom-status-update.patch
 
