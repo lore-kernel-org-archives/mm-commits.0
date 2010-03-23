@@ -1,66 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:51:07 -0400
-Message-ID: <201003230651.o2N6pwHG019199@imap1.linux-foundation.org>
+Subject: [to-be-updated] cx231xx-card-driver-conexant-cx231xx-audio-too-long.patch removed from -mm tree
+Date: Tue, 23 Mar 2010 10:00:03 -0400
+Message-ID: <201003231700.o2NH0toa013990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752526Ab0CWGwe (ORCPT
+	by vger.kernel.org with ESMTP id S1752773Ab0CWRBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:52:34 -0400
+	Tue, 23 Mar 2010 13:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andi@ahash.de, greg@kroah.com
+To: error27@gmail.com, mchehab@infradead.org, srinivasa.deevi@conexant.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kaweth: new USB ID 07c9:b010 Allied Telesyn AT-USB10
-has been added to the -mm tree.  Its filename is
-     kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch
+     cx231xx: card->driver "Conexant cx231xx Audio" too long
+has been removed from the -mm tree.  Its filename was
+     cx231xx-card-driver-conexant-cx231xx-audio-too-long.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kaweth: new USB ID 07c9:b010 Allied Telesyn AT-USB10
-From: Andreas Hartmann <andi@ahash.de>
+Subject: cx231xx: card->driver "Conexant cx231xx Audio" too long
+From: Dan Carpenter <error27@gmail.com>
 
-New USB ID 07c9:b010 Allied Telesyn AT-USB10.
+card->driver is 15 characters and a NULL, the original code could
+cause a buffer overflow.
 
-Signed-off-by: Andreas Hartmann <andi@ahash.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/kaweth.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/cx231xx/cx231xx-audio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/usb/kaweth.c~kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10 drivers/net/usb/kaweth.c
---- a/drivers/net/usb/kaweth.c~kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10
-+++ a/drivers/net/usb/kaweth.c
-@@ -145,6 +145,7 @@ static struct usb_device_id usb_klsi_tab
- 	{ USB_DEVICE(0x0707, 0x0100) }, /* SMC 2202USB */
- 	{ USB_DEVICE(0x07aa, 0x0001) }, /* Correga K.K. */
- 	{ USB_DEVICE(0x07b8, 0x4000) }, /* D-Link DU-E10 */
-+	{ USB_DEVICE(0x07c9, 0xb010) }, /* Allied Telesyn AT-USB10 */
- 	{ USB_DEVICE(0x0846, 0x1001) }, /* NetGear EA-101 */
- 	{ USB_DEVICE(0x0846, 0x1002) }, /* NetGear EA-101 */
- 	{ USB_DEVICE(0x085a, 0x0008) }, /* PortGear Ethernet Adapter */
+diff -puN drivers/media/video/cx231xx/cx231xx-audio.c~cx231xx-card-driver-conexant-cx231xx-audio-too-long drivers/media/video/cx231xx/cx231xx-audio.c
+--- a/drivers/media/video/cx231xx/cx231xx-audio.c~cx231xx-card-driver-conexant-cx231xx-audio-too-long
++++ a/drivers/media/video/cx231xx/cx231xx-audio.c
+@@ -495,7 +495,7 @@ static int cx231xx_audio_init(struct cx2
+ 	pcm->info_flags = 0;
+ 	pcm->private_data = dev;
+ 	strcpy(pcm->name, "Conexant cx231xx Capture");
+-	strcpy(card->driver, "Conexant cx231xx Audio");
++	strcpy(card->driver, "Cx231xx Audio");
+ 	strcpy(card->shortname, "Cx231xx Audio");
+ 	strcpy(card->longname, "Conexant cx231xx Audio");
+ 
 _
 
-Patches currently in -mm which might be from andi@ahash.de are
+Patches currently in -mm which might be from error27@gmail.com are
 
-kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch
+origin.patch
+memcontrol-fix-potential-null-deref.patch
+rtc-mc13783-fix-use-after-free-bug.patch
+linux-next.patch
+kcore-fix-test-for-end-of-list.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+em28xx-empia-em28xx-audio-too-long.patch
+cx231xx-card-driver-conexant-cx231xx-audio-too-long.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+i915-fix-small-leak-on-error-path.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+musb-potential-use-after-free.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
