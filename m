@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-driver-for-the-altera-uart-unbork.patch added to -mm tree
-Date: Tue, 23 Mar 2010 14:29:06 -0700
-Message-ID: <201003232155.o2NLthhr028171@imap1.linux-foundation.org>
+Subject: + firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch added to -mm tree
+Date: Tue, 23 Mar 2010 14:31:17 -0700
+Message-ID: <201003232157.o2NLvrCL028306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754462Ab0CWVzz (ORCPT
+	by vger.kernel.org with ESMTP id S1754462Ab0CWV6i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 17:55:55 -0400
+	Tue, 23 Mar 2010 17:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, tklauser@distanz.ch
+Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, dtor@mail.ru, greg@kroah.com, peterz@infradead.org, tglx@linutronix.de, w.sang@pengutronix.de
 
 
 The patch titled
-     serial-add-driver-for-the-altera-uart-unbork
+     firmware-loader-use-statically-initialized-data-attribute-fix-fix
 has been added to the -mm tree.  Its filename is
-     serial-add-driver-for-the-altera-uart-unbork.patch
+     firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-driver-for-the-altera-uart-unbork
+Subject: firmware-loader-use-statically-initialized-data-attribute-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Greg KH <greg@kroah.com>
-Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/altera_uart.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/firmware_class.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/serial/altera_uart.c~serial-add-driver-for-the-altera-uart-unbork drivers/serial/altera_uart.c
---- a/drivers/serial/altera_uart.c~serial-add-driver-for-the-altera-uart-unbork
-+++ a/drivers/serial/altera_uart.c
-@@ -97,8 +97,8 @@ static unsigned int altera_uart_get_mctr
- 	    (readl(port->membase + ALTERA_UART_STATUS_REG) &
- 	     ALTERA_UART_STATUS_CTS_MSK) ? TIOCM_CTS : 0;
- 	sigs |= (pp->sigs & TIOCM_RTS);
--	sigs |= (altera_uart_getppdcd(port->line) ? TIOCM_CD : 0);
--	sigs |= (altera_uart_getppdtr(port->line) ? TIOCM_DTR : 0);
-+//	sigs |= (altera_uart_getppdcd(port->line) ? TIOCM_CD : 0);
-+//	sigs |= (altera_uart_getppdtr(port->line) ? TIOCM_DTR : 0);
- 	spin_unlock_irqrestore(&port->lock, flags);
+diff -puN drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix-fix drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix-fix
++++ a/drivers/base/firmware_class.c
+@@ -441,7 +441,6 @@ static int fw_setup_device(struct firmwa
+ 	fw_priv = dev_get_drvdata(f_dev);
  
- 	return sigs;
+ 	fw_priv->fw = fw;
+-	sysfs_bin_attr_init(&firmware_attr_data);
+ 	retval = sysfs_create_bin_file(&f_dev->kobj, &firmware_attr_data);
+ 	if (retval) {
+ 		dev_err(device, "%s: sysfs_create_bin_file failed\n", __func__);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +87,7 @@ serial-add-driver-for-the-altera-uart-unbork.patch
 iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
 davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
 checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
 hwmon-driver-for-ti-tmp102-temperature-sensor.patch
