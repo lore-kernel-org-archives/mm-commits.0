@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:48:04 -0400
-Message-ID: <201003230648.o2N6mt2X019062@imap1.linux-foundation.org>
+Subject: + vt6655-cgi-csi-confusion-in-device_ioctl.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:48:44 -0400
+Message-ID: <201003230649.o2N6nZp7019074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754088Ab0CWGtB (ORCPT
+	by vger.kernel.org with ESMTP id S1752526Ab0CWGti (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:49:01 -0400
+	Tue, 23 Mar 2010 02:49:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, huangj@Brocade.COM
+Cc: roel.kluin@gmail.com, greg@kroah.com
 
 
 The patch titled
-     bfa: wrong fcport H2I message tested in bfa_fcport_isr()
+     vt6655: CGI/CSI confusion in device_ioctl()
 has been added to the -mm tree.  Its filename is
-     bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
+     vt6655-cgi-csi-confusion-in-device_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bfa: wrong fcport H2I message tested in bfa_fcport_isr()
+Subject: vt6655: CGI/CSI confusion in device_ioctl()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-It appears that the wrong fcport H2I message was tested
+The wrong messages were printed.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Jing Huang <huangj@Brocade.COM>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/bfa/bfa_fcport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/vt6655/device_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/bfa/bfa_fcport.c~bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr drivers/scsi/bfa/bfa_fcport.c
---- a/drivers/scsi/bfa/bfa_fcport.c~bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr
-+++ a/drivers/scsi/bfa/bfa_fcport.c
-@@ -1281,7 +1281,7 @@ bfa_fcport_isr(struct bfa_s *bfa, struct
+diff -puN drivers/staging/vt6655/device_main.c~vt6655-cgi-csi-confusion-in-device_ioctl drivers/staging/vt6655/device_main.c
+--- a/drivers/staging/vt6655/device_main.c~vt6655-cgi-csi-confusion-in-device_ioctl
++++ a/drivers/staging/vt6655/device_main.c
+@@ -3327,7 +3327,7 @@ static int  device_ioctl(struct net_devi
  		break;
  
- 	case BFI_FCPORT_I2H_DISABLE_RSP:
--		if (fcport->msgtag == i2hmsg.penable_rsp->msgtag)
-+		if (fcport->msgtag == i2hmsg.pdisable_rsp->msgtag)
- 			bfa_sm_send_event(fcport, BFA_FCPORT_SM_FWRSP);
+ 	case SIOCSIWTXPOW:
+-        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWTXPOW \n");
++        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWTXPOW \n");
+         rc = -EOPNOTSUPP;
+ 		break;
+ 
+@@ -3405,7 +3405,7 @@ static int  device_ioctl(struct net_devi
+ 		// Get the spy list
+ 	case SIOCGIWSPY:
+ 
+-        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWSPY \n");
++        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWSPY \n");
+ 		rc = -EOPNOTSUPP;
  		break;
  
 _
@@ -80,6 +88,7 @@ mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
 lpfc-positive-error-return-into-negative.patch
 scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
 bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
+vt6655-cgi-csi-confusion-in-device_ioctl.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 
