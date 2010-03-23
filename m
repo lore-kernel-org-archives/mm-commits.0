@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 22 Mar 2010 20:46:07 -0400
-Message-ID: <201003230346.o2N3kw8I011869@imap1.linux-foundation.org>
+Subject: + backlight-backlight_device_register-return-err_ptr.patch added to -mm tree
+Date: Mon, 22 Mar 2010 20:51:36 -0400
+Message-ID: <201003230352.o2N3qRbM012085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318Ab0CWDrh (ORCPT
+	by vger.kernel.org with ESMTP id S1754358Ab0CWDwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 23:47:37 -0400
+	Mon, 22 Mar 2010 23:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, apw@shadowen.org
+Cc: error27@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes
+     backlight: backlight_device_register() return ERR_PTR()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+     backlight-backlight_device_register-return-err_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: backlight: backlight_device_register() return ERR_PTR()
+From: Dan Carpenter <error27@gmail.com>
 
-ERROR: trailing whitespace
-#25: FILE: scripts/checkpatch.pl:1386:
-+^I^Iif ($realfile =~ /Kconfig/ && $
+backlight_device_register() returns a valid pointer or ERR_PTR() never
+NULL.
 
-ERROR: trailing whitespace
-#28: FILE: scripts/checkpatch.pl:1389:
-+^I^I^Ifor (my $l = $linenr; defined($lines[$l]); $l++) { $
-
-ERROR: trailing whitespace
-#30: FILE: scripts/checkpatch.pl:1391:
-+^I^I^I^I$f =~ s/#.*//; $
-
-ERROR: trailing whitespace
-#33: FILE: scripts/checkpatch.pl:1394:
-+^I^I^I^Ilast if ($f =~ /^\s*config\s/); $
-
-WARNING: line over 80 characters
-#36: FILE: scripts/checkpatch.pl:1397:
-+			WARN("please write a paragraph that describes the config symbol fully\n" . $herecurr) if ($length < 4);
-
-total: 4 errors, 1 warnings, 21 lines checked
-
-./patches/checkpatch-add-check-for-too-short-kconfig-descriptions.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/backlight/adx_bl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes
-+++ a/scripts/checkpatch.pl
-@@ -1383,15 +1383,15 @@ sub process {
- 		}
+diff -puN drivers/video/backlight/adx_bl.c~backlight-backlight_device_register-return-err_ptr drivers/video/backlight/adx_bl.c
+--- a/drivers/video/backlight/adx_bl.c~backlight-backlight_device_register-return-err_ptr
++++ a/drivers/video/backlight/adx_bl.c
+@@ -106,8 +106,8 @@ static int __devinit adx_backlight_probe
+ 	props.max_brightness = 0xff;
+ 	bldev = backlight_device_register(dev_name(&pdev->dev), &pdev->dev,
+ 					  bl, &adx_backlight_ops, &props);
+-	if (!bldev) {
+-		ret = -ENOMEM;
++	if (IS_ERR(bldev)) {
++		ret = PTR_ERR(bldev);
+ 		goto out;
+ 	}
  
- # check for Kconfig help text having a real description
--		if ($realfile =~ /Kconfig/ && 
-+		if ($realfile =~ /Kconfig/ &&
- 		    $line =~ /\+?\s*(---)?help(---)?$/) {
- 			my $length = 0;
--			for (my $l = $linenr; defined($lines[$l]); $l++) { 
-+			for (my $l = $linenr; defined($lines[$l]); $l++) {
- 				my $f = $lines[$l];
--				$f =~ s/#.*//; 
-+				$f =~ s/#.*//;
- 				$f =~ s/^\s+//;
- 				next if ($f =~ /^$/);
--				last if ($f =~ /^\s*config\s/); 
-+				last if ($f =~ /^\s*config\s/);
- 				$length++;
- 			}
- 			WARN("please write a paragraph that describes the config symbol fully\n" . $herecurr) if ($length < 4);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from error27@gmail.com are
 
+origin.patch
+memcontrol-fix-potential-null-deref.patch
+rtc-mc13783-fix-use-after-free-bug.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-i2c-busses-i2c-xiicc-is-borked.patch
-rtc-davinci-rtc-driver-checkpatch-fixes.patch
-c2port-fix-device_create-return-value-check-fix.patch
-ratelimit-annotate-___ratelimit-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+em28xx-empia-em28xx-audio-too-long.patch
+cx231xx-card-driver-conexant-cx231xx-audio-too-long.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+i915-fix-small-leak-on-error-path.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+proc-cleanup-remove-unused-assignments.patch
 
