@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-media-video-avoid-null-dereference.patch removed from -mm tree
-Date: Mon, 22 Mar 2010 23:34:16 -0400
-Message-ID: <201003230635.o2N6Z7jK018494@imap1.linux-foundation.org>
+Subject: + drivers-media-video-avoid-null-dereference.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:34:56 -0400
+Message-ID: <201003230635.o2N6Zliq018508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752826Ab0CWGf6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752826Ab0CWGgb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:35:58 -0400
+	Tue, 23 Mar 2010 02:36:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, laurent.pinchart@ideasonboard.com, mchehab@infradead.org, mmcclell@bigfoot.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: julia@diku.dk, mchehab@infradead.org, mmcclell@bigfoot.com
 
 
 The patch titled
      drivers/media/video: avoid NULL dereference
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      drivers-media-video-avoid-null-dereference.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -27,8 +37,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: drivers/media/video: avoid NULL dereference
 From: Julia Lawall <julia@diku.dk>
 
-If ov is NULL, it will not be possible to take the lock in the first place,
-so move the test up earlier.
+It seems impossible for ov to be NULL at this point.
 
 The semantic match that finds the problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -61,23 +70,16 @@ else S3
 Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Mark McClelland <mmcclell@bigfoot.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ov511.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/media/video/ov511.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
 diff -puN drivers/media/video/ov511.c~drivers-media-video-avoid-null-dereference drivers/media/video/ov511.c
 --- a/drivers/media/video/ov511.c~drivers-media-video-avoid-null-dereference
 +++ a/drivers/media/video/ov511.c
-@@ -5913,14 +5913,12 @@ ov51x_disconnect(struct usb_interface *i
- 
- 	PDEBUG(3, "");
- 
-+	if (!ov)
-+		return;
-+
+@@ -5916,11 +5916,6 @@ ov51x_disconnect(struct usb_interface *i
  	mutex_lock(&ov->lock);
  	usb_set_intfdata (intf, NULL);
  
