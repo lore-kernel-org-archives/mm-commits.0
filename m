@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-make-collect_sigign_sigcatch-rcu-safe.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:39:33 -0400
-Message-ID: <201003230640.o2N6eP7Q018696@imap1.linux-foundation.org>
+Subject: + proc-make-task_sig-lockless.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:39:35 -0400
+Message-ID: <201003230640.o2N6eR1K018699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754088Ab0CWGlG (ORCPT
+	by vger.kernel.org with ESMTP id S1752826Ab0CWGlI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:41:06 -0400
+	Tue, 23 Mar 2010 02:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, adobriyan@gmail.com, dhowells@redhat.com, ebiederm@xmission
 
 
 The patch titled
-     proc: make collect_sigign_sigcatch() rcu-safe
+     proc: make task_sig() lockless
 has been added to the -mm tree.  Its filename is
-     proc-make-collect_sigign_sigcatch-rcu-safe.patch
+     proc-make-task_sig-lockless.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: make collect_sigign_sigcatch() rcu-safe
+Subject: proc: make task_sig() lockless
 From: Oleg Nesterov <oleg@redhat.com>
 
-Make collect_sigign_sigcatch() rcu-safe.  The necessary changes are
-simple, use rcu_dereference() to get ->sighand and check it is not NULL.
+Now that task->signal can't go away and collect_sigign_sigcatch() is
+rcu-safe, task_sig() doesn't need ->siglock.
 
-In theory, this ->sighand can be re-used under us (but it can't go away). 
-We could check task->sighand == sighand once again after the main loop to
-prevent the race with exit/exec, but I don't think this is really needed
-for fs/proc.
+Remove lock_task_sighand() and unnecessary sigemptyset's, move
+collect_sigign_sigcatch() under rcu_read_lock().
+
+Of course, this means we read pending/blocked/etc nonatomically, but I
+hope this is OK for fs/proc.
+
+Probably we can change do_task_stat() to avod ->siglock too, except we
+can't get tty_nr lockless.
+
+Also, remove the "is this correct?" comment.  I think it is safe to
+dereference __task_cred(p)->user under rcu lock.  In any case, ->siglock
+can't help to protect cred->user.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -53,32 +61,53 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/proc/array.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/array.c~proc-make-collect_sigign_sigcatch-rcu-safe fs/proc/array.c
---- a/fs/proc/array.c~proc-make-collect_sigign_sigcatch-rcu-safe
+diff -puN fs/proc/array.c~proc-make-task_sig-lockless fs/proc/array.c
+--- a/fs/proc/array.c~proc-make-task_sig-lockless
 +++ a/fs/proc/array.c
-@@ -235,13 +235,18 @@ static void render_sigset_t(struct seq_f
- 	seq_printf(m, "\n");
- }
+@@ -257,30 +257,24 @@ static void collect_sigign_sigcatch(stru
  
-+/* needs ->siglock or rcu_read_lock() */
- static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
- 				    sigset_t *catch)
+ static inline void task_sig(struct seq_file *m, struct task_struct *p)
  {
-+	struct sighand_struct *sighand = rcu_dereference(p->sighand);
- 	struct k_sigaction *k;
- 	int i;
+-	unsigned long flags;
+ 	sigset_t pending, shpending, blocked, ignored, caught;
+ 	int num_threads = 0;
+ 	unsigned long qsize = 0;
+ 	unsigned long qlim = 0;
  
--	k = p->sighand->action;
-+	if (unlikely(!sighand))
-+		return;
+-	sigemptyset(&pending);
+-	sigemptyset(&shpending);
+-	sigemptyset(&blocked);
+ 	sigemptyset(&ignored);
+ 	sigemptyset(&caught);
+ 
+-	if (lock_task_sighand(p, &flags)) {
+-		pending = p->pending.signal;
+-		shpending = p->signal->shared_pending.signal;
+-		blocked = p->blocked;
+-		collect_sigign_sigcatch(p, &ignored, &caught);
+-		num_threads = get_nr_threads(p);
+-		rcu_read_lock();  /* FIXME: is this correct? */
+-		qsize = atomic_read(&__task_cred(p)->user->sigpending);
+-		rcu_read_unlock();
+-		qlim = task_rlimit(p, RLIMIT_SIGPENDING);
+-		unlock_task_sighand(p, &flags);
+-	}
++	blocked = p->blocked;
++	pending = p->pending.signal;
++	shpending = p->signal->shared_pending.signal;
++	qlim = task_rlimit(p, RLIMIT_SIGPENDING);
++	num_threads = get_nr_threads(p);
 +
-+	k = sighand->action;
- 	for (i = 1; i <= _NSIG; ++i, ++k) {
- 		if (k->sa.sa_handler == SIG_IGN)
- 			sigaddset(ign, i);
++	rcu_read_lock();
++	collect_sigign_sigcatch(p, &ignored, &caught);
++	qsize = atomic_read(&__task_cred(p)->user->sigpending);
++	rcu_read_unlock();
+ 
+ 	seq_printf(m, "Threads:\t%d\n", num_threads);
+ 	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
