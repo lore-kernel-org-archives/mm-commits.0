@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + musb-potential-use-after-free.patch added to -mm tree
-Date: Mon, 22 Mar 2010 20:55:00 -0400
-Message-ID: <201003230355.o2N3tpNj012153@imap1.linux-foundation.org>
+Subject: + scripts-kernel-doc-fix-fatal-error-on-function-prototype.patch added to -mm tree
+Date: Mon, 22 Mar 2010 22:29:57 -0400
+Message-ID: <201003230530.o2N5Um8W015947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754319Ab0CWDz5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751086Ab0CWFbZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 23:55:57 -0400
+	Tue, 23 Mar 2010 01:31:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, felipe.balbi@nokia.com, greg@kroah.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     musb: potential use after free
+     scripts/kernel-doc: fix fatal error on function prototype
 has been added to the -mm tree.  Its filename is
-     musb-potential-use-after-free.patch
+     scripts-kernel-doc-fix-fatal-error-on-function-prototype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: musb: potential use after free
-From: Dan Carpenter <error27@gmail.com>
+Subject: scripts/kernel-doc: fix fatal error on function prototype
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-We assign "urb->hcpriv = qh;" a few lines down.  I'm pretty sure we want
-it "urb->hcpriv" to be NULL not a freed value.
+Fix a fatal error in scripts/kernel-doc when a function signature uses
+__init_or_module (just ignore that string):
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg KH <greg@kroah.com>
+Error(drivers/base/platform.c:568): cannot understand prototype: 'struct platform_device * __init_or_module platform_create_bundle(struct platform_driver *driver, int (*probe)(struct platform_device *), struct resource *res, unsigned int n_res, const void *data, size_t size) '
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/musb_host.c |    1 +
+ scripts/kernel-doc |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/musb/musb_host.c~musb-potential-use-after-free drivers/usb/musb/musb_host.c
---- a/drivers/usb/musb/musb_host.c~musb-potential-use-after-free
-+++ a/drivers/usb/musb/musb_host.c
-@@ -2042,6 +2042,7 @@ static int musb_urb_enqueue(
- 		 * odd, rare, error prone, but legal.
- 		 */
- 		kfree(qh);
-+		qh = NULL;
- 		ret = 0;
- 	} else
- 		ret = musb_schedule(musb, qh,
+diff -puN scripts/kernel-doc~scripts-kernel-doc-fix-fatal-error-on-function-prototype scripts/kernel-doc
+--- a/scripts/kernel-doc~scripts-kernel-doc-fix-fatal-error-on-function-prototype
++++ a/scripts/kernel-doc
+@@ -1730,6 +1730,7 @@ sub dump_function($$) {
+     $prototype =~ s/^noinline +//;
+     $prototype =~ s/__devinit +//;
+     $prototype =~ s/__init +//;
++    $prototype =~ s/__init_or_module +//;
+     $prototype =~ s/^#\s*define\s+//; #ak added
+     $prototype =~ s/__attribute__\s*\(\([a-z,]*\)\)//;
+ 
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-memcontrol-fix-potential-null-deref.patch
-rtc-mc13783-fix-use-after-free-bug.patch
+scripts-kernel-doc-handle-struct-member-__aligned.patch
+documentation-rename-pci-pci-dma-mappingtxt-to-dma-api-howtotxt.patch
+scripts-kernel-doc-fix-fatal-error-on-function-prototype.patch
 linux-next.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-em28xx-empia-em28xx-audio-too-long.patch
-cx231xx-card-driver-conexant-cx231xx-audio-too-long.patch
-dpt_i20-several-use-after-free-issues.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-i915-fix-small-leak-on-error-path.patch
-backlight-backlight_device_register-return-err_ptr.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-musb-potential-use-after-free.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-proc-cleanup-remove-unused-assignments.patch
+vmwgfx-depends-on-fb-to-fix-build-errors.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
