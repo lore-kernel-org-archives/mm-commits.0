@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:10:17 -0400
-Message-ID: <201003230611.o2N6B8g5017522@imap1.linux-foundation.org>
+Subject: + exit-__exit_signal-use-thread_group_leader-consistently.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:10:14 -0400
+Message-ID: <201003230611.o2N6B6XH017514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753528Ab0CWGLZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753528Ab0CWGLW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:11:25 -0400
+	Tue, 23 Mar 2010 02:11:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, balbir@linux.vnet.ibm.com, roland@redhat.com, sgruszka@redh
 
 
 The patch titled
-     kill the obsolete thread_group_cputime_free() helper
+     exit: __exit_signal: use thread_group_leader() consistently
 has been added to the -mm tree.  Its filename is
-     kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+     exit-__exit_signal-use-thread_group_leader-consistently.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill the obsolete thread_group_cputime_free() helper
+Subject: exit: __exit_signal: use thread_group_leader() consistently
 From: Oleg Nesterov <oleg@redhat.com>
 
-Kill the empty thread_group_cputime_free() helper.  It was needed to free
-the per-cpu data which we no longer have.
+Cleanup:
+
+- Add the boolean, group_dead = thread_group_leader(), for clarity.
+
+- Do not test/set sig == NULL to detect the all-dead case, use this
+  boolean.
+
+- Pass this boolen to __unhash_process() and use it instead of another
+  thread_group_leader() call which needs ->group_leader.
+
+  This can be considered as microoptimization, but hopefully this also
+  allows us do do other cleanups later.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -48,35 +58,64 @@ Cc: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ----
- kernel/fork.c         |    1 -
- 2 files changed, 5 deletions(-)
+ kernel/exit.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/sched.h~kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers include/linux/sched.h
---- a/include/linux/sched.h~kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers
-+++ a/include/linux/sched.h
-@@ -2398,10 +2398,6 @@ static inline void thread_group_cputime_
- 	spin_lock_init(&sig->cputimer.lock);
- }
+diff -puN kernel/exit.c~exit-__exit_signal-use-thread_group_leader-consistently kernel/exit.c
+--- a/kernel/exit.c~exit-__exit_signal-use-thread_group_leader-consistently
++++ a/kernel/exit.c
+@@ -59,11 +59,11 @@
  
--static inline void thread_group_cputime_free(struct signal_struct *sig)
--{
--}
--
- /*
-  * Reevaluate whether the task has signals pending delivery.
-  * Wake the task if so.
-diff -puN kernel/fork.c~kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers kernel/fork.c
---- a/kernel/fork.c~kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers
-+++ a/kernel/fork.c
-@@ -167,7 +167,6 @@ EXPORT_SYMBOL(free_task);
+ static void exit_mm(struct task_struct * tsk);
  
- static inline void free_signal_struct(struct signal_struct *sig)
+-static void __unhash_process(struct task_struct *p)
++static void __unhash_process(struct task_struct *p, bool group_dead)
  {
--	thread_group_cputime_free(sig);
- 	kmem_cache_free(signal_cachep, sig);
- }
+ 	nr_threads--;
+ 	detach_pid(p, PIDTYPE_PID);
+-	if (thread_group_leader(p)) {
++	if (group_dead) {
+ 		detach_pid(p, PIDTYPE_PGID);
+ 		detach_pid(p, PIDTYPE_SID);
  
+@@ -80,6 +80,7 @@ static void __unhash_process(struct task
+ static void __exit_signal(struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig = tsk->signal;
++	bool group_dead = thread_group_leader(tsk);
+ 	struct sighand_struct *sighand;
+ 	struct tty_struct *tty;
+ 
+@@ -93,7 +94,7 @@ static void __exit_signal(struct task_st
+ 	atomic_dec(&sig->count);
+ 
+ 	posix_cpu_timers_exit(tsk);
+-	if (thread_group_leader(tsk)) {
++	if (group_dead) {
+ 		posix_cpu_timers_exit_group(tsk);
+ 		tty = sig->tty;
+ 		sig->tty = NULL;
+@@ -128,10 +129,9 @@ static void __exit_signal(struct task_st
+ 		sig->oublock += task_io_get_oublock(tsk);
+ 		task_io_accounting_add(&sig->ioac, &tsk->ioac);
+ 		sig->sum_sched_runtime += tsk->se.sum_exec_runtime;
+-		sig = NULL; /* Marker for below. */
+ 	}
+ 
+-	__unhash_process(tsk);
++	__unhash_process(tsk, group_dead);
+ 
+ 	/*
+ 	 * Do this under ->siglock, we can race with another thread
+@@ -143,7 +143,7 @@ static void __exit_signal(struct task_st
+ 
+ 	__cleanup_sighand(sighand);
+ 	clear_tsk_thread_flag(tsk,TIF_SIGPENDING);
+-	if (sig) {
++	if (group_dead) {
+ 		flush_sigqueue(&sig->shared_pending);
+ 		taskstats_tgid_free(sig);
+ 		tty_kref_put(tty);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
