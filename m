@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt6655-cgi-csi-confusion-in-device_ioctl.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:48:44 -0400
-Message-ID: <201003230649.o2N6nZp7019074@imap1.linux-foundation.org>
+Subject: + kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:51:07 -0400
+Message-ID: <201003230651.o2N6pwHG019199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752526Ab0CWGti (ORCPT
+	by vger.kernel.org with ESMTP id S1752526Ab0CWGwe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:49:38 -0400
+	Tue, 23 Mar 2010 02:52:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, greg@kroah.com
+Cc: andi@ahash.de, greg@kroah.com
 
 
 The patch titled
-     vt6655: CGI/CSI confusion in device_ioctl()
+     kaweth: new USB ID 07c9:b010 Allied Telesyn AT-USB10
 has been added to the -mm tree.  Its filename is
-     vt6655-cgi-csi-confusion-in-device_ioctl.patch
+     kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt6655: CGI/CSI confusion in device_ioctl()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: kaweth: new USB ID 07c9:b010 Allied Telesyn AT-USB10
+From: Andreas Hartmann <andi@ahash.de>
 
-The wrong messages were printed.
+New USB ID 07c9:b010 Allied Telesyn AT-USB10.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Andreas Hartmann <andi@ahash.de>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/vt6655/device_main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/usb/kaweth.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/vt6655/device_main.c~vt6655-cgi-csi-confusion-in-device_ioctl drivers/staging/vt6655/device_main.c
---- a/drivers/staging/vt6655/device_main.c~vt6655-cgi-csi-confusion-in-device_ioctl
-+++ a/drivers/staging/vt6655/device_main.c
-@@ -3327,7 +3327,7 @@ static int  device_ioctl(struct net_devi
- 		break;
- 
- 	case SIOCSIWTXPOW:
--        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWTXPOW \n");
-+        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWTXPOW \n");
-         rc = -EOPNOTSUPP;
- 		break;
- 
-@@ -3405,7 +3405,7 @@ static int  device_ioctl(struct net_devi
- 		// Get the spy list
- 	case SIOCGIWSPY:
- 
--        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWSPY \n");
-+        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWSPY \n");
- 		rc = -EOPNOTSUPP;
- 		break;
- 
+diff -puN drivers/net/usb/kaweth.c~kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10 drivers/net/usb/kaweth.c
+--- a/drivers/net/usb/kaweth.c~kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10
++++ a/drivers/net/usb/kaweth.c
+@@ -145,6 +145,7 @@ static struct usb_device_id usb_klsi_tab
+ 	{ USB_DEVICE(0x0707, 0x0100) }, /* SMC 2202USB */
+ 	{ USB_DEVICE(0x07aa, 0x0001) }, /* Correga K.K. */
+ 	{ USB_DEVICE(0x07b8, 0x4000) }, /* D-Link DU-E10 */
++	{ USB_DEVICE(0x07c9, 0xb010) }, /* Allied Telesyn AT-USB10 */
+ 	{ USB_DEVICE(0x0846, 0x1001) }, /* NetGear EA-101 */
+ 	{ USB_DEVICE(0x0846, 0x1002) }, /* NetGear EA-101 */
+ 	{ USB_DEVICE(0x085a, 0x0008) }, /* PortGear Ethernet Adapter */
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from andi@ahash.de are
 
-linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-serial-two-branches-the-same-in-timbuart_set_mctrl.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
-vt6655-cgi-csi-confusion-in-device_ioctl.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch
 
