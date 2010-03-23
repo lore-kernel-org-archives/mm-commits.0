@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-loader-use-statically-initialized-data-attribute-fix.patch added to -mm tree
-Date: Tue, 23 Mar 2010 14:10:53 -0700
-Message-ID: <201003232137.o2NLbUDI027438@imap1.linux-foundation.org>
+Subject: + serial-add-driver-for-the-altera-uart-unbork.patch added to -mm tree
+Date: Tue, 23 Mar 2010 14:29:06 -0700
+Message-ID: <201003232155.o2NLthhr028171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752899Ab0CWViF (ORCPT
+	by vger.kernel.org with ESMTP id S1754462Ab0CWVzz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 17:38:05 -0400
+	Tue, 23 Mar 2010 17:55:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, dtor@mail.ru, greg@kroah.com, peterz@infradead.org, tglx@linutronix.de, w.sang@pengutronix.de
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, tklauser@distanz.ch
 
 
 The patch titled
-     firmware-loader-use-statically-initialized-data-attribute-fix
+     serial-add-driver-for-the-altera-uart-unbork
 has been added to the -mm tree.  Its filename is
-     firmware-loader-use-statically-initialized-data-attribute-fix.patch
+     serial-add-driver-for-the-altera-uart-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware-loader-use-statically-initialized-data-attribute-fix
+Subject: serial-add-driver-for-the-altera-uart-unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This file got fiddled with in linux-next.  Is this patch still needed/correct?
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Greg KH <greg@kroah.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Tobias Klauser <tklauser@distanz.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/altera_uart.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix
-+++ a/drivers/base/firmware_class.c
-@@ -441,7 +441,7 @@ static int fw_setup_device(struct firmwa
- 	fw_priv = dev_get_drvdata(f_dev);
+diff -puN drivers/serial/altera_uart.c~serial-add-driver-for-the-altera-uart-unbork drivers/serial/altera_uart.c
+--- a/drivers/serial/altera_uart.c~serial-add-driver-for-the-altera-uart-unbork
++++ a/drivers/serial/altera_uart.c
+@@ -97,8 +97,8 @@ static unsigned int altera_uart_get_mctr
+ 	    (readl(port->membase + ALTERA_UART_STATUS_REG) &
+ 	     ALTERA_UART_STATUS_CTS_MSK) ? TIOCM_CTS : 0;
+ 	sigs |= (pp->sigs & TIOCM_RTS);
+-	sigs |= (altera_uart_getppdcd(port->line) ? TIOCM_CD : 0);
+-	sigs |= (altera_uart_getppdtr(port->line) ? TIOCM_DTR : 0);
++//	sigs |= (altera_uart_getppdcd(port->line) ? TIOCM_CD : 0);
++//	sigs |= (altera_uart_getppdtr(port->line) ? TIOCM_DTR : 0);
+ 	spin_unlock_irqrestore(&port->lock, flags);
  
- 	fw_priv->fw = fw;
--	sysfs_bin_attr_init(&fw_priv->attr_data);
-+	sysfs_bin_attr_init(&firmware_attr_data);
- 	retval = sysfs_create_bin_file(&f_dev->kobj, &firmware_attr_data);
- 	if (retval) {
- 		dev_err(device, "%s: sysfs_create_bin_file failed\n", __func__);
+ 	return sigs;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +83,7 @@ of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
 led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
 3x59x-fix-pci-resource-management.patch
+serial-add-driver-for-the-altera-uart-unbork.patch
 iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 firmware-loader-use-statically-initialized-data-attribute-fix.patch
