@@ -1,68 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch removed from -mm tree
-Date: Tue, 23 Mar 2010 12:01:57 -0400
-Message-ID: <201003231902.o2NJ2n2b020112@imap1.linux-foundation.org>
+Subject: [merged] vmwgfx-depends-on-fb-to-fix-build-errors.patch removed from -mm tree
+Date: Tue, 23 Mar 2010 12:01:54 -0400
+Message-ID: <201003231902.o2NJ2kVk020109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753406Ab0CWTDx (ORCPT
+	by vger.kernel.org with ESMTP id S1753831Ab0CWTFX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 15:03:53 -0400
+	Tue, 23 Mar 2010 15:05:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, airlied@linux.ie, jakob@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/i915/intel_bios.c: fix continuation line formats
+     vmwgfx: depends on FB to fix build errors
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats.patch
+     vmwgfx-depends-on-fb-to-fix-build-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/intel_bios.c: fix continuation line formats
-From: Joe Perches <joe@perches.com>
+Subject: vmwgfx: depends on FB to fix build errors
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-String constants that are continued on subsequent lines with \ will cause
-spurious whitespace in the resulting output.
+vmwfgx uses framebuffer interfaces, so it should depend on FB.  Otherwise
+it has these build errors (e.g., when CONFIG_FB=m):
 
-Signed-off-by: Joe Perches <joe@perches.com>
+drivers/built-in.o: In function `vmw_fb_close':
+(.text+0x97713): undefined reference to `unregister_framebuffer'
+drivers/built-in.o: In function `vmw_fb_close':
+(.text+0x97754): undefined reference to `framebuffer_release'
+drivers/built-in.o: In function `vmw_fb_init':
+(.text+0x97e1c): undefined reference to `framebuffer_alloc'
+drivers/built-in.o: In function `vmw_fb_init':
+(.text+0x9838d): undefined reference to `register_framebuffer'
+drivers/built-in.o: In function `vmw_fb_init':
+(.text+0x9842a): undefined reference to `framebuffer_release'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Jakob Bornecrantz <jakob@vmware.com>
 Cc: Dave Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_bios.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/vmwgfx/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_bios.c~drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats drivers/gpu/drm/i915/intel_bios.c
---- a/drivers/gpu/drm/i915/intel_bios.c~drivers-gpu-drm-i915-intel_biosc-fix-continuation-line-formats
-+++ a/drivers/gpu/drm/i915/intel_bios.c
-@@ -417,8 +417,7 @@ parse_edp(struct drm_i915_private *dev_p
- 	edp = find_section(bdb, BDB_EDP);
- 	if (!edp) {
- 		if (SUPPORTS_EDP(dev_priv->dev) && dev_priv->edp_support) {
--			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported,\
--				       assume 18bpp panel color depth.\n");
-+			DRM_DEBUG_KMS("No eDP BDB found but eDP panel supported, assume 18bpp panel color depth.\n");
- 			dev_priv->edp_bpp = 18;
- 		}
- 		return;
+diff -puN drivers/gpu/drm/vmwgfx/Kconfig~vmwgfx-depends-on-fb-to-fix-build-errors drivers/gpu/drm/vmwgfx/Kconfig
+--- a/drivers/gpu/drm/vmwgfx/Kconfig~vmwgfx-depends-on-fb-to-fix-build-errors
++++ a/drivers/gpu/drm/vmwgfx/Kconfig
+@@ -1,6 +1,6 @@
+ config DRM_VMWGFX
+ 	tristate "DRM driver for VMware Virtual GPU"
+-	depends on DRM && PCI
++	depends on DRM && PCI && FB
+ 	select FB_DEFERRED_IO
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-get_maintainer-repair-stdin-usage.patch
-maintainers-use-tab-not-spaces-for-delimiter.patch
+scripts-kernel-doc-handle-struct-member-__aligned.patch
+documentation-rename-pci-pci-dma-mappingtxt-to-dma-api-howtotxt.patch
+scripts-kernel-doc-fix-fatal-error-on-function-prototype.patch
 linux-next.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-vsprintfc-use-noinline_for_stack.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
