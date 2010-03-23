@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-get_nr_threads-doesnt-need-siglock-any-longer.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:39:30 -0400
-Message-ID: <201003230640.o2N6eMZ0018693@imap1.linux-foundation.org>
+Subject: + proc-make-collect_sigign_sigcatch-rcu-safe.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:39:33 -0400
+Message-ID: <201003230640.o2N6eP7Q018696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752826Ab0CWGlC (ORCPT
+	by vger.kernel.org with ESMTP id S1754088Ab0CWGlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:41:02 -0400
+	Tue, 23 Mar 2010 02:41:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, adobriyan@gmail.com, dhowells@redhat.com, ebiederm@xmission
 
 
 The patch titled
-     proc: get_nr_threads() doesn't need ->siglock any longer
+     proc: make collect_sigign_sigcatch() rcu-safe
 has been added to the -mm tree.  Its filename is
-     proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+     proc-make-collect_sigign_sigcatch-rcu-safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: get_nr_threads() doesn't need ->siglock any longer
+Subject: proc: make collect_sigign_sigcatch() rcu-safe
 From: Oleg Nesterov <oleg@redhat.com>
 
-Now that task->signal can't go away get_nr_threads() doesn't need
-->siglock to read signal->count.
+Make collect_sigign_sigcatch() rcu-safe.  The necessary changes are
+simple, use rcu_dereference() to get ->sighand and check it is not NULL.
 
-Also, make it inline, move into sched.h, and convert 2 other proc users of
-signal->count to use this (now trivial) helper.
-
-Henceforth get_nr_threads() is the only valid user of signal->count, we
-are ready to turn it into "int nr_threads" or, perhaps, kill it.
+In theory, this ->sighand can be re-used under us (but it can't go away). 
+We could check task->sighand == sighand once again after the main loop to
+prevent the race with exit/exec, but I don't think this is really needed
+for fs/proc.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -54,69 +53,32 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c       |    4 ++--
- fs/proc/base.c        |   12 ------------
- include/linux/sched.h |    5 +++++
- 3 files changed, 7 insertions(+), 14 deletions(-)
+ fs/proc/array.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~proc-get_nr_threads-doesnt-need-siglock-any-longer fs/proc/array.c
---- a/fs/proc/array.c~proc-get_nr_threads-doesnt-need-siglock-any-longer
+diff -puN fs/proc/array.c~proc-make-collect_sigign_sigcatch-rcu-safe fs/proc/array.c
+--- a/fs/proc/array.c~proc-make-collect_sigign_sigcatch-rcu-safe
 +++ a/fs/proc/array.c
-@@ -269,7 +269,7 @@ static inline void task_sig(struct seq_f
- 		shpending = p->signal->shared_pending.signal;
- 		blocked = p->blocked;
- 		collect_sigign_sigcatch(p, &ignored, &caught);
--		num_threads = atomic_read(&p->signal->count);
-+		num_threads = get_nr_threads(p);
- 		rcu_read_lock();  /* FIXME: is this correct? */
- 		qsize = atomic_read(&__task_cred(p)->user->sigpending);
- 		rcu_read_unlock();
-@@ -412,7 +412,7 @@ static int do_task_stat(struct seq_file 
- 			tty_nr = new_encode_dev(tty_devnum(sig->tty));
- 		}
- 
--		num_threads = atomic_read(&sig->count);
-+		num_threads = get_nr_threads(task);
- 		collect_sigign_sigcatch(task, &sigign, &sigcatch);
- 
- 		cmin_flt = sig->cmin_flt;
-diff -puN fs/proc/base.c~proc-get_nr_threads-doesnt-need-siglock-any-longer fs/proc/base.c
---- a/fs/proc/base.c~proc-get_nr_threads-doesnt-need-siglock-any-longer
-+++ a/fs/proc/base.c
-@@ -166,18 +166,6 @@ static int get_fs_path(struct task_struc
- 	return result;
+@@ -235,13 +235,18 @@ static void render_sigset_t(struct seq_f
+ 	seq_printf(m, "\n");
  }
  
--static int get_nr_threads(struct task_struct *tsk)
--{
--	unsigned long flags;
--	int count = 0;
--
--	if (lock_task_sighand(tsk, &flags)) {
--		count = atomic_read(&tsk->signal->count);
--		unlock_task_sighand(tsk, &flags);
--	}
--	return count;
--}
--
- static int proc_cwd_link(struct inode *inode, struct path *path)
++/* needs ->siglock or rcu_read_lock() */
+ static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
+ 				    sigset_t *catch)
  {
- 	struct task_struct *task = get_proc_task(inode);
-diff -puN include/linux/sched.h~proc-get_nr_threads-doesnt-need-siglock-any-longer include/linux/sched.h
---- a/include/linux/sched.h~proc-get_nr_threads-doesnt-need-siglock-any-longer
-+++ a/include/linux/sched.h
-@@ -2152,6 +2152,11 @@ extern bool current_is_single_threaded(v
- #define while_each_thread(g, t) \
- 	while ((t = next_thread(t)) != g)
++	struct sighand_struct *sighand = rcu_dereference(p->sighand);
+ 	struct k_sigaction *k;
+ 	int i;
  
-+static inline int get_nr_threads(struct task_struct *tsk)
-+{
-+	return atomic_read(&tsk->signal->count);
-+}
+-	k = p->sighand->action;
++	if (unlikely(!sighand))
++		return;
 +
- /* de_thread depends on thread_group_leader not being a pid based check */
- #define thread_group_leader(p)	(p == p->group_leader)
- 
++	k = sighand->action;
+ 	for (i = 1; i <= _NSIG; ++i, ++k) {
+ 		if (k->sa.sa_handler == SIG_IGN)
+ 			sigaddset(ign, i);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
