@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-8250_pnp-add-fujitsu-wacom-device.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:40:54 -0400
-Message-ID: <201003230641.o2N6fjED018809@imap1.linux-foundation.org>
+Subject: + bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:48:04 -0400
+Message-ID: <201003230648.o2N6mt2X019062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754138Ab0CWGmS (ORCPT
+	by vger.kernel.org with ESMTP id S1754088Ab0CWGtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:42:18 -0400
+	Tue, 23 Mar 2010 02:49:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pingc@wacom.com, greg@kroah.com, stable@kernel.org
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, huangj@Brocade.COM
 
 
 The patch titled
-     serial: 8250_pnp: add Fujitsu Wacom device
+     bfa: wrong fcport H2I message tested in bfa_fcport_isr()
 has been added to the -mm tree.  Its filename is
-     serial-8250_pnp-add-fujitsu-wacom-device.patch
+     bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: 8250_pnp: add Fujitsu Wacom device
-From: Ping Cheng <pingc@wacom.com>
+Subject: bfa: wrong fcport H2I message tested in bfa_fcport_isr()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Add Fujitsu Wacom 1FGT Tablet PC device
+It appears that the wrong fcport H2I message was tested
 
-Signed-off-by: Ping Cheng <pingc@wacom.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Jing Huang <huangj@Brocade.COM>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/scsi/bfa/bfa_fcport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pnp.c~serial-8250_pnp-add-fujitsu-wacom-device drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~serial-8250_pnp-add-fujitsu-wacom-device
-+++ a/drivers/serial/8250_pnp.c
-@@ -348,6 +348,8 @@ static const struct pnp_device_id pnp_de
- 	{	"FUJ02E6",		0	},
- 	/* Fujitsu Wacom 2FGT Tablet PC device */
- 	{	"FUJ02E7",		0	},
-+	/* Fujitsu Wacom 1FGT Tablet PC device */
-+	{	"FUJ02E9",		0	},
- 	/*
- 	 * LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in
- 	 * disguise)
+diff -puN drivers/scsi/bfa/bfa_fcport.c~bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr drivers/scsi/bfa/bfa_fcport.c
+--- a/drivers/scsi/bfa/bfa_fcport.c~bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr
++++ a/drivers/scsi/bfa/bfa_fcport.c
+@@ -1281,7 +1281,7 @@ bfa_fcport_isr(struct bfa_s *bfa, struct
+ 		break;
+ 
+ 	case BFI_FCPORT_I2H_DISABLE_RSP:
+-		if (fcport->msgtag == i2hmsg.penable_rsp->msgtag)
++		if (fcport->msgtag == i2hmsg.pdisable_rsp->msgtag)
+ 			bfa_sm_send_event(fcport, BFA_FCPORT_SM_FWRSP);
+ 		break;
+ 
 _
 
-Patches currently in -mm which might be from pingc@wacom.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-serial-8250_pnp-add-fujitsu-wacom-device.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+serial-two-branches-the-same-in-timbuart_set_mctrl.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 
