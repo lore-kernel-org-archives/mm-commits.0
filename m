@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-avoid-null-dereference.patch added to -mm tree
-Date: Mon, 22 Mar 2010 23:14:48 -0400
-Message-ID: <201003230615.o2N6FeGk017708@imap1.linux-foundation.org>
+Subject: + iio-iio_get_new_idr_val-return-negative-value-on-failure.patch added to -mm tree
+Date: Mon, 22 Mar 2010 23:20:23 -0400
+Message-ID: <201003230621.o2N6LE63017993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754524Ab0CWGQA (ORCPT
+	by vger.kernel.org with ESMTP id S1750824Ab0CWGVW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:16:00 -0400
+	Tue, 23 Mar 2010 02:21:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, laurent.pinchart@ideasonboard.com, mchehab@infradead.org, mmcclell@bigfoot.com
+Cc: sonic.adi@gmail.com, greg@kroah.com, jic23@cam.ac.uk
 
 
 The patch titled
-     drivers/media/video: avoid NULL dereference
+     iio: iio_get_new_idr_val() return negative value on failure
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-avoid-null-dereference.patch
+     iio-iio_get_new_idr_val-return-negative-value-on-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video: avoid NULL dereference
-From: Julia Lawall <julia@diku.dk>
+Subject: iio: iio_get_new_idr_val() return negative value on failure
+From: sonic zhang <sonic.adi@gmail.com>
 
-If ov is NULL, it will not be possible to take the lock in the first place,
-so move the test up earlier.
+Function iio_get_new_idr_val() returns a negative value if it fails.  So,
+only error when ret < 0 in iio_device_register_eventset().
 
-The semantic match that finds the problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r exists@
-expression E, E1;
-identifier f;
-statement S1,S3;
-iterator iter;
-@@
-
-if ((E == NULL && ...) || ...)
-{
-  ... when != false ((E == NULL && ...) || ...)
-      when != true  ((E != NULL && ...) || ...)
-      when != iter(E,...) S1
-      when != E = E1
-(
-  sizeof(E->f)
-|
-* E->f
-)
-  ... when any
-  return ...;
-}
-else S3
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mark McClelland <mmcclell@bigfoot.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sonic Zhang <sonic.adi@gmail.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ov511.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/staging/iio/industrialio-core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/ov511.c~drivers-media-video-avoid-null-dereference drivers/media/video/ov511.c
---- a/drivers/media/video/ov511.c~drivers-media-video-avoid-null-dereference
-+++ a/drivers/media/video/ov511.c
-@@ -5913,14 +5913,12 @@ ov51x_disconnect(struct usb_interface *i
+diff -puN drivers/staging/iio/industrialio-core.c~iio-iio_get_new_idr_val-return-negative-value-on-failure drivers/staging/iio/industrialio-core.c
+--- a/drivers/staging/iio/industrialio-core.c~iio-iio_get_new_idr_val-return-negative-value-on-failure
++++ a/drivers/staging/iio/industrialio-core.c
+@@ -536,6 +536,7 @@ static void iio_device_unregister_sysfs(
+ 	sysfs_remove_group(&dev_info->dev.kobj, dev_info->attrs);
+ }
  
- 	PDEBUG(3, "");
- 
-+	if (!ov)
-+		return;
-+
- 	mutex_lock(&ov->lock);
- 	usb_set_intfdata (intf, NULL);
- 
--	if (!ov) {
--		mutex_unlock(&ov->lock);
--		return;
--	}
++/* This function return negative value if fails. */
+ int iio_get_new_idr_val(struct idr *this_idr)
+ {
+ 	int ret;
+@@ -659,7 +660,7 @@ static int iio_device_register_eventset(
+ 	for (i = 0; i < dev_info->num_interrupt_lines; i++) {
+ 		dev_info->event_interfaces[i].owner = dev_info->driver_module;
+ 		ret = iio_get_new_idr_val(&iio_event_idr);
+-		if (ret)
++		if (ret < 0)
+ 			goto error_free_setup_ev_ints;
+ 		else
+ 			dev_info->event_interfaces[i].id = ret;
+_
+
+Patches currently in -mm which might be from sonic.adi@gmail.com are
+
+iio-iio_get_new_idr_val-return-negative-value-on-failure.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+
