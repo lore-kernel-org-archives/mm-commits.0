@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pci-dmar-combine-the-bios-dmar-table-warning-messages.patch added to -mm tree
-Date: Mon, 22 Mar 2010 22:50:12 -0400
-Message-ID: <201003230551.o2N5p3Sr016725@imap1.linux-foundation.org>
+Subject: + pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables.patch added to -mm tree
+Date: Mon, 22 Mar 2010 22:50:16 -0400
+Message-ID: <201003230551.o2N5p8lh016734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753930Ab0CWFve (ORCPT
+	by vger.kernel.org with ESMTP id S1753930Ab0CWFvh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Mar 2010 01:51:34 -0400
+	Tue, 23 Mar 2010 01:51:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ben@decadent.org.uk, David.Woodhouse@intel.com, arnd@arndb.de, benh@kernel.c
 
 
 The patch titled
-     pci/dmar: combine the BIOS DMAR table warning messages
+     pci/dmar: tone down warnings about invalid BIOS DMAR tables
 has been added to the -mm tree.  Its filename is
-     pci-dmar-combine-the-bios-dmar-table-warning-messages.patch
+     pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci/dmar: combine the BIOS DMAR table warning messages
+Subject: pci/dmar: tone down warnings about invalid BIOS DMAR tables
 From: Ben Hutchings <ben@decadent.org.uk>
 
-We have nearly the same code for warnings repeated four times.  Move
-it into a separate function.
+We now know how to deal with these tables so that they are harmless.  Use
+the TAINT_FIRMWARE_WORKAROUND flag and don't say the BIOS is 'broken' as
+this makes users think of hardware damage.
 
 Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 Cc: Helge Deller <deller@gmx.de>
@@ -55,95 +56,32 @@ Cc: David Woodhouse <David.Woodhouse@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c |   48 ++++++++++++-------------------------------
- 1 file changed, 14 insertions(+), 34 deletions(-)
+ drivers/pci/dmar.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pci/dmar.c~pci-dmar-combine-the-bios-dmar-table-warning-messages drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~pci-dmar-combine-the-bios-dmar-table-warning-messages
+diff -puN drivers/pci/dmar.c~pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables
 +++ a/drivers/pci/dmar.c
-@@ -613,7 +613,15 @@ int __init dmar_table_init(void)
- 	return 0;
+@@ -615,12 +615,13 @@ int __init dmar_table_init(void)
+ 
+ static void warn_invalid_dmar(u64 addr, const char *message)
+ {
+-	WARN_ONCE(1, "Your BIOS is broken; DMAR reported at address %llx%s!\n"
+-		  "BIOS vendor: %s; Ver: %s; Product Version: %s\n",
+-		  addr, message,
+-		  dmi_get_system_info(DMI_BIOS_VENDOR),
+-		  dmi_get_system_info(DMI_BIOS_VERSION),
+-		  dmi_get_system_info(DMI_PRODUCT_VERSION));
++	WARN_TAINT_ONCE(1, TAINT_FIRMWARE_WORKAROUND,
++			"BIOS bug: DMAR reported at address %llx%s!\n"
++			"BIOS vendor: %s; Ver: %s; Product Version: %s\n",
++			addr, message,
++			dmi_get_system_info(DMI_BIOS_VENDOR),
++			dmi_get_system_info(DMI_BIOS_VERSION),
++			dmi_get_system_info(DMI_PRODUCT_VERSION));
  }
  
--static int bios_warned;
-+static void warn_invalid_dmar(u64 addr, const char *message)
-+{
-+	WARN_ONCE(1, "Your BIOS is broken; DMAR reported at address %llx%s!\n"
-+		  "BIOS vendor: %s; Ver: %s; Product Version: %s\n",
-+		  addr, message,
-+		  dmi_get_system_info(DMI_BIOS_VENDOR),
-+		  dmi_get_system_info(DMI_BIOS_VERSION),
-+		  dmi_get_system_info(DMI_PRODUCT_VERSION));
-+}
- 
  int __init check_zero_address(void)
- {
-@@ -639,13 +647,7 @@ int __init check_zero_address(void)
- 
- 			drhd = (void *)entry_header;
- 			if (!drhd->address) {
--				/* Promote an attitude of violence to a BIOS engineer today */
--				WARN(1, "Your BIOS is broken; DMAR reported at address zero!\n"
--				     "BIOS vendor: %s; Ver: %s; Product Version: %s\n",
--				     dmi_get_system_info(DMI_BIOS_VENDOR),
--				     dmi_get_system_info(DMI_BIOS_VERSION),
--				     dmi_get_system_info(DMI_PRODUCT_VERSION));
--				bios_warned = 1;
-+				warn_invalid_dmar(0, "");
- 				goto failed;
- 			}
- 
-@@ -658,14 +660,8 @@ int __init check_zero_address(void)
- 			ecap = dmar_readq(addr + DMAR_ECAP_REG);
- 			early_iounmap(addr, VTD_PAGE_SIZE);
- 			if (cap == (uint64_t)-1 && ecap == (uint64_t)-1) {
--				/* Promote an attitude of violence to a BIOS engineer today */
--				WARN(1, "Your BIOS is broken; DMAR reported at address %llx returns all ones!\n"
--				     "BIOS vendor: %s; Ver: %s; Product Version: %s\n",
--				      drhd->address,
--				      dmi_get_system_info(DMI_BIOS_VENDOR),
--				      dmi_get_system_info(DMI_BIOS_VERSION),
--				      dmi_get_system_info(DMI_PRODUCT_VERSION));
--				bios_warned = 1;
-+				warn_invalid_dmar(drhd->address,
-+						  " returns all ones");
- 				goto failed;
- 			}
- 		}
-@@ -730,14 +726,7 @@ int alloc_iommu(struct dmar_drhd_unit *d
- 	int msagaw = 0;
- 
- 	if (!drhd->reg_base_addr) {
--		if (!bios_warned) {
--			WARN(1, "Your BIOS is broken; DMAR reported at address zero!\n"
--			     "BIOS vendor: %s; Ver: %s; Product Version: %s\n",
--			     dmi_get_system_info(DMI_BIOS_VENDOR),
--			     dmi_get_system_info(DMI_BIOS_VERSION),
--			     dmi_get_system_info(DMI_PRODUCT_VERSION));
--			bios_warned = 1;
--		}
-+		warn_invalid_dmar(0, "");
- 		return -EINVAL;
- 	}
- 
-@@ -757,16 +746,7 @@ int alloc_iommu(struct dmar_drhd_unit *d
- 	iommu->ecap = dmar_readq(iommu->reg + DMAR_ECAP_REG);
- 
- 	if (iommu->cap == (uint64_t)-1 && iommu->ecap == (uint64_t)-1) {
--		if (!bios_warned) {
--			/* Promote an attitude of violence to a BIOS engineer today */
--			WARN(1, "Your BIOS is broken; DMAR reported at address %llx returns all ones!\n"
--			     "BIOS vendor: %s; Ver: %s; Product Version: %s\n",
--			     drhd->reg_base_addr,
--			     dmi_get_system_info(DMI_BIOS_VENDOR),
--			     dmi_get_system_info(DMI_BIOS_VERSION),
--			     dmi_get_system_info(DMI_PRODUCT_VERSION));
--			bios_warned = 1;
--		}
-+		warn_invalid_dmar(drhd->reg_base_addr, " returns all ones");
- 		goto err_unmap;
- 	}
- 
 _
 
 Patches currently in -mm which might be from ben@decadent.org.uk are
