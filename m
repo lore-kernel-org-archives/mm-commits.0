@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-backlight_device_register-return-err_ptr.patch added to -mm tree
-Date: Mon, 22 Mar 2010 20:51:36 -0400
-Message-ID: <201003230352.o2N3qRbM012085@imap1.linux-foundation.org>
+Subject: + musb-potential-use-after-free.patch added to -mm tree
+Date: Mon, 22 Mar 2010 20:55:00 -0400
+Message-ID: <201003230355.o2N3tpNj012153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754358Ab0CWDwi (ORCPT
+	by vger.kernel.org with ESMTP id S1754319Ab0CWDz5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Mar 2010 23:52:38 -0400
+	Mon, 22 Mar 2010 23:55:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, rpurdie@rpsys.net
+Cc: error27@gmail.com, felipe.balbi@nokia.com, greg@kroah.com
 
 
 The patch titled
-     backlight: backlight_device_register() return ERR_PTR()
+     musb: potential use after free
 has been added to the -mm tree.  Its filename is
-     backlight-backlight_device_register-return-err_ptr.patch
+     musb-potential-use-after-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: backlight_device_register() return ERR_PTR()
+Subject: musb: potential use after free
 From: Dan Carpenter <error27@gmail.com>
 
-backlight_device_register() returns a valid pointer or ERR_PTR() never
-NULL.
+We assign "urb->hcpriv = qh;" a few lines down.  I'm pretty sure we want
+it "urb->hcpriv" to be NULL not a freed value.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adx_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/musb/musb_host.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/backlight/adx_bl.c~backlight-backlight_device_register-return-err_ptr drivers/video/backlight/adx_bl.c
---- a/drivers/video/backlight/adx_bl.c~backlight-backlight_device_register-return-err_ptr
-+++ a/drivers/video/backlight/adx_bl.c
-@@ -106,8 +106,8 @@ static int __devinit adx_backlight_probe
- 	props.max_brightness = 0xff;
- 	bldev = backlight_device_register(dev_name(&pdev->dev), &pdev->dev,
- 					  bl, &adx_backlight_ops, &props);
--	if (!bldev) {
--		ret = -ENOMEM;
-+	if (IS_ERR(bldev)) {
-+		ret = PTR_ERR(bldev);
- 		goto out;
- 	}
- 
+diff -puN drivers/usb/musb/musb_host.c~musb-potential-use-after-free drivers/usb/musb/musb_host.c
+--- a/drivers/usb/musb/musb_host.c~musb-potential-use-after-free
++++ a/drivers/usb/musb/musb_host.c
+@@ -2042,6 +2042,7 @@ static int musb_urb_enqueue(
+ 		 * odd, rare, error prone, but legal.
+ 		 */
+ 		kfree(qh);
++		qh = NULL;
+ 		ret = 0;
+ 	} else
+ 		ret = musb_schedule(musb, qh,
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
@@ -80,6 +78,7 @@ i915-fix-small-leak-on-error-path.patch
 backlight-backlight_device_register-return-err_ptr.patch
 scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
 iscsi-change-to.patch
+musb-potential-use-after-free.patch
 dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
 proc-cleanup-remove-unused-assignments.patch
 
