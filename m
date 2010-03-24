@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] em28xx-empia-em28xx-audio-too-long.patch removed from -mm tree
-Date: Wed, 24 Mar 2010 12:17:10 -0700
-Message-ID: <201003241917.o2OJHAgl021930@imap1.linux-foundation.org>
+Subject: + em28xx-empia-em28xx-audio-too-long.patch added to -mm tree
+Date: Wed, 24 Mar 2010 12:18:18 -0700
+Message-ID: <201003241918.o2OJIIAs021969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58538 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754933Ab0CXTRh (ORCPT
+	by vger.kernel.org with ESMTP id S932831Ab0CXTSw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Mar 2010 15:17:37 -0400
+	Wed, 24 Mar 2010 15:18:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, dougsland@redhat.com, mchehab@infradead.org, rob.krakora@messagenetsystems.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: error27@gmail.com, dougsland@redhat.com, mchehab@infradead.org, rob.krakora@messagenetsystems.com, tiwai@suse.de
 
 
 The patch titled
      em28xx: "Empia Em28xx Audio" too long
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      em28xx-empia-em28xx-audio-too-long.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -27,13 +37,14 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: em28xx: "Empia Em28xx Audio" too long
 From: Dan Carpenter <error27@gmail.com>
 
-card->driver is 15 characters and a NULL.  The original code
-goes past the end of the array.
+card->driver is 15 characters and a NULL.  The original code goes past the
+end of the array.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
 Cc: Robert Krakora <rob.krakora@messagenetsystems.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -48,7 +59,7 @@ diff -puN drivers/media/video/em28xx/em28xx-audio.c~em28xx-empia-em28xx-audio-to
  
  	snd_card_set_dev(card, &dev->udev->dev);
 -	strcpy(card->driver, "Empia Em28xx Audio");
-+	strcpy(card->driver, "Em28xx Audio");
++	strcpy(card->driver, "Em28xx-Audio");
  	strcpy(card->shortname, "Em28xx Audio");
  	strcpy(card->longname, "Empia Em28xx Audio");
  
