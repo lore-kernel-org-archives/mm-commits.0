@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc_sched_show_task-use-get_nr_threads.patch added to -mm tree
-Date: Wed, 24 Mar 2010 14:33:29 -0700
-Message-ID: <201003242133.o2OLXULE028296@imap1.linux-foundation.org>
+Subject: + keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch added to -mm tree
+Date: Wed, 24 Mar 2010 14:33:31 -0700
+Message-ID: <201003242133.o2OLXVkZ028299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899Ab0CXVeH (ORCPT
+	by vger.kernel.org with ESMTP id S1750899Ab0CXVeK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Mar 2010 17:34:07 -0400
+	Wed, 24 Mar 2010 17:34:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, dhowells@redhat.com, peterz@infradead.org, roland@redhat.co
 
 
 The patch titled
-     proc_sched_show_task(): use get_nr_threads()
+     keyctl_session_to_parent(): use thread_group_empty() to check singlethreadness
 has been added to the -mm tree.  Its filename is
-     proc_sched_show_task-use-get_nr_threads.patch
+     keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc_sched_show_task(): use get_nr_threads()
+Subject: keyctl_session_to_parent(): use thread_group_empty() to check singlethreadness
 From: Oleg Nesterov <oleg@redhat.com>
 
-Trivial, use get_nr_threads() helper to read signal->count which we are
-going to change.
+No functional changes.
 
-Like other callers, proc_sched_show_task() doesn't need the exactly
-precise nr_threads.
-
-David said:
-
-: Note that get_nr_threads() isn't completely equivalent (it can return 0
-: where proc_sched_show_task() will display a 1).  But I don't think this
-: should be a problem.
+keyctl_session_to_parent() is the only user of signal->count which needs
+the correct value.  Change it to use thread_group_empty() instead, this
+must be strictly equivalent under tasklist, and imho looks better.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: David Howells <dhowells@redhat.com>
@@ -56,30 +50,21 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_debug.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ security/keys/keyctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched_debug.c~proc_sched_show_task-use-get_nr_threads kernel/sched_debug.c
---- a/kernel/sched_debug.c~proc_sched_show_task-use-get_nr_threads
-+++ a/kernel/sched_debug.c
-@@ -384,15 +384,9 @@ __initcall(init_sched_debug_procfs);
- void proc_sched_show_task(struct task_struct *p, struct seq_file *m)
- {
- 	unsigned long nr_switches;
--	unsigned long flags;
--	int num_threads = 1;
+diff -puN security/keys/keyctl.c~keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness security/keys/keyctl.c
+--- a/security/keys/keyctl.c~keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness
++++ a/security/keys/keyctl.c
+@@ -1269,7 +1269,7 @@ long keyctl_session_to_parent(void)
+ 		goto not_permitted;
  
--	if (lock_task_sighand(p, &flags)) {
--		num_threads = atomic_read(&p->signal->count);
--		unlock_task_sighand(p, &flags);
--	}
--
--	SEQ_printf(m, "%s (%d, #threads: %d)\n", p->comm, p->pid, num_threads);
-+	SEQ_printf(m, "%s (%d, #threads: %d)\n", p->comm, p->pid,
-+						get_nr_threads(p));
- 	SEQ_printf(m,
- 		"---------------------------------------------------------\n");
- #define __P(F) \
+ 	/* the parent must be single threaded */
+-	if (atomic_read(&parent->signal->count) != 1)
++	if (!thread_group_empty(parent))
+ 		goto not_permitted;
+ 
+ 	/* the parent and the child must have different session keyrings or
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
