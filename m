@@ -1,48 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] headerdep-perlcritic-warning.patch removed from -mm tree
-Date: Wed, 24 Mar 2010 10:50:51 -0400
-Message-ID: <201003241751.o2OHpk2C015480@imap1.linux-foundation.org>
+Subject: [merged] acpi-acpica-do-not-check-reference-counters-in-acpi_ev_enable_gpe.patch removed from -mm tree
+Date: Wed, 24 Mar 2010 10:51:45 -0400
+Message-ID: <201003241752.o2OHqeow015521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752784Ab0CXRwb (ORCPT
+	by vger.kernel.org with ESMTP id S1756642Ab0CXRxj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Mar 2010 13:52:31 -0400
+	Wed, 24 Mar 2010 13:53:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@vyatta.com, amwang@redhat.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org, mjg59@srcf.ucam.org, robert.moore@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     headerdep: perlcritic warning
+     acpi/acpica: do not check reference counters in acpi_ev_enable_gpe()
 has been removed from the -mm tree.  Its filename was
-     headerdep-perlcritic-warning.patch
+     acpi-acpica-do-not-check-reference-counters-in-acpi_ev_enable_gpe.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: headerdep: perlcritic warning
-From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: acpi/acpica: do not check reference counters in acpi_ev_enable_gpe()
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Minor perlcritic warning:
-headerdep.pl: "return" statement with explicit "undef" at line 84, column 2.  See page 199 of PBP.  (Severity: 5)
+acpi_ev_enable_gpe() should enable the GPE at the hardware level
+regardless of the value of the GPE's runtime reference counter.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: WANG Cong <amwang@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>
+There are only two callers of acpi_ev_enable_gpe(), acpi_enable_gpe() and
+acpi_set_gpe().  The first one checks the GPE's runtime reference counter
+itself and only calls acpi_ev_enable_gpe() if it's equal to one, and the
+other one is supposed to enable the GPE unconditionally (if called with
+ACPI_GPE_ENABLE).
+
+This change fixes the problem in acpi_enable_wakeup_device() where the GPE
+will not be enabled for wakeup if it's runtime reference counter is zero,
+which is a regression from 2.6.33.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Robert Moore <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headerdep.pl |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/acpi/acpica/evgpe.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN scripts/headerdep.pl~headerdep-perlcritic-warning scripts/headerdep.pl
---- a/scripts/headerdep.pl~headerdep-perlcritic-warning
-+++ a/scripts/headerdep.pl
-@@ -80,8 +80,7 @@ sub search {
- 		my $path = "$i/$filename";
- 		return $path if -f $path;
- 	}
+diff -puN drivers/acpi/acpica/evgpe.c~acpi-acpica-do-not-check-reference-counters-in-acpi_ev_enable_gpe drivers/acpi/acpica/evgpe.c
+--- a/drivers/acpi/acpica/evgpe.c~acpi-acpica-do-not-check-reference-counters-in-acpi_ev_enable_gpe
++++ a/drivers/acpi/acpica/evgpe.c
+@@ -117,19 +117,14 @@ acpi_status acpi_ev_enable_gpe(struct ac
+ 	if (ACPI_FAILURE(status))
+ 		return_ACPI_STATUS(status);
+ 
+-	/* Mark wake-enabled or HW enable, or both */
+-
+-	if (gpe_event_info->runtime_count) {
+-		/* Clear the GPE (of stale events), then enable it */
+-		status = acpi_hw_clear_gpe(gpe_event_info);
+-		if (ACPI_FAILURE(status))
+-			return_ACPI_STATUS(status);
