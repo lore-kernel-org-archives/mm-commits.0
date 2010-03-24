@@ -1,72 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kconfig-recalculate-symbol-value-before-showing-search-results.patch removed from -mm tree
-Date: Wed, 24 Mar 2010 10:51:49 -0400
-Message-ID: <201003241752.o2OHqi1m015525@imap1.linux-foundation.org>
+Subject: [merged] cgroups-net_cls-as-module.patch removed from -mm tree
+Date: Wed, 24 Mar 2010 10:51:54 -0400
+Message-ID: <201003241752.o2OHqnJQ015531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756642Ab0CXRxm (ORCPT
+	by vger.kernel.org with ESMTP id S932494Ab0CXRxx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Mar 2010 13:53:42 -0400
+	Wed, 24 Mar 2010 13:53:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: bblum@andrew.cmu.edu, davem@davemloft.net, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: recalculate symbol value before showing search results
+     cgroups: net_cls as module
 has been removed from the -mm tree.  Its filename was
-     kconfig-recalculate-symbol-value-before-showing-search-results.patch
+     cgroups-net_cls-as-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: recalculate symbol value before showing search results
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cgroups: net_cls as module
+From: Ben Blum <bblum@andrew.cmu.edu>
 
-A symbol's value won't be recalculated until we save the config file or
-enter the menu where the symbol sits.
+Allows the net_cls cgroup subsystem to be compiled as a module
 
-So If I enable OPTIMIZE_FOR_SIZE, and search FUNCTION_GRAPH_TRACER:
+This patch modifies net/sched/cls_cgroup.c to allow the net_cls subsystem
+to be optionally compiled as a module instead of builtin.  The
+cgroup_subsys struct is moved around a bit to allow the subsys_id to be
+either declared as a compile-time constant by the cgroup_subsys.h include
+in cgroup.h, or, if it's a module, initialized within the struct by
+cgroup_load_subsys.
 
-  Symbol: FUNCTION_GRAPH_TRACER [=y]
-  Prompt: Kernel Function Graph Tracer
-    Defined at kernel/trace/Kconfig:140
-    Depends on: ... [=y] && (!X86_32 [=y] || !CC_OPTIMIZE_FOR_SIZE [=y])
-    ...
-
-Via the dependency it should result in FUNCTION_GRAPH_TRACER=n, but it
-still shows FUNCTION_GRAPH_TRACER=y.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
+Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/symbol.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/sched/Kconfig      |    5 ++++-
+ net/sched/cls_cgroup.c |   36 +++++++++++++++++++++++++++---------
+ 2 files changed, 31 insertions(+), 10 deletions(-)
 
-diff -puN scripts/kconfig/symbol.c~kconfig-recalculate-symbol-value-before-showing-search-results scripts/kconfig/symbol.c
---- a/scripts/kconfig/symbol.c~kconfig-recalculate-symbol-value-before-showing-search-results
-+++ a/scripts/kconfig/symbol.c
-@@ -755,6 +755,7 @@ struct symbol **sym_re_search(const char
- 				return NULL;
- 			}
- 		}
-+		sym_calc_value(sym);
- 		sym_arr[cnt++] = sym;
- 	}
- 	if (sym_arr)
+diff -puN net/sched/Kconfig~cgroups-net_cls-as-module net/sched/Kconfig
+--- a/net/sched/Kconfig~cgroups-net_cls-as-module
++++ a/net/sched/Kconfig
+@@ -328,13 +328,16 @@ config NET_CLS_FLOW
+ 	  module will be called cls_flow.
+ 
+ config NET_CLS_CGROUP
+-	bool "Control Group Classifier"
++	tristate "Control Group Classifier"
+ 	select NET_CLS
+ 	depends on CGROUPS
+ 	---help---
+ 	  Say Y here if you want to classify packets based on the control
+ 	  cgroup of their process.
+ 
++	  To compile this code as a module, choose M here: the
++	  module will be called cls_cgroup.
++
+ config NET_EMATCH
+ 	bool "Extended Matches"
+ 	select NET_CLS
+diff -puN net/sched/cls_cgroup.c~cgroups-net_cls-as-module net/sched/cls_cgroup.c
+--- a/net/sched/cls_cgroup.c~cgroups-net_cls-as-module
++++ a/net/sched/cls_cgroup.c
+@@ -24,6 +24,25 @@ struct cgroup_cls_state
+ 	u32 classid;
+ };
+ 
++static struct cgroup_subsys_state *cgrp_create(struct cgroup_subsys *ss,
++					       struct cgroup *cgrp);
++static void cgrp_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
++static int cgrp_populate(struct cgroup_subsys *ss, struct cgroup *cgrp);
++
++struct cgroup_subsys net_cls_subsys = {
++	.name		= "net_cls",
++	.create		= cgrp_create,
++	.destroy	= cgrp_destroy,
++	.populate	= cgrp_populate,
++#ifdef CONFIG_NET_CLS_CGROUP
++	.subsys_id	= net_cls_subsys_id,
++#else
++#define net_cls_subsys_id net_cls_subsys.subsys_id
++#endif
++	.module		= THIS_MODULE,
++};
++
++
+ static inline struct cgroup_cls_state *cgrp_cls_state(struct cgroup *cgrp)
+ {
+ 	return container_of(cgroup_subsys_state(cgrp, net_cls_subsys_id),
+@@ -79,14 +98,6 @@ static int cgrp_populate(struct cgroup_s
+ 	return cgroup_add_files(cgrp, ss, ss_files, ARRAY_SIZE(ss_files));
+ }
+ 
+-struct cgroup_subsys net_cls_subsys = {
+-	.name		= "net_cls",
+-	.create		= cgrp_create,
+-	.destroy	= cgrp_destroy,
+-	.populate	= cgrp_populate,
+-	.subsys_id	= net_cls_subsys_id,
+-};
+-
+ struct cls_cgroup_head
+ {
+ 	u32			handle;
+@@ -277,12 +288,19 @@ static struct tcf_proto_ops cls_cgroup_o
+ 
+ static int __init init_cgroup_cls(void)
+ {
+-	return register_tcf_proto_ops(&cls_cgroup_ops);
++	int ret = register_tcf_proto_ops(&cls_cgroup_ops);
++	if (ret)
++		return ret;
++	ret = cgroup_load_subsys(&net_cls_subsys);
++	if (ret)
++		unregister_tcf_proto_ops(&cls_cgroup_ops);
++	return ret;
+ }
+ 
+ static void __exit exit_cgroup_cls(void)
+ {
+ 	unregister_tcf_proto_ops(&cls_cgroup_ops);
++	cgroup_unload_subsys(&net_cls_subsys);
+ }
+ 
+ module_init(init_cgroup_cls);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from bblum@andrew.cmu.edu are
 
-cgroups-remove-duplicate-include.patch
-cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch
-cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack.patch
 linux-next.patch
-sunrpc-cache-fix-module-refcnt-leak-in-a-failure-path.patch
 
