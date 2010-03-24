@@ -1,143 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-net_cls-as-module.patch removed from -mm tree
-Date: Wed, 24 Mar 2010 10:51:54 -0400
-Message-ID: <201003241752.o2OHqnJQ015531@imap1.linux-foundation.org>
+Subject: + gpiolib-make-names-array-and-its-values-const.patch added to -mm tree
+Date: Wed, 24 Mar 2010 11:25:34 -0700
+Message-ID: <201003241825.o2OIPZKh017063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932494Ab0CXRxx (ORCPT
+	by vger.kernel.org with ESMTP id S1756695Ab0CXS0K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Mar 2010 13:53:53 -0400
+	Wed, 24 Mar 2010 14:26:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bblum@andrew.cmu.edu, davem@davemloft.net, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: u.kleine-koenig@pengutronix.de, david-b@pacbell.net, kevin.wells@nxp.com
 
 
 The patch titled
-     cgroups: net_cls as module
-has been removed from the -mm tree.  Its filename was
-     cgroups-net_cls-as-module.patch
+     gpiolib: make names array and its values const
+has been added to the -mm tree.  Its filename is
+     gpiolib-make-names-array-and-its-values-const.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: cgroups: net_cls as module
-From: Ben Blum <bblum@andrew.cmu.edu>
+Subject: gpiolib: make names array and its values const
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Allows the net_cls cgroup subsystem to be compiled as a module
+gpiolib doesn't need to modify the names and I assume most initializers
+use string constants that shouldn't be modified anyhow.
 
-This patch modifies net/sched/cls_cgroup.c to allow the net_cls subsystem
-to be optionally compiled as a module instead of builtin.  The
-cgroup_subsys struct is moved around a bit to allow the subsys_id to be
-either declared as a compile-time constant by the cgroup_subsys.h include
-in cgroup.h, or, if it's a module, initialized within the struct by
-cgroup_load_subsys.
-
-Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
-Acked-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Kevin Wells <kevin.wells@nxp.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sched/Kconfig      |    5 ++++-
- net/sched/cls_cgroup.c |   36 +++++++++++++++++++++++++++---------
- 2 files changed, 31 insertions(+), 10 deletions(-)
+ drivers/gpio/gpiolib.c      |    2 +-
+ drivers/gpio/pca953x.c      |    2 +-
+ include/asm-generic/gpio.h  |    2 +-
+ include/linux/i2c/pca953x.h |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN net/sched/Kconfig~cgroups-net_cls-as-module net/sched/Kconfig
---- a/net/sched/Kconfig~cgroups-net_cls-as-module
-+++ a/net/sched/Kconfig
-@@ -328,13 +328,16 @@ config NET_CLS_FLOW
- 	  module will be called cls_flow.
- 
- config NET_CLS_CGROUP
--	bool "Control Group Classifier"
-+	tristate "Control Group Classifier"
- 	select NET_CLS
- 	depends on CGROUPS
- 	---help---
- 	  Say Y here if you want to classify packets based on the control
- 	  cgroup of their process.
- 
-+	  To compile this code as a module, choose M here: the
-+	  module will be called cls_cgroup.
-+
- config NET_EMATCH
- 	bool "Extended Matches"
- 	select NET_CLS
-diff -puN net/sched/cls_cgroup.c~cgroups-net_cls-as-module net/sched/cls_cgroup.c
---- a/net/sched/cls_cgroup.c~cgroups-net_cls-as-module
-+++ a/net/sched/cls_cgroup.c
-@@ -24,6 +24,25 @@ struct cgroup_cls_state
- 	u32 classid;
+diff -puN drivers/gpio/gpiolib.c~gpiolib-make-names-array-and-its-value=
+s-const drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-make-names-array-and-its-values-co=
+nst
++++ a/drivers/gpio/gpiolib.c
+@@ -721,7 +721,7 @@ int gpio_export(unsigned gpio, bool dire
+ 	unsigned long		flags;
+ 	struct gpio_desc	*desc;
+ 	int			status =3D -EINVAL;
+-	char			*ioname =3D NULL;
++	const char		*ioname =3D NULL;
+=20
+ 	/* can't export until sysfs is available ... */
+ 	if (!gpio_class.p) {
+diff -puN drivers/gpio/pca953x.c~gpiolib-make-names-array-and-its-value=
+s-const drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpiolib-make-names-array-and-its-values-co=
+nst
++++ a/drivers/gpio/pca953x.c
+@@ -72,7 +72,7 @@ struct pca953x_chip {
+ 	struct i2c_client *client;
+ 	struct pca953x_platform_data *dyn_pdata;
+ 	struct gpio_chip gpio_chip;
+-	char **names;
++	const char *const *names;
  };
- 
-+static struct cgroup_subsys_state *cgrp_create(struct cgroup_subsys *ss,
-+					       struct cgroup *cgrp);
-+static void cgrp_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+static int cgrp_populate(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+
-+struct cgroup_subsys net_cls_subsys = {
-+	.name		= "net_cls",
-+	.create		= cgrp_create,
-+	.destroy	= cgrp_destroy,
-+	.populate	= cgrp_populate,
-+#ifdef CONFIG_NET_CLS_CGROUP
-+	.subsys_id	= net_cls_subsys_id,
-+#else
-+#define net_cls_subsys_id net_cls_subsys.subsys_id
-+#endif
-+	.module		= THIS_MODULE,
-+};
-+
-+
- static inline struct cgroup_cls_state *cgrp_cls_state(struct cgroup *cgrp)
- {
- 	return container_of(cgroup_subsys_state(cgrp, net_cls_subsys_id),
-@@ -79,14 +98,6 @@ static int cgrp_populate(struct cgroup_s
- 	return cgroup_add_files(cgrp, ss, ss_files, ARRAY_SIZE(ss_files));
- }
- 
--struct cgroup_subsys net_cls_subsys = {
--	.name		= "net_cls",
--	.create		= cgrp_create,
--	.destroy	= cgrp_destroy,
--	.populate	= cgrp_populate,
--	.subsys_id	= net_cls_subsys_id,
--};
--
- struct cls_cgroup_head
- {
- 	u32			handle;
-@@ -277,12 +288,19 @@ static struct tcf_proto_ops cls_cgroup_o
- 
- static int __init init_cgroup_cls(void)
- {
--	return register_tcf_proto_ops(&cls_cgroup_ops);
-+	int ret = register_tcf_proto_ops(&cls_cgroup_ops);
-+	if (ret)
-+		return ret;
-+	ret = cgroup_load_subsys(&net_cls_subsys);
-+	if (ret)
-+		unregister_tcf_proto_ops(&cls_cgroup_ops);
-+	return ret;
- }
- 
- static void __exit exit_cgroup_cls(void)
- {
- 	unregister_tcf_proto_ops(&cls_cgroup_ops);
-+	cgroup_unload_subsys(&net_cls_subsys);
- }
- 
- module_init(init_cgroup_cls);
+=20
+ static int pca953x_write_reg(struct pca953x_chip *chip, int reg, uint1=
+6_t val)
+diff -puN include/asm-generic/gpio.h~gpiolib-make-names-array-and-its-v=
+alues-const include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-make-names-array-and-its-value=
+s-const
++++ a/include/asm-generic/gpio.h
+@@ -99,7 +99,7 @@ struct gpio_chip {
+ 						struct gpio_chip *chip);
+ 	int			base;
+ 	u16			ngpio;
+-	char			**names;
++	const char		*const *names;
+ 	unsigned		can_sleep:1;
+ 	unsigned		exported:1;
+ };
+diff -puN include/linux/i2c/pca953x.h~gpiolib-make-names-array-and-its-=
+values-const include/linux/i2c/pca953x.h
+--- a/include/linux/i2c/pca953x.h~gpiolib-make-names-array-and-its-valu=
+es-const
++++ a/include/linux/i2c/pca953x.h
+@@ -24,7 +24,7 @@ struct pca953x_platform_data {
+ 	int		(*teardown)(struct i2c_client *client,
+ 				unsigned gpio, unsigned ngpio,
+ 				void *context);
+-	char		**names;
++	const char	*const *names;
+ };
+=20
+ #endif /* _LINUX_PCA953X_H */
 _
 
-Patches currently in -mm which might be from bblum@andrew.cmu.edu are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
+rtc-mc13783-fix-use-after-free-bug.patch
 linux-next.patch
+timer-print-function-name-for-timer-callbacks-modifying-preemption-coun=
+t.patch
+gpiolib-make-names-array-and-its-values-const.patch
+gpiolib-a-gpio-is-unsigned-so-use-%u-to-print-it.patch
+gpiolib-document-that-names-can-contain-printk-format-specifiers.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
