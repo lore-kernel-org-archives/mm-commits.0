@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + max3100-add-console-support-for-max3100.patch added to -mm tree
-Date: Wed, 24 Mar 2010 11:39:18 -0700
-Message-ID: <201003241839.o2OIdJam018662@imap1.linux-foundation.org>
+Subject: + endian-define-__byte_order.patch added to -mm tree
+Date: Wed, 24 Mar 2010 11:53:52 -0700
+Message-ID: <201003241853.o2OIrqBr020894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755960Ab0CXSkI (ORCPT
+	by vger.kernel.org with ESMTP id S932268Ab0CXSyQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Mar 2010 14:40:08 -0400
+	Wed, 24 Mar 2010 14:54:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chripell@fsfe.org, alan@lxorguk.ukuu.org.uk, feng.tang@intel.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de
+Cc: Joakim.Tjernlund@transmode.se, geert@linux-m68k.org
 
 
 The patch titled
-     max3100: add console support for MAX3100
+     endian: #define __BYTE_ORDER
 has been added to the -mm tree.  Its filename is
-     max3100-add-console-support-for-max3100.patch
+     endian-define-__byte_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,376 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: max3100: add console support for MAX3100
-From: Christian Pellegrin <chripell@fsfe.org>
+Subject: endian: #define __BYTE_ORDER
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 
-Add console support for the MAX3100 UART (console=ttyMAX0,11500).  The SPI
-subsystem and an suitable SPI master driver have to be compiled in the
-kernel.
+Linux does not define __BYTE_ORDER in its endian header files which makes
+some header files bend backwards to get at the current endian.  Lets
+#define __BYTE_ORDER in big_endian.h/litte_endian.h to make it easier for
+header files that are used in user space too.
 
-Signed-off-by: Christian Pellegrin <chripell@fsfe.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Feng Tang <feng.tang@intel.com>
+In userspace the convention is that
+
+  1. _both_ __LITTLE_ENDIAN and __BIG_ENDIAN are defined,
+  2. you have to test for e.g. __BYTE_ORDER == __BIG_ENDIAN.
+
+
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig         |    7 +
- drivers/serial/max3100.c       |  217 ++++++++++++++++++++++++++++---
- include/linux/serial_max3100.h |    4 
- 3 files changed, 212 insertions(+), 16 deletions(-)
+ arch/alpha/math-emu/sfp-util.h          |    5 -----
+ arch/powerpc/include/asm/sfp-machine.h  |    6 ------
+ arch/s390/include/asm/sfp-util.h        |    2 --
+ arch/sh/math-emu/sfp-util.h             |    4 ----
+ arch/sparc/math-emu/sfp-util_32.h       |    6 ------
+ arch/sparc/math-emu/sfp-util_64.h       |    6 ------
+ arch/x86/boot/compressed/relocs.c       |    4 ++--
+ include/linux/byteorder/big_endian.h    |    3 +++
+ include/linux/byteorder/little_endian.h |    3 +++
+ 9 files changed, 8 insertions(+), 31 deletions(-)
 
-diff -puN drivers/serial/Kconfig~max3100-add-console-support-for-max3100 drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~max3100-add-console-support-for-max3100
-+++ a/drivers/serial/Kconfig
-@@ -564,6 +564,13 @@ config SERIAL_MAX3100
- 	help
- 	  MAX3100 chip support
+diff -puN arch/alpha/math-emu/sfp-util.h~endian-define-__byte_order arch/alpha/math-emu/sfp-util.h
+--- a/arch/alpha/math-emu/sfp-util.h~endian-define-__byte_order
++++ a/arch/alpha/math-emu/sfp-util.h
+@@ -28,8 +28,3 @@ extern unsigned long __udiv_qrnnd (unsig
+ #define UDIV_NEEDS_NORMALIZATION 1  
  
-+config SERIAL_MAX3100_CONSOLE
-+	bool "Support console on MAX3100"
-+	depends on SERIAL_MAX3100=y
-+	select SERIAL_CORE_CONSOLE
-+	help
-+	  Console on MAX3100
-+
- config SERIAL_DZ
- 	bool "DECstation DZ serial driver"
- 	depends on MACH_DECSTATION && 32BIT
-diff -puN drivers/serial/max3100.c~max3100-add-console-support-for-max3100 drivers/serial/max3100.c
---- a/drivers/serial/max3100.c~max3100-add-console-support-for-max3100
-+++ a/drivers/serial/max3100.c
-@@ -48,6 +48,7 @@
- #include <linux/kthread.h>
- #include <linux/interrupt.h>
- #include <linux/bitops.h>
-+#include <linux/console.h>
- 
- #include <linux/serial_max3100.h>
- 
-@@ -131,6 +132,22 @@ struct max3100_port {
- 	int poll_time;
- 	/* and its timer */
- 	struct timer_list	timer;
-+
-+	int console_flags;
-+	/* is this port a console? */
-+#define MAX3100_IS_CONSOLE   (1 << 0)
-+	/* are we in suspend/resume? */
-+#define MAX3100_SUSPENDING   (1 << 1)
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	/* console buffer */
-+#define CONSOLE_BUF_SIZE 4096
-+	char *console_buf;
-+	int console_head, console_tail;
-+	/* delayed console work because we may have to sleep */
-+	struct work_struct console_work;
-+	/* char tx timeout */
-+	int console_tout;
-+#endif
- };
- 
- static struct max3100_port *max3100s[MAX_MAX3100]; /* the chips */
-@@ -175,7 +192,9 @@ static void max3100_resume_work(struct w
- 	struct max3100_port *s = container_of(w, struct max3100_port,
- 					      resume_work);
- 
--	raise_threaded_irq(s->irq);
-+	if (s->irq)
-+		raise_threaded_irq(s->irq);
-+	s->console_flags &= ~MAX3100_SUSPENDING;
- }
- 
- static void max3100_timeout(unsigned long data)
-@@ -552,14 +571,16 @@ static void max3100_shutdown(struct uart
- 	if (s->irq)
- 		free_irq(s->irq, s);
- 
--	/* set shutdown mode to save power */
--	if (s->max3100_hw_suspend)
--		s->max3100_hw_suspend(1);
--	else  {
--		u16 tx, rx;
-+	if (!(s->console_flags & MAX3100_IS_CONSOLE)) {
-+		/* set shutdown mode to save power */
-+		if (s->max3100_hw_suspend) {
-+			s->max3100_hw_suspend(1);
-+		} else {
-+			u16 tx, rx;
- 
--		tx = MAX3100_WC | MAX3100_SHDN;
--		max3100_sr(s, tx, &rx);
-+			tx = MAX3100_WC | MAX3100_SHDN;
-+			max3100_sr(s, tx, &rx);
-+		}
- 	}
- }
- 
-@@ -578,8 +599,6 @@ static int max3100_startup(struct uart_p
- 	s->parity = 0;
- 	s->rts = 0;
- 
--	INIT_WORK(&s->resume_work, max3100_resume_work);
+ #define abort()			goto bad_insn
 -
- 	if (request_threaded_irq(s->irq, NULL, max3100_ist,
- 			IRQF_TRIGGER_FALLING, "max3100", s) < 0) {
- 		dev_err(&s->spi->dev, "cannot allocate irq %d\n", s->irq);
-@@ -699,6 +718,147 @@ static struct uart_ops max3100_ops = {
- 	.verify_port	= max3100_verify_port,
- };
+-#ifndef __LITTLE_ENDIAN
+-#define __LITTLE_ENDIAN -1
+-#endif
+-#define __BYTE_ORDER __LITTLE_ENDIAN
+diff -puN arch/powerpc/include/asm/sfp-machine.h~endian-define-__byte_order arch/powerpc/include/asm/sfp-machine.h
+--- a/arch/powerpc/include/asm/sfp-machine.h~endian-define-__byte_order
++++ a/arch/powerpc/include/asm/sfp-machine.h
+@@ -353,12 +353,6 @@
+ #define abort()								\
+ 	return 0
  
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+
-+static void max3100_console_work(struct work_struct *w)
-+{
-+	struct max3100_port *s = container_of(w, struct max3100_port,
-+					      console_work);
-+	unsigned long start;
-+	u16 tx, rx;
-+
-+	while (s->console_head != s->console_tail &&
-+	       (s->console_flags & MAX3100_SUSPENDING) == 0) {
-+		start = jiffies;
-+		do {
-+			tx = MAX3100_RC;
-+			max3100_sr(s, tx, &rx);
-+		} while ((rx & MAX3100_T) == 0 &&
-+			 !time_after(jiffies, start + s->console_tout));
-+		tx = s->console_buf[s->console_tail];
-+		max3100_calc_parity(s, &tx);
-+		tx |= MAX3100_WD | MAX3100_RTS;
-+		max3100_sr(s, tx, &rx);
-+		s->console_tail = (s->console_tail + 1) % CONSOLE_BUF_SIZE;
-+	}
-+}
-+
-+static void max3100_console_putchar(struct uart_port *port, int ch)
-+{
-+	struct max3100_port *s = to_max3100_port(port);
-+	int next = (s->console_head + 1) % CONSOLE_BUF_SIZE;
-+
-+	if (next != s->console_tail) {
-+		s->console_buf[next] = ch;
-+		s->console_head = next;
-+	}
-+}
-+
-+static void max3100_console_write(struct console *co,
-+				  const char *str, unsigned int count)
-+{
-+	struct max3100_port *s = max3100s[co->index];;
-+
-+	uart_console_write(&s->port, str, count, max3100_console_putchar);
-+	schedule_work(&s->console_work);
-+}
-+
-+static int max3100_console_setup(struct console *co, char *options)
-+{
-+	struct max3100_port *s;
-+	int baud = 115200;
-+	int bits = 8;
-+	int parity = 'n';
-+	int flow = 'n';
-+	int ret;
-+	u16 tx, rx;
-+
-+	if (co->index == -1 || co->index >= MAX_MAX3100)
-+		co->index = 0;
-+	s = max3100s[co->index];
-+	if (!s)
-+		return -ENOENT;
-+
-+	s->console_buf = kmalloc(CONSOLE_BUF_SIZE, GFP_KERNEL);
-+	if (!s->console_buf)
-+		return -ENOMEM;
-+	INIT_WORK(&s->console_work, max3100_console_work);
-+	s->console_flags |= MAX3100_IS_CONSOLE;
-+
-+	if (options)
-+		uart_parse_options(options, &baud, &parity, &bits, &flow);
-+	ret = uart_set_options(&s->port, co, baud, parity, bits, flow);
-+
-+	tx = 0;
-+	switch (baud) {
-+	case 300:
-+		tx = 15;
-+		break;
-+	case 600:
-+		tx = 14 + s->crystal;
-+		break;
-+	case 1200:
-+		tx = 13 + s->crystal;
-+		break;
-+	case 2400:
-+		tx = 12 + s->crystal;
-+		break;
-+	case 4800:
-+		tx = 11 + s->crystal;
-+		break;
-+	case 9600:
-+		tx = 10 + s->crystal;
-+		break;
-+	case 19200:
-+		tx = 9 + s->crystal;
-+		break;
-+	case 38400:
-+		tx = 8 + s->crystal;
-+		break;
-+	case 57600:
-+		tx = 1 + s->crystal;
-+		break;
-+	case 115200:
-+		tx = 0 + s->crystal;
-+		break;
-+	case 230400:
-+		tx = 0;
-+		break;
-+	}
-+	if (bits == 7) {
-+		tx |= MAX3100_L;
-+		s->parity |= MAX3100_7BIT;
-+	}
-+	if (parity == 'o' || parity == 'e') {
-+		tx |= MAX3100_PE;
-+		s->parity |= MAX3100_PARITY_ON;
-+	}
-+	if (parity == 'o')
-+		s->parity |= MAX3100_PARITY_ODD;
-+	s->console_tout = 1 + (20 * HZ) / baud; /* jiffies to send 20 bits */
-+
-+	tx |= MAX3100_WC;
-+	max3100_sr(s, tx, &rx);
-+
-+	/* wait for oscilator to stabilize. Data sheet says 25ms,
-+	 * apply "multiply by two" engineer's rule */
-+	msleep(50);
-+	return ret;
-+}
-+
-+static struct uart_driver max3100_uart_driver;
-+static struct console max3100_console = {
-+	.name		= "ttyMAX",
-+	.write		= max3100_console_write,
-+	.device		= uart_console_device,
-+	.setup		= max3100_console_setup,
-+	.flags		= CON_PRINTBUFFER,
-+	.index		= -1,
-+	.data		= &max3100_uart_driver,
-+};
-+static int max3100_console_registered;
-+#endif
-+
- static struct uart_driver max3100_uart_driver = {
- 	.owner          = THIS_MODULE,
- 	.driver_name    = "ttyMAX",
-@@ -706,6 +866,9 @@ static struct uart_driver max3100_uart_d
- 	.major          = MAX3100_MAJOR,
- 	.minor          = MAX3100_MINOR,
- 	.nr             = MAX_MAX3100,
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	.cons           = &max3100_console,
-+#endif
- };
- static int uart_driver_registered;
+-#ifdef __BIG_ENDIAN
+-#define __BYTE_ORDER __BIG_ENDIAN
+-#else
+-#define __BYTE_ORDER __LITTLE_ENDIAN
+-#endif
+-
+ /* Exception flags. */
+ #define EFLAG_INVALID		(1 << (31 - 2))
+ #define EFLAG_OVERFLOW		(1 << (31 - 3))
+diff -puN arch/s390/include/asm/sfp-util.h~endian-define-__byte_order arch/s390/include/asm/sfp-util.h
+--- a/arch/s390/include/asm/sfp-util.h~endian-define-__byte_order
++++ a/arch/s390/include/asm/sfp-util.h
+@@ -73,5 +73,3 @@ extern unsigned long __udiv_qrnnd (unsig
+ #define UDIV_NEEDS_NORMALIZATION 0
  
-@@ -768,18 +931,27 @@ static int __devinit max3100_probe(struc
- 	max3100s[i]->port.line = i;
- 	max3100s[i]->port.type = PORT_MAX3100;
- 	max3100s[i]->port.dev = &spi->dev;
-+	INIT_WORK(&max3100s[i]->resume_work, max3100_resume_work);
- 	retval = uart_add_one_port(&max3100_uart_driver, &max3100s[i]->port);
- 	if (retval < 0)
- 		dev_warn(&spi->dev,
- 			 "uart_add_one_port failed for line %d with error %d\n",
- 			 i, retval);
+ #define abort() return 0
+-
+-#define __BYTE_ORDER __BIG_ENDIAN
+diff -puN arch/sh/math-emu/sfp-util.h~endian-define-__byte_order arch/sh/math-emu/sfp-util.h
+--- a/arch/sh/math-emu/sfp-util.h~endian-define-__byte_order
++++ a/arch/sh/math-emu/sfp-util.h
+@@ -66,7 +66,3 @@
+   } while (0)
  
--	/* set shutdown mode to save power. Will be woken-up on open */
--	if (max3100s[i]->max3100_hw_suspend)
--		max3100s[i]->max3100_hw_suspend(1);
--	else {
--		tx = MAX3100_WC | MAX3100_SHDN;
--		max3100_sr(max3100s[i], tx, &rx);
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	if (pdata->console && !max3100_console_registered) {
-+		register_console(&max3100_console);
-+		max3100_console_registered = 1;
-+	}
-+#endif
-+	if (!(max3100s[i]->console_flags & MAX3100_IS_CONSOLE)) {
-+		/* set shutdown mode to save power. Will be woken-up on open */
-+		if (max3100s[i]->max3100_hw_suspend) {
-+			max3100s[i]->max3100_hw_suspend(1);
-+		} else {
-+			tx = MAX3100_WC | MAX3100_SHDN;
-+			max3100_sr(max3100s[i], tx, &rx);
-+		}
- 	}
- 	mutex_unlock(&max3100s_lock);
- 	return 0;
-@@ -792,12 +964,24 @@ static int __devexit max3100_remove(stru
+ #define abort()	return 0
+-
+-#define __BYTE_ORDER __LITTLE_ENDIAN
+-
+-
+diff -puN arch/sparc/math-emu/sfp-util_32.h~endian-define-__byte_order arch/sparc/math-emu/sfp-util_32.h
+--- a/arch/sparc/math-emu/sfp-util_32.h~endian-define-__byte_order
++++ a/arch/sparc/math-emu/sfp-util_32.h
+@@ -107,9 +107,3 @@
  
- 	mutex_lock(&max3100s_lock);
+ #define abort()								\
+ 	return 0
+-
+-#ifdef __BIG_ENDIAN
+-#define __BYTE_ORDER __BIG_ENDIAN
+-#else
+-#define __BYTE_ORDER __LITTLE_ENDIAN
+-#endif
+diff -puN arch/sparc/math-emu/sfp-util_64.h~endian-define-__byte_order arch/sparc/math-emu/sfp-util_64.h
+--- a/arch/sparc/math-emu/sfp-util_64.h~endian-define-__byte_order
++++ a/arch/sparc/math-emu/sfp-util_64.h
+@@ -112,9 +112,3 @@
  
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	if (max3100_console_registered) {
-+		unregister_console(&max3100_console);
-+		max3100_console_registered = 0;
-+	}
-+#endif
- 	/* find out the index for the chip we are removing */
- 	for (i = 0; i < MAX_MAX3100; i++)
- 		if (max3100s[i] == s)
- 			break;
+ #define abort() \
+ 	return 0
+-
+-#ifdef __BIG_ENDIAN
+-#define __BYTE_ORDER __BIG_ENDIAN
+-#else
+-#define __BYTE_ORDER __LITTLE_ENDIAN
+-#endif
+diff -puN arch/x86/boot/compressed/relocs.c~endian-define-__byte_order arch/x86/boot/compressed/relocs.c
+--- a/arch/x86/boot/compressed/relocs.c~endian-define-__byte_order
++++ a/arch/x86/boot/compressed/relocs.c
+@@ -195,11 +195,11 @@ static const char *sym_name(const char *
  
- 	dev_dbg(&spi->dev, "%s: removing port %d\n", __func__, i);
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	if (s->console_buf) {
-+		flush_work(&s->console_work);
-+		kfree(s->console_buf);
-+	}
-+#endif
- 	uart_remove_one_port(&max3100_uart_driver, &max3100s[i]->port);
- 	kfree(max3100s[i]);
- 	max3100s[i] = NULL;
-@@ -823,6 +1007,7 @@ static int max3100_suspend(struct spi_de
  
- 	dev_dbg(&s->spi->dev, "%s\n", __func__);
  
-+	s->console_flags |= MAX3100_SUSPENDING;
- 	disable_irq(s->irq);
- 
- 	if (s->max3100_hw_suspend)
-diff -puN include/linux/serial_max3100.h~max3100-add-console-support-for-max3100 include/linux/serial_max3100.h
---- a/include/linux/serial_max3100.h~max3100-add-console-support-for-max3100
-+++ a/include/linux/serial_max3100.h
-@@ -21,6 +21,9 @@
-  *                       called on suspend and resume to activate it.
-  * @poll_time:           poll time for CTS signal in ms, 0 disables (so no hw
-  *                       flow ctrl is possible but you have less CPU usage)
-+ * @console:             1 if this MAX3100 is the last one on the system
-+ *                       (in the order of spi_board_info enumeration) that
-+ *                       can act as a console.
-  *
-  * You should use this structure in your machine description to specify
-  * how the MAX3100 is connected. Example:
-@@ -47,6 +50,7 @@ struct plat_max3100 {
- 	int crystal;
- 	void (*max3100_hw_suspend) (int suspend);
- 	int poll_time;
-+	int console;
- };
- 
+-#if BYTE_ORDER == LITTLE_ENDIAN
++#if __BYTE_ORDER == __LITTLE_ENDIAN
+ #define le16_to_cpu(val) (val)
+ #define le32_to_cpu(val) (val)
  #endif
+-#if BYTE_ORDER == BIG_ENDIAN
++#if __BYTE_ORDER == __BIG_ENDIAN
+ #define le16_to_cpu(val) bswap_16(val)
+ #define le32_to_cpu(val) bswap_32(val)
+ #endif
+diff -puN include/linux/byteorder/big_endian.h~endian-define-__byte_order include/linux/byteorder/big_endian.h
+--- a/include/linux/byteorder/big_endian.h~endian-define-__byte_order
++++ a/include/linux/byteorder/big_endian.h
+@@ -7,6 +7,9 @@
+ #ifndef __BIG_ENDIAN_BITFIELD
+ #define __BIG_ENDIAN_BITFIELD
+ #endif
++#ifndef __BYTE_ORDER
++#define __BYTE_ORDER __BIG_ENDIAN
++#endif
+ 
+ #include <linux/types.h>
+ #include <linux/swab.h>
+diff -puN include/linux/byteorder/little_endian.h~endian-define-__byte_order include/linux/byteorder/little_endian.h
+--- a/include/linux/byteorder/little_endian.h~endian-define-__byte_order
++++ a/include/linux/byteorder/little_endian.h
+@@ -7,6 +7,9 @@
+ #ifndef __LITTLE_ENDIAN_BITFIELD
+ #define __LITTLE_ENDIAN_BITFIELD
+ #endif
++#ifndef __BYTE_ORDER
++#define __BYTE_ORDER __LITTLE_ENDIAN
++#endif
+ 
+ #include <linux/types.h>
+ #include <linux/swab.h>
 _
 
-Patches currently in -mm which might be from chripell@fsfe.org are
+Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
 
-kernel-irq-managec-add-raise_threaded_irq.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-move-to-threaded-interrupt.patch
-max3100-add-console-support-for-max3100.patch
-max3100-to_max3100_port-small-style-fixes.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
+endian-define-__byte_order.patch
 
