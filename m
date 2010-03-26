@@ -1,99 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-mpol=bind-0-dont-cause-mount-error.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:36:39 -0400
-Message-ID: <201003261937.o2QJbc2t016625@imap1.linux-foundation.org>
+Subject: [merged] cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:36:51 -0400
+Message-ID: <201003261937.o2QJboDQ016641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753126Ab0CZTiP (ORCPT
+	by vger.kernel.org with ESMTP id S1753220Ab0CZTiQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:38:15 -0400
+	Fri, 26 Mar 2010 15:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, lee.schermerhorn@hp.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, npiggin@suse.de, rientjes@google.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: mpol=bind:0 don't cause mount error.
+     cpuset: fix the problem that cpuset_mem_spread_node() returns an offline node
 has been removed from the -mm tree.  Its filename was
-     tmpfs-mpol=bind-0-dont-cause-mount-error.patch
+     cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: mpol=bind:0 don't cause mount error.
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: cpuset: fix the problem that cpuset_mem_spread_node() returns an offline node
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-Currently, following mount operation cause mount error.
+cpuset_mem_spread_node() returns an offline node, and causes an oops.
 
-% mount -t tmpfs -ompol=bind:0 none /tmp
+This patch fixes it by initializing task->mems_allowed to
+node_states[N_HIGH_MEMORY], and updating task->mems_allowed when doing
+memory hotplug.
 
-Because commit 71fe804b6d5 (mempolicy: use struct mempolicy pointer in
-shmem_sb_info) corrupted MPOL_BIND parse code.
-
-This patch restore the needed one.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ravikiran Thirumalai <kiran@scalex86.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reported-by: Nick Piggin <npiggin@suse.de>
+Tested-by: Nick Piggin <npiggin@suse.de>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ init/main.c      |    2 +-
+ kernel/cpuset.c  |   20 ++++++++++++--------
+ kernel/kthread.c |    2 +-
+ 3 files changed, 14 insertions(+), 10 deletions(-)
 
-diff -puN mm/mempolicy.c~tmpfs-mpol=bind-0-dont-cause-mount-error mm/mempolicy.c
---- a/mm/mempolicy.c~tmpfs-mpol=bind-0-dont-cause-mount-error
-+++ a/mm/mempolicy.c
-@@ -2222,9 +2222,13 @@ int mpol_parse_str(char *str, struct mem
- 		if (!nodelist)
- 			err = 0;
- 		goto out;
--	/*
--	 * case MPOL_BIND:    mpol_new() enforces non-empty nodemask.
--	 */
-+	case MPOL_BIND:
-+		/*
-+		 * Insist on a nodelist
-+		 */
-+		if (!nodelist)
-+			goto out;
-+		err = 0;
- 	}
+diff -puN init/main.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node init/main.c
+--- a/init/main.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node
++++ a/init/main.c
+@@ -858,7 +858,7 @@ static int __init kernel_init(void * unu
+ 	/*
+ 	 * init can allocate pages on any node
+ 	 */
+-	set_mems_allowed(node_possible_map);
++	set_mems_allowed(node_states[N_HIGH_MEMORY]);
+ 	/*
+ 	 * init can run on any cpu.
+ 	 */
+diff -puN kernel/cpuset.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node
++++ a/kernel/cpuset.c
+@@ -920,9 +920,6 @@ static int update_cpumask(struct cpuset 
+  *    call to guarantee_online_mems(), as we know no one is changing
+  *    our task's cpuset.
+  *
+- *    Hold callback_mutex around the two modifications of our tasks
+- *    mems_allowed to synchronize with cpuset_mems_allowed().
+- *
+  *    While the mm_struct we are migrating is typically from some
+  *    other task, the task_struct mems_allowed that we are hacking
+  *    is for our current task, which must allocate new pages for that
+@@ -1391,11 +1388,10 @@ static void cpuset_attach(struct cgroup_
  
- 	mode_flags = 0;
+ 	if (cs == &top_cpuset) {
+ 		cpumask_copy(cpus_attach, cpu_possible_mask);
+-		to = node_possible_map;
+ 	} else {
+ 		guarantee_online_cpus(cs, cpus_attach);
+-		guarantee_online_mems(cs, &to);
+ 	}
++	guarantee_online_mems(cs, &to);
+ 
+ 	/* do per-task migration stuff possibly for each in the threadgroup */
+ 	cpuset_attach_task(tsk, &to, cs);
+@@ -2090,15 +2086,23 @@ static int cpuset_track_online_cpus(stru
+ static int cpuset_track_online_nodes(struct notifier_block *self,
+ 				unsigned long action, void *arg)
+ {
++	nodemask_t oldmems;
++
+ 	cgroup_lock();
+ 	switch (action) {
+ 	case MEM_ONLINE:
+-	case MEM_OFFLINE:
++		oldmems = top_cpuset.mems_allowed;
+ 		mutex_lock(&callback_mutex);
+ 		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 		mutex_unlock(&callback_mutex);
+-		if (action == MEM_OFFLINE)
+-			scan_for_empty_cpusets(&top_cpuset);
++		update_tasks_nodemask(&top_cpuset, &oldmems, NULL);
++		break;
++	case MEM_OFFLINE:
++		/*
++		 * needn't update top_cpuset.mems_allowed explicitly because
++		 * scan_for_empty_cpusets() will update it.
++		 */
++		scan_for_empty_cpusets(&top_cpuset);
+ 		break;
+ 	default:
+ 		break;
+diff -puN kernel/kthread.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node kernel/kthread.c
+--- a/kernel/kthread.c~cpuset-fix-the-problem-that-cpuset_mem_spread_node-returns-an-offline-node
++++ a/kernel/kthread.c
+@@ -219,7 +219,7 @@ int kthreadd(void *unused)
+ 	set_task_comm(tsk, "kthreadd");
+ 	ignore_signals(tsk);
+ 	set_cpus_allowed_ptr(tsk, cpu_all_mask);
+-	set_mems_allowed(node_possible_map);
++	set_mems_allowed(node_states[N_HIGH_MEMORY]);
+ 
+ 	current->flags |= PF_NOFREEZE | PF_FREEZER_NOSIG;
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-mempolicy-remove-redundant-code.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
-proc-cleanup-remove-unused-assignments.patch
-reiser4.patch
 
