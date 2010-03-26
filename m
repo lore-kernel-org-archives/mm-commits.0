@@ -1,87 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-fix-incorrect-interpretation-of-card-type-bits.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:37:19 -0400
-Message-ID: <201003261938.o2QJcIMw016679__28365.2393184186$1269632316$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] tmpfs-cleanup-mpol_parse_str.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:36:45 -0400
+Message-ID: <201003261937.o2QJbi7Z016631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753126Ab0CZTi0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753240Ab0CZTiR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:38:26 -0400
+	Fri, 26 Mar 2010 15:38:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, lee.schermerhorn@hp.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: fix incorrect interpretation of card type bits
+     tmpfs: cleanup mpol_parse_str()
 has been removed from the -mm tree.  Its filename was
-     mmc-fix-incorrect-interpretation-of-card-type-bits.patch
+     tmpfs-cleanup-mpol_parse_str.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: fix incorrect interpretation of card type bits
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: tmpfs: cleanup mpol_parse_str()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-In the extended CSD register the CARD_TYPE is an 8-bit value of which the
-upper 6 bits were reserved in JEDEC specifications prior to version 4.4. 
-In version 4.4 two of the reserved bits were designated for identifying
-support for the newly added High-Speed Dual Data Rate.  Unfortunately the
-mmc_read_ext_csd() function required that the reserved bits be zero
-instead of ignoring them as it should.
+mpol_parse_str() made lots 'err' variable related bug.  Because it is ugly
+and reviewing unfriendly.
 
-This patch makes mmc_read_ext_csd() ignore the CARD_TYPE bits that are
-reserved or not yet supported.  It also stops the function jumping to the
-end as though an error occurred, when it is only warns that the CARD_TYPE
-bits (that it does interpret) are invalid.
+This patch simplifies it.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ravikiran Thirumalai <kiran@scalex86.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c  |    3 +--
- include/linux/mmc/mmc.h |    1 +
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-fix-incorrect-interpretation-of-card-type-bits drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-fix-incorrect-interpretation-of-card-type-bits
-+++ a/drivers/mmc/core/mmc.c
-@@ -225,7 +225,7 @@ static int mmc_read_ext_csd(struct mmc_c
- 			mmc_card_set_blockaddr(card);
- 	}
- 
--	switch (ext_csd[EXT_CSD_CARD_TYPE]) {
-+	switch (ext_csd[EXT_CSD_CARD_TYPE] & EXT_CSD_CARD_TYPE_MASK) {
- 	case EXT_CSD_CARD_TYPE_52 | EXT_CSD_CARD_TYPE_26:
- 		card->ext_csd.hs_max_dtr = 52000000;
+diff -puN mm/mempolicy.c~tmpfs-cleanup-mpol_parse_str mm/mempolicy.c
+--- a/mm/mempolicy.c~tmpfs-cleanup-mpol_parse_str
++++ a/mm/mempolicy.c
+@@ -2195,8 +2195,8 @@ int mpol_parse_str(char *str, struct mem
+ 			char *rest = nodelist;
+ 			while (isdigit(*rest))
+ 				rest++;
+-			if (!*rest)
+-				err = 0;
++			if (*rest)
++				goto out;
+ 		}
  		break;
-@@ -237,7 +237,6 @@ static int mmc_read_ext_csd(struct mmc_c
- 		printk(KERN_WARNING "%s: card is mmc v4 but doesn't "
- 			"support any high-speed modes.\n",
- 			mmc_hostname(card->host));
--		goto out;
+ 	case MPOL_INTERLEAVE:
+@@ -2205,7 +2205,6 @@ int mpol_parse_str(char *str, struct mem
+ 		 */
+ 		if (!nodelist)
+ 			nodes = node_states[N_HIGH_MEMORY];
+-		err = 0;
+ 		break;
+ 	case MPOL_LOCAL:
+ 		/*
+@@ -2214,7 +2213,6 @@ int mpol_parse_str(char *str, struct mem
+ 		if (nodelist)
+ 			goto out;
+ 		mode = MPOL_PREFERRED;
+-		err = 0;
+ 		break;
+ 	case MPOL_DEFAULT:
+ 		/*
+@@ -2229,7 +2227,6 @@ int mpol_parse_str(char *str, struct mem
+ 		 */
+ 		if (!nodelist)
+ 			goto out;
+-		err = 0;
  	}
  
- 	if (card->ext_csd.rev >= 3) {
-diff -puN include/linux/mmc/mmc.h~mmc-fix-incorrect-interpretation-of-card-type-bits include/linux/mmc/mmc.h
---- a/include/linux/mmc/mmc.h~mmc-fix-incorrect-interpretation-of-card-type-bits
-+++ a/include/linux/mmc/mmc.h
-@@ -268,6 +268,7 @@ struct _mmc_csd {
+ 	mode_flags = 0;
+@@ -2243,13 +2240,14 @@ int mpol_parse_str(char *str, struct mem
+ 		else if (!strcmp(flags, "relative"))
+ 			mode_flags |= MPOL_F_RELATIVE_NODES;
+ 		else
+-			err = 1;
++			goto out;
+ 	}
  
- #define EXT_CSD_CARD_TYPE_26	(1<<0)	/* Card can run at 26MHz */
- #define EXT_CSD_CARD_TYPE_52	(1<<1)	/* Card can run at 52MHz */
-+#define EXT_CSD_CARD_TYPE_MASK	0x3	/* Mask out reserved and DDR bits */
+ 	new = mpol_new(mode, mode_flags, &nodes);
+ 	if (IS_ERR(new))
+-		err = 1;
+-	else {
++		goto out;
++
++	{
+ 		int ret;
+ 		NODEMASK_SCRATCH(scratch);
+ 		if (scratch) {
+@@ -2260,13 +2258,15 @@ int mpol_parse_str(char *str, struct mem
+ 			ret = -ENOMEM;
+ 		NODEMASK_SCRATCH_FREE(scratch);
+ 		if (ret) {
+-			err = 1;
+ 			mpol_put(new);
+-		} else if (no_context) {
+-			/* save for contextualization */
+-			new->w.user_nodemask = nodes;
++			goto out;
+ 		}
+ 	}
++	err = 0;
++	if (no_context) {
++		/* save for contextualization */
++		new->w.user_nodemask = nodes;
++	}
  
- #define EXT_CSD_BUS_WIDTH_1	0	/* Card is in 1 bit mode */
- #define EXT_CSD_BUS_WIDTH_4	1	/* Card is in 4 bit mode */
+ out:
+ 	/* Restore string for error message */
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
+linux-next.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+mempolicy-remove-redundant-code.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
+mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
+mempolicy-rename-policy_types-and-cleanup-initialization.patch
+mempolicy-factor-mpol_shared_policy_init-return-paths.patch
+mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
+proc-cleanup-remove-unused-assignments.patch
+reiser4.patch
 
