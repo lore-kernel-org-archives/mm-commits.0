@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + patch-b26b2d49-added-lines-with-a-missing-semicolons.patch added to -mm tree
-Date: Fri, 26 Mar 2010 15:51:32 -0700
-Message-ID: <201003262251.o2QMpW0q025674@imap1.linux-foundation.org>
+Subject: + frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch added to -mm tree
+Date: Fri, 26 Mar 2010 15:55:41 -0700
+Message-ID: <201003262255.o2QMtfuY025852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754482Ab0CZWv6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754575Ab0CZWzo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 18:51:58 -0400
+	Fri, 26 Mar 2010 18:55:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, linux@dominikbrodowski.net, starvik@axis.com
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     Patch b26b2d49 added lines with a missing semicolons
+     frv: hide uncached_access() when pgprot_noncached is not #defined
 has been added to the -mm tree.  Its filename is
-     patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
+     frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Patch b26b2d49 added lines with a missing semicolons
+Subject: frv: hide uncached_access() when pgprot_noncached is not #defined
 From: David Howells <dhowells@redhat.com>
 
-The following patch added lines with a missing semicolons:
+Hide uncached_access() when pgprot_noncached is not #defined.  This prevents
+the following warning:
 
-	commit b26b2d494b659f988b4d75eb394dfa0ddac415c9
-	Author: Dominik Brodowski <linux@dominikbrodowski.net>
-	Date:   Fri Jan 1 17:40:49 2010 +0100
+	  CC      drivers/char/mem.o
+	drivers/char/mem.c:229: warning: 'uncached_access' defined but not used
 
-	resource/PCI: align functions now return start of resource
-
-Add the missing semicolons to the FRV and CRIS arch code.
+Repairs d7d4d849b4e3acc405ec222884936800ffb26d48 ("drivers/char/mem.c:
+cleanups").
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/bios.c |    2 +-
- arch/frv/mb93090-mb00/pci-frv.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/mem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/cris/arch-v32/drivers/pci/bios.c
---- a/arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
-+++ a/arch/cris/arch-v32/drivers/pci/bios.c
-@@ -50,7 +50,7 @@ pcibios_align_resource(void *data, const
- 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
- 		start = (start + 0x3ff) & ~0x3ff;
- 
--	return start
-+	return start;
+diff -puN drivers/char/mem.c~frv-hide-uncached_access-when-pgprot_noncached-is-not-defined drivers/char/mem.c
+--- a/drivers/char/mem.c~frv-hide-uncached_access-when-pgprot_noncached-is-not-defined
++++ a/drivers/char/mem.c
+@@ -225,6 +225,7 @@ int __weak phys_mem_access_prot_allowed(
+  * outside of main memory.
+  *
+  */
++#ifdef pgprot_noncached
+ static int uncached_access(struct file *file, unsigned long addr)
+ {
+ #if defined(CONFIG_IA64)
+@@ -251,6 +252,7 @@ static int uncached_access(struct file *
+ 	return addr >= __pa(high_memory);
+ #endif
  }
++#endif
  
- int pcibios_enable_resources(struct pci_dev *dev, int mask)
-diff -puN arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/frv/mb93090-mb00/pci-frv.c
---- a/arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
-+++ a/arch/frv/mb93090-mb00/pci-frv.c
-@@ -41,7 +41,7 @@ pcibios_align_resource(void *data, const
- 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
- 		start = (start + 0x3ff) & ~0x3ff;
- 
--	return start
-+	return start;
- }
- 
- 
+ static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+ 				     unsigned long size, pgprot_t vma_prot)
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -88,6 +79,7 @@ Patches currently in -mm which might be from dhowells@redhat.com are
 origin.patch
 patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
 linux-next.patch
+frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
 keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 frv-duplicate-output_buffer-of-e03.patch
