@@ -1,53 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fscache-add-missing-unlock.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:37:37 -0400
-Message-ID: <201003261938.o2QJca4U016700@imap1.linux-foundation.org>
+Subject: [merged] em28xx-empia-em28xx-audio-too-long.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:37:39 -0400
+Message-ID: <201003261938.o2QJccpT016703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753296Ab0CZTik (ORCPT
+	by vger.kernel.org with ESMTP id S1752572Ab0CZTjO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:38:40 -0400
+	Fri, 26 Mar 2010 15:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, dougsland@redhat.com, mchehab@infradead.org, rob.krakora@messagenetsystems.com, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fscache: add missing unlock
+     em28xx: "Empia Em28xx Audio" too long
 has been removed from the -mm tree.  Its filename was
-     fscache-add-missing-unlock.patch
+     em28xx-empia-em28xx-audio-too-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fscache: add missing unlock
+Subject: em28xx: "Empia Em28xx Audio" too long
 From: Dan Carpenter <error27@gmail.com>
 
-Sparse complained about this missing spin_unlock()
+card->driver is 15 characters and a NULL.  The original code goes past the
+end of the array.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
+Cc: Robert Krakora <rob.krakora@messagenetsystems.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/page.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/em28xx/em28xx-audio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fscache/page.c~fscache-add-missing-unlock fs/fscache/page.c
---- a/fs/fscache/page.c~fscache-add-missing-unlock
-+++ a/fs/fscache/page.c
-@@ -881,6 +881,7 @@ submit_failed:
- 	goto nobufs;
+diff -puN drivers/media/video/em28xx/em28xx-audio.c~em28xx-empia-em28xx-audio-too-long drivers/media/video/em28xx/em28xx-audio.c
+--- a/drivers/media/video/em28xx/em28xx-audio.c~em28xx-empia-em28xx-audio-too-long
++++ a/drivers/media/video/em28xx/em28xx-audio.c
+@@ -491,7 +491,7 @@ static int em28xx_audio_init(struct em28
+ 	strcpy(pcm->name, "Empia 28xx Capture");
  
- nobufs_unlock_obj:
-+	spin_unlock(&cookie->stores_lock);
- 	spin_unlock(&object->lock);
- nobufs:
- 	spin_unlock(&cookie->lock);
+ 	snd_card_set_dev(card, &dev->udev->dev);
+-	strcpy(card->driver, "Empia Em28xx Audio");
++	strcpy(card->driver, "Em28xx-Audio");
+ 	strcpy(card->shortname, "Em28xx Audio");
+ 	strcpy(card->longname, "Empia Em28xx Audio");
+ 
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
