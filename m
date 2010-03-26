@@ -1,136 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exit-fix-oops-in-sync_mm_rss.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:37:10 -0400
-Message-ID: <201003261938.o2QJc9SI016667@imap1.linux-foundation.org>
+Subject: [merged] cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:36:56 -0400
+Message-ID: <201003261937.o2QJbue4016649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753133Ab0CZTiO (ORCPT
+	by vger.kernel.org with ESMTP id S1752990Ab0CZTiM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:38:14 -0400
+	Fri, 26 Mar 2010 15:38:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mst@redhat.com, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, npiggin@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exit: fix oops in sync_mm_rss
+     cpuset: alloc nodemask_t on the heap rather than the stack
 has been removed from the -mm tree.  Its filename was
-     exit-fix-oops-in-sync_mm_rss.patch
+     cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit: fix oops in sync_mm_rss
-From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: cpuset: alloc nodemask_t on the heap rather than the stack
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-In 2.6.34-rc1, removing vhost_net module causes an oops in sync_mm_rss
-(called from do_exit) when workqueue is destroyed.  This does not happen
-on net-next, or with vhost on top of to 2.6.33.
-
-The issue seems to be introduced by
-34e55232e59f7b19050267a05ff1226e5cd122a5 ("mm: avoid false sharing of
-mm_counter) which added sync_mm_rss() that is passed task->mm, and
-dereferences it without checking.  If task is a kernel thread, mm might be
-NULL.  I think this might also happen e.g.  with aio.
-
-This patch fixes the oops by calling sync_mm_rss when task->mm is set to
-NULL.  I also added BUG_ON to detect any other cases where counters get
-incremented while mm is NULL.
-
-The oops I observed looks like this:
-
-BUG: unable to handle kernel NULL pointer dereference at 00000000000002a8
-IP: [<ffffffff810b436d>] sync_mm_rss+0x33/0x6f
-PGD 0
-Oops: 0002 [#1] SMP
-last sysfs file: /sys/devices/system/cpu/cpu7/cache/index2/shared_cpu_map
-CPU 2
-Modules linked in: vhost_net(-) tun bridge stp sunrpc ipv6 cpufreq_ondemand acpi_cpufreq freq_table kvm_intel kvm i5000_edac edac_core rtc_cmos bnx2 button i2c_i801 i2c_core rtc_core e1000e sg joydev ide_cd_mod serio_raw pcspkr rtc_lib cdrom virtio_net virtio_blk virtio_pci virtio_ring virtio af_packet e1000 shpchp aacraid uhci_hcd ohci_hcd ehci_hcd [last unloaded: microcode]
-
-Pid: 2046, comm: vhost Not tainted 2.6.34-rc1-vhost #25 System Planar/IBM System x3550 -[7978B3G]-
-RIP: 0010:[<ffffffff810b436d>]  [<ffffffff810b436d>] sync_mm_rss+0x33/0x6f
-RSP: 0018:ffff8802379b7e60  EFLAGS: 00010202
-RAX: 0000000000000008 RBX: ffff88023f2390c0 RCX: 0000000000000000
-RDX: ffff88023f2396b0 RSI: 0000000000000000 RDI: ffff88023f2390c0
-RBP: ffff8802379b7e60 R08: 0000000000000000 R09: 0000000000000000
-R10: ffff88023aecfbc0 R11: 0000000000013240 R12: 0000000000000000
-R13: ffffffff81051a6c R14: ffffe8ffffc0f540 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff880001e80000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00000000000002a8 CR3: 000000023af23000 CR4: 00000000000406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process vhost (pid: 2046, threadinfo ffff8802379b6000, task ffff88023f2390c0)
-Stack:
- ffff8802379b7ee0 ffffffff81040687 ffffe8ffffc0f558 ffffffffa00a3e2d
-<0> 0000000000000000 ffff88023f2390c0 ffffffff81055817 ffff8802379b7e98
-<0> ffff8802379b7e98 0000000100000286 ffff8802379b7ee0 ffff88023ad47d78
-Call Trace:
- [<ffffffff81040687>] do_exit+0x147/0x6c4
- [<ffffffffa00a3e2d>] ? handle_rx_net+0x0/0x17 [vhost_net]
- [<ffffffff81055817>] ? autoremove_wake_function+0x0/0x39
- [<ffffffff81051a6c>] ? worker_thread+0x0/0x229
- [<ffffffff810553c9>] kthreadd+0x0/0xf2
- [<ffffffff810038d4>] kernel_thread_helper+0x4/0x10
- [<ffffffff81055342>] ? kthread+0x0/0x87
- [<ffffffff810038d0>] ? kernel_thread_helper+0x0/0x10
-Code: 00 8b 87 6c 02 00 00 85 c0 74 14 48 98 f0 48 01 86 a0 02 00 00 c7 87 6c 02 00 00 00 00 00 00 8b 87 70 02 00 00 85 c0 74 14 48 98 <f0> 48 01 86 a8 02 00 00 c7 87 70 02 00 00 00 00 00 00 8b 87 74
-RIP  [<ffffffff810b436d>] sync_mm_rss+0x33/0x6f
- RSP <ffff8802379b7e60>
-CR2: 00000000000002a8
----[ end trace 41603ba922beddd2 ]---
-Fixing recursive fault but reboot is needed!
-
-(note: handle_rx_net is a work item using workqueue in question).
-sync_mm_rss+0x33/0x6f gave me a hint. I also tried reverting
-34e55232e59f7b19050267a05ff1226e5cd122a5 and the oops goes away.
-
-The module in question calls use_mm and later unuse_mm from a kernel
-thread.  It is when this kernel thread is destroyed that the crash
-happens.
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c      |    1 +
- mm/mmu_context.c |    1 +
- 2 files changed, 2 insertions(+)
+ kernel/cpuset.c |   94 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 66 insertions(+), 28 deletions(-)
 
-diff -puN mm/memory.c~exit-fix-oops-in-sync_mm_rss mm/memory.c
---- a/mm/memory.c~exit-fix-oops-in-sync_mm_rss
-+++ a/mm/memory.c
-@@ -130,6 +130,7 @@ void __sync_task_rss_stat(struct task_st
+diff -puN kernel/cpuset.c~cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-alloc-nodemask_t-on-the-heap-rather-than-the-stack
++++ a/kernel/cpuset.c
+@@ -970,15 +970,20 @@ static void cpuset_change_nodemask(struc
+ 	struct cpuset *cs;
+ 	int migrate;
+ 	const nodemask_t *oldmem = scan->data;
+-	nodemask_t newmems;
++	NODEMASK_ALLOC(nodemask_t, newmems, GFP_KERNEL);
++
++	if (!newmems)
++		return;
  
- 	for (i = 0; i < NR_MM_COUNTERS; i++) {
- 		if (task->rss_stat.count[i]) {
-+			BUG_ON(!mm);
- 			add_mm_counter(mm, i, task->rss_stat.count[i]);
- 			task->rss_stat.count[i] = 0;
+ 	cs = cgroup_cs(scan->cg);
+-	guarantee_online_mems(cs, &newmems);
++	guarantee_online_mems(cs, newmems);
+ 
+ 	task_lock(p);
+-	cpuset_change_task_nodemask(p, &newmems);
++	cpuset_change_task_nodemask(p, newmems);
+ 	task_unlock(p);
+ 
++	NODEMASK_FREE(newmems);
++
+ 	mm = get_task_mm(p);
+ 	if (!mm)
+ 		return;
+@@ -1048,16 +1053,21 @@ static void update_tasks_nodemask(struct
+ static int update_nodemask(struct cpuset *cs, struct cpuset *trialcs,
+ 			   const char *buf)
+ {
+-	nodemask_t oldmem;
++	NODEMASK_ALLOC(nodemask_t, oldmem, GFP_KERNEL);
+ 	int retval;
+ 	struct ptr_heap heap;
+ 
++	if (!oldmem)
++		return -ENOMEM;
++
+ 	/*
+ 	 * top_cpuset.mems_allowed tracks node_stats[N_HIGH_MEMORY];
+ 	 * it's read-only
+ 	 */
+-	if (cs == &top_cpuset)
+-		return -EACCES;
++	if (cs == &top_cpuset) {
++		retval = -EACCES;
++		goto done;
++	}
+ 
+ 	/*
+ 	 * An empty mems_allowed is ok iff there are no tasks in the cpuset.
+@@ -1073,11 +1083,13 @@ static int update_nodemask(struct cpuset
+ 			goto done;
+ 
+ 		if (!nodes_subset(trialcs->mems_allowed,
+-				node_states[N_HIGH_MEMORY]))
+-			return -EINVAL;
++				node_states[N_HIGH_MEMORY])) {
++			retval =  -EINVAL;
++			goto done;
++		}
+ 	}
+-	oldmem = cs->mems_allowed;
+-	if (nodes_equal(oldmem, trialcs->mems_allowed)) {
++	*oldmem = cs->mems_allowed;
++	if (nodes_equal(*oldmem, trialcs->mems_allowed)) {
+ 		retval = 0;		/* Too easy - nothing to do */
+ 		goto done;
+ 	}
+@@ -1093,10 +1105,11 @@ static int update_nodemask(struct cpuset
+ 	cs->mems_allowed = trialcs->mems_allowed;
+ 	mutex_unlock(&callback_mutex);
+ 
+-	update_tasks_nodemask(cs, &oldmem, &heap);
++	update_tasks_nodemask(cs, oldmem, &heap);
+ 
+ 	heap_free(&heap);
+ done:
++	NODEMASK_FREE(oldmem);
+ 	return retval;
+ }
+ 
+@@ -1381,39 +1394,47 @@ static void cpuset_attach(struct cgroup_
+ 			  struct cgroup *oldcont, struct task_struct *tsk,
+ 			  bool threadgroup)
+ {
+-	nodemask_t from, to;
+ 	struct mm_struct *mm;
+ 	struct cpuset *cs = cgroup_cs(cont);
+ 	struct cpuset *oldcs = cgroup_cs(oldcont);
++	NODEMASK_ALLOC(nodemask_t, from, GFP_KERNEL);
++	NODEMASK_ALLOC(nodemask_t, to, GFP_KERNEL);
++
++	if (from == NULL || to == NULL)
++		goto alloc_fail;
+ 
+ 	if (cs == &top_cpuset) {
+ 		cpumask_copy(cpus_attach, cpu_possible_mask);
+ 	} else {
+ 		guarantee_online_cpus(cs, cpus_attach);
+ 	}
+-	guarantee_online_mems(cs, &to);
++	guarantee_online_mems(cs, to);
+ 
+ 	/* do per-task migration stuff possibly for each in the threadgroup */
+-	cpuset_attach_task(tsk, &to, cs);
++	cpuset_attach_task(tsk, to, cs);
+ 	if (threadgroup) {
+ 		struct task_struct *c;
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(c, &tsk->thread_group, thread_group) {
+-			cpuset_attach_task(c, &to, cs);
++			cpuset_attach_task(c, to, cs);
  		}
-diff -puN mm/mmu_context.c~exit-fix-oops-in-sync_mm_rss mm/mmu_context.c
---- a/mm/mmu_context.c~exit-fix-oops-in-sync_mm_rss
-+++ a/mm/mmu_context.c
-@@ -53,6 +53,7 @@ void unuse_mm(struct mm_struct *mm)
- 	struct task_struct *tsk = current;
+ 		rcu_read_unlock();
+ 	}
  
- 	task_lock(tsk);
-+	sync_mm_rss(tsk, mm);
- 	tsk->mm = NULL;
- 	/* active_mm is still 'mm' */
- 	enter_lazy_tlb(mm, tsk);
+ 	/* change mm; only needs to be done once even if threadgroup */
+-	from = oldcs->mems_allowed;
+-	to = cs->mems_allowed;
++	*from = oldcs->mems_allowed;
++	*to = cs->mems_allowed;
+ 	mm = get_task_mm(tsk);
+ 	if (mm) {
+-		mpol_rebind_mm(mm, &to);
++		mpol_rebind_mm(mm, to);
+ 		if (is_memory_migrate(cs))
+-			cpuset_migrate_mm(mm, &from, &to);
++			cpuset_migrate_mm(mm, from, to);
+ 		mmput(mm);
+ 	}
++
++alloc_fail:
++	NODEMASK_FREE(from);
++	NODEMASK_FREE(to);
+ }
+ 
+ /* The various types of files and directories in a cpuset file system */
+@@ -1558,13 +1579,21 @@ static int cpuset_sprintf_cpulist(char *
+ 
+ static int cpuset_sprintf_memlist(char *page, struct cpuset *cs)
+ {
+-	nodemask_t mask;
++	NODEMASK_ALLOC(nodemask_t, mask, GFP_KERNEL);
++	int retval;
++
++	if (mask == NULL)
++		return -ENOMEM;
+ 
+ 	mutex_lock(&callback_mutex);
+-	mask = cs->mems_allowed;
++	*mask = cs->mems_allowed;
+ 	mutex_unlock(&callback_mutex);
+ 
+-	return nodelist_scnprintf(page, PAGE_SIZE, mask);
++	retval = nodelist_scnprintf(page, PAGE_SIZE, *mask);
++
++	NODEMASK_FREE(mask);
++
++	return retval;
+ }
+ 
+ static ssize_t cpuset_common_file_read(struct cgroup *cont,
+@@ -1993,7 +2022,10 @@ static void scan_for_empty_cpusets(struc
+ 	struct cpuset *cp;	/* scans cpusets being updated */
+ 	struct cpuset *child;	/* scans child cpusets of cp */
+ 	struct cgroup *cont;
+-	nodemask_t oldmems;
++	NODEMASK_ALLOC(nodemask_t, oldmems, GFP_KERNEL);
++
++	if (oldmems == NULL)
++		return;
+ 
+ 	list_add_tail((struct list_head *)&root->stack_list, &queue);
+ 
+@@ -2010,7 +2042,7 @@ static void scan_for_empty_cpusets(struc
+ 		    nodes_subset(cp->mems_allowed, node_states[N_HIGH_MEMORY]))
+ 			continue;
+ 
+-		oldmems = cp->mems_allowed;
++		*oldmems = cp->mems_allowed;
+ 
+ 		/* Remove offline cpus and mems from this cpuset. */
+ 		mutex_lock(&callback_mutex);
+@@ -2026,9 +2058,10 @@ static void scan_for_empty_cpusets(struc
+ 			remove_tasks_in_empty_cpuset(cp);
+ 		else {
+ 			update_tasks_cpumask(cp, NULL);
+-			update_tasks_nodemask(cp, &oldmems, NULL);
++			update_tasks_nodemask(cp, oldmems, NULL);
+ 		}
+ 	}
++	NODEMASK_FREE(oldmems);
+ }
+ 
+ /*
+@@ -2086,16 +2119,19 @@ static int cpuset_track_online_cpus(stru
+ static int cpuset_track_online_nodes(struct notifier_block *self,
+ 				unsigned long action, void *arg)
+ {
+-	nodemask_t oldmems;
++	NODEMASK_ALLOC(nodemask_t, oldmems, GFP_KERNEL);
++
++	if (oldmems == NULL)
++		return NOTIFY_DONE;
+ 
+ 	cgroup_lock();
+ 	switch (action) {
+ 	case MEM_ONLINE:
+-		oldmems = top_cpuset.mems_allowed;
++		*oldmems = top_cpuset.mems_allowed;
+ 		mutex_lock(&callback_mutex);
+ 		top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 		mutex_unlock(&callback_mutex);
+-		update_tasks_nodemask(&top_cpuset, &oldmems, NULL);
++		update_tasks_nodemask(&top_cpuset, oldmems, NULL);
+ 		break;
+ 	case MEM_OFFLINE:
+ 		/*
+@@ -2108,6 +2144,8 @@ static int cpuset_track_online_nodes(str
+ 		break;
+ 	}
+ 	cgroup_unlock();
++
++	NODEMASK_FREE(oldmems);
+ 	return NOTIFY_OK;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from mst@redhat.com are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
 
