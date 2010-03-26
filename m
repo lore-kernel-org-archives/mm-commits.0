@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-prevent-compiler-from-optimising-sched_avg_update-loop.patch added to -mm tree
-Date: Fri, 26 Mar 2010 14:03:53 -0700
-Message-ID: <201003262103.o2QL3sdp020492@imap1.linux-foundation.org>
+Subject: + hangcheck-timer-fix-x86_32-bugs.patch added to -mm tree
+Date: Fri, 26 Mar 2010 14:24:30 -0700
+Message-ID: <201003262124.o2QLOUum021412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51117 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752125Ab0CZVFD (ORCPT
+	by vger.kernel.org with ESMTP id S1753947Ab0CZVYn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 17:05:03 -0400
+	Fri, 26 Mar 2010 17:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, mingo@elte.hu, peterz@infradead.org, rmk@arm.linux.org.uk
+Cc: ypolyans@princeton.edu, jan.glauber@de.ibm.com, joel.becker@oracle.com, johnstul@us.ibm.com
 
 
 The patch titled
-     sched: prevent compiler from optimising sched_avg_update loop
+     hangcheck-timer: fix x86_32 bugs
 has been added to the -mm tree.  Its filename is
-     sched-prevent-compiler-from-optimising-sched_avg_update-loop.patch
+     hangcheck-timer-fix-x86_32-bugs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: prevent compiler from optimising sched_avg_update loop
-From: Will Deacon <will.deacon@arm.com>
+Subject: hangcheck-timer: fix x86_32 bugs
+From: Yury Polyanskiy <ypolyans@princeton.edu>
 
-GCC 4.4.1 on ARM has been observed to replace the while loop in
-sched_avg_update with a call to uldivmod, resulting in the following build
-failure at link-time:
+drivers/char/hangcheck-timer.c is doubly broken.  First, the following
+line overflows unsigned long:
 
-kernel/built-in.o: In function `sched_avg_update':
-/linux-2.6/kernel/sched.c:1261: undefined reference to `__aeabi_uldivmod'
-/linux-2.6/kernel/sched.c:1261: undefined reference to `__aeabi_uldivmod'
-make: *** [.tmp_vmlinux1] Error 1
+# define TIMER_FREQ (HZ*loops_per_jiffy)
 
-This patch introduces a fake data hazard to the loop body to prevent the
-compiler optimising the loop away.
+Second, and more importantly, loops_per_jiffy has little to do with the
+con= version from the the time scale of get_cycles() (aka rdtsc) to the
+time scale of jiffies.
 
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>
+The attached patch resolves both of the problems.
+
+Cc: Joel Becker <joel.becker@oracle.com>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Jan Glauber <jan.glauber@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/char/hangcheck-timer.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sched.c~sched-prevent-compiler-from-optimising-sched_avg_update-loop kernel/sched.c
---- a/kernel/sched.c~sched-prevent-compiler-from-optimising-sched_avg_update-loop
-+++ a/kernel/sched.c
-@@ -1240,6 +1240,12 @@ static void sched_avg_update(struct rq *
- 	s64 period = sched_avg_period();
+diff -puN drivers/char/hangcheck-timer.c~hangcheck-timer-fix-x86_32-bugs drivers/char/hangcheck-timer.c
+--- a/drivers/char/hangcheck-timer.c~hangcheck-timer-fix-x86_32-bugs
++++ a/drivers/char/hangcheck-timer.c
+@@ -49,8 +49,9 @@
+ #include <asm/uaccess.h>
+ #include <linux/sysrq.h>
+ #include <linux/timer.h>
++#include <linux/time.h>
  
- 	while ((s64)(rq->clock - rq->age_stamp) > period) {
-+		/*
-+		 * Inline assembly required to prevent the compiler
-+		 * optimising this loop into a divmod call.
-+		 * See __iter_div_u64_rem() for another example of this.
-+		 */
-+		asm("" : "+rm" (rq->age_stamp));
- 		rq->age_stamp += period;
- 		rq->rt_avg /= 2;
+-#define VERSION_STR "0.9.0"
++#define VERSION_STR "0.9.1"
+ 
+ #define DEFAULT_IOFENCE_MARGIN 60	/* Default fudge factor, in seconds */
+ #define DEFAULT_IOFENCE_TICK 180	/* Default timer timeout, in seconds */
+@@ -119,10 +120,8 @@ __setup("hcheck_dump_tasks", hangcheck_p
+ #if defined(CONFIG_S390)
+ # define HAVE_MONOTONIC
+ # define TIMER_FREQ 1000000000ULL
+-#elif defined(CONFIG_IA64)
+-# define TIMER_FREQ ((unsigned long long)local_cpu_data->itc_freq)
+ #else
+-# define TIMER_FREQ (HZ*loops_per_jiffy)
++# define TIMER_FREQ 1000000000ULL
+ #endif
+ 
+ #ifdef HAVE_MONOTONIC
+@@ -130,7 +129,9 @@ extern unsigned long long monotonic_cloc
+ #else
+ static inline unsigned long long monotonic_clock(void)
+ {
+-	return get_cycles();
++	struct timespec ts;
++	getrawmonotonic(&ts);
++	return timespec_to_ns(&ts);
+ }
+ #endif  /* HAVE_MONOTONIC */
+ 
+@@ -168,6 +169,13 @@ static void hangcheck_fire(unsigned long
+ 			printk(KERN_CRIT "Hangcheck: hangcheck value past margin!\n");
+ 		}
  	}
++#if 0
++	/*
++	 * Enable to investigate delays in detail
++	 */
++	printk("Hangcheck: called %Ld ns since last time (%Ld ns overshoot)\n",
++			tsc_diff, tsc_diff - hangcheck_tick*TIMER_FREQ);
++#endif
+ 	mod_timer(&hangcheck_ticktock, jiffies + (hangcheck_tick*HZ));
+ 	hangcheck_tsc = monotonic_clock();
+ }
+@@ -180,7 +188,7 @@ static int __init hangcheck_init(void)
+ #if defined (HAVE_MONOTONIC)
+ 	printk("Hangcheck: Using monotonic_clock().\n");
+ #else
+-	printk("Hangcheck: Using get_cycles().\n");
++	printk("Hangcheck: Using getrawmonotonic().\n");
+ #endif  /* HAVE_MONOTONIC */
+ 	hangcheck_tsc_margin =
+ 		(unsigned long long)(hangcheck_margin + hangcheck_tick);
 _
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from ypolyans@princeton.edu are
 
-linux-next.patch
-sched-prevent-compiler-from-optimising-sched_avg_update-loop.patch
+hangcheck-timer-fix-x86_32-bugs.patch
 
