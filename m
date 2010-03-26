@@ -1,70 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ecryptfs-fix-oops-after-umount.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:37:51 -0400
-Message-ID: <201003261938.o2QJco5H016709@imap1.linux-foundation.org>
+Subject: [merged] watchdog-convert-rdc321x_wdt-to-use-southbridge-pci-device.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:38:01 -0400
+Message-ID: <201003261939.o2QJd0vO016722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752572Ab0CZTjX (ORCPT
+	by vger.kernel.org with ESMTP id S1752572Ab0CZTjY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:39:23 -0400
+	Fri, 26 Mar 2010 15:39:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lk@c--e.de, eparis@redhat.com, kirkland@canonical.com, rjw@sisk.pl, tyhicks@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: florian@openwrt.org, david-b@pacbell.net, hpa@zytor.com, mingo@elte.hu, sameo@linux.intel.com, tglx@linutronix.de, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: fix OOPs after umount
+     watchdog: convert rdc321x_wdt to use southbridge pci device
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-fix-oops-after-umount.patch
+     watchdog-convert-rdc321x_wdt-to-use-southbridge-pci-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: fix OOPs after umount
-From: Christian Ehrhardt <lk@c--e.de>
+Subject: watchdog: convert rdc321x_wdt to use southbridge pci device
+From: Florian Fainelli <florian@openwrt.org>
 
-Remove a d_drop in ecryptfs that is bogus IMHO.  This d_drop unhashes a
-perfectly valid and reachable dentry in the lower FS.  The patch fixes
-this perfectly reproducible kernel oops:
+The RDC321x MFD southbridge driver will pass a reference to the
+southbridge PCI device which should be used by the watchdog driver for its
+operations.  This patch converts the watchdog driver to use the pci_dev
+pointer and make use of the base register resource which is passed along
+with the platform device.
 
-    https://bugzilla.kernel.org/show_bug.cgi?id=10907
-
-It and may or may not be related to this ecryptfs bug:
-
-   https://bugs.launchpad.net/ecryptfs/+bug/363734
-
-At least the BUG_ON is on a dentry that should not be unhashed but is.
-
-      regards   Christian
-
-Signed-off-by: Christian Ehrhardt <lk@c--e.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Cc: Dustin Kirkland <kirkland@canonical.com>
+Signed-off-by: Florian Fainelli <florian@openwrt.org>
+Acked-by: Wim Van Sebroeck <wim@iguana.be>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/super.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/watchdog/rdc321x_wdt.c |   53 +++++++++++++++++++++++--------
+ 1 file changed, 40 insertions(+), 13 deletions(-)
 
-diff -puN fs/ecryptfs/super.c~ecryptfs-fix-oops-after-umount fs/ecryptfs/super.c
---- a/fs/ecryptfs/super.c~ecryptfs-fix-oops-after-umount
-+++ a/fs/ecryptfs/super.c
-@@ -85,7 +85,6 @@ static void ecryptfs_destroy_inode(struc
- 		if (lower_dentry->d_inode) {
- 			fput(inode_info->lower_file);
- 			inode_info->lower_file = NULL;
--			d_drop(lower_dentry);
- 		}
+diff -puN drivers/watchdog/rdc321x_wdt.c~watchdog-convert-rdc321x_wdt-to-use-southbridge-pci-device drivers/watchdog/rdc321x_wdt.c
+--- a/drivers/watchdog/rdc321x_wdt.c~watchdog-convert-rdc321x_wdt-to-use-southbridge-pci-device
++++ a/drivers/watchdog/rdc321x_wdt.c
+@@ -1,7 +1,7 @@
+ /*
+  * RDC321x watchdog driver
+  *
+- * Copyright (C) 2007 Florian Fainelli <florian@openwrt.org>
++ * Copyright (C) 2007-2010 Florian Fainelli <florian@openwrt.org>
+  *
+  * This driver is highly inspired from the cpu5_wdt driver
+  *
+@@ -36,8 +36,7 @@
+ #include <linux/watchdog.h>
+ #include <linux/io.h>
+ #include <linux/uaccess.h>
+-
+-#include <asm/rdc321x_defs.h>
++#include <linux/mfd/rdc321x.h>
+ 
+ #define RDC_WDT_MASK	0x80000000 /* Mask */
+ #define RDC_WDT_EN	0x00800000 /* Enable bit */
+@@ -63,6 +62,8 @@ static struct {
+ 	int default_ticks;
+ 	unsigned long inuse;
+ 	spinlock_t lock;
++	struct pci_dev *sb_pdev;
++	int base_reg;
+ } rdc321x_wdt_device;
+ 
+ /* generic helper functions */
+@@ -70,14 +71,18 @@ static struct {
+ static void rdc321x_wdt_trigger(unsigned long unused)
+ {
+ 	unsigned long flags;
++	u32 val;
+ 
+ 	if (rdc321x_wdt_device.running)
+ 		ticks--;
+ 
+ 	/* keep watchdog alive */
+ 	spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
+-	outl(RDC_WDT_EN | inl(RDC3210_CFGREG_DATA),
+-		RDC3210_CFGREG_DATA);
++	pci_read_config_dword(rdc321x_wdt_device.sb_pdev,
++					rdc321x_wdt_device.base_reg, &val);
++	val |= RDC_WDT_EN;
++	pci_write_config_dword(rdc321x_wdt_device.sb_pdev,
++					rdc321x_wdt_device.base_reg, val);
+ 	spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
+ 
+ 	/* requeue?? */
+@@ -105,10 +110,13 @@ static void rdc321x_wdt_start(void)
+ 
+ 		/* Clear the timer */
+ 		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
+-		outl(RDC_CLS_TMR, RDC3210_CFGREG_ADDR);
++		pci_write_config_dword(rdc321x_wdt_device.sb_pdev,
++				rdc321x_wdt_device.base_reg, RDC_CLS_TMR);
+ 
+ 		/* Enable watchdog and set the timeout to 81.92 us */
+-		outl(RDC_WDT_EN | RDC_WDT_CNT, RDC3210_CFGREG_DATA);
++		pci_write_config_dword(rdc321x_wdt_device.sb_pdev,
++					rdc321x_wdt_device.base_reg,
++					RDC_WDT_EN | RDC_WDT_CNT);
+ 		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
+ 
+ 		mod_timer(&rdc321x_wdt_device.timer,
+@@ -148,7 +156,7 @@ static long rdc321x_wdt_ioctl(struct fil
+ 				unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+-	unsigned int value;
++	u32 value;
+ 	static const struct watchdog_info ident = {
+ 		.options = WDIOF_CARDRESET,
+ 		.identity = "RDC321x WDT",
+@@ -162,9 +170,10 @@ static long rdc321x_wdt_ioctl(struct fil
+ 	case WDIOC_GETSTATUS:
+ 		/* Read the value from the DATA register */
+ 		spin_lock_irqsave(&rdc321x_wdt_device.lock, flags);
+-		value = inl(RDC3210_CFGREG_DATA);
++		pci_read_config_dword(rdc321x_wdt_device.sb_pdev,
++					rdc321x_wdt_device.base_reg, &value);
+ 		spin_unlock_irqrestore(&rdc321x_wdt_device.lock, flags);
+-		if (copy_to_user(argp, &value, sizeof(int)))
++		if (copy_to_user(argp, &value, sizeof(u32)))
+ 			return -EFAULT;
+ 		break;
+ 	case WDIOC_GETSUPPORT:
+@@ -219,17 +228,35 @@ static struct miscdevice rdc321x_wdt_mis
+ static int __devinit rdc321x_wdt_probe(struct platform_device *pdev)
+ {
+ 	int err;
++	struct resource *r;
++	struct rdc321x_wdt_pdata *pdata;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata) {
++		dev_err(&pdev->dev, "no platform data supplied\n");
++		return -ENODEV;
++	}
++
++	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "wdt-reg");
++	if (!r) {
++		dev_err(&pdev->dev, "failed to get wdt-reg resource\n");
++		return -ENODEV;
++	}
++
++	rdc321x_wdt_device.sb_pdev = pdata->sb_pdev;
++	rdc321x_wdt_device.base_reg = r->start;
+ 
+ 	err = misc_register(&rdc321x_wdt_misc);
+ 	if (err < 0) {
+-		printk(KERN_ERR PFX "watchdog misc_register failed\n");
++		dev_err(&pdev->dev, "misc_register failed\n");
+ 		return err;
  	}
- 	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
+ 
+ 	spin_lock_init(&rdc321x_wdt_device.lock);
+ 
+ 	/* Reset the watchdog */
+-	outl(RDC_WDT_RST, RDC3210_CFGREG_DATA);
++	pci_write_config_dword(rdc321x_wdt_device.sb_pdev,
++				rdc321x_wdt_device.base_reg, RDC_WDT_RST);
+ 
+ 	init_completion(&rdc321x_wdt_device.stop);
+ 	rdc321x_wdt_device.queue = 0;
+@@ -240,7 +267,7 @@ static int __devinit rdc321x_wdt_probe(s
+ 
+ 	rdc321x_wdt_device.default_ticks = ticks;
+ 
+-	printk(KERN_INFO PFX "watchdog init success\n");
++	dev_info(&pdev->dev, "watchdog init success\n");
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from lk@c--e.de are
+Patches currently in -mm which might be from florian@openwrt.org are
 
+linux-next.patch
 
