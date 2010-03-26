@@ -1,66 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] get_maintainer-repair-stdin-usage.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:36:03 -0400
-Message-ID: <201003261937.o2QJb24L016573@imap1.linux-foundation.org>
+Subject: [merged] nommu-fix-an-incorrect-comment-in-the-do_mmap_shared_file.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:36:14 -0400
+Message-ID: <201003261937.o2QJbDab016590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752100Ab0CZThO (ORCPT
+	by vger.kernel.org with ESMTP id S1752100Ab0CZThU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:37:14 -0400
+	Fri, 26 Mar 2010 15:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, joe@perches.com, shemminger@vyatta.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, uclinux@blueteddy.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     get_maintainer: repair STDIN usage
+     nommu: fix an incorrect comment in the do_mmap_shared_file()
 has been removed from the -mm tree.  Its filename was
-     get_maintainer-repair-stdin-usage.patch
+     nommu-fix-an-incorrect-comment-in-the-do_mmap_shared_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get_maintainer: repair STDIN usage
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: nommu: fix an incorrect comment in the do_mmap_shared_file()
+From: David Howells <dhowells@redhat.com>
 
-Commit 22dd5b0cba50a197aaa3bd2790a29ee2e8e4e372 (fix perlcritic warnings)
-broke the ability to handle STDIN because the three argument version of
-open() cannot handle standard IO-streams (which is mentioned in
-PerlBestPractices, too).
+Fix an incorrect comment in the do_mmap_shared_file().  If a mapping is
+requested MAP_SHARED, then a private copy cannot be made and still provide
+correct semantics.
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: Joe Perches <joe@perches.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reported-by: Dave Hudson <uclinux@blueteddy.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nommu.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-repair-stdin-usage scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-repair-stdin-usage
-+++ a/scripts/get_maintainer.pl
-@@ -284,7 +284,7 @@ foreach my $file (@ARGV) {
- 	my $file_cnt = @files;
- 	my $lastfile;
+diff -puN mm/nommu.c~nommu-fix-an-incorrect-comment-in-the-do_mmap_shared_file mm/nommu.c
+--- a/mm/nommu.c~nommu-fix-an-incorrect-comment-in-the-do_mmap_shared_file
++++ a/mm/nommu.c
+@@ -1040,10 +1040,9 @@ static int do_mmap_shared_file(struct vm
+ 	if (ret != -ENOSYS)
+ 		return ret;
  
--	open(my $patch, '<', $file)
-+	open(my $patch, "< $file")
- 	    or die "$P: Can't open $file: $!\n";
- 	while (<$patch>) {
- 	    my $patch_line = $_;
+-	/* getting an ENOSYS error indicates that direct mmap isn't
+-	 * possible (as opposed to tried but failed) so we'll fall
+-	 * through to making a private copy of the data and mapping
+-	 * that if we can */
++	/* getting -ENOSYS indicates that direct mmap isn't possible (as
++	 * opposed to tried but failed) so we can only give a suitable error as
++	 * it's not possible to make a private copy if MAP_SHARED was given */
+ 	return -ENODEV;
+ }
+ 
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-firmware-loader-use-statically-initialized-data-attribute.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+frv-duplicate-output_buffer-of-e03.patch
+nommu-allow-private-mappings-of-read-only-devices.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
