@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-clear-signal-tty-when-the-last-thread-exits-fix.patch added to -mm tree
-Date: Fri, 26 Mar 2010 14:52:25 -0700
-Message-ID: <201003262152.o2QLqPU6022681@imap1.linux-foundation.org>
+Subject: + patch-b26b2d49-added-lines-with-a-missing-semicolons.patch added to -mm tree
+Date: Fri, 26 Mar 2010 15:51:32 -0700
+Message-ID: <201003262251.o2QMpW0q025674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55383 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752248Ab0CZVw5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754482Ab0CZWv6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 17:52:57 -0400
+	Fri, 26 Mar 2010 18:51:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com
+Cc: dhowells@redhat.com, linux@dominikbrodowski.net, starvik@axis.com
 
 
 The patch titled
-     signals-clear-signal-tty-when-the-last-thread-exits-fix
+     Patch b26b2d49 added lines with a missing semicolons
 has been added to the -mm tree.  Its filename is
-     signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+     patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals-clear-signal-tty-when-the-last-thread-exits-fix
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: Patch b26b2d49 added lines with a missing semicolons
+From: David Howells <dhowells@redhat.com>
 
-I didn't get this warning, but the old gcc complains
+The following patch added lines with a missing semicolons:
 
-	kernel/exit.c: In function 'release_task':
-	kernel/exit.c:85: warning: 'tty' may be used uninitialized in this function
+	commit b26b2d494b659f988b4d75eb394dfa0ddac415c9
+	Author: Dominik Brodowski <linux@dominikbrodowski.net>
+	Date:   Fri Jan 1 17:40:49 2010 +0100
 
-This clearly wrong, to the point it blames release_task() instead of
-__exit_signal(). But let's make compiler happy anyway.
+	resource/PCI: align functions now return start of resource
 
-Thanks Andrew, now I know we have the handy uninitialized_var() helper ;)
+Add the missing semicolons to the FRV and CRIS arch code.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/cris/arch-v32/drivers/pci/bios.c |    2 +-
+ arch/frv/mb93090-mb00/pci-frv.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~signals-clear-signal-tty-when-the-last-thread-exits-fix kernel/exit.c
---- a/kernel/exit.c~signals-clear-signal-tty-when-the-last-thread-exits-fix
-+++ a/kernel/exit.c
-@@ -81,7 +81,7 @@ static void __exit_signal(struct task_st
- {
- 	struct signal_struct *sig = tsk->signal;
- 	struct sighand_struct *sighand;
--	struct tty_struct *tty;
-+	struct tty_struct *uninitialized_var(tty);
+diff -puN arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/cris/arch-v32/drivers/pci/bios.c
+--- a/arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
++++ a/arch/cris/arch-v32/drivers/pci/bios.c
+@@ -50,7 +50,7 @@ pcibios_align_resource(void *data, const
+ 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
+ 		start = (start + 0x3ff) & ~0x3ff;
  
- 	BUG_ON(!sig);
- 	BUG_ON(!atomic_read(&sig->count));
+-	return start
++	return start;
+ }
+ 
+ int pcibios_enable_resources(struct pci_dev *dev, int mask)
+diff -puN arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/frv/mb93090-mb00/pci-frv.c
+--- a/arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
++++ a/arch/frv/mb93090-mb00/pci-frv.c
+@@ -41,7 +41,7 @@ pcibios_align_resource(void *data, const
+ 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
+ 		start = (start + 0x3ff) & ~0x3ff;
+ 
+-	return start
++	return start;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
+origin.patch
+patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
 linux-next.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+frv-duplicate-output_buffer-of-e03.patch
+nommu-allow-private-mappings-of-read-only-devices.patch
 umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
 umh-creds-kill-subprocess_info-cred-logic.patch
-call_usermodehelper-no-need-to-unblock-signals.patch
-wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
-call_usermodehelper-simplify-fix-umh_no_wait-case.patch
-call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
 coredump-factor-out-the-not-ispipe-file-checks.patch
 coredump-cleanup-ispipe-code.patch
 coredump-factor-out-put_cred-calls.patch
 coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-exit-exit_notify-can-trust-signal-notify_count-0.patch
-exit-change-zap_other_threads-to-count-sub-threads.patch
-exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
-exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
-signals-make-task_struct-signal-immutable-refcountable.patch
-signals-clear-signal-tty-when-the-last-thread-exits.patch
-signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
-signals-kill-the-awful-task_rq_unlock_wait-hack.patch
-exit-__exit_signal-use-thread_group_leader-consistently.patch
-kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
-exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
-check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
 proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
 proc-make-collect_sigign_sigcatch-rcu-safe.patch
 proc-make-task_sig-lockless.patch
 proc_sched_show_task-use-get_nr_threads.patch
 keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-proc-cleanup-remove-unused-assignments.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
