@@ -1,356 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] document-linuxs-circular-buffering-capabilities.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:36:27 -0400
-Message-ID: <201003261937.o2QJbQXs016606@imap1.linux-foundation.org>
+Subject: [merged] exit-fix-oops-in-sync_mm_rss.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:37:10 -0400
+Message-ID: <201003261938.o2QJc9SI016667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752094Ab0CZTho (ORCPT
+	by vger.kernel.org with ESMTP id S1753133Ab0CZTiO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:37:44 -0400
+	Fri, 26 Mar 2010 15:38:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, paulmck@linux.vnet.ibm.com, rdunlap@xenotime.net, stefani@seibold.net, mm-commits@vger.kernel.org
+To: mst@redhat.com, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Document Linux's circular buffering capabilities
+     exit: fix oops in sync_mm_rss
 has been removed from the -mm tree.  Its filename was
-     document-linuxs-circular-buffering-capabilities.patch
+     exit-fix-oops-in-sync_mm_rss.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Document Linux's circular buffering capabilities
-From: David Howells <dhowells@redhat.com>
+Subject: exit: fix oops in sync_mm_rss
+From: "Michael S. Tsirkin" <mst@redhat.com>
 
-Document the circular buffering capabilities available in Linux.
+In 2.6.34-rc1, removing vhost_net module causes an oops in sync_mm_rss
+(called from do_exit) when workqueue is destroyed.  This does not happen
+on net-next, or with vhost on top of to 2.6.33.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Reviewed-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stefani Seibold <stefani@seibold.net>
+The issue seems to be introduced by
+34e55232e59f7b19050267a05ff1226e5cd122a5 ("mm: avoid false sharing of
+mm_counter) which added sync_mm_rss() that is passed task->mm, and
+dereferences it without checking.  If task is a kernel thread, mm might be
+NULL.  I think this might also happen e.g.  with aio.
+
+This patch fixes the oops by calling sync_mm_rss when task->mm is set to
+NULL.  I also added BUG_ON to detect any other cases where counters get
+incremented while mm is NULL.
+
+The oops I observed looks like this:
+
+BUG: unable to handle kernel NULL pointer dereference at 00000000000002a8
+IP: [<ffffffff810b436d>] sync_mm_rss+0x33/0x6f
+PGD 0
+Oops: 0002 [#1] SMP
+last sysfs file: /sys/devices/system/cpu/cpu7/cache/index2/shared_cpu_map
+CPU 2
+Modules linked in: vhost_net(-) tun bridge stp sunrpc ipv6 cpufreq_ondemand acpi_cpufreq freq_table kvm_intel kvm i5000_edac edac_core rtc_cmos bnx2 button i2c_i801 i2c_core rtc_core e1000e sg joydev ide_cd_mod serio_raw pcspkr rtc_lib cdrom virtio_net virtio_blk virtio_pci virtio_ring virtio af_packet e1000 shpchp aacraid uhci_hcd ohci_hcd ehci_hcd [last unloaded: microcode]
+
+Pid: 2046, comm: vhost Not tainted 2.6.34-rc1-vhost #25 System Planar/IBM System x3550 -[7978B3G]-
+RIP: 0010:[<ffffffff810b436d>]  [<ffffffff810b436d>] sync_mm_rss+0x33/0x6f
+RSP: 0018:ffff8802379b7e60  EFLAGS: 00010202
+RAX: 0000000000000008 RBX: ffff88023f2390c0 RCX: 0000000000000000
+RDX: ffff88023f2396b0 RSI: 0000000000000000 RDI: ffff88023f2390c0
+RBP: ffff8802379b7e60 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff88023aecfbc0 R11: 0000000000013240 R12: 0000000000000000
+R13: ffffffff81051a6c R14: ffffe8ffffc0f540 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff880001e80000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00000000000002a8 CR3: 000000023af23000 CR4: 00000000000406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process vhost (pid: 2046, threadinfo ffff8802379b6000, task ffff88023f2390c0)
+Stack:
+ ffff8802379b7ee0 ffffffff81040687 ffffe8ffffc0f558 ffffffffa00a3e2d
+<0> 0000000000000000 ffff88023f2390c0 ffffffff81055817 ffff8802379b7e98
+<0> ffff8802379b7e98 0000000100000286 ffff8802379b7ee0 ffff88023ad47d78
+Call Trace:
+ [<ffffffff81040687>] do_exit+0x147/0x6c4
+ [<ffffffffa00a3e2d>] ? handle_rx_net+0x0/0x17 [vhost_net]
+ [<ffffffff81055817>] ? autoremove_wake_function+0x0/0x39
+ [<ffffffff81051a6c>] ? worker_thread+0x0/0x229
+ [<ffffffff810553c9>] kthreadd+0x0/0xf2
+ [<ffffffff810038d4>] kernel_thread_helper+0x4/0x10
+ [<ffffffff81055342>] ? kthread+0x0/0x87
+ [<ffffffff810038d0>] ? kernel_thread_helper+0x0/0x10
+Code: 00 8b 87 6c 02 00 00 85 c0 74 14 48 98 f0 48 01 86 a0 02 00 00 c7 87 6c 02 00 00 00 00 00 00 8b 87 70 02 00 00 85 c0 74 14 48 98 <f0> 48 01 86 a8 02 00 00 c7 87 70 02 00 00 00 00 00 00 8b 87 74
+RIP  [<ffffffff810b436d>] sync_mm_rss+0x33/0x6f
+ RSP <ffff8802379b7e60>
+CR2: 00000000000002a8
+---[ end trace 41603ba922beddd2 ]---
+Fixing recursive fault but reboot is needed!
+
+(note: handle_rx_net is a work item using workqueue in question).
+sync_mm_rss+0x33/0x6f gave me a hint. I also tried reverting
+34e55232e59f7b19050267a05ff1226e5cd122a5 and the oops goes away.
+
+The module in question calls use_mm and later unuse_mm from a kernel
+thread.  It is when this kernel thread is destroyed that the crash
+happens.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/circular-buffers.txt |  231 +++++++++++++++++++++++++++
- Documentation/memory-barriers.txt  |   20 ++
- include/linux/circ_buf.h           |    4 
- 3 files changed, 255 insertions(+)
+ mm/memory.c      |    1 +
+ mm/mmu_context.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN /dev/null Documentation/circular-buffers.txt
---- /dev/null
-+++ a/Documentation/circular-buffers.txt
-@@ -0,0 +1,231 @@
-+			       ================
-+			       CIRCULAR BUFFERS
-+			       ================
-+
-+By: David Howells <dhowells@redhat.com>
-+    Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-+
-+
-+Linux provides a number of features that can be used to implement circular
-+buffering.  There are two sets of such features:
-+
-+ (1) Convenience functions for determining information about power-of-2 sized
-+     buffers.
-+
-+ (2) Memory barriers for when the producer and the consumer of objects in the
-+     buffer don't want to share a lock.
-+
-+To use these facilities, as discussed below, there needs to be just one
-+producer and just one consumer.  It is possible to handle multiple producers by
-+serialising them, and to handle multiple consumers by serialising them.
-+
-+
-+Contents:
-+
-+ (*) What is a circular buffer?
-+
-+ (*) Measuring power-of-2 buffers.
-+
-+ (*) Using memory barriers with circular buffers.
-+     - The producer.
-+     - The consumer.
-+
-+
-+==========================
-+WHAT IS A CIRCULAR BUFFER?
-+==========================
-+
-+First of all, what is a circular buffer?  A circular buffer is a buffer of
-+fixed, finite size into which there are two indices:
-+
-+ (1) A 'head' index - the point at which the producer inserts items into the
-+     buffer.
-+
-+ (2) A 'tail' index - the point at which the consumer finds the next item in
-+     the buffer.
-+
-+Typically when the tail pointer is equal to the head pointer, the buffer is
-+empty; and the buffer is full when the head pointer is one less than the tail
-+pointer.
-+
-+The head index is incremented when items are added, and the tail index when
-+items are removed.  The tail index should never jump the head index, and both
-+indices should be wrapped to 0 when they reach the end of the buffer, thus
-+allowing an infinite amount of data to flow through the buffer.
-+
-+Typically, items will all be of the same unit size, but this isn't strictly
-+required to use the techniques below.  The indices can be increased by more
-+than 1 if multiple items or variable-sized items are to be included in the
-+buffer, provided that neither index overtakes the other.  The implementer must
-+be careful, however, as a region more than one unit in size may wrap the end of
-+the buffer and be broken into two segments.
-+
-+
-+============================
-+MEASURING POWER-OF-2 BUFFERS
-+============================
-+
-+Circular buffers that are of a size that is an exact power of two can have
-+their item count and buffer space assessed really quickly through the use of a
-+bitwise-AND instruction.  Non-power-of-2 sized buffers must use a modulus
-+(divide) instruction instead which is likely to be very slow.
-+
-+There are a set of macros to do this in Linux, that can be made use of by:
-+
-+	#include <linux/circ_buf.h>
-+
-+These are:
-+
-+ (*) Measure the remaining capacity of a buffer:
-+
-+	CIRC_SPACE(head_index, tail_index, buffer_size);
-+
-+     This returns the amount of space left in the buffer[1] into which items
-+     can be inserted.
-+
-+
-+ (*) Measure the maximum consecutive immediate space in a buffer:
-+
-+	CIRC_SPACE_TO_END(head_index, tail_index, buffer_size);
-+
-+     This returns the amount of consecutive space left in the buffer[1] into
-+     which items can be immediately inserted without having to wrap back to the
-+     beginning of the buffer.
-+
-+
-+ (*) Measure the occupancy of a buffer:
-+
-+	CIRC_CNT(head_index, tail_index, buffer_size);
-+
-+     This returns the number of items currently occupying a buffer[2].
-+
-+
-+ (*) Measure the non-wrapping occupancy of a buffer:
-+
-+	CIRC_CNT_TO_END(head_index, tail_index, buffer_size);
-+
-+     This returns the number of consecutive items[2] that can be extracted from
-+     the buffer without having to wrap back to the beginning of the buffer.
-+
-+
-+Each of these macros will nominally return a value between 0 and buffer_size-1,
-+however:
-+
-+ [1] CIRC_SPACE*() are intended to be used in the producer.  To the producer
-+     they will return a lower bound as the producer controls the head index,
-+     but the consumer may still be depleting the buffer on another CPU and
-+     moving the tail index.
-+
-+     To the consumer it will show an upper bound as the producer may be busy
-+     depleting the space.
-+
-+ [2] CIRC_CNT*() are intended to be used in the consumer.  To the consumer they
-+     will return a lower bound as the consumer controls the tail index, but the
-+     producer may still be filling the buffer on andother CPU and moving the
-+     head index.
-+
-+     To the producer it will show an upper bound as the consumer may be busy
-+     emptying the buffer.
-+
-+ [3] To a third party, the order in which the writes to the indices by the
-+     producer and consumer become visible cannot be guaranteed as they are
-+     independent and may be made on different CPUs - so the result in such a
-+     situation will merely be a guess, and may even be negative.
-+
-+
-+===========================================
-+USING MEMORY BARRIERS WITH CIRCULAR BUFFERS
-+===========================================
-+
-+By using memory barriers in conjunction with circular buffers, you can avoid
-+the need to:
-+
-+ (1) use a single lock to govern access to both ends of the buffer, thus
-+     allowing the buffer to be filled and emptied at the same time; and
-+
-+ (2) use atomic counter operations.
-+
-+There are two sides to this: the producer that fills the buffer, and the
-+consumer that empties it.  Only one thing should be filling a buffer at any one
-+time, and only one thing should be emptying a buffer at any one time, but the
-+two sides can operate simultaneously.
-+
-+
-+THE PRODUCER
-+------------
-+
-+The producer will look something like this:
-+
-+	spin_lock(&producer_lock);
-+
-+	unsigned long head = buffer->head;
-+	unsigned long tail = ACCESS_ONCE(buffer->tail);
-+
-+	if (CIRC_SPACE(head, tail, buffer->size) >= 1) {
-+		/* insert one item into the buffer */
-+		struct item *item = buffer[head];
-+
-+		produce_item(item);
-+
-+		smp_wmb(); /* commit the item before incrementing the head */
-+
-+		buffer->head = (head + 1) & (buffer->size - 1);
-+
-+		/* wake_up() will make sure that the head is committed before
-+		 * waking anyone up */
-+		wake_up(consumer);
-+	}
-+
-+	spin_unlock(&producer_lock);
-+
-+This will instruct the CPU that the contents of the new item must be written
-+before the head index makes it available to the consumer and then instructs the
-+CPU that the revised head index must be written before the consumer is woken.
-+
-+Note that wake_up() doesn't have to be the exact mechanism used, but whatever
-+is used must guarantee a (write) memory barrier between the update of the head
-+index and the change of state of the consumer, if a change of state occurs.
-+
-+
-+THE CONSUMER
-+------------
-+
-+The consumer will look something like this:
-+
-+	spin_lock(&consumer_lock);
-+
-+	unsigned long head = ACCESS_ONCE(buffer->head);
-+	unsigned long tail = buffer->tail;
-+
-+	if (CIRC_CNT(head, tail, buffer->size) >= 1) {
-+		/* read index before reading contents at that index */
-+		smp_read_barrier_depends();
-+
-+		/* extract one item from the buffer */
-+		struct item *item = buffer[tail];
-+
-+		consume_item(item);
-+
-+		smp_mb(); /* finish reading descriptor before incrementing tail */
-+
-+		buffer->tail = (tail + 1) & (buffer->size - 1);
-+	}
-+
-+	spin_unlock(&consumer_lock);
-+
-+This will instruct the CPU to make sure the index is up to date before reading
-+the new item, and then it shall make sure the CPU has finished reading the item
-+before it writes the new tail pointer, which will erase the item.
-+
-+
-+Note the use of ACCESS_ONCE() in both algorithms to read the opposition index.
-+This prevents the compiler from discarding and reloading its cached value -
-+which some compilers will do across smp_read_barrier_depends().
-+
-+
-+===============
-+FURTHER READING
-+===============
-+
-+See also Documentation/memory-barriers.txt for a description of Linux's memory
-+barrier facilities.
-diff -puN Documentation/memory-barriers.txt~document-linuxs-circular-buffering-capabilities Documentation/memory-barriers.txt
---- a/Documentation/memory-barriers.txt~document-linuxs-circular-buffering-capabilities
-+++ a/Documentation/memory-barriers.txt
-@@ -3,6 +3,7 @@
- 			 ============================
+diff -puN mm/memory.c~exit-fix-oops-in-sync_mm_rss mm/memory.c
+--- a/mm/memory.c~exit-fix-oops-in-sync_mm_rss
++++ a/mm/memory.c
+@@ -130,6 +130,7 @@ void __sync_task_rss_stat(struct task_st
  
- By: David Howells <dhowells@redhat.com>
-+    Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+ 	for (i = 0; i < NR_MM_COUNTERS; i++) {
+ 		if (task->rss_stat.count[i]) {
++			BUG_ON(!mm);
+ 			add_mm_counter(mm, i, task->rss_stat.count[i]);
+ 			task->rss_stat.count[i] = 0;
+ 		}
+diff -puN mm/mmu_context.c~exit-fix-oops-in-sync_mm_rss mm/mmu_context.c
+--- a/mm/mmu_context.c~exit-fix-oops-in-sync_mm_rss
++++ a/mm/mmu_context.c
+@@ -53,6 +53,7 @@ void unuse_mm(struct mm_struct *mm)
+ 	struct task_struct *tsk = current;
  
- Contents:
- 
-@@ -60,6 +61,10 @@ Contents:
- 
-      - And then there's the Alpha.
- 
-+ (*) Example uses.
-+
-+     - Circular buffers.
-+
-  (*) References.
- 
- 
-@@ -2226,6 +2231,21 @@ The Alpha defines the Linux kernel's mem
- See the subsection on "Cache Coherency" above.
- 
- 
-+============
-+EXAMPLE USES
-+============
-+
-+CIRCULAR BUFFERS
-+----------------
-+
-+Memory barriers can be used to implement circular buffering without the need
-+of a lock to serialise the producer with the consumer.  See:
-+
-+	Documentation/circular-buffers.txt
-+
-+for details.
-+
-+
- ==========
- REFERENCES
- ==========
-diff -puN include/linux/circ_buf.h~document-linuxs-circular-buffering-capabilities include/linux/circ_buf.h
---- a/include/linux/circ_buf.h~document-linuxs-circular-buffering-capabilities
-+++ a/include/linux/circ_buf.h
-@@ -1,3 +1,7 @@
-+/*
-+ * See Documentation/circular-buffers.txt for more information.
-+ */
-+
- #ifndef _LINUX_CIRC_BUF_H
- #define _LINUX_CIRC_BUF_H 1
- 
+ 	task_lock(tsk);
++	sync_mm_rss(tsk, mm);
+ 	tsk->mm = NULL;
+ 	/* active_mm is still 'mm' */
+ 	enter_lazy_tlb(mm, tsk);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from mst@redhat.com are
 
 origin.patch
 linux-next.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-frv-duplicate-output_buffer-of-e03.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc-make-collect_sigign_sigcatch-rcu-safe.patch
-proc-make-task_sig-lockless.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
