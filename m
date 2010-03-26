@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch added to -mm tree
-Date: Fri, 26 Mar 2010 14:50:11 -0700
-Message-ID: <201003262150.o2QLoBEh022588@imap1.linux-foundation.org>
+Subject: + signals-clear-signal-tty-when-the-last-thread-exits-fix.patch added to -mm tree
+Date: Fri, 26 Mar 2010 14:52:25 -0700
+Message-ID: <201003262152.o2QLqPU6022681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276Ab0CZVut (ORCPT
+	by vger.kernel.org with ESMTP id S1752248Ab0CZVw5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 17:50:49 -0400
+	Fri, 26 Mar 2010 17:52:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vzapolskiy@gmail.com, a.zummo@towertech.it, akpm@linux-foundation.org, daniel@caiaq.de, p_gortmaker@yahoo.com
+Cc: oleg@redhat.com
 
 
 The patch titled
-     rtc-mxc: remove unnecessary clock source for rtc subsystem
+     signals-clear-signal-tty-when-the-last-thread-exits-fix
 has been added to the -mm tree.  Its filename is
-     rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+     signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-mxc: remove unnecessary clock source for rtc subsystem
-From: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Subject: signals-clear-signal-tty-when-the-last-thread-exits-fix
+From: Oleg Nesterov <oleg@redhat.com>
 
-On imx SoCs rtc clock parent is CKIL, but clock rate shall be determined
-using rtc clock itself, that eliminates CKIL clock usage in the driver.
+I didn't get this warning, but the old gcc complains
 
-Signed-off-by: Vladimir Zapolskiy <vzapolskiy@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+	kernel/exit.c: In function 'release_task':
+	kernel/exit.c:85: warning: 'tty' may be used uninitialized in this function
+
+This clearly wrong, to the point it blames release_task() instead of
+__exit_signal(). But let's make compiler happy anyway.
+
+Thanks Andrew, now I know we have the handy uninitialized_var() helper ;)
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-mxc.c~rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -378,7 +378,6 @@ static struct rtc_class_ops mxc_rtc_ops 
- 
- static int __init mxc_rtc_probe(struct platform_device *pdev)
+diff -puN kernel/exit.c~signals-clear-signal-tty-when-the-last-thread-exits-fix kernel/exit.c
+--- a/kernel/exit.c~signals-clear-signal-tty-when-the-last-thread-exits-fix
++++ a/kernel/exit.c
+@@ -81,7 +81,7 @@ static void __exit_signal(struct task_st
  {
--	struct clk *clk;
- 	struct resource *res;
- 	struct rtc_device *rtc;
- 	struct rtc_plat_data *pdata = NULL;
-@@ -401,14 +400,15 @@ static int __init mxc_rtc_probe(struct p
- 	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start,
- 				     resource_size(res));
+ 	struct signal_struct *sig = tsk->signal;
+ 	struct sighand_struct *sighand;
+-	struct tty_struct *tty;
++	struct tty_struct *uninitialized_var(tty);
  
--	clk = clk_get(&pdev->dev, "ckil");
--	if (IS_ERR(clk)) {
--		ret = PTR_ERR(clk);
-+	pdata->clk = clk_get(&pdev->dev, "rtc");
-+	if (IS_ERR(pdata->clk)) {
-+		dev_err(&pdev->dev, "unable to get clock!\n");
-+		ret = PTR_ERR(pdata->clk);
- 		goto exit_free_pdata;
- 	}
- 
--	rate = clk_get_rate(clk);
--	clk_put(clk);
-+	clk_enable(pdata->clk);
-+	rate = clk_get_rate(pdata->clk);
- 
- 	if (rate == 32768)
- 		reg = RTC_INPUT_CLK_32768HZ;
-@@ -419,7 +419,7 @@ static int __init mxc_rtc_probe(struct p
- 	else {
- 		dev_err(&pdev->dev, "rtc clock is not valid (%lu)\n", rate);
- 		ret = -EINVAL;
--		goto exit_free_pdata;
-+		goto exit_put_clk;
- 	}
- 
- 	reg |= RTC_ENABLE_BIT;
-@@ -427,18 +427,9 @@ static int __init mxc_rtc_probe(struct p
- 	if (((readw(pdata->ioaddr + RTC_RTCCTL)) & RTC_ENABLE_BIT) == 0) {
- 		dev_err(&pdev->dev, "hardware module can't be enabled!\n");
- 		ret = -EIO;
--		goto exit_free_pdata;
--	}
--
--	pdata->clk = clk_get(&pdev->dev, "rtc");
--	if (IS_ERR(pdata->clk)) {
--		dev_err(&pdev->dev, "unable to get clock!\n");
--		ret = PTR_ERR(pdata->clk);
--		goto exit_free_pdata;
-+		goto exit_put_clk;
- 	}
- 
--	clk_enable(pdata->clk);
+ 	BUG_ON(!sig);
+ 	BUG_ON(!atomic_read(&sig->count));
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+linux-next.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+proc-cleanup-remove-unused-assignments.patch
+
