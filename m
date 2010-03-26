@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch added to -mm tree
-Date: Fri, 26 Mar 2010 14:46:54 -0700
-Message-ID: <201003262146.o2QLkssN022429@imap1.linux-foundation.org>
+Subject: + rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method.patch added to -mm tree
+Date: Fri, 26 Mar 2010 14:48:06 -0700
+Message-ID: <201003262148.o2QLm6CE022457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752413Ab0CZVrn (ORCPT
+	by vger.kernel.org with ESMTP id S1754064Ab0CZVsv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 17:47:43 -0400
+	Fri, 26 Mar 2010 17:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, herbert@gondor.apana.org.au
+Cc: vzapolskiy@gmail.com, a.zummo@towertech.it, daniel@caiaq.de
 
 
 The patch titled
-     keys: don't need to use RCU in keyring_read() as semaphore is held
+     rtc-mxc: multiple fixes in rtc-mxc probe method
 has been added to the -mm tree.  Its filename is
-     keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
+     rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: don't need to use RCU in keyring_read() as semaphore is held
-From: David Howells <dhowells@redhat.com>
+Subject: rtc-mxc: multiple fixes in rtc-mxc probe method
+From: Vladimir Zapolskiy <vzapolskiy@gmail.com>
 
-keyring_read() doesn't need to use rcu_dereference() to access the keyring
-payload as the caller holds the key semaphore to prevent modifications
-from happening whilst the data is read out.
+On exit paths in mxc_rtc_probe() method some resources are not freed
+correctly.
 
-This should solve the following warning:
+This patch fixes:
+* unrequested memory region containing imx RTC registers
+* iounmap() isn't called on exit_free_pdata branch
+* clock get rate is called for freed clock source
+* clock isn't disabled on exit_put_clk branch
 
-===================================================
-[ INFO: suspicious rcu_dereference_check() usage. ]
----------------------------------------------------
-security/keys/keyring.c:204 invoked rcu_dereference_check() without protection!
+To simplify the fix managed device resources are used.
 
-other info that might help us debug this:
-
-rcu_scheduler_active = 1, debug_locks = 0
-1 lock held by keyctl/2144:
- #0:  (&key->sem){+++++.}, at: [<ffffffff81177f7c>] keyctl_read_key+0x9c/0xcf
-
-stack backtrace:
-Pid: 2144, comm: keyctl Not tainted 2.6.34-rc2-cachefs #113
-Call Trace:
- [<ffffffff8105121f>] lockdep_rcu_dereference+0xaa/0xb2
- [<ffffffff811762d5>] keyring_read+0x4d/0xe7
- [<ffffffff81177f8c>] keyctl_read_key+0xac/0xcf
- [<ffffffff811788d4>] sys_keyctl+0x75/0xb9
- [<ffffffff81001eeb>] system_call_fastpath+0x16/0x1b
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Daniel Mack <daniel@caiaq.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/keyring.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mxc.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN security/keys/keyring.c~keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held security/keys/keyring.c
---- a/security/keys/keyring.c~keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held
-+++ a/security/keys/keyring.c
-@@ -199,7 +199,7 @@ static long keyring_read(const struct ke
- 	int loop, ret;
+diff -puN drivers/rtc/rtc-mxc.c~rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method
++++ a/drivers/rtc/rtc-mxc.c
+@@ -383,21 +383,26 @@ static int __init mxc_rtc_probe(struct p
+ 	struct rtc_device *rtc;
+ 	struct rtc_plat_data *pdata = NULL;
+ 	u32 reg;
+-	int ret, rate;
++	unsigned long rate;
++	int ret;
  
- 	ret = 0;
--	klist = rcu_dereference(keyring->payload.subscriptions);
-+	klist = keyring->payload.subscriptions;
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+ 		return -ENODEV;
  
- 	if (klist) {
- 		/* calculate how much data we could return */
-_
-
-Patches currently in -mm which might be from dhowells@redhat.com are
-
-origin.patch
-linux-next.patch
-keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-frv-duplicate-output_buffer-of-e03.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc-make-collect_sigign_sigcatch-rcu-safe.patch
-proc-make-task_sig-lockless.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-
+-	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+ 
+-	pdata->ioaddr = ioremap(res->start, resource_size(res));
++	if (!devm_request_mem_region(&pdev->dev, res->start,
++	                             resource_size(res), pdev->name))
++		return -EBUSY;
++
++	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start,
++	                             resource_size(res));
+ 
+ 	clk = clk_get(&pdev->dev, "ckil");
+ 	if (IS_ERR(clk)) {
+-		iounmap(pdata->ioaddr);
+ 		ret = PTR_ERR(clk);
+ 		goto exit_free_pdata;
+ 	}
+@@ -412,8 +417,7 @@ static int __init mxc_rtc_probe(struct p
+ 	else if (rate == 38400)
+ 		reg = RTC_INPUT_CLK_38400HZ;
+ 	else {
+-		dev_err(&pdev->dev, "rtc clock is not valid (%lu)\n",
+-			clk_get_rate(clk));
++		dev_err(&pdev->dev, "rtc clock is not valid (%lu)\n", rate);
+ 		ret = -EINVAL;
+ 		goto exit_free_pdata;
+ 	}
+@@ -449,8 +453,8 @@ static int __init mxc_rtc_probe(struct p
+ 	pdata->irq = platform_get_irq(pdev, 0);
+ 
+ 	if (pdata->irq >= 0 &&
+-	    request_irq(pdata->irq, mxc_rtc_interrupt, IRQF_SHARED,
+-			pdev->name, pdev) < 0) {
++	    devm_request_irq(&pdev->dev, pdata->irq, mxc_rtc_interrupt,
++	                     IRQF_SHARED, pdev->name, pdev) < 0) {
+ 		dev_warn(&pdev->dev, "interrupt not available.\n");
+ 		pdata->irq = -1;
+ 	}
+@@ -458,10 +462,10 @@ static int __init mxc_rtc_probe(struct p
+ 	return 0;
+ 
+ exit_put_clk:
++	clk_disable(pdata->clk);
+ 	clk_put(pdata->clk);
+ 
+ exit_free_pdata:
+-	kfree(pdata);
+ 
+ 	return ret;
+ }
+@@ -472,12 +476,8 @@ static int __exit mxc_rtc_remove(struct 
+ 
+ 	rtc_device_unregister(pdata->rtc);
+ 
+-	if (pdata->irq >= 0)
+-		free_irq(pdata->irq, pdev);
