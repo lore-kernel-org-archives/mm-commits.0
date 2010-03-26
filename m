@@ -1,88 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-binfmt_aout-fix-pointer-warnings.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:35:55 -0400
-Message-ID: <201003261936.o2QJasUF016562@imap1.linux-foundation.org>
+Subject: [merged] memcg-disable-move-charge-in-no-mmu-case.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:35:40 -0400
+Message-ID: <201003261936.o2QJaeQl016518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752094Ab0CZTg7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752094Ab0CZTg5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:36:59 -0400
+	Fri, 26 Mar 2010 15:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: petkovbb@googlemail.com, d.hatayama@jp.fujitsu.com, petkovbb@gmail.com, mm-commits@vger.kernel.org
+To: d-nishimura@mtf.biglobe.ne.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/binfmt_aout.c: fix pointer warnings
+     memcg: disable move charge in no mmu case
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_aout-fix-pointer-warnings.patch
+     memcg-disable-move-charge-in-no-mmu-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_aout.c: fix pointer warnings
-From: Borislav Petkov <petkovbb@googlemail.com>
+Subject: memcg: disable move charge in no mmu case
+From: Daisuke Nishimura <d-nishimura@mtf.biglobe.ne.jp>
 
-fs/binfmt_aout.c: In function `aout_core_dump':
-fs/binfmt_aout.c:125: warning: passing argument 2 of `dump_write' makes pointer from integer without a cast
-include/linux/coredump.h:12: note: expected `const void *' but argument is of type `long unsigned int'
-fs/binfmt_aout.c:132: warning: passing argument 2 of `dump_write' makes pointer from integer without a cast
-include/linux/coredump.h:12: note: expected `const void *' but argument is of type `long unsigned int'
+In commit 02491447 ("memcg: move charges of anonymous swap"), I tried to
+disable move charge feature in no mmu case by enclosing all the related
+functions with "#ifdef CONFIG_MMU", but the commit places these ifdefs in
+wrong place.  (it seems that it's mangled while handling some fixes...)
 
-due to dump_write() expecting a user void *.  Fold casts into the
-START_DATA/START_STACK macros and shut up the warnings.
+This patch fixes it up.
 
-Signed-off-by: Borislav Petkov <petkovbb@gmail.com>
-Cc: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   44 ++++++++++++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN fs/binfmt_aout.c~fs-binfmt_aout-fix-pointer-warnings fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~fs-binfmt_aout-fix-pointer-warnings
-+++ a/fs/binfmt_aout.c
-@@ -75,14 +75,16 @@ static int aout_core_dump(struct coredum
- 	struct file *file = cprm->file;
- 	mm_segment_t fs;
- 	int has_dumped = 0;
--	unsigned long dump_start, dump_size;
-+	void __user *dump_start;
-+	int dump_size;
- 	struct user dump;
- #ifdef __alpha__
--#       define START_DATA(u)	(u.start_data)
-+#       define START_DATA(u)	((void __user *)u.start_data)
- #else
--#	define START_DATA(u)	((u.u_tsize << PAGE_SHIFT) + u.start_code)
-+#	define START_DATA(u)	((void __user *)((u.u_tsize << PAGE_SHIFT) + \
-+				 u.start_code))
- #endif
--#       define START_STACK(u)   (u.start_stack)
-+#       define START_STACK(u)   ((void __user *)u.start_stack)
+diff -puN mm/memcontrol.c~memcg-disable-move-charge-in-no-mmu-case mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-disable-move-charge-in-no-mmu-case
++++ a/mm/memcontrol.c
+@@ -3946,28 +3946,6 @@ one_by_one:
+ 	}
+ 	return ret;
+ }
+-#else	/* !CONFIG_MMU */
+-static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
+-				struct cgroup *cgroup,
+-				struct task_struct *p,
+-				bool threadgroup)
+-{
+-	return 0;
+-}
+-static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
+-				struct cgroup *cgroup,
+-				struct task_struct *p,
+-				bool threadgroup)
+-{
+-}
+-static void mem_cgroup_move_task(struct cgroup_subsys *ss,
+-				struct cgroup *cont,
+-				struct cgroup *old_cont,
+-				struct task_struct *p,
+-				bool threadgroup)
+-{
+-}
+-#endif
  
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
-@@ -104,9 +106,9 @@ static int aout_core_dump(struct coredum
+ /**
+  * is_target_pte_for_mc - check a pte whether it is valid for move charge
+@@ -4330,6 +4308,28 @@ static void mem_cgroup_move_task(struct 
+ 	}
+ 	mem_cgroup_clear_mc();
+ }
++#else	/* !CONFIG_MMU */
++static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
++				struct cgroup *cgroup,
++				struct task_struct *p,
++				bool threadgroup)
++{
++	return 0;
++}
++static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
++				struct cgroup *cgroup,
++				struct task_struct *p,
++				bool threadgroup)
++{
++}
++static void mem_cgroup_move_task(struct cgroup_subsys *ss,
++				struct cgroup *cont,
++				struct cgroup *old_cont,
++				struct task_struct *p,
++				bool threadgroup)
++{
++}
++#endif
  
- /* make sure we actually have a data and stack area to dump */
- 	set_fs(USER_DS);
--	if (!access_ok(VERIFY_READ, (void __user *)START_DATA(dump), dump.u_dsize << PAGE_SHIFT))
-+	if (!access_ok(VERIFY_READ, START_DATA(dump), dump.u_dsize << PAGE_SHIFT))
- 		dump.u_dsize = 0;
--	if (!access_ok(VERIFY_READ, (void __user *)START_STACK(dump), dump.u_ssize << PAGE_SHIFT))
-+	if (!access_ok(VERIFY_READ, START_STACK(dump), dump.u_ssize << PAGE_SHIFT))
- 		dump.u_ssize = 0;
- 
- 	set_fs(KERNEL_DS);
+ struct cgroup_subsys mem_cgroup_subsys = {
+ 	.name = "memory",
 _
 
-Patches currently in -mm which might be from petkovbb@googlemail.com are
+Patches currently in -mm which might be from d-nishimura@mtf.biglobe.ne.jp are
 
 origin.patch
 
