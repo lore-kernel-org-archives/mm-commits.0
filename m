@@ -1,75 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:37:34 -0400
-Message-ID: <201003261938.o2QJcXRh016695@imap1.linux-foundation.org>
+Subject: [merged] lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:37:28 -0400
+Message-ID: <201003261938.o2QJcRds016688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752796Ab0CZTih (ORCPT
+	by vger.kernel.org with ESMTP id S1752910Ab0CZTij (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:38:37 -0400
+	Fri, 26 Mar 2010 15:38:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, Daniel.Taylor@wdc.com, hpa@zytor.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: m.grzeschik@pengutronix.de, dilinger@collabora.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/partition/msdos: fix unusable extended partition for > 512B sector
+     lxfb: set the H- and V-SYNC polarity of the flatpanel output
 has been removed from the -mm tree.  Its filename was
-     fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector.patch
+     lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partition/msdos: fix unusable extended partition for > 512B sector
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: lxfb: set the H- and V-SYNC polarity of the flatpanel output
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-Smaller size than a minimum blocksize can't be used, after all it's
-handled like 0 size.
+Fixup for the flatpanel output.  The geode_modedb attribute flags are used
+to set the SYNC polarity of the flatpanel.  Without this patch our
+flatpanel registers stayed unconfigured, so we just saw garbage output.
 
-For extended partition itself, this makes sure to use bigger size than one
-logical sector size at least.
-
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Daniel Taylor <Daniel.Taylor@wdc.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Cc: Andres Salomon <dilinger@collabora.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/msdos.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ drivers/video/geode/lxfb.h     |    2 ++
+ drivers/video/geode/lxfb_ops.c |   10 +++++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN fs/partitions/msdos.c~fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~fs-partition-msdos-fix-unusable-extended-partition-for-512b-sector
-+++ a/fs/partitions/msdos.c
-@@ -492,9 +492,16 @@ int msdos_partition(struct parsed_partit
- 		if (!size)
- 			continue;
- 		if (is_extended_partition(p)) {
--			/* prevent someone doing mkfs or mkswap on an
--			   extended partition, but leave room for LILO */
--			put_partition(state, slot, start, size == 1 ? 1 : 2);
-+			/*
-+			 * prevent someone doing mkfs or mkswap on an
-+			 * extended partition, but leave room for LILO
-+			 * FIXME: this uses one logical sector for > 512b
-+			 * sector, although it may not be enough/proper.
-+			 */
-+			sector_t n = 2;
-+			n = min(size, max(sector_size, n));
-+			put_partition(state, slot, start, n);
+diff -puN drivers/video/geode/lxfb.h~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output drivers/video/geode/lxfb.h
+--- a/drivers/video/geode/lxfb.h~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output
++++ a/drivers/video/geode/lxfb.h
+@@ -365,6 +365,8 @@ enum fp_registers {
+ 	FP_CRC, /* 0x458 */
+ };
+ 
++#define FP_PT2_HSP			(1 << 22)
++#define FP_PT2_VSP			(1 << 23)
+ #define FP_PT2_SCRC			(1 << 27)	/* shfclk free */
+ 
+ #define FP_PM_P				(1 << 24)	/* panel power ctl */
+diff -puN drivers/video/geode/lxfb_ops.c~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~lxfb-set-the-h-and-v-sync-polarity-of-the-flatpanel-output
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -274,7 +274,15 @@ static void lx_graphics_enable(struct fb
+ 		u32 msrlo, msrhi;
+ 
+ 		write_fp(par, FP_PT1, 0);
+-		write_fp(par, FP_PT2, FP_PT2_SCRC);
++		temp = FP_PT2_SCRC;
 +
- 			printk(" <");
- 			parse_extended(state, bdev, start, size);
- 			printk(" >");
++		if (info->var.sync & FB_SYNC_HOR_HIGH_ACT)
++			temp |= FP_PT2_HSP;
++
++		if (info->var.sync & FB_SYNC_VERT_HIGH_ACT)
++			temp |= FP_PT2_VSP;
++
++		write_fp(par, FP_PT2, temp);
+ 		write_fp(par, FP_DFC, FP_DFC_BC);
+ 
+ 		msrlo = MSR_LX_MSR_PADSEL_TFT_SEL_LOW;
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from m.grzeschik@pengutronix.de are
 
 origin.patch
-linux-next.patch
 
