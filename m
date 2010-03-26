@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch added to -mm tree
-Date: Fri, 26 Mar 2010 16:10:10 -0700
-Message-ID: <201003262310.o2QNAAlc026494@imap1.linux-foundation.org>
+Subject: + frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch added to -mm tree
+Date: Fri, 26 Mar 2010 16:36:05 -0700
+Message-ID: <201003262336.o2QNa5Ih027570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754463Ab0CZXLN (ORCPT
+	by vger.kernel.org with ESMTP id S1753555Ab0CZXgK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 19:11:13 -0400
+	Fri, 26 Mar 2010 19:36:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dmitry.torokhov@gmail.com, pavel@ucw.cz, rpurdie@rpsys.net, samuel.thibault@ens-lyon.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, jason.wessel@windriver.com
 
 
 The patch titled
-     leds-input: depends on INPUT
+     frv-extend-gdbstub-to-support-more-features-of-gdb-fix
 has been added to the -mm tree.  Its filename is
-     leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+     frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-input: depends on INPUT
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: frv-extend-gdbstub-to-support-more-features-of-gdb-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-leds-input uses input_*() functions so it should depend on INPUT.
-
-leds-input.c:(.text+0x6e0513): undefined reference to `input_unregister_handle'
-leds-input.c:(.text+0x6e06eb): undefined reference to `input_inject_event'
-leds-input.c:(.text+0x6e0700): undefined reference to `input_inject_event'
-leds-input.c:(.text+0x6e0906): undefined reference to `input_register_handle'
-leds-input.c:(.text+0x6e0bdc): undefined reference to `input_unregister_handler'
-leds-input.c:(.init.text+0x285c8): undefined reference to `input_register_handler'
-leds-input.c:(.exit.text+0x7b04): undefined reference to `input_unregister_handler'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    2 +-
+ arch/frv/kernel/gdb-stub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/Kconfig~leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input
-+++ a/drivers/leds/Kconfig
-@@ -25,7 +25,7 @@ config LEDS_88PM860X
- 
- config LEDS_INPUT
- 	tristate "LED Support using input keyboards"
--	depends on LEDS_CLASS
-+	depends on LEDS_CLASS && INPUT
- 	select LEDS_TRIGGERS
- 	help
- 	  This option enables support for the LEDs on keyboard managed
+diff -puN arch/frv/kernel/gdb-stub.c~frv-extend-gdbstub-to-support-more-features-of-gdb-fix arch/frv/kernel/gdb-stub.c
+--- a/arch/frv/kernel/gdb-stub.c~frv-extend-gdbstub-to-support-more-features-of-gdb-fix
++++ a/arch/frv/kernel/gdb-stub.c
+@@ -1347,7 +1347,7 @@ void gdbstub_get_mmu_state(void)
+ /*
+  * handle general query commands of the form 'qXXXXX'
+  */
+-void gdbstub_handle_query(void)
++static void gdbstub_handle_query(void)
+ {
+ 	if (strcmp(input_buffer, "qAttached") == 0) {
+ 		/* return current thread ID */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-i2c-busses-i2c-xiicc-is-borked.patch
+ratelimit-annotate-___ratelimit-fix.patch
+rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+serial-add-driver-for-the-altera-uart-unbork.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
 reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
