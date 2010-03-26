@@ -1,72 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-kernel-doc-handle-struct-member-__aligned.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:35:52 -0400
-Message-ID: <201003261936.o2QJapij016558@imap1.linux-foundation.org>
+Subject: [merged] fs-binfmt_aout-fix-pointer-warnings.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:35:55 -0400
+Message-ID: <201003261936.o2QJasUF016562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752094Ab0CZTg4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752094Ab0CZTg7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:36:56 -0400
+	Fri, 26 Mar 2010 15:36:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: petkovbb@googlemail.com, d.hatayama@jp.fujitsu.com, petkovbb@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/kernel-doc: handle struct member __aligned
+     fs/binfmt_aout.c: fix pointer warnings
 has been removed from the -mm tree.  Its filename was
-     scripts-kernel-doc-handle-struct-member-__aligned.patch
+     fs-binfmt_aout-fix-pointer-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/kernel-doc: handle struct member __aligned
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: fs/binfmt_aout.c: fix pointer warnings
+From: Borislav Petkov <petkovbb@googlemail.com>
 
-scripts/kernel-doc erroneously says:
+fs/binfmt_aout.c: In function `aout_core_dump':
+fs/binfmt_aout.c:125: warning: passing argument 2 of `dump_write' makes pointer from integer without a cast
+include/linux/coredump.h:12: note: expected `const void *' but argument is of type `long unsigned int'
+fs/binfmt_aout.c:132: warning: passing argument 2 of `dump_write' makes pointer from integer without a cast
+include/linux/coredump.h:12: note: expected `const void *' but argument is of type `long unsigned int'
 
-Warning(include/linux/skbuff.h:410): Excess struct/union/enum/typedef member 'cb' description in 'sk_buff'
+due to dump_write() expecting a user void *.  Fold casts into the
+START_DATA/START_STACK macros and shut up the warnings.
 
-on this line in struct sk_buff:
-	char			cb[48] __aligned(8);
-
-due to treating the last field as the struct member name, so teach
-kernel-doc to ignore __aligned(x) in structs.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Borislav Petkov <petkovbb@gmail.com>
+Cc: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/binfmt_aout.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned scripts/kernel-doc
---- a/scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned
-+++ a/scripts/kernel-doc
-@@ -1424,6 +1424,8 @@ sub dump_struct($$) {
- 	$nested =~ s/\/\*.*?\*\///gos;
- 	# strip kmemcheck_bitfield_{begin,end}.*;
- 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
-+	# strip attributes
-+	$members =~ s/__aligned\s*\(\d+\)//gos;
+diff -puN fs/binfmt_aout.c~fs-binfmt_aout-fix-pointer-warnings fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~fs-binfmt_aout-fix-pointer-warnings
++++ a/fs/binfmt_aout.c
+@@ -75,14 +75,16 @@ static int aout_core_dump(struct coredum
+ 	struct file *file = cprm->file;
+ 	mm_segment_t fs;
+ 	int has_dumped = 0;
+-	unsigned long dump_start, dump_size;
++	void __user *dump_start;
++	int dump_size;
+ 	struct user dump;
+ #ifdef __alpha__
+-#       define START_DATA(u)	(u.start_data)
++#       define START_DATA(u)	((void __user *)u.start_data)
+ #else
+-#	define START_DATA(u)	((u.u_tsize << PAGE_SHIFT) + u.start_code)
++#	define START_DATA(u)	((void __user *)((u.u_tsize << PAGE_SHIFT) + \
++				 u.start_code))
+ #endif
+-#       define START_STACK(u)   (u.start_stack)
++#       define START_STACK(u)   ((void __user *)u.start_stack)
  
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+@@ -104,9 +106,9 @@ static int aout_core_dump(struct coredum
+ 
+ /* make sure we actually have a data and stack area to dump */
+ 	set_fs(USER_DS);
+-	if (!access_ok(VERIFY_READ, (void __user *)START_DATA(dump), dump.u_dsize << PAGE_SHIFT))
++	if (!access_ok(VERIFY_READ, START_DATA(dump), dump.u_dsize << PAGE_SHIFT))
+ 		dump.u_dsize = 0;
+-	if (!access_ok(VERIFY_READ, (void __user *)START_STACK(dump), dump.u_ssize << PAGE_SHIFT))
++	if (!access_ok(VERIFY_READ, START_STACK(dump), dump.u_ssize << PAGE_SHIFT))
+ 		dump.u_ssize = 0;
+ 
+ 	set_fs(KERNEL_DS);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from petkovbb@googlemail.com are
 
 origin.patch
-linux-next.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
