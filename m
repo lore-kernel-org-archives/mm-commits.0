@@ -1,122 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-use-tab-not-spaces-for-delimiter.patch removed from -mm tree
-Date: Fri, 26 Mar 2010 12:36:12 -0400
-Message-ID: <201003261937.o2QJbB9L016587@imap1.linux-foundation.org>
+Subject: [merged] drivers-gpio-max730xc-add-license-macro.patch removed from -mm tree
+Date: Fri, 26 Mar 2010 12:36:09 -0400
+Message-ID: <201003261937.o2QJb8ln016584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752100Ab0CZThP (ORCPT
+	by vger.kernel.org with ESMTP id S1752100Ab0CZThZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 15:37:15 -0400
+	Fri, 26 Mar 2010 15:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: richard.rojfors@pelagicore.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: use tab not spaces for delimiter
+     drivers/gpio/max730x.c: add license macro
 has been removed from the -mm tree.  Its filename was
-     maintainers-use-tab-not-spaces-for-delimiter.patch
+     drivers-gpio-max730xc-add-license-macro.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: use tab not spaces for delimiter
-From: Joe Perches <joe@perches.com>
+Subject: drivers/gpio/max730x.c: add license macro
+=46rom: Richard R=F6jfors <richard.rojfors@pelagicore.com>
 
-Keeps MAINTAINERS a bit more consistent.
-done via sed -r -i -e 's/^([A-Z]):[ \t]+/\1:\t/g' MAINTAINERS
+According to the header in max730x it is licensed GPLv2.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Add a MODULE_LICENSE to avoid getting the kernel tainted.
+
+[w.sang@pengutronix.de: add MODULE_AUTHOR and MODULE_DESCRIPTION also]
+Signed-off-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ drivers/gpio/max730x.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-use-tab-not-spaces-for-delimiter MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tab-not-spaces-for-delimiter
-+++ a/MAINTAINERS
-@@ -797,12 +797,12 @@ M:	Michael Petchkovsky <mkpetch@internod
- S:	Maintained
- 
- ARM/NOMADIK ARCHITECTURE
--M:     Alessandro Rubini <rubini@unipv.it>
--M:     STEricsson <STEricsson_nomadik_linux@list.st.com>
--L:     linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:     Maintained
--F:     arch/arm/mach-nomadik/
--F:     arch/arm/plat-nomadik/
-+M:	Alessandro Rubini <rubini@unipv.it>
-+M:	STEricsson <STEricsson_nomadik_linux@list.st.com>
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+S:	Maintained
-+F:	arch/arm/mach-nomadik/
-+F:	arch/arm/plat-nomadik/
- 
- ARM/OPENMOKO NEO FREERUNNER (GTA02) MACHINE SUPPORT
- M:	Nelson Castillo <arhuaco@freaks-unidos.net>
-@@ -1926,17 +1926,17 @@ F:	drivers/scsi/dpt*
- F:	drivers/scsi/dpt/
- 
- DRBD DRIVER
--P:     Philipp Reisner
--P:     Lars Ellenberg
--M:     drbd-dev@lists.linbit.com
--L:     drbd-user@lists.linbit.com
--W:     http://www.drbd.org
--T:     git git://git.drbd.org/linux-2.6-drbd.git drbd
--T:     git git://git.drbd.org/drbd-8.3.git
--S:     Supported
--F:     drivers/block/drbd/
--F:     lib/lru_cache.c
--F:     Documentation/blockdev/drbd/
-+P:	Philipp Reisner
-+P:	Lars Ellenberg
-+M:	drbd-dev@lists.linbit.com
-+L:	drbd-user@lists.linbit.com
-+W:	http://www.drbd.org
-+T:	git git://git.drbd.org/linux-2.6-drbd.git drbd
-+T:	git git://git.drbd.org/drbd-8.3.git
-+S:	Supported
-+F:	drivers/block/drbd/
-+F:	lib/lru_cache.c
-+F:	Documentation/blockdev/drbd/
- 
- DRIVER CORE, KOBJECTS, AND SYSFS
- M:	Greg Kroah-Hartman <gregkh@suse.de>
-@@ -3518,8 +3518,8 @@ F:	drivers/scsi/sym53c8xx_2/
- LTP (Linux Test Project)
- M:	Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
- M:	Garrett Cooper <yanegomi@gmail.com>
--M:     Mike Frysinger <vapier@gentoo.org>
--M:     Subrata Modak <subrata@linux.vnet.ibm.com>
-+M:	Mike Frysinger <vapier@gentoo.org>
-+M:	Subrata Modak <subrata@linux.vnet.ibm.com>
- L:	ltp-list@lists.sourceforge.net (subscribers-only)
- W:	http://ltp.sourceforge.net/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/galak/ltp.git
-@@ -6201,7 +6201,7 @@ F:	arch/x86/
- X86 PLATFORM DRIVERS
- M:	Matthew Garrett <mjg@redhat.com>
- L:	platform-driver-x86@vger.kernel.org
--T:      git git://git.kernel.org/pub/scm/linux/kernel/git/mjg59/platform-drivers-x86.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mjg59/platform-drivers-x86.git
- S:	Maintained
- F:	drivers/platform/x86
- 
+diff -puN drivers/gpio/max730x.c~drivers-gpio-max730xc-add-license-macr=
+o drivers/gpio/max730x.c
+--- a/drivers/gpio/max730x.c~drivers-gpio-max730xc-add-license-macro
++++ a/drivers/gpio/max730x.c
+@@ -242,3 +242,7 @@ int __devexit __max730x_remove(struct de
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__max730x_remove);
++
++MODULE_AUTHOR("Juergen Beisert, Wolfram Sang");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("MAX730x GPIO-Expanders, generic parts");
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from richard.rojfors@pelagicore=
+=2Ecom are
 
 origin.patch
 linux-next.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-vsprintfc-use-noinline_for_stack.patch
+serial-two-branches-the-same-in-timbuart_set_mctrl.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.pat=
+ch
+sdhci-implement-cap_clock_base_broken-quirk.patch
+sdhci-pltfm-implement-platform-data-passing.patch
+sdhci-pltfm-do-not-print-errors-in-case-of-an-extended-iomem-size.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
