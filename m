@@ -1,237 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + frv-extend-gdbstub-to-support-more-features-of-gdb.patch added to -mm tree
-Date: Fri, 26 Mar 2010 16:36:03 -0700
-Message-ID: <201003262336.o2QNa3xY027567@imap1.linux-foundation.org>
+Subject: [to-be-updated] hpet-factor-timer-allocate-from-open.patch removed from -mm tree
+Date: Sun, 28 Mar 2010 13:34:19 -0400
+Message-ID: <201003282035.o2SKZNwO003478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753415Ab0CZXgK (ORCPT
+	by vger.kernel.org with ESMTP id S1754140Ab0C1Ufj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Mar 2010 19:36:10 -0400
+	Sun, 28 Mar 2010 16:35:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, jason.wessel@windriver.com
+To: maglyx@gmail.com, clemens@ladisch.de, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: extend gdbstub to support more features of gdb
-has been added to the -mm tree.  Its filename is
-     frv-extend-gdbstub-to-support-more-features-of-gdb.patch
+     hpet: factor timer allocate from open
+has been removed from the -mm tree.  Its filename was
+     hpet-factor-timer-allocate-from-open.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: extend gdbstub to support more features of gdb
-From: David Howells <dhowells@redhat.com>
+Subject: hpet: factor timer allocate from open
+From: Magnus Lynch <maglyx@gmail.com>
 
-Extend gdbstub to support more features of gdb remote protocol to keep
-gdb-7 and emacs gud mode happy:
+The current implementation of the /dev/hpet driver couples opening the
+device with allocating one of the (scarce) timers (aka comparators).  This
+is a limitation in that the main counter may be valuable to applications
+seeking a high-resolution timer who have no use for the interrupt
+generating functionality of the comparators.
 
- (*) The D command.  Detach debugger.
+This patch alters the open semantics so that when the device is opened, no
+timer is allocated.  Operations that depend on a timer being in context
+implicitly attempt allocating a timer, to maintain backward compatibility.
+ There is also an IOCTL (HPET_ALLOC_TIMER _IO) added so that the
+allocation may be done explicitly.  (I prefer the explicit open then
+allocate pattern but don't know how practical it would be to require all
+existing code to be changed.)
 
- (*) The H command.  Handle setting the target thread by ignoring it.
-
- (*) The qAttached command.  Indicate we 'attached' to an existing process.
-
- (*) The qC command.  Indicate that the current thread ID is 0.
-
- (*) The qOffsets command.  Indicate that no relocation has been done.
-
- (*) The qSymbol:: command.  Indicate that we're not interested in looking up
-     any symbol addresses.
-
- (*) The qSupported command.  Indicate the maximum packet size and the fact
-     that reverse step and continue aren't supported.
-
- (*) The vCont? command.  Indicate that we don't support any of its variants.
-
-Also make it possible to trace the commands and replies without tracing
-the individual character I/O.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Magnus Lynch <maglyx@gmail.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/gdb-stub.h |    7 +++
- arch/frv/kernel/gdb-io.c        |    4 -
- arch/frv/kernel/gdb-stub.c      |   61 ++++++++++++++++++++++++++++++
- 3 files changed, 70 insertions(+), 2 deletions(-)
+ drivers/char/hpet.c  |   59 ++++++++++++++++++++++++++++++++++++-----
+ include/linux/hpet.h |    1 
+ 2 files changed, 53 insertions(+), 7 deletions(-)
 
-diff -puN arch/frv/include/asm/gdb-stub.h~frv-extend-gdbstub-to-support-more-features-of-gdb arch/frv/include/asm/gdb-stub.h
---- a/arch/frv/include/asm/gdb-stub.h~frv-extend-gdbstub-to-support-more-features-of-gdb
-+++ a/arch/frv/include/asm/gdb-stub.h
-@@ -12,6 +12,7 @@
- #ifndef __ASM_GDB_STUB_H
- #define __ASM_GDB_STUB_H
+diff -puN drivers/char/hpet.c~hpet-factor-timer-allocate-from-open drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-factor-timer-allocate-from-open
++++ a/drivers/char/hpet.c
+@@ -242,16 +242,40 @@ static void hpet_timer_set_irq(struct hp
  
-+#undef GDBSTUB_DEBUG_IO
- #undef GDBSTUB_DEBUG_PROTOCOL
+ static int hpet_open(struct inode *inode, struct file *file)
+ {
+-	struct hpet_dev *devp;
+ 	struct hpets *hpetp;
+-	int i;
  
- #include <asm/ptrace.h>
-@@ -108,6 +109,12 @@ extern void gdbstub_printk(const char *f
- extern void debug_to_serial(const char *p, int n);
- extern void console_set_baud(unsigned baud);
+ 	if (file->f_mode & FMODE_WRITE)
+ 		return -EINVAL;
  
-+#ifdef GDBSTUB_DEBUG_IO
-+#define gdbstub_io(FMT,...) gdbstub_printk(FMT, ##__VA_ARGS__)
-+#else
-+#define gdbstub_io(FMT,...) ({ 0; })
-+#endif
++	hpetp = hpets;
++	/* starting with timer-neutral instance */
++	file->private_data = &hpetp->hp_dev[hpetp->hp_ntimer];
 +
- #ifdef GDBSTUB_DEBUG_PROTOCOL
- #define gdbstub_proto(FMT,...) gdbstub_printk(FMT,##__VA_ARGS__)
- #else
-diff -puN arch/frv/kernel/gdb-io.c~frv-extend-gdbstub-to-support-more-features-of-gdb arch/frv/kernel/gdb-io.c
---- a/arch/frv/kernel/gdb-io.c~frv-extend-gdbstub-to-support-more-features-of-gdb
-+++ a/arch/frv/kernel/gdb-io.c
-@@ -171,11 +171,11 @@ int gdbstub_rx_char(unsigned char *_ch, 
- 		return -EINTR;
- 	}
- 	else if (st & (UART_LSR_FE|UART_LSR_OE|UART_LSR_PE)) {
--		gdbstub_proto("### GDB Rx Error (st=%02x) ###\n",st);
-+		gdbstub_io("### GDB Rx Error (st=%02x) ###\n",st);
- 		return -EIO;
- 	}
- 	else {
--		gdbstub_proto("### GDB Rx %02x (st=%02x) ###\n",ch,st);
-+		gdbstub_io("### GDB Rx %02x (st=%02x) ###\n",ch,st);
- 		*_ch = ch & 0x7f;
- 		return 0;
- 	}
-diff -puN arch/frv/kernel/gdb-stub.c~frv-extend-gdbstub-to-support-more-features-of-gdb arch/frv/kernel/gdb-stub.c
---- a/arch/frv/kernel/gdb-stub.c~frv-extend-gdbstub-to-support-more-features-of-gdb
-+++ a/arch/frv/kernel/gdb-stub.c
-@@ -1344,6 +1344,44 @@ void gdbstub_get_mmu_state(void)
- 
- } /* end gdbstub_get_mmu_state() */
- 
-+/*
-+ * handle general query commands of the form 'qXXXXX'
-+ */
-+void gdbstub_handle_query(void)
-+{
-+	if (strcmp(input_buffer, "qAttached") == 0) {
-+		/* return current thread ID */
-+		sprintf(output_buffer, "1");
-+		return;
-+	}
-+
-+	if (strcmp(input_buffer, "qC") == 0) {
-+		/* return current thread ID */
-+		sprintf(output_buffer, "QC 0");
-+		return;
-+	}
-+
-+	if (strcmp(input_buffer, "qOffsets") == 0) {
-+		/* return relocation offset of text and data segments */
-+		sprintf(output_buffer, "Text=0;Data=0;Bss=0");
-+		return;
-+	}
-+
-+	if (strcmp(input_buffer, "qSymbol::") == 0) {
-+		sprintf(output_buffer, "OK");
-+		return;
-+	}
-+
-+	if (strcmp(input_buffer, "qSupported") == 0) {
-+		/* query of supported features */
-+		sprintf(output_buffer, "PacketSize=%u;ReverseContinue-;ReverseStep-",
-+			sizeof(input_buffer));
-+		return;
-+	}
-+
-+	gdbstub_strcpy(output_buffer,"E01");
++	return 0;
 +}
 +
- /*****************************************************************************/
- /*
-  * handle event interception and GDB remote protocol processing
-@@ -1840,6 +1878,10 @@ void gdbstub(int sigval)
- 		case 'k' :
- 			goto done;	/* just continue */
- 
-+			/* detach */
-+		case 'D':
-+			gdbstub_strcpy(output_buffer, "OK");
-+			break;
- 
- 			/* reset the whole machine (FIXME: system dependent) */
- 		case 'r':
-@@ -1852,6 +1894,14 @@ void gdbstub(int sigval)
- 			__debug_status.dcr |= DCR_SE;
- 			goto done;
- 
-+			/* extended command */
-+		case 'v':
-+			if (strcmp(input_buffer, "vCont?") == 0) {
-+				output_buffer[0] = 0;
-+				break;
-+			}
-+			goto unsupported_cmd;
++static int hpet_alloc_timer(struct file *file)
++{
++	struct hpet_dev *devp;
++	struct hpets *hpetp;
++	int i;
 +
- 			/* set baud rate (bBB) */
- 		case 'b':
- 			ptr = &input_buffer[1];
-@@ -1923,8 +1973,19 @@ void gdbstub(int sigval)
- 			gdbstub_strcpy(output_buffer,"OK");
- 			break;
++	/* once acquired, will remain */
++	devp = file->private_data;
++	if (devp->hd_timer)
++		return 0;
++
+ 	lock_kernel();
+ 	spin_lock_irq(&hpet_lock);
  
-+			/* Thread-setting packet */
-+		case 'H':
-+			gdbstub_strcpy(output_buffer, "OK");
-+			break;
++	/* check for race acquiring */
++	devp = file->private_data;
++	if (devp->hd_timer) {
++		spin_unlock_irq(&hpet_lock);
++		unlock_kernel();
++		return 0;
++	}
 +
-+		case 'q':
-+			gdbstub_handle_query();
-+			break;
+ 	for (devp = NULL, hpetp = hpets; hpetp && !devp; hpetp = hpetp->hp_next)
+ 		for (i = 0; i < hpetp->hp_ntimer; i++)
+ 			if (hpetp->hp_dev[i].hd_flags & HPET_OPEN)
+@@ -382,6 +406,10 @@ static int hpet_fasync(int fd, struct fi
+ {
+ 	struct hpet_dev *devp;
+ 
++	int r = hpet_alloc_timer(file);
++	if (r < 0)
++		return r;
 +
- 		default:
-+		unsupported_cmd:
- 			gdbstub_proto("### GDB Unsupported Cmd '%s'\n",input_buffer);
-+			gdbstub_strcpy(output_buffer,"E01");
- 			break;
- 		}
+ 	devp = file->private_data;
+ 
+ 	if (fasync_helper(fd, file, on, &devp->hd_async_queue) >= 0)
+@@ -399,6 +427,9 @@ static int hpet_release(struct inode *in
+ 	devp = file->private_data;
+ 	timer = devp->hd_timer;
+ 
++	if (!timer)
++		goto out;
++
+ 	spin_lock_irq(&hpet_lock);
+ 
+ 	writeq((readq(&timer->hpet_config) & ~Tn_INT_ENB_CNF_MASK),
+@@ -423,7 +454,7 @@ static int hpet_release(struct inode *in
+ 
+ 	if (irq)
+ 		free_irq(irq, devp);
+-
++out:
+ 	file->private_data = NULL;
+ 	return 0;
+ }
+@@ -436,6 +467,10 @@ hpet_ioctl(struct inode *inode, struct f
+ {
+ 	struct hpet_dev *devp;
+ 
++	int r = hpet_alloc_timer(file);
++	if (r < 0)
++		return r;
++
+ 	devp = file->private_data;
+ 	return hpet_ioctl_common(devp, cmd, arg, 0);
+ }
+@@ -568,6 +603,9 @@ hpet_ioctl_common(struct hpet_dev *devp,
+ 		break;
+ 	case HPET_IE_ON:
+ 		return hpet_ioctl_ieon(devp);
++	case HPET_ALLOC_TIMER:
++		/* nothing to do */
++		return 0;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -792,7 +830,11 @@ int hpet_alloc(struct hpet_data *hdp)
+ 		return 0;
+ 	}
+ 
+-	siz = sizeof(struct hpets) + ((hdp->hd_nirqs - 1) *
++	/*
++	 * last hpet_dev will have null timer pointer, gives timer-neutral
++	 * representation of block
++	 */
++	siz = sizeof(struct hpets) + ((hdp->hd_nirqs) *
+ 				      sizeof(struct hpet_dev));
+ 
+ 	hpetp = kzalloc(siz, GFP_KERNEL);
+@@ -858,13 +900,16 @@ int hpet_alloc(struct hpet_data *hdp)
+ 		writeq(mcfg, &hpet->hpet_config);
+ 	}
+ 
+-	for (i = 0, devp = hpetp->hp_dev; i < hpetp->hp_ntimer; i++, devp++) {
++	for (i = 0, devp = hpetp->hp_dev; i < hpetp->hp_ntimer + 1;
++	     i++, devp++) {
+ 		struct hpet_timer __iomem *timer;
+ 
+-		timer = &hpet->hpet_timers[devp - hpetp->hp_dev];
+-
+ 		devp->hd_hpets = hpetp;
+ 		devp->hd_hpet = hpet;
++		if (i == hpetp->hp_ntimer)
++			continue;
++
++		timer = &hpet->hpet_timers[devp - hpetp->hp_dev];
+ 		devp->hd_timer = timer;
+ 
+ 		/*
+diff -puN include/linux/hpet.h~hpet-factor-timer-allocate-from-open include/linux/hpet.h
+--- a/include/linux/hpet.h~hpet-factor-timer-allocate-from-open
++++ a/include/linux/hpet.h
+@@ -125,6 +125,7 @@ struct hpet_info {
+ #define	HPET_EPI	_IO('h', 0x04)	/* enable periodic */
+ #define	HPET_DPI	_IO('h', 0x05)	/* disable periodic */
+ #define	HPET_IRQFREQ	_IOW('h', 0x6, unsigned long)	/* IRQFREQ usec */
++#define	HPET_ALLOC_TIMER _IO('h', 0x7)
+ 
+ #define MAX_HPET_TBS	8		/* maximum hpet timer blocks */
  
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from maglyx@gmail.com are
 
-origin.patch
-patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
-linux-next.patch
-frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
-frv-fix-kernel-user-segment-handling-in-nommu-mode.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-frv-duplicate-output_buffer-of-e03.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc-make-collect_sigign_sigcatch-rcu-safe.patch
-proc-make-task_sig-lockless.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
 
