@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo.patch added to -mm tree
-Date: Tue, 30 Mar 2010 15:43:50 -0700
-Message-ID: <201003302243.o2UMhoQg009289@imap1.linux-foundation.org>
+Subject: + x86-unify-aperf-mperf-support.patch added to -mm tree
+Date: Tue, 30 Mar 2010 15:43:55 -0700
+Message-ID: <201003302243.o2UMht9M009295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750962Ab0C3Won (ORCPT
+	by vger.kernel.org with ESMTP id S1750962Ab0C3Wov (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Mar 2010 18:44:43 -0400
+	Tue, 30 Mar 2010 18:44:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: borislav.petkov@amd.com, davej@codemonkey.org.uk, hpa@zytor.com, mark.langsd
 
 
 The patch titled
-     x86, cpu: add AMD core boosting feature flag to /proc/cpuinfo
+     x86: unify APERF/MPERF support
 has been added to the -mm tree.  Its filename is
-     x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo.patch
+     x86-unify-aperf-mperf-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, cpu: add AMD core boosting feature flag to /proc/cpuinfo
+Subject: x86: unify APERF/MPERF support
 From: Borislav Petkov <borislav.petkov@amd.com>
 
-By semi-popular demand, this adds the Core Performance Boost feature flag
-to /proc/cpuinfo.  Possible use case for this is userspace tools like
-cpufreq-aperf, for example, so that they don't have to jump through hoops
-of accessing "/dev/cpu/%d/cpuid" in order to check for CPB hw support, or
-call cpuid from userspace.
+Initialize this CPUID flag feature in common code.  It could be made a
+standalone function later, maybe, if more functionality is duplicated.
 
 Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
 Reviewed-by: Thomas Renninger <trenn@suse.de>
@@ -53,45 +50,37 @@ Cc: Mark Langsdorf <mark.langsdorf@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/cpufeature.h          |    1 +
- arch/x86/kernel/cpu/addon_cpuid_features.c |    5 +++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/addon_cpuid_features.c |    8 ++++++++
+ arch/x86/kernel/cpu/intel.c                |    6 ------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/include/asm/cpufeature.h~x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo arch/x86/include/asm/cpufeature.h
---- a/arch/x86/include/asm/cpufeature.h~x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo
-+++ a/arch/x86/include/asm/cpufeature.h
-@@ -161,6 +161,7 @@
-  */
- #define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
- #define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
-+#define X86_FEATURE_CPB		(7*32+ 2) /* AMD Core Performance Boost */
- 
- /* Virtualization flags: Linux defined */
- #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
-diff -puN arch/x86/kernel/cpu/addon_cpuid_features.c~x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo arch/x86/kernel/cpu/addon_cpuid_features.c
---- a/arch/x86/kernel/cpu/addon_cpuid_features.c~x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo
+diff -puN arch/x86/kernel/cpu/addon_cpuid_features.c~x86-unify-aperf-mperf-support arch/x86/kernel/cpu/addon_cpuid_features.c
+--- a/arch/x86/kernel/cpu/addon_cpuid_features.c~x86-unify-aperf-mperf-support
 +++ a/arch/x86/kernel/cpu/addon_cpuid_features.c
-@@ -30,8 +30,9 @@ void __cpuinit init_scattered_cpuid_feat
- 	const struct cpuid_bit *cb;
+@@ -54,6 +54,14 @@ void __cpuinit init_scattered_cpuid_feat
+ 		if (regs[cb->reg] & (1 << cb->bit))
+ 			set_cpu_cap(c, cb->feature);
+ 	}
++
++	/*
++	 * common AMD/Intel features
++	 */
++	if (c->cpuid_level >= 6) {
++		if (cpuid_ecx(6) & 0x1)
++			set_cpu_cap(c, X86_FEATURE_APERFMPERF);
++	}
+ }
  
- 	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
--		{ X86_FEATURE_IDA, CR_EAX, 1, 0x00000006 },
--		{ X86_FEATURE_ARAT, CR_EAX, 2, 0x00000006 },
-+		{ X86_FEATURE_IDA,   CR_EAX, 1, 0x00000006 },
-+		{ X86_FEATURE_ARAT,  CR_EAX, 2, 0x00000006 },
-+		{ X86_FEATURE_CPB,   CR_EDX, 9, 0x80000007 },
- 		{ X86_FEATURE_NPT,   CR_EDX, 0, 0x8000000a },
- 		{ X86_FEATURE_LBRV,  CR_EDX, 1, 0x8000000a },
- 		{ X86_FEATURE_SVML,  CR_EDX, 2, 0x8000000a },
-_
-
-Patches currently in -mm which might be from borislav.petkov@amd.com are
-
-x86-cpu-add-amd-core-boosting-feature-flag-to-proc-cpuinfo.patch
-powernow-k8-add-core-performance-boost-support.patch
-x86-unify-aperf-mperf-support.patch
-cpufreq-add-aperf-mperf-support-for-amd-processors.patch
-powernow-k8-fix-frequency-reporting.patch
-cpufreq-unify-sysfs-attribute-definition-macros.patch
-x86-add-optimized-popcnt-variants.patch
-
+ /* leaf 0xb SMT level */
+diff -puN arch/x86/kernel/cpu/intel.c~x86-unify-aperf-mperf-support arch/x86/kernel/cpu/intel.c
+--- a/arch/x86/kernel/cpu/intel.c~x86-unify-aperf-mperf-support
++++ a/arch/x86/kernel/cpu/intel.c
+@@ -352,12 +352,6 @@ static void __cpuinit init_intel(struct 
+ 			set_cpu_cap(c, X86_FEATURE_ARCH_PERFMON);
+ 	}
+ 
+-	if (c->cpuid_level > 6) {
+-		unsigned ecx = cpuid_ecx(6);
+-		if (ecx & 0x01)
+-			set_cpu_cap(c, X86_FEATURE_APERFMPERF);
+-	}
