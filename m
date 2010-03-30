@@ -1,76 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] patch-b26b2d49-added-lines-with-a-missing-semicolons.patch removed from -mm tree
-Date: Tue, 30 Mar 2010 12:00:34 -0400
-Message-ID: <201003301901.o2UJ1gXZ031483@imap1.linux-foundation.org>
+Subject: + fs-cache-order-the-debugfs-stats-correctly.patch added to -mm tree
+Date: Tue, 30 Mar 2010 12:45:26 -0700
+Message-ID: <201003301945.o2UJjRmX001026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753907Ab0C3TCd (ORCPT
+	by vger.kernel.org with ESMTP id S1752144Ab0C3TqM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Mar 2010 15:02:33 -0400
+	Tue, 30 Mar 2010 15:46:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, linux@dominikbrodowski.net, starvik@axis.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     Patch b26b2d49 added lines with a missing semicolons
-has been removed from the -mm tree.  Its filename was
-     patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
+     fs-cache: order the debugfs stats correctly
+has been added to the -mm tree.  Its filename is
+     fs-cache-order-the-debugfs-stats-correctly.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Patch b26b2d49 added lines with a missing semicolons
+Subject: fs-cache: order the debugfs stats correctly
 From: David Howells <dhowells@redhat.com>
 
-The following patch added lines with a missing semicolons:
+Order the debugfs statistics correctly.  The values displayed through a
+seq_printf() statement should be in the same order as the names in the
+format string.
 
-	commit b26b2d494b659f988b4d75eb394dfa0ddac415c9
-	Author: Dominik Brodowski <linux@dominikbrodowski.net>
-	Date:   Fri Jan 1 17:40:49 2010 +0100
-
-	resource/PCI: align functions now return start of resource
-
-Add the missing semicolons to the FRV and CRIS arch code.
+In the 'Lookups' line, objects created ('crt=') and lookups timed out
+('tmo=') have their values transposed.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/bios.c |    2 +-
- arch/frv/mb93090-mb00/pci-frv.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/fscache/stats.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/cris/arch-v32/drivers/pci/bios.c
---- a/arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
-+++ a/arch/cris/arch-v32/drivers/pci/bios.c
-@@ -50,7 +50,7 @@ pcibios_align_resource(void *data, const
- 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
- 		start = (start + 0x3ff) & ~0x3ff;
+diff -puN fs/fscache/stats.c~fs-cache-order-the-debugfs-stats-correctly fs/fscache/stats.c
+--- a/fs/fscache/stats.c~fs-cache-order-the-debugfs-stats-correctly
++++ a/fs/fscache/stats.c
+@@ -165,8 +165,8 @@ static int fscache_stats_show(struct seq
+ 		   atomic_read(&fscache_n_object_lookups),
+ 		   atomic_read(&fscache_n_object_lookups_negative),
+ 		   atomic_read(&fscache_n_object_lookups_positive),
+-		   atomic_read(&fscache_n_object_lookups_timed_out),
+-		   atomic_read(&fscache_n_object_created));
++		   atomic_read(&fscache_n_object_created),
++		   atomic_read(&fscache_n_object_lookups_timed_out));
  
--	return start
-+	return start;
- }
- 
- int pcibios_enable_resources(struct pci_dev *dev, int mask)
-diff -puN arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/frv/mb93090-mb00/pci-frv.c
---- a/arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
-+++ a/arch/frv/mb93090-mb00/pci-frv.c
-@@ -41,7 +41,7 @@ pcibios_align_resource(void *data, const
- 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
- 		start = (start + 0x3ff) & ~0x3ff;
- 
--	return start
-+	return start;
- }
- 
- 
+ 	seq_printf(m, "Updates: n=%u nul=%u run=%u\n",
+ 		   atomic_read(&fscache_n_updates),
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -80,6 +74,7 @@ frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
 frv-fix-kernel-user-segment-handling-in-nommu-mode.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+fs-cache-order-the-debugfs-stats-correctly.patch
 keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 frv-duplicate-output_buffer-of-e03.patch
