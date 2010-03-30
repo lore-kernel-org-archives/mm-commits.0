@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 30 Mar 2010 16:03:26 -0700
-Message-ID: <201003302303.o2UN3RbY010242@imap1.linux-foundation.org>
+Subject: + auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch added to -mm tree
+Date: Tue, 30 Mar 2010 16:23:51 -0700
+Message-ID: <201003302323.o2UNNpLc011566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753276Ab0C3XDp (ORCPT
+	by vger.kernel.org with ESMTP id S1756956Ab0C3XY2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Mar 2010 19:03:45 -0400
+	Tue, 30 Mar 2010 19:24:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, daeinki@gmail.com, inki.dae@samsung.com, pavel@ucw.cz, rpurdie@rpsys.net
+Cc: henne@nachtwindheim.de, miguel.ojeda.sandonis@gmail.com
 
 
 The patch titled
-     backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes
+     auxdisplay: section cleanup in cfag12864bfb driver
 has been added to the -mm tree.  Its filename is
-     backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+     auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: auxdisplay: section cleanup in cfag12864bfb driver
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-WARNING: struct backlight_ops should normally be const
-#704: FILE: drivers/video/backlight/s6e63m0.c:616:
-+static struct backlight_ops s6e63m0_backlight_ops  = {
+This fixes a two section mismatches and makes remove() __devexit.
 
-total: 0 errors, 1 warnings, 1198 lines checked
-
-./patches/backlight-add-s6e63m0-amoled-lcd-panel-driver.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: InKi Dae <daeinki@gmail.com>
-Cc: InKi Dae <inki.dae@samsung.com>
-Cc: KyungMin Park <kyungmin.park.samsung.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
+Cc: Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/auxdisplay/cfag12864bfb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -613,7 +613,7 @@ static struct lcd_ops s6e63m0_lcd_ops = 
- 	.get_power = s6e63m0_get_power,
+diff -puN drivers/auxdisplay/cfag12864bfb.c~auxdisplay-section-cleanup-in-cfag12864bfb-driver drivers/auxdisplay/cfag12864bfb.c
+--- a/drivers/auxdisplay/cfag12864bfb.c~auxdisplay-section-cleanup-in-cfag12864bfb-driver
++++ a/drivers/auxdisplay/cfag12864bfb.c
+@@ -37,7 +37,7 @@
+ 
+ #define CFAG12864BFB_NAME "cfag12864bfb"
+ 
+-static struct fb_fix_screeninfo cfag12864bfb_fix __initdata = {
++static struct fb_fix_screeninfo cfag12864bfb_fix __devinitdata = {
+ 	.id = "cfag12864b",
+ 	.type = FB_TYPE_PACKED_PIXELS,
+ 	.visual = FB_VISUAL_MONO10,
+@@ -48,7 +48,7 @@ static struct fb_fix_screeninfo cfag1286
+ 	.accel = FB_ACCEL_NONE,
  };
  
--static struct backlight_ops s6e63m0_backlight_ops  = {
-+static const struct backlight_ops s6e63m0_backlight_ops  = {
- 	.get_brightness = s6e63m0_get_brightness,
- 	.update_status = s6e63m0_set_brightness,
- };
+-static struct fb_var_screeninfo cfag12864bfb_var __initdata = {
++static struct fb_var_screeninfo cfag12864bfb_var __devinitdata = {
+ 	.xres = CFAG12864B_WIDTH,
+ 	.yres = CFAG12864B_HEIGHT,
+ 	.xres_virtual = CFAG12864B_WIDTH,
+@@ -114,7 +114,7 @@ none:
+ 	return ret;
+ }
+ 
+-static int cfag12864bfb_remove(struct platform_device *device)
++static int __devexit cfag12864bfb_remove(struct platform_device *device)
+ {
+ 	struct fb_info *info = platform_get_drvdata(device);
+ 
+@@ -128,7 +128,7 @@ static int cfag12864bfb_remove(struct pl
+ 
+ static struct platform_driver cfag12864bfb_driver = {
+ 	.probe	= cfag12864bfb_probe,
+-	.remove = cfag12864bfb_remove,
++	.remove = __devexit_p(cfag12864bfb_remove),
+ 	.driver = {
+ 		.name	= CFAG12864BFB_NAME,
+ 	},
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
 
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-ratelimit-annotate-___ratelimit-fix.patch
-rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch
 
