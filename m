@@ -1,124 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 30 Mar 2010 11:00:36 -0400
-Message-ID: <201003301801.o2UI1ikO028563@imap1.linux-foundation.org>
+Subject: [merged] patch-b26b2d49-added-lines-with-a-missing-semicolons.patch removed from -mm tree
+Date: Tue, 30 Mar 2010 12:00:34 -0400
+Message-ID: <201003301901.o2UJ1gXZ031483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754975Ab0C3SCG (ORCPT
+	by vger.kernel.org with ESMTP id S1753907Ab0C3TCd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Mar 2010 14:02:06 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o2UI1ifu031191
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 30 Mar 2010 11:01:45 -0700
+	Tue, 30 Mar 2010 15:02:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: dhowells@redhat.com, linux@dominikbrodowski.net, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Patch b26b2d49 added lines with a missing semicolons
+has been removed from the -mm tree.  Its filename was
+     patch-b26b2d49-added-lines-with-a-missing-semicolons.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Patch b26b2d49 added lines with a missing semicolons
+From: David Howells <dhowells@redhat.com>
 
+The following patch added lines with a missing semicolons:
+
+	commit b26b2d494b659f988b4d75eb394dfa0ddac415c9
+	Author: Dominik Brodowski <linux@dominikbrodowski.net>
+	Date:   Fri Jan 1 17:40:49 2010 +0100
+
+	resource/PCI: align functions now return start of resource
+
+Add the missing semicolons to the FRV and CRIS arch code.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/cris/arch-v32/drivers/pci/bios.c |    2 +-
+ arch/frv/mb93090-mb00/pci-frv.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -3286,7 +3286,6 @@ S:	Maintained
- F:	include/linux/kexec.h
- F:	kernel/kexec.c
+diff -puN arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/cris/arch-v32/drivers/pci/bios.c
+--- a/arch/cris/arch-v32/drivers/pci/bios.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
++++ a/arch/cris/arch-v32/drivers/pci/bios.c
+@@ -50,7 +50,7 @@ pcibios_align_resource(void *data, const
+ 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
+ 		start = (start + 0x3ff) & ~0x3ff;
  
--<<<<<<< HEAD
- KEYS/KEYRINGS:
- M:	David Howells <dhowells@redhat.com>
- L:	keyrings@linux-nfs.org
-@@ -3297,10 +3296,7 @@ F:	include/linux/key-type.h
- F:	include/keys/
- F:	security/keys/
+-	return start
++	return start;
+ }
  
--KGDB
--=======
- KGDB / KDB /debug_core
-->>>>>>> FETCH_HEAD
- M:	Jason Wessel <jason.wessel@windriver.com>
- W:	http://kgdb.wiki.kernel.org/
- L:	kgdb-bugreport@lists.sourceforge.net
+ int pcibios_enable_resources(struct pci_dev *dev, int mask)
+diff -puN arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons arch/frv/mb93090-mb00/pci-frv.c
+--- a/arch/frv/mb93090-mb00/pci-frv.c~patch-b26b2d49-added-lines-with-a-missing-semicolons
++++ a/arch/frv/mb93090-mb00/pci-frv.c
+@@ -41,7 +41,7 @@ pcibios_align_resource(void *data, const
+ 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
+ 		start = (start + 0x3ff) & ~0x3ff;
+ 
+-	return start
++	return start;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-ratelimit-annotate-___ratelimit-fix.patch
-rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
+frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
+frv-fix-kernel-user-segment-handling-in-nommu-mode.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cpufreq-ondemand-dont-synchronize-sample-rate-unless-mulitple-cpus-present.patch
+keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-serial-add-driver-for-the-altera-uart-unbork.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+frv-duplicate-output_buffer-of-e03.patch
+nommu-allow-private-mappings-of-read-only-devices.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
