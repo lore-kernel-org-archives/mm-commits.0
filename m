@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-section-cleanup-in-vesafb.patch added to -mm tree
-Date: Wed, 31 Mar 2010 14:44:41 -0700
-Message-ID: <201003312144.o2VLifB0010456@imap1.linux-foundation.org>
+Subject: + drbd-potential-null-dereference.patch added to -mm tree
+Date: Wed, 31 Mar 2010 15:50:58 -0700
+Message-ID: <201003312250.o2VMoweK013539__27830.7284847417$1270075882$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932645Ab0CaVpS (ORCPT
+	by vger.kernel.org with ESMTP id S1758361Ab0CaWvL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 17:45:18 -0400
+	Wed, 31 Mar 2010 18:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: henne@nachtwindheim.de, arnaud.patard@rtp-net.org, pjones@redhat.com
+Cc: error27@gmail.com, drbd-dev@lists.linbit.com, jens.axboe@oracle.com, philipp.reisner@linbit.com
 
 
 The patch titled
-     fbdev: vesafb: fix section mismatches
+     drbd: fix potential null dereference
 has been added to the -mm tree.  Its filename is
-     fbdev-section-cleanup-in-vesafb.patch
+     drbd-potential-null-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: vesafb: fix section mismatches
-From: Henrik Kretzschmar <henne@nachtwindheim.de>
+Subject: drbd: fix potential null dereference
+From: Dan Carpenter <error27@gmail.com>
 
-Fix section mismatches in the vesafb driver.
+If "e" is NULL then "bm_ext" would be NULL too.
 
-WARNING: drivers/video/built-in.o(.devinit.text+0x19495): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_fix
-The function __devinit vesafb_probe() references
-a variable __initdata vesafb_fix.
-If vesafb_fix is only used by vesafb_probe then
-annotate vesafb_fix with a matching annotation.
-
-WARNING: drivers/video/built-in.o(.devinit.text+0x194a5): Section mismatch in reference from the function vesafb_probe() to the (unknown reference) .init.data:(unknown)
-The function __devinit vesafb_probe() references
-a (unknown reference) __initdata (unknown).
-If (unknown) is only used by vesafb_probe then
-annotate (unknown) with a matching annotation.
-
-WARNING: drivers/video/built-in.o(.devinit.text+0x194d5): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_defined
-The function __devinit vesafb_probe() references
-a variable __initdata vesafb_defined.
-If vesafb_defined is only used by vesafb_probe then
-annotate vesafb_defined with a matching annotation.
-
-...
-fbdev: section cleanup in vesafb
-
-This patch cleans up the sections in the vesafb driver.
-
-WARNING: drivers/video/built-in.o(.devinit.text+0x19495): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_fix
-The function __devinit vesafb_probe() references
-a variable __initdata vesafb_fix.
-If vesafb_fix is only used by vesafb_probe then
-annotate vesafb_fix with a matching annotation.
-
-WARNING: drivers/video/built-in.o(.devinit.text+0x194a5): Section mismatch in reference from the function vesafb_probe() to the (unknown reference) .init.data:(unknown)
-The function __devinit vesafb_probe() references
-a (unknown reference) __initdata (unknown).
-If (unknown) is only used by vesafb_probe then
-annotate (unknown) with a matching annotation.
-
-WARNING: drivers/video/built-in.o(.devinit.text+0x194d5): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_defined
-The function __devinit vesafb_probe() references
-a variable __initdata vesafb_defined.
-If vesafb_defined is only used by vesafb_probe then
-annotate vesafb_defined with a matching annotation.
-
-...
-
-Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: Peter Jones <pjones@redhat.com>
-Cc: Arnaud Patard <arnaud.patard@rtp-net.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vesafb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/drbd/drbd_actlog.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/vesafb.c~fbdev-section-cleanup-in-vesafb drivers/video/vesafb.c
---- a/drivers/video/vesafb.c~fbdev-section-cleanup-in-vesafb
-+++ a/drivers/video/vesafb.c
-@@ -29,7 +29,7 @@
- 
- /* --------------------------------------------------------------------- */
- 
--static struct fb_var_screeninfo vesafb_defined __initdata = {
-+static struct fb_var_screeninfo vesafb_defined __devinitdata = {
- 	.activate	= FB_ACTIVATE_NOW,
- 	.height		= -1,
- 	.width		= -1,
-@@ -40,7 +40,7 @@ static struct fb_var_screeninfo vesafb_d
- 	.vmode		= FB_VMODE_NONINTERLACED,
- };
- 
--static struct fb_fix_screeninfo vesafb_fix __initdata = {
-+static struct fb_fix_screeninfo vesafb_fix __devinitdata = {
- 	.id	= "VESA VGA",
- 	.type	= FB_TYPE_PACKED_PIXELS,
- 	.accel	= FB_ACCEL_NONE,
-@@ -48,8 +48,8 @@ static struct fb_fix_screeninfo vesafb_f
- 
- static int   inverse    __read_mostly;
- static int   mtrr       __read_mostly;		/* disable mtrr */
--static int   vram_remap __initdata;		/* Set amount of memory to be used */
--static int   vram_total __initdata;		/* Set total amount of memory */
-+static int   vram_remap __devinitdata;		/* Set amount of memory to be used */
-+static int   vram_total __devinitdata;		/* Set total amount of memory */
- static int   pmi_setpal __read_mostly = 1;	/* pmi for palette changes ??? */
- static int   ypan       __read_mostly;		/* 0..nothing, 1..ypan, 2..ywrap */
- static void  (*pmi_start)(void) __read_mostly;
+diff -puN drivers/block/drbd/drbd_actlog.c~drbd-potential-null-dereference drivers/block/drbd/drbd_actlog.c
+--- a/drivers/block/drbd/drbd_actlog.c~drbd-potential-null-dereference
++++ a/drivers/block/drbd/drbd_actlog.c
+@@ -1337,7 +1337,7 @@ int drbd_rs_del_all(struct drbd_conf *md
+ 		for (i = 0; i < mdev->resync->nr_elements; i++) {
+ 			e = lc_element_by_index(mdev->resync, i);
+ 			bm_ext = e ? lc_entry(e, struct bm_extent, lce) : NULL;
+-			if (bm_ext->lce.lc_number == LC_FREE)
++			if (!bm_ext || bm_ext->lce.lc_number == LC_FREE)
+ 				continue;
+ 			if (bm_ext->lce.lc_number == mdev->resync_wenr) {
+ 				dev_info(DEV, "dropping %u in drbd_rs_del_all, apparently"
 _
 
-Patches currently in -mm which might be from henne@nachtwindheim.de are
+Patches currently in -mm which might be from error27@gmail.com are
 
 linux-next.patch
-fbdev-section-cleanup-in-arcfb.patch
-fbdev-section-cleanup-in-efifb.patch
-fbdev-section-cleanup-in-hgafb.patch
-fbdev-section-cleanup-in-vesafb.patch
-fbdev-section-cleanup-in-vfb.patch
-fbdev-section-cleanup-in-vga16fb.patch
-fbdev-section-cleanup-in-w100fb.patch
-auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drbd-potential-null-dereference.patch
+musb-potential-use-after-free.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
