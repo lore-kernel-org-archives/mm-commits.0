@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch added to -mm tree
-Date: Wed, 31 Mar 2010 16:05:31 -0700
-Message-ID: <201003312305.o2VN5VoG014275@imap1.linux-foundation.org>
+Subject: + drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch added to -mm tree
+Date: Wed, 31 Mar 2010 16:05:27 -0700
+Message-ID: <201003312305.o2VN5Rnv014269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754576Ab0CaXNJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754804Ab0CaXNJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 31 Mar 2010 19:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: error27@gmail.com, laurent.pinchart@ideasonboard.com, luca.risolia@studio.un
 
 
 The patch titled
-     drivers/media/video/sn9c102/sn9c102_core.c: improve error handling
+     drivers/media/video/zc0301/zc0301_core.c: improve error handling
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+     drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/sn9c102/sn9c102_core.c: improve error handling
+Subject: drivers/media/video/zc0301/zc0301_core.c: improve error handling
 From: Dan Carpenter <error27@gmail.com>
 
 Return an error if the controller is not found.
@@ -46,13 +46,13 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/sn9c102/sn9c102_core.c |    6 ++++--
+ drivers/media/video/zc0301/zc0301_core.c |    6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/sn9c102/sn9c102_core.c~drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling drivers/media/video/sn9c102/sn9c102_core.c
---- a/drivers/media/video/sn9c102/sn9c102_core.c~drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling
-+++ a/drivers/media/video/sn9c102/sn9c102_core.c
-@@ -2295,7 +2295,7 @@ sn9c102_vidioc_s_ctrl(struct sn9c102_dev
+diff -puN drivers/media/video/zc0301/zc0301_core.c~drivers-media-video-zc0301-zc0301_corec-improve-error-handling drivers/media/video/zc0301/zc0301_core.c
+--- a/drivers/media/video/zc0301/zc0301_core.c~drivers-media-video-zc0301-zc0301_corec-improve-error-handling
++++ a/drivers/media/video/zc0301/zc0301_core.c
+@@ -1153,7 +1153,7 @@ zc0301_vidioc_s_ctrl(struct zc0301_devic
  	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
  		return -EFAULT;
  
@@ -61,7 +61,7 @@ diff -puN drivers/media/video/sn9c102/sn9c102_core.c~drivers-media-video-sn9c102
  		if (ctrl.id == s->qctrl[i].id) {
  			if (s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)
  				return -EINVAL;
-@@ -2305,7 +2305,9 @@ sn9c102_vidioc_s_ctrl(struct sn9c102_dev
+@@ -1163,7 +1163,9 @@ zc0301_vidioc_s_ctrl(struct zc0301_devic
  			ctrl.value -= ctrl.value % s->qctrl[i].step;
  			break;
  		}
