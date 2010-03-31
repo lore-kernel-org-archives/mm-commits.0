@@ -1,116 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpufreq-unexport-unlock_policy_rwsem-functions.patch removed from -mm tree
-Date: Wed, 31 Mar 2010 11:53:31 -0400
-Message-ID: <201003311854.o2VIsfu7002129@imap1.linux-foundation.org>
+Subject: [merged] cpufreq-fix-a-lockdep-warning.patch removed from -mm tree
+Date: Wed, 31 Mar 2010 11:53:08 -0400
+Message-ID: <201003311854.o2VIsI2C002104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755508Ab0CaSyy (ORCPT
+	by vger.kernel.org with ESMTP id S1757144Ab0CaSy7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 14:54:54 -0400
+	Wed, 31 Mar 2010 14:54:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, davej@redhat.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: amwang@redhat.com, benh@kernel.crashing.org, davej@redhat.com, dhowells@redhat.com, johannes@sipsolutions.net, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: unexport (un)lock_policy_rwsem* functions
+     cpufreq: fix a lockdep warning
 has been removed from the -mm tree.  Its filename was
-     cpufreq-unexport-unlock_policy_rwsem-functions.patch
+     cpufreq-fix-a-lockdep-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: unexport (un)lock_policy_rwsem* functions
+Subject: cpufreq: fix a lockdep warning
 From: Amerigo Wang <amwang@redhat.com>
 
-lock_policy_rwsem_* and unlock_policy_rwsem_* functions are scheduled to
-be unexported when 2.6.33.  Now there are no other callers of them out of
-cpufreq.c, unexport them and make them static.
+There is no need to do sysfs_remove_link() or kobject_put() etc.  when
+policy_rwsem_write is held, move them after releasing the lock.
+
+This fixes the lockdep warning:
+
+halt/4071 is trying to acquire lock:
+ (s_active){++++.+}, at: [<c0000000001ef868>] .sysfs_addrm_finish+0x58/0xc0
+
+but task is already holding lock:
+ (&per_cpu(cpu_policy_rwsem, cpu)){+.+.+.}, at: [<c0000000004cd6ac>] .lock_policy_rwsem_write+0x84/0xf4
 
 Signed-off-by: WANG Cong <amwang@redhat.com>
+Reported-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Dave Jones <davej@redhat.com>
+Tested-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   10 ----------
- drivers/cpufreq/cpufreq.c                  |   10 +++-------
- include/linux/cpufreq.h                    |    5 -----
- 3 files changed, 3 insertions(+), 22 deletions(-)
+ drivers/cpufreq/cpufreq.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~cpufreq-unexport-unlock_policy_rwsem-functions Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~cpufreq-unexport-unlock_policy_rwsem-functions
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -379,16 +379,6 @@ Who:	Johannes Berg <johannes@sipsolution
- 
- ----------------------------
- 
--What:	lock_policy_rwsem_* and unlock_policy_rwsem_* will not be
--	exported interface anymore.
--When:	2.6.33
--Why:	cpu_policy_rwsem has a new cleaner definition making it local to
--	cpufreq core and contained inside cpufreq.c. Other dependent
--	drivers should not use it in order to safely avoid lockdep issues.
--Who:	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
--
------------------------------
--
- What:	sound-slot/service-* module aliases and related clutters in
- 	sound/sound_core.c
- When:	August 2010
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-unexport-unlock_policy_rwsem-functions drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-unexport-unlock_policy_rwsem-functions
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-fix-a-lockdep-warning drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-fix-a-lockdep-warning
 +++ a/drivers/cpufreq/cpufreq.c
-@@ -68,7 +68,7 @@ static DEFINE_PER_CPU(int, cpufreq_polic
- static DEFINE_PER_CPU(struct rw_semaphore, cpu_policy_rwsem);
+@@ -1113,6 +1113,8 @@ static int __cpufreq_remove_dev(struct s
+ 	unsigned int cpu = sys_dev->id;
+ 	unsigned long flags;
+ 	struct cpufreq_policy *data;
++	struct kobject *kobj;
++	struct completion *cmp;
+ #ifdef CONFIG_SMP
+ 	struct sys_device *cpu_sys_dev;
+ 	unsigned int j;
+@@ -1141,10 +1143,11 @@ static int __cpufreq_remove_dev(struct s
+ 		dprintk("removing link\n");
+ 		cpumask_clear_cpu(cpu, data->cpus);
+ 		spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+-		sysfs_remove_link(&sys_dev->kobj, "cpufreq");
++		kobj = &sys_dev->kobj;
+ 		cpufreq_cpu_put(data);
+ 		cpufreq_debug_enable_ratelimit();
+ 		unlock_policy_rwsem_write(cpu);
++		sysfs_remove_link(kobj, "cpufreq");
+ 		return 0;
+ 	}
+ #endif
+@@ -1181,7 +1184,10 @@ static int __cpufreq_remove_dev(struct s
+ 				data->governor->name, CPUFREQ_NAME_LEN);
+ #endif
+ 			cpu_sys_dev = get_cpu_sysdev(j);
+-			sysfs_remove_link(&cpu_sys_dev->kobj, "cpufreq");
++			kobj = &cpu_sys_dev->kobj;
++			unlock_policy_rwsem_write(cpu);
++			sysfs_remove_link(kobj, "cpufreq");
++			lock_policy_rwsem_write(cpu);
+ 			cpufreq_cpu_put(data);
+ 		}
+ 	}
+@@ -1192,19 +1198,22 @@ static int __cpufreq_remove_dev(struct s
+ 	if (cpufreq_driver->target)
+ 		__cpufreq_governor(data, CPUFREQ_GOV_STOP);
  
- #define lock_policy_rwsem(mode, cpu)					\
--int lock_policy_rwsem_##mode						\
-+static int lock_policy_rwsem_##mode					\
- (int cpu)								\
- {									\
- 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);		\
-@@ -83,26 +83,22 @@ int lock_policy_rwsem_##mode						\
- }
+-	kobject_put(&data->kobj);
++	kobj = &data->kobj;
++	cmp = &data->kobj_unregister;
++	unlock_policy_rwsem_write(cpu);
++	kobject_put(kobj);
  
- lock_policy_rwsem(read, cpu);
--EXPORT_SYMBOL_GPL(lock_policy_rwsem_read);
+ 	/* we need to make sure that the underlying kobj is actually
+ 	 * not referenced anymore by anybody before we proceed with
+ 	 * unloading.
+ 	 */
+ 	dprintk("waiting for dropping of refcount\n");
+-	wait_for_completion(&data->kobj_unregister);
++	wait_for_completion(cmp);
+ 	dprintk("wait complete\n");
  
- lock_policy_rwsem(write, cpu);
--EXPORT_SYMBOL_GPL(lock_policy_rwsem_write);
- 
--void unlock_policy_rwsem_read(int cpu)
-+static void unlock_policy_rwsem_read(int cpu)
- {
- 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);
- 	BUG_ON(policy_cpu == -1);
- 	up_read(&per_cpu(cpu_policy_rwsem, policy_cpu));
- }
--EXPORT_SYMBOL_GPL(unlock_policy_rwsem_read);
- 
--void unlock_policy_rwsem_write(int cpu)
-+static void unlock_policy_rwsem_write(int cpu)
- {
- 	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);
- 	BUG_ON(policy_cpu == -1);
- 	up_write(&per_cpu(cpu_policy_rwsem, policy_cpu));
- }
--EXPORT_SYMBOL_GPL(unlock_policy_rwsem_write);
- 
- 
- /* internal prototypes */
-diff -puN include/linux/cpufreq.h~cpufreq-unexport-unlock_policy_rwsem-functions include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-unexport-unlock_policy_rwsem-functions
-+++ a/include/linux/cpufreq.h
-@@ -196,11 +196,6 @@ extern int __cpufreq_driver_getavg(struc
- int cpufreq_register_governor(struct cpufreq_governor *governor);
- void cpufreq_unregister_governor(struct cpufreq_governor *governor);
- 
--int lock_policy_rwsem_read(int cpu);
--int lock_policy_rwsem_write(int cpu);
--void unlock_policy_rwsem_read(int cpu);
--void unlock_policy_rwsem_write(int cpu);
++	lock_policy_rwsem_write(cpu);
+ 	if (cpufreq_driver->exit)
+ 		cpufreq_driver->exit(data);
