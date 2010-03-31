@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-section-cleanup-in-vga16fb.patch added to -mm tree
-Date: Wed, 31 Mar 2010 14:44:45 -0700
-Message-ID: <201003312144.o2VLik5Y010465@imap1.linux-foundation.org>
+Subject: + fbdev-section-cleanup-in-vesafb.patch added to -mm tree
+Date: Wed, 31 Mar 2010 14:44:41 -0700
+Message-ID: <201003312144.o2VLifB0010456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932645Ab0CaVpL (ORCPT
+	by vger.kernel.org with ESMTP id S932645Ab0CaVpS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 17:45:11 -0400
+	Wed, 31 Mar 2010 17:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: henne@nachtwindheim.de, arnaud.patard@rtp-net.org
+Cc: henne@nachtwindheim.de, arnaud.patard@rtp-net.org, pjones@redhat.com
 
 
 The patch titled
-     fbdev: vga16fb: fix section mismatches
+     fbdev: vesafb: fix section mismatches
 has been added to the -mm tree.  Its filename is
-     fbdev-section-cleanup-in-vga16fb.patch
+     fbdev-section-cleanup-in-vesafb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: vga16fb: fix section mismatches
+Subject: fbdev: vesafb: fix section mismatches
 From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Fix section mismatches in the vga16fb driver.
+Fix section mismatches in the vesafb driver.
 
-WARNING: drivers/video/built-in.o(.devinit.text+0x1a420): Section mismatch in re
-ference from the function vga16fb_probe() to the (unknown reference) .init.data:
-(unknown)
-The function __devinit vga16fb_probe() references
+WARNING: drivers/video/built-in.o(.devinit.text+0x19495): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_fix
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_fix.
+If vesafb_fix is only used by vesafb_probe then
+annotate vesafb_fix with a matching annotation.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x194a5): Section mismatch in reference from the function vesafb_probe() to the (unknown reference) .init.data:(unknown)
+The function __devinit vesafb_probe() references
 a (unknown reference) __initdata (unknown).
-If (unknown) is only used by vga16fb_probe then
+If (unknown) is only used by vesafb_probe then
 annotate (unknown) with a matching annotation.
 
-WARNING: drivers/video/built-in.o(.devinit.text+0x1a437): Section mismatch in reference from the function vga16fb_probe() to the variable .init.data:vga16fb_defined
-The function __devinit vga16fb_probe() references
-a variable __initdata vga16fb_defined.
-If vga16fb_defined is only used by vga16fb_probe then
-annotate vga16fb_defined with a matching annotation.
+WARNING: drivers/video/built-in.o(.devinit.text+0x194d5): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_defined
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_defined.
+If vesafb_defined is only used by vesafb_probe then
+annotate vesafb_defined with a matching annotation.
 
-WARNING: drivers/video/built-in.o(.devinit.text+0x1a457): Section mismatch in reference from the function vga16fb_probe() to the variable .init.data:vga16fb_fix
-The function __devinit vga16fb_probe() references
-a variable __initdata vga16fb_fix.
-If vga16fb_fix is only used by vga16fb_probe then
-annotate vga16fb_fix with a matching annotation.
+...
+fbdev: section cleanup in vesafb
+
+This patch cleans up the sections in the vesafb driver.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x19495): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_fix
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_fix.
+If vesafb_fix is only used by vesafb_probe then
+annotate vesafb_fix with a matching annotation.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x194a5): Section mismatch in reference from the function vesafb_probe() to the (unknown reference) .init.data:(unknown)
+The function __devinit vesafb_probe() references
+a (unknown reference) __initdata (unknown).
+If (unknown) is only used by vesafb_probe then
+annotate (unknown) with a matching annotation.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x194d5): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_defined
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_defined.
+If vesafb_defined is only used by vesafb_probe then
+annotate vesafb_defined with a matching annotation.
+
+...
 
 Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
+Cc: Peter Jones <pjones@redhat.com>
 Cc: Arnaud Patard <arnaud.patard@rtp-net.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vga16fb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/vesafb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/vga16fb.c~fbdev-section-cleanup-in-vga16fb drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~fbdev-section-cleanup-in-vga16fb
-+++ a/drivers/video/vga16fb.c
-@@ -65,7 +65,7 @@ struct vga16fb_par {
+diff -puN drivers/video/vesafb.c~fbdev-section-cleanup-in-vesafb drivers/video/vesafb.c
+--- a/drivers/video/vesafb.c~fbdev-section-cleanup-in-vesafb
++++ a/drivers/video/vesafb.c
+@@ -29,7 +29,7 @@
  
  /* --------------------------------------------------------------------- */
  
--static struct fb_var_screeninfo vga16fb_defined __initdata = {
-+static struct fb_var_screeninfo vga16fb_defined __devinitdata = {
- 	.xres		= 640,
- 	.yres		= 480,
- 	.xres_virtual	= 640,
-@@ -85,7 +85,7 @@ static struct fb_var_screeninfo vga16fb_
+-static struct fb_var_screeninfo vesafb_defined __initdata = {
++static struct fb_var_screeninfo vesafb_defined __devinitdata = {
+ 	.activate	= FB_ACTIVATE_NOW,
+ 	.height		= -1,
+ 	.width		= -1,
+@@ -40,7 +40,7 @@ static struct fb_var_screeninfo vesafb_d
+ 	.vmode		= FB_VMODE_NONINTERLACED,
  };
  
- /* name should not depend on EGA/VGA */
--static struct fb_fix_screeninfo vga16fb_fix __initdata = {
-+static struct fb_fix_screeninfo vga16fb_fix __devinitdata = {
- 	.id		= "VGA16 VGA",
- 	.smem_start	= VGA_FB_PHYS,
- 	.smem_len	= VGA_FB_PHYS_LEN,
-@@ -1278,7 +1278,7 @@ static struct fb_ops vga16fb_ops = {
- };
+-static struct fb_fix_screeninfo vesafb_fix __initdata = {
++static struct fb_fix_screeninfo vesafb_fix __devinitdata = {
+ 	.id	= "VESA VGA",
+ 	.type	= FB_TYPE_PACKED_PIXELS,
+ 	.accel	= FB_ACCEL_NONE,
+@@ -48,8 +48,8 @@ static struct fb_fix_screeninfo vesafb_f
  
- #ifndef MODULE
--static int vga16fb_setup(char *options)
-+static int __init vga16fb_setup(char *options)
- {
- 	char *this_opt;
- 	
-@@ -1376,7 +1376,7 @@ static int __devinit vga16fb_probe(struc
- 	return ret;
- }
- 
--static int vga16fb_remove(struct platform_device *dev)
-+static int __devexit vga16fb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-@@ -1393,7 +1393,7 @@ static int vga16fb_remove(struct platfor
- 
- static struct platform_driver vga16fb_driver = {
- 	.probe = vga16fb_probe,
--	.remove = vga16fb_remove,
-+	.remove = __devexit_p(vga16fb_remove),
- 	.driver = {
- 		.name = "vga16fb",
- 	},
+ static int   inverse    __read_mostly;
+ static int   mtrr       __read_mostly;		/* disable mtrr */
+-static int   vram_remap __initdata;		/* Set amount of memory to be used */
+-static int   vram_total __initdata;		/* Set total amount of memory */
++static int   vram_remap __devinitdata;		/* Set amount of memory to be used */
++static int   vram_total __devinitdata;		/* Set total amount of memory */
+ static int   pmi_setpal __read_mostly = 1;	/* pmi for palette changes ??? */
+ static int   ypan       __read_mostly;		/* 0..nothing, 1..ypan, 2..ywrap */
+ static void  (*pmi_start)(void) __read_mostly;
 _
 
 Patches currently in -mm which might be from henne@nachtwindheim.de are
