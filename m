@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-rename-imacfbtxt-to-efifbtxt-and-change-imacfb-to-efifb.patch added to -mm tree
-Date: Wed, 31 Mar 2010 16:24:50 -0700
-Message-ID: <201003312324.o2VNOogp015099@imap1.linux-foundation.org>
+Subject: + kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch added to -mm tree
+Date: Wed, 31 Mar 2010 16:28:51 -0700
+Message-ID: <201003312328.o2VNSpoh015279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754576Ab0CaXZH (ORCPT
+	by vger.kernel.org with ESMTP id S1758451Ab0CaX3A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 19:25:07 -0400
+	Wed, 31 Mar 2010 19:29:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: justinmattock@gmail.com, geert@linux-m68k.org
+Cc: joe@perches.com, jkosina@suse.cz, randy.dunlap@oracle.com
 
 
 The patch titled
-     fbdev: Rename imacfb.txt to efifb.txt and change imacfb to efifb.
+     kernel.h: convert rounding macros to statement expressions, add ADD_MOD
 has been added to the -mm tree.  Its filename is
-     fbdev-rename-imacfbtxt-to-efifbtxt-and-change-imacfb-to-efifb.patch
+     kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: Rename imacfb.txt to efifb.txt and change imacfb to efifb.
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: kernel.h: convert rounding macros to statement expressions, add ADD_MOD
+From: Joe Perches <joe@perches.com>
 
-Rename imacfb.txt to efifb.txt since imacfb was moved to efifb,and change
-imacfb to efifb.
+Convert rounding macros to statement expressions so arguments are only
+evaluated once.
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Add kernel-doc to rounding macros.
+
+Add ADD_MOD statement expression for "(x + y) % y".
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/efifb.txt  |   31 +++++++++++++++++++++++++++++++
- Documentation/fb/imacfb.txt |   31 -------------------------------
- 2 files changed, 31 insertions(+), 31 deletions(-)
+ include/linux/kernel.h |   66 +++++++++++++++++++++++++++++++++------
+ 1 file changed, 57 insertions(+), 9 deletions(-)
 
-diff -puN /dev/null Documentation/fb/efifb.txt
---- /dev/null
-+++ a/Documentation/fb/efifb.txt
-@@ -0,0 +1,31 @@
-+
-+What is efifb?
-+===============
-+
-+This is a generic EFI platform driver for Intel based Apple computers.
-+efifb is only for EFI booted Intel Macs.
-+
-+Supported Hardware
-+==================
-+
-+iMac 17"/20"
-+Macbook
-+Macbook Pro 15"/17"
-+MacMini
-+
-+How to use it?
-+==============
-+
-+efifb does not have any kind of autodetection of your machine.
-+You have to add the following kernel parameters in your elilo.conf:
-+	Macbook :
-+		video=efifb:macbook
-+	MacMini :
-+		video=efifb:mini
-+	Macbook Pro 15", iMac 17" :
-+		video=efifb:i17
-+	Macbook Pro 17", iMac 20" :
-+		video=efifb:i20
-+
-+--
-+Edgar Hucek <gimli@dark-green.com>
-diff -puN Documentation/fb/imacfb.txt~fbdev-rename-imacfbtxt-to-efifbtxt-and-change-imacfb-to-efifb /dev/null
---- a/Documentation/fb/imacfb.txt
-+++ /dev/null
-@@ -1,31 +0,0 @@
+diff -puN include/linux/kernel.h~kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod
++++ a/include/linux/kernel.h
+@@ -53,16 +53,64 @@ extern const char linux_proc_banner[];
+ #define __round_mask(x, y) ((__typeof__(x))((y)-1))
+ #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
+ #define round_down(x, y) ((x) & ~__round_mask(x, y))
 -
--What is imacfb?
--===============
--
--This is a generic EFI platform driver for Intel based Apple computers.
--Imacfb is only for EFI booted Intel Macs.
--
--Supported Hardware
--==================
--
--iMac 17"/20"
--Macbook
--Macbook Pro 15"/17"
--MacMini
--
--How to use it?
--==============
--
--Imacfb does not have any kind of autodetection of your machine.
--You have to add the following kernel parameters in your elilo.conf:
--	Macbook :
--		video=imacfb:macbook
--	MacMini :
--		video=imacfb:mini
--	Macbook Pro 15", iMac 17" :
--		video=imacfb:i17
--	Macbook Pro 17", iMac 20" :
--		video=imacfb:i20
+ #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+-#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+-#define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
+-#define DIV_ROUND_CLOSEST(x, divisor)(			\
+-{							\
+-	typeof(divisor) __divisor = divisor;		\
+-	(((x) + ((__divisor) / 2)) / (__divisor));	\
+-}							\
+-)
++
++/**
++ * roundup() - Returns x rounded up to the next whole multiple of y
++ * @x:	dividend
++ * @y:	divisor
++ *
++ * ie: roundup(4, 2) is 4, roundup(5, 2) is 6
++ * c type conversion rules apply when x and y types differ
++ */
++#define roundup(x, y)				\
++({						\
++	typeof(y) _y = y;			\
++	(((x) + _y - 1) / _y) * _y;		\
++})
++
++/**
++ * DIV_ROUND_UP() - Returns x/y rounded up to the next whole number
++ * @x:	dividend
++ * @y:	divisor
++ *
++ * ie: DIV_ROUND_UP(4, 2) is 2, DIV_ROUND_UP(5, 2) is 3
++ * c type conversion rules apply when x and y types differ
++ */
++#define DIV_ROUND_UP(x, y)			\
++({						\
++	typeof(y) _y = y;			\
++	((x) + _y - 1) / _y;			\
++})
++
++/**
++ * DIV_ROUND_CLOSEST() - Returns x/y rounded to the nearest whole number
++ * @x:	dividend
++ * @y:	divisor
++ *
++ * ie: DIV_ROUND_CLOSEST(4, 3) is 1, DIV_ROUND_CLOSEST(5, 3) is 2
++ * Rounds up when .5, ie: DIV_ROUND_CLOSEST(5, 2) is 3
++ * c type conversion rules apply when x and y types differ
++ */
++#define DIV_ROUND_CLOSEST(x, y)			\
++({						\
++	typeof(y) _y = y;			\
++	((x) + (_y / 2)) / _y;			\
++})
++
++/**
++ * ADD_MOD() - Returns (x + y) % y
++ * @x:	initial value
++ * @y:	value added to x then used as modulo
++ *
++ * ie: ADD_MOD(4, 2) is 0, ADD_MOD(5, 2) is 1
++ * c type conversion rules apply when x and y types differ
++ */
++#define ADD_MOD(x, y)				\
++({						\
++	typeof(y) _y = y;			\
++	((x) + _y) % _y;			\
++})
+ 
+ #define _RET_IP_		(unsigned long)__builtin_return_address(0)
+ #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+linux-next.patch
+kernelh-fix-wrong-usage-of-__ratelimit.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
+vsprintfc-use-noinline_for_stack.patch
+
