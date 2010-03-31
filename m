@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bsdacct-use-del_timer_sync-in-acct_exit_ns.patch added to -mm tree
-Date: Wed, 31 Mar 2010 12:57:30 -0700
-Message-ID: <201003311957.o2VJvUa8005088@imap1.linux-foundation.org>
+Subject: + drm-fix-build-error-when-sysrq-is-disabled.patch added to -mm tree
+Date: Wed, 31 Mar 2010 13:22:24 -0700
+Message-ID: <201003312022.o2VKMOsC006308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750962Ab0CaT6D (ORCPT
+	by vger.kernel.org with ESMTP id S1757833Ab0CaUWp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 15:58:03 -0400
+	Wed, 31 Mar 2010 16:22:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vgusev@openvz.org, xemul@openvz.org
+Cc: randy.dunlap@oracle.com, airlied@linux.ie
 
 
 The patch titled
-     bsdacct: use del_timer_sync() in acct_exit_ns()
+     drm: fix build error when SYSRQ is disabled
 has been added to the -mm tree.  Its filename is
-     bsdacct-use-del_timer_sync-in-acct_exit_ns.patch
+     drm-fix-build-error-when-sysrq-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsdacct: use del_timer_sync() in acct_exit_ns()
-From: Vitaliy Gusev <vgusev@openvz.org>
+Subject: drm: fix build error when SYSRQ is disabled
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-acct_exit_ns --> acct_file_reopen deletes timer without check timer
-execution on other CPUs.  So acct_timeout() can change an unmapped memory.
+Fix build error when CONFIG_MAGIC_SYSRQ is not enabled:
 
-Signed-off-by: Vitaliy Gusev <vgusev@openvz.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+drivers/gpu/drm/drm_fb_helper.c:915: error: 'sysrq_drm_fb_helper_restore_op' undeclared (first use in this function)
+drivers/gpu/drm/drm_fb_helper.c:929: error: 'sysrq_drm_fb_helper_restore_op' undeclared (first use in this function)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/drm_fb_helper.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/acct.c~bsdacct-use-del_timer_sync-in-acct_exit_ns kernel/acct.c
---- a/kernel/acct.c~bsdacct-use-del_timer_sync-in-acct_exit_ns
-+++ a/kernel/acct.c
-@@ -353,17 +353,18 @@ restart:
+diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-fix-build-error-when-sysrq-is-disabled drivers/gpu/drm/drm_fb_helper.c
+--- a/drivers/gpu/drm/drm_fb_helper.c~drm-fix-build-error-when-sysrq-is-disabled
++++ a/drivers/gpu/drm/drm_fb_helper.c
+@@ -284,6 +284,8 @@ static struct sysrq_key_op sysrq_drm_fb_
+ 	.help_msg = "force-fb(V)",
+ 	.action_msg = "Restore framebuffer console",
+ };
++#else
++static struct sysrq_key_op sysrq_drm_fb_helper_restore_op = { };
+ #endif
  
- void acct_exit_ns(struct pid_namespace *ns)
- {
--	struct bsd_acct_struct *acct;
-+	struct bsd_acct_struct *acct = ns->bacct;
- 
--	spin_lock(&acct_lock);
--	acct = ns->bacct;
--	if (acct != NULL) {
--		if (acct->file != NULL)
--			acct_file_reopen(acct, NULL, NULL);
-+	if (acct == NULL)
-+		return;
- 
--		kfree(acct);
--	}
-+	del_timer_sync(&acct->timer);
-+	spin_lock(&acct_lock);
-+	if (acct->file != NULL)
-+		acct_file_reopen(acct, NULL, NULL);
- 	spin_unlock(&acct_lock);
-+
-+	kfree(acct);
- }
- 
- /*
+ static void drm_fb_helper_on(struct fb_info *info)
 _
 
-Patches currently in -mm which might be from vgusev@openvz.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-bsdacct-use-del_timer_sync-in-acct_exit_ns.patch
+linux-next.patch
+drm-fix-build-error-when-sysrq-is-disabled.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
+usb-fix-serial-build-when-sysrq-is-disabled.patch
+xen-fix-build-when-sysrq-is-disabled.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
