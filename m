@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch added to -mm tree
-Date: Wed, 31 Mar 2010 16:05:25 -0700
-Message-ID: <201003312305.o2VN5P2l014266@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch added to -mm tree
+Date: Wed, 31 Mar 2010 16:05:19 -0700
+Message-ID: <201003312305.o2VN5JRM014257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932509Ab0CaXF5 (ORCPT
+	by vger.kernel.org with ESMTP id S932509Ab0CaXGH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 19:05:57 -0400
+	Wed, 31 Mar 2010 19:06:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, greg@kroah.com, wfp5p@virginia.edu
+Cc: error27@gmail.com, airlied@linux.ie, eric@anholt.net
 
 
 The patch titled
-     drivers/staging/comedi/drivers/dt2801.c: off by one issue
+     drivers/gpu/drm/drm_memory.c: fix check for end of loop
 has been added to the -mm tree.  Its filename is
-     drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+     drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/comedi/drivers/dt2801.c: off by one issue
+Subject: drivers/gpu/drm/drm_memory.c: fix check for end of loop
 From: Dan Carpenter <error27@gmail.com>
 
-"dac_range_table" has 5 elements.
+"agpmem" is never NULL here.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Greg KH <greg@kroah.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Eric Anholt <eric@anholt.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/dt2801.c |    2 +-
+ drivers/gpu/drm/drm_memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/comedi/drivers/dt2801.c~drivers-staging-comedi-drivers-dt2801c-off-by-one-issue drivers/staging/comedi/drivers/dt2801.c
---- a/drivers/staging/comedi/drivers/dt2801.c~drivers-staging-comedi-drivers-dt2801c-off-by-one-issue
-+++ a/drivers/staging/comedi/drivers/dt2801.c
-@@ -472,7 +472,7 @@ static const struct comedi_lrange *dac_r
+diff -puN drivers/gpu/drm/drm_memory.c~drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop drivers/gpu/drm/drm_memory.c
+--- a/drivers/gpu/drm/drm_memory.c~drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop
++++ a/drivers/gpu/drm/drm_memory.c
+@@ -77,7 +77,7 @@ static void *agp_remap(unsigned long off
+ 		    && (agpmem->bound + (agpmem->pages << PAGE_SHIFT)) >=
+ 		    (offset + size))
+ 			break;
+-	if (!agpmem)
++	if (&agpmem->head == &dev->agp->memory)
+ 		return NULL;
  
- static const struct comedi_lrange *dac_range_lkup(int opt)
- {
--	if (opt < 0 || opt > 5)
-+	if (opt < 0 || opt >= 5)
- 		return &range_unknown;
- 	return dac_range_table[opt];
- }
+ 	/*
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
