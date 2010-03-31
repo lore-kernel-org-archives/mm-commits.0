@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch added to -mm tree
-Date: Wed, 31 Mar 2010 16:05:19 -0700
-Message-ID: <201003312305.o2VN5JRM014257@imap1.linux-foundation.org>
+Subject: + drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch added to -mm tree
+Date: Wed, 31 Mar 2010 16:05:29 -0700
+Message-ID: <201003312305.o2VN5TNV014272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932509Ab0CaXGH (ORCPT
+	by vger.kernel.org with ESMTP id S1753160Ab0CaXNJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 19:06:07 -0400
+	Wed, 31 Mar 2010 19:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, airlied@linux.ie, eric@anholt.net
+Cc: error27@gmail.com, laurent.pinchart@ideasonboard.com, luca.risolia@studio.unibo.it, mchehab@infradead.org
 
 
 The patch titled
-     drivers/gpu/drm/drm_memory.c: fix check for end of loop
+     drivers/media/video/et61x251/et61x251_core.c: improve error handling
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+     drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/drm_memory.c: fix check for end of loop
+Subject: drivers/media/video/et61x251/et61x251_core.c: improve error handling
 From: Dan Carpenter <error27@gmail.com>
 
-"agpmem" is never NULL here.
+The original code doesn't handle the situation where the controller is not
+found.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
+Cc: Luca Risolia <luca.risolia@studio.unibo.it>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/et61x251/et61x251_core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_memory.c~drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop drivers/gpu/drm/drm_memory.c
---- a/drivers/gpu/drm/drm_memory.c~drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop
-+++ a/drivers/gpu/drm/drm_memory.c
-@@ -77,7 +77,7 @@ static void *agp_remap(unsigned long off
- 		    && (agpmem->bound + (agpmem->pages << PAGE_SHIFT)) >=
- 		    (offset + size))
- 			break;
--	if (!agpmem)
-+	if (&agpmem->head == &dev->agp->memory)
- 		return NULL;
+diff -puN drivers/media/video/et61x251/et61x251_core.c~drivers-media-video-et61x251-et61x251_corec-improve-error-handling drivers/media/video/et61x251/et61x251_core.c
+--- a/drivers/media/video/et61x251/et61x251_core.c~drivers-media-video-et61x251-et61x251_corec-improve-error-handling
++++ a/drivers/media/video/et61x251/et61x251_core.c
+@@ -1713,7 +1713,7 @@ et61x251_vidioc_s_ctrl(struct et61x251_d
+ 	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
+ 		return -EFAULT;
  
- 	/*
+-	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
++	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++) {
+ 		if (ctrl.id == s->qctrl[i].id) {
+ 			if (s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)
+ 				return -EINVAL;
+@@ -1723,7 +1723,9 @@ et61x251_vidioc_s_ctrl(struct et61x251_d
+ 			ctrl.value -= ctrl.value % s->qctrl[i].step;
+ 			break;
+ 		}
+-
++	}
++	if (i == ARRAY_SIZE(s->qctrl))
++		return -EINVAL;
+ 	if ((err = s->set_ctrl(cam, &ctrl)))
+ 		return err;
+ 
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
