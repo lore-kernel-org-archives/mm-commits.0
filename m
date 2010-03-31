@@ -1,69 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + exit-fix-oops-in-sync_mm_rss-fix.patch added to -mm tree
-Date: Tue, 30 Mar 2010 20:22:10 -0400
-Message-ID: <201003310323.o2V3NJiC025700@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 31 Mar 2010 11:50:51 -0400
+Message-ID: <201003311852.o2VIq1Zv001883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753907Ab0CaDXy (ORCPT
+	by vger.kernel.org with ESMTP id S1756588Ab0CaSwE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Mar 2010 23:23:54 -0400
+	Wed, 31 Mar 2010 14:52:04 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o2VIq2il004624
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 31 Mar 2010 11:52:03 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, tlb@rapanden.dk
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exit-fix-oops-in-sync_mm_rss-fix
-has been added to the -mm tree.  Its filename is
-     exit-fix-oops-in-sync_mm_rss-fix.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit-fix-oops-in-sync_mm_rss-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Remove the BUG_ON(!mm->rss).  We know it isn't NULL and if it is, the
-  oops will tell us what happened.
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>                            
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Troels Liebe Bentsen <tlb@rapanden.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/exit.c~exit-fix-oops-in-sync_mm_rss-fix kernel/exit.c
-diff -puN kernel/fork.c~exit-fix-oops-in-sync_mm_rss-fix kernel/fork.c
-diff -puN mm/memory.c~exit-fix-oops-in-sync_mm_rss-fix mm/memory.c
---- a/mm/memory.c~exit-fix-oops-in-sync_mm_rss-fix
-+++ a/mm/memory.c
-@@ -131,7 +131,6 @@ static void __sync_task_rss_stat(struct 
+diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
+--- a/MAINTAINERS~linux-next-git-rejects
++++ a/MAINTAINERS
+@@ -3286,7 +3286,6 @@ S:	Maintained
+ F:	include/linux/kexec.h
+ F:	kernel/kexec.c
  
- 	for (i = 0; i < NR_MM_COUNTERS; i++) {
- 		if (task->rss_stat.count[i]) {
--			BUG_ON(!mm);
- 			add_mm_counter(mm, i, task->rss_stat.count[i]);
- 			task->rss_stat.count[i] = 0;
- 		}
+-<<<<<<< HEAD
+ KEYS/KEYRINGS:
+ M:	David Howells <dhowells@redhat.com>
+ L:	keyrings@linux-nfs.org
+@@ -3297,10 +3296,7 @@ F:	include/linux/key-type.h
+ F:	include/keys/
+ F:	security/keys/
+ 
+-KGDB
+-=======
+ KGDB / KDB /debug_core
+->>>>>>> FETCH_HEAD
+ M:	Jason Wessel <jason.wessel@windriver.com>
+ W:	http://kgdb.wiki.kernel.org/
+ L:	kgdb-bugreport@lists.sourceforge.net
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
