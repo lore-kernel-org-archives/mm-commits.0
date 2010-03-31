@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-move-sysctl-declarations-to-oomh.patch added to -mm tree
-Date: Wed, 31 Mar 2010 14:00:40 -0700
-Message-ID: <201003312100.o2VL0eZ5008236@imap1.linux-foundation.org>
+Subject: + acpi-map-pxms-to-low-node-ids.patch added to -mm tree
+Date: Wed, 31 Mar 2010 14:01:28 -0700
+Message-ID: <201003312101.o2VL1Srq008250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59861 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758146Ab0CaVFG (ORCPT
+	by vger.kernel.org with ESMTP id S1758146Ab0CaVFh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 17:05:06 -0400
+	Wed, 31 Mar 2010 17:05:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com
+Cc: rientjes@google.com, cl@linux-foundation.org, lenb@kernel.org, suresh.b.siddha@intel.com
 
 
 The patch titled
-     oom: move sysctl declarations to oom.h
+     acpi: map pxms to low node ids
 has been added to the -mm tree.  Its filename is
-     oom-move-sysctl-declarations-to-oomh.patch
+     acpi-map-pxms-to-low-node-ids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: move sysctl declarations to oom.h
+Subject: acpi: map pxms to low node ids
 From: David Rientjes <rientjes@google.com>
 
-The three oom killer sysctl variables (sysctl_panic_on_oom,
-sysctl_oom_forkbomb_thres, and sysctl_oom_kill_quick) are better declared
-in include/linux/oom.h rather than kernel/sysctl.c.
+pxms are mapped to low node ids to maintain generic kernel use of
+functions such as pxm_to_node() that are used to determine device
+affinity.  Otherwise, there is no pxm-to-node and node-to-pxm matching
+rule for x86_64 users of NUMA emulation where a single pxm may be bound to
+multiple NUMA nodes.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    6 ++++++
- kernel/sysctl.c     |    4 +---
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/acpi/numa.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/oom.h~oom-move-sysctl-declarations-to-oomh include/linux/oom.h
---- a/include/linux/oom.h~oom-move-sysctl-declarations-to-oomh
-+++ a/include/linux/oom.h
-@@ -61,5 +61,11 @@ static inline void oom_killer_enable(voi
- {
- 	oom_killer_disabled = false;
- }
-+
-+/* sysctls */
-+extern int sysctl_panic_on_oom;
-+extern int sysctl_oom_forkbomb_thres;
-+extern int sysctl_oom_kill_quick;
-+
- #endif /* __KERNEL__*/
- #endif /* _INCLUDE_LINUX_OOM_H */
-diff -puN kernel/sysctl.c~oom-move-sysctl-declarations-to-oomh kernel/sysctl.c
---- a/kernel/sysctl.c~oom-move-sysctl-declarations-to-oomh
-+++ a/kernel/sysctl.c
-@@ -53,6 +53,7 @@
- #include <linux/slow-work.h>
- #include <linux/perf_event.h>
- #include <linux/kprobes.h>
-+#include <linux/oom.h>
+diff -puN drivers/acpi/numa.c~acpi-map-pxms-to-low-node-ids drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~acpi-map-pxms-to-low-node-ids
++++ a/drivers/acpi/numa.c
+@@ -61,8 +61,10 @@ int node_to_pxm(int node)
  
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -81,9 +82,6 @@
- /* External variables not in a header file. */
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
--extern int sysctl_panic_on_oom;
--extern int sysctl_oom_kill_quick;
--extern int sysctl_oom_forkbomb_thres;
- extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
+ void __acpi_map_pxm_to_node(int pxm, int node)
+ {
+-	pxm_to_node_map[pxm] = node;
+-	node_to_pxm_map[node] = pxm;
++	if (pxm_to_node_map[pxm] == NUMA_NO_NODE || node < pxm_to_node_map[pxm])
++		pxm_to_node_map[pxm] = node;
++	if (node_to_pxm_map[node] == PXM_INVAL || pxm < node_to_pxm_map[node])
++		node_to_pxm_map[node] = pxm;
+ }
+ 
+ int acpi_map_pxm_to_node(int pxm)
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
+acpi-map-pxms-to-low-node-ids.patch
 mempolicy-remove-redundant-code.patch
 oom-filter-tasks-not-sharing-the-same-cpuset.patch
 oom-sacrifice-child-with-highest-badness-score-for-parent.patch
