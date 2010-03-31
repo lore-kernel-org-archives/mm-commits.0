@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch added to -mm tree
-Date: Wed, 31 Mar 2010 15:57:20 -0700
-Message-ID: <201003312257.o2VMvK7c013792@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch added to -mm tree
+Date: Wed, 31 Mar 2010 16:05:15 -0700
+Message-ID: <201003312305.o2VN5F5k014246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58054 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758362Ab0CaW6G (ORCPT
+	by vger.kernel.org with ESMTP id S932174Ab0CaXFt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 18:58:06 -0400
+	Wed, 31 Mar 2010 19:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, airlied@linux.ie
+Cc: error27@gmail.com, airlied@linux.ie, alexdeucher@gmail.com
 
 
 The patch titled
-     drivers/gpu/drm/via/via_video.c: fix off by one issue
+     drivers/gpu/drm/radeon/radeon_atombios.c: range check issues
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+     drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/via/via_video.c: fix off by one issue
+Subject: drivers/gpu/drm/radeon/radeon_atombios.c: range check issues
 From: Dan Carpenter <error27@gmail.com>
 
-"fx->lock" is used as the index in "dev_priv->decoder_queue[fx->lock]"
-which is an array of "VIA_NR_XVMC_LOCKS" elements.
+This change makes the array larger, "MAX_SUPPORTED_TV_TIMING_V1_2" is 3
+and the original size "MAX_SUPPORTED_TV_TIMING" is 2.
+
+Also there were checks that were off by one.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: David Airlie <airlied@linux.ie>
+Cc: Alex Deucher <alexdeucher@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/via/via_video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/radeon/atombios.h        |    2 +-
+ drivers/gpu/drm/radeon/radeon_atombios.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/via/via_video.c~drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue drivers/gpu/drm/via/via_video.c
---- a/drivers/gpu/drm/via/via_video.c~drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue
-+++ a/drivers/gpu/drm/via/via_video.c
-@@ -75,7 +75,7 @@ int via_decoder_futex(struct drm_device 
+diff -puN drivers/gpu/drm/radeon/atombios.h~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues drivers/gpu/drm/radeon/atombios.h
+--- a/drivers/gpu/drm/radeon/atombios.h~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues
++++ a/drivers/gpu/drm/radeon/atombios.h
+@@ -2912,7 +2912,7 @@ typedef struct _ATOM_ANALOG_TV_INFO_V1_2
+   UCHAR                    ucTV_BootUpDefaultStandard; 
+   UCHAR                    ucExt_TV_ASIC_ID;
+   UCHAR                    ucExt_TV_ASIC_SlaveAddr;
+-  ATOM_DTD_FORMAT          aModeTimings[MAX_SUPPORTED_TV_TIMING];
++  ATOM_DTD_FORMAT          aModeTimings[MAX_SUPPORTED_TV_TIMING_V1_2];
+ }ATOM_ANALOG_TV_INFO_V1_2;
  
- 	DRM_DEBUG("\n");
+ typedef struct _ATOM_DPCD_INFO
+diff -puN drivers/gpu/drm/radeon/radeon_atombios.c~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues drivers/gpu/drm/radeon/radeon_atombios.c
+--- a/drivers/gpu/drm/radeon/radeon_atombios.c~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues
++++ a/drivers/gpu/drm/radeon/radeon_atombios.c
+@@ -1259,7 +1259,7 @@ bool radeon_atom_get_tv_timings(struct r
+ 	switch (crev) {
+ 	case 1:
+ 		tv_info = (ATOM_ANALOG_TV_INFO *)(mode_info->atom_context->bios + data_offset);
+-		if (index > MAX_SUPPORTED_TV_TIMING)
++		if (index >= MAX_SUPPORTED_TV_TIMING)
+ 			return false;
  
--	if (fx->lock > VIA_NR_XVMC_LOCKS)
-+	if (fx->lock >= VIA_NR_XVMC_LOCKS)
- 		return -EFAULT;
+ 		mode->crtc_htotal = le16_to_cpu(tv_info->aModeTimings[index].usCRTC_H_Total);
+@@ -1297,7 +1297,7 @@ bool radeon_atom_get_tv_timings(struct r
+ 		break;
+ 	case 2:
+ 		tv_info_v1_2 = (ATOM_ANALOG_TV_INFO_V1_2 *)(mode_info->atom_context->bios + data_offset);
+-		if (index > MAX_SUPPORTED_TV_TIMING_V1_2)
++		if (index >= MAX_SUPPORTED_TV_TIMING_V1_2)
+ 			return false;
  
- 	lock = (volatile int *)XVMCLOCKPTR(sAPriv, fx->lock);
+ 		dtd_timings = &tv_info_v1_2->aModeTimings[index];
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
@@ -78,4 +103,14 @@ musb-potential-use-after-free.patch
 dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
 sis-strcpy-=-strlcpy.patch
 proc-cleanup-remove-unused-assignments.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-mfd-pcf50633-corec-off-by-one-issue.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
 
