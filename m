@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-fix-build-error-when-sysrq-is-disabled.patch added to -mm tree
-Date: Wed, 31 Mar 2010 13:22:24 -0700
-Message-ID: <201003312022.o2VKMOsC006308@imap1.linux-foundation.org>
+Subject: + usb-fix-serial-build-when-sysrq-is-disabled.patch added to -mm tree
+Date: Wed, 31 Mar 2010 13:23:30 -0700
+Message-ID: <201003312023.o2VKNUV1006412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757833Ab0CaUWp (ORCPT
+	by vger.kernel.org with ESMTP id S1757760Ab0CaUYF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 16:22:45 -0400
+	Wed, 31 Mar 2010 16:24:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, airlied@linux.ie
+Cc: randy.dunlap@oracle.com, greg@kroah.com
 
 
 The patch titled
-     drm: fix build error when SYSRQ is disabled
+     usb: fix serial build when SYSRQ is disabled
 has been added to the -mm tree.  Its filename is
-     drm-fix-build-error-when-sysrq-is-disabled.patch
+     usb-fix-serial-build-when-sysrq-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: fix build error when SYSRQ is disabled
+Subject: usb: fix serial build when SYSRQ is disabled
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
 Fix build error when CONFIG_MAGIC_SYSRQ is not enabled:
 
-drivers/gpu/drm/drm_fb_helper.c:915: error: 'sysrq_drm_fb_helper_restore_op' undeclared (first use in this function)
-drivers/gpu/drm/drm_fb_helper.c:929: error: 'sysrq_drm_fb_helper_restore_op' undeclared (first use in this function)
+drivers/usb/serial/generic.c:566: error: implicit declaration of function 'handle_sysrq'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Airlie <airlied@linux.ie>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_fb_helper.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/usb/serial/generic.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-fix-build-error-when-sysrq-is-disabled drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~drm-fix-build-error-when-sysrq-is-disabled
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -284,6 +284,8 @@ static struct sysrq_key_op sysrq_drm_fb_
- 	.help_msg = "force-fb(V)",
- 	.action_msg = "Restore framebuffer console",
- };
-+#else
-+static struct sysrq_key_op sysrq_drm_fb_helper_restore_op = { };
- #endif
+diff -puN drivers/usb/serial/generic.c~usb-fix-serial-build-when-sysrq-is-disabled drivers/usb/serial/generic.c
+--- a/drivers/usb/serial/generic.c~usb-fix-serial-build-when-sysrq-is-disabled
++++ a/drivers/usb/serial/generic.c
+@@ -12,6 +12,7 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/slab.h>
++#include <linux/sysrq.h>
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/module.h>
+@@ -558,6 +559,7 @@ void usb_serial_generic_unthrottle(struc
+ 	}
+ }
  
- static void drm_fb_helper_on(struct fb_info *info)
++#ifdef CONFIG_MAGIC_SYSRQ
+ int usb_serial_handle_sysrq_char(struct tty_struct *tty,
+ 			struct usb_serial_port *port, unsigned int ch)
+ {
+@@ -571,6 +573,13 @@ int usb_serial_handle_sysrq_char(struct 
+ 	}
+ 	return 0;
+ }
++#else
++int usb_serial_handle_sysrq_char(struct tty_struct *tty,
++			struct usb_serial_port *port, unsigned int ch)
++{
++	return 0;
++}
++#endif
+ EXPORT_SYMBOL_GPL(usb_serial_handle_sysrq_char);
+ 
+ int usb_serial_handle_break(struct usb_serial_port *port)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
