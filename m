@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi_pad-processor_aggregator-name-too-long.patch added to -mm tree
-Date: Wed, 31 Mar 2010 12:47:12 -0700
-Message-ID: <201003311947.o2VJlChF004616@imap1.linux-foundation.org>
+Subject: + bsdacct-use-del_timer_sync-in-acct_exit_ns.patch added to -mm tree
+Date: Wed, 31 Mar 2010 12:57:30 -0700
+Message-ID: <201003311957.o2VJvUa8005088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756585Ab0CaTrx (ORCPT
+	by vger.kernel.org with ESMTP id S1750962Ab0CaT6D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 15:47:53 -0400
+	Wed, 31 Mar 2010 15:58:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, lenb@kernel.org, pavel@ucw.cz, shaohua.li@intel.com, wharms@bfs.de
+Cc: vgusev@openvz.org, xemul@openvz.org
 
 
 The patch titled
-     acpi_pad: "processor_aggregator" name too long
+     bsdacct: use del_timer_sync() in acct_exit_ns()
 has been added to the -mm tree.  Its filename is
-     acpi_pad-processor_aggregator-name-too-long.patch
+     bsdacct-use-del_timer_sync-in-acct_exit_ns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi_pad: "processor_aggregator" name too long
-From: Dan Carpenter <error27@gmail.com>
+Subject: bsdacct: use del_timer_sync() in acct_exit_ns()
+From: Vitaliy Gusev <vgusev@openvz.org>
 
-cpi_device_class can only be 19 characters and a NULL terminator.
+acct_exit_ns --> acct_file_reopen deletes timer without check timer
+execution on other CPUs.  So acct_timeout() can change an unmapped memory.
 
-With the current name we get a buffer overflow in acpi_pad_add()
-	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: walter harms <wharms@bfs.de>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Vitaliy Gusev <vgusev@openvz.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_pad.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/acct.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/acpi/acpi_pad.c~acpi_pad-processor_aggregator-name-too-long drivers/acpi/acpi_pad.c
---- a/drivers/acpi/acpi_pad.c~acpi_pad-processor_aggregator-name-too-long
-+++ a/drivers/acpi/acpi_pad.c
-@@ -31,7 +31,7 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
+diff -puN kernel/acct.c~bsdacct-use-del_timer_sync-in-acct_exit_ns kernel/acct.c
+--- a/kernel/acct.c~bsdacct-use-del_timer_sync-in-acct_exit_ns
++++ a/kernel/acct.c
+@@ -353,17 +353,18 @@ restart:
  
--#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"processor_aggregator"
-+#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"cpu_aggregator"
- #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
- #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
- static DEFINE_MUTEX(isolated_cpus_lock);
+ void acct_exit_ns(struct pid_namespace *ns)
+ {
+-	struct bsd_acct_struct *acct;
++	struct bsd_acct_struct *acct = ns->bacct;
+ 
+-	spin_lock(&acct_lock);
+-	acct = ns->bacct;
+-	if (acct != NULL) {
+-		if (acct->file != NULL)
+-			acct_file_reopen(acct, NULL, NULL);
++	if (acct == NULL)
++		return;
+ 
+-		kfree(acct);
+-	}
++	del_timer_sync(&acct->timer);
++	spin_lock(&acct_lock);
++	if (acct->file != NULL)
++		acct_file_reopen(acct, NULL, NULL);
+ 	spin_unlock(&acct_lock);
++
++	kfree(acct);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from vgusev@openvz.org are
 
-linux-next.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-dpt_i20-several-use-after-free-issues.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-backlight-backlight_device_register-return-err_ptr.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-musb-potential-use-after-free.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+bsdacct-use-del_timer_sync-in-acct_exit_ns.patch
 
