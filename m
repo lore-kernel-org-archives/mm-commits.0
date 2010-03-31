@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch added to -mm tree
-Date: Wed, 31 Mar 2010 16:05:12 -0700
-Message-ID: <201003312305.o2VN5CnS014241@imap1.linux-foundation.org>
+Subject: + drivers-mfd-pcf50633-corec-off-by-one-issue.patch added to -mm tree
+Date: Wed, 31 Mar 2010 16:05:21 -0700
+Message-ID: <201003312305.o2VN5LhU014260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41647 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932174Ab0CaXFv (ORCPT
+	by vger.kernel.org with ESMTP id S932509Ab0CaXFy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 19:05:51 -0400
+	Wed, 31 Mar 2010 19:05:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+Cc: error27@gmail.com, fercerpav@gmail.com, sameo@linux.intel.com
 
 
 The patch titled
-     drivers/media/video/au0828/au0828-video.c: off by one bug
+     drivers/mfd/pcf50633-core.c: off by one issue
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+     drivers-mfd-pcf50633-corec-off-by-one-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/au0828/au0828-video.c: off by one bug
+Subject: drivers/mfd/pcf50633-core.c: off by one issue
 From: Dan Carpenter <error27@gmail.com>
 
-The "AUVI_INPUT(tmp)" macro uses "tmp" as an index of an array with
-AU0828_MAX_INPUT elements.
+"pcf->irq_handler" has PCF50633_NUM_IRQ elements.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Paul Fertser <fercerpav@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/au0828/au0828-video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/pcf50633-core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/au0828/au0828-video.c~drivers-media-video-au0828-au0828-videoc-off-by-one-bug drivers/media/video/au0828/au0828-video.c
---- a/drivers/media/video/au0828/au0828-video.c~drivers-media-video-au0828-au0828-videoc-off-by-one-bug
-+++ a/drivers/media/video/au0828/au0828-video.c
-@@ -1105,7 +1105,7 @@ static int vidioc_enum_input(struct file
- 
- 	tmp = input->index;
- 
--	if (tmp > AU0828_MAX_INPUT)
-+	if (tmp >= AU0828_MAX_INPUT)
+diff -puN drivers/mfd/pcf50633-core.c~drivers-mfd-pcf50633-corec-off-by-one-issue drivers/mfd/pcf50633-core.c
+--- a/drivers/mfd/pcf50633-core.c~drivers-mfd-pcf50633-corec-off-by-one-issue
++++ a/drivers/mfd/pcf50633-core.c
+@@ -218,7 +218,7 @@ static struct attribute_group pcf_attr_g
+ int pcf50633_register_irq(struct pcf50633 *pcf, int irq,
+ 			void (*handler) (int, void *), void *data)
+ {
+-	if (irq < 0 || irq > PCF50633_NUM_IRQ || !handler)
++	if (irq < 0 || irq >= PCF50633_NUM_IRQ || !handler)
  		return -EINVAL;
- 	if (AUVI_INPUT(tmp).type == 0)
+ 
+ 	if (WARN_ON(pcf->irq_handler[irq].handler))
+@@ -235,7 +235,7 @@ EXPORT_SYMBOL_GPL(pcf50633_register_irq)
+ 
+ int pcf50633_free_irq(struct pcf50633 *pcf, int irq)
+ {
+-	if (irq < 0 || irq > PCF50633_NUM_IRQ)
++	if (irq < 0 || irq >= PCF50633_NUM_IRQ)
  		return -EINVAL;
+ 
+ 	mutex_lock(&pcf->lock);
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
