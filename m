@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch added to -mm tree
-Date: Wed, 31 Mar 2010 14:00:13 -0700
-Message-ID: <201003312100.o2VL0Dtn008175@imap1.linux-foundation.org>
+Subject: + oom-move-sysctl-declarations-to-oomh.patch added to -mm tree
+Date: Wed, 31 Mar 2010 14:00:40 -0700
+Message-ID: <201003312100.o2VL0eZ5008236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753207Ab0CaVBQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758146Ab0CaVFG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 17:01:16 -0400
+	Wed, 31 Mar 2010 17:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: rientjes@google.com
 
 
 The patch titled
-     mm: default to node zonelist ordering when nodes have only lowmem
+     oom: move sysctl declarations to oom.h
 has been added to the -mm tree.  Its filename is
-     mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+     oom-move-sysctl-declarations-to-oomh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: default to node zonelist ordering when nodes have only lowmem
+Subject: oom: move sysctl declarations to oom.h
 From: David Rientjes <rientjes@google.com>
 
-There are two types of zonelist ordering methodologies:
-
- - node order, preferring allocations on a node to stay local to and
-
- - zone order, preferring allocations come from a higher zone to avoid
-   allocating in lowmem zones even though they may not be local.
-
-The ordering technique used by the kernel is configurable on the command
-line, but also has some logic to determine what the default should be.
-
-This logic currently lacks knowledge of systems where a node may only have
-lowmem.  For such systems, it is necessary to use node order so that
-GFP_KERNEL allocations may be satisfied by nodes consisting of only
-lowmem.
-
-If zone order is used, GFP_KERNEL allocations to such nodes are actually
-allocated on a node with local affinity that includes ZONE_NORMAL.
-
-This change defaults to node zonelist ordering if any node lacks
-ZONE_NORMAL.
-
-To force zone order, append 'numa_zonelist_order=zone' to the kernel
-command line.
+The three oom killer sysctl variables (sysctl_panic_on_oom,
+sysctl_oom_forkbomb_thres, and sysctl_oom_kill_quick) are better declared
+in include/linux/oom.h rather than kernel/sysctl.c.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/oom.h |    6 ++++++
+ kernel/sysctl.c     |    4 +---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem
-+++ a/mm/page_alloc.c
-@@ -2613,7 +2613,7 @@ static int default_zonelist_order(void)
-          * ZONE_DMA and ZONE_DMA32 can be very small area in the system.
- 	 * If they are really small and used heavily, the system can fall
- 	 * into OOM very easily.
--	 * This function detect ZONE_DMA/DMA32 size and confgigures zone order.
-+	 * This function detect ZONE_DMA/DMA32 size and configures zone order.
- 	 */
- 	/* Is there ZONE_NORMAL ? (ex. ppc has only DMA zone..) */
- 	low_kmem_size = 0;
-@@ -2625,6 +2625,15 @@ static int default_zonelist_order(void)
- 				if (zone_type < ZONE_NORMAL)
- 					low_kmem_size += z->present_pages;
- 				total_size += z->present_pages;
-+			} else if (zone_type == ZONE_NORMAL) {
-+				/*
-+				 * If any node has only lowmem, then node order
-+				 * is preferred to allow kernel allocations
-+				 * locally; otherwise, they can easily infringe
-+				 * on other nodes when there is an abundance of
-+				 * lowmem available to allocate from.
-+				 */
-+				return ZONELIST_ORDER_NODE;
- 			}
- 		}
- 	}
+diff -puN include/linux/oom.h~oom-move-sysctl-declarations-to-oomh include/linux/oom.h
+--- a/include/linux/oom.h~oom-move-sysctl-declarations-to-oomh
++++ a/include/linux/oom.h
+@@ -61,5 +61,11 @@ static inline void oom_killer_enable(voi
+ {
+ 	oom_killer_disabled = false;
+ }
++
++/* sysctls */
++extern int sysctl_panic_on_oom;
++extern int sysctl_oom_forkbomb_thres;
++extern int sysctl_oom_kill_quick;
++
+ #endif /* __KERNEL__*/
+ #endif /* _INCLUDE_LINUX_OOM_H */
+diff -puN kernel/sysctl.c~oom-move-sysctl-declarations-to-oomh kernel/sysctl.c
+--- a/kernel/sysctl.c~oom-move-sysctl-declarations-to-oomh
++++ a/kernel/sysctl.c
+@@ -53,6 +53,7 @@
+ #include <linux/slow-work.h>
+ #include <linux/perf_event.h>
+ #include <linux/kprobes.h>
++#include <linux/oom.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+@@ -81,9 +82,6 @@
+ /* External variables not in a header file. */
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+-extern int sysctl_panic_on_oom;
+-extern int sysctl_oom_kill_quick;
+-extern int sysctl_oom_forkbomb_thres;
+ extern int max_threads;
+ extern int core_uses_pid;
+ extern int suid_dumpable;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -123,6 +110,7 @@ mempolicy-rename-policy_types-and-cleanup-initialization.patch
 mempolicy-factor-mpol_shared_policy_init-return-paths.patch
 mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+oom-move-sysctl-declarations-to-oomh.patch
 memcg-oom-wakeup-filter.patch
 memcg-oom-wakeup-filter-update.patch
 memcg-oom-notifier.patch
