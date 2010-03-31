@@ -1,38 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpufreq-add-aperf-mperf-support-for-amd-processors.patch removed from -mm tree
-Date: Wed, 31 Mar 2010 11:53:20 -0400
-Message-ID: <201003311854.o2VIsUBh002117@imap1.linux-foundation.org>
+Subject: [merged] cpufreq-unify-sysfs-attribute-definition-macros.patch removed from -mm tree
+Date: Wed, 31 Mar 2010 11:53:25 -0400
+Message-ID: <201003311854.o2VIsZ8J002123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757144Ab0CaSzF (ORCPT
+	by vger.kernel.org with ESMTP id S1757250Ab0CaSzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 14:55:05 -0400
+	Wed, 31 Mar 2010 14:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.langsdorf@amd.com, borislav.petkov@amd.com, davej@codemonkey.org.uk, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, trenn@suse.de, mm-commits@vger.kernel.org
+To: borislav.petkov@amd.com, davej@codemonkey.org.uk, hpa@zytor.com, mark.langsdorf@amd.com, mingo@elte.hu, tglx@linutronix.de, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: add APERF/MPERF support for AMD processors
+     cpufreq: unify sysfs attribute definition macros
 has been removed from the -mm tree.  Its filename was
-     cpufreq-add-aperf-mperf-support-for-amd-processors.patch
+     cpufreq-unify-sysfs-attribute-definition-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: add APERF/MPERF support for AMD processors
-From: Mark Langsdorf <mark.langsdorf@amd.com>
+Subject: cpufreq: unify sysfs attribute definition macros
+From: Borislav Petkov <borislav.petkov@amd.com>
 
-Starting with model 10 of Family 0x10, AMD processors may have support for
-APERF/MPERF.  Add support for identifying it and using it within cpufreq. 
-Move the APERF/MPERF functions out of the acpi-cpufreq code and into their
-own file so they can easily be shared.
+Multiple modules used to define those which are with identical
+functionality and were needlessly replicated among the different cpufreq
+drivers.  Push them into the header and remove duplication.
 
-Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
 Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
 Reviewed-by: Thomas Renninger <trenn@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -43,211 +41,263 @@ Cc: Mark Langsdorf <mark.langsdorf@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/Makefile       |    4 -
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   44 ----------------
- arch/x86/kernel/cpu/cpufreq/mperf.c        |   50 +++++++++++++++++++
- arch/x86/kernel/cpu/cpufreq/mperf.h        |    9 +++
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c  |    8 +++
- 5 files changed, 71 insertions(+), 44 deletions(-)
+ drivers/cpufreq/cpufreq.c              |   40 ++++++-------------
+ drivers/cpufreq/cpufreq_conservative.c |   48 +++++++----------------
+ drivers/cpufreq/cpufreq_ondemand.c     |   40 +++++--------------
+ include/linux/cpufreq.h                |   30 ++++++++++++++
+ 4 files changed, 72 insertions(+), 86 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/Makefile~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/Makefile
---- a/arch/x86/kernel/cpu/cpufreq/Makefile~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/cpufreq/Makefile
-@@ -2,8 +2,8 @@
- # K8 systems. ACPI is preferred to all other hardware-specific drivers.
- # speedstep-* is preferred over p4-clockmod.
- 
--obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o
--obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o
-+obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o mperf.o
-+obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o mperf.o
- obj-$(CONFIG_X86_PCC_CPUFREQ)		+= pcc-cpufreq.o
- obj-$(CONFIG_X86_POWERNOW_K6)		+= powernow-k6.o
- obj-$(CONFIG_X86_POWERNOW_K7)		+= powernow-k7.o
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -46,6 +46,7 @@
- #include <asm/msr.h>
- #include <asm/processor.h>
- #include <asm/cpufeature.h>
-+#include "mperf.h"
- 
- #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, \
- 		"acpi-cpufreq", msg)
-@@ -71,8 +72,6 @@ struct acpi_cpufreq_data {
- 
- static DEFINE_PER_CPU(struct acpi_cpufreq_data *, acfreq_data);
- 
--static DEFINE_PER_CPU(struct aperfmperf, acfreq_old_perf);
--
- /* acpi_perf_data is a pointer to percpu data. */
- static struct acpi_processor_performance *acpi_perf_data;
- 
-@@ -240,45 +239,6 @@ static u32 get_cur_val(const struct cpum
- 	return cmd.val;
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-unify-sysfs-attribute-definition-macros drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-unify-sysfs-attribute-definition-macros
++++ a/drivers/cpufreq/cpufreq.c
+@@ -662,32 +662,20 @@ static ssize_t show_bios_limit(struct cp
+ 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
  }
  
--/* Called via smp_call_function_single(), on the target CPU */
--static void read_measured_perf_ctrs(void *_cur)
--{
--	struct aperfmperf *am = _cur;
+-#define define_one_ro(_name) \
+-static struct freq_attr _name = \
+-__ATTR(_name, 0444, show_##_name, NULL)
 -
--	get_aperfmperf(am);
--}
+-#define define_one_ro0400(_name) \
+-static struct freq_attr _name = \
+-__ATTR(_name, 0400, show_##_name, NULL)
 -
--/*
-- * Return the measured active (C0) frequency on this CPU since last call
-- * to this function.
-- * Input: cpu number
-- * Return: Average CPU frequency in terms of max frequency (zero on error)
-- *
-- * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
-- * over a period of time, while CPU is in C0 state.
-- * IA32_MPERF counts at the rate of max advertised frequency
-- * IA32_APERF counts at the rate of actual CPU frequency
-- * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
-- * no meaning should be associated with absolute values of these MSRs.
-- */
--static unsigned int get_measured_perf(struct cpufreq_policy *policy,
--				      unsigned int cpu)
--{
--	struct aperfmperf perf;
--	unsigned long ratio;
--	unsigned int retval;
+-#define define_one_rw(_name) \
+-static struct freq_attr _name = \
+-__ATTR(_name, 0644, show_##_name, store_##_name)
 -
--	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &perf, 1))
--		return 0;
+-define_one_ro0400(cpuinfo_cur_freq);
+-define_one_ro(cpuinfo_min_freq);
+-define_one_ro(cpuinfo_max_freq);
+-define_one_ro(cpuinfo_transition_latency);
+-define_one_ro(scaling_available_governors);
+-define_one_ro(scaling_driver);
+-define_one_ro(scaling_cur_freq);
+-define_one_ro(bios_limit);
+-define_one_ro(related_cpus);
+-define_one_ro(affected_cpus);
+-define_one_rw(scaling_min_freq);
+-define_one_rw(scaling_max_freq);
+-define_one_rw(scaling_governor);
+-define_one_rw(scaling_setspeed);
++cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
++cpufreq_freq_attr_ro(cpuinfo_min_freq);
++cpufreq_freq_attr_ro(cpuinfo_max_freq);
++cpufreq_freq_attr_ro(cpuinfo_transition_latency);
++cpufreq_freq_attr_ro(scaling_available_governors);
++cpufreq_freq_attr_ro(scaling_driver);
++cpufreq_freq_attr_ro(scaling_cur_freq);
++cpufreq_freq_attr_ro(bios_limit);
++cpufreq_freq_attr_ro(related_cpus);
++cpufreq_freq_attr_ro(affected_cpus);
++cpufreq_freq_attr_rw(scaling_min_freq);
++cpufreq_freq_attr_rw(scaling_max_freq);
++cpufreq_freq_attr_rw(scaling_governor);
++cpufreq_freq_attr_rw(scaling_setspeed);
+ 
+ static struct attribute *default_attrs[] = {
+ 	&cpuinfo_min_freq.attr,
+diff -puN drivers/cpufreq/cpufreq_conservative.c~cpufreq-unify-sysfs-attribute-definition-macros drivers/cpufreq/cpufreq_conservative.c
+--- a/drivers/cpufreq/cpufreq_conservative.c~cpufreq-unify-sysfs-attribute-definition-macros
++++ a/drivers/cpufreq/cpufreq_conservative.c
+@@ -178,12 +178,8 @@ static ssize_t show_sampling_rate_min(st
+ 	return sprintf(buf, "%u\n", min_sampling_rate);
+ }
+ 
+-#define define_one_ro(_name)		\
+-static struct global_attr _name =	\
+-__ATTR(_name, 0444, show_##_name, NULL)
 -
--	ratio = calc_aperfmperf_ratio(&per_cpu(acfreq_old_perf, cpu), &perf);
--	per_cpu(acfreq_old_perf, cpu) = perf;
+-define_one_ro(sampling_rate_max);
+-define_one_ro(sampling_rate_min);
++define_one_global_ro(sampling_rate_max);
++define_one_global_ro(sampling_rate_min);
+ 
+ /* cpufreq_conservative Governor Tunables */
+ #define show_one(file_name, object)					\
+@@ -221,12 +217,8 @@ show_one_old(freq_step);
+ show_one_old(sampling_rate_min);
+ show_one_old(sampling_rate_max);
+ 
+-#define define_one_ro_old(object, _name)	\
+-static struct freq_attr object =		\
+-__ATTR(_name, 0444, show_##_name##_old, NULL)
 -
--	retval = (policy->cpuinfo.max_freq * ratio) >> APERFMPERF_SHIFT;
+-define_one_ro_old(sampling_rate_min_old, sampling_rate_min);
+-define_one_ro_old(sampling_rate_max_old, sampling_rate_max);
++cpufreq_freq_attr_ro_old(sampling_rate_min);
++cpufreq_freq_attr_ro_old(sampling_rate_max);
+ 
+ /*** delete after deprecation time ***/
+ 
+@@ -364,16 +356,12 @@ static ssize_t store_freq_step(struct ko
+ 	return count;
+ }
+ 
+-#define define_one_rw(_name) \
+-static struct global_attr _name = \
+-__ATTR(_name, 0644, show_##_name, store_##_name)
 -
--	return retval;
--}
+-define_one_rw(sampling_rate);
+-define_one_rw(sampling_down_factor);
+-define_one_rw(up_threshold);
+-define_one_rw(down_threshold);
+-define_one_rw(ignore_nice_load);
+-define_one_rw(freq_step);
++define_one_global_rw(sampling_rate);
++define_one_global_rw(sampling_down_factor);
++define_one_global_rw(up_threshold);
++define_one_global_rw(down_threshold);
++define_one_global_rw(ignore_nice_load);
++define_one_global_rw(freq_step);
+ 
+ static struct attribute *dbs_attributes[] = {
+ 	&sampling_rate_max.attr,
+@@ -409,16 +397,12 @@ write_one_old(down_threshold);
+ write_one_old(ignore_nice_load);
+ write_one_old(freq_step);
+ 
+-#define define_one_rw_old(object, _name)	\
+-static struct freq_attr object =		\
+-__ATTR(_name, 0644, show_##_name##_old, store_##_name##_old)
 -
- static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
- {
- 	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, cpu);
-@@ -702,7 +662,7 @@ static int acpi_cpufreq_cpu_init(struct 
+-define_one_rw_old(sampling_rate_old, sampling_rate);
+-define_one_rw_old(sampling_down_factor_old, sampling_down_factor);
+-define_one_rw_old(up_threshold_old, up_threshold);
+-define_one_rw_old(down_threshold_old, down_threshold);
+-define_one_rw_old(ignore_nice_load_old, ignore_nice_load);
+-define_one_rw_old(freq_step_old, freq_step);
++cpufreq_freq_attr_rw_old(sampling_rate);
++cpufreq_freq_attr_rw_old(sampling_down_factor);
++cpufreq_freq_attr_rw_old(up_threshold);
++cpufreq_freq_attr_rw_old(down_threshold);
++cpufreq_freq_attr_rw_old(ignore_nice_load);
++cpufreq_freq_attr_rw_old(freq_step);
  
- 	/* Check for APERF/MPERF support in hardware */
- 	if (cpu_has(c, X86_FEATURE_APERFMPERF))
--		acpi_cpufreq_driver.getavg = get_measured_perf;
-+		acpi_cpufreq_driver.getavg = cpufreq_get_measured_perf;
+ static struct attribute *dbs_attributes_old[] = {
+ 	&sampling_rate_max_old.attr,
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-unify-sysfs-attribute-definition-macros drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-unify-sysfs-attribute-definition-macros
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -234,12 +234,8 @@ static ssize_t show_sampling_rate_min(st
+ 	return sprintf(buf, "%u\n", min_sampling_rate);
+ }
  
- 	dprintk("CPU%u - ACPI performance management activated.\n", cpu);
- 	for (i = 0; i < perf->state_count; i++)
-diff -puN /dev/null arch/x86/kernel/cpu/cpufreq/mperf.c
---- /dev/null
-+++ a/arch/x86/kernel/cpu/cpufreq/mperf.c
-@@ -0,0 +1,50 @@
-+#include <linux/kernel.h>
-+#include <linux/smp.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/cpufreq.h>
-+#include <linux/slab.h>
-+
-+#include "mperf.h"
-+
-+static DEFINE_PER_CPU(struct aperfmperf, acfreq_old_perf);
-+
-+/* Called via smp_call_function_single(), on the target CPU */
-+static void read_measured_perf_ctrs(void *_cur)
-+{
-+	struct aperfmperf *am = _cur;
-+
-+	get_aperfmperf(am);
-+}
-+
-+/*
-+ * Return the measured active (C0) frequency on this CPU since last call
-+ * to this function.
-+ * Input: cpu number
-+ * Return: Average CPU frequency in terms of max frequency (zero on error)
-+ *
-+ * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
-+ * over a period of time, while CPU is in C0 state.
-+ * IA32_MPERF counts at the rate of max advertised frequency
-+ * IA32_APERF counts at the rate of actual CPU frequency
-+ * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
-+ * no meaning should be associated with absolute values of these MSRs.
-+ */
-+unsigned int cpufreq_get_measured_perf(struct cpufreq_policy *policy,
-+					unsigned int cpu)
-+{
-+	struct aperfmperf perf;
-+	unsigned long ratio;
-+	unsigned int retval;
-+
-+	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &perf, 1))
-+		return 0;
-+
-+	ratio = calc_aperfmperf_ratio(&per_cpu(acfreq_old_perf, cpu), &perf);
-+	per_cpu(acfreq_old_perf, cpu) = perf;
-+
-+	retval = (policy->cpuinfo.max_freq * ratio) >> APERFMPERF_SHIFT;
-+
-+	return retval;
-+}
-+EXPORT_SYMBOL_GPL(cpufreq_get_measured_perf);
-diff -puN /dev/null arch/x86/kernel/cpu/cpufreq/mperf.h
---- /dev/null
-+++ a/arch/x86/kernel/cpu/cpufreq/mperf.h
-@@ -0,0 +1,9 @@
-+/*
-+ *  (c) 2010 Advanced Micro Devices, Inc.
-+ *  Your use of this code is subject to the terms and conditions of the
-+ *  GNU general public license version 2. See "COPYING" or
-+ *  http://www.gnu.org/licenses/gpl.html
-+ */
-+
-+unsigned int cpufreq_get_measured_perf(struct cpufreq_policy *policy,
-+					unsigned int cpu);
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-add-aperf-mperf-support-for-amd-processors arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-add-aperf-mperf-support-for-amd-processors
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -45,6 +45,7 @@
- #define PFX "powernow-k8: "
- #define VERSION "version 2.20.00"
- #include "powernow-k8.h"
-+#include "mperf.h"
+-#define define_one_ro(_name)		\
+-static struct global_attr _name =	\
+-__ATTR(_name, 0444, show_##_name, NULL)
+-
+-define_one_ro(sampling_rate_max);
+-define_one_ro(sampling_rate_min);
++define_one_global_ro(sampling_rate_max);
++define_one_global_ro(sampling_rate_min);
  
- /* serialize freq changes  */
- static DEFINE_MUTEX(fidvid_mutex);
-@@ -57,6 +58,8 @@ static int cpu_family = CPU_OPTERON;
- static bool cpb_capable, cpb_enabled;
- static struct msr __percpu *msrs;
+ /* cpufreq_ondemand Governor Tunables */
+ #define show_one(file_name, object)					\
+@@ -274,12 +270,8 @@ show_one_old(powersave_bias);
+ show_one_old(sampling_rate_min);
+ show_one_old(sampling_rate_max);
  
-+static struct cpufreq_driver cpufreq_amd64_driver;
+-#define define_one_ro_old(object, _name)       \
+-static struct freq_attr object =               \
+-__ATTR(_name, 0444, show_##_name##_old, NULL)
+-
+-define_one_ro_old(sampling_rate_min_old, sampling_rate_min);
+-define_one_ro_old(sampling_rate_max_old, sampling_rate_max);
++cpufreq_freq_attr_ro_old(sampling_rate_min);
++cpufreq_freq_attr_ro_old(sampling_rate_max);
+ 
+ /*** delete after deprecation time ***/
+ 
+@@ -376,14 +368,10 @@ static ssize_t store_powersave_bias(stru
+ 	return count;
+ }
+ 
+-#define define_one_rw(_name) \
+-static struct global_attr _name = \
+-__ATTR(_name, 0644, show_##_name, store_##_name)
+-
+-define_one_rw(sampling_rate);
+-define_one_rw(up_threshold);
+-define_one_rw(ignore_nice_load);
+-define_one_rw(powersave_bias);
++define_one_global_rw(sampling_rate);
++define_one_global_rw(up_threshold);
++define_one_global_rw(ignore_nice_load);
++define_one_global_rw(powersave_bias);
+ 
+ static struct attribute *dbs_attributes[] = {
+ 	&sampling_rate_max.attr,
+@@ -415,14 +403,10 @@ write_one_old(up_threshold);
+ write_one_old(ignore_nice_load);
+ write_one_old(powersave_bias);
+ 
+-#define define_one_rw_old(object, _name)       \
+-static struct freq_attr object =               \
+-__ATTR(_name, 0644, show_##_name##_old, store_##_name##_old)
+-
+-define_one_rw_old(sampling_rate_old, sampling_rate);
+-define_one_rw_old(up_threshold_old, up_threshold);
+-define_one_rw_old(ignore_nice_load_old, ignore_nice_load);
+-define_one_rw_old(powersave_bias_old, powersave_bias);
++cpufreq_freq_attr_rw_old(sampling_rate);
++cpufreq_freq_attr_rw_old(up_threshold);
++cpufreq_freq_attr_rw_old(ignore_nice_load);
++cpufreq_freq_attr_rw_old(powersave_bias);
+ 
+ static struct attribute *dbs_attributes_old[] = {
+        &sampling_rate_max_old.attr,
+diff -puN include/linux/cpufreq.h~cpufreq-unify-sysfs-attribute-definition-macros include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~cpufreq-unify-sysfs-attribute-definition-macros
++++ a/include/linux/cpufreq.h
+@@ -278,6 +278,27 @@ struct freq_attr {
+ 	ssize_t (*store)(struct cpufreq_policy *, const char *, size_t count);
+ };
+ 
++#define cpufreq_freq_attr_ro(_name)		\
++static struct freq_attr _name =			\
++__ATTR(_name, 0444, show_##_name, NULL)
 +
- #ifndef CONFIG_SMP
- static inline const struct cpumask *cpu_core_mask(int cpu)
- {
-@@ -1251,6 +1254,7 @@ static int __cpuinit powernowk8_cpu_init
- 	struct powernow_k8_data *data;
- 	struct init_on_cpu init_on_cpu;
- 	int rc;
-+	struct cpuinfo_x86 *c = &cpu_data(pol->cpu);
- 
- 	if (!cpu_online(pol->cpu))
- 		return -ENODEV;
-@@ -1325,6 +1329,10 @@ static int __cpuinit powernowk8_cpu_init
- 		return -EINVAL;
- 	}
- 
-+	/* Check for APERF/MPERF support in hardware */
-+	if (cpu_has(c, X86_FEATURE_APERFMPERF))
-+		cpufreq_amd64_driver.getavg = cpufreq_get_measured_perf;
++#define cpufreq_freq_attr_ro_perm(_name, _perm)	\
++static struct freq_attr _name =			\
++__ATTR(_name, _perm, show_##_name, NULL)
 +
- 	cpufreq_frequency_table_get_attr(data->powernow_table, pol->cpu);
++#define cpufreq_freq_attr_ro_old(_name)		\
++static struct freq_attr _name##_old =		\
++__ATTR(_name, 0444, show_##_name##_old, NULL)
++
++#define cpufreq_freq_attr_rw(_name)		\
++static struct freq_attr _name =			\
++__ATTR(_name, 0644, show_##_name, store_##_name)
++
++#define cpufreq_freq_attr_rw_old(_name)		\
++static struct freq_attr _name##_old =		\
++__ATTR(_name, 0644, show_##_name##_old, store_##_name##_old)
++
++
+ struct global_attr {
+ 	struct attribute attr;
+ 	ssize_t (*show)(struct kobject *kobj,
+@@ -286,6 +307,15 @@ struct global_attr {
+ 			 const char *c, size_t count);
+ };
  
- 	if (cpu_family == CPU_HW_PSTATE)
++#define define_one_global_ro(_name)		\
++static struct global_attr _name =		\
++__ATTR(_name, 0444, show_##_name, NULL)
++
++#define define_one_global_rw(_name)		\
++static struct global_attr _name =		\
++__ATTR(_name, 0644, show_##_name, store_##_name)
++
++
+ /*********************************************************************
+  *                        CPUFREQ 2.6. INTERFACE                     *
+  *********************************************************************/
 _
 
-Patches currently in -mm which might be from mark.langsdorf@amd.com are
+Patches currently in -mm which might be from borislav.petkov@amd.com are
 
 linux-next.patch
+x86-add-optimized-popcnt-variants.patch
 
