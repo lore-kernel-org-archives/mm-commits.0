@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-saving-negative-to-unsigned-char.patch added to -mm tree
-Date: Thu, 01 Apr 2010 13:53:46 -0700
-Message-ID: <201004012053.o31Krkkh008598@imap1.linux-foundation.org>
+Subject: + 9p-return-on-mutex_lock_interruptible.patch added to -mm tree
+Date: Thu, 01 Apr 2010 13:53:42 -0700
+Message-ID: <201004012053.o31KrgtX008595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751233Ab0DAUxx (ORCPT
+	by vger.kernel.org with ESMTP id S1752316Ab0DAUxx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 16:53:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: error27@gmail.com, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
 
 
 The patch titled
-     9p: saving negative to unsigned char
+     9p: return on mutex_lock_interruptible()
 has been added to the -mm tree.  Its filename is
-     9p-saving-negative-to-unsigned-char.patch
+     9p-return-on-mutex_lock_interruptible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: saving negative to unsigned char
+Subject: 9p: return on mutex_lock_interruptible()
 From: Dan Carpenter <error27@gmail.com>
 
-Saving -EINVAL as unsigned char truncates the high bits and changes it
-into 234 instead of -22.  This breaks the test for "if (ret == -EINVAL)"
-in parse_opts().
+If "err" is -EINTR here the original code calls mutex_unlock() and then
+returns, but it should just return directly.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
@@ -47,25 +46,21 @@ Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/client.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/9p/vfs_dir.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN net/9p/client.c~9p-saving-negative-to-unsigned-char net/9p/client.c
---- a/net/9p/client.c~9p-saving-negative-to-unsigned-char
-+++ a/net/9p/client.c
-@@ -72,9 +72,10 @@ inline int p9_is_proto_dotu(struct p9_cl
- EXPORT_SYMBOL(p9_is_proto_dotu);
+diff -puN fs/9p/vfs_dir.c~9p-return-on-mutex_lock_interruptible fs/9p/vfs_dir.c
+--- a/fs/9p/vfs_dir.c~9p-return-on-mutex_lock_interruptible
++++ a/fs/9p/vfs_dir.c
+@@ -131,6 +131,8 @@ static int v9fs_dir_readdir(struct file 
+ 	rdir = (struct p9_rdir *) fid->rdir;
  
- /* Interpret mount option for protocol version */
--static unsigned char get_protocol_version(const substring_t *name)
-+static int get_protocol_version(const substring_t *name)
- {
--	unsigned char version = -EINVAL;
-+	int version = -EINVAL;
-+
- 	if (!strncmp("9p2000", name->from, name->to-name->from)) {
- 		version = p9_proto_legacy;
- 		P9_DPRINTK(P9_DEBUG_9P, "Protocol version: Legacy\n");
+ 	err = mutex_lock_interruptible(&rdir->mutex);
++	if (err)
++		return err;
+ 	while (err == 0) {
+ 		if (rdir->tail == rdir->head) {
+ 			err = v9fs_file_readn(filp, rdir->buf, NULL,
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
