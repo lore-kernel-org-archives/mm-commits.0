@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch added to -mm tree
-Date: Thu, 01 Apr 2010 12:42:49 -0700
-Message-ID: <201004011942.o31Jgosf005137@imap1.linux-foundation.org>
+Subject: + drivers-char-amiserialc-add-missing-local_irq_restore.patch added to -mm tree
+Date: Thu, 01 Apr 2010 12:51:39 -0700
+Message-ID: <201004011951.o31JpdeR005503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754773Ab0DATnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:43:01 -0400
+	by vger.kernel.org with ESMTP id S1758116Ab0DATwC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:52:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dbrownell@users.sourceforge.net, greg@kroah.com
+Cc: julia@diku.dk, cascardo@holoscopio.com, greg@kroah.com
 
 
 The patch titled
-     drivers/usb/gadget/s3c-hsotg.c: add missing unlock
+     drivers/char/amiserial.c: add missing local_irq_restore
 has been added to the -mm tree.  Its filename is
-     drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
+     drivers-char-amiserialc-add-missing-local_irq_restore.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/gadget/s3c-hsotg.c: add missing unlock
+Subject: drivers/char/amiserial.c: add missing local_irq_restore
 From: Julia Lawall <julia@diku.dk>
 
-In an error handling case the lock is not unlocked.  The return is
-converted to a goto, to share the unlock at the end of the function.
+rs_init() is failing to restore interrupts on two error paths, and is
+incorrectly calling tty_unregister_driver() with local interrupts
+disabled.
+
+Fix these things by disabling interrupts later, after the reauest_irq()
+calls.
+
 
 A simplified version of the semantic patch that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -49,59 +54,55 @@ identifier f;
 @@
 
 f (...) { <+...
-* spin_lock_irqsave (E1,...);
+* local_irq_save (E1,...);
 ... when != E1
 * return ...;
 ...+> }
 // </smpl>
 
+[akpm@linux-foundation.org: reimplement the fix]
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/s3c-hsotg.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/char/amiserial.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-add-missing-unlock drivers/usb/gadget/s3c-hsotg.c
---- a/drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-add-missing-unlock
-+++ a/drivers/usb/gadget/s3c-hsotg.c
-@@ -2145,6 +2145,7 @@ static int s3c_hsotg_ep_enable(struct us
- 	u32 epctrl;
- 	u32 mps;
- 	int dir_in;
-+	int ret = 0;
+diff -puN drivers/char/amiserial.c~drivers-char-amiserialc-add-missing-local_irq_restore drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~drivers-char-amiserialc-add-missing-local_irq_restore
++++ a/drivers/char/amiserial.c
+@@ -2021,8 +2021,6 @@ static int __init rs_init(void)
+ 	state->baud_base = amiga_colorclock;
+ 	state->xmit_fifo_size = 1;
  
- 	dev_dbg(hsotg->dev,
- 		"%s: ep %s: a 0x%02x, attr 0x%02x, mps 0x%04x, intr %d\n",
-@@ -2196,7 +2197,8 @@ static int s3c_hsotg_ep_enable(struct us
- 	switch (desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) {
- 	case USB_ENDPOINT_XFER_ISOC:
- 		dev_err(hsotg->dev, "no current ISOC support\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out;
+-	local_irq_save(flags);
+-
+ 	/* set ISRs, and then disable the rx interrupts */
+ 	error = request_irq(IRQ_AMIGA_TBE, ser_tx_int, 0, "serial TX", state);
+ 	if (error)
+@@ -2033,6 +2031,8 @@ static int __init rs_init(void)
+ 	if (error)
+ 		goto fail_free_irq;
  
- 	case USB_ENDPOINT_XFER_BULK:
- 		epctrl |= S3C_DxEPCTL_EPType_Bulk;
-@@ -2235,8 +2237,9 @@ static int s3c_hsotg_ep_enable(struct us
- 	/* enable the endpoint interrupt */
- 	s3c_hsotg_ctrl_epint(hsotg, index, dir_in, 1);
- 
-+out:
- 	spin_unlock_irqrestore(&hs_ep->lock, flags);
--	return 0;
-+	return ret;
- }
- 
- static int s3c_hsotg_ep_disable(struct usb_ep *ep)
++	local_irq_save(flags);
++
+ 	/* turn off Rx and Tx interrupts */
+ 	custom.intena = IF_RBF | IF_TBE;
+ 	mb();
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
+drivers-char-amiserialc-add-missing-local_irq_restore.patch
+drivers-gpio-timbgpioc-add-missing-unlock.patch
 arch-powerpc-kernel-vioc-add-missing-unlock.patch
+drivers-macintosh-macio-adbc-add-missing-unlock.patch
+drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
+drivers-serial-pmac_zilogc-add-missing-unlock.patch
+drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
 drivers-acpi-use-kasprintf.patch
 drivers-acpi-use-kasprintf-fix.patch
 arch-x86-pci-use-kasprintf.patch
@@ -115,10 +116,4 @@ drivers-scsi-correct-the-size-argument-to-kmalloc.patch
 drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
 drivers-char-ppdevc-use-kasprintf.patch
 drivers-edac-introduce-missing-kfree.patch
-drivers-char-amiserialc-add-missing-local_irq_restore.patch
-drivers-gpio-timbgpioc-add-missing-unlock.patch
-drivers-macintosh-macio-adbc-add-missing-unlock.patch
-drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
-drivers-serial-pmac_zilogc-add-missing-unlock.patch
-drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
 
