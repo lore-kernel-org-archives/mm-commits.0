@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-return-on-mutex_lock_interruptible.patch added to -mm tree
-Date: Thu, 01 Apr 2010 13:53:42 -0700
-Message-ID: <201004012053.o31KrgtX008595@imap1.linux-foundation.org>
+Subject: + s390-potential-buffer-overflow.patch added to -mm tree
+Date: Thu, 01 Apr 2010 13:54:47 -0700
+Message-ID: <201004012054.o31Ksl2c008627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316Ab0DAUxx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 16:53:53 -0400
+	by vger.kernel.org with ESMTP id S1751233Ab0DAUy5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 16:54:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
+Cc: error27@gmail.com, ebiederm@xmission.com, hans@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     9p: return on mutex_lock_interruptible()
+     s390: potential buffer overflow
 has been added to the -mm tree.  Its filename is
-     9p-return-on-mutex_lock_interruptible.patch
+     s390-potential-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: return on mutex_lock_interruptible()
+Subject: s390: potential buffer overflow
 From: Dan Carpenter <error27@gmail.com>
 
-If "err" is -EINTR here the original code calls mutex_unlock() and then
-returns, but it should just return directly.
+"len" hasn't been properly range checked so we shouldn't use it as an
+array offset.  This can only be written to by root but it would still be
+annoying to accidentally write more than 3 characters and corrupt your
+memory.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+"Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Hans-Joachim Picht <hans@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_dir.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/s390/char/sclp_async.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/9p/vfs_dir.c~9p-return-on-mutex_lock_interruptible fs/9p/vfs_dir.c
---- a/fs/9p/vfs_dir.c~9p-return-on-mutex_lock_interruptible
-+++ a/fs/9p/vfs_dir.c
-@@ -131,6 +131,8 @@ static int v9fs_dir_readdir(struct file 
- 	rdir = (struct p9_rdir *) fid->rdir;
- 
- 	err = mutex_lock_interruptible(&rdir->mutex);
-+	if (err)
-+		return err;
- 	while (err == 0) {
- 		if (rdir->tail == rdir->head) {
- 			err = v9fs_file_readn(filp, rdir->buf, NULL,
+diff -puN drivers/s390/char/sclp_async.c~s390-potential-buffer-overflow drivers/s390/char/sclp_async.c
+--- a/drivers/s390/char/sclp_async.c~s390-potential-buffer-overflow
++++ a/drivers/s390/char/sclp_async.c
+@@ -85,7 +85,7 @@ static int proc_handler_callhome(struct 
+ 		rc = copy_from_user(buf, buffer, sizeof(buf));
+ 		if (rc != 0)
+ 			return -EFAULT;
+-		buf[len - 1] = '\0';
++		buf[sizeof(buf) - 1] = '\0';
+ 		if (strict_strtoul(buf, 0, &val) != 0)
+ 			return -EINVAL;
+ 		if (val != 0 && val != 1)
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
@@ -80,6 +83,7 @@ drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
 drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
 drivers-mfd-pcf50633-corec-off-by-one-issue.patch
 backlight-backlight_device_register-return-err_ptr.patch
+s390-potential-buffer-overflow.patch
 scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
 iscsi-change-to.patch
 drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
