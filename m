@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-amiserialc-add-missing-local_irq_restore.patch added to -mm tree
-Date: Thu, 01 Apr 2010 12:42:38 -0700
-Message-ID: <201004011942.o31Jgdcc005025@imap1.linux-foundation.org>
+Subject: + drivers-macintosh-macio-adbc-add-missing-unlock.patch added to -mm tree
+Date: Thu, 01 Apr 2010 12:42:43 -0700
+Message-ID: <201004011942.o31Jgiwv005036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754773Ab0DATmp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:42:45 -0400
+	by vger.kernel.org with ESMTP id S1754773Ab0DATms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, cascardo@holoscopio.com, greg@kroah.com
+Cc: julia@diku.dk, benh@kernel.crashing.org
 
 
 The patch titled
-     drivers/char/amiserial.c: add missing local_irq_restore
+     drivers/macintosh/macio-adb.c: add missing unlock
 has been added to the -mm tree.  Its filename is
-     drivers-char-amiserialc-add-missing-local_irq_restore.patch
+     drivers-macintosh-macio-adbc-add-missing-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/amiserial.c: add missing local_irq_restore
+Subject: drivers/macintosh/macio-adb.c: add missing unlock
 From: Julia Lawall <julia@diku.dk>
 
-Add local_irq_restore after the labels that can be reached after a
-local_irq_save.
+In some error handling cases the lock is not unlocked.
 
 A simplified version of the semantic patch that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -49,32 +48,47 @@ identifier f;
 @@
 
 f (...) { <+...
-* local_irq_save (E1,...);
+* spin_lock_irqsave (E1,...);
 ... when != E1
 * return ...;
 ...+> }
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/macintosh/macio-adb.c |    1 +
+ drivers/macintosh/smu.c       |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/amiserial.c~drivers-char-amiserialc-add-missing-local_irq_restore drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~drivers-char-amiserialc-add-missing-local_irq_restore
-+++ a/drivers/char/amiserial.c
-@@ -2056,6 +2056,7 @@ fail_free_irq:
- 	free_irq(IRQ_AMIGA_TBE, state);
- fail_unregister:
- 	tty_unregister_driver(serial_driver);
-+	local_irq_restore(flags);
- fail_release_mem_region:
- 	release_mem_region(CUSTOM_PHYSADDR+0x30, 4);
- fail_put_tty_driver:
+diff -puN drivers/macintosh/macio-adb.c~drivers-macintosh-macio-adbc-add-missing-unlock drivers/macintosh/macio-adb.c
+--- a/drivers/macintosh/macio-adb.c~drivers-macintosh-macio-adbc-add-missing-unlock
++++ a/drivers/macintosh/macio-adb.c
+@@ -155,6 +155,7 @@ static int macio_adb_reset_bus(void)
+ 	while ((in_8(&adb->ctrl.r) & ADB_RST) != 0) {
+ 		if (--timeout == 0) {
+ 			out_8(&adb->ctrl.r, in_8(&adb->ctrl.r) & ~ADB_RST);
++			spin_unlock_irqrestore(&macio_lock, flags);
+ 			return -1;
+ 		}
+ 	}
+diff -puN drivers/macintosh/smu.c~drivers-macintosh-macio-adbc-add-missing-unlock drivers/macintosh/smu.c
+--- a/drivers/macintosh/smu.c~drivers-macintosh-macio-adbc-add-missing-unlock
++++ a/drivers/macintosh/smu.c
+@@ -1183,8 +1183,10 @@ static ssize_t smu_read_command(struct f
+ 		return -EOVERFLOW;
+ 	spin_lock_irqsave(&pp->lock, flags);
+ 	if (pp->cmd.status == 1) {
+-		if (file->f_flags & O_NONBLOCK)
++		if (file->f_flags & O_NONBLOCK) {
++			spin_unlock_irqrestore(&pp->lock, flags);
+ 			return -EAGAIN;
++		}
+ 		add_wait_queue(&pp->wait, &wait);
+ 		for (;;) {
+ 			set_current_state(TASK_INTERRUPTIBLE);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
