@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-provide-user-with-a-hint-when-name-resolution-fails.patch added to -mm tree
-Date: Thu, 01 Apr 2010 11:58:49 -0700
-Message-ID: <201004011858.o31IwneL003025@imap1.linux-foundation.org>
+Subject: + arch-powerpc-kernel-vioc-add-missing-unlock.patch added to -mm tree
+Date: Thu, 01 Apr 2010 12:28:55 -0700
+Message-ID: <201004011928.o31JStkj004475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52619 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47747 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756044Ab0DAS7U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 14:59:20 -0400
+	by vger.kernel.org with ESMTP id S1756431Ab0DAT3I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: timo.witte@googlemail.com, sfrench@samba.org
+Cc: julia@diku.dk, benh@kernel.crashing.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     cifs: provide user with a hint when name resolution fails
+     arch/powerpc/kernel/vio.c: add missing unlock
 has been added to the -mm tree.  Its filename is
-     cifs-provide-user-with-a-hint-when-name-resolution-fails.patch
+     arch-powerpc-kernel-vioc-add-missing-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: provide user with a hint when name resolution fails
-From: Timo Witte <timo.witte@googlemail.com>
+Subject: arch/powerpc/kernel/vio.c: add missing unlock
+From: Julia Lawall <julia@diku.dk>
 
-Add additional info to the error message.  cifs tries to resolve DNS Names
-via /sbin/request-key but this is not installed by default in Ubuntu
-systems, so you cant use DFS shares correctly without it.
+Add an unlock before exiting the function.
 
-Cc: Steve French <sfrench@samba.org>
+A simplified version of the semantic patch that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@r exists@
+expression E1;
+identifier f;
+@@
+
+f (...) { <+...
+* spin_lock_irq (E1,...);
+... when != E1
+* return ...;
+...+> }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/dns_resolve.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/powerpc/kernel/vio.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/cifs/dns_resolve.c~cifs-provide-user-with-a-hint-when-name-resolution-fails fs/cifs/dns_resolve.c
---- a/fs/cifs/dns_resolve.c~cifs-provide-user-with-a-hint-when-name-resolution-fails
-+++ a/fs/cifs/dns_resolve.c
-@@ -138,7 +138,8 @@ dns_resolve_server_name_to_ip(const char
- 		len = rkey->type_data.x[0];
- 		data = rkey->payload.data;
- 	} else {
--		cERROR(1, ("%s: unable to resolve: %s", __func__, name));
-+		cERROR(1, ("%s: unable to resolve: %s have you "
-+			"installed /sbin/request-key ?", __func__, name));
- 		goto out;
- 	}
+diff -puN arch/powerpc/kernel/vio.c~arch-powerpc-kernel-vioc-add-missing-unlock arch/powerpc/kernel/vio.c
+--- a/arch/powerpc/kernel/vio.c~arch-powerpc-kernel-vioc-add-missing-unlock
++++ a/arch/powerpc/kernel/vio.c
+@@ -645,8 +645,10 @@ void vio_cmo_set_dev_desired(struct vio_
+ 			found = 1;
+ 			break;
+ 		}
+-	if (!found)
++	if (!found) {
++		spin_unlock_irqrestore(&vio_cmo.lock, flags);
+ 		return;
++	}
  
+ 	/* Increase/decrease in desired device entitlement */
+ 	if (desired >= viodev->cmo.desired) {
 _
 
-Patches currently in -mm which might be from timo.witte@googlemail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-cifs-provide-user-with-a-hint-when-name-resolution-fails.patch
+linux-next.patch
+arch-powerpc-kernel-vioc-add-missing-unlock.patch
+drivers-acpi-use-kasprintf.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-x86-pci-use-kasprintf.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+arch-powerpc-platforms-pseries-use-kasprintf.patch
+drivers-media-video-avoid-null-dereference.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-char-ppdevc-use-kasprintf.patch
+drivers-edac-introduce-missing-kfree.patch
 
