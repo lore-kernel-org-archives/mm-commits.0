@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-setupcl-phoenix-bios-fixup-is-needed-on-dell-inspiron-mini-1012.patch added to -mm tree
-Date: Thu, 01 Apr 2010 16:17:15 -0700
-Message-ID: <201004012317.o31NHFDp014965@imap1.linux-foundation.org>
+Subject: + matrix_keypad-allow-platform-to-disable-key-autorepeat.patch added to -mm tree
+Date: Thu, 01 Apr 2010 16:20:21 -0700
+Message-ID: <201004012320.o31NKLdO015218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751498Ab0DAXRW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 19:17:22 -0400
+	by vger.kernel.org with ESMTP id S1758898Ab0DAXUY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 19:20:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gombasg@digikabel.hu
+Cc: hartleys@visionengravers.com, dmitry.torokhov@gmail.com, hsweeten@visionengravers.com
 
 
 The patch titled
-     arch/x86/kernel/setup.cL: Phoenix BIOS fixup is needed on Dell Inspiron Mini 1012
+     drivers/input/keyboard/matrix_keypad.c: allow platform to disable key autorepeat
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-setupcl-phoenix-bios-fixup-is-needed-on-dell-inspiron-mini-1012.patch
+     matrix_keypad-allow-platform-to-disable-key-autorepeat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/setup.cL: Phoenix BIOS fixup is needed on Dell Inspiron Mini 1012
-From: Gabor Gombas <gombasg@digikabel.hu>
+Subject: drivers/input/keyboard/matrix_keypad.c: allow platform to disable key autorepeat
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-The low-memory corruption checker triggers during suspend/resume, so we
-need to reserve the low 64k.  Don't be fooled that the BIOS identifies
-itself as "Dell Inc.", it's still Phoenix BIOS.
+In an embedded system the matrix_keypad driver might be used to interface
+with an external control panel and not an actual keyboard.  On the control
+panel some of the keys could be used to turn on/off various functions.  If
+key autorepeat is enabled this causes the function to quickly toggle
+between the on and off states and makes operation difficult.
 
-Signed-off-by: Gabor Gombas <gombasg@digikabel.hu>
+Add an option in the platform-specific data to disable the key autorepeat.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/input/keyboard/matrix_keypad.c |    4 +++-
+ include/linux/input/matrix_keypad.h    |    2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup.c~arch-x86-kernel-setupcl-phoenix-bios-fixup-is-needed-on-dell-inspiron-mini-1012 arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~arch-x86-kernel-setupcl-phoenix-bios-fixup-is-needed-on-dell-inspiron-mini-1012
-+++ a/arch/x86/kernel/setup.c
-@@ -666,6 +666,17 @@ static struct dmi_system_id __initdata b
- 			DMI_MATCH(DMI_BOARD_NAME, "DG45FC"),
- 		},
- 	},
-+	/*
-+	 * The Dell Inspiron Mini 1012 has DMI_BIOS_VENDOR = "Dell Inc.", so
-+	 * match on the product name.
-+	 */
-+	{
-+		.callback = dmi_low_memory_corruption,
-+		.ident = "Phoenix BIOS",
-+		.matches = {
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 1012"),
-+		},
-+	},
- #endif
- 	{}
+diff -puN drivers/input/keyboard/matrix_keypad.c~matrix_keypad-allow-platform-to-disable-key-autorepeat drivers/input/keyboard/matrix_keypad.c
+--- a/drivers/input/keyboard/matrix_keypad.c~matrix_keypad-allow-platform-to-disable-key-autorepeat
++++ a/drivers/input/keyboard/matrix_keypad.c
+@@ -374,7 +374,9 @@ static int __devinit matrix_keypad_probe
+ 	input_dev->name		= pdev->name;
+ 	input_dev->id.bustype	= BUS_HOST;
+ 	input_dev->dev.parent	= &pdev->dev;
+-	input_dev->evbit[0]	= BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
++	input_dev->evbit[0]	= BIT_MASK(EV_KEY);
++	if (!pdata->no_autorep)
++		input_dev->evbit[0] |= BIT_MASK(EV_REP);
+ 	input_dev->open		= matrix_keypad_start;
+ 	input_dev->close	= matrix_keypad_stop;
+ 
+diff -puN include/linux/input/matrix_keypad.h~matrix_keypad-allow-platform-to-disable-key-autorepeat include/linux/input/matrix_keypad.h
+--- a/include/linux/input/matrix_keypad.h~matrix_keypad-allow-platform-to-disable-key-autorepeat
++++ a/include/linux/input/matrix_keypad.h
+@@ -44,6 +44,7 @@ struct matrix_keymap_data {
+  * @active_low: gpio polarity
+  * @wakeup: controls whether the device should be set up as wakeup
+  *	source
++ * @no_autorep: disable key autorepeat
+  *
+  * This structure represents platform-specific data that use used by
+  * matrix_keypad driver to perform proper initialization.
+@@ -64,6 +65,7 @@ struct matrix_keypad_platform_data {
+ 
+ 	bool		active_low;
+ 	bool		wakeup;
++	bool		no_autorep;
  };
+ 
+ /**
 _
 
-Patches currently in -mm which might be from gombasg@digikabel.hu are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-arch-x86-kernel-setupcl-phoenix-bios-fixup-is-needed-on-dell-inspiron-mini-1012.patch
+linux-next.patch
+matrix_keypad-allow-platform-to-disable-key-autorepeat.patch
+scsi-sdc-quiet-all-sparse-noise.patch
 
