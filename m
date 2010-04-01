@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-timbgpioc-add-missing-unlock.patch added to -mm tree
-Date: Thu, 01 Apr 2010 12:42:40 -0700
-Message-ID: <201004011942.o31Jge2W005031@imap1.linux-foundation.org>
+Subject: + drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch added to -mm tree
+Date: Thu, 01 Apr 2010 12:42:45 -0700
+Message-ID: <201004011942.o31JgjrW005041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
 	by vger.kernel.org with ESMTP id S1754773Ab0DATmw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:42:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, richard.rojfors@pelagicore.com
+Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com, andrew.vasquez@qlogic.com
 
 
 The patch titled
-     drivers/gpio/timbgpio.c: add missing unlock
+     drivers/scsi/qla2xxx/qla_attr.c: add missing unlock
 has been added to the -mm tree.  Its filename is
-     drivers-gpio-timbgpioc-add-missing-unlock.patch
+     drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/timbgpio.c: add missing unlock
+Subject: drivers/scsi/qla2xxx/qla_attr.c: add missing unlock
 From: Julia Lawall <julia@diku.dk>
 
-In an error handling case the lock is not unlocked.  The return is
-converted to a goto, to share the unlock at the end of the function.
+This code represents error handling code.  Add an unlock as done in the
+normal exit path from the function.
 
 A simplified version of the semantic patch that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -56,50 +56,25 @@ f (...) { <+...
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: <richard.rojfors@pelagicore.com>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/timbgpio.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/scsi/qla2xxx/qla_attr.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/timbgpio.c~drivers-gpio-timbgpioc-add-missing-unlock drivers/gpio/timbgpio.c
---- a/drivers/gpio/timbgpio.c~drivers-gpio-timbgpioc-add-missing-unlock
-+++ a/drivers/gpio/timbgpio.c
-@@ -131,6 +131,7 @@ static int timbgpio_irq_type(unsigned ir
- 	unsigned long flags;
- 	u32 lvr, flr, bflr = 0;
- 	u32 ver;
-+	int ret = 0;
- 
- 	if (offset < 0 || offset > tgpio->gpio.ngpio)
- 		return -EINVAL;
-@@ -154,8 +155,10 @@ static int timbgpio_irq_type(unsigned ir
- 	}
- 
- 	if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH) {
--		if (ver < 3)
--			return -EINVAL;
-+		if (ver < 3) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
- 		else {
- 			flr |= 1 << offset;
- 			bflr |= 1 << offset;
-@@ -175,9 +178,10 @@ static int timbgpio_irq_type(unsigned ir
- 		iowrite32(bflr, tgpio->membase + TGPIO_BFLR);
- 
- 	iowrite32(1 << offset, tgpio->membase + TGPIO_ICR);
--	spin_unlock_irqrestore(&tgpio->lock, flags);
- 
--	return 0;
-+out:
-+	spin_unlock_irqrestore(&tgpio->lock, flags);
-+	return ret;
+diff -puN drivers/scsi/qla2xxx/qla_attr.c~drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock drivers/scsi/qla2xxx/qla_attr.c
+--- a/drivers/scsi/qla2xxx/qla_attr.c~drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock
++++ a/drivers/scsi/qla2xxx/qla_attr.c
+@@ -2398,6 +2398,7 @@ done:
+ 		kfree(sp->fcport);
+ 	kfree(sp->ctx);
+ 	mempool_free(sp, ha->srb_mempool);
++	spin_unlock_irqrestore(&ha->hardware_lock, flags);
+ 	return 0;
  }
  
- static void timbgpio_irq(unsigned int irq, struct irq_desc *desc)
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
