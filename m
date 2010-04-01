@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch added to -mm tree
-Date: Thu, 01 Apr 2010 12:42:45 -0700
-Message-ID: <201004011942.o31JgjrW005041@imap1.linux-foundation.org>
+Subject: + drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch added to -mm tree
+Date: Thu, 01 Apr 2010 12:42:49 -0700
+Message-ID: <201004011942.o31Jgosf005137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754773Ab0DATmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:42:52 -0400
+	by vger.kernel.org with ESMTP id S1754773Ab0DATnB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:43:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com, andrew.vasquez@qlogic.com
+Cc: julia@diku.dk, dbrownell@users.sourceforge.net, greg@kroah.com
 
 
 The patch titled
-     drivers/scsi/qla2xxx/qla_attr.c: add missing unlock
+     drivers/usb/gadget/s3c-hsotg.c: add missing unlock
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
+     drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/qla2xxx/qla_attr.c: add missing unlock
+Subject: drivers/usb/gadget/s3c-hsotg.c: add missing unlock
 From: Julia Lawall <julia@diku.dk>
 
-This code represents error handling code.  Add an unlock as done in the
-normal exit path from the function.
+In an error handling case the lock is not unlocked.  The return is
+converted to a goto, to share the unlock at the end of the function.
 
 A simplified version of the semantic patch that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -56,25 +56,46 @@ f (...) { <+...
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_attr.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/gadget/s3c-hsotg.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_attr.c~drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock drivers/scsi/qla2xxx/qla_attr.c
---- a/drivers/scsi/qla2xxx/qla_attr.c~drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock
-+++ a/drivers/scsi/qla2xxx/qla_attr.c
-@@ -2398,6 +2398,7 @@ done:
- 		kfree(sp->fcport);
- 	kfree(sp->ctx);
- 	mempool_free(sp, ha->srb_mempool);
-+	spin_unlock_irqrestore(&ha->hardware_lock, flags);
- 	return 0;
+diff -puN drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-add-missing-unlock drivers/usb/gadget/s3c-hsotg.c
+--- a/drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-add-missing-unlock
++++ a/drivers/usb/gadget/s3c-hsotg.c
+@@ -2145,6 +2145,7 @@ static int s3c_hsotg_ep_enable(struct us
+ 	u32 epctrl;
+ 	u32 mps;
+ 	int dir_in;
++	int ret = 0;
+ 
+ 	dev_dbg(hsotg->dev,
+ 		"%s: ep %s: a 0x%02x, attr 0x%02x, mps 0x%04x, intr %d\n",
+@@ -2196,7 +2197,8 @@ static int s3c_hsotg_ep_enable(struct us
+ 	switch (desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) {
+ 	case USB_ENDPOINT_XFER_ISOC:
+ 		dev_err(hsotg->dev, "no current ISOC support\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto out;
+ 
+ 	case USB_ENDPOINT_XFER_BULK:
+ 		epctrl |= S3C_DxEPCTL_EPType_Bulk;
+@@ -2235,8 +2237,9 @@ static int s3c_hsotg_ep_enable(struct us
+ 	/* enable the endpoint interrupt */
+ 	s3c_hsotg_ctrl_epint(hsotg, index, dir_in, 1);
+ 
++out:
+ 	spin_unlock_irqrestore(&hs_ep->lock, flags);
+-	return 0;
++	return ret;
  }
  
+ static int s3c_hsotg_ep_disable(struct usb_ep *ep)
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
