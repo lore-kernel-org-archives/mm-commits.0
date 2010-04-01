@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-macintosh-macio-adbc-add-missing-unlock.patch added to -mm tree
-Date: Thu, 01 Apr 2010 12:42:43 -0700
-Message-ID: <201004011942.o31Jgiwv005036@imap1.linux-foundation.org>
+Subject: + drivers-serial-pmac_zilogc-add-missing-unlock.patch added to -mm tree
+Date: Thu, 01 Apr 2010 12:42:47 -0700
+Message-ID: <201004011942.o31Jglxt005131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754773Ab0DATms (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:42:48 -0400
+	by vger.kernel.org with ESMTP id S1758677Ab0DATmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 15:42:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: julia@diku.dk, benh@kernel.crashing.org
 
 
 The patch titled
-     drivers/macintosh/macio-adb.c: add missing unlock
+     drivers/serial/pmac_zilog.c: add missing unlock
 has been added to the -mm tree.  Its filename is
-     drivers-macintosh-macio-adbc-add-missing-unlock.patch
+     drivers-serial-pmac_zilogc-add-missing-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/macintosh/macio-adb.c: add missing unlock
+Subject: drivers/serial/pmac_zilog.c: add missing unlock
 From: Julia Lawall <julia@diku.dk>
 
-In some error handling cases the lock is not unlocked.
+In an error handling case the lock is not unlocked.
 
 A simplified version of the semantic patch that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -59,36 +59,24 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/macio-adb.c |    1 +
- drivers/macintosh/smu.c       |    4 +++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/serial/pmac_zilog.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/macintosh/macio-adb.c~drivers-macintosh-macio-adbc-add-missing-unlock drivers/macintosh/macio-adb.c
---- a/drivers/macintosh/macio-adb.c~drivers-macintosh-macio-adbc-add-missing-unlock
-+++ a/drivers/macintosh/macio-adb.c
-@@ -155,6 +155,7 @@ static int macio_adb_reset_bus(void)
- 	while ((in_8(&adb->ctrl.r) & ADB_RST) != 0) {
- 		if (--timeout == 0) {
- 			out_8(&adb->ctrl.r, in_8(&adb->ctrl.r) & ~ADB_RST);
-+			spin_unlock_irqrestore(&macio_lock, flags);
- 			return -1;
- 		}
- 	}
-diff -puN drivers/macintosh/smu.c~drivers-macintosh-macio-adbc-add-missing-unlock drivers/macintosh/smu.c
---- a/drivers/macintosh/smu.c~drivers-macintosh-macio-adbc-add-missing-unlock
-+++ a/drivers/macintosh/smu.c
-@@ -1183,8 +1183,10 @@ static ssize_t smu_read_command(struct f
- 		return -EOVERFLOW;
- 	spin_lock_irqsave(&pp->lock, flags);
- 	if (pp->cmd.status == 1) {
--		if (file->f_flags & O_NONBLOCK)
-+		if (file->f_flags & O_NONBLOCK) {
-+			spin_unlock_irqrestore(&pp->lock, flags);
- 			return -EAGAIN;
+diff -puN drivers/serial/pmac_zilog.c~drivers-serial-pmac_zilogc-add-missing-unlock drivers/serial/pmac_zilog.c
+--- a/drivers/serial/pmac_zilog.c~drivers-serial-pmac_zilogc-add-missing-unlock
++++ a/drivers/serial/pmac_zilog.c
+@@ -752,8 +752,10 @@ static void pmz_break_ctl(struct uart_po
+ 		uap->curregs[R5] = new_reg;
+ 
+ 		/* NOTE: Not subject to 'transmitter active' rule. */
+-		if (ZS_IS_ASLEEP(uap))
++		if (ZS_IS_ASLEEP(uap)) {
++			spin_unlock_irqrestore(&port->lock, flags);
+ 			return;
 +		}
- 		add_wait_queue(&pp->wait, &wait);
- 		for (;;) {
- 			set_current_state(TASK_INTERRUPTIBLE);
+ 		write_zsreg(uap, R5, uap->curregs[R5]);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
