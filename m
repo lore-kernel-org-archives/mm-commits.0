@@ -1,144 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch added to -mm tree
-Date: Wed, 31 Mar 2010 16:28:51 -0700
-Message-ID: <201003312328.o2VNSpoh015279@imap1.linux-foundation.org>
+Subject: [obsolete] drbd-potential-null-dereference.patch removed from -mm tree
+Date: Thu, 01 Apr 2010 10:24:41 -0400
+Message-ID: <201004011725.o31HPsa2031159__49626.9181407571$1270142782$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758451Ab0CaX3A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Mar 2010 19:29:00 -0400
+	by vger.kernel.org with ESMTP id S1752794Ab0DAR0O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 13:26:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jkosina@suse.cz, randy.dunlap@oracle.com
+To: error27@gmail.com, drbd-dev@lists.linbit.com, jens.axboe@oracle.com, philipp.reisner@linbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel.h: convert rounding macros to statement expressions, add ADD_MOD
-has been added to the -mm tree.  Its filename is
-     kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
+     drbd: fix potential null dereference
+has been removed from the -mm tree.  Its filename was
+     drbd-potential-null-dereference.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: convert rounding macros to statement expressions, add ADD_MOD
-From: Joe Perches <joe@perches.com>
+Subject: drbd: fix potential null dereference
+From: Dan Carpenter <error27@gmail.com>
 
-Convert rounding macros to statement expressions so arguments are only
-evaluated once.
+If "e" is NULL then "bm_ext" would be NULL too.
 
-Add kernel-doc to rounding macros.
-
-Add ADD_MOD statement expression for "(x + y) % y".
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   66 +++++++++++++++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 9 deletions(-)
+ drivers/block/drbd/drbd_actlog.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod
-+++ a/include/linux/kernel.h
-@@ -53,16 +53,64 @@ extern const char linux_proc_banner[];
- #define __round_mask(x, y) ((__typeof__(x))((y)-1))
- #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
- #define round_down(x, y) ((x) & ~__round_mask(x, y))
--
- #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
--#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
--#define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
--#define DIV_ROUND_CLOSEST(x, divisor)(			\
--{							\
--	typeof(divisor) __divisor = divisor;		\
--	(((x) + ((__divisor) / 2)) / (__divisor));	\
--}							\
--)
-+
-+/**
-+ * roundup() - Returns x rounded up to the next whole multiple of y
-+ * @x:	dividend
-+ * @y:	divisor
-+ *
-+ * ie: roundup(4, 2) is 4, roundup(5, 2) is 6
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define roundup(x, y)				\
-+({						\
-+	typeof(y) _y = y;			\
-+	(((x) + _y - 1) / _y) * _y;		\
-+})
-+
-+/**
-+ * DIV_ROUND_UP() - Returns x/y rounded up to the next whole number
-+ * @x:	dividend
-+ * @y:	divisor
-+ *
-+ * ie: DIV_ROUND_UP(4, 2) is 2, DIV_ROUND_UP(5, 2) is 3
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define DIV_ROUND_UP(x, y)			\
-+({						\
-+	typeof(y) _y = y;			\
-+	((x) + _y - 1) / _y;			\
-+})
-+
-+/**
-+ * DIV_ROUND_CLOSEST() - Returns x/y rounded to the nearest whole number
-+ * @x:	dividend
-+ * @y:	divisor
-+ *
-+ * ie: DIV_ROUND_CLOSEST(4, 3) is 1, DIV_ROUND_CLOSEST(5, 3) is 2
-+ * Rounds up when .5, ie: DIV_ROUND_CLOSEST(5, 2) is 3
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define DIV_ROUND_CLOSEST(x, y)			\
-+({						\
-+	typeof(y) _y = y;			\
-+	((x) + (_y / 2)) / _y;			\
-+})
-+
-+/**
-+ * ADD_MOD() - Returns (x + y) % y
-+ * @x:	initial value
-+ * @y:	value added to x then used as modulo
-+ *
-+ * ie: ADD_MOD(4, 2) is 0, ADD_MOD(5, 2) is 1
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define ADD_MOD(x, y)				\
-+({						\
-+	typeof(y) _y = y;			\
-+	((x) + _y) % _y;			\
-+})
- 
- #define _RET_IP_		(unsigned long)__builtin_return_address(0)
- #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+diff -puN drivers/block/drbd/drbd_actlog.c~drbd-potential-null-dereference drivers/block/drbd/drbd_actlog.c
+--- a/drivers/block/drbd/drbd_actlog.c~drbd-potential-null-dereference
++++ a/drivers/block/drbd/drbd_actlog.c
+@@ -1337,7 +1337,7 @@ int drbd_rs_del_all(struct drbd_conf *md
+ 		for (i = 0; i < mdev->resync->nr_elements; i++) {
+ 			e = lc_element_by_index(mdev->resync, i);
+ 			bm_ext = e ? lc_entry(e, struct bm_extent, lce) : NULL;
+-			if (bm_ext->lce.lc_number == LC_FREE)
++			if (!bm_ext || bm_ext->lce.lc_number == LC_FREE)
+ 				continue;
+ 			if (bm_ext->lce.lc_number == mdev->resync_wenr) {
+ 				dev_info(DEV, "dropping %u in drbd_rs_del_all, apparently"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 linux-next.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
-vsprintfc-use-noinline_for_stack.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+drivers-mfd-pcf50633-corec-off-by-one-issue.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drbd-potential-null-dereference.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
