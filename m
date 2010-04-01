@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + matrix_keypad-allow-platform-to-disable-key-autorepeat.patch added to -mm tree
-Date: Thu, 01 Apr 2010 16:20:21 -0700
-Message-ID: <201004012320.o31NKLdO015218@imap1.linux-foundation.org>
+Subject: + omap-hsmmc-fix-a-bug-in-card-remove-scenario.patch added to -mm tree
+Date: Thu, 01 Apr 2010 16:27:24 -0700
+Message-ID: <201004012327.o31NROAf015472__40158.5676278502$1270164499$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758898Ab0DAXUY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 19:20:24 -0400
+	by vger.kernel.org with ESMTP id S1753175Ab0DAX2G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 19:28:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, dmitry.torokhov@gmail.com, hsweeten@visionengravers.com
+Cc: madhu.cr@ti.com, adrian.hunter@nokia.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     drivers/input/keyboard/matrix_keypad.c: allow platform to disable key autorepeat
+     omap hsmmc: fix a bug in card remove scenario
 has been added to the -mm tree.  Its filename is
-     matrix_keypad-allow-platform-to-disable-key-autorepeat.patch
+     omap-hsmmc-fix-a-bug-in-card-remove-scenario.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/input/keyboard/matrix_keypad.c: allow platform to disable key autorepeat
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: omap hsmmc: fix a bug in card remove scenario
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-In an embedded system the matrix_keypad driver might be used to interface
-with an external control panel and not an actual keyboard.  On the control
-panel some of the keys could be used to turn on/off various functions.  If
-key autorepeat is enabled this causes the function to quickly toggle
-between the on and off states and makes operation difficult.
+The reset of data lines when the card is removed from the cage results in
+a failure.The failure is seen if the card is removed from the cage when TC
+is pending after a CMD with data received CC.The reset logic leaves the
+controller in a state where niether a TC is received nor DTO.
 
-Add an option in the platform-specific data to disable the key autorepeat.
+The rest code can be safely removed here since it is taken care in the IRQ
+handler.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/keyboard/matrix_keypad.c |    4 +++-
- include/linux/input/matrix_keypad.h    |    2 ++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/mmc/host/omap_hsmmc.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/input/keyboard/matrix_keypad.c~matrix_keypad-allow-platform-to-disable-key-autorepeat drivers/input/keyboard/matrix_keypad.c
---- a/drivers/input/keyboard/matrix_keypad.c~matrix_keypad-allow-platform-to-disable-key-autorepeat
-+++ a/drivers/input/keyboard/matrix_keypad.c
-@@ -374,7 +374,9 @@ static int __devinit matrix_keypad_probe
- 	input_dev->name		= pdev->name;
- 	input_dev->id.bustype	= BUS_HOST;
- 	input_dev->dev.parent	= &pdev->dev;
--	input_dev->evbit[0]	= BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
-+	input_dev->evbit[0]	= BIT_MASK(EV_KEY);
-+	if (!pdata->no_autorep)
-+		input_dev->evbit[0] |= BIT_MASK(EV_REP);
- 	input_dev->open		= matrix_keypad_start;
- 	input_dev->close	= matrix_keypad_stop;
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap-hsmmc-fix-a-bug-in-card-remove-scenario drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap-hsmmc-fix-a-bug-in-card-remove-scenario
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -1179,15 +1179,10 @@ static void omap_hsmmc_detect(struct wor
+ 		carddetect = -ENOSYS;
+ 	}
  
-diff -puN include/linux/input/matrix_keypad.h~matrix_keypad-allow-platform-to-disable-key-autorepeat include/linux/input/matrix_keypad.h
---- a/include/linux/input/matrix_keypad.h~matrix_keypad-allow-platform-to-disable-key-autorepeat
-+++ a/include/linux/input/matrix_keypad.h
-@@ -44,6 +44,7 @@ struct matrix_keymap_data {
-  * @active_low: gpio polarity
-  * @wakeup: controls whether the device should be set up as wakeup
-  *	source
-+ * @no_autorep: disable key autorepeat
-  *
-  * This structure represents platform-specific data that use used by
-  * matrix_keypad driver to perform proper initialization.
-@@ -64,6 +65,7 @@ struct matrix_keypad_platform_data {
- 
- 	bool		active_low;
- 	bool		wakeup;
-+	bool		no_autorep;
- };
- 
- /**
-_
-
-Patches currently in -mm which might be from hartleys@visionengravers.com are
-
-linux-next.patch
-matrix_keypad-allow-platform-to-disable-key-autorepeat.patch
-scsi-sdc-quiet-all-sparse-noise.patch
-
+-	if (carddetect) {
++	if (carddetect)
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+-	} else {
+-		mmc_host_enable(host->mmc);
+-		omap_hsmmc_reset_controller_fsm(host, SRD);
+-		mmc_host_lazy_disable(host->mmc);
