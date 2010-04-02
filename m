@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:18:20 -0700
-Message-ID: <201004022218.o32MILDd008590@imap1.linux-foundation.org>
+Subject: + oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:18:22 -0700
+Message-ID: <201004022218.o32MIM4M008593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755417Ab0DBWSj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:39 -0400
+	by vger.kernel.org with ESMTP id S1755238Ab0DBWSg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@redhat.com, rientjes@google.com
 
 
 The patch titled
-     oom: introduce find_lock_task_mm() to fix !mm false positives
+     oom: oom_forkbomb_penalty: move thread_group_cputime() out of task_lock()
 has been added to the -mm tree.  Its filename is
-     oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+     oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: introduce find_lock_task_mm() to fix !mm false positives
+Subject: oom: oom_forkbomb_penalty: move thread_group_cputime() out of task_lock()
 From: Oleg Nesterov <oleg@redhat.com>
 
-Almost all ->mm == NUL checks in oom_kill.c are wrong.
+It doesn't make sense to call thread_group_cputime() under task_lock(), we
+can drop this lock right after we read get_mm_rss() and save the value in
+the local variable.
 
-The current code assumes that the task without ->mm has already
-released its memory and ignores the process. However this is not
-necessarily true when this process is multithreaded, other live
-sub-threads can use this ->mm.
-
-- Remove the "if (!p->mm)" check in select_bad_process(), it is
-  just wrong.
-
-- Add the new helper, find_lock_task_mm(), which finds the live
-  thread which uses the memory and takes task_lock() to pin ->mm
-
-- change oom_badness() to use this helper instead of just checking
-  ->mm != NULL.
-
-- As David pointed out, select_bad_process() must never choose the
-  task without ->mm, but no matter what oom_badness() returns the
-  task can be chosen if nothing else has been found yet.
-
-  Change oom_badness() to return int, change it to return -1 if
-  find_lock_task_mm() fails, and change select_bad_process() to
-  check points >= 0.
-
-Note! This patch is not enough, we need more changes.
-
-	- oom_badness() was fixed, but oom_kill_task() still ignores
-	  the task without ->mm
-
-	- oom_forkbomb_penalty() should use find_lock_task_mm() too,
-	  and it also needs other changes to actually find the first
-	  first-descendant children
-
-This will be addressed later.
+Note: probably it makes more sense to use sum_exec_runtime instead
+of utime + stime, it is much more precise. A task can eat a lot of
+CPU time, but its Xtime can be zero.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 +-
- mm/oom_kill.c       |   39 +++++++++++++++++++++------------------
- 2 files changed, 22 insertions(+), 19 deletions(-)
+ mm/oom_kill.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/oom.h~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives include/linux/oom.h
---- a/include/linux/oom.h~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives
-+++ a/include/linux/oom.h
-@@ -40,7 +40,7 @@ enum oom_constraint {
- 	CONSTRAINT_MEMORY_POLICY,
- };
- 
--extern unsigned int oom_badness(struct task_struct *p,
-+extern int oom_badness(struct task_struct *p,
- 			unsigned long totalpages, unsigned long uptime);
- extern int try_set_zone_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
-diff -puN mm/oom_kill.c~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives mm/oom_kill.c
---- a/mm/oom_kill.c~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives
+diff -puN mm/oom_kill.c~oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock
 +++ a/mm/oom_kill.c
-@@ -70,6 +70,19 @@ static bool has_intersects_mems_allowed(
- 	return false;
- }
+@@ -111,13 +111,16 @@ static unsigned long oom_forkbomb_penalt
+ 		return 0;
+ 	list_for_each_entry(child, &tsk->children, sibling) {
+ 		struct task_cputime task_time;
+-		unsigned long runtime;
++		unsigned long runtime, rss;
  
-+static struct task_struct *find_lock_task_mm(struct task_struct *p)
-+{
-+	struct task_struct *t = p;
-+	do {
-+		task_lock(t);
-+		if (likely(t->mm))
-+			return t;
-+		task_unlock(t);
-+	} while_each_thread(p, t);
-+
-+	return NULL;
-+}
-+
- /*
-  * Tasks that fork a very large number of children with seperate address spaces
-  * may be the result of a bug, user error, malicious applications, or even those
-@@ -140,10 +153,9 @@ static unsigned long oom_forkbomb_penalt
-  * predictable as possible.  The goal is to return the highest value for the
-  * task consuming the most memory to avoid subsequent oom conditions.
-  */
--unsigned int oom_badness(struct task_struct *p, unsigned long totalpages,
-+int oom_badness(struct task_struct *p, unsigned long totalpages,
- 							unsigned long uptime)
- {
--	struct mm_struct *mm;
- 	int points;
- 
- 	/*
-@@ -160,19 +172,15 @@ unsigned int oom_badness(struct task_str
- 	if (p->flags & PF_OOM_ORIGIN)
- 		return 1000;
- 
--	task_lock(p);
--	mm = p->mm;
--	if (!mm) {
--		task_unlock(p);
--		return 0;
--	}
--
-+	p = find_lock_task_mm(p);
-+	if (!p)
-+		return -1;
- 	/*
- 	 * The baseline for the badness score is the proportion of RAM that each
- 	 * task's rss and swap space use.
- 	 */
--	points = (get_mm_rss(mm) + get_mm_counter(mm, MM_SWAPENTS)) * 1000 /
--			totalpages;
-+	points = (get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS)) *
-+			1000 / totalpages;
- 	task_unlock(p);
- 	points += oom_forkbomb_penalty(p);
- 
-@@ -289,7 +297,7 @@ static struct task_struct *select_bad_pr
- 
- 	do_posix_clock_monotonic_gettime(&uptime);
- 	for_each_process(p) {
--		unsigned int points;
-+		int points;
- 
- 		/* skip the init task and kthreads */
- 		if (is_global_init(p) || (p->flags & PF_KTHREAD))
-@@ -331,16 +339,11 @@ static struct task_struct *select_bad_pr
- 			*ppoints = 1000;
- 		}
- 
--		/*
--		 * skip the tasks which have already released their mm.
--		 */
--		if (!p->mm)
--			continue;
- 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+ 		task_lock(child);
+ 		if (!child->mm || child->mm == tsk->mm) {
+ 			task_unlock(child);
  			continue;
- 
- 		points = oom_badness(p, totalpages, uptime.tv_sec);
--		if (points > *ppoints || !chosen) {
-+		if (points >= 0 && (points > *ppoints || !chosen)) {
- 			chosen = p;
- 			*ppoints = points;
  		}
++		rss = get_mm_rss(child->mm);
++		task_unlock(child);
++
+ 		thread_group_cputime(child, &task_time);
+ 		runtime = cputime_to_jiffies(task_time.utime) +
+ 			  cputime_to_jiffies(task_time.stime);
+@@ -127,10 +130,9 @@ static unsigned long oom_forkbomb_penalt
+ 		 * get to execute at all in such cases anyway.
+ 		 */
+ 		if (runtime < HZ) {
+-			child_rss += get_mm_rss(child->mm);
++			child_rss += rss;
+ 			forkcount++;
+ 		}
+-		task_unlock(child);
+ 	}
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
