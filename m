@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mxser-spin_lock-=-spin_lock_irq-fix.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:13:30 -0700
-Message-ID: <201004022213.o32MDUGX008360@imap1.linux-foundation.org>
+Subject: + mxser-spin_lock-=-spin_lock_irq.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:13:28 -0700
+Message-ID: <201004022213.o32MDSWI008357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755402Ab0DBWNk (ORCPT
+	by vger.kernel.org with ESMTP id S1755238Ab0DBWNk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, error27@gmail.com, greg@kroah.com, jirislaby@gmail.com
+Cc: error27@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, jirislaby@gmail.com
 
 
 The patch titled
-     mxser-spin_lock-=-spin_lock_irq-fix
+     mxser: spin_lock() => spin_lock_irq()
 has been added to the -mm tree.  Its filename is
-     mxser-spin_lock-=-spin_lock_irq-fix.patch
+     mxser-spin_lock-=-spin_lock_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mxser-spin_lock-=-spin_lock_irq-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mxser: spin_lock() => spin_lock_irq()
+From: Dan Carpenter <error27@gmail.com>
 
-fix the MOXA_ASPP_MON case too (per Jiri)
+This should be spin_lock_irq() to match the spin_unlock_irq().  Originally
+it was a lock_kernel() but we switched everything to spin_lock_irq() last
+November.
 
-Cc: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/mxser.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix
+diff -puN drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq
 +++ a/drivers/char/mxser.c
-@@ -1778,12 +1778,12 @@ static int mxser_ioctl(struct tty_struct
- 	case MOXA_ASPP_MON: {
- 		int mcr, status;
+@@ -1768,7 +1768,7 @@ static int mxser_ioctl(struct tty_struct
+ 		int len, lsr;
  
+ 		len = mxser_chars_in_buffer(tty);
 -		spin_lock(&info->slock);
 +		spin_lock_irq(&info->slock);
- 		status = mxser_get_msr(info->ioaddr, 1, tty->index);
- 		mxser_check_modem_status(tty, info, status);
- 
- 		mcr = inb(info->ioaddr + UART_MCR);
--		spin_unlock(&info->slock);
-+		spin_unlock_irq(&info->slock);
- 
- 		if (mcr & MOXA_MUST_MCR_XON_FLAG)
- 			info->mon_data.hold_reason &= ~NPPI_NOTIFY_XOFFHOLD;
+ 		lsr = inb(info->ioaddr + UART_LSR) & UART_LSR_THRE;
+ 		spin_unlock_irq(&info->slock);
+ 		len += (lsr ? 0 : 1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from error27@gmail.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-exit-fix-oops-in-sync_mm_rss-fix.patch
-drivers-char-amiserialc-add-missing-local_irq_restore.patch
+mxser-spin_lock-=-spin_lock_irq.patch
 mxser-spin_lock-=-spin_lock_irq-fix.patch
-ratelimit-annotate-___ratelimit-fix.patch
-rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-bitops-remove-temporary-for_each_bit.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+thermal-make-lockdep-happy.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+drivers-mfd-pcf50633-corec-off-by-one-issue.patch
+backlight-backlight_device_register-return-err_ptr.patch
+s390-potential-buffer-overflow.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+9p-return-on-mutex_lock_interruptible.patch
+9p-saving-negative-to-unsigned-char.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
