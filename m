@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-fix-null-filp-dereference.patch added to -mm tree
-Date: Fri, 02 Apr 2010 16:49:59 -0700
-Message-ID: <201004022349.o32NnxoR012094@imap1.linux-foundation.org>
+Subject: + devmem-handle-class_create-failure.patch added to -mm tree
+Date: Fri, 02 Apr 2010 16:50:42 -0700
+Message-ID: <201004022350.o32Nog8b012113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751387Ab0DBXuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 19:50:11 -0400
+	by vger.kernel.org with ESMTP id S1751387Ab0DBXuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 19:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, kirill@shutemov.name, stable@kernel.org, yanzheng@21cn.com
+Cc: anton@samba.org, fengguang.wu@intel.com
 
 
 The patch titled
-     readahead: fix NULL filp dereference
+     devmem: handle class_create() failure
 has been added to the -mm tree.  Its filename is
-     readahead-fix-null-filp-dereference.patch
+     devmem-handle-class_create-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: fix NULL filp dereference
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: devmem: handle class_create() failure
+From: Anton Blanchard <anton@samba.org>
 
-btrfs relocate_file_extent_cluster() calls us with NULL filp:
+I hit this when we had a bug in IDR for a few days.  Basically sysfs would
+fail to create new inodes since it uses an IDR and therefore class_create
+would fail.
 
-  [ 4005.426805] BUG: unable to handle kernel NULL pointer dereference at 00000021
-  [ 4005.426818] IP: [<c109a130>] page_cache_sync_readahead+0x18/0x3e
+While we are unlikely to see this fail we may as well handle it instead of
+oopsing.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Yan Zheng <yanzheng@21cn.com>
-Reported-by: Kirill A. Shutemov <kirill@shutemov.name>
-Tested-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: <stable@kernel.org>
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/readahead.c~readahead-fix-null-filp-dereference mm/readahead.c
---- a/mm/readahead.c~readahead-fix-null-filp-dereference
-+++ a/mm/readahead.c
-@@ -503,7 +503,7 @@ void page_cache_sync_readahead(struct ad
- 		return;
+diff -puN drivers/char/mem.c~devmem-handle-class_create-failure drivers/char/mem.c
+--- a/drivers/char/mem.c~devmem-handle-class_create-failure
++++ a/drivers/char/mem.c
+@@ -914,6 +914,9 @@ static int __init chr_dev_init(void)
+ 		printk("unable to get major %d for memory devs\n", MEM_MAJOR);
  
- 	/* be dumb */
--	if (filp->f_mode & FMODE_RANDOM) {
-+	if (filp && (filp->f_mode & FMODE_RANDOM)) {
- 		force_page_cache_readahead(mapping, filp, offset, req_size);
- 		return;
- 	}
+ 	mem_class = class_create(THIS_MODULE, "mem");
++	if (IS_ERR(mem_class))
++		return PTR_ERR(mem_class);
++
+ 	mem_class->devnode = mem_devnode;
+ 	for (minor = 1; minor < ARRAY_SIZE(devlist); minor++) {
+ 		if (!devlist[minor].name)
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from anton@samba.org are
 
-linux-next.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-readahead-fix-null-filp-dereference.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-o_-bit-numbers-uniqueness-check-update.patch
-vfs-o_-bit-numbers-uniqueness-check-fix.patch
-vfs-o_-bit-numbers-uniqueness-check-fix-2.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-add-super-operation-writeback_inodes.patch
+devmem-handle-class_create-failure.patch
 
