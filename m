@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-clean-up-oom_badness.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:25:59 -0700
-Message-ID: <201004022225.o32MPxOM008845@imap1.linux-foundation.org>
+Subject: + oom-hold-tasklist_lock-when-dumping-tasks.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:25:50 -0700
+Message-ID: <201004022225.o32MPoIq008833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755498Ab0DBW0l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:26:41 -0400
+	by vger.kernel.org with ESMTP id S1755402Ab0DBW0m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     oom: clean up oom_badness()
+     oom: hold tasklist_lock when dumping tasks
 has been added to the -mm tree.  Its filename is
-     oom-clean-up-oom_badness.patch
+     oom-hold-tasklist_lock-when-dumping-tasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: clean up oom_badness()
+Subject: oom: hold tasklist_lock when dumping tasks
 From: David Rientjes <rientjes@google.com>
 
-oom_badness() no longer uses its uptime formal, so it can be removed.
+dump_header() always requires tasklist_lock to be held because it calls
+dump_tasks() which iterates through the tasklist.  There are a few places
+where this isn't maintained, so make sure tasklist_lock is always held
+whenever calling dump_header().
+
+This also fixes the pagefault case where oom_kill_process() is called on
+current without tasklist_lock.  It is necessary to hold a readlock for
+both calling dump_header() and iterating its children.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Reported-by: Oleg Nesterov <oleg@redhat.com>
@@ -46,111 +53,75 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c      |    5 +----
- include/linux/oom.h |    3 +--
- mm/oom_kill.c       |   12 +++---------
- 3 files changed, 5 insertions(+), 15 deletions(-)
+ mm/oom_kill.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/base.c~oom-clean-up-oom_badness fs/proc/base.c
---- a/fs/proc/base.c~oom-clean-up-oom_badness
-+++ a/fs/proc/base.c
-@@ -444,9 +444,7 @@ static const struct file_operations proc
- static int proc_oom_score(struct task_struct *task, char *buffer)
- {
- 	unsigned long points = 0;
--	struct timespec uptime;
- 
--	do_posix_clock_monotonic_gettime(&uptime);
- 	read_lock(&tasklist_lock);
- 	if (pid_alive(task))
- 		points = oom_badness(task->group_leader,
-@@ -454,8 +452,7 @@ static int proc_oom_score(struct task_st
- 					global_page_state(NR_ACTIVE_ANON) +
- 					global_page_state(NR_INACTIVE_FILE) +
- 					global_page_state(NR_ACTIVE_FILE) +
--					total_swap_pages,
--					uptime.tv_sec);
-+					total_swap_pages);
- 	read_unlock(&tasklist_lock);
- 	return sprintf(buffer, "%lu\n", points);
- }
-diff -puN include/linux/oom.h~oom-clean-up-oom_badness include/linux/oom.h
---- a/include/linux/oom.h~oom-clean-up-oom_badness
-+++ a/include/linux/oom.h
-@@ -40,8 +40,7 @@ enum oom_constraint {
- 	CONSTRAINT_MEMORY_POLICY,
- };
- 
--extern int oom_badness(struct task_struct *p,
--			unsigned long totalpages, unsigned long uptime);
-+extern int oom_badness(struct task_struct *p, unsigned long totalpages);
- extern int try_set_zone_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- 
-diff -puN mm/oom_kill.c~oom-clean-up-oom_badness mm/oom_kill.c
---- a/mm/oom_kill.c~oom-clean-up-oom_badness
+diff -puN mm/oom_kill.c~oom-hold-tasklist_lock-when-dumping-tasks mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-hold-tasklist_lock-when-dumping-tasks
 +++ a/mm/oom_kill.c
-@@ -149,14 +149,12 @@ static unsigned long oom_forkbomb_penalt
-  * oom_badness - heuristic function to determine which candidate task to kill
-  * @p: task struct of which task we should calculate
-  * @totalpages: total present RAM allowed for page allocation
-- * @uptime: current uptime in seconds
-  *
-  * The heuristic for determining which task to kill is made to be as simple and
-  * predictable as possible.  The goal is to return the highest value for the
-  * task consuming the most memory to avoid subsequent oom conditions.
-  */
--int oom_badness(struct task_struct *p, unsigned long totalpages,
--							unsigned long uptime)
-+int oom_badness(struct task_struct *p, unsigned long totalpages)
+@@ -400,6 +400,9 @@ static void dump_tasks(const struct mem_
+ 	} while_each_thread(g, p);
+ }
+ 
++/*
++ * Call with tasklist_lock read-locked.
++ */
+ static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
+ 							struct mem_cgroup *mem)
  {
- 	int points;
+@@ -646,8 +649,8 @@ retry:
  
-@@ -294,10 +292,8 @@ static struct task_struct *select_bad_pr
- {
- 	struct task_struct *p;
- 	struct task_struct *chosen = NULL;
--	struct timespec uptime;
- 	*ppoints = 0;
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+-		read_unlock(&tasklist_lock);
+ 		dump_header(NULL, gfp_mask, order, NULL);
++		read_unlock(&tasklist_lock);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
  
--	do_posix_clock_monotonic_gettime(&uptime);
- 	for_each_process(p) {
- 		int points;
+@@ -680,11 +683,6 @@ void out_of_memory(struct zonelist *zone
+ 		/* Got some memory back in the last second. */
+ 		return;
  
-@@ -344,7 +340,7 @@ static struct task_struct *select_bad_pr
- 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 			continue;
+-	if (sysctl_panic_on_oom == 2) {
+-		dump_header(NULL, gfp_mask, order, NULL);
+-		panic("out of memory. Compulsory panic_on_oom is selected.\n");
+-	}
+-
+ 	/*
+ 	 * Check if there were limitations on the allocation (only relevant for
+ 	 * NUMA) that may require different handling.
+@@ -693,15 +691,12 @@ void out_of_memory(struct zonelist *zone
+ 						&totalpages);
+ 	read_lock(&tasklist_lock);
+ 	if (unlikely(sysctl_panic_on_oom)) {
+-		/*
+-		 * panic_on_oom only affects CONSTRAINT_NONE, the kernel
+-		 * should not panic for cpuset or mempolicy induced memory
+-		 * failures.
+-		 */
+-		if (constraint == CONSTRAINT_NONE) {
++		if (sysctl_panic_on_oom == 2 || constraint == CONSTRAINT_NONE) {
+ 			dump_header(NULL, gfp_mask, order, NULL);
+ 			read_unlock(&tasklist_lock);
+-			panic("Out of memory: panic_on_oom is enabled\n");
++			panic("Out of memory: %s panic_on_oom is enabled\n",
++				sysctl_panic_on_oom == 2 ? "compulsory" :
++							   "system-wide");
+ 		}
+ 	}
+ 	__out_of_memory(gfp_mask, order, totalpages, constraint, nodemask);
+@@ -729,8 +724,10 @@ void pagefault_out_of_memory(void)
  
--		points = oom_badness(p, totalpages, uptime.tv_sec);
-+		points = oom_badness(p, totalpages);
- 		if (points >= 0 && (points > *ppoints || !chosen)) {
- 			chosen = p;
- 			*ppoints = points;
-@@ -448,7 +444,6 @@ static int oom_kill_process(struct task_
- 	struct task_struct *victim = p;
- 	struct task_struct *c;
- 	unsigned int victim_points = 0;
--	struct timespec uptime;
- 
- 	if (printk_ratelimit())
- 		dump_header(p, gfp_mask, order, mem);
-@@ -465,7 +460,6 @@ static int oom_kill_process(struct task_
- 	pr_err("%s: Kill process %d (%s) with score %d or sacrifice child\n",
- 		message, task_pid_nr(p), p->comm, points);
- 
--	do_posix_clock_monotonic_gettime(&uptime);
- 	/* Try to sacrifice the worst child first */
- 	list_for_each_entry(c, &p->children, sibling) {
- 		unsigned int cpoints;
-@@ -476,7 +470,7 @@ static int oom_kill_process(struct task_
- 			continue;
- 
- 		/* oom_badness() returns 0 if the thread is unkillable */
--		cpoints = oom_badness(c, totalpages, uptime.tv_sec);
-+		cpoints = oom_badness(c, totalpages);
- 		if (cpoints > victim_points) {
- 			victim = c;
- 			victim_points = cpoints;
+ 	if (try_set_system_oom()) {
+ 		constrained_alloc(NULL, 0, NULL, &totalpages);
++		read_lock(&tasklist_lock);
+ 		err = oom_kill_process(current, 0, 0, 0, totalpages, NULL,
+ 					"Out of memory (pagefault)");
++		read_unlock(&tasklist_lock);
+ 		if (err)
+ 			out_of_memory(NULL, 0, 0, NULL);
+ 		clear_system_oom();
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
