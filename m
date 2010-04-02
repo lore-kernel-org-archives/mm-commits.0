@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:18:22 -0700
-Message-ID: <201004022218.o32MIM4M008593@imap1.linux-foundation.org>
+Subject: + oom-avoid-sending-exiting-tasks-a-sigkill.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:25:55 -0700
+Message-ID: <201004022225.o32MPtbd008839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60367 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755238Ab0DBWSg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:36 -0400
+	by vger.kernel.org with ESMTP id S1755562Ab0DBW0h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:26:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, rientjes@google.com
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com
 
 
 The patch titled
-     oom: oom_forkbomb_penalty: move thread_group_cputime() out of task_lock()
+     oom: avoid sending exiting tasks a SIGKILL
 has been added to the -mm tree.  Its filename is
-     oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+     oom-avoid-sending-exiting-tasks-a-sigkill.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: oom_forkbomb_penalty: move thread_group_cputime() out of task_lock()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: oom: avoid sending exiting tasks a SIGKILL
+From: David Rientjes <rientjes@google.com>
 
-It doesn't make sense to call thread_group_cputime() under task_lock(), we
-can drop this lock right after we read get_mm_rss() and save the value in
-the local variable.
+It's unnecessary to SIGKILL a task that is already PF_EXITING and can
+actually cause a NULL pointer dereference of the sighand if it has already
+been detached.  Instead, simply set TIF_MEMDIE so it has access to memory
+reserves and can quickly exit as the comment implies.
 
-Note: probably it makes more sense to use sum_exec_runtime instead
-of utime + stime, it is much more precise. A task can eat a lot of
-CPU time, but its Xtime can be zero.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock
+diff -puN mm/oom_kill.c~oom-avoid-sending-exiting-tasks-a-sigkill mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-sending-exiting-tasks-a-sigkill
 +++ a/mm/oom_kill.c
-@@ -111,13 +111,16 @@ static unsigned long oom_forkbomb_penalt
+@@ -467,7 +467,7 @@ static int oom_kill_process(struct task_
+ 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
+ 	 */
+ 	if (p->flags & PF_EXITING) {
+-		__oom_kill_task(p);
++		set_tsk_thread_flag(p, TIF_MEMDIE);
  		return 0;
- 	list_for_each_entry(child, &tsk->children, sibling) {
- 		struct task_cputime task_time;
--		unsigned long runtime;
-+		unsigned long runtime, rss;
- 
- 		task_lock(child);
- 		if (!child->mm || child->mm == tsk->mm) {
- 			task_unlock(child);
- 			continue;
- 		}
-+		rss = get_mm_rss(child->mm);
-+		task_unlock(child);
-+
- 		thread_group_cputime(child, &task_time);
- 		runtime = cputime_to_jiffies(task_time.utime) +
- 			  cputime_to_jiffies(task_time.stime);
-@@ -127,10 +130,9 @@ static unsigned long oom_forkbomb_penalt
- 		 * get to execute at all in such cases anyway.
- 		 */
- 		if (runtime < HZ) {
--			child_rss += get_mm_rss(child->mm);
-+			child_rss += rss;
- 			forkcount++;
- 		}
--		task_unlock(child);
  	}
  
- 	/*
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
 linux-next.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
+acpi-map-pxms-to-low-node-ids.patch
+mempolicy-remove-redundant-code.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
 oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
 oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
 oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
 oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-call_usermodehelper-no-need-to-unblock-signals.patch
-wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
-call_usermodehelper-simplify-fix-umh_no_wait-case.patch
-call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-exit-exit_notify-can-trust-signal-notify_count-0.patch
-exit-change-zap_other_threads-to-count-sub-threads.patch
-exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
-exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
-signals-make-task_struct-signal-immutable-refcountable.patch
-signals-clear-signal-tty-when-the-last-thread-exits.patch
-signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
-signals-kill-the-awful-task_rq_unlock_wait-hack.patch
-exit-__exit_signal-use-thread_group_leader-consistently.patch
-kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
-exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
-check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc-make-collect_sigign_sigcatch-rcu-safe.patch
-proc-make-task_sig-lockless.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-proc-turn-signal_struct-count-into-int-nr_threads.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-proc-cleanup-remove-unused-assignments.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
+mempolicy-remove-redundant-check.patch
+mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
+mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
+mempolicy-rename-policy_types-and-cleanup-initialization.patch
+mempolicy-factor-mpol_shared_policy_init-return-paths.patch
+mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+oom-move-sysctl-declarations-to-oomh.patch
+memcg-oom-wakeup-filter.patch
+memcg-oom-wakeup-filter-update.patch
+memcg-oom-notifier.patch
+memcg-oom-notifier-update.patch
+memcg-oom-kill-disable-and-oom-status.patch
+memcg-oom-kill-disable-and-oom-status-update.patch
 
