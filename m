@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-unlock-on-error-path.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:14:36 -0700
-Message-ID: <201004022214.o32MEaGJ008402@imap1.linux-foundation.org>
+Subject: + oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:18:18 -0700
+Message-ID: <201004022218.o32MIIAw008587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755238Ab0DBWOt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:14:49 -0400
+	by vger.kernel.org with ESMTP id S1755417Ab0DBWSg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, jens.axboe@oracle.com, scameron@beardog.cce.hp.com
+Cc: oleg@redhat.com, rientjes@google.com
 
 
 The patch titled
-     cciss: unlock on error path
+     oom: select_bad_process: PF_EXITING check should take ->mm into account
 has been added to the -mm tree.  Its filename is
-     cciss-unlock-on-error-path.patch
+     oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: unlock on error path
-From: Dan Carpenter <error27@gmail.com>
+Subject: oom: select_bad_process: PF_EXITING check should take ->mm into account
+From: Oleg Nesterov <oleg@redhat.com>
 
-We take the spin_lock again in fail_all_cmds() so we need to unlock here.
+select_bad_process() checks PF_EXITING to detect the task which is going
+to release its memory, but the logic is very wrong.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Steve Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+	- a single process P with the dead group leader disables
+	  select_bad_process() completely, it will always return
+	  ERR_PTR() while P can live forever
+
+	- if the PF_EXITING task has already released its ->mm
+	  it doesn't make sense to expect it is goiing to free
+	  more memory (except task_struct/etc)
+
+Change the code to ignore the PF_EXITING tasks without ->mm.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-unlock-on-error-path drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-unlock-on-error-path
-+++ a/drivers/block/cciss.c
-@@ -3341,6 +3341,7 @@ static irqreturn_t do_cciss_intr(int irq
- 					printk(KERN_WARNING
- 					       "cciss: controller cciss%d failed, stopping.\n",
- 					       h->ctlr);
-+					spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
- 					fail_all_cmds(h->ctlr);
- 					return IRQ_HANDLED;
- 				}
+diff -puN mm/oom_kill.c~oom-select_bad_process-pf_exiting-check-should-take-mm-into-account mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-select_bad_process-pf_exiting-check-should-take-mm-into-account
++++ a/mm/oom_kill.c
+@@ -323,7 +323,7 @@ static struct task_struct *select_bad_pr
+ 		 * the process of exiting and releasing its resources.
+ 		 * Otherwise we could get an easy OOM deadlock.
+ 		 */
+-		if (p->flags & PF_EXITING) {
++		if ((p->flags & PF_EXITING) && p->mm) {
+ 			if (p != current)
+ 				return ERR_PTR(-1UL);
+ 
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+origin.patch
 linux-next.patch
-mxser-spin_lock-=-spin_lock_irq.patch
-mxser-spin_lock-=-spin_lock_irq-fix.patch
-cciss-unlock-on-error-path.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-thermal-make-lockdep-happy.patch
-dpt_i20-several-use-after-free-issues.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-drivers-mfd-pcf50633-corec-off-by-one-issue.patch
-backlight-backlight_device_register-return-err_ptr.patch
-s390-potential-buffer-overflow.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-9p-return-on-mutex_lock_interruptible.patch
-9p-saving-negative-to-unsigned-char.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+proc-turn-signal_struct-count-into-int-nr_threads.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
 proc-cleanup-remove-unused-assignments.patch
 
