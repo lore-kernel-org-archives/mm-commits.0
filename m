@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:06:28 -0700
-Message-ID: <201004022206.o32M6Tn3008033@imap1.linux-foundation.org>
+Subject: + mxser-spin_lock-=-spin_lock_irq-fix.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:13:30 -0700
+Message-ID: <201004022213.o32MDUGX008360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755028Ab0DBWHQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:07:16 -0400
+	by vger.kernel.org with ESMTP id S1755402Ab0DBWNk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aaro.koskinen@iki.fi, stable@kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, error27@gmail.com, greg@kroah.com, jirislaby@gmail.com
 
 
 The patch titled
-     initramfs: prevent buffer overflow when unpacking to rootfs
+     mxser-spin_lock-=-spin_lock_irq-fix
 has been added to the -mm tree.  Its filename is
-     initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch
+     mxser-spin_lock-=-spin_lock_irq-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initramfs: prevent buffer overflow when unpacking to rootfs
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: mxser-spin_lock-=-spin_lock_irq-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Garbage in the initrd memory area may result in the unpack routine
-accessing memory outside the buffer.  The patch adds a check that the
-specified area size is not exceeded.
+fix the MOXA_ASPP_MON case too (per Jiri)
 
-The patch prevents the following kernel panic on Amstrad E3:
-
-	Unpacking initramfs...
-	Unable to handle kernel paging request at virtual address c20121a7
-	pgd = c0004000
-	[c20121a7] *pgd=00000000
-	Internal error: Oops: 75 [#1] PREEMPT
-	last sysfs file:
-	Modules linked in:
-	CPU: 0    Not tainted  (2.6.34-rc2-00052-gae6be51 #19)
-	PC is at unpack_to_rootfs+0xac/0x33c
-	LR is at decompress_method+0x28/0x64
-	pc : [<c0009858>]    lr : [<c015fcc4>]    psr: 20000013
-	sp : c1819f68  ip : 00000000  fp : c0023b88
-	r10: c20121a7  r9 : c0023b98  r8 : 00000000
-	r7 : 00300000  r6 : fffede59  r5 : c0023ad8  r4 : 00000000
-	r3 : 00000000  r2 : 00000001  r1 : c0303034  r0 : 00000000
-	Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-	Control: 0000317f  Table: 10004000  DAC: 00000017
-	Process swapper (pid: 1, stack limit = 0xc1818270)
-	Stack: (0xc1819f68 to 0xc181a000)
-	9f60:                   00000000 c03f77ec c00092f8 c03f68fc 00000000 c03f77e0
-	9f80: c00228fc 00000000 c000a3c8 00000000 00000000 c03f77e0 c00228fc 00000000
-	9fa0: c000a3c8 00000001 00000000 00000000 00000000 c000a410 c002263c c00283b0
-	9fc0: 00000000 00000170 c03da678 00000000 c002263c c00228fc 00000000 00000000
-	9fe0: 00000000 c0008594 00000000 00000000 00000000 c0029f74 8d7cf20a a7ca85e0
-	[<c0009858>] (unpack_to_rootfs+0xac/0x33c) from [<c000a410>] (populate_rootfs+0x48/0xb0)
-	[<c000a410>] (populate_rootfs+0x48/0xb0) from [<c00283b0>] (do_one_initcall+0x60/0x1c0)
-	[<c00283b0>] (do_one_initcall+0x60/0x1c0) from [<c0008594>] (kernel_init+0xa8/0x15c)
-	[<c0008594>] (kernel_init+0xa8/0x15c) from [<c0029f74>] (kernel_thread_exit+0x0/0x8)
-	Code: e1a05001 e1a09000 e1a0b00c ea000059 (e5da3000)
-	---[ end trace da227214a82491b7 ]---
-	Kernel panic - not syncing: Attempted to kill init!
-	[<c002e56c>] (unwind_backtrace+0x0/0xec) from [<c02f1a40>] (panic+0x40/0xcc)
-	[<c02f1a40>] (panic+0x40/0xcc) from [<c004af64>] (do_exit+0x60/0x608)
-	[<c004af64>] (do_exit+0x60/0x608) from [<c002c8d4>] (die+0x1b4/0x1e4)
-	[<c002c8d4>] (die+0x1b4/0x1e4) from [<c002f7d8>] (__do_kernel_fault+0x64/0x84)
-	[<c002f7d8>] (__do_kernel_fault+0x64/0x84) from [<c002fac8>] (do_translation_fault+0x70/0x80)
-	[<c002fac8>] (do_translation_fault+0x70/0x80) from [<c00282f0>] (do_DataAbort+0x34/0x94)
-	[<c00282f0>] (do_DataAbort+0x34/0x94) from [<c0028ac0>] (__dabt_svc+0x40/0x60)
-	Exception stack(0xc1819f20 to 0xc1819f68)
-	9f20: 00000000 c0303034 00000001 00000000 00000000 c0023ad8 fffede59 00300000
-	9f40: 00000000 c0023b98 c20121a7 c0023b88 00000000 c1819f68 c015fcc4 c0009858
-	9f60: 20000013 ffffffff
-	[<c0028ac0>] (__dabt_svc+0x40/0x60) from [<c0009858>] (unpack_to_rootfs+0xac/0x33c)
-	[<c0009858>] (unpack_to_rootfs+0xac/0x33c) from [<c000a410>] (populate_rootfs+0x48/0xb0)
-	[<c000a410>] (populate_rootfs+0x48/0xb0) from [<c00283b0>] (do_one_initcall+0x60/0x1c0)
-	[<c00283b0>] (do_one_initcall+0x60/0x1c0) from [<c0008594>] (kernel_init+0xa8/0x15c)
-	[<c0008594>] (kernel_init+0xa8/0x15c) from [<c0029f74>] (kernel_thread_exit+0x0/0x8)
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: <stable@kernel.org>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/mxser.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/initramfs.c~initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs init/initramfs.c
---- a/init/initramfs.c~initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs
-+++ a/init/initramfs.c
-@@ -460,6 +460,8 @@ static char * __init unpack_to_rootfs(ch
- 		}
- 		if (state != Reset)
- 			error("junk in compressed archive");
-+		if (my_inptr >= len)
-+			break;
- 		this_header = saved_offset + my_inptr;
- 		buf += my_inptr;
- 		len -= my_inptr;
+diff -puN drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix
++++ a/drivers/char/mxser.c
+@@ -1778,12 +1778,12 @@ static int mxser_ioctl(struct tty_struct
+ 	case MOXA_ASPP_MON: {
+ 		int mcr, status;
+ 
+-		spin_lock(&info->slock);
++		spin_lock_irq(&info->slock);
+ 		status = mxser_get_msr(info->ioaddr, 1, tty->index);
+ 		mxser_check_modem_status(tty, info, status);
+ 
+ 		mcr = inb(info->ioaddr + UART_MCR);
+-		spin_unlock(&info->slock);
++		spin_unlock_irq(&info->slock);
+ 
+ 		if (mcr & MOXA_MUST_MCR_XON_FLAG)
+ 			info->mon_data.hold_reason &= ~NPPI_NOTIFY_XOFFHOLD;
 _
 
-Patches currently in -mm which might be from aaro.koskinen@iki.fi are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+exit-fix-oops-in-sync_mm_rss-fix.patch
+drivers-char-amiserialc-add-missing-local_irq_restore.patch
+mxser-spin_lock-=-spin_lock_irq-fix.patch
+ratelimit-annotate-___ratelimit-fix.patch
+rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+bitops-remove-temporary-for_each_bit.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
