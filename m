@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-revert-vmscan-get_scan_ratio-cleanup.patch added to -mm tree
-Date: Fri, 02 Apr 2010 16:56:07 -0700
-Message-ID: <201004022356.o32Nu77J012308@imap1.linux-foundation.org>
+Subject: + cx88-improve-error-handling.patch added to -mm tree
+Date: Fri, 02 Apr 2010 16:57:05 -0700
+Message-ID: <201004022357.o32Nv5DN012323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751498Ab0DBX4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 19:56:25 -0400
+	by vger.kernel.org with ESMTP id S1751498Ab0DBX5P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 19:57:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com
+Cc: error27@gmail.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, mchehab@infradead.org
 
 
 The patch titled
-     mm: revert "vmscan: get_scan_ratio() cleanup"
+     cx88: improve error handling
 has been added to the -mm tree.  Its filename is
-     mm-revert-vmscan-get_scan_ratio-cleanup.patch
+     cx88-improve-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: revert "vmscan: get_scan_ratio() cleanup"
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: cx88: improve error handling
+From: Dan Carpenter <error27@gmail.com>
 
-Shaohua Li reported his tmpfs streaming I/O test can lead to make oom. 
-The test uses a 6G tmpfs in a system with 3G memory.  In the tmpfs, there
-are 6 copies of kernel source and the test does kbuild for each copy.  His
-investigation shows the test has a lot of rotated anon pages and quite few
-file pages, so get_scan_ratio calculates percent[0] (i.e.  scanning
-percent for anon) to be zero.  Actually the percent[0] shoule be a big
-value, but our calculation round it to zero.
+Return -EINVAL if we don't find the right query control id.
 
-Although before commit 84b18490 ("vmscan: get_scan_ratio() cleanup") , we
-have the same problem too.  But the old logic can rescue percent[0]==0
-case only when priority==0.  It had hided the real issue.  I didn't think
-merely streaming io can makes percent[0]==0 && priority==0 situation.  but
-I was wrong.
-
-So, definitely we have to fix such tmpfs streaming io issue.  but anyway I
-revert the regression commit at first.
-
-This reverts commit 84b18490d1f1bc7ed5095c929f78bc002eb70f26.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reported-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/media/video/cx88/cx88-video.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-revert-vmscan-get_scan_ratio-cleanup mm/vmscan.c
---- a/mm/vmscan.c~mm-revert-vmscan-get_scan_ratio-cleanup
-+++ a/mm/vmscan.c
-@@ -1535,13 +1535,6 @@ static void get_scan_ratio(struct zone *
- 	unsigned long ap, fp;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
- 
--	/* If we have no swap space, do not bother scanning anon pages. */
--	if (!sc->may_swap || (nr_swap_pages <= 0)) {
--		percent[0] = 0;
--		percent[1] = 100;
--		return;
--	}
--
- 	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
- 		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
- 	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
-@@ -1639,20 +1632,22 @@ static void shrink_zone(int priority, st
- 	unsigned long nr_reclaimed = sc->nr_reclaimed;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
-+	int noswap = 0;
- 
--	get_scan_ratio(zone, sc, percent);
-+	/* If we have no swap space, do not bother scanning anon pages. */
-+	if (!sc->may_swap || (nr_swap_pages <= 0)) {
-+		noswap = 1;
-+		percent[0] = 0;
-+		percent[1] = 100;
-+	} else
-+		get_scan_ratio(zone, sc, percent);
- 
- 	for_each_evictable_lru(l) {
- 		int file = is_file_lru(l);
- 		unsigned long scan;
- 
--		if (percent[file] == 0) {
--			nr[l] = 0;
--			continue;
--		}
--
- 		scan = zone_nr_lru_pages(zone, sc, l);
--		if (priority) {
-+		if (priority || noswap) {
- 			scan >>= priority;
- 			scan = (scan * percent[file]) / 100;
- 		}
+diff -puN drivers/media/video/cx88/cx88-video.c~cx88-improve-error-handling drivers/media/video/cx88/cx88-video.c
+--- a/drivers/media/video/cx88/cx88-video.c~cx88-improve-error-handling
++++ a/drivers/media/video/cx88/cx88-video.c
+@@ -1537,9 +1537,12 @@ static int radio_queryctrl (struct file 
+ 		c->id >= V4L2_CID_LASTP1)
+ 		return -EINVAL;
+ 	if (c->id == V4L2_CID_AUDIO_MUTE) {
+-		for (i = 0; i < CX8800_CTLS; i++)
++		for (i = 0; i < CX8800_CTLS; i++) {
+ 			if (cx8800_ctls[i].v.id == c->id)
+ 				break;
++		}
++		if (i == CX8800_CTLS)
++			return -EINVAL;
+ 		*c = cx8800_ctls[i].v;
+ 	} else
+ 		*c = no_ctl;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
-mm-revert-vmscan-get_scan_ratio-cleanup.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-mempolicy-remove-redundant-code.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
+linux-next.patch
+mxser-spin_lock-=-spin_lock_irq.patch
+mxser-spin_lock-=-spin_lock_irq-fix.patch
+cciss-unlock-on-error-path.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+drivers-mfd-pcf50633-corec-off-by-one-issue.patch
+backlight-backlight_device_register-return-err_ptr.patch
+s390-potential-buffer-overflow.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+9p-return-on-mutex_lock_interruptible.patch
+9p-saving-negative-to-unsigned-char.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
 proc-cleanup-remove-unused-assignments.patch
-reiser4.patch
 
