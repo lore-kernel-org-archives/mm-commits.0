@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:18:16 -0700
-Message-ID: <201004022218.o32MIGcB008584@imap1.linux-foundation.org>
+Subject: + oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:18:20 -0700
+Message-ID: <201004022218.o32MILDd008590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755402Ab0DBWSg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:36 -0400
+	by vger.kernel.org with ESMTP id S1755417Ab0DBWSj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@redhat.com, rientjes@google.com
 
 
 The patch titled
-     oom: select_bad_process: check PF_KTHREAD instead of !mm to skip kthreads
+     oom: introduce find_lock_task_mm() to fix !mm false positives
 has been added to the -mm tree.  Its filename is
-     oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+     oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: select_bad_process: check PF_KTHREAD instead of !mm to skip kthreads
+Subject: oom: introduce find_lock_task_mm() to fix !mm false positives
 From: Oleg Nesterov <oleg@redhat.com>
 
-select_bad_process() thinks a kernel thread can't have ->mm != NULL, this
-is not true due to use_mm().
+Almost all ->mm == NUL checks in oom_kill.c are wrong.
 
-Change the code to check PF_KTHREAD.
+The current code assumes that the task without ->mm has already
+released its memory and ignores the process. However this is not
+necessarily true when this process is multithreaded, other live
+sub-threads can use this ->mm.
+
+- Remove the "if (!p->mm)" check in select_bad_process(), it is
+  just wrong.
+
+- Add the new helper, find_lock_task_mm(), which finds the live
+  thread which uses the memory and takes task_lock() to pin ->mm
+
+- change oom_badness() to use this helper instead of just checking
+  ->mm != NULL.
+
+- As David pointed out, select_bad_process() must never choose the
+  task without ->mm, but no matter what oom_badness() returns the
+  task can be chosen if nothing else has been found yet.
+
+  Change oom_badness() to return int, change it to return -1 if
+  find_lock_task_mm() fails, and change select_bad_process() to
+  check points >= 0.
+
+Note! This patch is not enough, we need more changes.
+
+	- oom_badness() was fixed, but oom_kill_task() still ignores
+	  the task without ->mm
+
+	- oom_forkbomb_penalty() should use find_lock_task_mm() too,
+	  and it also needs other changes to actually find the first
+	  first-descendant children
+
+This will be addressed later.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/oom.h |    2 +-
+ mm/oom_kill.c       |   39 +++++++++++++++++++++------------------
+ 2 files changed, 22 insertions(+), 19 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads mm/oom_kill.c
---- a/mm/oom_kill.c~oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads
-+++ a/mm/oom_kill.c
-@@ -291,8 +291,8 @@ static struct task_struct *select_bad_pr
- 	for_each_process(p) {
- 		unsigned int points;
+diff -puN include/linux/oom.h~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives include/linux/oom.h
+--- a/include/linux/oom.h~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives
++++ a/include/linux/oom.h
+@@ -40,7 +40,7 @@ enum oom_constraint {
+ 	CONSTRAINT_MEMORY_POLICY,
+ };
  
--		/* skip the init task */
--		if (is_global_init(p))
-+		/* skip the init task and kthreads */
-+		if (is_global_init(p) || (p->flags & PF_KTHREAD))
- 			continue;
- 		if (mem && !task_in_mem_cgroup(p, mem))
- 			continue;
-@@ -332,8 +332,7 @@ static struct task_struct *select_bad_pr
+-extern unsigned int oom_badness(struct task_struct *p,
++extern int oom_badness(struct task_struct *p,
+ 			unsigned long totalpages, unsigned long uptime);
+ extern int try_set_zone_oom(struct zonelist *zonelist, gfp_t gfp_flags);
+ extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
+diff -puN mm/oom_kill.c~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-introduce-find_lock_task_mm-to-fix-mm-false-positives
++++ a/mm/oom_kill.c
+@@ -70,6 +70,19 @@ static bool has_intersects_mems_allowed(
+ 	return false;
+ }
+ 
++static struct task_struct *find_lock_task_mm(struct task_struct *p)
++{
++	struct task_struct *t = p;
++	do {
++		task_lock(t);
++		if (likely(t->mm))
++			return t;
++		task_unlock(t);
++	} while_each_thread(p, t);
++
++	return NULL;
++}
++
+ /*
+  * Tasks that fork a very large number of children with seperate address spaces
+  * may be the result of a bug, user error, malicious applications, or even those
+@@ -140,10 +153,9 @@ static unsigned long oom_forkbomb_penalt
+  * predictable as possible.  The goal is to return the highest value for the
+  * task consuming the most memory to avoid subsequent oom conditions.
+  */
+-unsigned int oom_badness(struct task_struct *p, unsigned long totalpages,
++int oom_badness(struct task_struct *p, unsigned long totalpages,
+ 							unsigned long uptime)
+ {
+-	struct mm_struct *mm;
+ 	int points;
+ 
+ 	/*
+@@ -160,19 +172,15 @@ unsigned int oom_badness(struct task_str
+ 	if (p->flags & PF_OOM_ORIGIN)
+ 		return 1000;
+ 
+-	task_lock(p);
+-	mm = p->mm;
+-	if (!mm) {
+-		task_unlock(p);
+-		return 0;
+-	}
+-
++	p = find_lock_task_mm(p);
++	if (!p)
++		return -1;
+ 	/*
+ 	 * The baseline for the badness score is the proportion of RAM that each
+ 	 * task's rss and swap space use.
+ 	 */
+-	points = (get_mm_rss(mm) + get_mm_counter(mm, MM_SWAPENTS)) * 1000 /
+-			totalpages;
++	points = (get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS)) *
++			1000 / totalpages;
+ 	task_unlock(p);
+ 	points += oom_forkbomb_penalty(p);
+ 
+@@ -289,7 +297,7 @@ static struct task_struct *select_bad_pr
+ 
+ 	do_posix_clock_monotonic_gettime(&uptime);
+ 	for_each_process(p) {
+-		unsigned int points;
++		int points;
+ 
+ 		/* skip the init task and kthreads */
+ 		if (is_global_init(p) || (p->flags & PF_KTHREAD))
+@@ -331,16 +339,11 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = 1000;
  		}
  
- 		/*
--		 * skip kernel threads and tasks which have already released
--		 * their mm.
-+		 * skip the tasks which have already released their mm.
- 		 */
- 		if (!p->mm)
+-		/*
+-		 * skip the tasks which have already released their mm.
+-		 */
+-		if (!p->mm)
+-			continue;
+ 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
  			continue;
+ 
+ 		points = oom_badness(p, totalpages, uptime.tv_sec);
+-		if (points > *ppoints || !chosen) {
++		if (points >= 0 && (points > *ppoints || !chosen)) {
+ 			chosen = p;
+ 			*ppoints = points;
+ 		}
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
