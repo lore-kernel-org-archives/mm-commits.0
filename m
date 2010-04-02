@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mxser-spin_lock-=-spin_lock_irq.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:13:28 -0700
-Message-ID: <201004022213.o32MDSWI008357@imap1.linux-foundation.org>
+Subject: + cciss-unlock-on-error-path.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:14:36 -0700
+Message-ID: <201004022214.o32MEaGJ008402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755238Ab0DBWNk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:13:40 -0400
+	by vger.kernel.org with ESMTP id S1755238Ab0DBWOt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:14:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, jirislaby@gmail.com
+Cc: error27@gmail.com, jens.axboe@oracle.com, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     mxser: spin_lock() => spin_lock_irq()
+     cciss: unlock on error path
 has been added to the -mm tree.  Its filename is
-     mxser-spin_lock-=-spin_lock_irq.patch
+     cciss-unlock-on-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mxser: spin_lock() => spin_lock_irq()
+Subject: cciss: unlock on error path
 From: Dan Carpenter <error27@gmail.com>
 
-This should be spin_lock_irq() to match the spin_unlock_irq().  Originally
-it was a lock_kernel() but we switched everything to spin_lock_irq() last
-November.
+We take the spin_lock again in fail_all_cmds() so we need to unlock here.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Steve Cameron <scameron@beardog.cce.hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/cciss.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq
-+++ a/drivers/char/mxser.c
-@@ -1768,7 +1768,7 @@ static int mxser_ioctl(struct tty_struct
- 		int len, lsr;
- 
- 		len = mxser_chars_in_buffer(tty);
--		spin_lock(&info->slock);
-+		spin_lock_irq(&info->slock);
- 		lsr = inb(info->ioaddr + UART_LSR) & UART_LSR_THRE;
- 		spin_unlock_irq(&info->slock);
- 		len += (lsr ? 0 : 1);
+diff -puN drivers/block/cciss.c~cciss-unlock-on-error-path drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-unlock-on-error-path
++++ a/drivers/block/cciss.c
+@@ -3341,6 +3341,7 @@ static irqreturn_t do_cciss_intr(int irq
+ 					printk(KERN_WARNING
+ 					       "cciss: controller cciss%d failed, stopping.\n",
+ 					       h->ctlr);
++					spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
+ 					fail_all_cmds(h->ctlr);
+ 					return IRQ_HANDLED;
+ 				}
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
@@ -69,6 +65,7 @@ Patches currently in -mm which might be from error27@gmail.com are
 linux-next.patch
 mxser-spin_lock-=-spin_lock_irq.patch
 mxser-spin_lock-=-spin_lock_irq-fix.patch
+cciss-unlock-on-error-path.patch
 power_meter-acpi_device_class-power_meter_resource-too-long.patch
 thermal-make-lockdep-happy.patch
 dpt_i20-several-use-after-free-issues.patch
