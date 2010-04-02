@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oprofile-remove-double-ring-buffering.patch added to -mm tree
-Date: Thu, 01 Apr 2010 17:02:09 -0700
-Message-ID: <201004020002.o320295K016908@imap1.linux-foundation.org>
+Subject: + initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:06:28 -0700
+Message-ID: <201004022206.o32M6Tn3008033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758991Ab0DBACa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Apr 2010 20:02:30 -0400
+	by vger.kernel.org with ESMTP id S1755028Ab0DBWHQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, robert.richter@amd.com, rostedt@goodmis.org, stable@kernel.org, suravee.suthikulpanit@amd.com, tj@kernel.org
+Cc: aaro.koskinen@iki.fi, stable@kernel.org
 
 
 The patch titled
-     oprofile: remove double ring buffering
+     initramfs: prevent buffer overflow when unpacking to rootfs
 has been added to the -mm tree.  Its filename is
-     oprofile-remove-double-ring-buffering.patch
+     initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,161 +33,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oprofile: remove double ring buffering
-From: Andi Kleen <andi@firstfloor.org>
+Subject: initramfs: prevent buffer overflow when unpacking to rootfs
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-oprofile used a double buffer scheme for its cpu event buffer to avoid
-races on reading with the old locked ring buffer.
+Garbage in the initrd memory area may result in the unpack routine
+accessing memory outside the buffer.  The patch adds a check that the
+specified area size is not exceeded.
 
-But that is obsolete now with the new ring buffer, so simply use a single
-buffer.  This greatly simplifies the code and avoids a lot of sample drops
-on large runs, especially with call graph.
+The patch prevents the following kernel panic on Amstrad E3:
 
-Based on suggestions from Steven Rostedt
+	Unpacking initramfs...
+	Unable to handle kernel paging request at virtual address c20121a7
+	pgd = c0004000
+	[c20121a7] *pgd=00000000
+	Internal error: Oops: 75 [#1] PREEMPT
+	last sysfs file:
+	Modules linked in:
+	CPU: 0    Not tainted  (2.6.34-rc2-00052-gae6be51 #19)
+	PC is at unpack_to_rootfs+0xac/0x33c
+	LR is at decompress_method+0x28/0x64
+	pc : [<c0009858>]    lr : [<c015fcc4>]    psr: 20000013
+	sp : c1819f68  ip : 00000000  fp : c0023b88
+	r10: c20121a7  r9 : c0023b98  r8 : 00000000
+	r7 : 00300000  r6 : fffede59  r5 : c0023ad8  r4 : 00000000
+	r3 : 00000000  r2 : 00000001  r1 : c0303034  r0 : 00000000
+	Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+	Control: 0000317f  Table: 10004000  DAC: 00000017
+	Process swapper (pid: 1, stack limit = 0xc1818270)
+	Stack: (0xc1819f68 to 0xc181a000)
+	9f60:                   00000000 c03f77ec c00092f8 c03f68fc 00000000 c03f77e0
+	9f80: c00228fc 00000000 c000a3c8 00000000 00000000 c03f77e0 c00228fc 00000000
+	9fa0: c000a3c8 00000001 00000000 00000000 00000000 c000a410 c002263c c00283b0
+	9fc0: 00000000 00000170 c03da678 00000000 c002263c c00228fc 00000000 00000000
+	9fe0: 00000000 c0008594 00000000 00000000 00000000 c0029f74 8d7cf20a a7ca85e0
+	[<c0009858>] (unpack_to_rootfs+0xac/0x33c) from [<c000a410>] (populate_rootfs+0x48/0xb0)
+	[<c000a410>] (populate_rootfs+0x48/0xb0) from [<c00283b0>] (do_one_initcall+0x60/0x1c0)
+	[<c00283b0>] (do_one_initcall+0x60/0x1c0) from [<c0008594>] (kernel_init+0xa8/0x15c)
+	[<c0008594>] (kernel_init+0xa8/0x15c) from [<c0029f74>] (kernel_thread_exit+0x0/0x8)
+	Code: e1a05001 e1a09000 e1a0b00c ea000059 (e5da3000)
+	---[ end trace da227214a82491b7 ]---
+	Kernel panic - not syncing: Attempted to kill init!
+	[<c002e56c>] (unwind_backtrace+0x0/0xec) from [<c02f1a40>] (panic+0x40/0xcc)
+	[<c02f1a40>] (panic+0x40/0xcc) from [<c004af64>] (do_exit+0x60/0x608)
+	[<c004af64>] (do_exit+0x60/0x608) from [<c002c8d4>] (die+0x1b4/0x1e4)
+	[<c002c8d4>] (die+0x1b4/0x1e4) from [<c002f7d8>] (__do_kernel_fault+0x64/0x84)
+	[<c002f7d8>] (__do_kernel_fault+0x64/0x84) from [<c002fac8>] (do_translation_fault+0x70/0x80)
+	[<c002fac8>] (do_translation_fault+0x70/0x80) from [<c00282f0>] (do_DataAbort+0x34/0x94)
+	[<c00282f0>] (do_DataAbort+0x34/0x94) from [<c0028ac0>] (__dabt_svc+0x40/0x60)
+	Exception stack(0xc1819f20 to 0xc1819f68)
+	9f20: 00000000 c0303034 00000001 00000000 00000000 c0023ad8 fffede59 00300000
+	9f40: 00000000 c0023b98 c20121a7 c0023b88 00000000 c1819f68 c015fcc4 c0009858
+	9f60: 20000013 ffffffff
+	[<c0028ac0>] (__dabt_svc+0x40/0x60) from [<c0009858>] (unpack_to_rootfs+0xac/0x33c)
+	[<c0009858>] (unpack_to_rootfs+0xac/0x33c) from [<c000a410>] (populate_rootfs+0x48/0xb0)
+	[<c000a410>] (populate_rootfs+0x48/0xb0) from [<c00283b0>] (do_one_initcall+0x60/0x1c0)
+	[<c00283b0>] (do_one_initcall+0x60/0x1c0) from [<c0008594>] (kernel_init+0xa8/0x15c)
+	[<c0008594>] (kernel_init+0xa8/0x15c) from [<c0029f74>] (kernel_thread_exit+0x0/0x8)
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/oprofile/cpu_buffer.c |   63 ++++++--------------------------
- 1 file changed, 13 insertions(+), 50 deletions(-)
+ init/initramfs.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/oprofile/cpu_buffer.c~oprofile-remove-double-ring-buffering drivers/oprofile/cpu_buffer.c
---- a/drivers/oprofile/cpu_buffer.c~oprofile-remove-double-ring-buffering
-+++ a/drivers/oprofile/cpu_buffer.c
-@@ -30,23 +30,7 @@
- 
- #define OP_BUFFER_FLAGS	0
- 
--/*
-- * Read and write access is using spin locking. Thus, writing to the
-- * buffer by NMI handler (x86) could occur also during critical
-- * sections when reading the buffer. To avoid this, there are 2
-- * buffers for independent read and write access. Read access is in
-- * process context only, write access only in the NMI handler. If the
-- * read buffer runs empty, both buffers are swapped atomically. There
-- * is potentially a small window during swapping where the buffers are
-- * disabled and samples could be lost.
-- *
-- * Using 2 buffers is a little bit overhead, but the solution is clear
-- * and does not require changes in the ring buffer implementation. It
-- * can be changed to a single buffer solution when the ring buffer
-- * access is implemented as non-locking atomic code.
-- */
--static struct ring_buffer *op_ring_buffer_read;
--static struct ring_buffer *op_ring_buffer_write;
-+static struct ring_buffer *op_ring_buffer;
- DEFINE_PER_CPU(struct oprofile_cpu_buffer, op_cpu_buffer);
- 
- static void wq_sync_buffer(struct work_struct *work);
-@@ -68,12 +52,9 @@ void oprofile_cpu_buffer_inc_smpl_lost(v
- 
- void free_cpu_buffers(void)
- {
--	if (op_ring_buffer_read)
--		ring_buffer_free(op_ring_buffer_read);
--	op_ring_buffer_read = NULL;
--	if (op_ring_buffer_write)
--		ring_buffer_free(op_ring_buffer_write);
--	op_ring_buffer_write = NULL;
-+	if (op_ring_buffer)
-+		ring_buffer_free(op_ring_buffer);
-+	op_ring_buffer = NULL;
- }
- 
- #define RB_EVENT_HDR_SIZE 4
-@@ -86,11 +67,8 @@ int alloc_cpu_buffers(void)
- 	unsigned long byte_size = buffer_size * (sizeof(struct op_sample) +
- 						 RB_EVENT_HDR_SIZE);
- 
--	op_ring_buffer_read = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
--	if (!op_ring_buffer_read)
--		goto fail;
--	op_ring_buffer_write = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
--	if (!op_ring_buffer_write)
-+	op_ring_buffer = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
-+	if (!op_ring_buffer)
- 		goto fail;
- 
- 	for_each_possible_cpu(i) {
-@@ -162,16 +140,11 @@ struct op_sample
- *op_cpu_buffer_write_reserve(struct op_entry *entry, unsigned long size)
- {
- 	entry->event = ring_buffer_lock_reserve
--		(op_ring_buffer_write, sizeof(struct op_sample) +
-+		(op_ring_buffer, sizeof(struct op_sample) +
- 		 size * sizeof(entry->sample->data[0]));
--	if (entry->event)
--		entry->sample = ring_buffer_event_data(entry->event);
--	else
--		entry->sample = NULL;
--
--	if (!entry->sample)
-+	if (!entry->event)
- 		return NULL;
--
-+	entry->sample = ring_buffer_event_data(entry->event);
- 	entry->size = size;
- 	entry->data = entry->sample->data;
- 
-@@ -180,25 +153,16 @@ struct op_sample
- 
- int op_cpu_buffer_write_commit(struct op_entry *entry)
- {
--	return ring_buffer_unlock_commit(op_ring_buffer_write, entry->event);
-+	return ring_buffer_unlock_commit(op_ring_buffer, entry->event);
- }
- 
- struct op_sample *op_cpu_buffer_read_entry(struct op_entry *entry, int cpu)
- {
- 	struct ring_buffer_event *e;
--	e = ring_buffer_consume(op_ring_buffer_read, cpu, NULL);
--	if (e)
--		goto event;
--	if (ring_buffer_swap_cpu(op_ring_buffer_read,
--				 op_ring_buffer_write,
--				 cpu))
-+	e = ring_buffer_consume(op_ring_buffer, cpu, NULL);
-+	if (!e)
- 		return NULL;
--	e = ring_buffer_consume(op_ring_buffer_read, cpu, NULL);
--	if (e)
--		goto event;
--	return NULL;
- 
--event:
- 	entry->event = e;
- 	entry->sample = ring_buffer_event_data(e);
- 	entry->size = (ring_buffer_event_length(e) - sizeof(struct op_sample))
-@@ -209,8 +173,7 @@ event:
- 
- unsigned long op_cpu_buffer_entries(int cpu)
- {
--	return ring_buffer_entries_cpu(op_ring_buffer_read, cpu)
--		+ ring_buffer_entries_cpu(op_ring_buffer_write, cpu);
-+	return ring_buffer_entries_cpu(op_ring_buffer, cpu);
- }
- 
- static int
+diff -puN init/initramfs.c~initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs init/initramfs.c
+--- a/init/initramfs.c~initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs
++++ a/init/initramfs.c
+@@ -460,6 +460,8 @@ static char * __init unpack_to_rootfs(ch
+ 		}
+ 		if (state != Reset)
+ 			error("junk in compressed archive");
++		if (my_inptr >= len)
++			break;
+ 		this_header = saved_offset + my_inptr;
+ 		buf += my_inptr;
+ 		len -= my_inptr;
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from aaro.koskinen@iki.fi are
 
-linux-next.patch
-oprofile-remove-double-ring-buffering.patch
-x86-handle-overlapping-mptables.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch
 
