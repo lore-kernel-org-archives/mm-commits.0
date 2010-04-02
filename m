@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch added to -mm tree
-Date: Fri, 02 Apr 2010 15:18:18 -0700
-Message-ID: <201004022218.o32MIIAw008587@imap1.linux-foundation.org>
+Subject: + oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch added to -mm tree
+Date: Fri, 02 Apr 2010 15:18:16 -0700
+Message-ID: <201004022218.o32MIGcB008584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755417Ab0DBWSg (ORCPT
+	by vger.kernel.org with ESMTP id S1755402Ab0DBWSg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 18:18:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@redhat.com, rientjes@google.com
 
 
 The patch titled
-     oom: select_bad_process: PF_EXITING check should take ->mm into account
+     oom: select_bad_process: check PF_KTHREAD instead of !mm to skip kthreads
 has been added to the -mm tree.  Its filename is
-     oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
+     oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: select_bad_process: PF_EXITING check should take ->mm into account
+Subject: oom: select_bad_process: check PF_KTHREAD instead of !mm to skip kthreads
 From: Oleg Nesterov <oleg@redhat.com>
 
-select_bad_process() checks PF_EXITING to detect the task which is going
-to release its memory, but the logic is very wrong.
+select_bad_process() thinks a kernel thread can't have ->mm != NULL, this
+is not true due to use_mm().
 
-	- a single process P with the dead group leader disables
-	  select_bad_process() completely, it will always return
-	  ERR_PTR() while P can live forever
-
-	- if the PF_EXITING task has already released its ->mm
-	  it doesn't make sense to expect it is goiing to free
-	  more memory (except task_struct/etc)
-
-Change the code to ignore the PF_EXITING tasks without ->mm.
+Change the code to check PF_KTHREAD.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/oom_kill.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-select_bad_process-pf_exiting-check-should-take-mm-into-account mm/oom_kill.c
---- a/mm/oom_kill.c~oom-select_bad_process-pf_exiting-check-should-take-mm-into-account
+diff -puN mm/oom_kill.c~oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads
 +++ a/mm/oom_kill.c
-@@ -323,7 +323,7 @@ static struct task_struct *select_bad_pr
- 		 * the process of exiting and releasing its resources.
- 		 * Otherwise we could get an easy OOM deadlock.
- 		 */
--		if (p->flags & PF_EXITING) {
-+		if ((p->flags & PF_EXITING) && p->mm) {
- 			if (p != current)
- 				return ERR_PTR(-1UL);
+@@ -291,8 +291,8 @@ static struct task_struct *select_bad_pr
+ 	for_each_process(p) {
+ 		unsigned int points;
  
+-		/* skip the init task */
+-		if (is_global_init(p))
++		/* skip the init task and kthreads */
++		if (is_global_init(p) || (p->flags & PF_KTHREAD))
+ 			continue;
+ 		if (mem && !task_in_mem_cgroup(p, mem))
+ 			continue;
+@@ -332,8 +332,7 @@ static struct task_struct *select_bad_pr
+ 		}
+ 
+ 		/*
+-		 * skip kernel threads and tasks which have already released
+-		 * their mm.
++		 * skip the tasks which have already released their mm.
+ 		 */
+ 		if (!p->mm)
+ 			continue;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
