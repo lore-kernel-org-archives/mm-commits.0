@@ -1,36 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fbdev-section-cleanup-in-arcfb.patch removed from -mm tree
-Date: Mon, 05 Apr 2010 12:25:02 -0700
-Message-ID: <201004051925.o35JP4BJ004260@imap1.linux-foundation.org>
+Subject: + fbdev-section-cleanup-in-arcfb.patch added to -mm tree
+Date: Mon, 05 Apr 2010 12:30:08 -0700
+Message-ID: <201004051930.o35JU8mJ004492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46802 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755775Ab0DETZ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:25:59 -0400
+	by vger.kernel.org with ESMTP id S1756104Ab0DETak (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:30:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: henne@nachtwindheim.de, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: henne@nachtwindheim.de, stable@kernel.org, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     fbdev: arcfb: fix section mismatches
-has been removed from the -mm tree.  Its filename was
+     fbdev: section cleanup in arcfb
+has been added to the -mm tree.  Its filename is
      fbdev-section-cleanup-in-arcfb.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: fbdev: arcfb: fix section mismatches
+Subject: fbdev: section cleanup in arcfb
 =46rom: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-=46ix section mismatches in the arcfb driver.
+=46ix the sections in the arcfb driver, by moving:
+
+*	the variables arcfb_fix and arcfb_var from .init.data to .devinit.dat=
+a
+
+*	arcfb_remove() from .text to .devexit.text
+
+This fixes the following warnings issued by modpost:
 
 WARNING: drivers/video/built-in.o(.devinit.text+0x543): Section mismatc=
 h in reference from the function arcfb_probe() to the variable .init.da=
@@ -49,7 +67,9 @@ If arcfb_fix is only used by arcfb_probe then
 annotate arcfb_fix with a matching annotation.
 
 Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: Uwe Kleine-K=F6nig  <u.kleine-koenig@pengutronix.de>
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: <stable@kernel.org>	[if "platform-drivers: move probe to .devinit.t=
+ext in drivers/video" was merged]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -102,9 +122,7 @@ Patches currently in -mm which might be from henne@nachtwindheim.de are
 
 linux-next.patch
 fbdev-section-cleanup-in-arcfb.patch
-fbdev-section-cleanup-in-efifb.patch
 fbdev-section-cleanup-in-hgafb.patch
-fbdev-section-cleanup-in-vesafb.patch
 fbdev-section-cleanup-in-vfb.patch
 fbdev-section-cleanup-in-vga16fb.patch
 fbdev-section-cleanup-in-w100fb.patch
