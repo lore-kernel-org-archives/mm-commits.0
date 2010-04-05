@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-section-cleanup-in-w100fb.patch added to -mm tree
-Date: Mon, 05 Apr 2010 12:30:19 -0700
-Message-ID: <201004051930.o35JUJeU004521@imap1.linux-foundation.org>
+Subject: + x25-attempts-to-negotiate-invalid-throughput.patch added to -mm tree
+Date: Mon, 05 Apr 2010 12:38:02 -0700
+Message-ID: <201004051938.o35Jc2dd004939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39088 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756104Ab0DETav (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:30:51 -0400
+	by vger.kernel.org with ESMTP id S1756104Ab0DETie (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:38:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: henne@nachtwindheim.de, stable@kernel.org, u.kleine-koenig@pengutronix.de
+Cc: john@calva.com, davem@davemloft.net, ralf@linux-mips.org
 
 
 The patch titled
-     fbdev: section cleanup in w100fb
+     x.25 attempts to negotiate invalid throughput
 has been added to the -mm tree.  Its filename is
-     fbdev-section-cleanup-in-w100fb.patch
+     x25-attempts-to-negotiate-invalid-throughput.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,101 +25,108 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: section cleanup in w100fb
-=46rom: Henrik Kretzschmar <henne@nachtwindheim.de>
+Subject: x.25 attempts to negotiate invalid throughput
+From: John Hughes <john@calva.com>
 
-=46ix up the section in the w100fb driver, by moving:
+The current (2.6.34) x.25 code doesn't seem to know that the X.25
+throughput facility includes two values, one for the required throughput
+outbound, one for inbound.
 
-*	w100fb_remove() from .text to .devexit.text
+This causes it to attempt to negotiate throughput 0x0A, which is
+throughput 9600 inbound and the illegal value "0" for inbound throughput.
 
-*	w100_get_xtal_table() from .text to .devinit.text
+Because of this some X.25 devices (e.g.  Cisco 1600) refuse to connect to
+Linux X.25.
 
-*	w100fb_init() from .devinit.text to .init.text
+The patch fixes this behaviour.  Unless the user specifies a required
+throughput it does not attempt to negotiate.  If the user does not specify
+a throughput it accepts the suggestion of the remote X.25 system.  If the
+user requests a throughput then it validates both the input and output
+throughputs and correctly negotiates them with the remote end.
 
-Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: <stable@kernel.org>	[if "platform-drivers: move probe to .devinit.t=
-ext in drivers/video" was merged]
+Signed-off-by: John Hughes <john@calva.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/w100fb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/x25/af_x25.c         |   20 ++++++++++++++++----
+ net/x25/x25_facilities.c |   15 ++++++++++++---
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/w100fb.c~fbdev-section-cleanup-in-w100fb driver=
-s/video/w100fb.c
---- a/drivers/video/w100fb.c~fbdev-section-cleanup-in-w100fb
-+++ a/drivers/video/w100fb.c
-@@ -53,7 +53,7 @@ static void w100_update_enable(void);
- static void w100_update_disable(void);
- static void calc_hsync(struct w100fb_par *par);
- static void w100_init_graphic_engine(struct w100fb_par *par);
--struct w100_pll_info *w100_get_xtal_table(unsigned int freq);
-+struct w100_pll_info *w100_get_xtal_table(unsigned int freq) __devinit=
-;
-=20
- /* Pseudo palette size */
- #define MAX_PALETTES      16
-@@ -782,7 +782,7 @@ out:
- }
-=20
-=20
--static int w100fb_remove(struct platform_device *pdev)
-+static int __devexit w100fb_remove(struct platform_device *pdev)
- {
- 	struct fb_info *info =3D platform_get_drvdata(pdev);
- 	struct w100fb_par *par=3Dinfo->par;
-@@ -1020,7 +1020,7 @@ static struct pll_entries {
- 	{ 0 },
- };
-=20
--struct w100_pll_info *w100_get_xtal_table(unsigned int freq)
-+struct w100_pll_info __devinit *w100_get_xtal_table(unsigned int freq)
- {
- 	struct pll_entries *pll_entry =3D w100_pll_tables;
-=20
-@@ -1611,7 +1611,7 @@ static void w100_vsync(void)
-=20
- static struct platform_driver w100fb_driver =3D {
- 	.probe		=3D w100fb_probe,
--	.remove		=3D w100fb_remove,
-+	.remove		=3D __devexit_p(w100fb_remove),
- 	.suspend	=3D w100fb_suspend,
- 	.resume		=3D w100fb_resume,
- 	.driver		=3D {
-@@ -1619,7 +1619,7 @@ static struct platform_driver w100fb_dri
- 	},
- };
-=20
--int __devinit w100fb_init(void)
-+int __init w100fb_init(void)
- {
- 	return platform_driver_register(&w100fb_driver);
- }
+diff -puN net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput net/x25/af_x25.c
+--- a/net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput
++++ a/net/x25/af_x25.c
+@@ -554,7 +554,8 @@ static int x25_create(struct net *net, s
+ 	x25->facilities.winsize_out = X25_DEFAULT_WINDOW_SIZE;
+ 	x25->facilities.pacsize_in  = X25_DEFAULT_PACKET_SIZE;
+ 	x25->facilities.pacsize_out = X25_DEFAULT_PACKET_SIZE;
+-	x25->facilities.throughput  = X25_DEFAULT_THROUGHPUT;
++	x25->facilities.throughput  = 0;	/* by default don't negotiate
++						   throughput */
+ 	x25->facilities.reverse     = X25_DEFAULT_REVERSE;
+ 	x25->dte_facilities.calling_len = 0;
+ 	x25->dte_facilities.called_len = 0;
+@@ -1415,9 +1416,20 @@ static int x25_ioctl(struct socket *sock
+ 			if (facilities.winsize_in < 1 ||
+ 			    facilities.winsize_in > 127)
+ 				break;
+-			if (facilities.throughput < 0x03 ||
+-			    facilities.throughput > 0xDD)
+-				break;
++			if (facilities.throughput) {
++				int out = facilities.throughput & 0xf0;
++				int in  = facilities.throughput & 0x0f;
++				if (!out)
++					facilities.throughput |=
++						X25_DEFAULT_THROUGHPUT << 4;
++				else if (out < 0x30 || out > 0xD0)
++					break;
++				if (!in)
++					facilities.throughput |=
++						X25_DEFAULT_THROUGHPUT;
++				else if (in < 0x03 || in > 0x0D)
++					break;
++			}
+ 			if (facilities.reverse &&
+ 				(facilities.reverse & 0x81) != 0x81)
+ 				break;
+diff -puN net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput net/x25/x25_facilities.c
+--- a/net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput
++++ a/net/x25/x25_facilities.c
+@@ -259,9 +259,18 @@ int x25_negotiate_facilities(struct sk_b
+ 	new->reverse = theirs.reverse;
+ 
+ 	if (theirs.throughput) {
+-		if (theirs.throughput < ours->throughput) {
+-			SOCK_DEBUG(sk, "X.25: throughput negotiated down\n");
+-			new->throughput = theirs.throughput;
++		int theirs_in =  theirs.throughput & 0x0f;
++		int theirs_out = theirs.throughput & 0xf0;
++		int ours_in  = ours->throughput & 0x0f;
++		int ours_out = ours->throughput & 0xf0;
++		if (!ours_in || theirs_in < ours_in) {
++			SOCK_DEBUG(sk, "X.25: inbound throughput negotiated\n");
++			new->throughput = (new->throughput & 0xf0) | theirs_in;
++		}
++		if (!ours_out || theirs_out < ours_out) {
++			SOCK_DEBUG(sk,
++				"X.25: outbound throughput negotiated\n");
++			new->throughput = (new->throughput & 0x0f) | theirs_out;
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from henne@nachtwindheim.de are
+Patches currently in -mm which might be from john@calva.com are
 
-linux-next.patch
-fbdev-section-cleanup-in-arcfb.patch
-fbdev-section-cleanup-in-hgafb.patch
-fbdev-section-cleanup-in-vfb.patch
-fbdev-section-cleanup-in-vga16fb.patch
-fbdev-section-cleanup-in-w100fb.patch
-auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch
+x25-attempts-to-negotiate-invalid-throughput.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
