@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mb862xxfb-update-valentins-email-address.patch added to -mm tree
-Date: Mon, 05 Apr 2010 14:26:32 -0700
-Message-ID: <201004052126.o35LQWaE010024@imap1.linux-foundation.org>
+Subject: + watchdog-docs-fix-use-of-wdioc_setoptions-ioctl.patch added to -mm tree
+Date: Mon, 05 Apr 2010 14:35:00 -0700
+Message-ID: <201004052135.o35LZ0JJ010403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756379Ab0DEV0i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 17:26:38 -0400
+	by vger.kernel.org with ESMTP id S1756580Ab0DEVfk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 17:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: virtuoso@slind.org, v.sitdikov@gmail.com
+Cc: james@albanarts.com, james.hogan@imgtec.com, wim@iguana.be
 
 
 The patch titled
-     mb862xxfb: update Valentin's email address
+     watchdog docs: fix use of WDIOC_SETOPTIONS ioctl
 has been added to the -mm tree.  Its filename is
-     mb862xxfb-update-valentins-email-address.patch
+     watchdog-docs-fix-use-of-wdioc_setoptions-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mb862xxfb: update Valentin's email address
-From: Alexander Shishkin <virtuoso@slind.org>
+Subject: watchdog docs: fix use of WDIOC_SETOPTIONS ioctl
+From: James Hogan <james@albanarts.com>
 
-Since Valentin's email address @siemens.com is no longer valid, it's time
-to change it to the one that actually works so that I don't have to
-manually forward patches against mb862xx to him every time.
+In the watchdog-test program and watchdog-api.txt, pass the values to the
+WDIOC_SETOPTIONS ioctl as a pointer to an integer containing the values
+intead of directly in the third ioctl argument.  The actual watchdog
+drivers in drivers/watchdog don't read the options directly from the
+argument but use get_user and copy_from_user.
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-Cc: Valentin Sitdikov <v.sitdikov@gmail.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/mb862xxfb_accel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/watchdog/src/watchdog-test.c |    8 ++++++--
+ Documentation/watchdog/watchdog-api.txt    |    5 ++---
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-update-valentins-email-address drivers/video/mb862xx/mb862xxfb_accel.c
---- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-update-valentins-email-address
-+++ a/drivers/video/mb862xx/mb862xxfb_accel.c
-@@ -4,7 +4,7 @@
-  * Fujitsu Carmine/Coral-P(A)/Lime framebuffer driver acceleration support
-  *
-  * (C) 2007 Alexander Shishkin <virtuoso@slind.org>
-- * (C) 2009 Valentin Sitdikov <valentin.sitdikov@siemens.com>
-+ * (C) 2009 Valentin Sitdikov <v.sitdikov@gmail.com>
-  * (C) 2009 Siemens AG
-  *
-  * This program is free software; you can redistribute it and/or modify
+diff -puN Documentation/watchdog/src/watchdog-test.c~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl Documentation/watchdog/src/watchdog-test.c
+--- a/Documentation/watchdog/src/watchdog-test.c~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl
++++ a/Documentation/watchdog/src/watchdog-test.c
+@@ -31,6 +31,8 @@ static void keep_alive(void)
+  */
+ int main(int argc, char *argv[])
+ {
++    int flags;
++
+     fd = open("/dev/watchdog", O_WRONLY);
+ 
+     if (fd == -1) {
+@@ -41,12 +43,14 @@ int main(int argc, char *argv[])
+ 
+     if (argc > 1) {
+ 	if (!strncasecmp(argv[1], "-d", 2)) {
+-	    ioctl(fd, WDIOC_SETOPTIONS, WDIOS_DISABLECARD);
++	    flags = WDIOS_DISABLECARD;
++	    ioctl(fd, WDIOC_SETOPTIONS, &flags);
+ 	    fprintf(stderr, "Watchdog card disabled.\n");
+ 	    fflush(stderr);
+ 	    exit(0);
+ 	} else if (!strncasecmp(argv[1], "-e", 2)) {
+-	    ioctl(fd, WDIOC_SETOPTIONS, WDIOS_ENABLECARD);
++	    flags = WDIOS_ENABLECARD;
++	    ioctl(fd, WDIOC_SETOPTIONS, &flags);
+ 	    fprintf(stderr, "Watchdog card enabled.\n");
+ 	    fflush(stderr);
+ 	    exit(0);
+diff -puN Documentation/watchdog/watchdog-api.txt~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl Documentation/watchdog/watchdog-api.txt
+--- a/Documentation/watchdog/watchdog-api.txt~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl
++++ a/Documentation/watchdog/watchdog-api.txt
+@@ -222,11 +222,10 @@ returned value is the temperature in deg
+     ioctl(fd, WDIOC_GETTEMP, &temperature);
+ 
+ Finally the SETOPTIONS ioctl can be used to control some aspects of
+-the cards operation; right now the pcwd driver is the only one
+-supporting this ioctl.
++the cards operation.
+ 
+     int options = 0;
+-    ioctl(fd, WDIOC_SETOPTIONS, options);
++    ioctl(fd, WDIOC_SETOPTIONS, &options);
+ 
+ The following options are available:
+ 
 _
 
-Patches currently in -mm which might be from virtuoso@slind.org are
+Patches currently in -mm which might be from james@albanarts.com are
 
-mb862xxfb-fix-acceleration-module-license.patch
-mb862xxfb-update-valentins-email-address.patch
+watchdog-docs-fix-use-of-wdioc_setoptions-ioctl.patch
 
