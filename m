@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpuhotplug-do-not-need-cpu_hotplug_begin-when-config_hotplug_cpu=n.patch added to -mm tree
-Date: Mon, 05 Apr 2010 14:41:29 -0700
-Message-ID: <201004052141.o35LfTfs010678@imap1.linux-foundation.org>
+Subject: + ntfs-clean-up-ntfs_attr_extend_initialized.patch added to -mm tree
+Date: Mon, 05 Apr 2010 14:49:06 -0700
+Message-ID: <201004052149.o35Ln6lO011057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756407Ab0DEVmb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 17:42:31 -0400
+	by vger.kernel.org with ESMTP id S1756145Ab0DEVtl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 17:49:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, ego@in.ibm.com, mingo@elte.hu
+Cc: minchan.kim@gmail.com, aia21@cantab.net
 
 
 The patch titled
-     cpuhotplug: do not need cpu_hotplug_begin() when CONFIG_HOTPLUG_CPU=n
+     ntfs: clean up ntfs_attr_extend_initialized
 has been added to the -mm tree.  Its filename is
-     cpuhotplug-do-not-need-cpu_hotplug_begin-when-config_hotplug_cpu=n.patch
+     ntfs-clean-up-ntfs_attr_extend_initialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuhotplug: do not need cpu_hotplug_begin() when CONFIG_HOTPLUG_CPU=n
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: ntfs: clean up ntfs_attr_extend_initialized
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Since when CONFIG_HOTPLUG_CPU=n, get_online_cpus() do nothing, so we don't
-need cpu_hotplug_begin() either.
+cached_page and lru_pvec have not been used.  Let's remove the arguments.
 
-This patch moves cpu_hotplug_begin()/cpu_hotplug_done() into the code
-block of CONFIG_HOTPLUG_CPU=y.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |   40 ++++++++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ fs/ntfs/file.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN kernel/cpu.c~cpuhotplug-do-not-need-cpu_hotplug_begin-when-config_hotplug_cpu=n kernel/cpu.c
---- a/kernel/cpu.c~cpuhotplug-do-not-need-cpu_hotplug_begin-when-config_hotplug_cpu=n
-+++ a/kernel/cpu.c
-@@ -20,6 +20,20 @@
- /* Serializes the updates to cpu_online_mask, cpu_present_mask */
- static DEFINE_MUTEX(cpu_add_remove_lock);
- 
-+/*
-+ * The following two API's must be used when attempting
-+ * to serialize the updates to cpu_online_mask, cpu_present_mask.
-+ */
-+void cpu_maps_update_begin(void)
-+{
-+	mutex_lock(&cpu_add_remove_lock);
-+}
-+
-+void cpu_maps_update_done(void)
-+{
-+	mutex_unlock(&cpu_add_remove_lock);
-+}
-+
- static __cpuinitdata RAW_NOTIFIER_HEAD(cpu_chain);
- 
- /* If set, cpu_up and cpu_down will return -EBUSY and do nothing.
-@@ -27,6 +41,8 @@ static __cpuinitdata RAW_NOTIFIER_HEAD(c
+diff -puN fs/ntfs/file.c~ntfs-clean-up-ntfs_attr_extend_initialized fs/ntfs/file.c
+--- a/fs/ntfs/file.c~ntfs-clean-up-ntfs_attr_extend_initialized
++++ a/fs/ntfs/file.c
+@@ -98,9 +98,6 @@ static int ntfs_file_open(struct inode *
+  * the page at all.  For a more detailed explanation see ntfs_truncate() in
+  * fs/ntfs/inode.c.
+  *
+- * @cached_page and @lru_pvec are just optimizations for dealing with multiple
+- * pages.
+- *
+  * Return 0 on success and -errno on error.  In the case that an error is
+  * encountered it is possible that the initialized size will already have been
+  * incremented some way towards @new_init_size but it is guaranteed that if
+@@ -110,8 +107,7 @@ static int ntfs_file_open(struct inode *
+  * Locking: i_mutex on the vfs inode corrseponsind to the ntfs inode @ni must be
+  *	    held by the caller.
   */
- static int cpu_hotplug_disabled;
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+
- static struct {
- 	struct task_struct *active_writer;
- 	struct mutex lock; /* Synchronizes accesses to refcount, */
-@@ -41,8 +57,6 @@ static struct {
- 	.refcount = 0,
- };
- 
--#ifdef CONFIG_HOTPLUG_CPU
--
- void get_online_cpus(void)
+-static int ntfs_attr_extend_initialized(ntfs_inode *ni, const s64 new_init_size,
+-		struct page **cached_page, struct pagevec *lru_pvec)
++static int ntfs_attr_extend_initialized(ntfs_inode *ni, const s64 new_init_size)
  {
- 	might_sleep();
-@@ -67,22 +81,6 @@ void put_online_cpus(void)
- }
- EXPORT_SYMBOL_GPL(put_online_cpus);
- 
--#endif	/* CONFIG_HOTPLUG_CPU */
--
--/*
-- * The following two API's must be used when attempting
-- * to serialize the updates to cpu_online_mask, cpu_present_mask.
-- */
--void cpu_maps_update_begin(void)
--{
--	mutex_lock(&cpu_add_remove_lock);
--}
--
--void cpu_maps_update_done(void)
--{
--	mutex_unlock(&cpu_add_remove_lock);
--}
+ 	s64 old_init_size;
+ 	loff_t old_i_size;
+@@ -1925,8 +1921,7 @@ static ssize_t ntfs_file_buffered_write(
+ 	ll = ni->initialized_size;
+ 	read_unlock_irqrestore(&ni->size_lock, flags);
+ 	if (pos > ll) {
+-		err = ntfs_attr_extend_initialized(ni, pos, &cached_page,
+-				&lru_pvec);
++		err = ntfs_attr_extend_initialized(ni, pos);
+ 		if (err < 0) {
+ 			ntfs_error(vol->sb, "Cannot perform write to inode "
+ 					"0x%lx, attribute type 0x%x, because "
+_
+
+Patches currently in -mm which might be from minchan.kim@gmail.com are
+
+rmap-fix-anon_vma_fork-memory-leak.patch
+exit-fix-oops-in-sync_mm_rss.patch
+exit-fix-oops-in-sync_mm_rss-fix.patch
+mm-revert-vmscan-get_scan_ratio-cleanup.patch
+ntfs-clean-up-ntfs_attr_extend_initialized.patch
+ntfs-use-add_to_page_cache_lru.patch
+shmem-remove-redundant-code.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+
