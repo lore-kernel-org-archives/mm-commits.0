@@ -1,103 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + cx88-improve-error-handling.patch added to -mm tree
-Date: Fri, 02 Apr 2010 16:57:05 -0700
-Message-ID: <201004022357.o32Nv5DN012323@imap1.linux-foundation.org>
+Subject: [merged] drm-fix-build-error-when-sysrq-is-disabled.patch removed from -mm tree
+Date: Mon, 05 Apr 2010 11:46:37 -0400
+Message-ID: <201004051848.o35Ilxjx002054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41009 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751498Ab0DBX5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Apr 2010 19:57:15 -0400
+	by vger.kernel.org with ESMTP id S1755543Ab0DESsd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 14:48:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+To: randy.dunlap@oracle.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cx88: improve error handling
-has been added to the -mm tree.  Its filename is
-     cx88-improve-error-handling.patch
+     drm: fix build error when SYSRQ is disabled
+has been removed from the -mm tree.  Its filename was
+     drm-fix-build-error-when-sysrq-is-disabled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cx88: improve error handling
-From: Dan Carpenter <error27@gmail.com>
+Subject: drm: fix build error when SYSRQ is disabled
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Return -EINVAL if we don't find the right query control id.
+Fix build error when CONFIG_MAGIC_SYSRQ is not enabled:
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+drivers/gpu/drm/drm_fb_helper.c:915: error: 'sysrq_drm_fb_helper_restore_op' undeclared (first use in this function)
+drivers/gpu/drm/drm_fb_helper.c:929: error: 'sysrq_drm_fb_helper_restore_op' undeclared (first use in this function)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-video.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/drm_fb_helper.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/media/video/cx88/cx88-video.c~cx88-improve-error-handling drivers/media/video/cx88/cx88-video.c
---- a/drivers/media/video/cx88/cx88-video.c~cx88-improve-error-handling
-+++ a/drivers/media/video/cx88/cx88-video.c
-@@ -1537,9 +1537,12 @@ static int radio_queryctrl (struct file 
- 		c->id >= V4L2_CID_LASTP1)
- 		return -EINVAL;
- 	if (c->id == V4L2_CID_AUDIO_MUTE) {
--		for (i = 0; i < CX8800_CTLS; i++)
-+		for (i = 0; i < CX8800_CTLS; i++) {
- 			if (cx8800_ctls[i].v.id == c->id)
- 				break;
-+		}
-+		if (i == CX8800_CTLS)
-+			return -EINVAL;
- 		*c = cx8800_ctls[i].v;
- 	} else
- 		*c = no_ctl;
+diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-fix-build-error-when-sysrq-is-disabled drivers/gpu/drm/drm_fb_helper.c
+--- a/drivers/gpu/drm/drm_fb_helper.c~drm-fix-build-error-when-sysrq-is-disabled
++++ a/drivers/gpu/drm/drm_fb_helper.c
+@@ -284,6 +284,8 @@ static struct sysrq_key_op sysrq_drm_fb_
+ 	.help_msg = "force-fb(V)",
+ 	.action_msg = "Restore framebuffer console",
+ };
++#else
++static struct sysrq_key_op sysrq_drm_fb_helper_restore_op = { };
+ #endif
+ 
+ static void drm_fb_helper_on(struct fb_info *info)
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 linux-next.patch
-mxser-spin_lock-=-spin_lock_irq.patch
-mxser-spin_lock-=-spin_lock_irq-fix.patch
-cciss-unlock-on-error-path.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-dpt_i20-several-use-after-free-issues.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-drivers-mfd-pcf50633-corec-off-by-one-issue.patch
-backlight-backlight_device_register-return-err_ptr.patch
-s390-potential-buffer-overflow.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-9p-return-on-mutex_lock_interruptible.patch
-9p-saving-negative-to-unsigned-char.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
+usb-fix-serial-build-when-sysrq-is-disabled.patch
+kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
+xen-fix-build-when-sysrq-is-disabled.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
