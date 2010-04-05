@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x25-attempts-to-negotiate-invalid-throughput.patch added to -mm tree
-Date: Mon, 05 Apr 2010 12:38:02 -0700
-Message-ID: <201004051938.o35Jc2dd004939@imap1.linux-foundation.org>
+Subject: + ir-keytable-avoid-double-lock.patch added to -mm tree
+Date: Mon, 05 Apr 2010 12:42:56 -0700
+Message-ID: <201004051942.o35Jgu2X005183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39088 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756104Ab0DETie (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:38:34 -0400
+	by vger.kernel.org with ESMTP id S1756138Ab0DETnY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:43:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: john@calva.com, davem@davemloft.net, ralf@linux-mips.org
+Cc: error27@gmail.com, dtor@mail.ru, mchehab@infradead.org
 
 
 The patch titled
-     x.25 attempts to negotiate invalid throughput
+     ir-keytable: avoid double lock
 has been added to the -mm tree.  Its filename is
-     x25-attempts-to-negotiate-invalid-throughput.patch
+     ir-keytable-avoid-double-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x.25 attempts to negotiate invalid throughput
-From: John Hughes <john@calva.com>
+Subject: ir-keytable: avoid double lock
+From: Dan Carpenter <error27@gmail.com>
 
-The current (2.6.34) x.25 code doesn't seem to know that the X.25
-throughput facility includes two values, one for the required throughput
-outbound, one for inbound.
+It's possible that we wanted to resize to a smaller size but we didn't
+have enough memory to create the new table.  We need to test for that here
+so we don't try to lock twice and dead lock.  Also we free the "oldkeymap"
+on that path and that would be bad.
 
-This causes it to attempt to negotiate throughput 0x0A, which is
-throughput 9600 inbound and the illegal value "0" for inbound throughput.
-
-Because of this some X.25 devices (e.g.  Cisco 1600) refuse to connect to
-Linux X.25.
-
-The patch fixes this behaviour.  Unless the user specifies a required
-throughput it does not attempt to negotiate.  If the user does not specify
-a throughput it accepts the suggestion of the remote X.25 system.  If the
-user requests a throughput then it validates both the input and output
-throughputs and correctly negotiates them with the remote end.
-
-Signed-off-by: John Hughes <john@calva.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/x25/af_x25.c         |   20 ++++++++++++++++----
- net/x25/x25_facilities.c |   15 ++++++++++++---
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/media/IR/ir-keytable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput net/x25/af_x25.c
---- a/net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput
-+++ a/net/x25/af_x25.c
-@@ -554,7 +554,8 @@ static int x25_create(struct net *net, s
- 	x25->facilities.winsize_out = X25_DEFAULT_WINDOW_SIZE;
- 	x25->facilities.pacsize_in  = X25_DEFAULT_PACKET_SIZE;
- 	x25->facilities.pacsize_out = X25_DEFAULT_PACKET_SIZE;
--	x25->facilities.throughput  = X25_DEFAULT_THROUGHPUT;
-+	x25->facilities.throughput  = 0;	/* by default don't negotiate
-+						   throughput */
- 	x25->facilities.reverse     = X25_DEFAULT_REVERSE;
- 	x25->dte_facilities.calling_len = 0;
- 	x25->dte_facilities.called_len = 0;
-@@ -1415,9 +1416,20 @@ static int x25_ioctl(struct socket *sock
- 			if (facilities.winsize_in < 1 ||
- 			    facilities.winsize_in > 127)
- 				break;
--			if (facilities.throughput < 0x03 ||
--			    facilities.throughput > 0xDD)
--				break;
-+			if (facilities.throughput) {
-+				int out = facilities.throughput & 0xf0;
-+				int in  = facilities.throughput & 0x0f;
-+				if (!out)
-+					facilities.throughput |=
-+						X25_DEFAULT_THROUGHPUT << 4;
-+				else if (out < 0x30 || out > 0xD0)
-+					break;
-+				if (!in)
-+					facilities.throughput |=
-+						X25_DEFAULT_THROUGHPUT;
-+				else if (in < 0x03 || in > 0x0D)
-+					break;
-+			}
- 			if (facilities.reverse &&
- 				(facilities.reverse & 0x81) != 0x81)
- 				break;
-diff -puN net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput net/x25/x25_facilities.c
---- a/net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput
-+++ a/net/x25/x25_facilities.c
-@@ -259,9 +259,18 @@ int x25_negotiate_facilities(struct sk_b
- 	new->reverse = theirs.reverse;
+diff -puN drivers/media/IR/ir-keytable.c~ir-keytable-avoid-double-lock drivers/media/IR/ir-keytable.c
+--- a/drivers/media/IR/ir-keytable.c~ir-keytable-avoid-double-lock
++++ a/drivers/media/IR/ir-keytable.c
+@@ -217,7 +217,7 @@ static void ir_delete_key(struct ir_scan
+ 		memcpy(&newkeymap[elem], &oldkeymap[elem + 1],
+ 		       (newsize - elem) * sizeof(*newkeymap));
  
- 	if (theirs.throughput) {
--		if (theirs.throughput < ours->throughput) {
--			SOCK_DEBUG(sk, "X.25: throughput negotiated down\n");
--			new->throughput = theirs.throughput;
-+		int theirs_in =  theirs.throughput & 0x0f;
-+		int theirs_out = theirs.throughput & 0xf0;
-+		int ours_in  = ours->throughput & 0x0f;
-+		int ours_out = ours->throughput & 0xf0;
-+		if (!ours_in || theirs_in < ours_in) {
-+			SOCK_DEBUG(sk, "X.25: inbound throughput negotiated\n");
-+			new->throughput = (new->throughput & 0xf0) | theirs_in;
-+		}
-+		if (!ours_out || theirs_out < ours_out) {
-+			SOCK_DEBUG(sk,
-+				"X.25: outbound throughput negotiated\n");
-+			new->throughput = (new->throughput & 0x0f) | theirs_out;
- 		}
- 	}
- 
+-	if (resize) {
++	if (resize && newkeymap != oldkeymap) {
+ 		/*
+ 		 * As the copy happened to a temporary table, only here
+ 		 * it needs to lock while replacing the table pointers
 _
 
-Patches currently in -mm which might be from john@calva.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
-x25-attempts-to-negotiate-invalid-throughput.patch
+linux-next.patch
+mxser-spin_lock-=-spin_lock_irq.patch
+mxser-spin_lock-=-spin_lock_irq-fix.patch
+cciss-unlock-on-error-path.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+dpt_i20-several-use-after-free-issues.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+drivers-mfd-pcf50633-corec-off-by-one-issue.patch
+backlight-backlight_device_register-return-err_ptr.patch
+s390-potential-buffer-overflow.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+9p-return-on-mutex_lock_interruptible.patch
+9p-saving-negative-to-unsigned-char.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
+wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
 
