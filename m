@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length.patch added to -mm tree
-Date: Mon, 05 Apr 2010 16:58:54 -0700
-Message-ID: <201004052358.o35Nwtkx016926@imap1.linux-foundation.org>
+Subject: + x86_32-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Mon, 05 Apr 2010 16:59:51 -0700
+Message-ID: <201004052359.o35Nxpu0016949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756954Ab0DEX7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 19:59:11 -0400
+	by vger.kernel.org with ESMTP id S1756856Ab0DFAAC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 20:00:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, hpa@zytor.com, min
 
 
 The patch titled
-     arch/x86/kernel/pci-nommu.c: don't initialise sg->dma_length
+     x86_32: use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length.patch
+     x86_32-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/pci-nommu.c: don't initialise sg->dma_length
+Subject: x86_32: use asm-generic/scatterlist.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
-> 
-> We can remove dma_length in > pci-nommu.c though (there is no point of
-> setting dma_length here).
->
-
-This breaks the build when "asm-generic: add NEED_SG_DMA_LENGTH to define
-sg_dma_len()" is applied.
-
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-nommu.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/pci-nommu.c~arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length arch/x86/kernel/pci-nommu.c
---- a/arch/x86/kernel/pci-nommu.c~arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length
-+++ a/arch/x86/kernel/pci-nommu.c
-@@ -68,7 +68,6 @@ static int nommu_map_sg(struct device *h
- 		s->dma_address = sg_phys(s);
- 		if (!check_addr("map_sg", hwdev, s->dma_address, s->length))
- 			return 0;
--		s->dma_length = s->length;
- 	}
- 	flush_write_buffers();
- 	return nents;
+diff -puN arch/x86/Kconfig~x86_32-use-asm-generic-scatterlisth arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86_32-use-asm-generic-scatterlisth
++++ a/arch/x86/Kconfig
+@@ -103,7 +103,7 @@ config NEED_DMA_MAP_STATE
+        def_bool (X86_64 || DMAR || DMA_API_DEBUG)
+ 
+ config NEED_SG_DMA_LENGTH
+-	def_bool X86_64
++	def_bool y
+ 
+ config GENERIC_ISA_DMA
+ 	def_bool y
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,7 +109,7 @@ fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
 arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length.patch
-asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix.patch
+x86_32-use-asm-generic-scatterlisth.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
 reiser4-writeback_inodes-implementation-fix.patch
