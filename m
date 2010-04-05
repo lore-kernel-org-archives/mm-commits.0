@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch added to -mm tree
-Date: Mon, 05 Apr 2010 12:45:44 -0700
-Message-ID: <201004051945.o35JjiaU005294@imap1.linux-foundation.org>
+Subject: + rmap-fix-anon_vma_fork-memory-leak.patch added to -mm tree
+Date: Mon, 05 Apr 2010 12:52:57 -0700
+Message-ID: <201004051952.o35Jqv6h005668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756104Ab0DETpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:45:54 -0400
+	by vger.kernel.org with ESMTP id S1756245Ab0DETx1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:53:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, James.Bottomley@suse.de, zaga@fly.cc.fer.hr
+Cc: riel@redhat.com, minchan.kim@gmail.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     wd7000: typo spin_unlock_irq() => spin_lock_irq()
+     rmap: fix anon_vma_fork() memory leak
 has been added to the -mm tree.  Its filename is
-     wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
+     rmap-fix-anon_vma_fork-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wd7000: typo spin_unlock_irq() => spin_lock_irq()
-From: Dan Carpenter <error27@gmail.com>
+Subject: rmap: fix anon_vma_fork() memory leak
+From: Rik van Riel <riel@redhat.com>
 
-This was introduced back in 2005 at the very start of the git era by:
-	df0ae2497ddefd72a87f3a3b34ff32455d7d4ae0
-	[SCSI] allow sleeping in ->eh_host_reset_handler()
+Fix a memory leak in anon_vma_fork(), where we fail to tear down the
+anon_vmas attached to the new VMA in case setting up the new anon_vma
+fails.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Miroslav Zagorac <zaga@fly.cc.fer.hr>
-Cc: "James E.J. Bottomley" <James.Bottomley@suse.de>
+This bug also has the potential to leave behind anon_vma_chain structs
+with pointers to invalid memory.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/wd7000.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq drivers/scsi/wd7000.c
---- a/drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq
-+++ a/drivers/scsi/wd7000.c
-@@ -1587,7 +1587,7 @@ static int wd7000_host_reset(struct scsi
- {
- 	Adapter *host = (Adapter *) SCpnt->device->host->hostdata;
+diff -puN mm/rmap.c~rmap-fix-anon_vma_fork-memory-leak mm/rmap.c
+--- a/mm/rmap.c~rmap-fix-anon_vma_fork-memory-leak
++++ a/mm/rmap.c
+@@ -232,6 +232,7 @@ int anon_vma_fork(struct vm_area_struct 
+  out_error_free_anon_vma:
+ 	anon_vma_free(anon_vma);
+  out_error:
++	unlink_anon_vmas(vma);
+ 	return -ENOMEM;
+ }
  
--	spin_unlock_irq(SCpnt->device->host->host_lock);
-+	spin_lock_irq(SCpnt->device->host->host_lock);
- 
- 	if (wd7000_adapter_reset(host) < 0) {
- 		spin_unlock_irq(SCpnt->device->host->host_lock);
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-linux-next.patch
-mxser-spin_lock-=-spin_lock_irq.patch
-mxser-spin_lock-=-spin_lock_irq-fix.patch
-cciss-unlock-on-error-path.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-dpt_i20-several-use-after-free-issues.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-drivers-mfd-pcf50633-corec-off-by-one-issue.patch
-backlight-backlight_device_register-return-err_ptr.patch
-s390-potential-buffer-overflow.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-9p-return-on-mutex_lock_interruptible.patch
-9p-saving-negative-to-unsigned-char.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+rmap-fix-anon_vma_fork-memory-leak.patch
+exit-fix-oops-in-sync_mm_rss.patch
+exit-fix-oops-in-sync_mm_rss-fix.patch
+mm-revert-vmscan-get_scan_ratio-cleanup.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
 
