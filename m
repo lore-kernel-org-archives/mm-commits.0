@@ -1,135 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [failures] kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch removed from -mm tree
-Date: Mon, 05 Apr 2010 14:46:12 -0700
-Message-ID: <201004052213.o35MD7p4012155@imap1.linux-foundation.org>
+Subject: + gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch added to -mm tree
+Date: Mon, 05 Apr 2010 15:06:46 -0700
+Message-ID: <201004052233.o35MXfAT013095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756439Ab0DEWOH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 18:14:07 -0400
+	by vger.kernel.org with ESMTP id S1756439Ab0DEWeU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 18:34:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jkosina@suse.cz, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, iws@ovro.caltech.edu, sameo@linux.intel.com
 
 
 The patch titled
-     kernel.h: convert rounding macros to statement expressions, add ADD_MOD
-has been removed from the -mm tree.  Its filename was
-     kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
+     gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix
+has been added to the -mm tree.  Its filename is
+     gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: convert rounding macros to statement expressions, add ADD_MOD
-From: Joe Perches <joe@perches.com>
+Subject: gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Convert rounding macros to statement expressions so arguments are only
-evaluated once.
+fix build
 
-Add kernel-doc to rounding macros.
-
-Add ADD_MOD statement expression for "(x + y) % y".
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ira W. Snyder <iws@ovro.caltech.edu>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   66 +++++++++++++++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 9 deletions(-)
+ drivers/gpio/janz-ttl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/kernel.h~kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod
-+++ a/include/linux/kernel.h
-@@ -53,16 +53,64 @@ extern const char linux_proc_banner[];
- #define __round_mask(x, y) ((__typeof__(x))((y)-1))
- #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
- #define round_down(x, y) ((x) & ~__round_mask(x, y))
--
- #define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
--#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
--#define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
--#define DIV_ROUND_CLOSEST(x, divisor)(			\
--{							\
--	typeof(divisor) __divisor = divisor;		\
--	(((x) + ((__divisor) / 2)) / (__divisor));	\
--}							\
--)
-+
-+/**
-+ * roundup() - Returns x rounded up to the next whole multiple of y
-+ * @x:	dividend
-+ * @y:	divisor
-+ *
-+ * ie: roundup(4, 2) is 4, roundup(5, 2) is 6
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define roundup(x, y)				\
-+({						\
-+	typeof(y) _y = y;			\
-+	(((x) + _y - 1) / _y) * _y;		\
-+})
-+
-+/**
-+ * DIV_ROUND_UP() - Returns x/y rounded up to the next whole number
-+ * @x:	dividend
-+ * @y:	divisor
-+ *
-+ * ie: DIV_ROUND_UP(4, 2) is 2, DIV_ROUND_UP(5, 2) is 3
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define DIV_ROUND_UP(x, y)			\
-+({						\
-+	typeof(y) _y = y;			\
-+	((x) + _y - 1) / _y;			\
-+})
-+
-+/**
-+ * DIV_ROUND_CLOSEST() - Returns x/y rounded to the nearest whole number
-+ * @x:	dividend
-+ * @y:	divisor
-+ *
-+ * ie: DIV_ROUND_CLOSEST(4, 3) is 1, DIV_ROUND_CLOSEST(5, 3) is 2
-+ * Rounds up when .5, ie: DIV_ROUND_CLOSEST(5, 2) is 3
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define DIV_ROUND_CLOSEST(x, y)			\
-+({						\
-+	typeof(y) _y = y;			\
-+	((x) + (_y / 2)) / _y;			\
-+})
-+
-+/**
-+ * ADD_MOD() - Returns (x + y) % y
-+ * @x:	initial value
-+ * @y:	value added to x then used as modulo
-+ *
-+ * ie: ADD_MOD(4, 2) is 0, ADD_MOD(5, 2) is 1
-+ * c type conversion rules apply when x and y types differ
-+ */
-+#define ADD_MOD(x, y)				\
-+({						\
-+	typeof(y) _y = y;			\
-+	((x) + _y) % _y;			\
-+})
+diff -puN drivers/gpio/janz-ttl.c~gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix drivers/gpio/janz-ttl.c
+--- a/drivers/gpio/janz-ttl.c~gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix
++++ a/drivers/gpio/janz-ttl.c
+@@ -11,6 +11,7 @@
  
- #define _RET_IP_		(unsigned long)__builtin_return_address(0)
- #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+bitops-remove-temporary-for_each_bit.patch
 linux-next.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+exit-fix-oops-in-sync_mm_rss-fix.patch
+drivers-char-amiserialc-add-missing-local_irq_restore.patch
+mxser-spin_lock-=-spin_lock_irq-fix.patch
+ratelimit-annotate-___ratelimit-fix.patch
+rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
-vsprintfc-use-noinline_for_stack.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+ipc-mqueuec-let-message-queue-timeout-use-hrtimers-checkpatch-fixes.patch
+bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
