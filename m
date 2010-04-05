@@ -1,29 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2010-04-05-16-09 uploaded
-Date: Mon, 05 Apr 2010 16:09:45 -0700
-Message-ID: <201004052336.o35NaeSE015814@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length.patch added to -mm tree
+Date: Mon, 05 Apr 2010 16:58:54 -0700
+Message-ID: <201004052358.o35Nwtkx016926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60240 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756938Ab0DEXhN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 19:37:13 -0400
+	by vger.kernel.org with ESMTP id S1756954Ab0DEX7L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 19:59:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
-The mm-of-the-moment snapshot 2010-04-05-16-09 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     arch/x86/kernel/pci-nommu.c: don't initialise sg->dma_length
+has been added to the -mm tree.  Its filename is
+     arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://zen-kernel.org/kernel/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.34-rc3:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: arch/x86/kernel/pci-nommu.c: don't initialise sg->dma_length
+From: Andrew Morton <akpm@linux-foundation.org>
+
+FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
+> 
+> We can remove dma_length in > pci-nommu.c though (there is no point of
+> setting dma_length here).
+>
+
+This breaks the build when "asm-generic: add NEED_SG_DMA_LENGTH to define
+sg_dma_len()" is applied.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/x86/kernel/pci-nommu.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff -puN arch/x86/kernel/pci-nommu.c~arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length arch/x86/kernel/pci-nommu.c
+--- a/arch/x86/kernel/pci-nommu.c~arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length
++++ a/arch/x86/kernel/pci-nommu.c
+@@ -68,7 +68,6 @@ static int nommu_map_sg(struct device *h
+ 		s->dma_address = sg_phys(s);
+ 		if (!check_addr("map_sg", hwdev, s->dma_address, s->length))
+ 			return 0;
+-		s->dma_length = s->length;
+ 	}
+ 	flush_write_buffers();
+ 	return nents;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rmap-fix-anon_vma_fork-memory-leak.patch
 bitops-remove-temporary-for_each_bit.patch
 linux-next.patch
 linux-next-git-rejects.patch
@@ -31,424 +78,54 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-crypto-aesni-intel_asms-still-busted.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-exit-fix-oops-in-sync_mm_rss.patch
 exit-fix-oops-in-sync_mm_rss-fix.patch
-include-linux-kfifoh-fix-init_kfifo.patch
-vesafb-use-platform_driver_probe-instead-of-platform_driver_register.patch
-fbdev-rename-imacfbtxt-to-efifbtxt-and-change-imacfb-to-efifb.patch
 drivers-char-amiserialc-add-missing-local_irq_restore.patch
-drivers-gpio-timbgpioc-add-missing-unlock.patch
-omap-hsmmc-fix-a-bug-in-card-remove-scenario.patch
-initramfs-prevent-buffer-overflow-when-unpacking-to-rootfs.patch
-mxser-spin_lock-=-spin_lock_irq.patch
 mxser-spin_lock-=-spin_lock_irq-fix.patch
-cciss-unlock-on-error-path.patch
-drivers-thermal-thermal_sysc-fix-key-f70f4b50-not-in-data-in-thermal_sys.patch
-device_attributes-add-sysfs_attr_init-for-dynamic-attributes.patch
-readahead-fix-null-filp-dereference.patch
-devmem-handle-class_create-failure.patch
-mm-revert-vmscan-get_scan_ratio-cleanup.patch
-mb862xxfb-fix-acceleration-module-license.patch
-mb862xxfb-update-valentins-email-address.patch
-raw-fsync-method-is-now-required.patch
-bsdacct-use-del_timer_sync-in-acct_exit_ns.patch
-fbdev-fix-kconfig-breakage-in-drivers-video.patch
-ratelimit-annotate-___ratelimit.patch
 ratelimit-annotate-___ratelimit-fix.patch
-kernelh-fix-wrong-usage-of-__ratelimit.patch
-ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch
-pagemap-fix-pfn-calculation-for-hugepage-v3.patch
-memcg-fix-race-in-file_mapped-accounting.patch
-rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method.patch
 rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
-frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
-frv-fix-kernel-user-segment-handling-in-nommu-mode.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-fs-cache-order-the-debugfs-stats-correctly.patch
-it8761e_gpio-fix-bug-in-gpio-numbering.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-block-elevatorc-fix-block-elevatorc-elevator_get-off-by-one-error.patch
-drivers-base-cpuc-fix-the-output-from-sys-devices-system-cpu-offline.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915.patch
 intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-inotify-dont-leak-user-struct-on-inotify-release.patch
-oprofile-remove-double-ring-buffering.patch
-arch-powerpc-kernel-vioc-add-missing-unlock.patch
-drivers-macintosh-macio-adbc-add-missing-unlock.patch
-sched-prevent-compiler-from-optimising-sched_avg_update-loop.patch
-dpt_i20-several-use-after-free-issues.patch
-scsi-be2iscsi-fix-lock-imbalance.patch
-scsi-lpfc-fix-lock-imbalances.patch
-scsi-qla2xxx-fix-lock-imbalance.patch
-drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
-keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
-drivers-serial-pmac_zilogc-add-missing-unlock.patch
-drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
-x86-handle-overlapping-mptables.patch
-acerhdf-add-new-bios-versions.patch
-drivers-acpi-use-kasprintf.patch
 drivers-acpi-use-kasprintf-fix.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-acpi-map-pxms-to-low-node-ids.patch
-arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
-x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5.patch
-arch-x86-pci-use-kasprintf.patch
-x86-nosmp-command-line-option-should-force-the-system-into-up-mode.patch
-arch-x86-kernel-setupcl-phoenix-bios-fixup-is-needed-on-dell-inspiron-mini-1012.patch
-agp-amd64-fix-pci-reference-leaks.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
 arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails.patch
 cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-dmaengine-support-for-st-ericssons-dma40-block-v3.patch
-dmaengine-dma40-u8500-platform-configuration-v3.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-arch-powerpc-platforms-pseries-use-kasprintf.patch
-gpu-vga_switcheroo-fix-lock-imbalance.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-dvb-usb-gp8psk-fix-potential-null-derefernce.patch
-drivers-media-video-avoid-null-dereference.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
-intel-iommu-use-for_each_set_bit.patch
-gpiolib-introduce-chip-addition-removal-notifier.patch
-of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
 of-gpio-implement-gpiolib-notifier-hooks-fix.patch
 of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
-gpiolib-cosmetic-improvements-for-error-handling-in-gpiochip_add.patch
-timers-introduce-the-concept-of-timer-slack-for-legacy-timers.patch
-cpu-timers-simplify-rlimit_cpu-handling.patch
-cpu-timers-cleanup-arm_timer.patch
-cpu-timers-return-correct-previous-timer-reload-value.patch
-cpu-timers-change-sigev_none-timer-implementation.patch
-cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
-timer-print-function-name-for-timer-callbacks-modifying-preemption-count.patch
-time-clean-up-warp_clock.patch
-time-clean-up-direct-xtime-usage-in-xen.patch
-ntp-make-time_adjust-static.patch
-ntp-remove-tickadj.patch
-ati_remote-add-some-missing-devices-from-lirc_atiusb.patch
-usbtouchscreen-support-bigger-inexio-touchscreens.patch
-matrix_keypad-allow-platform-to-disable-key-autorepeat.patch
-markup_oops-fix-perlcritic-warnings.patch
-led-driver-for-the-soekris-net5501-board.patch
 led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-mfd-pcf50633-corec-off-by-one-issue.patch
-mfd-add-support-for-janz-cmod-io-pci-modulbus-carrier-board.patch
-can-add-support-for-janz-vmod-ican3-intelligent-can-module.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module.patch
 gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-hrtimer-provide-schedule_hrtimeout-for-wallclock.patch
-ipc-mqueuec-let-message-queue-timeout-use-hrtimers.patch
 ipc-mqueuec-let-message-queue-timeout-use-hrtimers-checkpatch-fixes.patch
 bitops-rename-for_each_bit-to-for_each_set_bit-mtd.patch
-mtd-nandsim-fix-typo-struct-nandsin_geometry.patch
-mtd-nand-remove-stray-endchoice-from-kconfig-help-text.patch
-ntfs-clean-up-ntfs_attr_extend_initialized.patch
-ntfs-use-add_to_page_cache_lru.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-x25-attempts-to-negotiate-invalid-throughput.patch
 3x59x-fix-pci-resource-management.patch
-mbp_nvidia_bl-add-support-for-older-macbookpro-and-macbook-61.patch
-backlight-backlight_device_register-return-err_ptr.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver.patch
 backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-serial-two-branches-the-same-in-timbuart_set_mctrl.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
 serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-serial-8250_pnp-add-fujitsu-wacom-device.patch
-kernel-irq-managec-add-raise_threaded_irq.patch
 kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-move-to-threaded-interrupt.patch
-max3100-add-console-support-for-max3100.patch
-max3100-to_max3100_port-small-style-fixes.patch
 max3100-to_max3100_port-small-style-fixes-fix.patch
-serial-add-driver-for-the-altera-jtag-uart.patch
-serial-add-driver-for-the-altera-uart.patch
-serial-add-driver-for-the-altera-uart-update.patch
-s390-potential-buffer-overflow.patch
-kernel-irq-procc-expose-the-irq_desc-node-in-proc-irq.patch
-lockdep-add-novalidate-class-for-dev-mutex-conversion.patch
-rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-drivers-scsi-libsas-use-sam_good.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-mpt-fusion-convert-to-seq_file.patch
-g_ncr5380-remove-misleading-pnp-error-message.patch
-g_ncr5380-fix-broken-mmio-compilation.patch
-g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-scsi-sdc-quiet-all-sparse-noise.patch
-drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
-lpfc-positive-error-return-into-negative.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-mptscsih-fix-first-line-of-kernel-doc-for-a-few-functions.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-iscsi-change-to.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
-wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
-fs-splicec-fix-mapping_gfp_mask-usage.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure.patch
 iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-vt6655-cgi-csi-confusion-in-device_ioctl.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch
-usb-fix-serial-build-when-sysrq-is-disabled.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-9p-return-on-mutex_lock_interruptible.patch
-9p-saving-negative-to-unsigned-char.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-improve-comment-describing-fget_light.patch
-ecryptfs-another-lockdep-issue.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-o_-bit-numbers-uniqueness-check-update.patch
-vfs-o_-bit-numbers-uniqueness-check-fix.patch
-vfs-o_-bit-numbers-uniqueness-check-fix-2.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-clarify-that-nonseekable_open-will-never-fail.patch
-watchdog-docs-fix-use-of-wdioc_setoptions-ioctl.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-xtensa-includecheck-fix-vectorss.patch
-xtensa-fix-unnecessary-setting-of-xtime.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-mm.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
-shmem-remove-redundant-code.patch
-define-madv_hugepage.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-mempolicy-remove-redundant-code.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
-mincore-cleanups.patch
-mincore-break-do_mincore-into-logical-pieces.patch
-mincore-pass-ranges-as-startend-address-pairs.patch
-mincore-do-nested-page-table-walks.patch
-pagemap-add-ifdefs-config_hugetlb_page-on-code-walking-hugetlb-vma.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-oom-move-sysctl-declarations-to-oomh.patch
-fs-writebackc-bitfields-should-be-unsigned.patch
-frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-errh-add-__must_check-to-error-pointer-handlers.patch
-kernel-user-remove-unreachable-code.patch
-endian-define-__byte_order.patch
-bitops-optimize-hweight-by-making-use-of-compile-time-evaluation.patch
-x86-add-optimized-popcnt-variants.patch
-hangcheck-timer-fix-x86_32-bugs.patch
-improve-sys_personality-for-compat-architectures.patch
-vsprintfc-use-noinline_for_stack.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
-firmware-loader-use-statically-initialized-data-attribute.patch
 firmware-loader-use-statically-initialized-data-attribute-fix.patch
 firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-pass-number-of-sg-segments-as-platform-data.patch
-mmc-omap-add-support-for-16-bit-and-32-bit-registers.patch
-sdhci-implement-cap_clock_base_broken-quirk.patch
-sdhci-pltfm-implement-platform-data-passing.patch
-sdhci-pltfm-do-not-print-errors-in-case-of-an-extended-iomem-size.patch
-davinci-mmc-add-a-function-to-control-reset-state-of-the-controller.patch
-davinci-mmc-updates-to-suspend-resume-implementation.patch
 davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions.patch
 checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
 hwmon-driver-for-ti-tmp102-temperature-sensor.patch
 hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-xen-fix-build-when-sysrq-is-disabled.patch
-s3c-rtc-driver-add-support-for-s3c64xx.patch
 rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpio-add-interrupt-handling-capability-to-max732x.patch
-gpiolib-make-names-array-and-its-values-const.patch
 gpiolib-make-names-array-and-its-values-const-fix.patch
-gpiolib-a-gpio-is-unsigned-so-use-%u-to-print-it.patch
-gpiolib-document-that-names-can-contain-printk-format-specifiers.patch
-fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
-sis-strcpy-=-strlcpy.patch
-fbdev-section-cleanup-in-arcfb.patch
-fbdev-section-cleanup-in-hgafb.patch
-fbdev-section-cleanup-in-vfb.patch
-fbdev-section-cleanup-in-vga16fb.patch
-fbdev-section-cleanup-in-w100fb.patch
-cobalt_lcdfb-fix-section-mismatch-cobalt_lcdfb_fix.patch
-auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch
-ext3-fixup-rb_root-initializations-to-use-rb_root.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-memcg-oom-wakeup-filter.patch
-memcg-oom-wakeup-filter-update.patch
-memcg-oom-notifier.patch
-memcg-oom-notifier-update.patch
-memcg-oom-kill-disable-and-oom-status.patch
-memcg-oom-kill-disable-and-oom-status-update.patch
 memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-call_usermodehelper-no-need-to-unblock-signals.patch
-wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
-call_usermodehelper-simplify-fix-umh_no_wait-case.patch
-call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-exit-exit_notify-can-trust-signal-notify_count-0.patch
-exit-change-zap_other_threads-to-count-sub-threads.patch
-exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
-exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
-signals-make-task_struct-signal-immutable-refcountable.patch
-signals-clear-signal-tty-when-the-last-thread-exits.patch
-signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
-signals-kill-the-awful-task_rq_unlock_wait-hack.patch
-exit-__exit_signal-use-thread_group_leader-consistently.patch
-kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
-exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
-check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc-make-collect_sigign_sigcatch-rcu-safe.patch
-proc-make-task_sig-lockless.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-proc-turn-signal_struct-count-into-int-nr_threads.patch
 proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-proc-cleanup-remove-unused-assignments.patch
-cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail.patch
-cpu-hotplug-return-better-errno-on-cpu-hotplug-failure.patch
-notifier-change-notifier_from_errno0-to-return-notify_ok.patch
-x86-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-topology-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-kernel-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-slab-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-iucv-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-ehca-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-s390-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-md-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-fault-injection-add-cpu-notifier-error-injection-module.patch
 fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-cpuhotplug-do-not-need-cpu_hotplug_begin-when-config_hotplug_cpu=n.patch
-ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch
-ipmi-convert-tracking-of-the-acpi-device-pointer-to-a-pnp-device.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs.patch
-char-drivers-ram-oops-panic-logger.patch
-char-drivers-ram-oops-panic-logger-update.patch
-drivers-char-ppdevc-use-kasprintf.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
-lib-random32-export-pseudo-random-number-generator-for-modules.patch
-drivers-edac-introduce-missing-kfree.patch
-edac-add-__init-to-i7core_xeon_pci_fixup.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn.patch
 panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-panic-add-taint-flag-taint_firmware_workaround-i.patch
-pci-dmar-combine-the-bios-dmar-table-warning-messages.patch
-pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables.patch
-kfifo-kfifo_is_fullempty-should-return-bools-not-ints.patch
-time-kill-off-config_generic_time.patch
-asm-generic-remove-isa_dma_threshold-in-scatterlisth.patch
-asm-generic-add-need_sg_dma_length-to-define-sg_dma_len.patch
+arch-x86-kernel-pci-nommuc-dont-initialise-sg-dma_length.patch
 asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix.patch
-powerpc-use-asm-generic-scatterlisth.patch
-arm-use-asm-generic-scatterlisth.patch
-alpha-use-asm-generic-scatterlisth.patch
-vfs-add-super-operation-writeback_inodes.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-export-remove_from_page_cache.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
 reiser4.patch
-reiser4-writeback_inodes-implementation.patch
 reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 reiser4-fixups.patch
 reiser4-broke.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 notify_change-callers-must-hold-i_mutex.patch
+
