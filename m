@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-fix-anon_vma_fork-memory-leak.patch added to -mm tree
-Date: Mon, 05 Apr 2010 12:52:57 -0700
-Message-ID: <201004051952.o35Jqv6h005668@imap1.linux-foundation.org>
+Subject: + mb862xxfb-fix-acceleration-module-license.patch added to -mm tree
+Date: Mon, 05 Apr 2010 12:59:53 -0700
+Message-ID: <201004051959.o35JxrPD005971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756245Ab0DETx1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:53:27 -0400
+	by vger.kernel.org with ESMTP id S1756452Ab0DEUAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 16:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, minchan.kim@gmail.com, torvalds@linux-foundation.org
+Cc: randy.dunlap@oracle.com, valentin.sitdikov@siemens.com, virtuoso@slind.org
 
 
 The patch titled
-     rmap: fix anon_vma_fork() memory leak
+     mb862xxfb: fix acceleration module license
 has been added to the -mm tree.  Its filename is
-     rmap-fix-anon_vma_fork-memory-leak.patch
+     mb862xxfb-fix-acceleration-module-license.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: fix anon_vma_fork() memory leak
-From: Rik van Riel <riel@redhat.com>
+Subject: mb862xxfb: fix acceleration module license
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix a memory leak in anon_vma_fork(), where we fail to tear down the
-anon_vmas attached to the new VMA in case setting up the new anon_vma
-fails.
+mb862xxfb_accel built as a separate module, but it does not have a
+MODULE_LICENSE, so it taints the kernel.  Add a MODULE_LICENSE to it (same
+as mb862xxfb license).
 
-This bug also has the potential to leave behind anon_vma_chain structs
-with pointers to invalid memory.
+mb862xxfb_accel: module license 'unspecified' taints kernel.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Or should mb862xxfb_accel be built into the mb862xxfb binary file instead?
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alexander Shishkin <virtuoso@slind.org>
+Cc: Valentin Sitdikov <valentin.sitdikov@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/mb862xx/mb862xxfb_accel.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/rmap.c~rmap-fix-anon_vma_fork-memory-leak mm/rmap.c
---- a/mm/rmap.c~rmap-fix-anon_vma_fork-memory-leak
-+++ a/mm/rmap.c
-@@ -232,6 +232,7 @@ int anon_vma_fork(struct vm_area_struct 
-  out_error_free_anon_vma:
- 	anon_vma_free(anon_vma);
-  out_error:
-+	unlink_anon_vmas(vma);
- 	return -ENOMEM;
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-fix-acceleration-module-license drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-fix-acceleration-module-license
++++ a/drivers/video/mb862xx/mb862xxfb_accel.c
+@@ -16,6 +16,7 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #if defined(CONFIG_OF)
+@@ -330,3 +331,5 @@ void mb862xxfb_init_accel(struct fb_info
+ 	info->fix.accel = 0xff;	/*FIXME: add right define */
  }
- 
+ EXPORT_SYMBOL(mb862xxfb_init_accel);
++
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-rmap-fix-anon_vma_fork-memory-leak.patch
-exit-fix-oops-in-sync_mm_rss.patch
-exit-fix-oops-in-sync_mm_rss-fix.patch
-mm-revert-vmscan-get_scan_ratio-cleanup.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
+origin.patch
+linux-next.patch
+mb862xxfb-fix-acceleration-module-license.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
+usb-fix-serial-build-when-sysrq-is-disabled.patch
+kernelh-convert-rounding-macros-to-statement-expressions-add-add_mod.patch
+xen-fix-build-when-sysrq-is-disabled.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
