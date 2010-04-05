@@ -1,116 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fbdev-section-cleanup-in-hgafb.patch removed from -mm tree
-Date: Mon, 05 Apr 2010 12:25:11 -0700
-Message-ID: <201004051925.o35JPBIo004271@imap1.linux-foundation.org>
+Subject: [to-be-updated] fbdev-section-cleanup-in-vesafb.patch removed from -mm tree
+Date: Mon, 05 Apr 2010 12:25:15 -0700
+Message-ID: <201004051925.o35JPG7Z004281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755775Ab0DETZl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:25:41 -0400
+	by vger.kernel.org with ESMTP id S1755775Ab0DETZk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: henne@nachtwindheim.de, arnaud.patard@rtp-net.org, fero@drama.obuda.kando.hu, mm-commits@vger.kernel.org
+To: henne@nachtwindheim.de, arnaud.patard@rtp-net.org, pjones@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: hgafb: fix section mismatches
+     fbdev: vesafb: fix section mismatches
 has been removed from the -mm tree.  Its filename was
-     fbdev-section-cleanup-in-hgafb.patch
+     fbdev-section-cleanup-in-vesafb.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: hgafb: fix section mismatches
+Subject: fbdev: vesafb: fix section mismatches
 From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Fix section mismatches in the hgafb driver.
+Fix section mismatches in the vesafb driver.
 
-WARNING: drivers/video/hgafb.o(.devinit.text+0x18): Section mismatch in referenc
-e from the function hgafb_probe() to the function .init.text:hga_card_detect()
-The function __devinit hgafb_probe() references
-a function __init hga_card_detect().
-If hga_card_detect is only used by hgafb_probe then
-annotate hga_card_detect with a matching annotation.
+WARNING: drivers/video/built-in.o(.devinit.text+0x19495): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_fix
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_fix.
+If vesafb_fix is only used by vesafb_probe then
+annotate vesafb_fix with a matching annotation.
 
-WARNING: drivers/video/hgafb.o(.devinit.text+0xfe): Section mismatch in referenc
-e from the function hgafb_probe() to the variable .init.data:hga_fix
-The function __devinit hgafb_probe() references
-a variable __initdata hga_fix.
-If hga_fix is only used by hgafb_probe then
-annotate hga_fix with a matching annotation.
+WARNING: drivers/video/built-in.o(.devinit.text+0x194a5): Section mismatch in reference from the function vesafb_probe() to the (unknown reference) .init.data:(unknown)
+The function __devinit vesafb_probe() references
+a (unknown reference) __initdata (unknown).
+If (unknown) is only used by vesafb_probe then
+annotate (unknown) with a matching annotation.
 
-WARNING: drivers/video/hgafb.o(.devinit.text+0x105): Section mismatch in reference from the function hgafb_probe() to the variable .init.data:hga_default_var
-The function __devinit hgafb_probe() references
-a variable __initdata hga_default_var.
-If hga_default_var is only used by hgafb_probe then
-annotate hga_default_var with a matching annotation.
+WARNING: drivers/video/built-in.o(.devinit.text+0x194d5): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_defined
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_defined.
+If vesafb_defined is only used by vesafb_probe then
+annotate vesafb_defined with a matching annotation.
+
+...
+fbdev: section cleanup in vesafb
+
+This patch cleans up the sections in the vesafb driver.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x19495): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_fix
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_fix.
+If vesafb_fix is only used by vesafb_probe then
+annotate vesafb_fix with a matching annotation.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x194a5): Section mismatch in reference from the function vesafb_probe() to the (unknown reference) .init.data:(unknown)
+The function __devinit vesafb_probe() references
+a (unknown reference) __initdata (unknown).
+If (unknown) is only used by vesafb_probe then
+annotate (unknown) with a matching annotation.
+
+WARNING: drivers/video/built-in.o(.devinit.text+0x194d5): Section mismatch in reference from the function vesafb_probe() to the variable .init.data:vesafb_defined
+The function __devinit vesafb_probe() references
+a variable __initdata vesafb_defined.
+If vesafb_defined is only used by vesafb_probe then
+annotate vesafb_defined with a matching annotation.
+
+...
 
 Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: Ferenc Bakonyi <fero@drama.obuda.kando.hu>
+Cc: Peter Jones <pjones@redhat.com>
 Cc: Arnaud Patard <arnaud.patard@rtp-net.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hgafb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/vesafb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/hgafb.c~fbdev-section-cleanup-in-hgafb drivers/video/hgafb.c
---- a/drivers/video/hgafb.c~fbdev-section-cleanup-in-hgafb
-+++ a/drivers/video/hgafb.c
-@@ -106,7 +106,7 @@ static DEFINE_SPINLOCK(hga_reg_lock);
+diff -puN drivers/video/vesafb.c~fbdev-section-cleanup-in-vesafb drivers/video/vesafb.c
+--- a/drivers/video/vesafb.c~fbdev-section-cleanup-in-vesafb
++++ a/drivers/video/vesafb.c
+@@ -29,7 +29,7 @@
  
- /* Framebuffer driver structures */
+ /* --------------------------------------------------------------------- */
  
--static struct fb_var_screeninfo __initdata hga_default_var = {
-+static struct fb_var_screeninfo hga_default_var __devinitdata = {
- 	.xres		= 720,
- 	.yres 		= 348,
- 	.xres_virtual 	= 720,
-@@ -120,7 +120,7 @@ static struct fb_var_screeninfo __initda
- 	.width 		= -1,
+-static struct fb_var_screeninfo vesafb_defined __initdata = {
++static struct fb_var_screeninfo vesafb_defined __devinitdata = {
+ 	.activate	= FB_ACTIVATE_NOW,
+ 	.height		= -1,
+ 	.width		= -1,
+@@ -40,7 +40,7 @@ static struct fb_var_screeninfo vesafb_d
+ 	.vmode		= FB_VMODE_NONINTERLACED,
  };
  
--static struct fb_fix_screeninfo __initdata hga_fix = {
-+static struct fb_fix_screeninfo hga_fix __devinitdata = {
- 	.id 		= "HGA",
- 	.type 		= FB_TYPE_PACKED_PIXELS,	/* (not sure) */
- 	.visual 	= FB_VISUAL_MONO10,
-@@ -276,7 +276,7 @@ static void hga_blank(int blank_mode)
- 	spin_unlock_irqrestore(&hga_reg_lock, flags);
- }
+-static struct fb_fix_screeninfo vesafb_fix __initdata = {
++static struct fb_fix_screeninfo vesafb_fix __devinitdata = {
+ 	.id	= "VESA VGA",
+ 	.type	= FB_TYPE_PACKED_PIXELS,
+ 	.accel	= FB_ACCEL_NONE,
+@@ -48,8 +48,8 @@ static struct fb_fix_screeninfo vesafb_f
  
--static int __init hga_card_detect(void)
-+static int __devinit hga_card_detect(void)
- {
- 	int count = 0;
- 	void __iomem *p, *q;
-@@ -596,7 +596,7 @@ static int __devinit hgafb_probe(struct 
- 	return 0;
- }
- 
--static int hgafb_remove(struct platform_device *pdev)
-+static int __devexit hgafb_remove(struct platform_device *pdev)
- {
- 	struct fb_info *info = platform_get_drvdata(pdev);
- 
-@@ -621,7 +621,7 @@ static int hgafb_remove(struct platform_
- 
- static struct platform_driver hgafb_driver = {
- 	.probe = hgafb_probe,
--	.remove = hgafb_remove,
-+	.remove = __devexit_p(hgafb_remove),
- 	.driver = {
- 		.name = "hgafb",
- 	},
+ static int   inverse    __read_mostly;
+ static int   mtrr       __read_mostly;		/* disable mtrr */
+-static int   vram_remap __initdata;		/* Set amount of memory to be used */
+-static int   vram_total __initdata;		/* Set total amount of memory */
++static int   vram_remap __devinitdata;		/* Set amount of memory to be used */
++static int   vram_total __devinitdata;		/* Set total amount of memory */
+ static int   pmi_setpal __read_mostly = 1;	/* pmi for palette changes ??? */
+ static int   ypan       __read_mostly;		/* 0..nothing, 1..ypan, 2..ywrap */
+ static void  (*pmi_start)(void) __read_mostly;
 _
 
 Patches currently in -mm which might be from henne@nachtwindheim.de are
 
 linux-next.patch
-fbdev-section-cleanup-in-hgafb.patch
 fbdev-section-cleanup-in-vesafb.patch
 fbdev-section-cleanup-in-vfb.patch
 fbdev-section-cleanup-in-vga16fb.patch
