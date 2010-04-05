@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch added to -mm tree
-Date: Mon, 05 Apr 2010 15:25:47 -0700
-Message-ID: <201004052252.o35MqfoQ013829@imap1.linux-foundation.org>
+Subject: + hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch added to -mm tree
+Date: Mon, 05 Apr 2010 15:26:51 -0700
+Message-ID: <201004052253.o35Mrjrc013943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756589Ab0DEWxS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 18:53:18 -0400
+	by vger.kernel.org with ESMTP id S1756589Ab0DEWyH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 18:54:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, pavel@ucw.cz, rpurdie@rpsys.net, samuel.thibault@ens-lyon.org
+Cc: akpm@linux-foundation.org, khali@linux-fr.org, sfking@fdwdc.com, w.sang@pengutronix.de
 
 
 The patch titled
-     leds-route-kbd-leds-through-the-generic-leds-layer-fix
+     hwmon-driver-for-ti-tmp102-temperature-sensor-fix
 has been added to the -mm tree.  Its filename is
-     leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+     hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-route-kbd-leds-through-the-generic-leds-layer-fix
+Subject: hwmon-driver-for-ti-tmp102-temperature-sensor-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix build
-
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Steven King <sfking@fdwdc.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-input.c |    1 +
+ drivers/hwmon/tmp102.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix drivers/leds/leds-input.c
---- a/drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix
-+++ a/drivers/leds/leds-input.c
-@@ -10,6 +10,7 @@
+diff -puN drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix drivers/hwmon/tmp102.c
+--- a/drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix
++++ a/drivers/hwmon/tmp102.c
+@@ -21,6 +21,7 @@
  
- #include <linux/kernel.h>
+ #include <linux/module.h>
  #include <linux/init.h>
 +#include <linux/slab.h>
- #include <linux/leds.h>
- #include <linux/input.h>
- 
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +98,7 @@ firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
 davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
 checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
 hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
 rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
 gpiolib-make-names-array-and-its-values-const-fix.patch
 memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
