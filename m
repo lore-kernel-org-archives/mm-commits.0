@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ir-keytable-avoid-double-lock.patch added to -mm tree
-Date: Mon, 05 Apr 2010 12:42:56 -0700
-Message-ID: <201004051942.o35Jgu2X005183@imap1.linux-foundation.org>
+Subject: + wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch added to -mm tree
+Date: Mon, 05 Apr 2010 12:45:44 -0700
+Message-ID: <201004051945.o35JjiaU005294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756138Ab0DETnY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:43:24 -0400
+	by vger.kernel.org with ESMTP id S1756104Ab0DETpy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 15:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, dtor@mail.ru, mchehab@infradead.org
+Cc: error27@gmail.com, James.Bottomley@suse.de, zaga@fly.cc.fer.hr
 
 
 The patch titled
-     ir-keytable: avoid double lock
+     wd7000: typo spin_unlock_irq() => spin_lock_irq()
 has been added to the -mm tree.  Its filename is
-     ir-keytable-avoid-double-lock.patch
+     wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ir-keytable: avoid double lock
+Subject: wd7000: typo spin_unlock_irq() => spin_lock_irq()
 From: Dan Carpenter <error27@gmail.com>
 
-It's possible that we wanted to resize to a smaller size but we didn't
-have enough memory to create the new table.  We need to test for that here
-so we don't try to lock twice and dead lock.  Also we free the "oldkeymap"
-on that path and that would be bad.
+This was introduced back in 2005 at the very start of the git era by:
+	df0ae2497ddefd72a87f3a3b34ff32455d7d4ae0
+	[SCSI] allow sleeping in ->eh_host_reset_handler()
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Miroslav Zagorac <zaga@fly.cc.fer.hr>
+Cc: "James E.J. Bottomley" <James.Bottomley@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/IR/ir-keytable.c |    2 +-
+ drivers/scsi/wd7000.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/IR/ir-keytable.c~ir-keytable-avoid-double-lock drivers/media/IR/ir-keytable.c
---- a/drivers/media/IR/ir-keytable.c~ir-keytable-avoid-double-lock
-+++ a/drivers/media/IR/ir-keytable.c
-@@ -217,7 +217,7 @@ static void ir_delete_key(struct ir_scan
- 		memcpy(&newkeymap[elem], &oldkeymap[elem + 1],
- 		       (newsize - elem) * sizeof(*newkeymap));
+diff -puN drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq drivers/scsi/wd7000.c
+--- a/drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq
++++ a/drivers/scsi/wd7000.c
+@@ -1587,7 +1587,7 @@ static int wd7000_host_reset(struct scsi
+ {
+ 	Adapter *host = (Adapter *) SCpnt->device->host->hostdata;
  
--	if (resize) {
-+	if (resize && newkeymap != oldkeymap) {
- 		/*
- 		 * As the copy happened to a temporary table, only here
- 		 * it needs to lock while replacing the table pointers
+-	spin_unlock_irq(SCpnt->device->host->host_lock);
++	spin_lock_irq(SCpnt->device->host->host_lock);
+ 
+ 	if (wd7000_adapter_reset(host) < 0) {
+ 		spin_unlock_irq(SCpnt->device->host->host_lock);
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
@@ -89,6 +88,7 @@ backlight-backlight_device_register-return-err_ptr.patch
 s390-potential-buffer-overflow.patch
 scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
 iscsi-change-to.patch
+wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
 drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
 drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
 musb-potential-use-after-free.patch
@@ -98,5 +98,4 @@ usb-oxu210hp-release-spinlock-on-error-path.patch
 dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
 sis-strcpy-=-strlcpy.patch
 proc-cleanup-remove-unused-assignments.patch
-wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
 
