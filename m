@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch added to -mm tree
-Date: Mon, 05 Apr 2010 15:26:51 -0700
-Message-ID: <201004052253.o35Mrjrc013943@imap1.linux-foundation.org>
+Subject: + asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix.patch added to -mm tree
+Date: Mon, 05 Apr 2010 16:09:18 -0700
+Message-ID: <201004052336.o35NaD9c015795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756589Ab0DEWyH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 18:54:07 -0400
+	by vger.kernel.org with ESMTP id S1756919Ab0DEXg6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Apr 2010 19:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, khali@linux-fr.org, sfking@fdwdc.com, w.sang@pengutronix.de
+Cc: akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, linux@arm.linux.org.uk, mattst88@gmail.com, paulus@samba.org, rth@twiddle.net
 
 
 The patch titled
-     hwmon-driver-for-ti-tmp102-temperature-sensor-fix
+     asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix
 has been added to the -mm tree.  Its filename is
-     hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+     asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-driver-for-ti-tmp102-temperature-sensor-fix
+Subject: asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Steven King <sfking@fdwdc.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/tmp102.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix drivers/hwmon/tmp102.c
---- a/drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix
-+++ a/drivers/hwmon/tmp102.c
-@@ -21,6 +21,7 @@
+diff -puN arch/x86/Kconfig~asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix arch/x86/Kconfig
+--- a/arch/x86/Kconfig~asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix
++++ a/arch/x86/Kconfig
+@@ -103,7 +103,7 @@ config NEED_DMA_MAP_STATE
+        def_bool (X86_64 || DMAR || DMA_API_DEBUG)
  
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/slab.h>
- #include <linux/i2c.h>
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
+ config NEED_SG_DMA_LENGTH
+-	def_bool X86_64
++	def_bool y
+ 
+ config GENERIC_ISA_DMA
+ 	def_bool y
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +112,7 @@ proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
 fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+asm-generic-add-need_sg_dma_length-to-define-sg_dma_len-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
 reiser4-writeback_inodes-implementation-fix.patch
