@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mips-use-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:26:59 -0700
-Message-ID: <201004061926.o36JQxZh003492@imap1.linux-foundation.org>
+Subject: + m68k-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:26:56 -0700
+Message-ID: <201004061926.o36JQutS003488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756765Ab0DFT1L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:11 -0400
+	by vger.kernel.org with ESMTP id S1756765Ab0DFT1P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, ralf@linux-mips.org
+Cc: fujita.tomonori@lab.ntt.co.jp, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     mips: use use asm-generic/scatterlist.h
+     m68k: use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     mips-use-use-asm-generic-scatterlisth.patch
+     m68k-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: use use asm-generic/scatterlist.h
+Subject: m68k: use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/scatterlist.h |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ arch/m68k/include/asm/scatterlist.h |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN arch/mips/include/asm/scatterlist.h~mips-use-use-asm-generic-scatterlisth arch/mips/include/asm/scatterlist.h
---- a/arch/mips/include/asm/scatterlist.h~mips-use-use-asm-generic-scatterlisth
-+++ a/arch/mips/include/asm/scatterlist.h
-@@ -1,27 +1,7 @@
- #ifndef __ASM_SCATTERLIST_H
- #define __ASM_SCATTERLIST_H
+diff -puN arch/m68k/include/asm/scatterlist.h~m68k-use-asm-generic-scatterlisth arch/m68k/include/asm/scatterlist.h
+--- a/arch/m68k/include/asm/scatterlist.h~m68k-use-asm-generic-scatterlisth
++++ a/arch/m68k/include/asm/scatterlist.h
+@@ -1,23 +1,9 @@
+ #ifndef _M68K_SCATTERLIST_H
+ #define _M68K_SCATTERLIST_H
  
--#include <asm/types.h>
+-#include <linux/types.h>
 -
 -struct scatterlist {
 -#ifdef CONFIG_DEBUG_SG
--	unsigned long	sg_magic;
+-	unsigned long sg_magic;
 -#endif
--	unsigned long	page_link;
--	unsigned int	offset;
--	dma_addr_t	dma_address;
--	unsigned int	length;
--};
+-	unsigned long page_link;
+-	unsigned int offset;
+-	unsigned int length;
 -
--/*
-- * These macros should be used after a pci_map_sg call has been done
-- * to get bus addresses of each of the SG entries and their lengths.
-- * You should only work with the number of sg entries pci_map_sg
-- * returns, or alternatively stop on the first sg_dma_len(sg) which
-- * is 0.
-- */
--#define sg_dma_address(sg)	((sg)->dma_address)
--#define sg_dma_len(sg)		((sg)->length)
+-	dma_addr_t dma_address;	/* A place to hang host-specific addresses at. */
+-};
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD (0x00ffffffUL)
+ /* This is bogus and should go away. */
+ #define ISA_DMA_THRESHOLD (0x00ffffff)
  
+-#define sg_dma_address(sg)	((sg)->dma_address)
+-#define sg_dma_len(sg)		((sg)->length)
+-
+ #endif /* !(_M68K_SCATTERLIST_H) */
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
