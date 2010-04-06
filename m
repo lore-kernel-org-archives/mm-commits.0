@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:26:46 -0700
-Message-ID: <201004061926.o36JQkNL003474@imap1.linux-foundation.org>
+Subject: + cris-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:26:49 -0700
+Message-ID: <201004061926.o36JQnja003477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224Ab0DFT0w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:26:52 -0400
+	by vger.kernel.org with ESMTP id S1753224Ab0DFT1B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, hskinnemoen@atmel.com
+Cc: fujita.tomonori@lab.ntt.co.jp, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     avr32: use asm-generic/scatterlist.h
+     cris: use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     avr32-use-asm-generic-scatterlisth.patch
+     cris-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avr32: use asm-generic/scatterlist.h
+Subject: cris: use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/scatterlist.h |   20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ arch/cris/include/asm/scatterlist.h |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN arch/avr32/include/asm/scatterlist.h~avr32-use-asm-generic-scatterlisth arch/avr32/include/asm/scatterlist.h
---- a/arch/avr32/include/asm/scatterlist.h~avr32-use-asm-generic-scatterlisth
-+++ a/arch/avr32/include/asm/scatterlist.h
-@@ -1,25 +1,7 @@
- #ifndef __ASM_AVR32_SCATTERLIST_H
- #define __ASM_AVR32_SCATTERLIST_H
+diff -puN arch/cris/include/asm/scatterlist.h~cris-use-asm-generic-scatterlisth arch/cris/include/asm/scatterlist.h
+--- a/arch/cris/include/asm/scatterlist.h~cris-use-asm-generic-scatterlisth
++++ a/arch/cris/include/asm/scatterlist.h
+@@ -1,22 +1,7 @@
+ #ifndef __ASM_CRIS_SCATTERLIST_H
+ #define __ASM_CRIS_SCATTERLIST_H
  
--#include <asm/types.h>
--
 -struct scatterlist {
 -#ifdef CONFIG_DEBUG_SG
--   unsigned long	sg_magic;
+-	unsigned long sg_magic;
 -#endif
--    unsigned long	page_link;
--    unsigned int	offset;
--    dma_addr_t		dma_address;
--    unsigned int	length;
+-	char *  address;    /* Location data is to be transferred to */
+-	unsigned int length;
+-
+-	/* The following is i386 highmem junk - not used by us */
+-	unsigned long page_link;
+-	unsigned int offset;/* for highmem, page offset */
+-
 -};
 -
--/* These macros should be used after a pci_map_sg call has been done
-- * to get bus addresses of each of the SG entries and their lengths.
-- * You should only work with the number of sg entries pci_map_sg
-- * returns.
-- */
--#define sg_dma_address(sg)	((sg)->dma_address)
+-#define sg_dma_address(sg)	((sg)->address)
 -#define sg_dma_len(sg)		((sg)->length)
+-/* i386 junk */
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD (0xffffffff)
+ #define ISA_DMA_THRESHOLD (0x1fffffff)
  
 _
 
