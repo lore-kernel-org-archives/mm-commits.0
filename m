@@ -1,61 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mxser-spin_lock-=-spin_lock_irq-fix.patch removed from -mm tree
-Date: Tue, 06 Apr 2010 14:31:18 -0700
-Message-ID: <201004062131.o36LVIMa009359@imap1.linux-foundation.org>
+Subject: [folded] ratelimit-annotate-___ratelimit-fix.patch removed from -mm tree
+Date: Tue, 06 Apr 2010 14:31:49 -0700
+Message-ID: <201004062131.o36LVnBc009380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756946Ab0DFVb5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 17:31:57 -0400
+	by vger.kernel.org with ESMTP id S932085Ab0DFVc0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 17:32:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, error27@gmail.com, greg@kroah.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu, yong.zhang@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mxser-spin_lock-=-spin_lock_irq-fix
+     ratelimit-annotate-___ratelimit-fix
 has been removed from the -mm tree.  Its filename was
-     mxser-spin_lock-=-spin_lock_irq-fix.patch
+     ratelimit-annotate-___ratelimit-fix.patch
 
-This patch was dropped because it was folded into mxser-spin_lock-=-spin_lock_irq.patch
+This patch was dropped because it was folded into ratelimit-annotate-___ratelimit.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mxser-spin_lock-=-spin_lock_irq-fix
+Subject: ratelimit-annotate-___ratelimit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix the MOXA_ASPP_MON case too (per Jiri)
+fix spello
 
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yong Zhang <yong.zhang@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/ratelimit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix
-+++ a/drivers/char/mxser.c
-@@ -1778,12 +1778,12 @@ static int mxser_ioctl(struct tty_struct
- 	case MOXA_ASPP_MON: {
- 		int mcr, status;
- 
--		spin_lock(&info->slock);
-+		spin_lock_irq(&info->slock);
- 		status = mxser_get_msr(info->ioaddr, 1, tty->index);
- 		mxser_check_modem_status(tty, info, status);
- 
- 		mcr = inb(info->ioaddr + UART_MCR);
--		spin_unlock(&info->slock);
-+		spin_unlock_irq(&info->slock);
- 
- 		if (mcr & MOXA_MUST_MCR_XON_FLAG)
- 			info->mon_data.hold_reason &= ~NPPI_NOTIFY_XOFFHOLD;
+diff -puN lib/ratelimit.c~ratelimit-annotate-___ratelimit-fix lib/ratelimit.c
+--- a/lib/ratelimit.c~ratelimit-annotate-___ratelimit-fix
++++ a/lib/ratelimit.c
+@@ -22,7 +22,7 @@
+  * in every @rs->interval
+  *
+  * RETURNS:
+- * 0 means callbacks will be suppuressed.
++ * 0 means callbacks will be suppressed.
+  * 1 means go ahead and do it.
+  */
+ int ___ratelimit(struct ratelimit_state *rs, const char *func)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,8 +58,8 @@ bitops-remove-temporary-for_each_bit.patch
 exit-fix-oops-in-sync_mm_rss.patch
 drivers-char-amiserialc-add-missing-local_irq_restore.patch
 mxser-spin_lock-=-spin_lock_irq.patch
-mxser-spin_lock-=-spin_lock_irq-fix.patch
 vfs-rename-block_fsync-to-blkdev_fsync.patch
+ratelimit-annotate-___ratelimit.patch
 ratelimit-annotate-___ratelimit-fix.patch
 rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
 linux-next.patch
