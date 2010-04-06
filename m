@@ -1,54 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ratelimit-annotate-___ratelimit-fix.patch removed from -mm tree
-Date: Tue, 06 Apr 2010 14:31:49 -0700
-Message-ID: <201004062131.o36LVnBc009380@imap1.linux-foundation.org>
+Subject: [folded] rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 06 Apr 2010 14:32:13 -0700
+Message-ID: <201004062132.o36LWDWP009404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932085Ab0DFVc0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 17:32:26 -0400
+	by vger.kernel.org with ESMTP id S1756836Ab0DFVc7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 17:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu, yong.zhang@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, daniel@caiaq.de, vzapolskiy@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ratelimit-annotate-___ratelimit-fix
+     rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ratelimit-annotate-___ratelimit-fix.patch
+     rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ratelimit-annotate-___ratelimit.patch
+This patch was dropped because it was folded into rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ratelimit-annotate-___ratelimit-fix
+Subject: rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix spello
+ERROR: code indent should use tabs where possible
+#45: FILE: drivers/rtc/rtc-mxc.c:398:
++^I                             resource_size(res), pdev->name))$
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Yong Zhang <yong.zhang@windriver.com>
+ERROR: code indent should use tabs where possible
+#49: FILE: drivers/rtc/rtc-mxc.c:402:
++^I                             resource_size(res));$
+
+ERROR: code indent should use tabs where possible
+#74: FILE: drivers/rtc/rtc-mxc.c:457:
++^I                     IRQF_SHARED, pdev->name, pdev) < 0) {$
+
+total: 3 errors, 0 warnings, 72 lines checked
+
+./patches/rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Vladimir Zapolskiy <vzapolskiy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mxc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/ratelimit.c~ratelimit-annotate-___ratelimit-fix lib/ratelimit.c
---- a/lib/ratelimit.c~ratelimit-annotate-___ratelimit-fix
-+++ a/lib/ratelimit.c
-@@ -22,7 +22,7 @@
-  * in every @rs->interval
-  *
-  * RETURNS:
-- * 0 means callbacks will be suppuressed.
-+ * 0 means callbacks will be suppressed.
-  * 1 means go ahead and do it.
-  */
- int ___ratelimit(struct ratelimit_state *rs, const char *func)
+diff -puN drivers/rtc/rtc-mxc.c~rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes
++++ a/drivers/rtc/rtc-mxc.c
+@@ -396,11 +396,11 @@ static int __init mxc_rtc_probe(struct p
+ 		return -ENOMEM;
+ 
+ 	if (!devm_request_mem_region(&pdev->dev, res->start,
+-	                             resource_size(res), pdev->name))
++				     resource_size(res), pdev->name))
+ 		return -EBUSY;
+ 
+ 	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start,
+-	                             resource_size(res));
++				     resource_size(res));
+ 
+ 	clk = clk_get(&pdev->dev, "ckil");
+ 	if (IS_ERR(clk)) {
+@@ -455,7 +455,7 @@ static int __init mxc_rtc_probe(struct p
+ 
+ 	if (pdata->irq >= 0 &&
+ 	    devm_request_irq(&pdev->dev, pdata->irq, mxc_rtc_interrupt,
+-	                     IRQF_SHARED, pdev->name, pdev) < 0) {
++			     IRQF_SHARED, pdev->name, pdev) < 0) {
+ 		dev_warn(&pdev->dev, "interrupt not available.\n");
+ 		pdata->irq = -1;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +92,7 @@ drivers-char-amiserialc-add-missing-local_irq_restore.patch
 mxser-spin_lock-=-spin_lock_irq.patch
 vfs-rename-block_fsync-to-blkdev_fsync.patch
 ratelimit-annotate-___ratelimit.patch
-ratelimit-annotate-___ratelimit-fix.patch
+rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method.patch
 rtc-mxc-multiple-fixes-in-rtc-mxc-probe-method-checkpatch-fixes.patch
 linux-next.patch
 linux-next-git-rejects.patch
