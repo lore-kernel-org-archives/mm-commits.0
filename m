@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:27:02 -0700
-Message-ID: <201004061927.o36JR245003496@imap1.linux-foundation.org>
+Subject: + blackfin-use-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:27:04 -0700
+Message-ID: <201004061927.o36JR4ue003499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224Ab0DFT1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:05 -0400
+	by vger.kernel.org with ESMTP id S1753224Ab0DFT1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, chris@zankel.net
+Cc: fujita.tomonori@lab.ntt.co.jp, vapier@gentoo.org
 
 
 The patch titled
-     xtensa: use use asm-generic/scatterlist.h
+     blackfin: use use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     xtensa-use-use-asm-generic-scatterlisth.patch
+     blackfin-use-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use use asm-generic/scatterlist.h
+Subject: blackfin: use use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/scatterlist.h |   23 +----------------------
- 1 file changed, 1 insertion(+), 22 deletions(-)
+ arch/blackfin/include/asm/scatterlist.h |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN arch/xtensa/include/asm/scatterlist.h~xtensa-use-use-asm-generic-scatterlisth arch/xtensa/include/asm/scatterlist.h
---- a/arch/xtensa/include/asm/scatterlist.h~xtensa-use-use-asm-generic-scatterlisth
-+++ a/arch/xtensa/include/asm/scatterlist.h
-@@ -11,28 +11,7 @@
- #ifndef _XTENSA_SCATTERLIST_H
- #define _XTENSA_SCATTERLIST_H
+diff -puN arch/blackfin/include/asm/scatterlist.h~blackfin-use-use-asm-generic-scatterlisth arch/blackfin/include/asm/scatterlist.h
+--- a/arch/blackfin/include/asm/scatterlist.h~blackfin-use-use-asm-generic-scatterlisth
++++ a/arch/blackfin/include/asm/scatterlist.h
+@@ -1,27 +1,7 @@
+ #ifndef _BLACKFIN_SCATTERLIST_H
+ #define _BLACKFIN_SCATTERLIST_H
  
--#include <asm/types.h>
+-#include <linux/mm.h>
 -
 -struct scatterlist {
 -#ifdef CONFIG_DEBUG_SG
--	unsigned long	sg_magic;
+-	unsigned long sg_magic;
 -#endif
--	unsigned long	page_link;
--	unsigned int	offset;
--	dma_addr_t	dma_address;
--	unsigned int	length;
+-	unsigned long page_link;
+-	unsigned int offset;
+-	dma_addr_t dma_address;
+-	unsigned int length;
 -};
 -
 -/*
@@ -72,10 +72,9 @@ diff -puN arch/xtensa/include/asm/scatterlist.h~xtensa-use-use-asm-generic-scatt
 - */
 -#define sg_dma_address(sg)      ((sg)->dma_address)
 -#define sg_dma_len(sg)          ((sg)->length)
--
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD (~0UL)
+ #define ISA_DMA_THRESHOLD	(0xffffffff)
  
 _
 
