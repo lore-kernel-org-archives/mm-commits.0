@@ -1,58 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] exit-fix-oops-in-sync_mm_rss-fix.patch removed from -mm tree
-Date: Tue, 06 Apr 2010 14:30:46 -0700
-Message-ID: <201004062130.o36LUkw4009329@imap1.linux-foundation.org>
+Subject: [folded] mxser-spin_lock-=-spin_lock_irq-fix.patch removed from -mm tree
+Date: Tue, 06 Apr 2010 14:31:18 -0700
+Message-ID: <201004062131.o36LVIMa009359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756836Ab0DFVbc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 17:31:32 -0400
+	by vger.kernel.org with ESMTP id S1756946Ab0DFVb5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 17:31:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, tlb@rapanden.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, error27@gmail.com, greg@kroah.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exit-fix-oops-in-sync_mm_rss-fix
+     mxser-spin_lock-=-spin_lock_irq-fix
 has been removed from the -mm tree.  Its filename was
-     exit-fix-oops-in-sync_mm_rss-fix.patch
+     mxser-spin_lock-=-spin_lock_irq-fix.patch
 
-This patch was dropped because it was folded into exit-fix-oops-in-sync_mm_rss.patch
+This patch was dropped because it was folded into mxser-spin_lock-=-spin_lock_irq.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit-fix-oops-in-sync_mm_rss-fix
+Subject: mxser-spin_lock-=-spin_lock_irq-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Remove the BUG_ON(!mm->rss).  We know it isn't NULL and if it is, the
-  oops will tell us what happened.
+fix the MOXA_ASPP_MON case too (per Jiri)
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>                            
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Troels Liebe Bentsen <tlb@rapanden.dk>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/char/mxser.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~exit-fix-oops-in-sync_mm_rss-fix kernel/exit.c
-diff -puN kernel/fork.c~exit-fix-oops-in-sync_mm_rss-fix kernel/fork.c
-diff -puN mm/memory.c~exit-fix-oops-in-sync_mm_rss-fix mm/memory.c
---- a/mm/memory.c~exit-fix-oops-in-sync_mm_rss-fix
-+++ a/mm/memory.c
-@@ -131,7 +131,6 @@ static void __sync_task_rss_stat(struct 
+diff -puN drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-spin_lock-=-spin_lock_irq-fix
++++ a/drivers/char/mxser.c
+@@ -1778,12 +1778,12 @@ static int mxser_ioctl(struct tty_struct
+ 	case MOXA_ASPP_MON: {
+ 		int mcr, status;
  
- 	for (i = 0; i < NR_MM_COUNTERS; i++) {
- 		if (task->rss_stat.count[i]) {
--			BUG_ON(!mm);
- 			add_mm_counter(mm, i, task->rss_stat.count[i]);
- 			task->rss_stat.count[i] = 0;
- 		}
+-		spin_lock(&info->slock);
++		spin_lock_irq(&info->slock);
+ 		status = mxser_get_msr(info->ioaddr, 1, tty->index);
+ 		mxser_check_modem_status(tty, info, status);
+ 
+ 		mcr = inb(info->ioaddr + UART_MCR);
+-		spin_unlock(&info->slock);
++		spin_unlock_irq(&info->slock);
+ 
+ 		if (mcr & MOXA_MUST_MCR_XON_FLAG)
+ 			info->mon_data.hold_reason &= ~NPPI_NOTIFY_XOFFHOLD;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,8 +63,8 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 bitops-remove-temporary-for_each_bit.patch
 exit-fix-oops-in-sync_mm_rss.patch
-exit-fix-oops-in-sync_mm_rss-fix.patch
 drivers-char-amiserialc-add-missing-local_irq_restore.patch
+mxser-spin_lock-=-spin_lock_irq.patch
 mxser-spin_lock-=-spin_lock_irq-fix.patch
 vfs-rename-block_fsync-to-blkdev_fsync.patch
 ratelimit-annotate-___ratelimit-fix.patch
