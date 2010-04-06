@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:26:51 -0700
-Message-ID: <201004061926.o36JQpQ5003480@imap1.linux-foundation.org>
+Subject: + mips-use-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:26:59 -0700
+Message-ID: <201004061926.o36JQxZh003492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756765Ab0DFT1I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:08 -0400
+	by vger.kernel.org with ESMTP id S1756765Ab0DFT1L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, ysato@users.sourceforge.jp
+Cc: fujita.tomonori@lab.ntt.co.jp, ralf@linux-mips.org
 
 
 The patch titled
-     h8300: use asm-generic/scatterlist.h
+     mips: use use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     h8300-use-asm-generic-scatterlisth.patch
+     mips-use-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,23 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: use asm-generic/scatterlist.h
+Subject: mips: use use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/scatterlist.h |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ arch/mips/include/asm/scatterlist.h |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN arch/h8300/include/asm/scatterlist.h~h8300-use-asm-generic-scatterlisth arch/h8300/include/asm/scatterlist.h
---- a/arch/h8300/include/asm/scatterlist.h~h8300-use-asm-generic-scatterlisth
-+++ a/arch/h8300/include/asm/scatterlist.h
-@@ -1,17 +1,7 @@
- #ifndef _H8300_SCATTERLIST_H
- #define _H8300_SCATTERLIST_H
+diff -puN arch/mips/include/asm/scatterlist.h~mips-use-use-asm-generic-scatterlisth arch/mips/include/asm/scatterlist.h
+--- a/arch/mips/include/asm/scatterlist.h~mips-use-use-asm-generic-scatterlisth
++++ a/arch/mips/include/asm/scatterlist.h
+@@ -1,27 +1,7 @@
+ #ifndef __ASM_SCATTERLIST_H
+ #define __ASM_SCATTERLIST_H
  
 -#include <asm/types.h>
 -
@@ -62,9 +62,19 @@ diff -puN arch/h8300/include/asm/scatterlist.h~h8300-use-asm-generic-scatterlist
 -	dma_addr_t	dma_address;
 -	unsigned int	length;
 -};
+-
+-/*
+- * These macros should be used after a pci_map_sg call has been done
+- * to get bus addresses of each of the SG entries and their lengths.
+- * You should only work with the number of sg entries pci_map_sg
+- * returns, or alternatively stop on the first sg_dma_len(sg) which
+- * is 0.
+- */
+-#define sg_dma_address(sg)	((sg)->dma_address)
+-#define sg_dma_len(sg)		((sg)->length)
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD	(0xffffffff)
+ #define ISA_DMA_THRESHOLD (0x00ffffffUL)
  
 _
 
