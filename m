@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-use-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:26:53 -0700
-Message-ID: <201004061926.o36JQrZJ003483@imap1.linux-foundation.org>
+Subject: + h8300-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:26:51 -0700
+Message-ID: <201004061926.o36JQpQ5003480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57304 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757028Ab0DFT1J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:09 -0400
+	by vger.kernel.org with ESMTP id S1756765Ab0DFT1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, takata@linux-m32r.org
+Cc: fujita.tomonori@lab.ntt.co.jp, ysato@users.sourceforge.jp
 
 
 The patch titled
-     m32r: use use asm-generic/scatterlist.h
+     h8300: use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     m32r-use-use-asm-generic-scatterlisth.patch
+     h8300-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: use use asm-generic/scatterlist.h
+Subject: h8300: use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/scatterlist.h |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ arch/h8300/include/asm/scatterlist.h |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN arch/m32r/include/asm/scatterlist.h~m32r-use-use-asm-generic-scatterlisth arch/m32r/include/asm/scatterlist.h
---- a/arch/m32r/include/asm/scatterlist.h~m32r-use-use-asm-generic-scatterlisth
-+++ a/arch/m32r/include/asm/scatterlist.h
-@@ -1,20 +1,7 @@
- #ifndef _ASM_M32R_SCATTERLIST_H
- #define _ASM_M32R_SCATTERLIST_H
+diff -puN arch/h8300/include/asm/scatterlist.h~h8300-use-asm-generic-scatterlisth arch/h8300/include/asm/scatterlist.h
+--- a/arch/h8300/include/asm/scatterlist.h~h8300-use-asm-generic-scatterlisth
++++ a/arch/h8300/include/asm/scatterlist.h
+@@ -1,17 +1,7 @@
+ #ifndef _H8300_SCATTERLIST_H
+ #define _H8300_SCATTERLIST_H
  
 -#include <asm/types.h>
 -
 -struct scatterlist {
 -#ifdef CONFIG_DEBUG_SG
--    unsigned long sg_magic;
+-	unsigned long	sg_magic;
 -#endif
--    char *  address;    /* Location data is to be transferred to, NULL for
--                         * highmem page */
--    unsigned long page_link;
--    unsigned int offset;/* for highmem, page offset */
--
--    dma_addr_t dma_address;
--    unsigned int length;
+-	unsigned long	page_link;
+-	unsigned int	offset;
+-	dma_addr_t	dma_address;
+-	unsigned int	length;
 -};
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD (0x1fffffff)
+ #define ISA_DMA_THRESHOLD	(0xffffffff)
  
 _
 
