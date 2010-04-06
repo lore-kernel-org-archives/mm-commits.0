@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-use-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:27:04 -0700
-Message-ID: <201004061927.o36JR4ue003499@imap1.linux-foundation.org>
+Subject: + m32r-use-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:26:53 -0700
+Message-ID: <201004061926.o36JQrZJ003483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224Ab0DFT1I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:08 -0400
+	by vger.kernel.org with ESMTP id S1757028Ab0DFT1J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, vapier@gentoo.org
+Cc: fujita.tomonori@lab.ntt.co.jp, takata@linux-m32r.org
 
 
 The patch titled
-     blackfin: use use asm-generic/scatterlist.h
+     m32r: use use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     blackfin-use-use-asm-generic-scatterlisth.patch
+     m32r-use-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: use use asm-generic/scatterlist.h
+Subject: m32r: use use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/scatterlist.h |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ arch/m32r/include/asm/scatterlist.h |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN arch/blackfin/include/asm/scatterlist.h~blackfin-use-use-asm-generic-scatterlisth arch/blackfin/include/asm/scatterlist.h
---- a/arch/blackfin/include/asm/scatterlist.h~blackfin-use-use-asm-generic-scatterlisth
-+++ a/arch/blackfin/include/asm/scatterlist.h
-@@ -1,27 +1,7 @@
- #ifndef _BLACKFIN_SCATTERLIST_H
- #define _BLACKFIN_SCATTERLIST_H
+diff -puN arch/m32r/include/asm/scatterlist.h~m32r-use-use-asm-generic-scatterlisth arch/m32r/include/asm/scatterlist.h
+--- a/arch/m32r/include/asm/scatterlist.h~m32r-use-use-asm-generic-scatterlisth
++++ a/arch/m32r/include/asm/scatterlist.h
+@@ -1,20 +1,7 @@
+ #ifndef _ASM_M32R_SCATTERLIST_H
+ #define _ASM_M32R_SCATTERLIST_H
  
--#include <linux/mm.h>
+-#include <asm/types.h>
 -
 -struct scatterlist {
 -#ifdef CONFIG_DEBUG_SG
--	unsigned long sg_magic;
+-    unsigned long sg_magic;
 -#endif
--	unsigned long page_link;
--	unsigned int offset;
--	dma_addr_t dma_address;
--	unsigned int length;
--};
+-    char *  address;    /* Location data is to be transferred to, NULL for
+-                         * highmem page */
+-    unsigned long page_link;
+-    unsigned int offset;/* for highmem, page offset */
 -
--/*
-- * These macros should be used after a pci_map_sg call has been done
-- * to get bus addresses of each of the SG entries and their lengths.
-- * You should only work with the number of sg entries pci_map_sg
-- * returns, or alternatively stop on the first sg_dma_len(sg) which
-- * is 0.
-- */
--#define sg_dma_address(sg)      ((sg)->dma_address)
--#define sg_dma_len(sg)          ((sg)->length)
+-    dma_addr_t dma_address;
+-    unsigned int length;
+-};
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD	(0xffffffff)
+ #define ISA_DMA_THRESHOLD (0x1fffffff)
  
 _
 
