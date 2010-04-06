@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:27:08 -0700
-Message-ID: <201004061927.o36JR8Ve003510@imap1.linux-foundation.org>
+Subject: + parisc-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:27:11 -0700
+Message-ID: <201004061927.o36JRCiw003513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756527Ab0DFT1Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:24 -0400
+	by vger.kernel.org with ESMTP id S1756527Ab0DFT1b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com, yasutake.koichi@jp.panasonic.com
+Cc: fujita.tomonori@lab.ntt.co.jp, deller@gmx.de, jejb@parisc-linux.org, kyle@mcmartin.ca
 
 
 The patch titled
-     mn10300: use asm-generic/scatterlist.h
+     parisc: use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     mn10300-use-asm-generic-scatterlisth.patch
+     parisc-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: use asm-generic/scatterlist.h
+Subject: parisc: use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
+parisc uses iova and iova_length in scatterlist structure instead of
+dma_address and dma_length.  However, the accessor are used so we can
+convert parisc to use asm-generic/scatterlist.h easily.
+
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James E.J. Bottomley <jejb@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/scatterlist.h |   39 -----------------------
- 1 file changed, 1 insertion(+), 38 deletions(-)
+ arch/parisc/Kconfig                   |    3 +++
+ arch/parisc/include/asm/scatterlist.h |   20 ++------------------
+ 2 files changed, 5 insertions(+), 18 deletions(-)
 
-diff -puN arch/mn10300/include/asm/scatterlist.h~mn10300-use-asm-generic-scatterlisth arch/mn10300/include/asm/scatterlist.h
---- a/arch/mn10300/include/asm/scatterlist.h~mn10300-use-asm-generic-scatterlisth
-+++ a/arch/mn10300/include/asm/scatterlist.h
-@@ -11,45 +11,8 @@
- #ifndef _ASM_SCATTERLIST_H
- #define _ASM_SCATTERLIST_H
+diff -puN arch/parisc/Kconfig~parisc-use-asm-generic-scatterlisth arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~parisc-use-asm-generic-scatterlisth
++++ a/arch/parisc/Kconfig
+@@ -94,6 +94,9 @@ config STACKTRACE_SUPPORT
+ config NEED_DMA_MAP_STATE
+ 	def_bool y
  
--#include <asm/types.h>
++config NEED_SG_DMA_LENGTH
++	def_bool y
++
+ config ISA_DMA_API
+ 	bool
+ 
+diff -puN arch/parisc/include/asm/scatterlist.h~parisc-use-asm-generic-scatterlisth arch/parisc/include/asm/scatterlist.h
+--- a/arch/parisc/include/asm/scatterlist.h~parisc-use-asm-generic-scatterlisth
++++ a/arch/parisc/include/asm/scatterlist.h
+@@ -3,25 +3,9 @@
+ 
+ #include <asm/page.h>
+ #include <asm/types.h>
 -
--/*
-- * Drivers must set either ->address or (preferred) page and ->offset
-- * to indicate where data must be transferred to/from.
-- *
-- * Using page is recommended since it handles highmem data as well as
-- * low mem. ->address is restricted to data which has a virtual mapping, and
-- * it will go away in the future. Updating to page can be automated very
-- * easily -- something like
-- *
-- * sg->address = some_ptr;
-- *
-- * can be rewritten as
-- *
-- * sg_set_page(virt_to_page(some_ptr));
-- * sg->offset = (unsigned long) some_ptr & ~PAGE_MASK;
-- *
-- * and that's it. There's no excuse for not highmem enabling YOUR driver. /jens
-- */
 -struct scatterlist {
 -#ifdef CONFIG_DEBUG_SG
--	unsigned long	sg_magic;
+-	unsigned long sg_magic;
 -#endif
--	unsigned long	page_link;
--	unsigned int	offset;		/* for highmem, page offset */
--	dma_addr_t	dma_address;
--	unsigned int	length;
+-	unsigned long page_link;
+-	unsigned int offset;
+-
+-	unsigned int length;
+-
+-	/* an IOVA can be 64-bits on some PA-Risc platforms. */
+-	dma_addr_t iova;	/* I/O Virtual Address */
+-	__u32      iova_length; /* bytes mapped */
 -};
+-
+-#define sg_virt_addr(sg) ((unsigned long)sg_virt(sg))
+-#define sg_dma_address(sg) ((sg)->iova)
+-#define sg_dma_len(sg)     ((sg)->iova_length)
 +#include <asm-generic/scatterlist.h>
  
- #define ISA_DMA_THRESHOLD (0x00ffffff)
+ #define ISA_DMA_THRESHOLD (~0UL)
++#define sg_virt_addr(sg) ((unsigned long)sg_virt(sg))
  
--/*
-- * These macros should be used after a pci_map_sg call has been done
-- * to get bus addresses of each of the SG entries and their lengths.
-- * You should only work with the number of sg entries pci_map_sg
-- * returns.
-- */
--#define sg_dma_address(sg)	((sg)->dma_address)
--#define sg_dma_len(sg)		((sg)->length)
--
- #endif /* _ASM_SCATTERLIST_H */
+ #endif /* _ASM_PARISC_SCATTERLIST_H */
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
