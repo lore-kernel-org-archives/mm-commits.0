@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-use-asm-generic-scatterlisth.patch added to -mm tree
-Date: Tue, 06 Apr 2010 12:27:06 -0700
-Message-ID: <201004061927.o36JR6Yf003507@imap1.linux-foundation.org>
+Subject: + mn10300-use-asm-generic-scatterlisth.patch added to -mm tree
+Date: Tue, 06 Apr 2010 12:27:08 -0700
+Message-ID: <201004061927.o36JR8Ve003510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757176Ab0DFT1T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:19 -0400
+	by vger.kernel.org with ESMTP id S1756527Ab0DFT1Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 15:27:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com
+Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com, yasutake.koichi@jp.panasonic.com
 
 
 The patch titled
-     frv: use asm-generic/scatterlist.h
+     mn10300: use asm-generic/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     frv-use-asm-generic-scatterlisth.patch
+     mn10300-use-asm-generic-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,21 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use asm-generic/scatterlist.h
+Subject: mn10300: use asm-generic/scatterlist.h
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/scatterlist.h |   40 ---------------------------
- 1 file changed, 1 insertion(+), 39 deletions(-)
+ arch/mn10300/include/asm/scatterlist.h |   39 -----------------------
+ 1 file changed, 1 insertion(+), 38 deletions(-)
 
-diff -puN arch/frv/include/asm/scatterlist.h~frv-use-asm-generic-scatterlisth arch/frv/include/asm/scatterlist.h
---- a/arch/frv/include/asm/scatterlist.h~frv-use-asm-generic-scatterlisth
-+++ a/arch/frv/include/asm/scatterlist.h
-@@ -1,45 +1,7 @@
+diff -puN arch/mn10300/include/asm/scatterlist.h~mn10300-use-asm-generic-scatterlisth arch/mn10300/include/asm/scatterlist.h
+--- a/arch/mn10300/include/asm/scatterlist.h~mn10300-use-asm-generic-scatterlisth
++++ a/arch/mn10300/include/asm/scatterlist.h
+@@ -11,45 +11,8 @@
  #ifndef _ASM_SCATTERLIST_H
  #define _ASM_SCATTERLIST_H
  
@@ -66,7 +67,8 @@ diff -puN arch/frv/include/asm/scatterlist.h~frv-use-asm-generic-scatterlisth ar
 - *
 - * can be rewritten as
 - *
-- * sg_set_buf(sg, some_ptr, length);
+- * sg_set_page(virt_to_page(some_ptr));
+- * sg->offset = (unsigned long) some_ptr & ~PAGE_MASK;
 - *
 - * and that's it. There's no excuse for not highmem enabling YOUR driver. /jens
 - */
@@ -76,24 +78,23 @@ diff -puN arch/frv/include/asm/scatterlist.h~frv-use-asm-generic-scatterlisth ar
 -#endif
 -	unsigned long	page_link;
 -	unsigned int	offset;		/* for highmem, page offset */
--
 -	dma_addr_t	dma_address;
 -	unsigned int	length;
 -};
--
++#include <asm-generic/scatterlist.h>
+ 
+ #define ISA_DMA_THRESHOLD (0x00ffffff)
+ 
 -/*
 - * These macros should be used after a pci_map_sg call has been done
 - * to get bus addresses of each of the SG entries and their lengths.
 - * You should only work with the number of sg entries pci_map_sg
-- * returns, or alternatively stop on the first sg_dma_len(sg) which
-- * is 0.
+- * returns.
 - */
 -#define sg_dma_address(sg)	((sg)->dma_address)
 -#define sg_dma_len(sg)		((sg)->length)
-+#include <asm-generic/scatterlist.h>
- 
- #define ISA_DMA_THRESHOLD (0xffffffffUL)
- 
+-
+ #endif /* _ASM_SCATTERLIST_H */
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
