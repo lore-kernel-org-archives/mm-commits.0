@@ -1,217 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagemap-fix-pfn-calculation-for-hugepage-v3.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:50:28 -0400
-Message-ID: <201004071851.o37IpsOn001335@imap1.linux-foundation.org>
+Subject: [merged] raw-fsync-method-is-now-required.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:50:11 -0400
+Message-ID: <201004071851.o37Ipbfk001317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753576Ab0DGSwD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:03 -0400
+	by vger.kernel.org with ESMTP id S1753576Ab0DGSwH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, kamezawa.hiroyu@jp.fujitsu.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: anton@samba.org, hch@lst.de, jack@suse.cz, jens.axboe@oracle.com, jmoyer@redhat.com, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagemap: fix pfn calculation for hugepage
+     raw: fsync method is now required
 has been removed from the -mm tree.  Its filename was
-     pagemap-fix-pfn-calculation-for-hugepage-v3.patch
+     raw-fsync-method-is-now-required.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: fix pfn calculation for hugepage
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: raw: fsync method is now required
+From: Anton Blanchard <anton@samba.org>
 
-When we look into pagemap using page-types with option -p, the value of
-pfn for hugepages looks wrong (see below.) This is because pte was
-evaluated only once for one vma although it should be updated for each
-hugepage.  This patch fixes it.
+Commit 148f948ba877f4d3cdef036b1ff6d9f68986706a (vfs: Introduce new
+helpers for syncing after writing to O_SYNC file or IS_SYNC inode) broke
+the raw driver.
 
-  $ page-types -p 3277 -Nl -b huge
-  voffset   offset  len     flags
-  7f21e8a00 11e400  1       ___U___________H_G________________
-  7f21e8a01 11e401  1ff     ________________TG________________
-               ^^^
-  7f21e8c00 11e400  1       ___U___________H_G________________
-  7f21e8c01 11e401  1ff     ________________TG________________
-               ^^^
+We now call through generic_file_aio_write -> generic_write_sync ->
+vfs_fsync_range.  vfs_fsync_range has:
 
-One hugepage contains 1 head page and 511 tail pages in x86_64 and each
-two lines represent each hugepage.  Voffset and offset mean virtual
-address and physical address in the page unit, respectively.  The
-different hugepages should not have the same offset value.
+        if (!fop || !fop->fsync) {
+                ret = -EINVAL;
+                goto out;
+        }
 
-With this patch applied:
+But drivers/char/raw.c doesn't set an fsync method.
 
-  $ page-types -p 3386 -Nl -b huge
-  voffset   offset   len    flags
-  7fec7a600 112c00   1      ___UD__________H_G________________
-  7fec7a601 112c01   1ff    ________________TG________________
-               ^^^
-  7fec7a800 113200   1      ___UD__________H_G________________
-  7fec7a801 113201   1ff    ________________TG________________
-               ^^^
-               OK
+We have two options: fix it or remove the raw driver completely.  I'm
+happy to do either, the fact this has been broken for so long suggests it
+is rarely used.
 
-More info:
+The patch below adds an fsync method to the raw driver.  My knowledge of
+the block layer is pretty sketchy so this could do with a once over.
 
-- This patch modifies walk_page_range()'s hugepage walker.  But the
-  change only affects pagemap_read(), which is the only caller of hugepage
-  callback.
+If we instead decide to remove the raw driver, this patch might still be
+useful as a backport to 2.6.33 and 2.6.32.
 
-- Without this patch, hugetlb_entry() callback is called per vma, that
-  doesn't match the natural expectation from its name.
-
-- With this patch, hugetlb_entry() is called per hugepte entry and the
-  callback can become much simpler.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Tested-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   27 ++++++------------------
- include/linux/mm.h |    4 +--
- mm/pagewalk.c      |   47 +++++++++++++++++++++++++++++++++----------
- 3 files changed, 46 insertions(+), 32 deletions(-)
+ drivers/char/raw.c |    1 +
+ fs/block_dev.c     |    3 ++-
+ include/linux/fs.h |    1 +
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-pfn-calculation-for-hugepage-v3 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-pfn-calculation-for-hugepage-v3
-+++ a/fs/proc/task_mmu.c
-@@ -662,31 +662,18 @@ static u64 huge_pte_to_pagemap_entry(pte
- 	return pme;
- }
- 
--static int pagemap_hugetlb_range(pte_t *pte, unsigned long addr,
--				 unsigned long end, struct mm_walk *walk)
-+/* This function walks within one hugetlb entry in the single call */
-+static int pagemap_hugetlb_range(pte_t *pte, unsigned long hmask,
-+				 unsigned long addr, unsigned long end,
-+				 struct mm_walk *walk)
+diff -puN drivers/char/raw.c~raw-fsync-method-is-now-required drivers/char/raw.c
+--- a/drivers/char/raw.c~raw-fsync-method-is-now-required
++++ a/drivers/char/raw.c
+@@ -248,6 +248,7 @@ static const struct file_operations raw_
+ 	.aio_read = 	generic_file_aio_read,
+ 	.write	=	do_sync_write,
+ 	.aio_write =	blkdev_aio_write,
++	.fsync	=	block_fsync,
+ 	.open	=	raw_open,
+ 	.release=	raw_release,
+ 	.ioctl	=	raw_ioctl,
+diff -puN fs/block_dev.c~raw-fsync-method-is-now-required fs/block_dev.c
+--- a/fs/block_dev.c~raw-fsync-method-is-now-required
++++ a/fs/block_dev.c
+@@ -404,7 +404,7 @@ static loff_t block_llseek(struct file *
+  *	NULL first argument is nfsd_sync_dir() and that's not a directory.
+  */
+  
+-static int block_fsync(struct file *filp, struct dentry *dentry, int datasync)
++int block_fsync(struct file *filp, struct dentry *dentry, int datasync)
  {
--	struct vm_area_struct *vma;
- 	struct pagemapread *pm = walk->private;
--	struct hstate *hs = NULL;
- 	int err = 0;
-+	u64 pfn;
- 
--	vma = find_vma(walk->mm, addr);
--	if (vma)
--		hs = hstate_vma(vma);
- 	for (; addr != end; addr += PAGE_SIZE) {
--		u64 pfn = PM_NOT_PRESENT;
--
--		if (vma && (addr >= vma->vm_end)) {
--			vma = find_vma(walk->mm, addr);
--			if (vma)
--				hs = hstate_vma(vma);
--		}
--
--		if (vma && (vma->vm_start <= addr) && is_vm_hugetlb_page(vma)) {
--			/* calculate pfn of the "raw" page in the hugepage. */
--			int offset = (addr & ~huge_page_mask(hs)) >> PAGE_SHIFT;
--			pfn = huge_pte_to_pagemap_entry(*pte, offset);
--		}
-+		int offset = (addr & ~hmask) >> PAGE_SHIFT;
-+		pfn = huge_pte_to_pagemap_entry(*pte, offset);
- 		err = add_to_pagemap(addr, pfn, pm);
- 		if (err)
- 			return err;
-diff -puN include/linux/mm.h~pagemap-fix-pfn-calculation-for-hugepage-v3 include/linux/mm.h
---- a/include/linux/mm.h~pagemap-fix-pfn-calculation-for-hugepage-v3
-+++ a/include/linux/mm.h
-@@ -783,8 +783,8 @@ struct mm_walk {
- 	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
- 	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
- 	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
--	int (*hugetlb_entry)(pte_t *, unsigned long, unsigned long,
--			     struct mm_walk *);
-+	int (*hugetlb_entry)(pte_t *, unsigned long,
-+			     unsigned long, unsigned long, struct mm_walk *);
- 	struct mm_struct *mm;
- 	void *private;
- };
-diff -puN mm/pagewalk.c~pagemap-fix-pfn-calculation-for-hugepage-v3 mm/pagewalk.c
---- a/mm/pagewalk.c~pagemap-fix-pfn-calculation-for-hugepage-v3
-+++ a/mm/pagewalk.c
-@@ -80,6 +80,37 @@ static int walk_pud_range(pgd_t *pgd, un
- 	return err;
+ 	struct block_device *bdev = I_BDEV(filp->f_mapping->host);
+ 	int error;
+@@ -418,6 +418,7 @@ static int block_fsync(struct file *filp
+ 		error = 0;
+ 	return error;
  }
++EXPORT_SYMBOL(block_fsync);
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+static unsigned long hugetlb_entry_end(struct hstate *h, unsigned long addr,
-+				       unsigned long end)
-+{
-+	unsigned long boundary = (addr & huge_page_mask(h)) + huge_page_size(h);
-+	return boundary < end ? boundary : end;
-+}
-+
-+static int walk_hugetlb_range(struct vm_area_struct *vma,
-+			      unsigned long addr, unsigned long end,
-+			      struct mm_walk *walk)
-+{
-+	struct hstate *h = hstate_vma(vma);
-+	unsigned long next;
-+	unsigned long hmask = huge_page_mask(h);
-+	pte_t *pte;
-+	int err = 0;
-+
-+	do {
-+		next = hugetlb_entry_end(h, addr, end);
-+		pte = huge_pte_offset(walk->mm, addr & hmask);
-+		if (pte && walk->hugetlb_entry)
-+			err = walk->hugetlb_entry(pte, hmask, addr, next, walk);
-+		if (err)
-+			return err;
-+	} while (addr = next, addr != end);
-+
-+	return 0;
-+}
-+#endif
-+
- /**
-  * walk_page_range - walk a memory map's page tables with a callback
-  * @mm: memory map to walk
-@@ -128,20 +159,16 @@ int walk_page_range(unsigned long addr, 
- 		vma = find_vma(walk->mm, addr);
- #ifdef CONFIG_HUGETLB_PAGE
- 		if (vma && is_vm_hugetlb_page(vma)) {
--			pte_t *pte;
--			struct hstate *hs;
--
- 			if (vma->vm_end < next)
- 				next = vma->vm_end;
--			hs = hstate_vma(vma);
--			pte = huge_pte_offset(walk->mm,
--					      addr & huge_page_mask(hs));
--			if (pte && !huge_pte_none(huge_ptep_get(pte))
--			    && walk->hugetlb_entry)
--				err = walk->hugetlb_entry(pte, addr,
--							  next, walk);
-+			/*
-+			 * Hugepage is very tightly coupled with vma, so
-+			 * walk through hugetlb entries within a given vma.
-+			 */
-+			err = walk_hugetlb_range(vma, addr, next, walk);
- 			if (err)
- 				break;
-+			pgd = pgd_offset(walk->mm, next);
- 			continue;
- 		}
- #endif
+ /*
+  * pseudo-fs
+diff -puN include/linux/fs.h~raw-fsync-method-is-now-required include/linux/fs.h
+--- a/include/linux/fs.h~raw-fsync-method-is-now-required
++++ a/include/linux/fs.h
+@@ -2212,6 +2212,7 @@ extern int generic_segment_checks(const 
+ /* fs/block_dev.c */
+ extern ssize_t blkdev_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 				unsigned long nr_segs, loff_t pos);
++extern int block_fsync(struct file *filp, struct dentry *dentry, int datasync);
+ 
+ /* fs/splice.c */
+ extern ssize_t generic_file_splice_read(struct file *, loff_t *,
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from anton@samba.org are
 
 origin.patch
-mincore-cleanups.patch
-mincore-break-do_mincore-into-logical-pieces.patch
-mincore-pass-ranges-as-startend-address-pairs.patch
-mincore-do-nested-page-table-walks.patch
-pagemap-add-ifdefs-config_hugetlb_page-on-code-walking-hugetlb-vma.patch
+linux-next.patch
 
