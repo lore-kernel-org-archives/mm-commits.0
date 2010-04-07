@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch added to -mm tree
-Date: Tue, 06 Apr 2010 17:07:17 -0700
-Message-ID: <201004070007.o3707Idd016404@imap1.linux-foundation.org>
+Subject: + mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch added to -mm tree
+Date: Tue, 06 Apr 2010 17:06:55 -0700
+Message-ID: <201004070006.o3706tba016371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59558 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932303Ab0DGAHl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 20:07:41 -0400
+	by vger.kernel.org with ESMTP id S932280Ab0DGAHV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 20:07:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu
 
 
 The patch titled
-     mm: compaction: add /sys trigger for per-node memory compaction
+     mm: migration: do not try to migrate unmapped anonymous pages
 has been added to the -mm tree.  Its filename is
-     mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+     mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,123 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: add /sys trigger for per-node memory compaction
+Subject: mm: migration: do not try to migrate unmapped anonymous pages
 From: Mel Gorman <mel@csn.ul.ie>
 
-Add a per-node sysfs file called compact.  When the file is written to,
-each zone in that node is compacted.  The intention that this would be
-used by something like a job scheduler in a batch system before a job
-starts so that the job can allocate the maximum number of hugepages
-without significant start-up cost.
+rmap_walk_anon() was triggering errors in memory compaction that look like
+use-after-free errors.  The problem is that between the page being
+isolated from the LRU and rcu_read_lock() being taken, the mapcount of the
+page dropped to 0 and the anon_vma gets freed.  This can happen during
+memory compaction if pages being migrated belong to a process that exits
+before migration completes.  Hence, the use-after-free race looks like
+
+ 1. Page isolated for migration
+ 2. Process exits
+ 3. page_mapcount(page) drops to zero so anon_vma was no longer reliable
+ 4. unmap_and_move() takes the rcu_lock but the anon_vma is already garbage
+ 4. call try_to_unmap, looks up tha anon_vma and "locks" it but the lock
+    is garbage.
+
+This patch checks the mapcount after the rcu lock is taken.  If the
+mapcount is zero, the anon_vma is assumed to be freed and no further
+action is taken.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-devices-node |    7 +++++
- drivers/base/node.c                          |    3 ++
- include/linux/compaction.h                   |   16 +++++++++++
- mm/compaction.c                              |   23 +++++++++++++++++
- 4 files changed, 49 insertions(+)
+ mm/migrate.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-node
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-devices-node
-@@ -0,0 +1,7 @@
-+What:		/sys/devices/system/node/nodeX/compact
-+Date:		February 2010
-+Contact:	Mel Gorman <mel@csn.ul.ie>
-+Description:
-+		When this file is written to, all memory within that node
-+		will be compacted. When it completes, memory will be freed
-+		into blocks which have as many contiguous pages as possible
-diff -puN drivers/base/node.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction drivers/base/node.c
---- a/drivers/base/node.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction
-+++ a/drivers/base/node.c
-@@ -9,6 +9,7 @@
- #include <linux/memory.h>
- #include <linux/node.h>
- #include <linux/hugetlb.h>
-+#include <linux/compaction.h>
- #include <linux/cpumask.h>
- #include <linux/topology.h>
- #include <linux/nodemask.h>
-@@ -246,6 +247,8 @@ int register_node(struct node *node, int
- 		scan_unevictable_register_node(node);
- 
- 		hugetlb_register_node(node);
+diff -puN mm/migrate.c~mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages mm/migrate.c
+--- a/mm/migrate.c~mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages
++++ a/mm/migrate.c
+@@ -600,6 +600,17 @@ static int unmap_and_move(new_page_t get
+ 	if (PageAnon(page)) {
+ 		rcu_read_lock();
+ 		rcu_locked = 1;
 +
-+		compaction_register_node(node);
++		/*
++		 * If the page has no mappings any more, just bail. An
++		 * unmapped anon page is likely to be freed soon but worse,
++		 * it's possible its anon_vma disappeared between when
++		 * the page was isolated and when we reached here while
++		 * the RCU lock was not held
++		 */
++		if (!page_mapped(page))
++			goto rcu_unlock;
++
+ 		anon_vma = page_anon_vma(page);
+ 		atomic_inc(&anon_vma->migrate_refcount);
  	}
- 	return error;
- }
-diff -puN include/linux/compaction.h~mm-compaction-add-sys-trigger-for-per-node-memory-compaction include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-add-sys-trigger-for-per-node-memory-compaction
-+++ a/include/linux/compaction.h
-@@ -12,4 +12,20 @@ extern int sysctl_compaction_handler(str
- 			void __user *buffer, size_t *length, loff_t *ppos);
- #endif /* CONFIG_COMPACTION */
- 
-+#if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-+extern int compaction_register_node(struct node *node);
-+extern void compaction_unregister_node(struct node *node);
-+
-+#else
-+
-+static inline int compaction_register_node(struct node *node)
-+{
-+	return 0;
-+}
-+
-+static inline void compaction_unregister_node(struct node *node)
-+{
-+}
-+#endif /* CONFIG_COMPACTION && CONFIG_SYSFS && CONFIG_NUMA */
-+
- #endif /* _LINUX_COMPACTION_H */
-diff -puN mm/compaction.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction
-+++ a/mm/compaction.c
-@@ -13,6 +13,7 @@
- #include <linux/mm_inline.h>
- #include <linux/backing-dev.h>
- #include <linux/sysctl.h>
-+#include <linux/sysfs.h>
- #include "internal.h"
- 
- /*
-@@ -437,3 +438,25 @@ int sysctl_compaction_handler(struct ctl
- 
- 	return 0;
- }
-+
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-+ssize_t sysfs_compact_node(struct sys_device *dev,
-+			struct sysdev_attribute *attr,
-+			const char *buf, size_t count)
-+{
-+	compact_node(dev->id);
-+
-+	return count;
-+}
-+static SYSDEV_ATTR(compact, S_IWUSR, NULL, sysfs_compact_node);
-+
-+int compaction_register_node(struct node *node)
-+{
-+	return sysdev_create_file(&node->sysdev, &attr_compact);
-+}
-+
-+void compaction_unregister_node(struct node *node)
-+{
-+	return sysdev_remove_file(&node->sysdev, &attr_compact);
-+}
-+#endif /* CONFIG_SYSFS && CONFIG_NUMA */
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
