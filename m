@@ -1,66 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:50:44 -0400
-Message-ID: <201004071852.o37IqBhP001355@imap1.linux-foundation.org>
+Subject: [merged] frv-fix-kernel-user-segment-handling-in-nommu-mode.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:50:55 -0400
+Message-ID: <201004071852.o37IqMUG001361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120Ab0DGSwY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:24 -0400
+	by vger.kernel.org with ESMTP id S1752960Ab0DGSwf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: hide uncached_access() when pgprot_noncached is not #defined
+     frv: fix kernel/user segment handling in NOMMU mode
 has been removed from the -mm tree.  Its filename was
-     frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
+     frv-fix-kernel-user-segment-handling-in-nommu-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: hide uncached_access() when pgprot_noncached is not #defined
+Subject: frv: fix kernel/user segment handling in NOMMU mode
 From: David Howells <dhowells@redhat.com>
 
-Hide uncached_access() when pgprot_noncached is not #defined.  This prevents
-the following warning:
+In NOMMU mode, the FRV segment handling is broken because KERNEL_DS ==
+USER_DS.  This causes tests of the following sort:
 
-	  CC      drivers/char/mem.o
-	drivers/char/mem.c:229: warning: 'uncached_access' defined but not used
+	/* don't pin down non-user-based iovecs */
+	if (segment_eq(get_fs(), KERNEL_DS))
+		return NULL;
 
-Repairs d7d4d849b4e3acc405ec222884936800ffb26d48 ("drivers/char/mem.c:
-cleanups").
+to malfunction.
+
+To fix this, make USER_DS the top of RAM instead of the top of the non-IO
+address space, and make KERNEL_DS one more than the top of the non-IO
+address space.
+
+Also get rid of FRV's __addr_ok() as nothing uses it.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/frv/include/asm/segment.h |    6 +++---
+ arch/frv/include/asm/uaccess.h |    2 --
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/mem.c~frv-hide-uncached_access-when-pgprot_noncached-is-not-defined drivers/char/mem.c
---- a/drivers/char/mem.c~frv-hide-uncached_access-when-pgprot_noncached-is-not-defined
-+++ a/drivers/char/mem.c
-@@ -225,6 +225,7 @@ int __weak phys_mem_access_prot_allowed(
-  * outside of main memory.
-  *
-  */
-+#ifdef pgprot_noncached
- static int uncached_access(struct file *file, unsigned long addr)
- {
- #if defined(CONFIG_IA64)
-@@ -251,6 +252,7 @@ static int uncached_access(struct file *
- 	return addr >= __pa(high_memory);
- #endif
- }
-+#endif
+diff -puN arch/frv/include/asm/segment.h~frv-fix-kernel-user-segment-handling-in-nommu-mode arch/frv/include/asm/segment.h
+--- a/arch/frv/include/asm/segment.h~frv-fix-kernel-user-segment-handling-in-nommu-mode
++++ a/arch/frv/include/asm/segment.h
+@@ -21,12 +21,12 @@ typedef struct {
  
- static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 				     unsigned long size, pgprot_t vma_prot)
+ #define MAKE_MM_SEG(s)	((mm_segment_t) { (s) })
+ 
+-#define KERNEL_DS		MAKE_MM_SEG(0xdfffffffUL)
+-
+ #ifdef CONFIG_MMU
+ #define USER_DS			MAKE_MM_SEG(TASK_SIZE - 1)
++#define KERNEL_DS		MAKE_MM_SEG(0xdfffffffUL)
+ #else
+-#define USER_DS			KERNEL_DS
++#define USER_DS			MAKE_MM_SEG(memory_end)
++#define KERNEL_DS		MAKE_MM_SEG(0xe0000000UL)
+ #endif
+ 
+ #define get_ds()		(KERNEL_DS)
+diff -puN arch/frv/include/asm/uaccess.h~frv-fix-kernel-user-segment-handling-in-nommu-mode arch/frv/include/asm/uaccess.h
+--- a/arch/frv/include/asm/uaccess.h~frv-fix-kernel-user-segment-handling-in-nommu-mode
++++ a/arch/frv/include/asm/uaccess.h
+@@ -27,8 +27,6 @@
+ #define VERIFY_READ	0
+ #define VERIFY_WRITE	1
+ 
+-#define __addr_ok(addr) ((unsigned long)(addr) < get_addr_limit())
+-
+ /*
+  * check that a range of addresses falls within the current address limit
+  */
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
