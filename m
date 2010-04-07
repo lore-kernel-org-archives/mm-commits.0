@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migration-allow-the-migration-of-pageswapcache-pages.patch added to -mm tree
-Date: Tue, 06 Apr 2010 17:07:28 -0700
-Message-ID: <201004070007.o3707Tmo016435@imap1.linux-foundation.org>
+Subject: + mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch added to -mm tree
+Date: Tue, 06 Apr 2010 17:07:17 -0700
+Message-ID: <201004070007.o3707Idd016404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932252Ab0DGAHz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 20:07:55 -0400
+	by vger.kernel.org with ESMTP id S932303Ab0DGAHl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 20:07:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu
 
 
 The patch titled
-     mm: migration: allow the migration of PageSwapCache pages
+     mm: compaction: add /sys trigger for per-node memory compaction
 has been added to the -mm tree.  Its filename is
-     mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+     mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: migration: allow the migration of PageSwapCache pages
+Subject: mm: compaction: add /sys trigger for per-node memory compaction
 From: Mel Gorman <mel@csn.ul.ie>
 
-PageAnon pages that are unmapped may or may not have an anon_vma so are
-not currently migrated.  However, a swap cache page can be migrated and
-fits this description.  This patch identifies page swap caches and allows
-them to be migrated but ensures that no attempt to made to remap the pages
-would would potentially try to access an already freed anon_vma.
+Add a per-node sysfs file called compact.  When the file is written to,
+each zone in that node is compacted.  The intention that this would be
+used by something like a job scheduler in a batch system before a job
+starts so that the job can allocate the maximum number of hugepages
+without significant start-up cost.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   47 ++++++++++++++++++++++++++++++-----------------
- 1 file changed, 30 insertions(+), 17 deletions(-)
+ Documentation/ABI/testing/sysfs-devices-node |    7 +++++
+ drivers/base/node.c                          |    3 ++
+ include/linux/compaction.h                   |   16 +++++++++++
+ mm/compaction.c                              |   23 +++++++++++++++++
+ 4 files changed, 49 insertions(+)
 
-diff -puN mm/migrate.c~mm-migration-allow-the-migration-of-pageswapcache-pages mm/migrate.c
---- a/mm/migrate.c~mm-migration-allow-the-migration-of-pageswapcache-pages
-+++ a/mm/migrate.c
-@@ -485,7 +485,8 @@ static int fallback_migrate_page(struct 
-  *   < 0 - error code
-  *  == 0 - success
-  */
--static int move_to_new_page(struct page *newpage, struct page *page)
-+static int move_to_new_page(struct page *newpage, struct page *page,
-+						int remap_swapcache)
- {
- 	struct address_space *mapping;
- 	int rc;
-@@ -520,10 +521,12 @@ static int move_to_new_page(struct page 
- 	else
- 		rc = fallback_migrate_page(mapping, newpage, page);
+diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-node
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-devices-node
+@@ -0,0 +1,7 @@
++What:		/sys/devices/system/node/nodeX/compact
++Date:		February 2010
++Contact:	Mel Gorman <mel@csn.ul.ie>
++Description:
++		When this file is written to, all memory within that node
++		will be compacted. When it completes, memory will be freed
++		into blocks which have as many contiguous pages as possible
+diff -puN drivers/base/node.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction drivers/base/node.c
+--- a/drivers/base/node.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction
++++ a/drivers/base/node.c
+@@ -9,6 +9,7 @@
+ #include <linux/memory.h>
+ #include <linux/node.h>
+ #include <linux/hugetlb.h>
++#include <linux/compaction.h>
+ #include <linux/cpumask.h>
+ #include <linux/topology.h>
+ #include <linux/nodemask.h>
+@@ -246,6 +247,8 @@ int register_node(struct node *node, int
+ 		scan_unevictable_register_node(node);
  
--	if (!rc)
--		remove_migration_ptes(page, newpage);
--	else
-+	if (rc) {
- 		newpage->mapping = NULL;
-+	} else {
-+		if (remap_swapcache)
-+			remove_migration_ptes(page, newpage);
-+	}
- 
- 	unlock_page(newpage);
- 
-@@ -540,6 +543,7 @@ static int unmap_and_move(new_page_t get
- 	int rc = 0;
- 	int *result = NULL;
- 	struct page *newpage = get_new_page(page, private, &result);
-+	int remap_swapcache = 1;
- 	int rcu_locked = 0;
- 	int charge = 0;
- 	struct mem_cgroup *mem = NULL;
-@@ -601,18 +605,27 @@ static int unmap_and_move(new_page_t get
- 		rcu_read_lock();
- 		rcu_locked = 1;
- 
--		/*
--		 * If the page has no mappings any more, just bail. An
--		 * unmapped anon page is likely to be freed soon but worse,
--		 * it's possible its anon_vma disappeared between when
--		 * the page was isolated and when we reached here while
--		 * the RCU lock was not held
--		 */
--		if (!page_mapped(page))
--			goto rcu_unlock;
-+		/* Determine how to safely use anon_vma */
-+		if (!page_mapped(page)) {
-+			if (!PageSwapCache(page))
-+				goto rcu_unlock;
- 
--		anon_vma = page_anon_vma(page);
--		atomic_inc(&anon_vma->external_refcount);
-+			/*
-+			 * We cannot be sure that the anon_vma of an unmapped
-+			 * swapcache page is safe to use. In this case, the
-+			 * swapcache page gets migrated but the pages are not
-+			 * remapped
-+			 */
-+			remap_swapcache = 0;
-+		} else {
-+			/*
-+			 * Take a reference count on the anon_vma if the
-+			 * page is mapped so that it is guaranteed to
-+			 * exist when the page is remapped later
-+			 */
-+			anon_vma = page_anon_vma(page);
-+			atomic_inc(&anon_vma->external_refcount);
-+		}
+ 		hugetlb_register_node(node);
++
++		compaction_register_node(node);
  	}
+ 	return error;
+ }
+diff -puN include/linux/compaction.h~mm-compaction-add-sys-trigger-for-per-node-memory-compaction include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-add-sys-trigger-for-per-node-memory-compaction
++++ a/include/linux/compaction.h
+@@ -12,4 +12,20 @@ extern int sysctl_compaction_handler(str
+ 			void __user *buffer, size_t *length, loff_t *ppos);
+ #endif /* CONFIG_COMPACTION */
  
- 	/*
-@@ -647,9 +660,9 @@ static int unmap_and_move(new_page_t get
++#if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
++extern int compaction_register_node(struct node *node);
++extern void compaction_unregister_node(struct node *node);
++
++#else
++
++static inline int compaction_register_node(struct node *node)
++{
++	return 0;
++}
++
++static inline void compaction_unregister_node(struct node *node)
++{
++}
++#endif /* CONFIG_COMPACTION && CONFIG_SYSFS && CONFIG_NUMA */
++
+ #endif /* _LINUX_COMPACTION_H */
+diff -puN mm/compaction.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-sys-trigger-for-per-node-memory-compaction
++++ a/mm/compaction.c
+@@ -13,6 +13,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/backing-dev.h>
+ #include <linux/sysctl.h>
++#include <linux/sysfs.h>
+ #include "internal.h"
  
- skip_unmap:
- 	if (!page_mapped(page))
--		rc = move_to_new_page(newpage, page);
-+		rc = move_to_new_page(newpage, page, remap_swapcache);
+ /*
+@@ -437,3 +438,25 @@ int sysctl_compaction_handler(struct ctl
  
--	if (rc)
-+	if (rc && remap_swapcache)
- 		remove_migration_ptes(page, page);
- rcu_unlock:
- 
+ 	return 0;
+ }
++
++#if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
++ssize_t sysfs_compact_node(struct sys_device *dev,
++			struct sysdev_attribute *attr,
++			const char *buf, size_t count)
++{
++	compact_node(dev->id);
++
++	return count;
++}
++static SYSDEV_ATTR(compact, S_IWUSR, NULL, sysfs_compact_node);
++
++int compaction_register_node(struct node *node)
++{
++	return sysdev_create_file(&node->sysdev, &attr_compact);
++}
++
++void compaction_unregister_node(struct node *node)
++{
++	return sysdev_remove_file(&node->sysdev, &attr_compact);
++}
++#endif /* CONFIG_SYSFS && CONFIG_NUMA */
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
