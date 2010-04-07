@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure.patch added to -mm tree
-Date: Tue, 06 Apr 2010 17:07:27 -0700
-Message-ID: <201004070007.o3707Rlo016423@imap1.linux-foundation.org>
+Subject: + mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch added to -mm tree
+Date: Tue, 06 Apr 2010 17:07:00 -0700
+Message-ID: <201004070007.o37070M6016380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932272Ab0DGAHz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 20:07:55 -0400
+	by vger.kernel.org with ESMTP id S932227Ab0DGAIE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Apr 2010 20:08:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu
 
 
 The patch titled
-     mm: compaction: do not compact within a preferred zone after a compaction failure
+     mm: allow CONFIG_MIGRATION to be set without CONFIG_NUMA or memory hot-remove
 has been added to the -mm tree.  Its filename is
-     mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure.patch
+     mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,129 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: do not compact within a preferred zone after a compaction failure
+Subject: mm: allow CONFIG_MIGRATION to be set without CONFIG_NUMA or memory hot-remove
 From: Mel Gorman <mel@csn.ul.ie>
 
-The fragmentation index may indicate that a failure is due to external
-fragmentation but after a compaction run completes, it is still possible
-for an allocation to fail.  There are two obvious reasons as to why
+CONFIG_MIGRATION currently depends on CONFIG_NUMA or on the architecture
+being able to hot-remove memory.  The main users of page migration such as
+sys_move_pages(), sys_migrate_pages() and cpuset process migration are
+only beneficial on NUMA so it makes sense.
 
-  o Page migration cannot move all pages so fragmentation remains
-  o A suitable page may exist but watermarks are not met
-
-In the event of compaction followed by an allocation failure, this patch
-defers further compaction in the zone for a period of time.  The zone that
-is deferred is the first zone in the zonelist - i.e.  the preferred zone. 
-To defer compaction in the other zones, the information would need to be
-stored in the zonelist or implemented similar to the zonelist_cache.  This
-would impact the fast-paths and is not justified at this time.
+As memory compaction will operate within a zone and is useful on both NUMA
+and non-NUMA systems, this patch allows CONFIG_MIGRATION to be set if the
+user selects CONFIG_COMPACTION as an option.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   35 +++++++++++++++++++++++++++++++++++
- include/linux/mmzone.h     |    7 +++++++
- mm/page_alloc.c            |    5 ++++-
- 3 files changed, 46 insertions(+), 1 deletion(-)
+ mm/Kconfig |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure
-+++ a/include/linux/compaction.h
-@@ -18,6 +18,32 @@ extern int sysctl_extfrag_handler(struct
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *mask);
-+
-+/* defer_compaction - Do not compact within a zone until a given time */
-+static inline void defer_compaction(struct zone *zone, unsigned long resume)
-+{
-+	/*
-+	 * This function is called when compaction fails to result in a page
-+	 * allocation success. This is somewhat unsatisfactory as the failure
-+	 * to compact has nothing to do with time and everything to do with
-+	 * the requested order, the number of free pages and watermarks. How
-+	 * to wait on that is more unclear, but the answer would apply to
-+	 * other areas where the VM waits based on time.
-+	 */
-+	zone->compact_resume = resume;
-+}
-+
-+static inline int compaction_deferred(struct zone *zone)
-+{
-+	/* init once if necessary */
-+	if (unlikely(!zone->compact_resume)) {
-+		zone->compact_resume = jiffies;
-+		return 0;
-+	}
-+
-+	return time_before(jiffies, zone->compact_resume);
-+}
-+
- #else
- static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask)
-@@ -25,6 +51,15 @@ static inline unsigned long try_to_compa
- 	return COMPACT_INCOMPLETE;
- }
+diff -puN mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove mm/Kconfig
+--- a/mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove
++++ a/mm/Kconfig
+@@ -172,6 +172,16 @@ config SPLIT_PTLOCK_CPUS
+ 	default "4"
  
-+static inline void defer_compaction(struct zone *zone, unsigned long resume)
-+{
-+}
+ #
++# support for memory compaction
++config COMPACTION
++	bool "Allow for memory compaction"
++	def_bool y
++	select MIGRATION
++	depends on EXPERIMENTAL && HUGETLBFS && MMU
++	help
++	  Allows the compaction of memory for the allocation of huge pages.
 +
-+static inline int compaction_deferred(struct zone *zone)
-+{
-+	return 1;
-+}
-+
- #endif /* CONFIG_COMPACTION */
++#
+ # support for page migration
+ #
+ config MIGRATION
+@@ -180,9 +190,11 @@ config MIGRATION
+ 	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	help
+ 	  Allows the migration of the physical location of pages of processes
+-	  while the virtual addresses are not changed. This is useful for
+-	  example on NUMA systems to put pages nearer to the processors accessing
+-	  the page.
++	  while the virtual addresses are not changed. This is useful in
++	  two situations. The first is on NUMA systems to put pages nearer
++	  to the processors accessing. The second is when allocating huge
++	  pages as migration can relocate pages to satisfy a huge page
++	  allocation instead of reclaiming.
  
- #if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-diff -puN include/linux/mmzone.h~mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure
-+++ a/include/linux/mmzone.h
-@@ -321,6 +321,13 @@ struct zone {
- 	unsigned long		*pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
- 
-+#ifdef CONFIG_COMPACTION
-+	/*
-+	 * If a compaction fails, do not try compaction again until
-+	 * jiffies is after the value of compact_resume
-+	 */
-+	unsigned long		compact_resume;
-+#endif
- 
- 	ZONE_PADDING(_pad1_)
- 
-diff -puN mm/page_alloc.c~mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure
-+++ a/mm/page_alloc.c
-@@ -1770,7 +1770,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 	cond_resched();
- 
- 	/* Try memory compaction for high-order allocations before reclaim */
--	if (order) {
-+	if (order && !compaction_deferred(preferred_zone)) {
- 		*did_some_progress = try_to_compact_pages(zonelist,
- 						order, gfp_mask, nodemask);
- 		if (*did_some_progress != COMPACT_SKIPPED) {
-@@ -1795,6 +1795,9 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 			 */
- 			count_vm_event(COMPACTFAIL);
- 
-+			/* On failure, avoid compaction for a short time. */
-+			defer_compaction(preferred_zone, jiffies + HZ/50);
-+
- 			cond_resched();
- 		}
- 	}
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
