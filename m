@@ -1,91 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-handle-overlapping-mptables.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:51:03 -0400
-Message-ID: <201004071852.o37IqTRY001373@imap1.linux-foundation.org>
+Subject: + mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch added to -mm tree
+Date: Wed, 07 Apr 2010 13:05:24 -0700
+Message-ID: <201004072005.o37K5PKB004591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753641Ab0DGSww (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:52 -0400
+	by vger.kernel.org with ESMTP id S1750717Ab0DGUGL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 16:06:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, trenn@suse.de, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     x86: handle overlapping mptables
-has been removed from the -mm tree.  Its filename was
-     x86-handle-overlapping-mptables.patch
+     mm: compaction: have CONFIG_COMPACTION depend on HUGETLB_PAGE instead of HUGETLBFS
+has been added to the -mm tree.  Its filename is
+     mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: handle overlapping mptables
-From: Andi Kleen <andi@firstfloor.org>
+Subject: mm: compaction: have CONFIG_COMPACTION depend on HUGETLB_PAGE instead of HUGETLBFS
+From: Mel Gorman <mel@csn.ul.ie>
 
-We found a system where the MP table MPC and MPF structures overlap.
+There is a strong coupling between HUGETLB_PAGE and HUGETLBFS but in theory
+there can be alternative interfaces to huge pages than HUGETLB_PAGE. This
+patch makes CONFIG_COMPACTION depend on the right thing.
 
-That doesn't really matter because the mptable is not used anyways with ACPI,
-but it leads to a panic in the early allocator due to the overlapping
-reservations in 2.6.33.
+This is a fix to the patch "Allow CONFIG_MIGRATION to be set without
+CONFIG_NUMA or memory hot-remove" and should be merged together.
 
-Earlier kernels handled this without problems.
-
-Simply change these reservations to reserve_early_overlap_ok to avoid
-the panic.
-
-Reported-by: Thomas Renninger <trenn@suse.de>
-Tested-by: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/mpparse.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/mpparse.c~x86-handle-overlapping-mptables arch/x86/kernel/mpparse.c
---- a/arch/x86/kernel/mpparse.c~x86-handle-overlapping-mptables
-+++ a/arch/x86/kernel/mpparse.c
-@@ -664,7 +664,7 @@ static void __init smp_reserve_memory(st
- {
- 	unsigned long size = get_mpc_size(mpf->physptr);
- 
--	reserve_early(mpf->physptr, mpf->physptr+size, "MP-table mpc");
-+	reserve_early_overlap_ok(mpf->physptr, mpf->physptr+size, "MP-table mpc");
- }
- 
- static int __init smp_scan_config(unsigned long base, unsigned long length)
-@@ -693,7 +693,7 @@ static int __init smp_scan_config(unsign
- 			       mpf, (u64)virt_to_phys(mpf));
- 
- 			mem = virt_to_phys(mpf);
--			reserve_early(mem, mem + sizeof(*mpf), "MP-table mpf");
-+			reserve_early_overlap_ok(mem, mem + sizeof(*mpf), "MP-table mpf");
- 			if (mpf->physptr)
- 				smp_reserve_memory(mpf);
+diff -puN mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix mm/Kconfig
+--- a/mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix
++++ a/mm/Kconfig
+@@ -177,7 +177,7 @@ config COMPACTION
+ 	bool "Allow for memory compaction"
+ 	def_bool y
+ 	select MIGRATION
+-	depends on EXPERIMENTAL && HUGETLBFS && MMU
++	depends on EXPERIMENTAL && HUGETLB_PAGE && MMU
+ 	help
+ 	  Allows the compaction of memory for the allocation of huge pages.
  
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
-linux-next.patch
-oprofile-remove-double-ring-buffering.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mempolicy-remove-redundant-code.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
