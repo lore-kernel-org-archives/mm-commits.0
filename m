@@ -1,59 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-elevatorc-fix-block-elevatorc-elevator_get-off-by-one-error.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:51:00 -0400
-Message-ID: <201004071852.o37IqQw2001368@imap1.linux-foundation.org>
+Subject: [merged] watchdog-docs-fix-use-of-wdioc_setoptions-ioctl.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:51:13 -0400
+Message-ID: <201004071852.o37Iqd43001382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753641Ab0DGSwj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:39 -0400
+	by vger.kernel.org with ESMTP id S1753434Ab0DGSwt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhitong.wangzt@alibaba-inc.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: james@albanarts.com, james.hogan@imgtec.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block/elevator.c: fix block/elevator.c elevator_get() off-by-one error
+     watchdog docs: fix use of WDIOC_SETOPTIONS ioctl
 has been removed from the -mm tree.  Its filename was
-     block-elevatorc-fix-block-elevatorc-elevator_get-off-by-one-error.patch
+     watchdog-docs-fix-use-of-wdioc_setoptions-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block/elevator.c: fix block/elevator.c elevator_get() off-by-one error
-From: Zhitong Wang <zhitong.wangzt@alibaba-inc.com>
+Subject: watchdog docs: fix use of WDIOC_SETOPTIONS ioctl
+From: James Hogan <james@albanarts.com>
 
-elevator_get() does not check the name length, if the name length >
-sizeof(elv), elv will miss the '\0'.  And elv buffer will replace
-"-iosched" as something like aaaaaaaaa, so request_module() can
-load an untrusted module.
+In the watchdog-test program and watchdog-api.txt, pass the values to the
+WDIOC_SETOPTIONS ioctl as a pointer to an integer containing the values
+intead of directly in the third ioctl argument.  The actual watchdog
+drivers in drivers/watchdog don't read the options directly from the
+argument but use get_user and copy_from_user.
 
-Signed-off-by: Zhitong Wang <zhitong.wangzt@alibaba-inc.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/elevator.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/watchdog/src/watchdog-test.c |    8 ++++++--
+ Documentation/watchdog/watchdog-api.txt    |    5 ++---
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN block/elevator.c~block-elevatorc-fix-block-elevatorc-elevator_get-off-by-one-error block/elevator.c
---- a/block/elevator.c~block-elevatorc-fix-block-elevatorc-elevator_get-off-by-one-error
-+++ a/block/elevator.c
-@@ -154,7 +154,7 @@ static struct elevator_type *elevator_ge
+diff -puN Documentation/watchdog/src/watchdog-test.c~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl Documentation/watchdog/src/watchdog-test.c
+--- a/Documentation/watchdog/src/watchdog-test.c~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl
++++ a/Documentation/watchdog/src/watchdog-test.c
+@@ -31,6 +31,8 @@ static void keep_alive(void)
+  */
+ int main(int argc, char *argv[])
+ {
++    int flags;
++
+     fd = open("/dev/watchdog", O_WRONLY);
  
- 		spin_unlock(&elv_list_lock);
+     if (fd == -1) {
+@@ -41,12 +43,14 @@ int main(int argc, char *argv[])
  
--		sprintf(elv, "%s-iosched", name);
-+		snprintf(elv, sizeof(elv), "%s-iosched", name);
+     if (argc > 1) {
+ 	if (!strncasecmp(argv[1], "-d", 2)) {
+-	    ioctl(fd, WDIOC_SETOPTIONS, WDIOS_DISABLECARD);
++	    flags = WDIOS_DISABLECARD;
++	    ioctl(fd, WDIOC_SETOPTIONS, &flags);
+ 	    fprintf(stderr, "Watchdog card disabled.\n");
+ 	    fflush(stderr);
+ 	    exit(0);
+ 	} else if (!strncasecmp(argv[1], "-e", 2)) {
+-	    ioctl(fd, WDIOC_SETOPTIONS, WDIOS_ENABLECARD);
++	    flags = WDIOS_ENABLECARD;
++	    ioctl(fd, WDIOC_SETOPTIONS, &flags);
+ 	    fprintf(stderr, "Watchdog card enabled.\n");
+ 	    fflush(stderr);
+ 	    exit(0);
+diff -puN Documentation/watchdog/watchdog-api.txt~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl Documentation/watchdog/watchdog-api.txt
+--- a/Documentation/watchdog/watchdog-api.txt~watchdog-docs-fix-use-of-wdioc_setoptions-ioctl
++++ a/Documentation/watchdog/watchdog-api.txt
+@@ -222,11 +222,10 @@ returned value is the temperature in deg
+     ioctl(fd, WDIOC_GETTEMP, &temperature);
  
- 		request_module("%s", elv);
- 		spin_lock(&elv_list_lock);
+ Finally the SETOPTIONS ioctl can be used to control some aspects of
+-the cards operation; right now the pcwd driver is the only one
+-supporting this ioctl.
++the cards operation.
+ 
+     int options = 0;
+-    ioctl(fd, WDIOC_SETOPTIONS, options);
++    ioctl(fd, WDIOC_SETOPTIONS, &options);
+ 
+ The following options are available:
+ 
 _
 
-Patches currently in -mm which might be from zhitong.wangzt@alibaba-inc.com are
+Patches currently in -mm which might be from james@albanarts.com are
 
-linux-next.patch
 
