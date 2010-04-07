@@ -1,196 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] device_attributes-add-sysfs_attr_init-for-dynamic-attributes.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:49:53 -0400
-Message-ID: <201004071851.o37IpJMO001283@imap1.linux-foundation.org>
+Subject: [merged] frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:50:44 -0400
+Message-ID: <201004071852.o37IqBhP001355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757072Ab0DGSwJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:09 -0400
+	by vger.kernel.org with ESMTP id S1752120Ab0DGSwY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, benh@kernel.crashing.org, ebiederm@xmission.com, grant.likely@secretlab.ca, gregkh@suse.de, isely@pobox.com, krzysztof.h1@wp.pl, len.brown@intel.com, mchehab@in
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     device_attributes: add sysfs_attr_init() for dynamic attributes
+     frv: hide uncached_access() when pgprot_noncached is not #defined
 has been removed from the -mm tree.  Its filename was
-     device_attributes-add-sysfs_attr_init-for-dynamic-attributes.patch
+     frv-hide-uncached_access-when-pgprot_noncached-is-not-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: device_attributes: add sysfs_attr_init() for dynamic attributes
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: frv: hide uncached_access() when pgprot_noncached is not #defined
+From: David Howells <dhowells@redhat.com>
 
-Made necessary by 6992f5334995af474c2b58d010d08bc597f0f2fe ("sysfs: Use
-one lockdep class per sysfs attribute").
+Hide uncached_access() when pgprot_noncached is not #defined.  This prevents
+the following warning:
 
-Prevents further "key xxx not in .data" bug-reports.  Although some
-attributes could probably be converted to static ones, this is left for
-people having hardware to test.
+	  CC      drivers/char/mem.o
+	drivers/char/mem.c:229: warning: 'uncached_access' defined but not used
 
-Found by this semantic patch:
+Repairs d7d4d849b4e3acc405ec222884936800ffb26d48 ("drivers/char/mem.c:
+cleanups").
 
-@ init @
-type T;
-identifier A;
-@@
-
-        T {
-                ...
-                struct device_attribute A;
-                ...
-        };
-
-@ main extends init @
-expression E;
-statement S;
-identifier err;
-T *name;
-@@
-
-        ... when != sysfs_attr_init(&name->A.attr);
-(
-+       sysfs_attr_init(&name->A.attr);
-        if (device_create_file(E, &name->A))
-                S
-|
-+       sysfs_attr_init(&name->A.attr);
-        err = device_create_file(E, &name->A);
-)
-
-While reviewing, I put the initialization to apropriate places.
-
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Mike Isely <isely@pobox.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Sujith Thomas <sujith.thomas@intel.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/windfarm_core.c           |    1 +
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    8 ++++++++
- drivers/platform/x86/intel_menlow.c         |    1 +
- drivers/video/fsl-diu-fb.c                  |    1 +
- 4 files changed, 11 insertions(+)
+ drivers/char/mem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/macintosh/windfarm_core.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes drivers/macintosh/windfarm_core.c
---- a/drivers/macintosh/windfarm_core.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes
-+++ a/drivers/macintosh/windfarm_core.c
-@@ -210,6 +210,7 @@ int wf_register_control(struct wf_contro
- 	kref_init(&new_ct->ref);
- 	list_add(&new_ct->link, &wf_controls);
+diff -puN drivers/char/mem.c~frv-hide-uncached_access-when-pgprot_noncached-is-not-defined drivers/char/mem.c
+--- a/drivers/char/mem.c~frv-hide-uncached_access-when-pgprot_noncached-is-not-defined
++++ a/drivers/char/mem.c
+@@ -225,6 +225,7 @@ int __weak phys_mem_access_prot_allowed(
+  * outside of main memory.
+  *
+  */
++#ifdef pgprot_noncached
+ static int uncached_access(struct file *file, unsigned long addr)
+ {
+ #if defined(CONFIG_IA64)
+@@ -251,6 +252,7 @@ static int uncached_access(struct file *
+ 	return addr >= __pa(high_memory);
+ #endif
+ }
++#endif
  
-+	sysfs_attr_init(&new_ct->attr.attr);
- 	new_ct->attr.attr.name = new_ct->name;
- 	new_ct->attr.attr.mode = 0644;
- 	new_ct->attr.show = wf_show_control;
-diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes drivers/media/video/pvrusb2/pvrusb2-sysfs.c
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes
-+++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -423,10 +423,12 @@ static void pvr2_sysfs_add_debugifc(stru
- 
- 	dip = kzalloc(sizeof(*dip),GFP_KERNEL);
- 	if (!dip) return;
-+	sysfs_attr_init(&dip->attr_debugcmd.attr);
- 	dip->attr_debugcmd.attr.name = "debugcmd";
- 	dip->attr_debugcmd.attr.mode = S_IRUGO|S_IWUSR|S_IWGRP;
- 	dip->attr_debugcmd.show = debugcmd_show;
- 	dip->attr_debugcmd.store = debugcmd_store;
-+	sysfs_attr_init(&dip->attr_debuginfo.attr);
- 	dip->attr_debuginfo.attr.name = "debuginfo";
- 	dip->attr_debuginfo.attr.mode = S_IRUGO;
- 	dip->attr_debuginfo.show = debuginfo_show;
-@@ -644,6 +646,7 @@ static void class_dev_create(struct pvr2
- 		return;
- 	}
- 
-+	sysfs_attr_init(&sfp->attr_v4l_minor_number.attr);
- 	sfp->attr_v4l_minor_number.attr.name = "v4l_minor_number";
- 	sfp->attr_v4l_minor_number.attr.mode = S_IRUGO;
- 	sfp->attr_v4l_minor_number.show = v4l_minor_number_show;
-@@ -658,6 +661,7 @@ static void class_dev_create(struct pvr2
- 		sfp->v4l_minor_number_created_ok = !0;
- 	}
- 
-+	sysfs_attr_init(&sfp->attr_v4l_radio_minor_number.attr);
- 	sfp->attr_v4l_radio_minor_number.attr.name = "v4l_radio_minor_number";
- 	sfp->attr_v4l_radio_minor_number.attr.mode = S_IRUGO;
- 	sfp->attr_v4l_radio_minor_number.show = v4l_radio_minor_number_show;
-@@ -672,6 +676,7 @@ static void class_dev_create(struct pvr2
- 		sfp->v4l_radio_minor_number_created_ok = !0;
- 	}
- 
-+	sysfs_attr_init(&sfp->attr_unit_number.attr);
- 	sfp->attr_unit_number.attr.name = "unit_number";
- 	sfp->attr_unit_number.attr.mode = S_IRUGO;
- 	sfp->attr_unit_number.show = unit_number_show;
-@@ -685,6 +690,7 @@ static void class_dev_create(struct pvr2
- 		sfp->unit_number_created_ok = !0;
- 	}
- 
-+	sysfs_attr_init(&sfp->attr_bus_info.attr);
- 	sfp->attr_bus_info.attr.name = "bus_info_str";
- 	sfp->attr_bus_info.attr.mode = S_IRUGO;
- 	sfp->attr_bus_info.show = bus_info_show;
-@@ -699,6 +705,7 @@ static void class_dev_create(struct pvr2
- 		sfp->bus_info_created_ok = !0;
- 	}
- 
-+	sysfs_attr_init(&sfp->attr_hdw_name.attr);
- 	sfp->attr_hdw_name.attr.name = "device_hardware_type";
- 	sfp->attr_hdw_name.attr.mode = S_IRUGO;
- 	sfp->attr_hdw_name.show = hdw_name_show;
-@@ -713,6 +720,7 @@ static void class_dev_create(struct pvr2
- 		sfp->hdw_name_created_ok = !0;
- 	}
- 
-+	sysfs_attr_init(&sfp->attr_hdw_desc.attr);
- 	sfp->attr_hdw_desc.attr.name = "device_hardware_description";
- 	sfp->attr_hdw_desc.attr.mode = S_IRUGO;
- 	sfp->attr_hdw_desc.show = hdw_desc_show;
-diff -puN drivers/platform/x86/intel_menlow.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes drivers/platform/x86/intel_menlow.c
---- a/drivers/platform/x86/intel_menlow.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes
-+++ a/drivers/platform/x86/intel_menlow.c
-@@ -397,6 +397,7 @@ static int intel_menlow_add_one_attribut
- 	if (!attr)
- 		return -ENOMEM;
- 
-+	sysfs_attr_init(&attr->attr.attr); /* That is consistent naming :D */
- 	attr->attr.attr.name = name;
- 	attr->attr.attr.mode = mode;
- 	attr->attr.show = show;
-diff -puN drivers/video/fsl-diu-fb.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes drivers/video/fsl-diu-fb.c
---- a/drivers/video/fsl-diu-fb.c~device_attributes-add-sysfs_attr_init-for-dynamic-attributes
-+++ a/drivers/video/fsl-diu-fb.c
-@@ -1536,6 +1536,7 @@ static int __devinit fsl_diu_probe(struc
- 		goto error;
- 	}
- 
-+	sysfs_attr_init(&machine_data->dev_attr.attr);
- 	machine_data->dev_attr.attr.name = "monitor";
- 	machine_data->dev_attr.attr.mode = S_IRUGO|S_IWUSR;
- 	machine_data->dev_attr.show = show_monitor;
+ static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+ 				     unsigned long size, pgprot_t vma_prot)
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-firmware-loader-use-statically-initialized-data-attribute.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+keys-dont-need-to-use-rcu-in-keyring_read-as-semaphore-is-held.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03.patch
+nommu-allow-private-mappings-of-read-only-devices.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+frv-use-asm-generic-scatterlisth.patch
+mn10300-use-asm-generic-scatterlisth.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
