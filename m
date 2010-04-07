@@ -1,70 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-fix-null-filp-dereference.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:49:57 -0400
-Message-ID: <201004071851.o37IpNnw001290@imap1.linux-foundation.org>
+Subject: [merged] mb862xxfb-update-valentins-email-address.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:50:09 -0400
+Message-ID: <201004071851.o37IpZWX001312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753576Ab0DGSvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:51:39 -0400
+	by vger.kernel.org with ESMTP id S1755260Ab0DGSvm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, kirill@shutemov.name, stable@kernel.org, yanzheng@21cn.com, mm-commits@vger.kernel.org
+To: virtuoso@slind.org, v.sitdikov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: fix NULL filp dereference
+     mb862xxfb: update Valentin's email address
 has been removed from the -mm tree.  Its filename was
-     readahead-fix-null-filp-dereference.patch
+     mb862xxfb-update-valentins-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead: fix NULL filp dereference
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mb862xxfb: update Valentin's email address
+From: Alexander Shishkin <virtuoso@slind.org>
 
-btrfs relocate_file_extent_cluster() calls us with NULL filp:
+Since Valentin's email address @siemens.com is no longer valid, it's time
+to change it to the one that actually works so that I don't have to
+manually forward patches against mb862xx to him every time.
 
-  [ 4005.426805] BUG: unable to handle kernel NULL pointer dereference at 00000021
-  [ 4005.426818] IP: [<c109a130>] page_cache_sync_readahead+0x18/0x3e
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Yan Zheng <yanzheng@21cn.com>
-Reported-by: Kirill A. Shutemov <kirill@shutemov.name>
-Tested-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: <stable@kernel.org>
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+Acked-by: Valentin Sitdikov <v.sitdikov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
+ drivers/video/mb862xx/mb862xxfb_accel.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-fix-null-filp-dereference mm/readahead.c
---- a/mm/readahead.c~readahead-fix-null-filp-dereference
-+++ a/mm/readahead.c
-@@ -503,7 +503,7 @@ void page_cache_sync_readahead(struct ad
- 		return;
- 
- 	/* be dumb */
--	if (filp->f_mode & FMODE_RANDOM) {
-+	if (filp && (filp->f_mode & FMODE_RANDOM)) {
- 		force_page_cache_readahead(mapping, filp, offset, req_size);
- 		return;
- 	}
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-update-valentins-email-address drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-update-valentins-email-address
++++ a/drivers/video/mb862xx/mb862xxfb_accel.c
+@@ -4,7 +4,7 @@
+  * Fujitsu Carmine/Coral-P(A)/Lime framebuffer driver acceleration support
+  *
+  * (C) 2007 Alexander Shishkin <virtuoso@slind.org>
+- * (C) 2009 Valentin Sitdikov <valentin.sitdikov@siemens.com>
++ * (C) 2009 Valentin Sitdikov <v.sitdikov@gmail.com>
+  * (C) 2009 Siemens AG
+  *
+  * This program is free software; you can redistribute it and/or modify
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from virtuoso@slind.org are
 
 origin.patch
-linux-next.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-o_-bit-numbers-uniqueness-check-update.patch
-vfs-o_-bit-numbers-uniqueness-check-fix.patch
-vfs-o_-bit-numbers-uniqueness-check-fix-2.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-add-super-operation-writeback_inodes.patch
 
