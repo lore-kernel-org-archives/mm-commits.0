@@ -1,102 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:51:10 -0400
-Message-ID: <201004071852.o37IqaDE001379@imap1.linux-foundation.org>
+Subject: [merged] x86-handle-overlapping-mptables.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:51:03 -0400
+Message-ID: <201004071852.o37IqTRY001373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752960Ab0DGSws (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:48 -0400
+	by vger.kernel.org with ESMTP id S1753641Ab0DGSww (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akataria@vmware.com, dhecht@vmware.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, trenn@suse.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/hpet.c: fix bug in RTC emulation
+     x86: handle overlapping mptables
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation.patch
+     x86-handle-overlapping-mptables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/hpet.c: fix bug in RTC emulation
-From: Alok Kataria <akataria@vmware.com>
+Subject: x86: handle overlapping mptables
+From: Andi Kleen <andi@firstfloor.org>
 
-We think there exists a bug in the HPET code that emulates the RTC.
+We found a system where the MP table MPC and MPF structures overlap.
 
-In the normal case, when the RTC frequency is set, the rtc driver tells
-the hpet code about it here:
+That doesn't really matter because the mptable is not used anyways with ACPI,
+but it leads to a panic in the early allocator due to the overlapping
+reservations in 2.6.33.
 
-int hpet_set_periodic_freq(unsigned long freq)
-{
-        uint64_t clc;
+Earlier kernels handled this without problems.
 
-        if (!is_hpet_enabled())
-                return 0;
+Simply change these reservations to reserve_early_overlap_ok to avoid
+the panic.
 
-        if (freq <= DEFAULT_RTC_INT_FREQ)
-                hpet_pie_limit = DEFAULT_RTC_INT_FREQ / freq;
-        else {
-                clc = (uint64_t) hpet_clockevent.mult * NSEC_PER_SEC;
-                do_div(clc, freq);
-                clc >>= hpet_clockevent.shift;
-                hpet_pie_delta = (unsigned long) clc;
-        }
-        return 1;
-}
-
-If freq is set to 64Hz (DEFAULT_RTC_INT_FREQ) or lower, then
-hpet_pie_limit (a static) is set to non-zero.  Then, on every one-shot
-HPET interrupt, hpet_rtc_timer_reinit is called to compute the next
-timeout.  Well, that function has this logic:
-
-        if (!(hpet_rtc_flags & RTC_PIE) || hpet_pie_limit)
-                delta = hpet_default_delta;
-        else
-                delta = hpet_pie_delta;
-
-Since hpet_pie_limit is not 0, hpet_default_delta is used.  That
-corresponds to 64Hz.
-
-Now, if you set a different rtc frequency, you'll take the else path
-through hpet_set_periodic_freq, but unfortunately no one resets
-hpet_pie_limit back to 0.
-
-Boom....now you are stuck with 64Hz RTC interrupts forever.
-
-The patch below just resets the hpet_pie_limit value when requested freq
-is greater than DEFAULT_RTC_INT_FREQ, which we think fixes this problem.
-
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Signed-off-by: Daniel Hecht <dhecht@vmware.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Reported-by: Thomas Renninger <trenn@suse.de>
+Tested-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/hpet.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/mpparse.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/hpet.c~arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation arch/x86/kernel/hpet.c
---- a/arch/x86/kernel/hpet.c~arch-x86-kernel-hpetc-fix-bug-in-rtc-emulation
-+++ a/arch/x86/kernel/hpet.c
-@@ -1144,6 +1144,7 @@ int hpet_set_periodic_freq(unsigned long
- 		do_div(clc, freq);
- 		clc >>= hpet_clockevent.shift;
- 		hpet_pie_delta = clc;
-+		hpet_pie_limit = 0;
- 	}
- 	return 1;
+diff -puN arch/x86/kernel/mpparse.c~x86-handle-overlapping-mptables arch/x86/kernel/mpparse.c
+--- a/arch/x86/kernel/mpparse.c~x86-handle-overlapping-mptables
++++ a/arch/x86/kernel/mpparse.c
+@@ -664,7 +664,7 @@ static void __init smp_reserve_memory(st
+ {
+ 	unsigned long size = get_mpc_size(mpf->physptr);
+ 
+-	reserve_early(mpf->physptr, mpf->physptr+size, "MP-table mpc");
++	reserve_early_overlap_ok(mpf->physptr, mpf->physptr+size, "MP-table mpc");
  }
+ 
+ static int __init smp_scan_config(unsigned long base, unsigned long length)
+@@ -693,7 +693,7 @@ static int __init smp_scan_config(unsign
+ 			       mpf, (u64)virt_to_phys(mpf));
+ 
+ 			mem = virt_to_phys(mpf);
+-			reserve_early(mem, mem + sizeof(*mpf), "MP-table mpf");
++			reserve_early_overlap_ok(mem, mem + sizeof(*mpf), "MP-table mpf");
+ 			if (mpf->physptr)
+ 				smp_reserve_memory(mpf);
+ 
 _
 
-Patches currently in -mm which might be from akataria@vmware.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
+linux-next.patch
+oprofile-remove-double-ring-buffering.patch
+modpost-support-objects-with-more-than-64k-sections.patch
+mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
+mempolicy-remove-redundant-check.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
 
