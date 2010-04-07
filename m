@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-interrupt-handlers-for-8bit-wakeup-and-click-events.patch added to -mm tree
-Date: Wed, 07 Apr 2010 14:20:22 -0700
-Message-ID: <201004072120.o37LKMHL007975@imap1.linux-foundation.org>
+Subject: + lis3-add-skeletons-for-interrupt-handlers.patch added to -mm tree
+Date: Wed, 07 Apr 2010 14:20:20 -0700
+Message-ID: <201004072120.o37LKKkZ007972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752835Ab0DGVVL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 17:21:11 -0400
+	by vger.kernel.org with ESMTP id S1752835Ab0DGVVI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 17:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: samu.p.onkalo@nokia.com, daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@
 
 
 The patch titled
-     lis3: interrupt handlers for 8bit wakeup and click events
+     lis3: add skeletons for interrupt handlers
 has been added to the -mm tree.  Its filename is
-     lis3-interrupt-handlers-for-8bit-wakeup-and-click-events.patch
+     lis3-add-skeletons-for-interrupt-handlers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,232 +33,190 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: interrupt handlers for 8bit wakeup and click events
+Subject: lis3: add skeletons for interrupt handlers
 From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Content for the 8bit device threaded interrupt handlers.  Depending on the
-interrupt line and chip configuration, either click or wakeup / freefall
-handler is called.  In case of click, BTN_ event is sent via input device.
- In case of wakeup or freefall, input device ABS_ events are updated
-immediatelly.
-
-It is still possible to configure interrupt line 1 for fast freefall
-detection and use the second line either for click or threshold based
-interrupts.  Or both lines can be used for click / threshold interrupts.
-
-Polled input device can be set to stopped state and still get coordinate
-updates via input device using interrupt based method.  Polled mode and
-interrupt mode can also be used parallel.
-
-BTN_ events are remapped based on existing axis remapping information.
+Original lis3 driver didn't provide interrupt handler(s) for click or
+threshold event handling.  This patch adds threaded handlers for one or
+two interrupt lines for 8 bit device.  Actual content for interrupt
+handling is provided in the separate patch.
 
 Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Tested-by: Daniel Mack <daniel@caiaq.de>
 Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Daniel Mack <daniel@caiaq.de>
 Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   98 +++++++++++++++++++++++++++++++-----
- drivers/hwmon/lis3lv02d.h |    1 
- include/linux/lis3lv02d.h |    2 
- 3 files changed, 88 insertions(+), 13 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   87 ++++++++++++++++++++++++++----------
+ include/linux/lis3lv02d.h |    1 
+ 2 files changed, 65 insertions(+), 23 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-skeletons-for-interrupt-handlers drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-add-skeletons-for-interrupt-handlers
 +++ a/drivers/hwmon/lis3lv02d.c
-@@ -121,11 +121,9 @@ static void lis3lv02d_get_xyz(struct lis
- 	int position[3];
- 	int i;
+@@ -251,6 +251,9 @@ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
  
--	mutex_lock(&lis3->mutex);
- 	position[0] = lis3->read_data(lis3, OUTX);
- 	position[1] = lis3->read_data(lis3, OUTY);
- 	position[2] = lis3->read_data(lis3, OUTZ);
--	mutex_unlock(&lis3->mutex);
- 
- 	for (i = 0; i < 3; i++)
- 		position[i] = (position[i] * lis3->scale) / LIS3_ACCURACY;
-@@ -249,6 +247,19 @@ void lis3lv02d_poweron(struct lis3lv02d 
- EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
- 
- 
-+static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
-+{
-+	int x, y, z;
-+
-+	mutex_lock(&lis3_dev.mutex);
-+	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
-+	input_report_abs(pidev->input, ABS_X, x);
-+	input_report_abs(pidev->input, ABS_Y, y);
-+	input_report_abs(pidev->input, ABS_Z, z);
-+	input_sync(pidev->input);
-+	mutex_unlock(&lis3_dev.mutex);
-+}
-+
  static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
  {
- 	if (!test_bit(0, &lis3_dev.misc_opened))
-@@ -270,13 +281,71 @@ out:
++	if (!test_bit(0, &lis3_dev.misc_opened))
++		goto out;
++
+ 	/*
+ 	 * Be careful: on some HP laptops the bios force DD when on battery and
+ 	 * the lid is closed. This leads to interrupts as soon as a little move
+@@ -260,44 +263,35 @@ static irqreturn_t lis302dl_interrupt(in
+ 
+ 	wake_up_interruptible(&lis3_dev.misc_wait);
+ 	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
++out:
++	if (lis3_dev.whoami == WAI_8B && lis3_dev.idev &&
++	    lis3_dev.idev->input->users)
++		return IRQ_WAKE_THREAD;
  	return IRQ_HANDLED;
  }
  
-+static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
+-static int lis3lv02d_misc_open(struct inode *inode, struct file *file)
++static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
+ {
+-	int ret;
++	return IRQ_HANDLED;
++}
+ 
++static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
 +{
-+	struct input_dev *dev = lis3->idev->input;
-+	u8 click_src;
-+
-+	mutex_lock(&lis3->mutex);
-+	lis3->read(lis3, CLICK_SRC, &click_src);
-+
-+	if (click_src & CLICK_SINGLE_X) {
-+		input_report_key(dev, lis3->mapped_btns[0], 1);
-+		input_report_key(dev, lis3->mapped_btns[0], 0);
-+	}
-+
-+	if (click_src & CLICK_SINGLE_Y) {
-+		input_report_key(dev, lis3->mapped_btns[1], 1);
-+		input_report_key(dev, lis3->mapped_btns[1], 0);
-+	}
-+
-+	if (click_src & CLICK_SINGLE_Z) {
-+		input_report_key(dev, lis3->mapped_btns[2], 1);
-+		input_report_key(dev, lis3->mapped_btns[2], 0);
-+	}
-+	input_sync(dev);
-+	mutex_unlock(&lis3->mutex);
++	return IRQ_HANDLED;
 +}
 +
-+static void lis302dl_interrupt_handle_ff_wu(struct lis3lv02d *lis3)
++static int lis3lv02d_misc_open(struct inode *inode, struct file *file)
 +{
-+	u8 wu1_src;
-+	u8 wu2_src;
-+
-+	lis3->read(lis3, FF_WU_SRC_1, &wu1_src);
-+	lis3->read(lis3, FF_WU_SRC_2, &wu2_src);
-+
-+	wu1_src = wu1_src & FF_WU_SRC_IA ? wu1_src : 0;
-+	wu2_src = wu2_src & FF_WU_SRC_IA ? wu2_src : 0;
-+
-+	/* joystick poll is internally protected by the lis3->mutex. */
-+	if (wu1_src || wu2_src)
-+		lis3lv02d_joystick_poll(lis3_dev.idev);
-+}
-+
- static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
- {
-+
-+	struct lis3lv02d *lis3 = data;
-+
-+	if ((lis3->pdata->irq_cfg & LIS3_IRQ1_MASK) == LIS3_IRQ1_CLICK)
-+		lis302dl_interrupt_handle_click(lis3);
-+	else
-+		lis302dl_interrupt_handle_ff_wu(lis3);
-+
- 	return IRQ_HANDLED;
- }
+ 	if (test_and_set_bit(0, &lis3_dev.misc_opened))
+ 		return -EBUSY; /* already open */
  
- static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
- {
-+
-+	struct lis3lv02d *lis3 = data;
-+
-+	if ((lis3->pdata->irq_cfg & LIS3_IRQ2_MASK) == LIS3_IRQ2_CLICK)
-+		lis302dl_interrupt_handle_click(lis3);
-+	else
-+		lis302dl_interrupt_handle_ff_wu(lis3);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -374,22 +443,12 @@ static struct miscdevice lis3lv02d_misc_
- 	.fops    = &lis3lv02d_misc_fops,
- };
- 
--static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
--{
--	int x, y, z;
+ 	atomic_set(&lis3_dev.count, 0);
 -
--	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
--	input_report_abs(pidev->input, ABS_X, x);
--	input_report_abs(pidev->input, ABS_Y, y);
--	input_report_abs(pidev->input, ABS_Z, z);
--	input_sync(pidev->input);
--}
+-	/*
+-	 * The sensor can generate interrupts for free-fall and direction
+-	 * detection (distinguishable with FF_WU_SRC and DD_SRC) but to keep
+-	 * the things simple and _fast_ we activate it only for free-fall, so
+-	 * no need to read register (very slow with ACPI). For the same reason,
+-	 * we forbid shared interrupts.
+-	 *
+-	 * IRQF_TRIGGER_RISING seems pointless on HP laptops because the
+-	 * io-apic is not configurable (and generates a warning) but I keep it
+-	 * in case of support for other hardware.
+-	 */
+-	ret = request_irq(lis3_dev.irq, lis302dl_interrupt, IRQF_TRIGGER_RISING,
+-			  DRIVER_NAME, &lis3_dev);
 -
- int lis3lv02d_joystick_enable(void)
- {
- 	struct input_dev *input_dev;
- 	int err;
- 	int max_val, fuzz, flat;
-+	int btns[] = {BTN_X, BTN_Y, BTN_Z};
- 
- 	if (lis3_dev.idev)
- 		return -EINVAL;
-@@ -416,6 +475,10 @@ int lis3lv02d_joystick_enable(void)
- 	input_set_abs_params(input_dev, ABS_Y, -max_val, max_val, fuzz, flat);
- 	input_set_abs_params(input_dev, ABS_Z, -max_val, max_val, fuzz, flat);
- 
-+	lis3_dev.mapped_btns[0] = lis3lv02d_get_axis(abs(lis3_dev.ac.x), btns);
-+	lis3_dev.mapped_btns[1] = lis3lv02d_get_axis(abs(lis3_dev.ac.y), btns);
-+	lis3_dev.mapped_btns[2] = lis3lv02d_get_axis(abs(lis3_dev.ac.z), btns);
-+
- 	err = input_register_polled_device(lis3_dev.idev);
- 	if (err) {
- 		input_free_polled_device(lis3_dev.idev);
-@@ -461,7 +524,9 @@ static ssize_t lis3lv02d_position_show(s
- {
- 	int x, y, z;
- 
-+	mutex_lock(&lis3_dev.mutex);
- 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
-+	mutex_unlock(&lis3_dev.mutex);
- 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
+-	if (ret) {
+-		clear_bit(0, &lis3_dev.misc_opened);
+-		printk(KERN_ERR DRIVER_NAME ": IRQ%d allocation failed\n", lis3_dev.irq);
+-		return -EBUSY;
+-	}
+ 	return 0;
  }
  
-@@ -535,6 +600,13 @@ static void lis3lv02d_8b_configure(struc
- 		dev->write(dev, CLICK_THSY_X,
- 			(p->click_thresh_x & 0xf) |
- 			(p->click_thresh_y << 4));
+ static int lis3lv02d_misc_release(struct inode *inode, struct file *file)
+ {
+ 	fasync_helper(-1, file, 0, &lis3_dev.async_queue);
+-	free_irq(lis3_dev.irq, &lis3_dev);
+ 	clear_bit(0, &lis3_dev.misc_opened); /* release the device */
+ 	return 0;
+ }
+@@ -434,6 +428,11 @@ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_ena
+ 
+ void lis3lv02d_joystick_disable(void)
+ {
++	if (lis3_dev.irq)
++		free_irq(lis3_dev.irq, &lis3_dev);
++	if (lis3_dev.pdata && lis3_dev.pdata->irq2)
++		free_irq(lis3_dev.pdata->irq2, &lis3_dev);
 +
-+		if (dev->idev) {
-+			struct input_dev *input_dev = lis3_dev.idev->input;
-+			input_set_capability(input_dev, EV_KEY, BTN_X);
-+			input_set_capability(input_dev, EV_KEY, BTN_Y);
-+			input_set_capability(input_dev, EV_KEY, BTN_Z);
-+		}
+ 	if (!lis3_dev.idev)
+ 		return;
+ 
+@@ -524,6 +523,7 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+ 				struct lis3lv02d_platform_data *p)
+ {
++	int err;
+ 	int ctrl2 = p->hipass_ctrl;
+ 
+ 	if (p->click_flags) {
+@@ -554,6 +554,18 @@ static void lis3lv02d_8b_configure(struc
+ 	}
+ 	/* Configure hipass filters */
+ 	dev->write(dev, CTRL_REG2, ctrl2);
++
++	if (p->irq2) {
++		err = request_threaded_irq(p->irq2,
++					NULL,
++					lis302dl_interrupt_thread2_8b,
++					IRQF_TRIGGER_RISING |
++					IRQF_ONESHOT,
++					DRIVER_NAME, &lis3_dev);
++		if (err < 0)
++			printk(KERN_ERR DRIVER_NAME
++				"No second IRQ. Limited functionality\n");
++	}
+ }
+ 
+ /*
+@@ -562,6 +574,9 @@ static void lis3lv02d_8b_configure(struc
+  */
+ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ {
++	int err;
++	irq_handler_t thread_fn;
++
+ 	dev->whoami = lis3lv02d_read_8(dev, WHO_AM_I);
+ 
+ 	switch (dev->whoami) {
+@@ -616,6 +631,32 @@ int lis3lv02d_init_device(struct lis3lv0
+ 		goto out;
  	}
  
- 	if (p->wakeup_flags) {
-diff -puN drivers/hwmon/lis3lv02d.h~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -233,6 +233,7 @@ struct lis3lv02d {
- 	struct platform_device	*pdev;     /* platform device */
- 	atomic_t		count;     /* interrupt count after last read */
- 	struct axis_conversion	ac;        /* hw -> logical axis */
-+	int			mapped_btns[3];
- 
- 	u32			irq;       /* IRQ number */
- 	struct fasync_struct	*async_queue; /* queue for the misc device */
-diff -puN include/linux/lis3lv02d.h~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events include/linux/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3-interrupt-handlers-for-8bit-wakeup-and-click-events
++	/*
++	 * The sensor can generate interrupts for free-fall and direction
++	 * detection (distinguishable with FF_WU_SRC and DD_SRC) but to keep
++	 * the things simple and _fast_ we activate it only for free-fall, so
++	 * no need to read register (very slow with ACPI). For the same reason,
++	 * we forbid shared interrupts.
++	 *
++	 * IRQF_TRIGGER_RISING seems pointless on HP laptops because the
++	 * io-apic is not configurable (and generates a warning) but I keep it
++	 * in case of support for other hardware.
++	 */
++	if (dev->whoami == WAI_8B)
++		thread_fn = lis302dl_interrupt_thread1_8b;
++	else
++		thread_fn = NULL;
++
++	err = request_threaded_irq(dev->irq, lis302dl_interrupt,
++				thread_fn,
++				IRQF_TRIGGER_RISING | IRQF_ONESHOT,
++				DRIVER_NAME, &lis3_dev);
++
++	if (err < 0) {
++		printk(KERN_ERR DRIVER_NAME "Cannot get IRQ\n");
++		goto out;
++	}
++
+ 	if (misc_register(&lis3lv02d_misc_device))
+ 		printk(KERN_ERR DRIVER_NAME ": misc_register failed\n");
+ out:
+diff -puN include/linux/lis3lv02d.h~lis3-add-skeletons-for-interrupt-handlers include/linux/lis3lv02d.h
+--- a/include/linux/lis3lv02d.h~lis3-add-skeletons-for-interrupt-handlers
 +++ a/include/linux/lis3lv02d.h
-@@ -25,12 +25,14 @@ struct lis3lv02d_platform_data {
- #define LIS3_IRQ1_FF_WU_12	(3 << 0)
- #define LIS3_IRQ1_DATA_READY	(4 << 0)
- #define LIS3_IRQ1_CLICK		(7 << 0)
-+#define LIS3_IRQ1_MASK		(7 << 0)
- #define LIS3_IRQ2_DISABLE	(0 << 3)
- #define LIS3_IRQ2_FF_WU_1	(1 << 3)
- #define LIS3_IRQ2_FF_WU_2	(2 << 3)
- #define LIS3_IRQ2_FF_WU_12	(3 << 3)
- #define LIS3_IRQ2_DATA_READY	(4 << 3)
- #define LIS3_IRQ2_CLICK		(7 << 3)
-+#define LIS3_IRQ2_MASK		(7 << 3)
- #define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
- #define LIS3_IRQ_ACTIVE_LOW	(1 << 7)
- 	unsigned char irq_cfg;
+@@ -67,6 +67,7 @@ struct lis3lv02d_platform_data {
+ 	/* Limits for selftest are specified in chip data sheet */
+ 	s16 st_min_limits[3]; /* min pass limit x, y, z */
+ 	s16 st_max_limits[3]; /* max pass limit x, y, z */
++	int irq2;
+ };
+ 
+ #endif /* __LIS3LV02D_H_ */
 _
 
 Patches currently in -mm which might be from samu.p.onkalo@nokia.com are
