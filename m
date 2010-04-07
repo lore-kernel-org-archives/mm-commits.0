@@ -1,59 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch removed from -mm tree
-Date: Wed, 07 Apr 2010 11:50:25 -0400
-Message-ID: <201004071851.o37IppZ9001332@imap1.linux-foundation.org>
+Subject: [merged] pagemap-fix-pfn-calculation-for-hugepage-v3.patch removed from -mm tree
+Date: Wed, 07 Apr 2010 11:50:28 -0400
+Message-ID: <201004071851.o37IpsOn001335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752960Ab0DGSv6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:51:58 -0400
+	by vger.kernel.org with ESMTP id S1753576Ab0DGSwD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Apr 2010 14:52:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yong.zhang@windriver.com, borntraeger@de.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, kamezawa.hiroyu@jp.fujitsu.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ratelimit: fix the return value when __ratelimit() fails to acquire the lock
+     pagemap: fix pfn calculation for hugepage
 has been removed from the -mm tree.  Its filename was
-     ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock.patch
+     pagemap-fix-pfn-calculation-for-hugepage-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ratelimit: fix the return value when __ratelimit() fails to acquire the lock
-From: Yong Zhang <yong.zhang@windriver.com>
+Subject: pagemap: fix pfn calculation for hugepage
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
-The log of commit edaac8e3167501cda336231d00611bf59c164346 ("ratelimit:
-Fix/allow use in atomic contexts"), indicates that we want to suppress the
-callback when the trylock fails.
+When we look into pagemap using page-types with option -p, the value of
+pfn for hugepages looks wrong (see below.) This is because pte was
+evaluated only once for one vma although it should be updated for each
+hugepage.  This patch fixes it.
 
-Signed-off-by: Yong Zhang <yong.zhang@windriver.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+  $ page-types -p 3277 -Nl -b huge
+  voffset   offset  len     flags
+  7f21e8a00 11e400  1       ___U___________H_G________________
+  7f21e8a01 11e401  1ff     ________________TG________________
+               ^^^
+  7f21e8c00 11e400  1       ___U___________H_G________________
+  7f21e8c01 11e401  1ff     ________________TG________________
+               ^^^
+
+One hugepage contains 1 head page and 511 tail pages in x86_64 and each
+two lines represent each hugepage.  Voffset and offset mean virtual
+address and physical address in the page unit, respectively.  The
+different hugepages should not have the same offset value.
+
+With this patch applied:
+
+  $ page-types -p 3386 -Nl -b huge
+  voffset   offset   len    flags
+  7fec7a600 112c00   1      ___UD__________H_G________________
+  7fec7a601 112c01   1ff    ________________TG________________
+               ^^^
+  7fec7a800 113200   1      ___UD__________H_G________________
+  7fec7a801 113201   1ff    ________________TG________________
+               ^^^
+               OK
+
+More info:
+
+- This patch modifies walk_page_range()'s hugepage walker.  But the
+  change only affects pagemap_read(), which is the only caller of hugepage
+  callback.
+
+- Without this patch, hugetlb_entry() callback is called per vma, that
+  doesn't match the natural expectation from its name.
+
+- With this patch, hugetlb_entry() is called per hugepte entry and the
+  callback can become much simpler.
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   27 ++++++------------------
+ include/linux/mm.h |    4 +--
+ mm/pagewalk.c      |   47 +++++++++++++++++++++++++++++++++----------
+ 3 files changed, 46 insertions(+), 32 deletions(-)
 
-diff -puN lib/ratelimit.c~ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock lib/ratelimit.c
---- a/lib/ratelimit.c~ratelimit-fix-the-return-value-when-__ratelimit-fails-to-acquire-the-lock
-+++ a/lib/ratelimit.c
-@@ -40,7 +40,7 @@ int ___ratelimit(struct ratelimit_state 
- 	 * the entity that is holding the lock already:
- 	 */
- 	if (!spin_trylock_irqsave(&rs->lock, flags))
--		return 1;
-+		return 0;
+diff -puN fs/proc/task_mmu.c~pagemap-fix-pfn-calculation-for-hugepage-v3 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-fix-pfn-calculation-for-hugepage-v3
++++ a/fs/proc/task_mmu.c
+@@ -662,31 +662,18 @@ static u64 huge_pte_to_pagemap_entry(pte
+ 	return pme;
+ }
  
- 	if (!rs->begin)
- 		rs->begin = jiffies;
+-static int pagemap_hugetlb_range(pte_t *pte, unsigned long addr,
+-				 unsigned long end, struct mm_walk *walk)
++/* This function walks within one hugetlb entry in the single call */
++static int pagemap_hugetlb_range(pte_t *pte, unsigned long hmask,
++				 unsigned long addr, unsigned long end,
++				 struct mm_walk *walk)
+ {
+-	struct vm_area_struct *vma;
+ 	struct pagemapread *pm = walk->private;
+-	struct hstate *hs = NULL;
+ 	int err = 0;
++	u64 pfn;
+ 
+-	vma = find_vma(walk->mm, addr);
+-	if (vma)
+-		hs = hstate_vma(vma);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+-		u64 pfn = PM_NOT_PRESENT;
+-
+-		if (vma && (addr >= vma->vm_end)) {
+-			vma = find_vma(walk->mm, addr);
+-			if (vma)
+-				hs = hstate_vma(vma);
+-		}
+-
+-		if (vma && (vma->vm_start <= addr) && is_vm_hugetlb_page(vma)) {
+-			/* calculate pfn of the "raw" page in the hugepage. */
+-			int offset = (addr & ~huge_page_mask(hs)) >> PAGE_SHIFT;
+-			pfn = huge_pte_to_pagemap_entry(*pte, offset);
+-		}
++		int offset = (addr & ~hmask) >> PAGE_SHIFT;
++		pfn = huge_pte_to_pagemap_entry(*pte, offset);
+ 		err = add_to_pagemap(addr, pfn, pm);
+ 		if (err)
+ 			return err;
+diff -puN include/linux/mm.h~pagemap-fix-pfn-calculation-for-hugepage-v3 include/linux/mm.h
+--- a/include/linux/mm.h~pagemap-fix-pfn-calculation-for-hugepage-v3
++++ a/include/linux/mm.h
+@@ -783,8 +783,8 @@ struct mm_walk {
+ 	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
+ 	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
+ 	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
+-	int (*hugetlb_entry)(pte_t *, unsigned long, unsigned long,
+-			     struct mm_walk *);
++	int (*hugetlb_entry)(pte_t *, unsigned long,
++			     unsigned long, unsigned long, struct mm_walk *);
+ 	struct mm_struct *mm;
+ 	void *private;
+ };
+diff -puN mm/pagewalk.c~pagemap-fix-pfn-calculation-for-hugepage-v3 mm/pagewalk.c
+--- a/mm/pagewalk.c~pagemap-fix-pfn-calculation-for-hugepage-v3
++++ a/mm/pagewalk.c
+@@ -80,6 +80,37 @@ static int walk_pud_range(pgd_t *pgd, un
+ 	return err;
+ }
+ 
++#ifdef CONFIG_HUGETLB_PAGE
++static unsigned long hugetlb_entry_end(struct hstate *h, unsigned long addr,
++				       unsigned long end)
++{
++	unsigned long boundary = (addr & huge_page_mask(h)) + huge_page_size(h);
++	return boundary < end ? boundary : end;
++}
++
++static int walk_hugetlb_range(struct vm_area_struct *vma,
++			      unsigned long addr, unsigned long end,
++			      struct mm_walk *walk)
++{
++	struct hstate *h = hstate_vma(vma);
++	unsigned long next;
++	unsigned long hmask = huge_page_mask(h);
++	pte_t *pte;
++	int err = 0;
++
++	do {
++		next = hugetlb_entry_end(h, addr, end);
++		pte = huge_pte_offset(walk->mm, addr & hmask);
++		if (pte && walk->hugetlb_entry)
++			err = walk->hugetlb_entry(pte, hmask, addr, next, walk);
++		if (err)
++			return err;
++	} while (addr = next, addr != end);
++
++	return 0;
++}
++#endif
++
+ /**
+  * walk_page_range - walk a memory map's page tables with a callback
+  * @mm: memory map to walk
+@@ -128,20 +159,16 @@ int walk_page_range(unsigned long addr, 
+ 		vma = find_vma(walk->mm, addr);
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		if (vma && is_vm_hugetlb_page(vma)) {
+-			pte_t *pte;
+-			struct hstate *hs;
+-
+ 			if (vma->vm_end < next)
+ 				next = vma->vm_end;
+-			hs = hstate_vma(vma);
+-			pte = huge_pte_offset(walk->mm,
+-					      addr & huge_page_mask(hs));
+-			if (pte && !huge_pte_none(huge_ptep_get(pte))
+-			    && walk->hugetlb_entry)
+-				err = walk->hugetlb_entry(pte, addr,
+-							  next, walk);
++			/*
++			 * Hugepage is very tightly coupled with vma, so
++			 * walk through hugetlb entries within a given vma.
++			 */
++			err = walk_hugetlb_range(vma, addr, next, walk);
+ 			if (err)
+ 				break;
++			pgd = pgd_offset(walk->mm, next);
+ 			continue;
+ 		}
+ #endif
 _
 
-Patches currently in -mm which might be from yong.zhang@windriver.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
+mincore-cleanups.patch
+mincore-break-do_mincore-into-logical-pieces.patch
+mincore-pass-ranges-as-startend-address-pairs.patch
+mincore-do-nested-page-table-walks.patch
+pagemap-add-ifdefs-config_hugetlb_page-on-code-walking-hugetlb-vma.patch
 
