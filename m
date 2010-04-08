@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch added to -mm tree
-Date: Thu, 08 Apr 2010 12:56:41 -0700
-Message-ID: <201004081956.o38JufwK005315@imap1.linux-foundation.org>
+Subject: + powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch added to -mm tree
+Date: Thu, 08 Apr 2010 14:08:28 -0700
+Message-ID: <201004082108.o38L8S5U009076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933307Ab0DHT5r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Apr 2010 15:57:47 -0400
+	by vger.kernel.org with ESMTP id S933626Ab0DHVJZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Apr 2010 17:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, mel@csn.ul.ie
+Cc: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, npiggin@suse.de, paulmck@linux.vnet.ibm.com, riel@redhat.com
 
 
 The patch titled
-     mm: compaction: page buddy can go away before reading page_order while isolating pages for migration
+     powerpc: add rcu_read_lock() to gup_fast() implementation
 has been added to the -mm tree.  Its filename is
-     mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
+     powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: page buddy can go away before reading page_order while isolating pages for migration
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: powerpc: add rcu_read_lock() to gup_fast() implementation
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-zone->lock isn't held so the optimisation is unsafe.  The page could be
-allocated between when PageBuddy is checked and page-order is called.  The
-scanner will harmlessly walk the other free pages so let's just skip this
-optimization.
+The powerpc page table freeing relies on the fact that IRQs hold off an
+RCU grace period, this is currently true for all existing RCU
+implementations but is not an assumption Paul wants to support.
 
-[mel@csn.ul.ie: Expanded the changelog]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Therefore, also take the RCU read lock along with disabling IRQs to ensure
+the RCU grace period does at least cover these lookups.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Requested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/powerpc/mm/gup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration mm/compaction.c
---- a/mm/compaction.c~mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration
-+++ a/mm/compaction.c
-@@ -258,10 +258,8 @@ static unsigned long isolate_migratepage
+diff -puN arch/powerpc/mm/gup.c~powerpc-add-rcu_read_lock-to-gup_fast-implementation arch/powerpc/mm/gup.c
+--- a/arch/powerpc/mm/gup.c~powerpc-add-rcu_read_lock-to-gup_fast-implementation
++++ a/arch/powerpc/mm/gup.c
+@@ -142,6 +142,7 @@ int get_user_pages_fast(unsigned long st
+ 	 * So long as we atomically load page table pointers versus teardown,
+ 	 * we can follow the address down to the the page and take a ref on it.
+ 	 */
++	rcu_read_lock();
+ 	local_irq_disable();
  
- 		/* Get the page and skip if free */
- 		page = pfn_to_page(low_pfn);
--		if (PageBuddy(page)) {
--			low_pfn += (1 << page_order(page)) - 1;
-+		if (PageBuddy(page))
- 			continue;
--		}
+ 	pgdp = pgd_offset(mm, addr);
+@@ -162,6 +163,7 @@ int get_user_pages_fast(unsigned long st
+ 	} while (pgdp++, addr = next, addr != end);
  
- 		/* Try isolate the page */
- 		if (__isolate_lru_page(page, ISOLATE_BOTH, 0) != 0)
+ 	local_irq_enable();
++	rcu_read_unlock();
+ 
+ 	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
+ 	return nr;
+@@ -171,6 +173,7 @@ int get_user_pages_fast(unsigned long st
+ 
+ slow:
+ 		local_irq_enable();
++		rcu_read_unlock();
+ slow_irqon:
+ 		pr_devel("  slow path ! nr = %d\n", nr);
+ 
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-define-madv_hugepage.patch
-mincore-cleanups.patch
-mincore-break-do_mincore-into-logical-pieces.patch
-mincore-pass-ranges-as-startend-address-pairs.patch
-mincore-do-nested-page-table-walks.patch
-mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index.patch
-mm-export-fragmentation-index-via-proc-extfrag_index.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-mm-compaction-do-not-compact-within-a-preferred-zone-after-a-compaction-failure.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
+kernel-user-remove-unreachable-code.patch
+bitops-optimize-hweight-by-making-use-of-compile-time-evaluation.patch
+x86-add-optimized-popcnt-variants.patch
+powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
 
