@@ -1,94 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-mfd-pcf50633-corec-off-by-one-issue.patch removed from -mm tree
-Date: Thu, 08 Apr 2010 11:13:05 -0400
-Message-ID: <201004081814.o38IEXbY032344@imap1.linux-foundation.org>
+Subject: [merged] arch-powerpc-platforms-pseries-use-kasprintf.patch removed from -mm tree
+Date: Thu, 08 Apr 2010 11:13:02 -0400
+Message-ID: <201004081814.o38IEUV2032336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932981Ab0DHSOh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Apr 2010 14:14:37 -0400
+	by vger.kernel.org with ESMTP id S932981Ab0DHSOn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Apr 2010 14:14:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, fercerpav@gmail.com, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, benh@kernel.crashing.org, nfont@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mfd/pcf50633-core.c: off by one issue
+     arch/powerpc/platforms/pseries: use kasprintf
 has been removed from the -mm tree.  Its filename was
-     drivers-mfd-pcf50633-corec-off-by-one-issue.patch
+     arch-powerpc-platforms-pseries-use-kasprintf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/pcf50633-core.c: off by one issue
-From: Dan Carpenter <error27@gmail.com>
+Subject: arch/powerpc/platforms/pseries: use kasprintf
+From: Julia Lawall <julia@diku.dk>
 
-"pcf->irq_handler" has PCF50633_NUM_IRQ elements.
+kasprintf combines kmalloc and sprintf, and takes care of the size
+calculation itself.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Paul Fertser <fercerpav@gmail.com>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression a,flag;
+expression list args;
+statement S;
+@@
+
+  a =
+-  \(kmalloc\|kzalloc\)(...,flag)
++  kasprintf(flag,args)
+  <... when != a
+  if (a == NULL || ...) S
+  ...>
+- sprintf(a,args);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Nathan Fontenot <nfont@austin.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/pcf50633-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/pseries/dlpar.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mfd/pcf50633-core.c~drivers-mfd-pcf50633-corec-off-by-one-issue drivers/mfd/pcf50633-core.c
---- a/drivers/mfd/pcf50633-core.c~drivers-mfd-pcf50633-corec-off-by-one-issue
-+++ a/drivers/mfd/pcf50633-core.c
-@@ -218,7 +218,7 @@ static struct attribute_group pcf_attr_g
- int pcf50633_register_irq(struct pcf50633 *pcf, int irq,
- 			void (*handler) (int, void *), void *data)
- {
--	if (irq < 0 || irq > PCF50633_NUM_IRQ || !handler)
-+	if (irq < 0 || irq >= PCF50633_NUM_IRQ || !handler)
- 		return -EINVAL;
+diff -puN arch/powerpc/platforms/pseries/dlpar.c~arch-powerpc-platforms-pseries-use-kasprintf arch/powerpc/platforms/pseries/dlpar.c
+--- a/arch/powerpc/platforms/pseries/dlpar.c~arch-powerpc-platforms-pseries-use-kasprintf
++++ a/arch/powerpc/platforms/pseries/dlpar.c
+@@ -79,13 +79,12 @@ static struct device_node *dlpar_parse_c
+ 	 * prepend this to the full_name.
+ 	 */
+ 	name = (char *)ccwa + ccwa->name_offset;
+-	dn->full_name = kmalloc(strlen(name) + 2, GFP_KERNEL);
++	dn->full_name = kasprintf(GFP_KERNEL, "/%s", name);
+ 	if (!dn->full_name) {
+ 		kfree(dn);
+ 		return NULL;
+ 	}
  
- 	if (WARN_ON(pcf->irq_handler[irq].handler))
-@@ -235,7 +235,7 @@ EXPORT_SYMBOL_GPL(pcf50633_register_irq)
+-	sprintf(dn->full_name, "/%s", name);
+ 	return dn;
+ }
  
- int pcf50633_free_irq(struct pcf50633 *pcf, int irq)
- {
--	if (irq < 0 || irq > PCF50633_NUM_IRQ)
-+	if (irq < 0 || irq >= PCF50633_NUM_IRQ)
- 		return -EINVAL;
+@@ -410,15 +409,13 @@ static ssize_t dlpar_cpu_probe(const cha
+ 	 * directory of the device tree.  CPUs actually live in the
+ 	 * cpus directory so we need to fixup the full_name.
+ 	 */
+-	cpu_name = kzalloc(strlen(dn->full_name) + strlen("/cpus") + 1,
+-			   GFP_KERNEL);
++	cpu_name = kasprintf(GFP_KERNEL, "/cpus%s", dn->full_name);
+ 	if (!cpu_name) {
+ 		dlpar_free_cc_nodes(dn);
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
  
- 	mutex_lock(&pcf->lock);
+-	sprintf(cpu_name, "/cpus%s", dn->full_name);
+ 	kfree(dn->full_name);
+ 	dn->full_name = cpu_name;
+ 
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-dpt_i20-several-use-after-free-issues.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-backlight-backlight_device_register-return-err_ptr.patch
-s390-potential-buffer-overflow.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
+drivers-serial-pmac_zilogc-add-missing-unlock.patch
+drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
+drivers-acpi-use-kasprintf.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-x86-pci-use-kasprintf.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-media-video-avoid-null-dereference.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+drivers-char-ppdevc-use-kasprintf.patch
+drivers-edac-introduce-missing-kfree.patch
 
