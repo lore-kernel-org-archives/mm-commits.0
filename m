@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-remove-last-traces-of-quicklist-usage.patch added to -mm tree
-Date: Thu, 08 Apr 2010 14:22:36 -0700
-Message-ID: <201004082122.o38LMaaL009678@imap1.linux-foundation.org>
+Subject: + mm-revalidate-anon_vma-in-page_lock_anon_vma.patch added to -mm tree
+Date: Thu, 08 Apr 2010 16:46:15 -0700
+Message-ID: <201004082346.o38NkFAH016047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759030Ab0DHVW6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Apr 2010 17:22:58 -0400
+	by vger.kernel.org with ESMTP id S934033Ab0DHXrH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Apr 2010 19:47:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: a.p.zijlstra@chello.nl, hugh.dickins@tiscali.co.uk, riel@redhat.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     x86: remove last traces of quicklist usage
+     mm: revalidate anon_vma in page_lock_anon_vma()
 has been added to the -mm tree.  Its filename is
-     x86-remove-last-traces-of-quicklist-usage.patch
+     mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: remove last traces of quicklist usage
+Subject: mm: revalidate anon_vma in page_lock_anon_vma()
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-We still have a stray quicklist header included even though we axed
-quicklist usage quite a while back.
+There is nothing preventing the anon_vma from being detached while we are
+spinning to acquire the lock.  Most (all?) current users end up calling
+something like vma_address(page, vma) on it, which has a fairly good
+chance of weeding out wonky vmas.
+
+However suppose the anon_vma got freed and re-used while we were waiting
+to acquire the lock, and the new anon_vma fits with the page->index
+(because that is the only thing vma_address() uses to determine if the
+page fits in a particular vma, we could end up traversing faulty anon_vma
+chains.
+
+Close this hole for good by re-validating that page->mapping still holds
+the very same anon_vma pointer after we acquire the lock, if not be
+utterly paranoid and retry the whole operation (which will very likely
+bail, because it's unlikely the page got attached to a different anon_vma
+in the meantime).
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable_32.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/rmap.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/x86/mm/pgtable_32.c~x86-remove-last-traces-of-quicklist-usage arch/x86/mm/pgtable_32.c
---- a/arch/x86/mm/pgtable_32.c~x86-remove-last-traces-of-quicklist-usage
-+++ a/arch/x86/mm/pgtable_32.c
-@@ -9,7 +9,6 @@
- #include <linux/pagemap.h>
- #include <linux/spinlock.h>
- #include <linux/module.h>
--#include <linux/quicklist.h>
+diff -puN mm/rmap.c~mm-revalidate-anon_vma-in-page_lock_anon_vma mm/rmap.c
+--- a/mm/rmap.c~mm-revalidate-anon_vma-in-page_lock_anon_vma
++++ a/mm/rmap.c
+@@ -294,6 +294,7 @@ struct anon_vma *page_lock_anon_vma(stru
+ 	unsigned long anon_mapping;
  
- #include <asm/system.h>
- #include <asm/pgtable.h>
+ 	rcu_read_lock();
++again:
+ 	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
+ 	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+ 		goto out;
+@@ -302,6 +303,12 @@ struct anon_vma *page_lock_anon_vma(stru
+ 
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+ 	spin_lock(&anon_vma->lock);
++
++	if (page_rmapping(page) != anon_vma) {
++		spin_unlock(&anon_vma->lock);
++		goto again;
++	}
++
+ 	return anon_vma;
+ out:
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
