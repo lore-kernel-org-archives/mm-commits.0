@@ -1,72 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-lpfc-fix-lock-imbalances.patch removed from -mm tree
-Date: Fri, 09 Apr 2010 10:52:33 -0400
-Message-ID: <201004091754.o39Hs395002158@imap1.linux-foundation.org>
+Subject: [merged] sched-fix-sched_getaffinity.patch removed from -mm tree
+Date: Fri, 09 Apr 2010 10:52:24 -0400
+Message-ID: <201004091753.o39HrtNg002140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752595Ab0DIRyL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:11 -0400
+	by vger.kernel.org with ESMTP id S1752595Ab0DIRyO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, James.Bottomley@HansenPartnership.com, james.smart@emulex.com, mm-commits@vger.kernel.org
+To: anton@samba.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: lpfc, fix lock imbalances
+     sched: fix sched_getaffinity()
 has been removed from the -mm tree.  Its filename was
-     scsi-lpfc-fix-lock-imbalances.patch
+     sched-fix-sched_getaffinity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: lpfc, fix lock imbalances
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: sched: fix sched_getaffinity()
+From: Anton Blanchard <anton@samba.org>
 
-Stanse found that two error paths in lpfc_bsg_rport_els_cmp and
-lpfc_issue_ct_rsp_cmp omits to unlock phba->ct_ev_lock.  It is because
-they wrongly unlock phba->hbalock instead.  Fix that.
+taskset on 2.6.34-rc3 fails on one of my ppc64 test boxes with the
+following error:
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Acked-by: James Smart <james.smart@emulex.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+sched_getaffinity(0, 16, 0x10029650030) = -1 EINVAL (Invalid argument)
+
+This box has 128 threads and 16 bytes is enough to cover it.  Commit
+cd3d8031eb4311e516329aee03c79a08333141f1 ("sched: sched_getaffinity():
+Allow less than NR_CPUS length") is comparing this 16 bytes agains
+nr_cpu_ids.
+
+Fix it by comparing nr_cpu_ids to the number of bits in the cpumask we
+pass in.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_bsg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_bsg.c~scsi-lpfc-fix-lock-imbalances drivers/scsi/lpfc/lpfc_bsg.c
---- a/drivers/scsi/lpfc/lpfc_bsg.c~scsi-lpfc-fix-lock-imbalances
-+++ a/drivers/scsi/lpfc/lpfc_bsg.c
-@@ -433,7 +433,7 @@ lpfc_bsg_rport_els_cmp(struct lpfc_hba *
- 	dd_data = cmdiocbq->context1;
- 	/* normal completion and timeout crossed paths, already done */
- 	if (!dd_data) {
--		spin_unlock_irqrestore(&phba->hbalock, flags);
-+		spin_unlock_irqrestore(&phba->ct_ev_lock, flags);
- 		return;
- 	}
+diff -puN kernel/sched.c~sched-fix-sched_getaffinity kernel/sched.c
+--- a/kernel/sched.c~sched-fix-sched_getaffinity
++++ a/kernel/sched.c
+@@ -4909,7 +4909,7 @@ SYSCALL_DEFINE3(sched_getaffinity, pid_t
+ 	int ret;
+ 	cpumask_var_t mask;
  
-@@ -1196,7 +1196,7 @@ lpfc_issue_ct_rsp_cmp(struct lpfc_hba *p
- 	dd_data = cmdiocbq->context1;
- 	/* normal completion and timeout crossed paths, already done */
- 	if (!dd_data) {
--		spin_unlock_irqrestore(&phba->hbalock, flags);
-+		spin_unlock_irqrestore(&phba->ct_ev_lock, flags);
- 		return;
- 	}
- 
+-	if (len < nr_cpu_ids)
++	if ((len * BITS_PER_BYTE) < nr_cpu_ids)
+ 		return -EINVAL;
+ 	if (len & (sizeof(unsigned long)-1))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from anton@samba.org are
 
+origin.patch
 linux-next.patch
-gpu-vga_switcheroo-fix-lock-imbalance.patch
-dvb-usb-gp8psk-fix-potential-null-derefernce.patch
-kernel-user-remove-unreachable-code.patch
-edac-add-__init-to-i7core_xeon_pci_fixup.patch
 
