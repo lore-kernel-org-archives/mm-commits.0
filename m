@@ -1,80 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch removed from -mm tree
-Date: Fri, 09 Apr 2010 10:52:51 -0400
-Message-ID: <201004091754.o39HsLCZ002187@imap1.linux-foundation.org>
+Subject: [merged] wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch removed from -mm tree
+Date: Fri, 09 Apr 2010 10:52:57 -0400
+Message-ID: <201004091754.o39HsRGN002193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755117Ab0DIRy3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:29 -0400
+	by vger.kernel.org with ESMTP id S1752595Ab0DIRyh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, Eric.moore@lsi.com, James.Bottomley@suse.de, kashyap.desai@lsi.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, James.Bottomley@suse.de, zaga@fly.cc.fer.hr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mpt2sas: fix &&/|| confusion in _scsih_sas_device_status_change_event()
+     wd7000: typo spin_unlock_irq() => spin_lock_irq()
 has been removed from the -mm tree.  Its filename was
-     mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+     wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mpt2sas: fix &&/|| confusion in _scsih_sas_device_status_change_event()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: wd7000: typo spin_unlock_irq() => spin_lock_irq()
+From: Dan Carpenter <error27@gmail.com>
 
-Even if the ReasonCode is not INTERNAL_DEVICE_RESET nor CMP_DEVICE_RESET
-this still evaluates to true.
+This was introduced back in 2005 at the very start of the git era by:
+	df0ae2497ddefd72a87f3a3b34ff32455d7d4ae0
+	[SCSI] allow sleeping in ->eh_host_reset_handler()
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James E.J. Bottomley <James.Bottomley@suse.de>
-Cc: Kashyap Desai <kashyap.desai@lsi.com>
-Acked-by: Eric Moore <Eric.moore@lsi.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Miroslav Zagorac <zaga@fly.cc.fer.hr>
+Cc: "James E.J. Bottomley" <James.Bottomley@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt2sas/mpt2sas_scsih.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/wd7000.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event drivers/scsi/mpt2sas/mpt2sas_scsih.c
---- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event
-+++ a/drivers/scsi/mpt2sas/mpt2sas_scsih.c
-@@ -4520,10 +4520,10 @@ _scsih_sas_device_status_change_event(st
- 		     event_data);
- #endif
+diff -puN drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq drivers/scsi/wd7000.c
+--- a/drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq
++++ a/drivers/scsi/wd7000.c
+@@ -1587,7 +1587,7 @@ static int wd7000_host_reset(struct scsi
+ {
+ 	Adapter *host = (Adapter *) SCpnt->device->host->hostdata;
  
--	if (!(event_data->ReasonCode ==
--	    MPI2_EVENT_SAS_DEV_STAT_RC_INTERNAL_DEVICE_RESET &&
--	   event_data->ReasonCode ==
--	    MPI2_EVENT_SAS_DEV_STAT_RC_CMP_INTERNAL_DEV_RESET))
-+	if (event_data->ReasonCode !=
-+	      MPI2_EVENT_SAS_DEV_STAT_RC_INTERNAL_DEVICE_RESET &&
-+	    event_data->ReasonCode !=
-+	      MPI2_EVENT_SAS_DEV_STAT_RC_CMP_INTERNAL_DEV_RESET)
- 		return;
+-	spin_unlock_irq(SCpnt->device->host->host_lock);
++	spin_lock_irq(SCpnt->device->host->host_lock);
  
- 	spin_lock_irqsave(&ioc->sas_device_lock, flags);
+ 	if (wd7000_adapter_reset(host) < 0) {
+ 		spin_unlock_irq(SCpnt->device->host->host_lock);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 origin.patch
 linux-next.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-serial-two-branches-the-same-in-timbuart_set_mctrl.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
-vt6655-cgi-csi-confusion-in-device_ioctl.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
