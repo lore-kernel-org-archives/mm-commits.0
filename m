@@ -1,84 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch removed from -mm tree
-Date: Fri, 09 Apr 2010 10:52:57 -0400
-Message-ID: <201004091754.o39HsRGN002193@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch removed from -mm tree
+Date: Fri, 09 Apr 2010 10:52:54 -0400
+Message-ID: <201004091754.o39HsPCV002190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752595Ab0DIRyh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:37 -0400
+	by vger.kernel.org with ESMTP id S1755117Ab0DIRyc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, James.Bottomley@suse.de, zaga@fly.cc.fer.hr, mm-commits@vger.kernel.org
+To: julia@diku.dk, James.Bottomley@HansenPartnership.com, huangj@brocade.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wd7000: typo spin_unlock_irq() => spin_lock_irq()
+     drivers/scsi/bfa/bfad_im.c: eliminate useless code
 has been removed from the -mm tree.  Its filename was
-     wd7000-typo-spin_unlock_irq-=-spin_lock_irq.patch
+     drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wd7000: typo spin_unlock_irq() => spin_lock_irq()
-From: Dan Carpenter <error27@gmail.com>
+Subject: drivers/scsi/bfa/bfad_im.c: eliminate useless code
+From: Julia Lawall <julia@diku.dk>
 
-This was introduced back in 2005 at the very start of the git era by:
-	df0ae2497ddefd72a87f3a3b34ff32455d7d4ae0
-	[SCSI] allow sleeping in ->eh_host_reset_handler()
+The variable bfa_itnim is initialized twice to the same (side effect-free)
+expression.  Drop one initialization.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Miroslav Zagorac <zaga@fly.cc.fer.hr>
-Cc: "James E.J. Bottomley" <James.Bottomley@suse.de>
+A simplified version of the semantic match that finds this problem is:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@forall@
+idexpression *x;
+identifier f!=ERR_PTR;
+@@
+
+x = f(...)
+... when != x
+(
+x = f(...,<+...x...+>,...)
+|
+* x = f(...)
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Jing Huang <huangj@brocade.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/wd7000.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/bfa/bfad_im.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq drivers/scsi/wd7000.c
---- a/drivers/scsi/wd7000.c~wd7000-typo-spin_unlock_irq-=-spin_lock_irq
-+++ a/drivers/scsi/wd7000.c
-@@ -1587,7 +1587,7 @@ static int wd7000_host_reset(struct scsi
- {
- 	Adapter *host = (Adapter *) SCpnt->device->host->hostdata;
+diff -puN drivers/scsi/bfa/bfad_im.c~drivers-scsi-bfa-bfad_imc-eliminate-useless-code drivers/scsi/bfa/bfad_im.c
+--- a/drivers/scsi/bfa/bfad_im.c~drivers-scsi-bfa-bfad_imc-eliminate-useless-code
++++ a/drivers/scsi/bfa/bfad_im.c
+@@ -252,7 +252,6 @@ bfad_im_target_reset_send(struct bfad_s 
+ 	struct bfa_itnim_s *bfa_itnim;
+ 	bfa_status_t    rc = BFA_STATUS_OK;
  
--	spin_unlock_irq(SCpnt->device->host->host_lock);
-+	spin_lock_irq(SCpnt->device->host->host_lock);
- 
- 	if (wd7000_adapter_reset(host) < 0) {
- 		spin_unlock_irq(SCpnt->device->host->host_lock);
+-	bfa_itnim = bfa_fcs_itnim_get_halitn(&itnim->fcs_itnim);
+ 	tskim = bfa_tskim_alloc(&bfad->bfa, (struct bfad_tskim_s *) cmnd);
+ 	if (!tskim) {
+ 		BFA_DEV_PRINTF(bfad, BFA_ERR,
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-backlight-backlight_device_register-return-err_ptr.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-iscsi-change-to.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
+drivers-serial-pmac_zilogc-add-missing-unlock.patch
+drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
+drivers-acpi-use-kasprintf.patch
+drivers-acpi-use-kasprintf-fix.patch
+arch-x86-pci-use-kasprintf.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-media-video-avoid-null-dereference.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-char-ppdevc-use-kasprintf.patch
+drivers-edac-introduce-missing-kfree.patch
 
