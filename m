@@ -1,122 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x25-attempts-to-negotiate-invalid-throughput.patch removed from -mm tree
-Date: Fri, 09 Apr 2010 10:52:39 -0400
-Message-ID: <201004091754.o39HsATB002171@imap1.linux-foundation.org>
+Subject: [merged] dpt_i20-several-use-after-free-issues.patch removed from -mm tree
+Date: Fri, 09 Apr 2010 10:52:27 -0400
+Message-ID: <201004091753.o39HrvLA002143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34349 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755117Ab0DIRy1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:27 -0400
+	by vger.kernel.org with ESMTP id S1755009Ab0DIRzX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:55:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john@calva.com, davem@davemloft.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: error27@gmail.com, James.Bottomley@HansenPartnership.com, aacraid@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x.25 attempts to negotiate invalid throughput
+     dpt_i20: several use after free issues
 has been removed from the -mm tree.  Its filename was
-     x25-attempts-to-negotiate-invalid-throughput.patch
+     dpt_i20-several-use-after-free-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x.25 attempts to negotiate invalid throughput
-From: John Hughes <john@calva.com>
+Subject: dpt_i20: several use after free issues
+From: Dan Carpenter <error27@gmail.com>
 
-The current (2.6.34) x.25 code doesn't seem to know that the X.25
-throughput facility includes two values, one for the required throughput
-outbound, one for inbound.
+adpt_i2o_delete_hba() calls kfree() so we have to save "pHba->next" before
+calling it.  Also inside adpt_i2o_delete_hba() itself, there was another
+use after free bug which I fixed by moving the kfree() down a line.
 
-This causes it to attempt to negotiate throughput 0x0A, which is
-throughput 9600 inbound and the illegal value "0" for inbound throughput.
-
-Because of this some X.25 devices (e.g.  Cisco 1600) refuse to connect to
-Linux X.25.
-
-The patch fixes this behaviour.  Unless the user specifies a required
-throughput it does not attempt to negotiate.  If the user does not specify
-a throughput it accepts the suggestion of the remote X.25 system.  If the
-user requests a throughput then it validates both the input and output
-throughputs and correctly negotiates them with the remote end.
-
-Signed-off-by: John Hughes <john@calva.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Adaptec OEM Raid Solutions <aacraid@adaptec.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/x25/af_x25.c         |   20 ++++++++++++++++----
- net/x25/x25_facilities.c |   15 ++++++++++++---
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/scsi/dpt_i2o.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput net/x25/af_x25.c
---- a/net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput
-+++ a/net/x25/af_x25.c
-@@ -554,7 +554,8 @@ static int x25_create(struct net *net, s
- 	x25->facilities.winsize_out = X25_DEFAULT_WINDOW_SIZE;
- 	x25->facilities.pacsize_in  = X25_DEFAULT_PACKET_SIZE;
- 	x25->facilities.pacsize_out = X25_DEFAULT_PACKET_SIZE;
--	x25->facilities.throughput  = X25_DEFAULT_THROUGHPUT;
-+	x25->facilities.throughput  = 0;	/* by default don't negotiate
-+						   throughput */
- 	x25->facilities.reverse     = X25_DEFAULT_REVERSE;
- 	x25->dte_facilities.calling_len = 0;
- 	x25->dte_facilities.called_len = 0;
-@@ -1415,9 +1416,20 @@ static int x25_ioctl(struct socket *sock
- 			if (facilities.winsize_in < 1 ||
- 			    facilities.winsize_in > 127)
- 				break;
--			if (facilities.throughput < 0x03 ||
--			    facilities.throughput > 0xDD)
--				break;
-+			if (facilities.throughput) {
-+				int out = facilities.throughput & 0xf0;
-+				int in  = facilities.throughput & 0x0f;
-+				if (!out)
-+					facilities.throughput |=
-+						X25_DEFAULT_THROUGHPUT << 4;
-+				else if (out < 0x30 || out > 0xD0)
-+					break;
-+				if (!in)
-+					facilities.throughput |=
-+						X25_DEFAULT_THROUGHPUT;
-+				else if (in < 0x03 || in > 0x0D)
-+					break;
-+			}
- 			if (facilities.reverse &&
- 				(facilities.reverse & 0x81) != 0x81)
- 				break;
-diff -puN net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput net/x25/x25_facilities.c
---- a/net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput
-+++ a/net/x25/x25_facilities.c
-@@ -259,9 +259,18 @@ int x25_negotiate_facilities(struct sk_b
- 	new->reverse = theirs.reverse;
+diff -puN drivers/scsi/dpt_i2o.c~dpt_i20-several-use-after-free-issues drivers/scsi/dpt_i2o.c
+--- a/drivers/scsi/dpt_i2o.c~dpt_i20-several-use-after-free-issues
++++ a/drivers/scsi/dpt_i2o.c
+@@ -188,7 +188,8 @@ MODULE_DEVICE_TABLE(pci,dptids);
+ static int adpt_detect(struct scsi_host_template* sht)
+ {
+ 	struct pci_dev *pDev = NULL;
+-	adpt_hba* pHba;
++	adpt_hba *pHba;
++	adpt_hba *next;
  
- 	if (theirs.throughput) {
--		if (theirs.throughput < ours->throughput) {
--			SOCK_DEBUG(sk, "X.25: throughput negotiated down\n");
--			new->throughput = theirs.throughput;
-+		int theirs_in =  theirs.throughput & 0x0f;
-+		int theirs_out = theirs.throughput & 0xf0;
-+		int ours_in  = ours->throughput & 0x0f;
-+		int ours_out = ours->throughput & 0xf0;
-+		if (!ours_in || theirs_in < ours_in) {
-+			SOCK_DEBUG(sk, "X.25: inbound throughput negotiated\n");
-+			new->throughput = (new->throughput & 0xf0) | theirs_in;
-+		}
-+		if (!ours_out || theirs_out < ours_out) {
-+			SOCK_DEBUG(sk,
-+				"X.25: outbound throughput negotiated\n");
-+			new->throughput = (new->throughput & 0x0f) | theirs_out;
- 		}
+ 	PINFO("Detecting Adaptec I2O RAID controllers...\n");
+ 
+@@ -206,7 +207,8 @@ static int adpt_detect(struct scsi_host_
  	}
  
+ 	/* In INIT state, Activate IOPs */
+-	for (pHba = hba_chain; pHba; pHba = pHba->next) {
++	for (pHba = hba_chain; pHba; pHba = next) {
++		next = pHba->next;
+ 		// Activate does get status , init outbound, and get hrt
+ 		if (adpt_i2o_activate_hba(pHba) < 0) {
+ 			adpt_i2o_delete_hba(pHba);
+@@ -243,7 +245,8 @@ rebuild_sys_tab:
+ 	PDEBUG("HBA's in OPERATIONAL state\n");
+ 
+ 	printk("dpti: If you have a lot of devices this could take a few minutes.\n");
+-	for (pHba = hba_chain; pHba; pHba = pHba->next) {
++	for (pHba = hba_chain; pHba; pHba = next) {
++		next = pHba->next;
+ 		printk(KERN_INFO"%s: Reading the hardware resource table.\n", pHba->name);
+ 		if (adpt_i2o_lct_get(pHba) < 0){
+ 			adpt_i2o_delete_hba(pHba);
+@@ -263,7 +266,8 @@ rebuild_sys_tab:
+ 		adpt_sysfs_class = NULL;
+ 	}
+ 
+-	for (pHba = hba_chain; pHba; pHba = pHba->next) {
++	for (pHba = hba_chain; pHba; pHba = next) {
++		next = pHba->next;
+ 		if (adpt_scsi_host_alloc(pHba, sht) < 0){
+ 			adpt_i2o_delete_hba(pHba);
+ 			continue;
+@@ -1229,11 +1233,10 @@ static void adpt_i2o_delete_hba(adpt_hba
+ 		}
+ 	}
+ 	pci_dev_put(pHba->pDev);
+-	kfree(pHba);
+-
+ 	if (adpt_sysfs_class)
+ 		device_destroy(adpt_sysfs_class,
+ 				MKDEV(DPTI_I2O_MAJOR, pHba->unit));
++	kfree(pHba);
+ 
+ 	if(hba_count <= 0){
+ 		unregister_chrdev(DPTI_I2O_MAJOR, DPT_DRIVER);   
 _
 
-Patches currently in -mm which might be from john@calva.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
+origin.patch
 linux-next.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+iscsi-change-to.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
