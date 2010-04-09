@@ -1,90 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch removed from -mm tree
-Date: Fri, 09 Apr 2010 10:52:54 -0400
-Message-ID: <201004091754.o39HsPCV002190@imap1.linux-foundation.org>
+Subject: [merged] x25-attempts-to-negotiate-invalid-throughput.patch removed from -mm tree
+Date: Fri, 09 Apr 2010 10:52:39 -0400
+Message-ID: <201004091754.o39HsATB002171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34349 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755117Ab0DIRyc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:32 -0400
+	by vger.kernel.org with ESMTP id S1755117Ab0DIRy1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, James.Bottomley@HansenPartnership.com, huangj@brocade.com, mm-commits@vger.kernel.org
+To: john@calva.com, davem@davemloft.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/bfa/bfad_im.c: eliminate useless code
+     x.25 attempts to negotiate invalid throughput
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
+     x25-attempts-to-negotiate-invalid-throughput.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/bfa/bfad_im.c: eliminate useless code
-From: Julia Lawall <julia@diku.dk>
+Subject: x.25 attempts to negotiate invalid throughput
+From: John Hughes <john@calva.com>
 
-The variable bfa_itnim is initialized twice to the same (side effect-free)
-expression.  Drop one initialization.
+The current (2.6.34) x.25 code doesn't seem to know that the X.25
+throughput facility includes two values, one for the required throughput
+outbound, one for inbound.
 
-A simplified version of the semantic match that finds this problem is:
-(http://coccinelle.lip6.fr/)
+This causes it to attempt to negotiate throughput 0x0A, which is
+throughput 9600 inbound and the illegal value "0" for inbound throughput.
 
-// <smpl>
-@forall@
-idexpression *x;
-identifier f!=ERR_PTR;
-@@
+Because of this some X.25 devices (e.g.  Cisco 1600) refuse to connect to
+Linux X.25.
 
-x = f(...)
-... when != x
-(
-x = f(...,<+...x...+>,...)
-|
-* x = f(...)
-)
-// </smpl>
+The patch fixes this behaviour.  Unless the user specifies a required
+throughput it does not attempt to negotiate.  If the user does not specify
+a throughput it accepts the suggestion of the remote X.25 system.  If the
+user requests a throughput then it validates both the input and output
+throughputs and correctly negotiates them with the remote end.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Jing Huang <huangj@brocade.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: John Hughes <john@calva.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/bfa/bfad_im.c |    1 -
- 1 file changed, 1 deletion(-)
+ net/x25/af_x25.c         |   20 ++++++++++++++++----
+ net/x25/x25_facilities.c |   15 ++++++++++++---
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
-diff -puN drivers/scsi/bfa/bfad_im.c~drivers-scsi-bfa-bfad_imc-eliminate-useless-code drivers/scsi/bfa/bfad_im.c
---- a/drivers/scsi/bfa/bfad_im.c~drivers-scsi-bfa-bfad_imc-eliminate-useless-code
-+++ a/drivers/scsi/bfa/bfad_im.c
-@@ -252,7 +252,6 @@ bfad_im_target_reset_send(struct bfad_s 
- 	struct bfa_itnim_s *bfa_itnim;
- 	bfa_status_t    rc = BFA_STATUS_OK;
+diff -puN net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput net/x25/af_x25.c
+--- a/net/x25/af_x25.c~x25-attempts-to-negotiate-invalid-throughput
++++ a/net/x25/af_x25.c
+@@ -554,7 +554,8 @@ static int x25_create(struct net *net, s
+ 	x25->facilities.winsize_out = X25_DEFAULT_WINDOW_SIZE;
+ 	x25->facilities.pacsize_in  = X25_DEFAULT_PACKET_SIZE;
+ 	x25->facilities.pacsize_out = X25_DEFAULT_PACKET_SIZE;
+-	x25->facilities.throughput  = X25_DEFAULT_THROUGHPUT;
++	x25->facilities.throughput  = 0;	/* by default don't negotiate
++						   throughput */
+ 	x25->facilities.reverse     = X25_DEFAULT_REVERSE;
+ 	x25->dte_facilities.calling_len = 0;
+ 	x25->dte_facilities.called_len = 0;
+@@ -1415,9 +1416,20 @@ static int x25_ioctl(struct socket *sock
+ 			if (facilities.winsize_in < 1 ||
+ 			    facilities.winsize_in > 127)
+ 				break;
+-			if (facilities.throughput < 0x03 ||
+-			    facilities.throughput > 0xDD)
+-				break;
++			if (facilities.throughput) {
++				int out = facilities.throughput & 0xf0;
++				int in  = facilities.throughput & 0x0f;
++				if (!out)
++					facilities.throughput |=
++						X25_DEFAULT_THROUGHPUT << 4;
++				else if (out < 0x30 || out > 0xD0)
++					break;
++				if (!in)
++					facilities.throughput |=
++						X25_DEFAULT_THROUGHPUT;
++				else if (in < 0x03 || in > 0x0D)
++					break;
++			}
+ 			if (facilities.reverse &&
+ 				(facilities.reverse & 0x81) != 0x81)
+ 				break;
+diff -puN net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput net/x25/x25_facilities.c
+--- a/net/x25/x25_facilities.c~x25-attempts-to-negotiate-invalid-throughput
++++ a/net/x25/x25_facilities.c
+@@ -259,9 +259,18 @@ int x25_negotiate_facilities(struct sk_b
+ 	new->reverse = theirs.reverse;
  
--	bfa_itnim = bfa_fcs_itnim_get_halitn(&itnim->fcs_itnim);
- 	tskim = bfa_tskim_alloc(&bfad->bfa, (struct bfad_tskim_s *) cmnd);
- 	if (!tskim) {
- 		BFA_DEV_PRINTF(bfad, BFA_ERR,
+ 	if (theirs.throughput) {
+-		if (theirs.throughput < ours->throughput) {
+-			SOCK_DEBUG(sk, "X.25: throughput negotiated down\n");
+-			new->throughput = theirs.throughput;
++		int theirs_in =  theirs.throughput & 0x0f;
++		int theirs_out = theirs.throughput & 0xf0;
++		int ours_in  = ours->throughput & 0x0f;
++		int ours_out = ours->throughput & 0xf0;
++		if (!ours_in || theirs_in < ours_in) {
++			SOCK_DEBUG(sk, "X.25: inbound throughput negotiated\n");
++			new->throughput = (new->throughput & 0xf0) | theirs_in;
++		}
++		if (!ours_out || theirs_out < ours_out) {
++			SOCK_DEBUG(sk,
++				"X.25: outbound throughput negotiated\n");
++			new->throughput = (new->throughput & 0x0f) | theirs_out;
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from john@calva.com are
 
-origin.patch
 linux-next.patch
-drivers-scsi-qla2xxx-qla_attrc-add-missing-unlock.patch
-drivers-serial-pmac_zilogc-add-missing-unlock.patch
-drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
-drivers-acpi-use-kasprintf.patch
-drivers-acpi-use-kasprintf-fix.patch
-arch-x86-pci-use-kasprintf.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-media-video-avoid-null-dereference.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-char-ppdevc-use-kasprintf.patch
-drivers-edac-introduce-missing-kfree.patch
 
