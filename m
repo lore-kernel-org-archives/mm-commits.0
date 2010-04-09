@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-qla2xxx-fix-lock-imbalance.patch removed from -mm tree
-Date: Fri, 09 Apr 2010 10:52:36 -0400
-Message-ID: <201004091754.o39Hs6sf002163@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-gdthc-fix-buffer-overflow.patch removed from -mm tree
+Date: Fri, 09 Apr 2010 10:52:46 -0400
+Message-ID: <201004091754.o39HsGlo002181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755036Ab0DIRyR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:17 -0400
+	by vger.kernel.org with ESMTP id S1755062Ab0DIRyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 13:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, James.Bottomley@HansenPartnership.com, giridhar.malavali@qlogic.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: qla2xxx, fix lock imbalance
+     drivers/scsi/gdth.c: fix buffer overflow
 has been removed from the -mm tree.  Its filename was
-     scsi-qla2xxx-fix-lock-imbalance.patch
+     drivers-scsi-gdthc-fix-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: qla2xxx, fix lock imbalance
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: drivers/scsi/gdth.c: fix buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Stanse found that one error path in qla24xx_bsg_timeout omits to
-unlock ha->hardware_lock. Fix that.
+This allows i == MAXHA, which is out of range
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Acked-by: Giridhar Malavali <giridhar.malavali@qlogic.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_attr.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/gdth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_attr.c~scsi-qla2xxx-fix-lock-imbalance drivers/scsi/qla2xxx/qla_attr.c
---- a/drivers/scsi/qla2xxx/qla_attr.c~scsi-qla2xxx-fix-lock-imbalance
-+++ a/drivers/scsi/qla2xxx/qla_attr.c
-@@ -2393,6 +2393,7 @@ qla24xx_bsg_timeout(struct fc_bsg_job *b
- 	return 0;
+diff -puN drivers/scsi/gdth.c~drivers-scsi-gdthc-fix-buffer-overflow drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~drivers-scsi-gdthc-fix-buffer-overflow
++++ a/drivers/scsi/gdth.c
+@@ -3842,7 +3842,7 @@ int __init option_setup(char *str)
  
- done:
-+	spin_unlock_irqrestore(&ha->hardware_lock, flags);
- 	if (bsg_job->request->msgcode == FC_BSG_HST_CT)
- 		kfree(sp->fcport);
- 	kfree(sp->ctx);
+     TRACE2(("option_setup() str %s\n", str ? str:"NULL")); 
+ 
+-    while (cur && isdigit(*cur) && i <= MAXHA) {
++    while (cur && isdigit(*cur) && i < MAXHA) {
+         ints[i++] = simple_strtoul(cur, NULL, 0);
+         if ((cur = strchr(cur, ',')) != NULL) cur++;
+     }
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-gpu-vga_switcheroo-fix-lock-imbalance.patch
-dvb-usb-gp8psk-fix-potential-null-derefernce.patch
-kernel-user-remove-unreachable-code.patch
-edac-add-__init-to-i7core_xeon_pci_fixup.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+serial-two-branches-the-same-in-timbuart_set_mctrl.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
+vt6655-cgi-csi-confusion-in-device_ioctl.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 
