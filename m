@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-m41t80-use-nonseekable_open.patch added to -mm tree
-Date: Fri, 09 Apr 2010 16:15:30 -0700
-Message-ID: <201004092315.o39NFUoe017207@imap1.linux-foundation.org>
+Subject: + vfs-introduce-noop_llseek.patch added to -mm tree
+Date: Fri, 09 Apr 2010 16:15:33 -0700
+Message-ID: <201004092315.o39NFXVj017216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51117 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753243Ab0DIXPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 19:15:41 -0400
+	by vger.kernel.org with ESMTP id S1750918Ab0DIXPs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 19:15:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, a.zummo@towertech.it, fweisbec@gmail.com, p_gortmaker@yahoo.com
+Cc: jblunck@suse.de, fweisbec@gmail.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     rtc-m41t80: use nonseekable_open()
+     vfs: introduce noop_llseek()
 has been added to the -mm tree.  Its filename is
-     rtc-m41t80-use-nonseekable_open.patch
+     vfs-introduce-noop_llseek.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-m41t80: use nonseekable_open()
-From: Jan Blunck <jblunck@suse.de>
+Subject: vfs: introduce noop_llseek()
+From: jan Blunck <jblunck@suse.de>
 
-Use nonseekable_open() for this since seeking is not supported anyway.
+This is an implementation of ->llseek useable for the rare special case
+when userspace expects the seek to succeed but the (device) file is
+actually not able to perform the seek.  In this case you use noop_llseek()
+instead of falling back to the default implementation of ->llseek.
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t80.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/read_write.c    |   17 +++++++++++++++++
+ include/linux/fs.h |    1 +
+ 2 files changed, 18 insertions(+)
 
-diff -puN drivers/rtc/rtc-m41t80.c~rtc-m41t80-use-nonseekable_open drivers/rtc/rtc-m41t80.c
---- a/drivers/rtc/rtc-m41t80.c~rtc-m41t80-use-nonseekable_open
-+++ a/drivers/rtc/rtc-m41t80.c
-@@ -595,10 +595,6 @@ static void wdt_disable(void)
- static ssize_t wdt_write(struct file *file, const char __user *buf,
- 			 size_t count, loff_t *ppos)
- {
--	/*  Can't seek (pwrite) on this device
--	if (ppos != &file->f_pos)
--	return -ESPIPE;
--	*/
- 	if (count) {
- 		wdt_ping();
- 		return 1;
-@@ -695,7 +691,7 @@ static int wdt_open(struct inode *inode,
- 		 */
- 		wdt_is_open = 1;
- 		unlock_kernel();
--		return 0;
-+		return nonseekable_open(inode, file);
- 	}
- 	return -ENODEV;
+diff -puN fs/read_write.c~vfs-introduce-noop_llseek fs/read_write.c
+--- a/fs/read_write.c~vfs-introduce-noop_llseek
++++ a/fs/read_write.c
+@@ -97,6 +97,23 @@ loff_t generic_file_llseek(struct file *
  }
+ EXPORT_SYMBOL(generic_file_llseek);
+ 
++/**
++ * noop_llseek - No Operation Performed llseek implementation
++ * @file:	file structure to seek on
++ * @offset:	file offset to seek to
++ * @origin:	type of seek
++ *
++ * This is an implementation of ->llseek useable for the rare special case when
++ * userspace expects the seek to succeed but the (device) file is actually not
++ * able to perform the seek. In this case you use noop_llseek() instead of
++ * falling back to the default implementation of ->llseek.
++ */
++loff_t noop_llseek(struct file *file, loff_t offset, int origin)
++{
++	return file->f_pos;
++}
++EXPORT_SYMBOL(noop_llseek);
++
+ loff_t no_llseek(struct file *file, loff_t offset, int origin)
+ {
+ 	return -ESPIPE;
+diff -puN include/linux/fs.h~vfs-introduce-noop_llseek include/linux/fs.h
+--- a/include/linux/fs.h~vfs-introduce-noop_llseek
++++ a/include/linux/fs.h
+@@ -2238,6 +2238,7 @@ extern long do_splice_direct(struct file
+ 
+ extern void
+ file_ra_state_init(struct file_ra_state *ra, struct address_space *mapping);
++extern loff_t noop_llseek(struct file *file, loff_t offset, int origin);
+ extern loff_t no_llseek(struct file *file, loff_t offset, int origin);
+ extern loff_t generic_file_llseek(struct file *file, loff_t offset, int origin);
+ extern loff_t generic_file_llseek_unlocked(struct file *file, loff_t offset,
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
