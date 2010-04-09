@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + zcrypt-use-nonseekable_open.patch added to -mm tree
-Date: Fri, 09 Apr 2010 16:15:28 -0700
-Message-ID: <201004092315.o39NFSHd017201@imap1.linux-foundation.org>
+Subject: + frv-remove-struct-file-argument-from-sysctl-proc_handler.patch added to -mm tree
+Date: Fri, 09 Apr 2010 16:15:23 -0700
+Message-ID: <201004092315.o39NFN1E017189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753887Ab0DIXPi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 19:15:38 -0400
+	by vger.kernel.org with ESMTP id S1753900Ab0DIXPl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Apr 2010 19:15:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, felix.beck@de.ibm.com, fweisbec@gmail.com, ralph.wuerthner@de.ibm.com, schwidefsky@de.ibm.com
+Cc: jblunck@suse.de, adobriyan@gmail.com, dhowells@redhat.com, fweisbec@gmail.com
 
 
 The patch titled
-     zcrypt: use nonseekable_open()
+     frv: remove "struct file *" argument from sysctl ->proc_handler
 has been added to the -mm tree.  Its filename is
-     zcrypt-use-nonseekable_open.patch
+     frv-remove-struct-file-argument-from-sysctl-proc_handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zcrypt: use nonseekable_open()
+Subject: frv: remove "struct file *" argument from sysctl ->proc_handler
 From: Jan Blunck <jblunck@suse.de>
-
-zcrypt doesn't even allow to read/write the files it opens.  So seeking on
-it shouldn't fall back to defaults either but should be disallowed as
-well.
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Felix Beck <felix.beck@de.ibm.com>
-Cc: Ralph Wuerthner <ralph.wuerthner@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/crypto/zcrypt_api.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/sysctl.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/s390/crypto/zcrypt_api.c~zcrypt-use-nonseekable_open drivers/s390/crypto/zcrypt_api.c
---- a/drivers/s390/crypto/zcrypt_api.c~zcrypt-use-nonseekable_open
-+++ a/drivers/s390/crypto/zcrypt_api.c
-@@ -302,7 +302,7 @@ static ssize_t zcrypt_write(struct file 
- static int zcrypt_open(struct inode *inode, struct file *filp)
+diff -puN arch/frv/kernel/sysctl.c~frv-remove-struct-file-argument-from-sysctl-proc_handler arch/frv/kernel/sysctl.c
+--- a/arch/frv/kernel/sysctl.c~frv-remove-struct-file-argument-from-sysctl-proc_handler
++++ a/arch/frv/kernel/sysctl.c
+@@ -46,8 +46,9 @@ static void frv_change_dcache_mode(unsig
+ /*
+  * handle requests to dynamically switch the write caching mode delivered by /proc
+  */
+-static int procctl_frv_cachemode(ctl_table *table, int write, struct file *filp,
+-				 void __user *buffer, size_t *lenp, loff_t *ppos)
++static int procctl_frv_cachemode(ctl_table *table, int write,
++				 void __user *buffer, size_t *lenp,
++				 loff_t *ppos)
  {
- 	atomic_inc(&zcrypt_open_count);
--	return 0;
-+	return nonseekable_open(inode, filp);
- }
+ 	unsigned long hsr0;
+ 	char buff[8];
+@@ -84,7 +85,7 @@ static int procctl_frv_cachemode(ctl_tab
+ 	}
  
- /**
+ 	/* read the state */
+-	if (filp->f_pos > 0) {
++	if (*ppos > 0) {
+ 		*lenp = 0;
+ 		return 0;
+ 	}
+@@ -110,7 +111,7 @@ static int procctl_frv_cachemode(ctl_tab
+ 		return -EFAULT;
+ 
+ 	*lenp = len;
+-	filp->f_pos = len;
++	*ppos = len;
+ 	return 0;
+ 
+ } /* end procctl_frv_cachemode() */
+@@ -120,8 +121,9 @@ static int procctl_frv_cachemode(ctl_tab
+  * permit the mm_struct the nominated process is using have its MMU context ID pinned
+  */
+ #ifdef CONFIG_MMU
+-static int procctl_frv_pin_cxnr(ctl_table *table, int write, struct file *filp,
+-				void __user *buffer, size_t *lenp, loff_t *ppos)
++static int procctl_frv_pin_cxnr(ctl_table *table, int write,
++				void __user *buffer, size_t *lenp,
++				loff_t *ppos)
+ {
+ 	pid_t pid;
+ 	char buff[16], *p;
+@@ -150,7 +152,7 @@ static int procctl_frv_pin_cxnr(ctl_tabl
+ 	}
+ 
+ 	/* read the currently pinned CXN */
+-	if (filp->f_pos > 0) {
++	if (*ppos > 0) {
+ 		*lenp = 0;
+ 		return 0;
+ 	}
+@@ -163,7 +165,7 @@ static int procctl_frv_pin_cxnr(ctl_tabl
+ 		return -EFAULT;
+ 
+ 	*lenp = len;
+-	filp->f_pos = len;
++	*ppos = len;
+ 	return 0;
+ 
+ } /* end procctl_frv_pin_cxnr() */
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
