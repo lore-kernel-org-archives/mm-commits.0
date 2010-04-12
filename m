@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + reiserfs-fix-permissions-on-reiserfs_priv.patch added to -mm tree
-Date: Mon, 12 Apr 2010 17:24:55 -0400
-Message-ID: <201004130026.o3D0QXGk002664@imap1.linux-foundation.org>
+Date: Mon, 12 Apr 2010 17:26:29 -0400
+Message-ID: <201004130028.o3D0S7rL002788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754453Ab0DMA0n (ORCPT
+	by vger.kernel.org with ESMTP id S1754332Ab0DMA2O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Apr 2010 20:26:43 -0400
+	Mon, 12 Apr 2010 20:28:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, edward.shishkin@gmail.com, fweisbec@gmail.com, matt@mattmccutchen.net, stable@kernel.org
+Cc: jeffm@suse.com, edward.shishkin@gmail.com, fweisbec@gmail.com, matt@mattmccutchen.net, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
@@ -60,6 +60,7 @@ Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Acked-by: Edward Shishkin <edward.shishkin@gmail.com>
 Reported-by: Matt McCutchen <matt@mattmccutchen.net>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
