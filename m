@@ -1,119 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix.patch removed from -mm tree
-Date: Mon, 12 Apr 2010 21:14:02 -0400
-Message-ID: <201004130415.o3D4FfmM012114@imap1.linux-foundation.org>
+Subject: + memcg-fix-prepare-migration.patch added to -mm tree
+Date: Mon, 12 Apr 2010 21:26:39 -0400
+Message-ID: <201004130428.o3D4SHCK012692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711Ab0DMEQs (ORCPT
+	by vger.kernel.org with ESMTP id S1750733Ab0DME2j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Apr 2010 00:16:48 -0400
+	Tue, 13 Apr 2010 00:28:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@red
+To: mm-commits@vger.kernel.org
+Cc: aarcange@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix
-has been removed from the -mm tree.  Its filename was
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix.patch
+     memcg: fix prepare migration
+has been added to the -mm tree.  Its filename is
+     memcg-fix-prepare-migration.patch
 
-This patch was dropped because it was folded into mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: fix prepare migration
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-Fix reject, resture defer_compaction() call which appeared to get lost.
+If a signal is pending (task being killed by sigkill)
+__mem_cgroup_try_charge will write NULL into &mem, and css_put will oops
+on null pointer dereference.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+IP: [<ffffffff810fc6cc>] mem_cgroup_prepare_migration+0x7c/0xc0
+PGD a5d89067 PUD a5d8a067 PMD 0
+Oops: 0000 [#1] SMP
+last sysfs file: /sys/devices/platform/microcode/firmware/microcode/loading
+CPU 0
+Modules linked in: nfs lockd nfs_acl auth_rpcgss sunrpc acpi_cpufreq pcspkr sg [last unloaded: microcode]
+
+Pid: 5299, comm: largepages Tainted: G        W  2.6.34-rc3 #3 Penryn1600SLI-110dB/To Be Filled By O.E.M.
+RIP: 0010:[<ffffffff810fc6cc>]  [<ffffffff810fc6cc>] mem_cgroup_prepare_migration+0x7c/0xc0
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix
-+++ a/mm/page_alloc.c
-@@ -1793,6 +1793,9 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		 */
- 		count_vm_event(COMPACTFAIL);
- 
-+		/* On failure, avoid compaction for a short time. */
-+		defer_compaction(preferred_zone, jiffies + HZ/50);
-+
- 		cond_resched();
+diff -puN mm/memcontrol.c~memcg-fix-prepare-migration mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-prepare-migration
++++ a/mm/memcontrol.c
+@@ -2429,8 +2429,9 @@ int mem_cgroup_prepare_migration(struct 
  	}
+ 	unlock_page_cgroup(pc);
  
++	*ptr = mem;
+ 	if (mem) {
+-		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false);
++		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false);
+ 		css_put(&mem->css);
+ 	}
+ 	*ptr = mem;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-jfs-free-sbi-memory-in-error-path.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-ipc-mqueuec-let-message-queue-timeout-use-hrtimers-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
+memcg-fix-prepare-migration.patch
+define-madv_hugepage.patch
+mincore-cleanups.patch
+mincore-break-do_mincore-into-logical-pieces.patch
+mincore-pass-ranges-as-startend-address-pairs.patch
+mincore-do-nested-page-table-walks.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-reject-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
