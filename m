@@ -1,69 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: + readaheadc-fix-comment.patch added to -mm tree
-Date: Tue, 13 Apr 2010 13:11:45 -0700
-Message-ID: <201004132011.o3DKBjTU025433@imap1.linux-foundation.org>
+Subject: [withdrawn] proc-make-task_sig-lockless.patch removed from -mm tree
+Date: Tue, 13 Apr 2010 13:12:32 -0700
+Message-ID: <201004132012.o3DKCWKV025461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753021Ab0DMULs (ORCPT
+	by vger.kernel.org with ESMTP id S1753021Ab0DMUMo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Apr 2010 16:11:48 -0400
+	Tue, 13 Apr 2010 16:12:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shijie8@gmail.com, fengguang.wu@intel.com
+To: oleg@redhat.com, adobriyan@gmail.com, dhowells@redhat.com, ebiederm@xmission.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead.c: fix comment
-has been added to the -mm tree.  Its filename is
-     readaheadc-fix-comment.patch
+     proc: make task_sig() lockless
+has been removed from the -mm tree.  Its filename was
+     proc-make-task_sig-lockless.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead.c: fix comment
-From: Huang Shijie <shijie8@gmail.com>
+Subject: proc: make task_sig() lockless
+From: Oleg Nesterov <oleg@redhat.com>
 
-Fix a wrong comment over page_cache_async_readahead().
+Now that task->signal can't go away and collect_sigign_sigcatch() is
+rcu-safe, task_sig() doesn't need ->siglock.
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Remove lock_task_sighand() and unnecessary sigemptyset's, move
+collect_sigign_sigcatch() under rcu_read_lock().
+
+Of course, this means we read pending/blocked/etc nonatomically and we can
+report this info in some intermediate state.  Say, a signal can be
+reported as both pending and ignored, or we can report ->sigpending != 0
+while pending/shpending are empty, etc.  Hopefully this is OK for proc, we
+never promised this info should be atomic.
+
+Probably we can change do_task_stat() to avoid ->siglock too, except we
+can't get tty_nr lockless.
+
+Also, remove the "is this correct?" comment.  I think it is safe to
+dereference __task_cred(p)->user under rcu lock.  In any case, ->siglock
+can't help to protect cred->user.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/array.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN mm/readahead.c~readaheadc-fix-comment mm/readahead.c
---- a/mm/readahead.c~readaheadc-fix-comment
-+++ a/mm/readahead.c
-@@ -523,7 +523,7 @@ EXPORT_SYMBOL_GPL(page_cache_sync_readah
-  * @req_size: hint: total size of the read which the caller is performing in
-  *            pagecache pages
-  *
-- * page_cache_async_ondemand() should be called when a page is used which
-+ * page_cache_async_readahead() should be called when a page is used which
-  * has the PG_readahead flag; this is a marker to suggest that the application
-  * has used up enough of the readahead window that we should start pulling in
-  * more pages.
+diff -puN fs/proc/array.c~proc-make-task_sig-lockless fs/proc/array.c
+--- a/fs/proc/array.c~proc-make-task_sig-lockless
++++ a/fs/proc/array.c
+@@ -256,30 +256,24 @@ static void collect_sigign_sigcatch(stru
+ 
+ static inline void task_sig(struct seq_file *m, struct task_struct *p)
+ {
+-	unsigned long flags;
+ 	sigset_t pending, shpending, blocked, ignored, caught;
+ 	int num_threads = 0;
+ 	unsigned long qsize = 0;
+ 	unsigned long qlim = 0;
+ 
+-	sigemptyset(&pending);
+-	sigemptyset(&shpending);
+-	sigemptyset(&blocked);
+ 	sigemptyset(&ignored);
+ 	sigemptyset(&caught);
+ 
+-	if (lock_task_sighand(p, &flags)) {
+-		pending = p->pending.signal;
+-		shpending = p->signal->shared_pending.signal;
+-		blocked = p->blocked;
+-		collect_sigign_sigcatch(p, &ignored, &caught);
+-		num_threads = get_nr_threads(p);
+-		rcu_read_lock();  /* FIXME: is this correct? */
+-		qsize = atomic_read(&__task_cred(p)->user->sigpending);
+-		rcu_read_unlock();
+-		qlim = task_rlimit(p, RLIMIT_SIGPENDING);
+-		unlock_task_sighand(p, &flags);
+-	}
++	blocked = p->blocked;
++	pending = p->pending.signal;
++	shpending = p->signal->shared_pending.signal;
++	qlim = task_rlimit(p, RLIMIT_SIGPENDING);
++	num_threads = get_nr_threads(p);
++
++	rcu_read_lock();
++	collect_sigign_sigcatch(p, &ignored, &caught);
++	qsize = atomic_read(&__task_cred(p)->user->sigpending);
++	rcu_read_unlock();
+ 
+ 	seq_printf(m, "Threads:\t%d\n", num_threads);
+ 	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
 _
 
-Patches currently in -mm which might be from shijie8@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-shmem-remove-redundant-code.patch
-readaheadc-fix-comment.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+proc-turn-signal_struct-count-into-int-nr_threads.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+proc-cleanup-remove-unused-assignments.patch
 
