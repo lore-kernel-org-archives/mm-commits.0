@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-enabling-srio-port-rx-and-tx.patch added to -mm tree
-Date: Mon, 12 Apr 2010 20:56:01 -0400
-Message-ID: <201004130357.o3D3vdCb011297@imap1.linux-foundation.org>
+Subject: + time-remove-xtime_cache-take-2.patch added to -mm tree
+Date: Mon, 12 Apr 2010 21:01:57 -0400
+Message-ID: <201004130403.o3D43Zlf011661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752016Ab0DMD56 (ORCPT
+	by vger.kernel.org with ESMTP id S1750728Ab0DMEDr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Apr 2010 23:57:58 -0400
+	Tue, 13 Apr 2010 00:03:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.moll@sysgo.com, abounine@tundra.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org
+Cc: johnstul@us.ibm.com, P.Titera@century.cz, tglx@linutronix.de
 
 
 The patch titled
-     rapidio: add enabling SRIO port RX and TX
+     time: remove xtime_cache
 has been added to the -mm tree.  Its filename is
-     rapidio-add-enabling-srio-port-rx-and-tx.patch
+     time-remove-xtime_cache-take-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,187 +34,170 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add enabling SRIO port RX and TX
-From: Thomas Moll <thomas.moll@sysgo.com>
+Subject: time: remove xtime_cache
+From: John Stultz <johnstul@us.ibm.com>
 
-Add the functionality to enable Input receiver and Output transmitter of
-every port, to allow non-maintenance traffic.
+With the earlier logarithmic time accumulation patch, xtime will now
+always be within one "tick" of the current time, instead of possibly half
+a second off.
 
-Signed-off-by: Thomas Moll <thomas.moll@sysgo.com>
-Signed-off-by: Alexandre Bounine <abounine@tundra.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
+This removes the need for the xtime_cache value, which always stored the
+time at the last interrupt, so this patch cleans that up removing the
+xtime_cache related code.
+
+This patch also addresses an issue with an earlier version of this change,
+where xtime_cache was normalizing xtime, which could in some cases be not
+valid (ie: tv_nsec == NSEC_PER_SEC).  This is fixed by handling the edge
+case in update_wall_time().
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Petr Titera <P.Titera@century.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/Kconfig    |   11 ++++
- drivers/rapidio/rio-scan.c |   79 ++++++++++++++++++++++++++++++++++-
- include/linux/rio_regs.h   |    5 ++
- 3 files changed, 94 insertions(+), 1 deletion(-)
+ include/linux/time.h      |    1 -
+ kernel/time/timekeeping.c |   35 ++++++++++++++++-------------------
+ 2 files changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN drivers/rapidio/Kconfig~rapidio-add-enabling-srio-port-rx-and-tx drivers/rapidio/Kconfig
---- a/drivers/rapidio/Kconfig~rapidio-add-enabling-srio-port-rx-and-tx
-+++ a/drivers/rapidio/Kconfig
-@@ -9,4 +9,15 @@ config RAPIDIO_DISC_TIMEOUT
- 	  Amount of time a discovery node waits for a host to complete
- 	  enumeration before giving up.
+diff -puN include/linux/time.h~time-remove-xtime_cache-take-2 include/linux/time.h
+--- a/include/linux/time.h~time-remove-xtime_cache-take-2
++++ a/include/linux/time.h
+@@ -150,7 +150,6 @@ extern struct timespec timespec_trunc(st
+ extern int timekeeping_valid_for_hres(void);
+ extern u64 timekeeping_max_deferment(void);
+ extern void update_wall_time(void);
+-extern void update_xtime_cache(u64 nsec);
+ extern void timekeeping_leap_insert(int leapsecond);
  
-+config RAPIDIO_ENABLE_RX_TX_PORTS
-+	bool "Enable RapidIO Input/Output Ports"
-+	depends on RAPIDIO
-+	---help---
-+	  The RapidIO specification describes a Output port transmit
-+	  enable and a Input port receive enable. The recommended state
-+	  for Input ports and Output ports should be disabled. When
-+	  this switch is set the RapidIO subsystem will enable all
-+	  ports for Input/Output direction to allow other traffic
-+	  than Maintenance transfers.
-+
- source "drivers/rapidio/switches/Kconfig"
-diff -puN drivers/rapidio/rio-scan.c~rapidio-add-enabling-srio-port-rx-and-tx drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-add-enabling-srio-port-rx-and-tx
-+++ a/drivers/rapidio/rio-scan.c
-@@ -8,6 +8,10 @@
-  * Alex Bounine <alexandre.bounine@idt.com>
-  * - Added Port-Write/Error Management initialization and handling
-  *
-+ * Copyright 2009 Sysgo AG
-+ * Thomas Moll <thomas.moll@sysgo.com>
-+ * - Added Input- Output- enable functionality, to allow full communication
-+ *
-  * This program is free software; you can redistribute  it and/or modify it
-  * under  the terms of  the GNU General  Public License as published by the
-  * Free Software Foundation;  either version 2 of the  License, or (at your
-@@ -328,6 +332,65 @@ static int __devinit rio_add_device(stru
- }
+ struct tms;
+diff -puN kernel/time/timekeeping.c~time-remove-xtime_cache-take-2 kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~time-remove-xtime_cache-take-2
++++ a/kernel/time/timekeeping.c
+@@ -165,13 +165,6 @@ struct timespec raw_time;
+ /* flag for if timekeeping is suspended */
+ int __read_mostly timekeeping_suspended;
  
- /**
-+ * rio_enable_rx_tx_port - enable input reciever and output transmitter of
-+ * given port
-+ * @port: Master port associated with the RIO network
-+ * @local: local=1 select local port otherwise a far device is reached
-+ * @destid: Destination ID of the device to check host bit
-+ * @hopcount: Number of hops to reach the target
-+ * @port_num: Port (-number on switch) to enable on a far end device
-+ *
-+ * Returns 0 or 1 from on General Control Command and Status Register
-+ * (EXT_PTR+0x3C)
-+ */
-+inline int rio_enable_rx_tx_port(struct rio_mport *port,
-+				 int local, u16 destid,
-+				 u8 hopcount, u8 port_num) {
-+#ifdef CONFIG_RAPIDIO_ENABLE_RX_TX_PORTS
-+	u32 regval;
-+	u32 ext_ftr_ptr;
+-static struct timespec xtime_cache __attribute__ ((aligned (16)));
+-void update_xtime_cache(u64 nsec)
+-{
+-	xtime_cache = xtime;
+-	timespec_add_ns(&xtime_cache, nsec);
+-}
+-
+ /* must hold xtime_lock */
+ void timekeeping_leap_insert(int leapsecond)
+ {
+@@ -332,8 +325,6 @@ int do_settimeofday(struct timespec *tv)
+ 
+ 	xtime = *tv;
+ 
+-	update_xtime_cache(0);
+-
+ 	timekeeper.ntp_error = 0;
+ 	ntp_clear();
+ 
+@@ -559,7 +550,6 @@ void __init timekeeping_init(void)
+ 	}
+ 	set_normalized_timespec(&wall_to_monotonic,
+ 				-boot.tv_sec, -boot.tv_nsec);
+-	update_xtime_cache(0);
+ 	total_sleep_time.tv_sec = 0;
+ 	total_sleep_time.tv_nsec = 0;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+@@ -593,7 +583,6 @@ static int timekeeping_resume(struct sys
+ 		wall_to_monotonic = timespec_sub(wall_to_monotonic, ts);
+ 		total_sleep_time = timespec_add_safe(total_sleep_time, ts);
+ 	}
+-	update_xtime_cache(0);
+ 	/* re-base the last cycle value */
+ 	timekeeper.clock->cycle_last = timekeeper.clock->read(timekeeper.clock);
+ 	timekeeper.ntp_error = 0;
+@@ -788,7 +777,6 @@ void update_wall_time(void)
+ {
+ 	struct clocksource *clock;
+ 	cycle_t offset;
+-	u64 nsecs;
+ 	int shift = 0, maxshift;
+ 
+ 	/* Make sure we're fully resumed: */
+@@ -847,7 +835,9 @@ void update_wall_time(void)
+ 		timekeeper.ntp_error += neg << timekeeper.ntp_error_shift;
+ 	}
+ 
+-	/* store full nanoseconds into xtime after rounding it up and
 +
 +	/*
-+	* enable rx input tx output port
-+	*/
-+	pr_debug("rio_enable_rx_tx_port(local = %d, destid = %d, hopcount = "
-+		 "%d, port_num = %d)\n", local, destid, hopcount, port_num);
-+
-+	ext_ftr_ptr = rio_mport_get_physefb(port, local, destid, hopcount);
-+
-+	if (local) {
-+		rio_local_read_config_32(port, ext_ftr_ptr +
-+				RIO_PORT_N_CTL_CSR(0),
-+				&regval);
-+	} else {
-+		if (rio_mport_read_config_32(port, destid, hopcount,
-+		ext_ftr_ptr + RIO_PORT_N_CTL_CSR(port_num), &regval) < 0)
-+			return -EIO;
-+	}
-+
-+	if (regval & RIO_PORT_N_CTL_P_TYP_SER) {
-+		/* serial */
-+		regval = regval | RIO_PORT_N_CTL_EN_RX_SER
-+				| RIO_PORT_N_CTL_EN_TX_SER;
-+	} else {
-+		/* parallel */
-+		regval = regval | RIO_PORT_N_CTL_EN_RX_PAR
-+				| RIO_PORT_N_CTL_EN_TX_PAR;
-+	}
-+
-+	if (local) {
-+		rio_local_write_config_32(port, ext_ftr_ptr +
-+					  RIO_PORT_N_CTL_CSR(0), regval);
-+	} else {
-+		if (rio_mport_write_config_32(port, destid, hopcount,
-+		    ext_ftr_ptr + RIO_PORT_N_CTL_CSR(port_num), regval) < 0)
-+			return -EIO;
-+	}
-+#endif
-+	return 0;
-+}
-+
-+/**
-  * rio_setup_device- Allocates and sets up a RIO device
-  * @net: RIO network
-  * @port: Master port to send transactions
-@@ -430,9 +493,14 @@ static struct rio_dev __devinit *rio_set
++	 * Store full nanoseconds into xtime after rounding it up and
+ 	 * add the remainder to the error difference.
+ 	 */
+ 	xtime.tv_nsec =	((s64) timekeeper.xtime_nsec >> timekeeper.shift) + 1;
+@@ -855,8 +845,15 @@ void update_wall_time(void)
+ 	timekeeper.ntp_error +=	timekeeper.xtime_nsec <<
+ 				timekeeper.ntp_error_shift;
  
- 		list_add_tail(&rswitch->node, &rio_switches);
- 
--	} else
-+	} else {
-+		if (do_enum)
-+			/*Enable Input Output Port (transmitter reviever)*/
-+			rio_enable_rx_tx_port(port, 0, destid, hopcount, 0);
-+
- 		dev_set_name(&rdev->dev, "%02x:e:%04x", rdev->net->id,
- 			     rdev->destid);
+-	nsecs = clocksource_cyc2ns(offset, timekeeper.mult, timekeeper.shift);
+-	update_xtime_cache(nsecs);
++	/*
++	 * Finally, make sure that after the rounding
++	 * xtime.tv_nsec isn't larger then NSEC_PER_SEC
++	 */
++	if (unlikely(xtime.tv_nsec >= NSEC_PER_SEC)) {
++		xtime.tv_nsec -= NSEC_PER_SEC;
++		xtime.tv_sec++;
++		second_overflow();
 +	}
  
- 	rdev->dev.bus = &rio_bus_type;
+ 	/* check to see if there is a new clocksource to use */
+ 	update_vsyscall(&xtime, timekeeper.clock, timekeeper.mult);
+@@ -896,13 +893,13 @@ EXPORT_SYMBOL_GPL(monotonic_to_bootbased
  
-@@ -812,6 +880,11 @@ static int __devinit rio_enum_peer(struc
- 		    rio_name(rdev), rdev->vid, rdev->did, num_ports);
- 		sw_destid = next_destid;
- 		for (port_num = 0; port_num < num_ports; port_num++) {
-+			/*Enable Input Output Port (transmitter reviever)*/
-+			rio_enable_rx_tx_port(port, 0,
-+					      RIO_ANY_DESTID(port->sys_size),
-+					      hopcount, port_num);
-+
- 			if (sw_inport == port_num) {
- 				rdev->rswitch->port_ok |= (1 << port_num);
- 				continue;
-@@ -1132,6 +1205,10 @@ int __devinit rio_enum_mport(struct rio_
- 			rc = -ENOMEM;
- 			goto out;
- 		}
-+
-+		/* Enable Input Output Port (transmitter reviever) */
-+		rio_enable_rx_tx_port(mport, 1, 0, 0, 0);
-+
- 		if (rio_enum_peer(net, mport, 0) < 0) {
- 			/* A higher priority host won enumeration, bail. */
- 			printk(KERN_INFO
-diff -puN include/linux/rio_regs.h~rapidio-add-enabling-srio-port-rx-and-tx include/linux/rio_regs.h
---- a/include/linux/rio_regs.h~rapidio-add-enabling-srio-port-rx-and-tx
-+++ a/include/linux/rio_regs.h
-@@ -243,7 +243,12 @@
- #define  RIO_PORT_N_CTL_PWIDTH		0xc0000000
- #define  RIO_PORT_N_CTL_PWIDTH_1	0x00000000
- #define  RIO_PORT_N_CTL_PWIDTH_4	0x40000000
-+#define  RIO_PORT_N_CTL_P_TYP_SER	0x00000001
- #define  RIO_PORT_N_CTL_LOCKOUT		0x00000002
-+#define  RIO_PORT_N_CTL_EN_RX_SER	0x00200000
-+#define  RIO_PORT_N_CTL_EN_TX_SER	0x00400000
-+#define  RIO_PORT_N_CTL_EN_RX_PAR	0x08000000
-+#define  RIO_PORT_N_CTL_EN_TX_PAR	0x40000000
+ unsigned long get_seconds(void)
+ {
+-	return xtime_cache.tv_sec;
++	return xtime.tv_sec;
+ }
+ EXPORT_SYMBOL(get_seconds);
  
- /*
-  * Error Management Extensions (RapidIO 1.3+, Part 8)
+ struct timespec __current_kernel_time(void)
+ {
+-	return xtime_cache;
++	return xtime;
+ }
+ 
+ struct timespec current_kernel_time(void)
+@@ -913,7 +910,7 @@ struct timespec current_kernel_time(void
+ 	do {
+ 		seq = read_seqbegin(&xtime_lock);
+ 
+-		now = xtime_cache;
++		now = xtime;
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
+ 	return now;
+@@ -928,7 +925,7 @@ struct timespec get_monotonic_coarse(voi
+ 	do {
+ 		seq = read_seqbegin(&xtime_lock);
+ 
+-		now = xtime_cache;
++		now = xtime;
+ 		mono = wall_to_monotonic;
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
 _
 
-Patches currently in -mm which might be from thomas.moll@sysgo.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-rapidio-add-idt-cps-tsi-switches.patch
-rapidio-add-switch-locking-during-discovery.patch
-rapidio-add-port-write-handling-for-em.patch
-rapidio-powerpc-85xx-add-port-write-message-handler-for-srio-port.patch
-rapidio-powerpc-85xx-add-mchk-handler-for-srio-port.patch
-rapidio-add-enabling-srio-port-rx-and-tx.patch
+linux-next.patch
+arch-x86-kernel-hpetc-make-the-hpet-compare-register-read-back-failed-warning-conditional-on-the-hpet=verbose-boot-option.patch
+cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
+time-clean-up-warp_clock.patch
+time-clean-up-direct-xtime-usage-in-xen.patch
+ntp-make-time_adjust-static.patch
+ntp-remove-tickadj.patch
+time-remove-xtime_cache-take-2.patch
+xtensa-fix-unnecessary-setting-of-xtime.patch
+hangcheck-timer-fix-x86_32-bugs.patch
+time-kill-off-config_generic_time.patch
 
