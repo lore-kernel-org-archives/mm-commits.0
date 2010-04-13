@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + memcg-fix-prepare-migration.patch added to -mm tree
-Date: Mon, 12 Apr 2010 21:26:39 -0400
-Message-ID: <201004130428.o3D4SHCK012692@imap1.linux-foundation.org>
+Date: Mon, 12 Apr 2010 21:28:24 -0400
+Message-ID: <201004130430.o3D4U2wE012716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750733Ab0DME2j (ORCPT
+	by vger.kernel.org with ESMTP id S1750733Ab0DMEaY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Apr 2010 00:28:39 -0400
+	Tue, 13 Apr 2010 00:30:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: aarcange@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, stable@kernel.org
 
 
 The patch titled
@@ -56,6 +56,7 @@ Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
