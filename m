@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console.patch added to -mm tree
-Date: Mon, 12 Apr 2010 22:51:40 -0400
-Message-ID: <201004130553.o3D5rJGa016103@imap1.linux-foundation.org>
+Subject: + oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch added to -mm tree
+Date: Mon, 12 Apr 2010 22:59:44 -0400
+Message-ID: <201004130601.o3D61N1K016404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750772Ab0DMFyC (ORCPT
+	by vger.kernel.org with ESMTP id S1751040Ab0DMGBl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Apr 2010 01:54:02 -0400
+	Tue, 13 Apr 2010 02:01:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chripell@fsfe.org, alan@lxorguk.ukuu.org.uk, feng.tang@intel.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de
+Cc: oleg@redhat.com, rientjes@google.com
 
 
 The patch titled
-     max3100: fixes for the MAX31x0 console
+     oom: select_bad_process(): never choose tasks with badness == 0
 has been added to the -mm tree.  Its filename is
-     max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console.patch
+     oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,159 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: max3100: fixes for the MAX31x0 console
-From: Christian Pellegrin <chripell@fsfe.org>
+Subject: oom: select_bad_process(): never choose tasks with badness == 0
+From: Oleg Nesterov <oleg@redhat.com>
 
-Fix problems reported about the MAX31x0 console.  RTS is asserted only if
-flow control is explicitly enabled on kernel command line.  Chars inputed
-during console output are not lost.
+As David pointed out, we should fix select_bad_process() which currently
+always selects the first process which was not filtered out before
+oom_badness(), no matter what oom_badness() returns.
 
-Signed-off-by: Christian Pellegrin <chripell@fsfe.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Feng Tang <feng.tang@intel.com>
+Change the code to ignore the process if oom_badness() returns 0, this
+matters Documentation/filesystems/proc.txt and this merely looks better.
+
+This also allows us to do more cleanups:
+
+	- no need to check OOM_SCORE_ADJ_MIN in select_bad_process(),
+	  oom_badness() returns 0 in this case.
+
+	- oom_badness() can simply return 0 instead of -1 if the task
+	  has no ->mm.
+
+	  Now we can make it "unsigned" again, the signness and the
+	  special "points >= 0" in select_bad_process() was added to
+	  preserve the current behaviour.
+
+Suggested-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/max3100.c |   48 +++++++++++++++++++++++++++++++++----
- 1 file changed, 43 insertions(+), 5 deletions(-)
+ include/linux/oom.h |    3 ++-
+ mm/oom_kill.c       |   11 ++++-------
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/serial/max3100.c~max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console drivers/serial/max3100.c
---- a/drivers/serial/max3100.c~max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console
-+++ a/drivers/serial/max3100.c
-@@ -148,6 +148,8 @@ struct max3100_port {
- 	struct work_struct console_work;
- 	/* char tx timeout */
- 	int console_tout;
-+	/* lock on receiving chars */
-+	struct mutex rx_lock;
- #endif
+diff -puN include/linux/oom.h~oom-select_bad_process-never-choose-tasks-with-badness-==-0 include/linux/oom.h
+--- a/include/linux/oom.h~oom-select_bad_process-never-choose-tasks-with-badness-==-0
++++ a/include/linux/oom.h
+@@ -40,7 +40,8 @@ enum oom_constraint {
+ 	CONSTRAINT_MEMORY_POLICY,
  };
  
-@@ -193,6 +195,19 @@ static void max3100_calc_parity(struct m
- 		*c |= max3100_do_parity(s, *c) << 8;
- }
+-extern int oom_badness(struct task_struct *p, unsigned long totalpages);
++extern unsigned int oom_badness(struct task_struct *p,
++					unsigned long totalpages);
+ extern int try_set_zone_oom(struct zonelist *zonelist, gfp_t gfp_flags);
+ extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
  
-+static void max3100_flip(struct max3100_port *s)
-+{
-+	if (s->port.state->port.tty != NULL) {
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+		mutex_lock(&s->rx_lock);
-+#endif
-+		tty_flip_buffer_push(s->port.state->port.tty);
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+		mutex_unlock(&s->rx_lock);
-+#endif
-+	}
-+}
-+
- static void max3100_resume_work(struct work_struct *w)
+diff -puN mm/oom_kill.c~oom-select_bad_process-never-choose-tasks-with-badness-==-0 mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-select_bad_process-never-choose-tasks-with-badness-==-0
++++ a/mm/oom_kill.c
+@@ -154,7 +154,7 @@ static unsigned long oom_forkbomb_penalt
+  * predictable as possible.  The goal is to return the highest value for the
+  * task consuming the most memory to avoid subsequent oom conditions.
+  */
+-int oom_badness(struct task_struct *p, unsigned long totalpages)
++unsigned int oom_badness(struct task_struct *p, unsigned long totalpages)
  {
- 	struct max3100_port *s = container_of(w, struct max3100_port,
-@@ -243,6 +258,10 @@ static int max3100_handlerx(struct max31
- 	unsigned int ch, flg, status = 0;
- 	int ret = 0, cts;
+ 	int points;
  
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	mutex_lock(&s->rx_lock);
-+#endif
-+
- 	if (rx & MAX3100_R && s->rx_enabled) {
- 		dev_dbg(&s->spi->dev, "%s\n", __func__);
- 		ch = rx & (s->parity & MAX3100_7BIT ? 0x7f : 0xff);
-@@ -275,6 +294,10 @@ static int max3100_handlerx(struct max31
- 		uart_handle_cts_change(&s->port, cts ? TIOCM_CTS : 0);
- 	}
+@@ -174,7 +174,7 @@ int oom_badness(struct task_struct *p, u
  
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	mutex_unlock(&s->rx_lock);
-+#endif
-+
- 	return ret;
- }
+ 	p = find_lock_task_mm(p);
+ 	if (!p)
+-		return -1;
++		return 0;
+ 	/*
+ 	 * The baseline for the badness score is the proportion of RAM that each
+ 	 * task's rss and swap space use.
+@@ -295,7 +295,7 @@ static struct task_struct *select_bad_pr
+ 	*ppoints = 0;
  
-@@ -330,8 +353,8 @@ static irqreturn_t max3100_ist(int irq, 
- 			}
+ 	for_each_process(p) {
+-		int points;
++		unsigned int points;
+ 
+ 		/* skip the init task and kthreads */
+ 		if (is_global_init(p) || (p->flags & PF_KTHREAD))
+@@ -337,11 +337,8 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = 1000;
  		}
  
--		if (rxchars > 16 && s->port.state->port.tty != NULL) {
--			tty_flip_buffer_push(s->port.state->port.tty);
-+		if (rxchars > 16) {
-+			max3100_flip(s);
- 			rxchars = 0;
+-		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+-			continue;
+-
+ 		points = oom_badness(p, totalpages);
+-		if (points >= 0 && (points > *ppoints || !chosen)) {
++		if (points > *ppoints) {
+ 			chosen = p;
+ 			*ppoints = points;
  		}
- 		if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
-@@ -342,8 +365,8 @@ static irqreturn_t max3100_ist(int irq, 
- 		  (!uart_circ_empty(xmit) &&
- 		   !uart_tx_stopped(&s->port))));
- 
--	if (rxchars > 0 && s->port.state->port.tty != NULL)
--		tty_flip_buffer_push(s->port.state->port.tty);
-+	if (rxchars > 0)
-+		max3100_flip(s);
- 
- 	return IRQ_HANDLED;
- }
-@@ -700,6 +723,7 @@ static void max3100_console_work(struct 
- 					      console_work);
- 	unsigned long start;
- 	u16 tx, rx;
-+	int rxchars = 0;
- 
- 	while (s->console_head != s->console_tail &&
- 	       (s->console_flags & MAX3100_SUSPENDING) == 0) {
-@@ -711,10 +735,19 @@ static void max3100_console_work(struct 
- 			 !time_after(jiffies, start + s->console_tout));
- 		tx = s->console_buf[s->console_tail];
- 		max3100_calc_parity(s, &tx);
--		tx |= MAX3100_WD | MAX3100_RTS;
-+		tx |= MAX3100_WD | (s->rts ? MAX3100_RTS : 0);
- 		max3100_sr(s, tx, &rx);
-+		if (s->port.state->port.tty != NULL) {
-+			rxchars += max3100_handlerx(s, rx);
-+			if (rxchars > 16) {
-+				max3100_flip(s);
-+				rxchars = 0;
-+			}
-+		}
- 		s->console_tail = (s->console_tail + 1) % CONSOLE_BUF_SIZE;
- 	}
-+	if (rxchars)
-+		max3100_flip(s);
- }
- 
- static void max3100_console_putchar(struct uart_port *port, int ch)
-@@ -810,6 +843,10 @@ static int max3100_console_setup(struct 
- 	if (parity == 'o')
- 		s->parity |= MAX3100_PARITY_ODD;
- 	s->console_tout = 1 + (20 * HZ) / baud; /* jiffies to send 20 bits */
-+	if (flow != 'n')
-+		s->rts = 1;
-+	else
-+		s->rts = 0;
- 
- 	tx |= MAX3100_WC;
- 	max3100_sr(s, tx, &rx);
-@@ -913,6 +950,7 @@ static int __devinit max3100_probe(struc
- 			 i, retval);
- 
- #ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	mutex_init(&max3100s[i]->rx_lock);
- 	if (pdata->console && !max3100_console_registered) {
- 		register_console(&max3100_console);
- 		max3100_console_registered = 1;
 _
 
-Patches currently in -mm which might be from chripell@fsfe.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+origin.patch
 linux-next.patch
-kernel-irq-managec-add-raise_threaded_irq.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-move-to-threaded-interrupt.patch
-max3100-add-console-support-for-max3100.patch
-max3100-to_max3100_port-small-style-fixes.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console.patch
+cpu-timers-simplify-rlimit_cpu-handling.patch
+cpu-timers-cleanup-arm_timer.patch
+cpu-timers-return-correct-previous-timer-reload-value.patch
+cpu-timers-change-sigev_none-timer-implementation.patch
+cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc-make-collect_sigign_sigcatch-rcu-safe.patch
+proc-make-task_sig-lockless.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+proc-turn-signal_struct-count-into-int-nr_threads.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+proc-cleanup-remove-unused-assignments.patch
 
