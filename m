@@ -1,106 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] proc-make-task_sig-lockless.patch removed from -mm tree
-Date: Tue, 13 Apr 2010 13:12:32 -0700
-Message-ID: <201004132012.o3DKCWKV025461@imap1.linux-foundation.org>
+Subject: [withdrawn] proc-make-collect_sigign_sigcatch-rcu-safe.patch removed from -mm tree
+Date: Tue, 13 Apr 2010 13:12:34 -0700
+Message-ID: <201004132012.o3DKCYB7025466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753021Ab0DMUMo (ORCPT
+	by vger.kernel.org with ESMTP id S1753048Ab0DMUMu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Apr 2010 16:12:44 -0400
+	Tue, 13 Apr 2010 16:12:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, adobriyan@gmail.com, dhowells@redhat.com, ebiederm@xmission.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: make task_sig() lockless
+     proc: make collect_sigign_sigcatch() rcu-safe
 has been removed from the -mm tree.  Its filename was
-     proc-make-task_sig-lockless.patch
+     proc-make-collect_sigign_sigcatch-rcu-safe.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: make task_sig() lockless
+Subject: proc: make collect_sigign_sigcatch() rcu-safe
 From: Oleg Nesterov <oleg@redhat.com>
 
-Now that task->signal can't go away and collect_sigign_sigcatch() is
-rcu-safe, task_sig() doesn't need ->siglock.
+Make collect_sigign_sigcatch() rcu-safe.  The necessary changes are
+simple, use rcu_dereference() to get ->sighand and check it is not NULL.
 
-Remove lock_task_sighand() and unnecessary sigemptyset's, move
-collect_sigign_sigcatch() under rcu_read_lock().
-
-Of course, this means we read pending/blocked/etc nonatomically and we can
-report this info in some intermediate state.  Say, a signal can be
-reported as both pending and ignored, or we can report ->sigpending != 0
-while pending/shpending are empty, etc.  Hopefully this is OK for proc, we
-never promised this info should be atomic.
-
-Probably we can change do_task_stat() to avoid ->siglock too, except we
-can't get tty_nr lockless.
-
-Also, remove the "is this correct?" comment.  I think it is safe to
-dereference __task_cred(p)->user under rcu lock.  In any case, ->siglock
-can't help to protect cred->user.
+In theory, this ->sighand can be re-used under us (but it can't go away). 
+We could check task->sighand == sighand once again after the main loop to
+prevent the race with exit/exec, but I don't think this is really needed
+for fs/proc.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ fs/proc/array.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~proc-make-task_sig-lockless fs/proc/array.c
---- a/fs/proc/array.c~proc-make-task_sig-lockless
+diff -puN fs/proc/array.c~proc-make-collect_sigign_sigcatch-rcu-safe fs/proc/array.c
+--- a/fs/proc/array.c~proc-make-collect_sigign_sigcatch-rcu-safe
 +++ a/fs/proc/array.c
-@@ -256,30 +256,24 @@ static void collect_sigign_sigcatch(stru
+@@ -234,13 +234,18 @@ static void render_sigset_t(struct seq_f
+ 	seq_printf(m, "\n");
+ }
  
- static inline void task_sig(struct seq_file *m, struct task_struct *p)
++/* needs ->siglock or rcu_read_lock() */
+ static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
+ 				    sigset_t *catch)
  {
--	unsigned long flags;
- 	sigset_t pending, shpending, blocked, ignored, caught;
- 	int num_threads = 0;
- 	unsigned long qsize = 0;
- 	unsigned long qlim = 0;
++	struct sighand_struct *sighand = rcu_dereference(p->sighand);
+ 	struct k_sigaction *k;
+ 	int i;
  
--	sigemptyset(&pending);
--	sigemptyset(&shpending);
--	sigemptyset(&blocked);
- 	sigemptyset(&ignored);
- 	sigemptyset(&caught);
- 
--	if (lock_task_sighand(p, &flags)) {
--		pending = p->pending.signal;
--		shpending = p->signal->shared_pending.signal;
--		blocked = p->blocked;
--		collect_sigign_sigcatch(p, &ignored, &caught);
--		num_threads = get_nr_threads(p);
--		rcu_read_lock();  /* FIXME: is this correct? */
--		qsize = atomic_read(&__task_cred(p)->user->sigpending);
--		rcu_read_unlock();
--		qlim = task_rlimit(p, RLIMIT_SIGPENDING);
--		unlock_task_sighand(p, &flags);
--	}
-+	blocked = p->blocked;
-+	pending = p->pending.signal;
-+	shpending = p->signal->shared_pending.signal;
-+	qlim = task_rlimit(p, RLIMIT_SIGPENDING);
-+	num_threads = get_nr_threads(p);
+-	k = p->sighand->action;
++	if (unlikely(!sighand))
++		return;
 +
-+	rcu_read_lock();
-+	collect_sigign_sigcatch(p, &ignored, &caught);
-+	qsize = atomic_read(&__task_cred(p)->user->sigpending);
-+	rcu_read_unlock();
- 
- 	seq_printf(m, "Threads:\t%d\n", num_threads);
- 	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
++	k = sighand->action;
+ 	for (i = 1; i <= _NSIG; ++i, ++k) {
+ 		if (k->sa.sa_handler == SIG_IGN)
+ 			sigaddset(ign, i);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -151,7 +119,6 @@ exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
 check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
 proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
 proc-make-collect_sigign_sigcatch-rcu-safe.patch
-proc-make-task_sig-lockless.patch
 proc_sched_show_task-use-get_nr_threads.patch
 keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
 proc-turn-signal_struct-count-into-int-nr_threads.patch
