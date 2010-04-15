@@ -1,54 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-fix-unnecessary-setting-of-xtime.patch removed from -mm tree
-Date: Thu, 15 Apr 2010 11:39:03 -0400
-Message-ID: <201004151840.o3FIefjB024445@imap1.linux-foundation.org>
+Subject: [merged] kernel-user-remove-unreachable-code.patch removed from -mm tree
+Date: Thu, 15 Apr 2010 11:39:06 -0400
+Message-ID: <201004151840.o3FIeimV024448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755814Ab0DOSl3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755843Ab0DOSl3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 15 Apr 2010 14:41:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, chris@zankel.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, a.p.zijlstra@chello.nl, dhaval.giani@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: fix unnecessary setting of xtime
+     kernel/user: remove unreachable code
 has been removed from the -mm tree.  Its filename was
-     xtensa-fix-unnecessary-setting-of-xtime.patch
+     kernel-user-remove-unreachable-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: fix unnecessary setting of xtime
-From: John Stultz <johnstul@us.ibm.com>
+Subject: kernel/user: remove unreachable code
+From: Jiri Slaby <jslaby@suse.cz>
 
-xtensa supports read_persisitent_clock(), so there is no reason for the
-arch specific code to be setting xtime.  Setting xtime will be done by the
-generic timekeeping code.
+The code which executed this code was removed in 7c9414385ebfdd87cc542
+(sched: Remove USER_SCHED).  Remove the dangling code too.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Zankel <chris@zankel.net>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Dhaval Giani <dhaval.giani@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/time.c |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/user.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/xtensa/kernel/time.c~xtensa-fix-unnecessary-setting-of-xtime arch/xtensa/kernel/time.c
---- a/arch/xtensa/kernel/time.c~xtensa-fix-unnecessary-setting-of-xtime
-+++ a/arch/xtensa/kernel/time.c
-@@ -60,11 +60,6 @@ static struct irqaction timer_irqaction 
+diff -puN kernel/user.c~kernel-user-remove-unreachable-code kernel/user.c
+--- a/kernel/user.c~kernel-user-remove-unreachable-code
++++ a/kernel/user.c
+@@ -178,8 +178,6 @@ struct user_struct *alloc_uid(struct use
  
- void __init time_init(void)
- {
--	/* FIXME: xtime&wall_to_monotonic are set in timekeeping_init. */
--	read_persistent_clock(&xtime);
--	set_normalized_timespec(&wall_to_monotonic,
--		-xtime.tv_sec, -xtime.tv_nsec);
+ 	return up;
+ 
+-	put_user_ns(new->user_ns);
+-	kmem_cache_free(uid_cachep, new);
+ out_unlock:
+ 	return NULL;
+ }
+_
+
+Patches currently in -mm which might be from jslaby@suse.cz are
+
+origin.patch
+linux-next.patch
+gpu-vga_switcheroo-fix-lock-imbalance.patch
+dvb-usb-gp8psk-fix-potential-null-derefernce.patch
+edac-add-__init-to-i7core_xeon_pci_fixup.patch
+
