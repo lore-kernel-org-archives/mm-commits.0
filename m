@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-alloc-function-in-vmemmap_alloc_block.patch added to -mm tree
-Date: Thu, 15 Apr 2010 13:08:38 -0700
-Message-ID: <201004152008.o3FK8crg028260@imap1.linux-foundation.org>
+Subject: + mm-add-comment-in-alloc_pages_exact_node.patch added to -mm tree
+Date: Thu, 15 Apr 2010 13:08:43 -0700
+Message-ID: <201004152008.o3FK8hxw028266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755799Ab0DOUJF (ORCPT
+	by vger.kernel.org with ESMTP id S1756101Ab0DOUJK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 16:09:05 -0400
+	Thu, 15 Apr 2010 16:09:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, lliubbo@gmail.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm: change alloc function in vmemmap_alloc_block
+     mm: add comment in alloc_pages_exact_node
 has been added to the -mm tree.  Its filename is
-     mm-change-alloc-function-in-vmemmap_alloc_block.patch
+     mm-add-comment-in-alloc_pages_exact_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: change alloc function in vmemmap_alloc_block
+Subject: mm: add comment in alloc_pages_exact_node
 From: Minchan Kim <minchan.kim@gmail.com>
 
-If node_state is N_HIGH_MEMORY, node doesn't have -1.  It means node's
-validity check is unnecessary.
+alloc_pages_exact_node() misleads some people.  They considered it
+following as.  "This function will allocate pages from node which I wanted
+exactly".  But it can allocate pages from fallback list if page allocator
+can't find free page from node user wanted.
 
-So we can use alloc_pages_exact_node() instead of alloc_pages_node().  It
-could avoid comparison and branch as 6484eb3e2a81807722 ("page allocator:
-do not check NUMA node ID when the caller knows the node is") tried.
+So let's comment this NOTE.
+
+Actually I wanted to change naming with something better, such as
+alloc_pages_explict_node().  But I changed my mind since the comment will
+be enough.
+
+If anybody suggests better name, I will do with pleasure.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/sparse-vmemmap.c~mm-change-alloc-function-in-vmemmap_alloc_block mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-change-alloc-function-in-vmemmap_alloc_block
-+++ a/mm/sparse-vmemmap.c
-@@ -54,7 +54,7 @@ void * __meminit vmemmap_alloc_block(uns
- 		struct page *page;
+diff -puN include/linux/gfp.h~mm-add-comment-in-alloc_pages_exact_node include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-add-comment-in-alloc_pages_exact_node
++++ a/include/linux/gfp.h
+@@ -288,6 +288,12 @@ static inline struct page *alloc_pages_n
+ 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+ }
  
- 		if (node_state(node, N_HIGH_MEMORY))
--			page = alloc_pages_node(node,
-+			page = alloc_pages_exact_node(node,
- 				GFP_KERNEL | __GFP_ZERO, get_order(size));
- 		else
- 			page = alloc_pages(GFP_KERNEL | __GFP_ZERO,
++/*
++ * Use this instead of alloc_pages_node when the caller knows
++ * exactly which node they need (as opposed to passing in -1
++ * for current). Fallback to other nodes will still occur
++ * unless __GFP_THISNODE is specified.
++ */
+ static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
+ 						unsigned int order)
+ {
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
