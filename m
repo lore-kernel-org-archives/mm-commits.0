@@ -1,75 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpu-timers-return-correct-previous-timer-reload-value.patch removed from -mm tree
-Date: Thu, 15 Apr 2010 11:38:24 -0400
-Message-ID: <201004151840.o3FIe2Vi024355@imap1.linux-foundation.org>
+Subject: [merged] cpu-timers-cleanup-arm_timer.patch removed from -mm tree
+Date: Thu, 15 Apr 2010 11:38:21 -0400
+Message-ID: <201004151839.o3FIdx17024348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755480Ab0DOSlG (ORCPT
+	by vger.kernel.org with ESMTP id S1755480Ab0DOSlJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 14:41:06 -0400
+	Thu, 15 Apr 2010 14:41:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sgruszka@redhat.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, mingo@elte.hu, oleg@redhat.com, seto.hidetoshi@jp.fujitsu.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu-timers: return correct previous timer reload value
+     cpu-timers: cleanup arm_timer()
 has been removed from the -mm tree.  Its filename was
-     cpu-timers-return-correct-previous-timer-reload-value.patch
+     cpu-timers-cleanup-arm_timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-timers: return correct previous timer reload value
+Subject: cpu-timers: cleanup arm_timer()
 From: Stanislaw Gruszka <sgruszka@redhat.com>
-
-According POSIX we need to correctly set old timer it_interval value when
-user request that in timer_settime().  Tested using below program.
-
- #include <sys/time.h>
- #include <signal.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <time.h>
- #include <unistd.h>
- #include <assert.h>
-
- int main(void)
- {
-	struct sigaction act;
-	struct sigevent evt = { };
-	timer_t tid;
-	struct itimerspec spec, u_spec, k_spec;
-
-	evt.sigev_notify = SIGEV_SIGNAL;
-	evt.sigev_signo = SIGPROF;
-	assert(timer_create(CLOCK_PROCESS_CPUTIME_ID, &evt,  &tid) == 0);
-
-	spec.it_value.tv_sec = 1;
-	spec.it_value.tv_nsec = 2;
-	spec.it_interval.tv_sec = 3;
-	spec.it_interval.tv_nsec = 4;
-	u_spec = spec;
-	assert(timer_settime(tid, 0, &spec,  NULL) == 0);
-
-	spec.it_value.tv_sec = 5;
-	spec.it_value.tv_nsec = 6;
-	spec.it_interval.tv_sec = 7;
-	spec.it_interval.tv_nsec = 8;
-	assert(timer_settime(tid, 0, &spec,  &k_spec) == 0);
-
- #define PRT(val) printf(#val ":\t%d/%d\n", (int) u_spec.val, (int) k_spec.val)
-	PRT(it_value.tv_sec);
-	PRT(it_value.tv_nsec);
-	PRT(it_interval.tv_sec);
-	PRT(it_interval.tv_nsec);
-
-	return 0;
- }
 
 Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -81,38 +37,161 @@ Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/posix-cpu-timers.c |  104 ++++++++++++------------------------
+ 1 file changed, 35 insertions(+), 69 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~cpu-timers-return-correct-previous-timer-reload-value kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~cpu-timers-return-correct-previous-timer-reload-value
+diff -puN kernel/posix-cpu-timers.c~cpu-timers-cleanup-arm_timer kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~cpu-timers-cleanup-arm_timer
 +++ a/kernel/posix-cpu-timers.c
-@@ -675,7 +675,7 @@ int posix_cpu_timer_set(struct k_itimer 
- 			struct itimerspec *new, struct itimerspec *old)
+@@ -546,97 +546,63 @@ static inline int expires_gt(cputime_t e
+ 	       cputime_gt(expires, new_exp);
+ }
+ 
+-static inline int expires_le(cputime_t expires, cputime_t new_exp)
+-{
+-	return !cputime_eq(expires, cputime_zero) &&
+-	       cputime_le(expires, new_exp);
+-}
+ /*
+  * Insert the timer on the appropriate list before any timers that
+  * expire later.  This must be called with the tasklist_lock held
+  * for reading, and interrupts disabled.
+  */
+-static void arm_timer(struct k_itimer *timer, union cpu_time_count now)
++static void arm_timer(struct k_itimer *timer)
  {
  	struct task_struct *p = timer->it.cpu.task;
--	union cpu_time_count old_expires, new_expires, val;
-+	union cpu_time_count old_expires, new_expires, old_incr, val;
- 	int ret;
+ 	struct list_head *head, *listpos;
++	struct task_cputime *cputime_expires;
+ 	struct cpu_timer_list *const nt = &timer->it.cpu;
+ 	struct cpu_timer_list *next;
  
- 	if (unlikely(p == NULL)) {
-@@ -706,6 +706,7 @@ int posix_cpu_timer_set(struct k_itimer 
+-	head = (CPUCLOCK_PERTHREAD(timer->it_clock) ?
+-		p->cpu_timers : p->signal->cpu_timers);
++	if (CPUCLOCK_PERTHREAD(timer->it_clock)) {
++		head = p->cpu_timers;
++		cputime_expires = &p->cputime_expires;
++	} else {
++		head = p->signal->cpu_timers;
++		cputime_expires = &p->signal->cputime_expires;
++	}
+ 	head += CPUCLOCK_WHICH(timer->it_clock);
+ 
  	BUG_ON(!irqs_disabled());
- 
- 	ret = 0;
-+	old_incr = timer->it.cpu.incr;
  	spin_lock(&p->sighand->siglock);
- 	old_expires = timer->it.cpu.expires;
- 	if (unlikely(timer->it.cpu.firing)) {
-@@ -821,7 +822,7 @@ int posix_cpu_timer_set(struct k_itimer 
-  out:
- 	if (old) {
- 		sample_to_timespec(timer->it_clock,
--				   timer->it.cpu.incr, &old->it_interval);
-+				   old_incr, &old->it_interval);
+ 
+ 	listpos = head;
+-	if (CPUCLOCK_WHICH(timer->it_clock) == CPUCLOCK_SCHED) {
+-		list_for_each_entry(next, head, entry) {
+-			if (next->expires.sched > nt->expires.sched)
+-				break;
+-			listpos = &next->entry;
+-		}
+-	} else {
+-		list_for_each_entry(next, head, entry) {
+-			if (cputime_gt(next->expires.cpu, nt->expires.cpu))
+-				break;
+-			listpos = &next->entry;
+-		}
++	list_for_each_entry(next, head, entry) {
++		if (cpu_time_before(timer->it_clock, nt->expires, next->expires))
++			break;
++		listpos = &next->entry;
  	}
- 	return ret;
- }
+ 	list_add(&nt->entry, listpos);
+ 
+ 	if (listpos == head) {
++		union cpu_time_count *exp = &nt->expires;
++
+ 		/*
+-		 * We are the new earliest-expiring timer.
+-		 * If we are a thread timer, there can always
+-		 * be a process timer telling us to stop earlier.
++		 * We are the new earliest-expiring POSIX 1.b timer, hence
++		 * need to update expiration cache. Take into account that
++		 * for process timers we share expiration cache with itimers
++		 * and RLIMIT_CPU and for thread timers with RLIMIT_RTTIME.
+ 		 */
+ 
+-		if (CPUCLOCK_PERTHREAD(timer->it_clock)) {
+-			union cpu_time_count *exp = &nt->expires;
+-
+-			switch (CPUCLOCK_WHICH(timer->it_clock)) {
+-			default:
+-				BUG();
+-			case CPUCLOCK_PROF:
+-				if (expires_gt(p->cputime_expires.prof_exp,
+-					       exp->cpu))
+-					p->cputime_expires.prof_exp = exp->cpu;
+-				break;
+-			case CPUCLOCK_VIRT:
+-				if (expires_gt(p->cputime_expires.virt_exp,
+-					       exp->cpu))
+-					p->cputime_expires.virt_exp = exp->cpu;
+-				break;
+-			case CPUCLOCK_SCHED:
+-				if (p->cputime_expires.sched_exp == 0 ||
+-				    p->cputime_expires.sched_exp > exp->sched)
+-					p->cputime_expires.sched_exp =
+-								exp->sched;
+-				break;
+-			}
+-		} else {
+-			struct signal_struct *const sig = p->signal;
+-			union cpu_time_count *exp = &timer->it.cpu.expires;
+-
+-			/*
+-			 * For a process timer, set the cached expiration time.
+-			 */
+-			switch (CPUCLOCK_WHICH(timer->it_clock)) {
+-			default:
+-				BUG();
+-			case CPUCLOCK_VIRT:
+-				if (expires_gt(sig->cputime_expires.virt_exp, exp->cpu))
+-					sig->cputime_expires.virt_exp = exp->cpu;
+-			case CPUCLOCK_PROF:
+-				if (expires_gt(sig->cputime_expires.prof_exp, exp->cpu))
+-					sig->cputime_expires.prof_exp = exp->cpu;
+-				break;
+-			case CPUCLOCK_SCHED:
+-				sig->cputime_expires.sched_exp = exp->sched;
+-				break;
+-			}
++		switch (CPUCLOCK_WHICH(timer->it_clock)) {
++		case CPUCLOCK_PROF:
++			if (expires_gt(cputime_expires->prof_exp, exp->cpu))
++				cputime_expires->prof_exp = exp->cpu;
++			break;
++		case CPUCLOCK_VIRT:
++			if (expires_gt(cputime_expires->virt_exp, exp->cpu))
++				cputime_expires->virt_exp = exp->cpu;
++			break;
++		case CPUCLOCK_SCHED:
++			if (cputime_expires->sched_exp == 0 ||
++			    cputime_expires->sched_exp > exp->sched)
++				cputime_expires->sched_exp = exp->sched;
++			break;
+ 		}
+ 	}
+ 
+@@ -818,7 +784,7 @@ int posix_cpu_timer_set(struct k_itimer 
+ 	if (new_expires.sched != 0 &&
+ 	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
+ 	    cpu_time_before(timer->it_clock, val, new_expires)) {
+-		arm_timer(timer, val);
++		arm_timer(timer);
+ 	}
+ 
+ 	read_unlock(&tasklist_lock);
+@@ -1286,7 +1252,7 @@ void posix_cpu_timer_schedule(struct k_i
+ 	/*
+ 	 * Now re-arm for the new expiry time.
+ 	 */
+-	arm_timer(timer, now);
++	arm_timer(timer);
+ 
+ out_unlock:
+ 	read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from sgruszka@redhat.com are
