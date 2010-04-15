@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch removed from -mm tree
-Date: Thu, 15 Apr 2010 11:38:30 -0400
-Message-ID: <201004151840.o3FIe8FB024368@imap1.linux-foundation.org>
+Subject: [merged] cpu-timers-change-sigev_none-timer-implementation.patch removed from -mm tree
+Date: Thu, 15 Apr 2010 11:38:27 -0400
+Message-ID: <201004151840.o3FIe5hL024362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754856Ab0DOSrM (ORCPT
+	by vger.kernel.org with ESMTP id S1754382Ab0DOSrM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 15 Apr 2010 14:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,26 +15,69 @@ To: sgruszka@redhat.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, mingo@elte.h
 
 
 The patch titled
-     cpu-timers: assure to not iterate over all threads in fastpath_timer_check()
+     cpu-timers: change SIGEV_NONE timer implementation
 has been removed from the -mm tree.  Its filename was
-     cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check.patch
+     cpu-timers-change-sigev_none-timer-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-timers: assure to not iterate over all threads in fastpath_timer_check()
+Subject: cpu-timers: change SIGEV_NONE timer implementation
 From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-Spread p->sighand->siglock locking scope to assure fastpath_timer_check()
-never iterate over each threads.  Without locking there is small
-possibility that signal->cputimer will stop running while we write values
-to signal->cputime_expires.
+When user will setup timer without associated signal and process does not
+use any other cpu timers and does not exit, tsk->signal->cputimer is
+enabled and running forever, change that.
 
-Calling thread_group_cputime() from fastpath_timer_check() is not only bad
-because it is slow, also it is racy with __exit_signal() which can lead to
-invalid signal->{s,u}time values.
+I used below program to check patch does not break current user space
+visible behavior.
+
+ #include <sys/time.h>
+ #include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include <assert.h>
+
+ void consume_cpu(void)
+ {
+	int i = 0;
+	int count = 0;
+
+	for(i=0; i<100000000; i++)
+		count++;
+ }
+
+ int main(void)
+ {
+	int i;
+	struct sigaction act;
+	struct sigevent evt = { };
+	timer_t tid;
+	struct itimerspec spec = { };
+
+	evt.sigev_notify = SIGEV_NONE;
+	assert(timer_create(CLOCK_PROCESS_CPUTIME_ID, &evt,  &tid) == 0);
+
+	spec.it_value.tv_sec = 10;
+	assert(timer_settime(tid, 0, &spec,  NULL) == 0);
+
+	for (i = 0; i < 30; i++) {
+		consume_cpu();
+		memset(&spec, 0, sizeof(spec));
+		assert(timer_gettime(tid, &spec) == 0);
+		printf("%lu.%09lu\n",
+			(unsigned long) spec.it_value.tv_sec,
+			(unsigned long) spec.it_value.tv_nsec);
+	}
+
+	assert(timer_delete(tid) == 0);
+	return 0;
+ }
 
 Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -46,100 +89,61 @@ Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/posix-cpu-timers.c |   28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~cpu-timers-assure-to-not-iterate-over-all-threads-in-fastpath_timer_check
+diff -puN kernel/posix-cpu-timers.c~cpu-timers-change-sigev_none-timer-implementation kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~cpu-timers-change-sigev_none-timer-implementation
 +++ a/kernel/posix-cpu-timers.c
-@@ -549,7 +549,7 @@ static inline int expires_gt(cputime_t e
- /*
-  * Insert the timer on the appropriate list before any timers that
-  * expire later.  This must be called with the tasklist_lock held
-- * for reading, and interrupts disabled.
-+ * for reading, interrupts disabled and p->sighand->siglock taken.
+@@ -614,7 +614,12 @@ static void arm_timer(struct k_itimer *t
   */
- static void arm_timer(struct k_itimer *timer)
+ static void cpu_timer_fire(struct k_itimer *timer)
  {
-@@ -568,9 +568,6 @@ static void arm_timer(struct k_itimer *t
- 	}
- 	head += CPUCLOCK_WHICH(timer->it_clock);
- 
--	BUG_ON(!irqs_disabled());
--	spin_lock(&p->sighand->siglock);
--
- 	listpos = head;
- 	list_for_each_entry(next, head, entry) {
- 		if (cpu_time_before(timer->it_clock, nt->expires, next->expires))
-@@ -605,8 +602,6 @@ static void arm_timer(struct k_itimer *t
- 			break;
- 		}
- 	}
--
--	spin_unlock(&p->sighand->siglock);
- }
- 
- /*
-@@ -719,7 +714,6 @@ int posix_cpu_timer_set(struct k_itimer 
- 		ret = TIMER_RETRY;
- 	} else
- 		list_del_init(&timer->it.cpu.entry);
--	spin_unlock(&p->sighand->siglock);
- 
- 	/*
- 	 * We need to sample the current value to convert the new
-@@ -773,6 +767,7 @@ int posix_cpu_timer_set(struct k_itimer 
- 		 * disable this firing since we are already reporting
- 		 * it as an overrun (thanks to bump_cpu_timer above).
- 		 */
-+		spin_unlock(&p->sighand->siglock);
- 		read_unlock(&tasklist_lock);
- 		goto out;
- 	}
-@@ -792,6 +787,7 @@ int posix_cpu_timer_set(struct k_itimer 
+-	if (unlikely(timer->sigq == NULL)) {
++	if ((timer->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE) {
++		/*
++		 * User don't want any signal.
++		 */
++		timer->it.cpu.expires.sched = 0;
++	} else if (unlikely(timer->sigq == NULL)) {
+ 		/*
+ 		 * This a special case for clock_nanosleep,
+ 		 * not a normal timer from sys_timer_create.
+@@ -783,7 +788,6 @@ int posix_cpu_timer_set(struct k_itimer 
+ 	 */
+ 	timer->it.cpu.expires = new_expires;
+ 	if (new_expires.sched != 0 &&
+-	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
+ 	    cpu_time_before(timer->it_clock, val, new_expires)) {
  		arm_timer(timer);
  	}
+@@ -808,7 +812,6 @@ int posix_cpu_timer_set(struct k_itimer 
+ 	timer->it_overrun = -1;
  
-+	spin_unlock(&p->sighand->siglock);
- 	read_unlock(&tasklist_lock);
+ 	if (new_expires.sched != 0 &&
+-	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
+ 	    !cpu_time_before(timer->it_clock, val, new_expires)) {
+ 		/*
+ 		 * The designated time already passed, so we notify
+@@ -882,25 +885,6 @@ void posix_cpu_timer_get(struct k_itimer
+ 		read_unlock(&tasklist_lock);
+ 	}
  
- 	/*
-@@ -1209,6 +1205,7 @@ void posix_cpu_timer_schedule(struct k_i
- 			goto out;
- 		}
- 		read_lock(&tasklist_lock); /* arm_timer needs it.  */
-+		spin_lock(&p->sighand->siglock);
- 	} else {
- 		read_lock(&tasklist_lock);
- 		if (unlikely(p->signal == NULL)) {
-@@ -1229,6 +1226,7 @@ void posix_cpu_timer_schedule(struct k_i
- 			clear_dead_task(timer, now);
- 			goto out_unlock;
- 		}
-+		spin_lock(&p->sighand->siglock);
- 		cpu_timer_sample_group(timer->it_clock, p, &now);
- 		bump_cpu_timer(timer, now);
- 		/* Leave the tasklist_lock locked for the call below.  */
-@@ -1237,7 +1235,9 @@ void posix_cpu_timer_schedule(struct k_i
- 	/*
- 	 * Now re-arm for the new expiry time.
- 	 */
-+	BUG_ON(!irqs_disabled());
- 	arm_timer(timer);
-+	spin_unlock(&p->sighand->siglock);
- 
- out_unlock:
- 	read_unlock(&tasklist_lock);
-_
-
-Patches currently in -mm which might be from sgruszka@redhat.com are
-
-linux-next.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-exit-__exit_signal-use-thread_group_leader-consistently.patch
-kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
-exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
-check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
-
+-	if ((timer->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE) {
+-		if (timer->it.cpu.incr.sched == 0 &&
+-		    cpu_time_before(timer->it_clock,
+-				    timer->it.cpu.expires, now)) {
+-			/*
+-			 * Do-nothing timer expired and has no reload,
+-			 * so it's as if it was never set.
+-			 */
+-			timer->it.cpu.expires.sched = 0;
+-			itp->it_value.tv_sec = itp->it_value.tv_nsec = 0;
+-			return;
+-		}
+-		/*
+-		 * Account for any expirations and reloads that should
+-		 * have happened.
+-		 */
+-		bump_cpu_timer(timer, now);
+-	}
