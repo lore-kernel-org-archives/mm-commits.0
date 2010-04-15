@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch added to -mm tree
-Date: Thu, 15 Apr 2010 13:55:27 -0700
-Message-ID: <201004152122.o3FLMZF6031743@imap1.linux-foundation.org>
+Subject: + kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch added to -mm tree
+Date: Thu, 15 Apr 2010 14:09:21 -0700
+Message-ID: <201004152136.o3FLaTDU032663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757191Ab0DOVXO (ORCPT
+	by vger.kernel.org with ESMTP id S1757107Ab0DOVgc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 17:23:14 -0400
+	Thu, 15 Apr 2010 17:36:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2
+     kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix
 has been added to the -mm tree.  Its filename is
-     mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+     kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2
+Subject: kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-allnoconfig:
-
-mm/vmstat.c:474: warning: 'fill_contig_page_info' defined but not used
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   70 +++++++++++++++++++++++++-------------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ drivers/dma/timb_dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2 mm/vmstat.c
---- a/mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2
-+++ a/mm/vmstat.c
-@@ -460,41 +460,6 @@ struct contig_page_info {
- 	unsigned long free_blocks_suitable;
- };
- 
--/*
-- * Calculate the number of free pages in a zone, how many contiguous
-- * pages are free and how many are large enough to satisfy an allocation of
-- * the target size. Note that this function makes no attempt to estimate
-- * how many suitable free blocks there *might* be if MOVABLE pages were
-- * migrated. Calculating that is possible, but expensive and can be
-- * figured out from userspace
-- */
--static void fill_contig_page_info(struct zone *zone,
--				unsigned int suitable_order,
--				struct contig_page_info *info)
--{
--	unsigned int order;
--
--	info->free_pages = 0;
--	info->free_blocks_total = 0;
--	info->free_blocks_suitable = 0;
--
--	for (order = 0; order < MAX_ORDER; order++) {
--		unsigned long blocks;
--
--		/* Count number of free blocks */
--		blocks = zone->free_area[order].nr_free;
--		info->free_blocks_total += blocks;
--
--		/* Count free base pages */
--		info->free_pages += blocks << order;
--
--		/* Count the suitable free blocks */
--		if (order >= suitable_order)
--			info->free_blocks_suitable += blocks <<
--						(order - suitable_order);
--	}
--}
--
- static void pagetypeinfo_showfree_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
+diff -puN drivers/dma/timb_dma.c~kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix drivers/dma/timb_dma.c
+--- a/drivers/dma/timb_dma.c~kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix
++++ a/drivers/dma/timb_dma.c
+@@ -188,7 +188,7 @@ static void __td_unmap_descs(struct timb
+ static int td_fill_desc(struct timb_dma_chan *td_chan, u8 *dma_desc,
+ 	struct scatterlist *sg, bool last)
  {
-@@ -1003,6 +968,41 @@ module_init(setup_vmstat)
- static struct dentry *extfrag_debug_root;
- 
- /*
-+ * Calculate the number of free pages in a zone, how many contiguous
-+ * pages are free and how many are large enough to satisfy an allocation of
-+ * the target size. Note that this function makes no attempt to estimate
-+ * how many suitable free blocks there *might* be if MOVABLE pages were
-+ * migrated. Calculating that is possible, but expensive and can be
-+ * figured out from userspace
-+ */
-+static void fill_contig_page_info(struct zone *zone,
-+				unsigned int suitable_order,
-+				struct contig_page_info *info)
-+{
-+	unsigned int order;
-+
-+	info->free_pages = 0;
-+	info->free_blocks_total = 0;
-+	info->free_blocks_suitable = 0;
-+
-+	for (order = 0; order < MAX_ORDER; order++) {
-+		unsigned long blocks;
-+
-+		/* Count number of free blocks */
-+		blocks = zone->free_area[order].nr_free;
-+		info->free_blocks_total += blocks;
-+
-+		/* Count free base pages */
-+		info->free_pages += blocks << order;
-+
-+		/* Count the suitable free blocks */
-+		if (order >= suitable_order)
-+			info->free_blocks_suitable += blocks <<
-+						(order - suitable_order);
-+	}
-+}
-+
-+/*
-  * Return an index indicating how much of the available free memory is
-  * unusable for an allocation of the requested size.
-  */
+-	if (sg_dma_len(sg) > USHORT_MAX) {
++	if (sg_dma_len(sg) > USHRT_MAX) {
+ 		dev_err(chan2dev(&td_chan->chan), "Too big sg element\n");
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,6 +91,7 @@ mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
 firmware-loader-use-statically-initialized-data-attribute-fix.patch
 firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
 davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
