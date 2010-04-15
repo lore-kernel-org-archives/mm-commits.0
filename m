@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-alloc-function-in-pcpu_alloc_pages.patch added to -mm tree
-Date: Thu, 15 Apr 2010 13:08:36 -0700
-Message-ID: <201004152008.o3FK8aHP028257@imap1.linux-foundation.org>
+Subject: + mm-remove-nodes-validity-check-in-alloc_pages.patch added to -mm tree
+Date: Thu, 15 Apr 2010 13:08:33 -0700
+Message-ID: <201004152008.o3FK8XOD028254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756049Ab0DOUIj (ORCPT
+	by vger.kernel.org with ESMTP id S1756049Ab0DOUJA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 16:08:39 -0400
+	Thu, 15 Apr 2010 16:09:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, cl@linux-foundation.org, tj@kernel.org
+Cc: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujisu.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm: alloc function in pcpu_alloc_pages
+     mm: remove node's validity check in alloc_pages
 has been added to the -mm tree.  Its filename is
-     mm-alloc-function-in-pcpu_alloc_pages.patch
+     mm-remove-nodes-validity-check-in-alloc_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: alloc function in pcpu_alloc_pages
+Subject: mm: remove node's validity check in alloc_pages
 From: Minchan Kim <minchan.kim@gmail.com>
 
-alloc_pages_node() is called with cpu_to_node(cpu).  I think
-cpu_to_node(cpu) never returns -1.
+alloc_pages() calls alloc_pages_node() with numa_node_id(). 
+alloc_pages_node can't see nid < 0.
 
 So we can use alloc_pages_exact_node() instead of alloc_pages_node().  It
 could avoid comparison and branch as 6484eb3e2a81807722 ("page allocator:
 do not check NUMA node ID when the caller knows the node is") tried.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujisu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    2 +-
+ include/linux/gfp.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/percpu.c~mm-alloc-function-in-pcpu_alloc_pages mm/percpu.c
---- a/mm/percpu.c~mm-alloc-function-in-pcpu_alloc_pages
-+++ a/mm/percpu.c
-@@ -720,7 +720,7 @@ static int pcpu_alloc_pages(struct pcpu_
- 		for (i = page_start; i < page_end; i++) {
- 			struct page **pagep = &pages[pcpu_page_idx(cpu, i)];
- 
--			*pagep = alloc_pages_node(cpu_to_node(cpu), gfp, 0);
-+			*pagep = alloc_pages_exact_node(cpu_to_node(cpu), gfp, 0);
- 			if (!*pagep) {
- 				pcpu_free_pages(chunk, pages, populated,
- 						page_start, page_end);
+diff -puN include/linux/gfp.h~mm-remove-nodes-validity-check-in-alloc_pages include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-remove-nodes-validity-check-in-alloc_pages
++++ a/include/linux/gfp.h
+@@ -308,7 +308,7 @@ extern struct page *alloc_page_vma(gfp_t
+ 			struct vm_area_struct *vma, unsigned long addr);
+ #else
+ #define alloc_pages(gfp_mask, order) \
+-		alloc_pages_node(numa_node_id(), gfp_mask, order)
++		alloc_pages_exact_node(numa_node_id(), gfp_mask, order)
+ #define alloc_page_vma(gfp_mask, vma, addr) alloc_pages(gfp_mask, 0)
+ #endif
+ #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
