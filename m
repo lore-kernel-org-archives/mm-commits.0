@@ -1,198 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-mqueuec-let-message-queue-timeout-use-hrtimers.patch removed from -mm tree
-Date: Thu, 15 Apr 2010 11:38:50 -0400
-Message-ID: <201004151840.o3FIeSf4024426@imap1.linux-foundation.org>
+Subject: [merged] cs5535-clockevt-free-timer-in-irq-setup-error-path.patch removed from -mm tree
+Date: Thu, 15 Apr 2010 11:38:33 -0400
+Message-ID: <201004151840.o3FIeBZ2024371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754382Ab0DOSqv (ORCPT
+	by vger.kernel.org with ESMTP id S1754848Ab0DOSrF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 14:46:51 -0400
+	Thu, 15 Apr 2010 14:47:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: C.Emde@osadl.org, arjan@infradead.org, pradysam@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: JRottmann@LiPPERTEmbedded.de, dilinger@collabora.co.uk, johnstul@us.ibm.com, jordan@cosmicpenguin.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/mqueue.c: let message queue timeout use hrtimers
+     cs5535-clockevt: free timer in IRQ setup error path
 has been removed from the -mm tree.  Its filename was
-     ipc-mqueuec-let-message-queue-timeout-use-hrtimers.patch
+     cs5535-clockevt-free-timer-in-irq-setup-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/mqueue.c: let message queue timeout use hrtimers
-From: Carsten Emde <C.Emde@osadl.org>
+Subject: cs5535-clockevt: free timer in IRQ setup error path
+From: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
 
-The message queue functions mq_timedsend() and mq_timedreceive() have not
-yet been converted to use the hrtimer interface.
+Due to a hardware limitation cs5535_mfgpt_free_timer() cannot actually
+release the timer hardware, but it will at least free the now unreferenced
+struct associated with it so calling it is the cleaner thing to do.
 
-This patch replaces the call to schedule_timeout() by a call to
-schedule_hrtimeout() and transforms the expiration time from timespec to
-ktime as required.
-
-Signed-off-by: Carsten Emde <C.Emde@osadl.org>
-Cc: Arjan van de Veen <arjan@infradead.org>
+Signed-off-by: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Acked-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Pradyumna Sampath <pradysam@gmail.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   74 ++++++++++++++++---------------------------------
- 1 file changed, 25 insertions(+), 49 deletions(-)
+ drivers/clocksource/cs5535-clockevt.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueuec-let-message-queue-timeout-use-hrtimers ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueuec-let-message-queue-timeout-use-hrtimers
-+++ a/ipc/mqueue.c
-@@ -429,7 +429,7 @@ static void wq_add(struct mqueue_inode_i
-  * sr: SEND or RECV
-  */
- static int wq_sleep(struct mqueue_inode_info *info, int sr,
--			long timeout, struct ext_wait_queue *ewp)
-+		    ktime_t *timeout, struct ext_wait_queue *ewp)
- {
- 	int retval;
- 	signed long time;
-@@ -440,7 +440,8 @@ static int wq_sleep(struct mqueue_inode_
- 		set_current_state(TASK_INTERRUPTIBLE);
- 
- 		spin_unlock(&info->lock);
--		time = schedule_timeout(timeout);
-+		time = schedule_hrtimeout_range_clock(timeout,
-+		    HRTIMER_MODE_ABS, 0, CLOCK_REALTIME);
- 
- 		while (ewp->state == STATE_PENDING)
- 			cpu_relax();
-@@ -552,31 +553,16 @@ static void __do_notify(struct mqueue_in
- 	wake_up(&info->wait_q);
- }
- 
--static long prepare_timeout(struct timespec *p)
-+static int prepare_timeout(const struct timespec __user *u_abs_timeout,
-+			   ktime_t *expires, struct timespec *ts)
- {
--	struct timespec nowts;
--	long timeout;
--
--	if (p) {
--		if (unlikely(p->tv_nsec < 0 || p->tv_sec < 0
--			|| p->tv_nsec >= NSEC_PER_SEC))
--			return -EINVAL;
--		nowts = CURRENT_TIME;
--		/* first subtract as jiffies can't be too big */
--		p->tv_sec -= nowts.tv_sec;
--		if (p->tv_nsec < nowts.tv_nsec) {
--			p->tv_nsec += NSEC_PER_SEC;
--			p->tv_sec--;
--		}
--		p->tv_nsec -= nowts.tv_nsec;
--		if (p->tv_sec < 0)
--			return 0;
--
--		timeout = timespec_to_jiffies(p) + 1;
--	} else
--		return MAX_SCHEDULE_TIMEOUT;
-+	if (copy_from_user(ts, u_abs_timeout, sizeof(struct timespec)))
-+		return -EFAULT;
-+	if (!timespec_valid(ts))
-+		return -EINVAL;
- 
--	return timeout;
-+	*expires = timespec_to_ktime(*ts);
-+	return 0;
- }
- 
- static void remove_notification(struct mqueue_inode_info *info)
-@@ -862,22 +848,21 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 	struct ext_wait_queue *receiver;
- 	struct msg_msg *msg_ptr;
- 	struct mqueue_inode_info *info;
--	struct timespec ts, *p = NULL;
--	long timeout;
-+ 	ktime_t expires, *timeout = NULL;
-+	struct timespec ts;
- 	int ret;
- 
- 	if (u_abs_timeout) {
--		if (copy_from_user(&ts, u_abs_timeout, 
--					sizeof(struct timespec)))
--			return -EFAULT;
--		p = &ts;
-+		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
-+		if (res)
-+			return res;
-+		timeout = &expires;
+diff -puN drivers/clocksource/cs5535-clockevt.c~cs5535-clockevt-free-timer-in-irq-setup-error-path drivers/clocksource/cs5535-clockevt.c
+--- a/drivers/clocksource/cs5535-clockevt.c~cs5535-clockevt-free-timer-in-irq-setup-error-path
++++ a/drivers/clocksource/cs5535-clockevt.c
+@@ -154,14 +154,14 @@ static int __init cs5535_mfgpt_init(void
+ 	if (cs5535_mfgpt_setup_irq(timer, MFGPT_CMP2, &timer_irq)) {
+ 		printk(KERN_ERR DRV_NAME ": Could not set up IRQ %d\n",
+ 				timer_irq);
+-		return -EIO;
++		goto err_timer;
  	}
  
- 	if (unlikely(msg_prio >= (unsigned long) MQ_PRIO_MAX))
- 		return -EINVAL;
- 
--	audit_mq_sendrecv(mqdes, msg_len, msg_prio, p);
--	timeout = prepare_timeout(p);
-+	audit_mq_sendrecv(mqdes, msg_len, msg_prio, timeout ? &ts : NULL);
- 
- 	filp = fget(mqdes);
- 	if (unlikely(!filp)) {
-@@ -919,9 +904,6 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
--		} else if (unlikely(timeout < 0)) {
--			spin_unlock(&info->lock);
--			ret = timeout;
- 		} else {
- 			wait.task = current;
- 			wait.msg = (void *) msg_ptr;
-@@ -954,24 +936,23 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 		size_t, msg_len, unsigned int __user *, u_msg_prio,
- 		const struct timespec __user *, u_abs_timeout)
- {
--	long timeout;
- 	ssize_t ret;
- 	struct msg_msg *msg_ptr;
- 	struct file *filp;
- 	struct inode *inode;
- 	struct mqueue_inode_info *info;
- 	struct ext_wait_queue wait;
--	struct timespec ts, *p = NULL;
-+   	ktime_t expires, *timeout = NULL;
-+	struct timespec ts;
- 
- 	if (u_abs_timeout) {
--		if (copy_from_user(&ts, u_abs_timeout, 
--					sizeof(struct timespec)))
--			return -EFAULT;
--		p = &ts;
-+		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
-+		if (res)
-+			return res;
-+		timeout = &expires;
+ 	/* And register it with the kernel */
+ 	ret = setup_irq(timer_irq, &mfgptirq);
+ 	if (ret) {
+ 		printk(KERN_ERR DRV_NAME ": Unable to set up the interrupt.\n");
+-		goto err;
++		goto err_irq;
  	}
  
--	audit_mq_sendrecv(mqdes, msg_len, 0, p);
--	timeout = prepare_timeout(p);
-+	audit_mq_sendrecv(mqdes, msg_len, 0, timeout ? &ts : NULL);
+ 	/* Set the clock scale and enable the event mode for CMP2 */
+@@ -184,8 +184,10 @@ static int __init cs5535_mfgpt_init(void
  
- 	filp = fget(mqdes);
- 	if (unlikely(!filp)) {
-@@ -1003,11 +984,6 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
--			msg_ptr = NULL;
--		} else if (unlikely(timeout < 0)) {
--			spin_unlock(&info->lock);
--			ret = timeout;
--			msg_ptr = NULL;
- 		} else {
- 			wait.task = current;
- 			wait.state = STATE_NONE;
+ 	return 0;
+ 
+-err:
++err_irq:
+ 	cs5535_mfgpt_release_irq(cs5535_event_clock, MFGPT_CMP2, &timer_irq);
++err_timer:
++	cs5535_mfgpt_free_timer(cs5535_event_clock);
+ 	printk(KERN_ERR DRV_NAME ": Unable to set up the MFGPT clock source\n");
+ 	return -EIO;
+ }
 _
 
-Patches currently in -mm which might be from C.Emde@osadl.org are
+Patches currently in -mm which might be from JRottmann@LiPPERTEmbedded.de are
 
 linux-next.patch
 
