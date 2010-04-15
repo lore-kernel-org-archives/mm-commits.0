@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch added to -mm tree
-Date: Thu, 15 Apr 2010 13:14:32 -0700
-Message-ID: <201004152041.o3FKfeWQ029627@imap1.linux-foundation.org>
+Subject: + mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch added to -mm tree
+Date: Thu, 15 Apr 2010 13:40:48 -0700
+Message-ID: <201004152107.o3FL7v79030782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756554Ab0DOUmU (ORCPT
+	by vger.kernel.org with ESMTP id S1756630Ab0DOVIm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 16:42:20 -0400
+	Thu, 15 Apr 2010 17:08:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kam
 
 
 The patch titled
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
+     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
+Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/page_alloc.c: In function '__alloc_pages_direct_compact':
-mm/page_alloc.c:1797: error: implicit declaration of function 'defer_compaction'
+x86_64 allnoconfig:
 
-blah.
+mm/page_alloc.c: In function '__alloc_pages_direct_reclaim':
+mm/page_alloc.c:1843: error: 'COMPACTSUCCESS' undeclared (first use in this function)
+mm/page_alloc.c:1843: error: (Each undeclared identifier is reported only once
+mm/page_alloc.c:1843: error: for each function it appears in.)
+mm/page_alloc.c:1852: error: 'COMPACTFAIL' undeclared (first use in this function)
+
+more blah.  May as well knock out the whole code block as it generates more
+stuff we don't need.
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -52,22 +58,28 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
+diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2
 +++ a/mm/page_alloc.c
-@@ -1793,9 +1793,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		 */
- 		count_vm_event(COMPACTFAIL);
+@@ -1822,6 +1822,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
  
--		/* On failure, avoid compaction for a short time. */
--		defer_compaction(preferred_zone, jiffies + HZ/50);
--
- 		cond_resched();
+ 	cond_resched();
+ 
++#ifdef CONFIG_COMPACTION
+ 	/* Try memory compaction for high-order allocations before reclaim */
+ 	if (order) {
+ 		*did_some_progress = try_to_compact_pages(zonelist,
+@@ -1851,6 +1852,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+ 			cond_resched();
+ 		}
  	}
++#endif
  
+ 	/* We now go into synchronous reclaim */
+ 	cpuset_memory_pressure_bump();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +110,7 @@ kernel-irq-managec-add-raise_threaded_irq-fix.patch
 max3100-to_max3100_port-small-style-fixes-fix.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 firmware-loader-use-statically-initialized-data-attribute-fix.patch
