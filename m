@@ -1,149 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpu-timers-change-sigev_none-timer-implementation.patch removed from -mm tree
-Date: Thu, 15 Apr 2010 11:38:27 -0400
-Message-ID: <201004151840.o3FIe5hL024362@imap1.linux-foundation.org>
+Subject: + rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch added to -mm tree
+Date: Thu, 15 Apr 2010 12:55:31 -0700
+Message-ID: <201004151955.o3FJtXp4027662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754382Ab0DOSrM (ORCPT
+	by vger.kernel.org with ESMTP id S1756328Ab0DOT4x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 14:47:12 -0400
+	Thu, 15 Apr 2010 15:56:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sgruszka@redhat.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, mingo@elte.hu, oleg@redhat.com, seto.hidetoshi@jp.fujitsu.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: riel@redhat.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, bp@alien8.de, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, torvalds@linux-foundation.org
 
 
 The patch titled
-     cpu-timers: change SIGEV_NONE timer implementation
-has been removed from the -mm tree.  Its filename was
-     cpu-timers-change-sigev_none-timer-implementation.patch
+     rmap: add exclusively owned pages to the newest anon_vma
+has been added to the -mm tree.  Its filename is
+     rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-timers: change SIGEV_NONE timer implementation
-From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: rmap: add exclusively owned pages to the newest anon_vma
+From: Rik van Riel <riel@redhat.com>
 
-When user will setup timer without associated signal and process does not
-use any other cpu timers and does not exit, tsk->signal->cputimer is
-enabled and running forever, change that.
+The recent anon_vma fixes cause many anonymous pages to end up in the
+parent process anon_vma, even when the page is exclusively owned by the
+current process.
 
-I used below program to check patch does not break current user space
-visible behavior.
+Adding exclusively owned anonymous pages to the top anon_vma reduces rmap
+scanning overhead, especially in workloads with forking servers.
 
- #include <sys/time.h>
- #include <signal.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <time.h>
- #include <unistd.h>
- #include <assert.h>
+This patch adds a parameter to __page_set_anon_rmap that can be used to
+indicate whether or not the added page is exclusively owned by the current
+process.
 
- void consume_cpu(void)
- {
-	int i = 0;
-	int count = 0;
+Pages added through page_add_new_anon_rmap are exclusively owned by the
+current process, and can be added to the top anon_vma.
 
-	for(i=0; i<100000000; i++)
-		count++;
- }
+Pages added through page_add_anon_rmap can be either shared or exclusively
+owned, so we do the conservative thing and add it to the oldest anon_vma.
 
- int main(void)
- {
-	int i;
-	struct sigaction act;
-	struct sigevent evt = { };
-	timer_t tid;
-	struct itimerspec spec = { };
+A next step would be to add the exclusive parameter to page_add_anon_rmap,
+to be used from functions where we do know for sure whether a page is
+exclusively owned.
 
-	evt.sigev_notify = SIGEV_NONE;
-	assert(timer_create(CLOCK_PROCESS_CPUTIME_ID, &evt,  &tid) == 0);
-
-	spec.it_value.tv_sec = 10;
-	assert(timer_settime(tid, 0, &spec,  NULL) == 0);
-
-	for (i = 0; i < 30; i++) {
-		consume_cpu();
-		memset(&spec, 0, sizeof(spec));
-		assert(timer_gettime(tid, &spec) == 0);
-		printf("%lu.%09lu\n",
-			(unsigned long) spec.it_value.tv_sec,
-			(unsigned long) spec.it_value.tv_nsec);
-	}
-
-	assert(timer_delete(tid) == 0);
-	return 0;
- }
-
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |   28 ++++++----------------------
- 1 file changed, 6 insertions(+), 22 deletions(-)
+ mm/rmap.c |   30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~cpu-timers-change-sigev_none-timer-implementation kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~cpu-timers-change-sigev_none-timer-implementation
-+++ a/kernel/posix-cpu-timers.c
-@@ -614,7 +614,12 @@ static void arm_timer(struct k_itimer *t
+diff -puN mm/rmap.c~rmap-add-exclusively-owned-pages-to-the-newest-anon_vma mm/rmap.c
+--- a/mm/rmap.c~rmap-add-exclusively-owned-pages-to-the-newest-anon_vma
++++ a/mm/rmap.c
+@@ -730,23 +730,31 @@ void page_move_anon_rmap(struct page *pa
+  * @page:	the page to add the mapping to
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
++ * @exclusive:  the page is exclusively owned by the current process
   */
- static void cpu_timer_fire(struct k_itimer *timer)
+ static void __page_set_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address)
++	struct vm_area_struct *vma, unsigned long address, int exclusive)
  {
--	if (unlikely(timer->sigq == NULL)) {
-+	if ((timer->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE) {
+ 	struct anon_vma_chain *avc;
+ 	struct anon_vma *anon_vma;
+ 
+ 	BUG_ON(!vma->anon_vma);
+ 
+-	/*
+-	 * We must use the _oldest_ possible anon_vma for the page mapping!
+-	 *
+-	 * So take the last AVC chain entry in the vma, which is the deepest
+-	 * ancestor, and use the anon_vma from that.
+-	 */
+-	avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
+-	anon_vma = avc->anon_vma;
++	if (exclusive)
++		anon_vma = vma->anon_vma;
++	else {
 +		/*
-+		 * User don't want any signal.
++		 * The page may be shared between multiple processes.
++		 * We must use the _oldest_ possible anon_vma for the
++		 * page mapping!  That anon_vma is guaranteed to be
++		 * present in all processes that could share this page.
++		 *
++		 * So take the last AVC chain entry in the vma, which is the
++		 * deepest ancestor, and use the anon_vma from that.
 +		 */
-+		timer->it.cpu.expires.sched = 0;
-+	} else if (unlikely(timer->sigq == NULL)) {
- 		/*
- 		 * This a special case for clock_nanosleep,
- 		 * not a normal timer from sys_timer_create.
-@@ -783,7 +788,6 @@ int posix_cpu_timer_set(struct k_itimer 
- 	 */
- 	timer->it.cpu.expires = new_expires;
- 	if (new_expires.sched != 0 &&
--	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
- 	    cpu_time_before(timer->it_clock, val, new_expires)) {
- 		arm_timer(timer);
- 	}
-@@ -808,7 +812,6 @@ int posix_cpu_timer_set(struct k_itimer 
- 	timer->it_overrun = -1;
++		avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
++		anon_vma = avc->anon_vma;
++	}
  
- 	if (new_expires.sched != 0 &&
--	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
- 	    !cpu_time_before(timer->it_clock, val, new_expires)) {
- 		/*
- 		 * The designated time already passed, so we notify
-@@ -882,25 +885,6 @@ void posix_cpu_timer_get(struct k_itimer
- 		read_unlock(&tasklist_lock);
- 	}
- 
--	if ((timer->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE) {
--		if (timer->it.cpu.incr.sched == 0 &&
--		    cpu_time_before(timer->it_clock,
--				    timer->it.cpu.expires, now)) {
--			/*
--			 * Do-nothing timer expired and has no reload,
--			 * so it's as if it was never set.
--			 */
--			timer->it.cpu.expires.sched = 0;
--			itp->it_value.tv_sec = itp->it_value.tv_nsec = 0;
--			return;
--		}
--		/*
--		 * Account for any expirations and reloads that should
--		 * have happened.
--		 */
--		bump_cpu_timer(timer, now);
--	}
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+ 	page->mapping = (struct address_space *) anon_vma;
+@@ -802,7 +810,7 @@ void page_add_anon_rmap(struct page *pag
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 	if (first)
+-		__page_set_anon_rmap(page, vma, address);
++		__page_set_anon_rmap(page, vma, address, 0);
+ 	else
+ 		__page_check_anon_rmap(page, vma, address);
+ }
+@@ -824,7 +832,7 @@ void page_add_new_anon_rmap(struct page 
+ 	SetPageSwapBacked(page);
+ 	atomic_set(&page->_mapcount, 0); /* increment count (starts at -1) */
+ 	__inc_zone_page_state(page, NR_ANON_PAGES);
+-	__page_set_anon_rmap(page, vma, address);
++	__page_set_anon_rmap(page, vma, address, 1);
+ 	if (page_evictable(page, vma))
+ 		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
+ 	else
+_
+
+Patches currently in -mm which might be from riel@redhat.com are
+
+rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
+powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
+vmscan-prevent-get_scan_ratio-rounding-errors.patch
+
