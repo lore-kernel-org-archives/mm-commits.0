@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch added to -mm tree
-Date: Thu, 15 Apr 2010 13:40:48 -0700
-Message-ID: <201004152107.o3FL7v79030782@imap1.linux-foundation.org>
+Subject: + mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch added to -mm tree
+Date: Thu, 15 Apr 2010 13:55:27 -0700
+Message-ID: <201004152122.o3FLMZF6031743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756630Ab0DOVIm (ORCPT
+	by vger.kernel.org with ESMTP id S1757191Ab0DOVXO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 17:08:42 -0400
+	Thu, 15 Apr 2010 17:23:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kam
 
 
 The patch titled
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2
+     mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+     mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2
+Subject: mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
+allnoconfig:
 
-mm/page_alloc.c: In function '__alloc_pages_direct_reclaim':
-mm/page_alloc.c:1843: error: 'COMPACTSUCCESS' undeclared (first use in this function)
-mm/page_alloc.c:1843: error: (Each undeclared identifier is reported only once
-mm/page_alloc.c:1843: error: for each function it appears in.)
-mm/page_alloc.c:1852: error: 'COMPACTFAIL' undeclared (first use in this function)
-
-more blah.  May as well knock out the whole code block as it generates more
-stuff we don't need.
+mm/vmstat.c:474: warning: 'fill_contig_page_info' defined but not used
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -58,28 +51,96 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmstat.c |   70 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 35 insertions(+), 35 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2
-+++ a/mm/page_alloc.c
-@@ -1822,6 +1822,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2 mm/vmstat.c
+--- a/mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2
++++ a/mm/vmstat.c
+@@ -460,41 +460,6 @@ struct contig_page_info {
+ 	unsigned long free_blocks_suitable;
+ };
  
- 	cond_resched();
+-/*
+- * Calculate the number of free pages in a zone, how many contiguous
+- * pages are free and how many are large enough to satisfy an allocation of
+- * the target size. Note that this function makes no attempt to estimate
+- * how many suitable free blocks there *might* be if MOVABLE pages were
+- * migrated. Calculating that is possible, but expensive and can be
+- * figured out from userspace
+- */
+-static void fill_contig_page_info(struct zone *zone,
+-				unsigned int suitable_order,
+-				struct contig_page_info *info)
+-{
+-	unsigned int order;
+-
+-	info->free_pages = 0;
+-	info->free_blocks_total = 0;
+-	info->free_blocks_suitable = 0;
+-
+-	for (order = 0; order < MAX_ORDER; order++) {
+-		unsigned long blocks;
+-
+-		/* Count number of free blocks */
+-		blocks = zone->free_area[order].nr_free;
+-		info->free_blocks_total += blocks;
+-
+-		/* Count free base pages */
+-		info->free_pages += blocks << order;
+-
+-		/* Count the suitable free blocks */
+-		if (order >= suitable_order)
+-			info->free_blocks_suitable += blocks <<
+-						(order - suitable_order);
+-	}
+-}
+-
+ static void pagetypeinfo_showfree_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -1003,6 +968,41 @@ module_init(setup_vmstat)
+ static struct dentry *extfrag_debug_root;
  
-+#ifdef CONFIG_COMPACTION
- 	/* Try memory compaction for high-order allocations before reclaim */
- 	if (order) {
- 		*did_some_progress = try_to_compact_pages(zonelist,
-@@ -1851,6 +1852,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 			cond_resched();
- 		}
- 	}
-+#endif
- 
- 	/* We now go into synchronous reclaim */
- 	cpuset_memory_pressure_bump();
+ /*
++ * Calculate the number of free pages in a zone, how many contiguous
++ * pages are free and how many are large enough to satisfy an allocation of
++ * the target size. Note that this function makes no attempt to estimate
++ * how many suitable free blocks there *might* be if MOVABLE pages were
++ * migrated. Calculating that is possible, but expensive and can be
++ * figured out from userspace
++ */
++static void fill_contig_page_info(struct zone *zone,
++				unsigned int suitable_order,
++				struct contig_page_info *info)
++{
++	unsigned int order;
++
++	info->free_pages = 0;
++	info->free_blocks_total = 0;
++	info->free_blocks_suitable = 0;
++
++	for (order = 0; order < MAX_ORDER; order++) {
++		unsigned long blocks;
++
++		/* Count number of free blocks */
++		blocks = zone->free_area[order].nr_free;
++		info->free_blocks_total += blocks;
++
++		/* Count free base pages */
++		info->free_pages += blocks << order;
++
++		/* Count the suitable free blocks */
++		if (order >= suitable_order)
++			info->free_blocks_suitable += blocks <<
++						(order - suitable_order);
++	}
++}
++
++/*
+  * Return an index indicating how much of the available free memory is
+  * unusable for an allocation of the requested size.
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +169,7 @@ backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
 serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
 kernel-irq-managec-add-raise_threaded_irq-fix.patch
 max3100-to_max3100_port-small-style-fixes-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
