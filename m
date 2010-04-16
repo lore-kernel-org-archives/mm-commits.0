@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + numa-update-documentation-vm-numa-add-memoryless-node-info.patch added to -mm tree
-Date: Fri, 16 Apr 2010 13:35:42 -0700
-Message-ID: <201004162035.o3GKZg25025765@imap1.linux-foundation.org>
+Subject: + vmstat-fix-build-errors-when-proc_fs-is-disabled.patch added to -mm tree
+Date: Fri, 16 Apr 2010 14:09:08 -0700
+Message-ID: <201004162109.o3GL98El027125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932511Ab0DPUhU (ORCPT
+	by vger.kernel.org with ESMTP id S1757887Ab0DPVJh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 16:37:20 -0400
+	Fri, 16 Apr 2010 17:09:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, eric.whitney@hp.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, linux-arch@vger.kernel.org, mel@csn.ul.ie, mingo@elte.hu, npiggin@suse.de, penberg@cs.helsinki.fi, randy.dunlap@oracle.com, rientjes@google.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com
+Cc: randy.dunlap@oracle.com, mel@csn.ul.ie
 
 
 The patch titled
-     numa: update Documentation/vm/numa, add memoryless node info
+     vmstat: fix build errors when PROC_FS is disabled
 has been added to the -mm tree.  Its filename is
-     numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+     vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,248 +34,199 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa: update Documentation/vm/numa, add memoryless node info
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: vmstat: fix build errors when PROC_FS is disabled
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Kamezawa Hiroyuki requested documentation for the numa_mem_id() and slab
-related changes.  He suggested Documentation/vm/numa for this
-documentation.  Looking at this file, it seems to me to be hopelessly out
-of date relative to current Linux NUMA support.  At the risk of going down
-a rathole, I have made an attempt to rewrite the doc at a slightly higher
-level [I think] and provide pointers to other in-tree documents and
-out-of-tree man pages that cover the details.
+Fix vmstat.c to build when CONFIG_PROC_FS is disabled
+but CONFIG_DEBUG_FS is enabled.
 
-Let the games begin.
+Fixes around 25 errors.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/numa |  184 +++++++++++++++++++++++++++++++---------
- 1 file changed, 146 insertions(+), 38 deletions(-)
+ mm/vmstat.c |  119 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 59 insertions(+), 60 deletions(-)
 
-diff -puN Documentation/vm/numa~numa-update-documentation-vm-numa-add-memoryless-node-info Documentation/vm/numa
---- a/Documentation/vm/numa~numa-update-documentation-vm-numa-add-memoryless-node-info
-+++ a/Documentation/vm/numa
-@@ -1,41 +1,149 @@
- Started Nov 1999 by Kanoj Sarcar <kanoj@sgi.com>
+diff -puN mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled
++++ a/mm/vmstat.c
+@@ -16,6 +16,7 @@
+ #include <linux/cpu.h>
+ #include <linux/vmstat.h>
+ #include <linux/sched.h>
++#include <linux/seq_file.h>
+ #include <linux/math64.h>
  
--The intent of this file is to have an uptodate, running commentary 
--from different people about NUMA specific code in the Linux vm.
-+What is NUMA?
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+@@ -380,18 +381,57 @@ void zone_statistics(struct zone *prefer
+ }
+ #endif
  
--What is NUMA? It is an architecture where the memory access times
--for different regions of memory from a given processor varies
--according to the "distance" of the memory region from the processor.
--Each region of memory to which access times are the same from any 
--cpu, is called a node. On such architectures, it is beneficial if
--the kernel tries to minimize inter node communications. Schemes
--for this range from kernel text and read-only data replication
--across nodes, and trying to house all the data structures that
--key components of the kernel need on memory on that node.
+-#ifdef CONFIG_PROC_FS
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
 -
--Currently, all the numa support is to provide efficient handling
--of widely discontiguous physical memory, so architectures which 
--are not NUMA but can have huge holes in the physical address space
--can use the same code. All this code is bracketed by CONFIG_DISCONTIGMEM.
+-static char * const migratetype_names[MIGRATE_TYPES] = {
+-	"Unmovable",
+-	"Reclaimable",
+-	"Movable",
+-	"Reserve",
+-	"Isolate",
++struct contig_page_info {
++	unsigned long free_pages;
++	unsigned long free_blocks_total;
++	unsigned long free_blocks_suitable;
+ };
+ 
++/* Walk all the zones in a node and print using a callback */
++static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
++		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
++{
++	struct zone *zone;
++	struct zone *node_zones = pgdat->node_zones;
++	unsigned long flags;
++
++	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
++		if (!populated_zone(zone))
++			continue;
++
++		spin_lock_irqsave(&zone->lock, flags);
++		print(m, pgdat, zone);
++		spin_unlock_irqrestore(&zone->lock, flags);
++	}
++}
++
++/*
++ * A fragmentation index only makes sense if an allocation of a requested
++ * size would fail. If that is true, the fragmentation index indicates
++ * whether external fragmentation or a lack of memory was the problem.
++ * The value can be used to determine if page reclaim or compaction
++ * should be used
++ */
++int __fragmentation_index(unsigned int order, struct contig_page_info *info)
++{
++	unsigned long requested = 1UL << order;
++
++	if (!info->free_blocks_total)
++		return 0;
++
++	/* Fragmentation index only makes sense when a request would fail */
++	if (info->free_blocks_suitable)
++		return -1000;
++
++	/*
++	 * Index is between 0 and 1 so return within 3 decimal places
++	 *
++	 * 0 => allocation would fail due to lack of memory
++	 * 1 => allocation would fail due to fragmentation
++	 */
++	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
++}
++
+ static void *frag_start(struct seq_file *m, loff_t *pos)
+ {
+ 	pg_data_t *pgdat;
+@@ -416,23 +456,16 @@ static void frag_stop(struct seq_file *m
+ {
+ }
+ 
+-/* Walk all the zones in a node and print using a callback */
+-static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
+-		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
+-{
+-	struct zone *zone;
+-	struct zone *node_zones = pgdat->node_zones;
+-	unsigned long flags;
 -
--The initial port includes NUMAizing the bootmem allocator code by
--encapsulating all the pieces of information into a bootmem_data_t
--structure. Node specific calls have been added to the allocator. 
--In theory, any platform which uses the bootmem allocator should 
--be able to put the bootmem and mem_map data structures anywhere
--it deems best.
+-	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
+-		if (!populated_zone(zone))
+-			continue;
++#ifdef CONFIG_PROC_FS
++#include <linux/proc_fs.h>
+ 
+-		spin_lock_irqsave(&zone->lock, flags);
+-		print(m, pgdat, zone);
+-		spin_unlock_irqrestore(&zone->lock, flags);
+-	}
+-}
++static char * const migratetype_names[MIGRATE_TYPES] = {
++	"Unmovable",
++	"Reclaimable",
++	"Movable",
++	"Reserve",
++	"Isolate",
++};
+ 
+ static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
+ 						struct zone *zone)
+@@ -455,39 +488,6 @@ static int frag_show(struct seq_file *m,
+ 	return 0;
+ }
+ 
+-struct contig_page_info {
+-	unsigned long free_pages;
+-	unsigned long free_blocks_total;
+-	unsigned long free_blocks_suitable;
+-};
 -
--Each node's page allocation data structures have also been encapsulated
--into a pg_data_t. The bootmem_data_t is just one part of this. To 
--make the code look uniform between NUMA and regular UMA platforms, 
--UMA platforms have a statically allocated pg_data_t too (contig_page_data).
--For the sake of uniformity, the function num_online_nodes() is also defined
--for all platforms. As we run benchmarks, we might decide to NUMAize 
--more variables like low_on_memory, nr_free_pages etc into the pg_data_t.
+-/*
+- * A fragmentation index only makes sense if an allocation of a requested
+- * size would fail. If that is true, the fragmentation index indicates
+- * whether external fragmentation or a lack of memory was the problem.
+- * The value can be used to determine if page reclaim or compaction
+- * should be used
+- */
+-int __fragmentation_index(unsigned int order, struct contig_page_info *info)
+-{
+-	unsigned long requested = 1UL << order;
 -
--The NUMA aware page allocation code currently tries to allocate pages 
--from different nodes in a round robin manner.  This will be changed to 
--do concentratic circle search, starting from current node, once the 
--NUMA port achieves more maturity. The call alloc_pages_node has been 
--added, so that drivers can make the call and not worry about whether 
--it is running on a NUMA or UMA platform.
-+This question can be answered from a couple of perspectives:  the
-+hardware view and the Linux software view.
-+
-+From the hardware perspective, a NUMA system is a computer platform that
-+comprises multiple components or assemblies each of which may contain 0
-+or more cpus, local memory, and/or IO buses.  For brevity and to
-+disambiguate the hardware view of these physical components/assemblies
-+from the software abstraction thereof, we'll call the components/assemblies
-+'cells' in this document.
-+
-+Each of the 'cells' may be viewed as an SMP [symmetric multi-processor] subset
-+of the system--although some components necessary for a stand-alone SMP system
-+may not be populated on any given cell.   The cells of the NUMA system are
-+connected together with some sort of system interconnect--e.g., a crossbar or
-+point-to-point link are common types of NUMA system interconnects.  Both of
-+these types of interconnects can be aggregated to create NUMA platforms with
-+cells at multiple distances from other cells.
-+
-+For Linux, the NUMA platforms of interest are primarily what is known as Cache
-+Coherent NUMA or CCNuma systems.   With CCNUMA systems, all memory is visible
-+to and accessible from any cpu attached to any cell and cache coherency
-+is handled in hardware by the processor caches and/or the system interconnect.
-+
-+Memory access time and effective memory bandwidth varies depending on how far
-+away the cell containing the cpu or io bus making the memory access is from the
-+cell containing the target memory.  For example, access to memory by cpus
-+attached to the same cell will experience faster access times and higher
-+bandwidths than accesses to memory on other, remote cells.  NUMA platforms
-+can have cells at multiple remote distances from any given cell.
-+
-+Platform vendors don't build NUMA systems just to make software developers'
-+lives interesting.  Rather, this architecture is a means to provide scalable
-+memory bandwidth.  However, to achieve scalable memory bandwidth, system and
-+application software must arrange for a large majority of the memory references
-+[cache misses] to be to "local" memory--memory on the same cell, if any--or
-+to the closest cell with memory.
-+
-+This leads to the Linux software view of a NUMA system:
-+
-+Linux divides the system's hardware resources into multiple software
-+abstractions called "nodes".  Linux maps the nodes onto the physical cells
-+of the hardware platform, abstracting away some of the details for some
-+architectures.  As with physical cells, software nodes may contain 0 or more
-+cpus, memory and/or IO buses.  And, again, memory access times to memory on
-+"closer" nodes [nodes that map to closer cells] will generally experience
-+faster access times and higher effective bandwidth than accesses to more
-+remote cells.
-+
-+For some architectures, such as x86, Linux will "hide" any node representing a
-+physical cell that has no memory attached, and reassign any cpus attached to
-+that cell to a node representing a cell that does have memory.  Thus, on
-+these architectures, one cannot assume that all cpus that Linux associates with
-+a given node will see the same local memory access times and bandwidth.
-+
-+In addition, for some architectures, again x86 is an example, Linux supports
-+the emulation of additional nodes.  For NUMA emulation, linux will carve up
-+the existing nodes--or the system memory for non-NUMA platforms--into multiple
-+nodes.  Each emulated node will manage a fraction of the underlying cells'
-+physical memory.  Numa emluation is useful for testing NUMA kernel and
-+application features on non-NUMA platforms, and as a sort of memory resource
-+management mechanism when used together with cpusets.
-+[See Documentation/cgroups/cpusets.txt]
-+
-+For each node with memory, Linux constructs an independent memory management
-+subsystem, complete with its own free page lists, in-use page lists, usage
-+statistics and locks to mediate access.  In addition, Linux constructs for
-+each memory zone [one or more of DMA, DMA32, NORMAL, HIGH_MEMORY, MOVABLE],
-+an ordered "zonelist".  A zonelist specifies the zones/nodes to visit when a
-+selected zone/node cannot satisfy the allocation request.  This situation,
-+when a zone's has no available memory to satisfy a request, is called
-+'overflow" or "fallback".
-+
-+Because some nodes contain multiple zones containing different types of
-+memory, Linux must decide whether to order the zonelists such that allocations
-+fall back to the same zone type on a different node, or to a different zone
-+type on the same node.  This is an important consideration because some zones,
-+such as DMA or DMA32, represent relatively scarce resources.  Linux chooses
-+a default zonelist order based on the sizes of the various zone types relative
-+to the total memory of the node and the total memory of the system.  The
-+default zonelist order may be overridden using the numa_zonelist_order kernel
-+boot parameter or sysctl.  [See Documentation/kernel-parameters.txt and
-+Documentation/sysctl/vm.txt]
-+
-+By default, Linux will attempt to satisfy memory allocation requests from the
-+node to which the cpu that executes the request is assigned.  Specifically,
-+Linux will attempt to allocate from the first node in the appropriate zonelist
-+for the node where the request originates.  This is called "local allocation."
-+If the "local" node cannot satisfy the request, the kernel will examine other
-+nodes' zones in the selected zonelist looking for the first zone in the list
-+that can satisfy the request.
-+
-+Local allocation will tend to keep subsequent access to the allocated memory
-+"local" to the underlying physical resources and off the system interconnect--
-+as long as the task on whose behalf the kernel allocated some memory does not
-+later migrate away from that memory.  The Linux scheduler is aware of the
-+NUMA topology of the platform--embodied in the "scheduling domains" data
-+structures [See Documentation/scheduler/sched-domains.txt]--and the scheduler
-+attempts to minimize task migration to distant scheduling domains.  However,
-+the scheduler does not take a task's NUMA footprint into account directly.
-+Thus, under sufficient imbalance, tasks can migrate between nodes, remote
-+from their initial node and kernel data structures.
-+
-+System administrators and application designers can restrict a tasks migration
-+to improve NUMA locality using various cpu affinity command line interfaces,
-+such as taskset(1) and numactl(1), and program interfaces such as
-+sched_setaffinity(2).  Further, one can modify the kernel's default local
-+allocation behavior using Linux NUMA memory policy.
-+[See Documentation/vm/numa_memory_policy.]
-+
-+System administrators can restrict the cpus and nodes' memories that a non-
-+privileged user can specify in the scheduling or NUMA commands and functions
-+using control groups and cpusets.  [See Documentation/cgroups/cpusets.txt]
-+
-+On architectures that do not hide memoryless nodes, Linux will include only
-+zones [nodes] with memory in the zonelists.  This means that for a memoryless
-+node the "local memory node"--the node of the first zone in cpu's node's
-+zonelist--will not be the node itself.  Rather, it will be the node that the
-+kernel selected as the nearest node with memory when it built the zonelists.
-+So, default, local allocations will succeed with the kernel supplying the
-+closest available memory.  This is a consequence of the same mechanism that
-+allows such allocations to fallback to other nearby nodes when a node that
-+does contain memory overflows.
-+
-+Some kernel allocations do not want or cannot tolerate this allocation fallback
-+behavior.  Rather they want to be sure they get memory from the specified node
-+or get notified that the node has no free memory.  This is usually the case when
-+a subsystem allocates per cpu memory resources, for example.
-+
-+A typical model for making such an allocation is to obtain the node id of the
-+node to which the "current cpu" is attached using one of the kernel's
-+numa_node_id() or cpu_to_node() functions and then request memory from only
-+the node id returned.  When such an allocation fails, the requesting subsystem
-+may revert to its own fallback path.  The slab kernel memory allocator is an
-+example of this.  Or, the subsystem may chose to disable or not to enable
-+itself on allocation failure.  The kernel profiling subsystem is an example of
-+this.
-+
-+If the architecture supports [does not hide] memoryless nodes, then cpus
-+attached to memoryless nodes would always incur the fallback path overhead
-+or some subsystems would fail to initialize if they attempted to allocated
-+memory exclusively from the a node without memory.  To support such
-+architectures transparently, kernel subsystems can use the numa_mem_id()
-+or cpu_to_mem() function to locate the "local memory node" for the calling or
-+specified cpu.  Again, this is the same node from which default, local page
-+allocations will be attempted.
+-	if (!info->free_blocks_total)
+-		return 0;
+-
+-	/* Fragmentation index only makes sense when a request would fail */
+-	if (info->free_blocks_suitable)
+-		return -1000;
+-
+-	/*
+-	 * Index is between 0 and 1 so return within 3 decimal places
+-	 *
+-	 * 0 => allocation would fail due to lack of memory
+-	 * 1 => allocation would fail due to fragmentation
+-	 */
+-	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
+-}
+-
+ static void pagetypeinfo_showfree_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -999,7 +999,6 @@ module_init(setup_vmstat)
+ 
+ #ifdef CONFIG_DEBUG_FS
+ #include <linux/debugfs.h>
+-#include <linux/seq_file.h>
+ 
+ static struct dentry *extfrag_debug_root;
+ 
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
+linux-next.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
+usb-fix-serial-build-when-sysrq-is-disabled.patch
+vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
+lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
+xen-fix-build-when-sysrq-is-disabled.patch
+documentation-submittingdrivers-resources.patch
 numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
