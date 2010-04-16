@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-fix-build-errors-when-proc_fs-is-disabled.patch added to -mm tree
-Date: Fri, 16 Apr 2010 14:09:08 -0700
-Message-ID: <201004162109.o3GL98El027125@imap1.linux-foundation.org>
+Subject: + vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 16 Apr 2010 14:12:48 -0700
+Message-ID: <201004162112.o3GLCmKt027277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757887Ab0DPVJh (ORCPT
+	by vger.kernel.org with ESMTP id S1758593Ab0DPVM7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 17:09:37 -0400
+	Fri, 16 Apr 2010 17:12:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, mel@csn.ul.ie, randy.dunlap@oracle.com
 
 
 The patch titled
-     vmstat: fix build errors when PROC_FS is disabled
+     vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
+     vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,199 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat: fix build errors when PROC_FS is disabled
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix vmstat.c to build when CONFIG_PROC_FS is disabled
-but CONFIG_DEBUG_FS is enabled.
+WARNING: line over 80 characters
+#89: FILE: mm/vmstat.c:432:
++	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
 
-Fixes around 25 errors.
+ERROR: space prohibited after that open parenthesis '('
+#89: FILE: mm/vmstat.c:432:
++	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+total: 1 errors, 1 warnings, 152 lines checked
+
+./patches/vmstat-fix-build-errors-when-proc_fs-is-disabled.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |  119 ++++++++++++++++++++++++--------------------------
- 1 file changed, 59 insertions(+), 60 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled
+diff -puN mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes
 +++ a/mm/vmstat.c
-@@ -16,6 +16,7 @@
- #include <linux/cpu.h>
- #include <linux/vmstat.h>
- #include <linux/sched.h>
-+#include <linux/seq_file.h>
- #include <linux/math64.h>
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
-@@ -380,18 +381,57 @@ void zone_statistics(struct zone *prefer
- }
- #endif
- 
--#ifdef CONFIG_PROC_FS
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--
--static char * const migratetype_names[MIGRATE_TYPES] = {
--	"Unmovable",
--	"Reclaimable",
--	"Movable",
--	"Reserve",
--	"Isolate",
-+struct contig_page_info {
-+	unsigned long free_pages;
-+	unsigned long free_blocks_total;
-+	unsigned long free_blocks_suitable;
- };
- 
-+/* Walk all the zones in a node and print using a callback */
-+static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
-+		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
-+{
-+	struct zone *zone;
-+	struct zone *node_zones = pgdat->node_zones;
-+	unsigned long flags;
-+
-+	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		print(m, pgdat, zone);
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+	}
-+}
-+
-+/*
-+ * A fragmentation index only makes sense if an allocation of a requested
-+ * size would fail. If that is true, the fragmentation index indicates
-+ * whether external fragmentation or a lack of memory was the problem.
-+ * The value can be used to determine if page reclaim or compaction
-+ * should be used
-+ */
-+int __fragmentation_index(unsigned int order, struct contig_page_info *info)
-+{
-+	unsigned long requested = 1UL << order;
-+
-+	if (!info->free_blocks_total)
-+		return 0;
-+
-+	/* Fragmentation index only makes sense when a request would fail */
-+	if (info->free_blocks_suitable)
-+		return -1000;
-+
-+	/*
-+	 * Index is between 0 and 1 so return within 3 decimal places
-+	 *
-+	 * 0 => allocation would fail due to lack of memory
-+	 * 1 => allocation would fail due to fragmentation
-+	 */
-+	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
-+}
-+
- static void *frag_start(struct seq_file *m, loff_t *pos)
- {
- 	pg_data_t *pgdat;
-@@ -416,23 +456,16 @@ static void frag_stop(struct seq_file *m
- {
- }
- 
--/* Walk all the zones in a node and print using a callback */
--static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
--		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
--{
--	struct zone *zone;
--	struct zone *node_zones = pgdat->node_zones;
--	unsigned long flags;
--
--	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
--		if (!populated_zone(zone))
--			continue;
-+#ifdef CONFIG_PROC_FS
-+#include <linux/proc_fs.h>
- 
--		spin_lock_irqsave(&zone->lock, flags);
--		print(m, pgdat, zone);
--		spin_unlock_irqrestore(&zone->lock, flags);
--	}
--}
-+static char * const migratetype_names[MIGRATE_TYPES] = {
-+	"Unmovable",
-+	"Reclaimable",
-+	"Movable",
-+	"Reserve",
-+	"Isolate",
-+};
- 
- static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
- 						struct zone *zone)
-@@ -455,39 +488,6 @@ static int frag_show(struct seq_file *m,
- 	return 0;
- }
- 
--struct contig_page_info {
--	unsigned long free_pages;
--	unsigned long free_blocks_total;
--	unsigned long free_blocks_suitable;
--};
--
--/*
-- * A fragmentation index only makes sense if an allocation of a requested
-- * size would fail. If that is true, the fragmentation index indicates
-- * whether external fragmentation or a lack of memory was the problem.
-- * The value can be used to determine if page reclaim or compaction
-- * should be used
-- */
--int __fragmentation_index(unsigned int order, struct contig_page_info *info)
--{
--	unsigned long requested = 1UL << order;
--
--	if (!info->free_blocks_total)
--		return 0;
--
--	/* Fragmentation index only makes sense when a request would fail */
--	if (info->free_blocks_suitable)
--		return -1000;
--
--	/*
--	 * Index is between 0 and 1 so return within 3 decimal places
--	 *
--	 * 0 => allocation would fail due to lack of memory
--	 * 1 => allocation would fail due to fragmentation
--	 */
+@@ -429,7 +429,7 @@ int __fragmentation_index(unsigned int o
+ 	 * 0 => allocation would fail due to lack of memory
+ 	 * 1 => allocation would fail due to fragmentation
+ 	 */
 -	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
--}
--
- static void pagetypeinfo_showfree_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
- {
-@@ -999,7 +999,6 @@ module_init(setup_vmstat)
++	return 1000 - div_u64((1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
+ }
  
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
--#include <linux/seq_file.h>
- 
- static struct dentry *extfrag_debug_root;
- 
+ static void *frag_start(struct seq_file *m, loff_t *pos)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-usb-fix-serial-build-when-sysrq-is-disabled.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
-xen-fix-build-when-sysrq-is-disabled.patch
-documentation-submittingdrivers-resources.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
 reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
