@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 16 Apr 2010 14:12:48 -0700
-Message-ID: <201004162112.o3GLCmKt027277@imap1.linux-foundation.org>
+Subject: + vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch added to -mm tree
+Date: Fri, 16 Apr 2010 14:18:47 -0700
+Message-ID: <201004162118.o3GLIlNf027493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758593Ab0DPVM7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757887Ab0DPVTF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 17:12:59 -0400
+	Fri, 16 Apr 2010 17:19:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mel@csn.ul.ie, randy.dunlap@oracle.com
+Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes
+     vmscan: page_check_references(): check low order lumpy reclaim properly
 has been added to the -mm tree.  Its filename is
-     vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
+     vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,167 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan: page_check_references(): check low order lumpy reclaim properly
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-WARNING: line over 80 characters
-#89: FILE: mm/vmstat.c:432:
-+	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
+If vmscan is under lumpy reclaim mode, it have to ignore referenced bit
+for making contenious free pages.  but current page_check_references()
+doesn't.
 
-ERROR: space prohibited after that open parenthesis '('
-#89: FILE: mm/vmstat.c:432:
-+	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
+Fix it.
 
-total: 1 errors, 1 warnings, 152 lines checked
-
-./patches/vmstat-fix-build-errors-when-proc_fs-is-disabled.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes
-+++ a/mm/vmstat.c
-@@ -429,7 +429,7 @@ int __fragmentation_index(unsigned int o
- 	 * 0 => allocation would fail due to lack of memory
- 	 * 1 => allocation would fail due to fragmentation
- 	 */
--	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
-+	return 1000 - div_u64((1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
- }
+diff -puN mm/vmscan.c~vmscan-page_check_references-check-low-order-lumpy-reclaim-properly mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-page_check_references-check-low-order-lumpy-reclaim-properly
++++ a/mm/vmscan.c
+@@ -77,6 +77,8 @@ struct scan_control {
  
- static void *frag_start(struct seq_file *m, loff_t *pos)
+ 	int order;
+ 
++	int lumpy_reclaim;
++
+ 	/* Which cgroup do we reclaim from */
+ 	struct mem_cgroup *mem_cgroup;
+ 
+@@ -575,7 +577,7 @@ static enum page_references page_check_r
+ 	referenced_page = TestClearPageReferenced(page);
+ 
+ 	/* Lumpy reclaim - ignore references */
+-	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
++	if (sc->lumpy_reclaim)
+ 		return PAGEREF_RECLAIM;
+ 
+ 	/*
+@@ -1125,7 +1127,6 @@ static unsigned long shrink_inactive_lis
+ 	unsigned long nr_scanned = 0;
+ 	unsigned long nr_reclaimed = 0;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+-	int lumpy_reclaim = 0;
+ 
+ 	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+@@ -1135,17 +1136,6 @@ static unsigned long shrink_inactive_lis
+ 			return SWAP_CLUSTER_MAX;
+ 	}
+ 
+-	/*
+-	 * If we need a large contiguous chunk of memory, or have
+-	 * trouble getting a small set of contiguous pages, we
+-	 * will reclaim both active and inactive pages.
+-	 *
+-	 * We use the same threshold as pageout congestion_wait below.
+-	 */
+-	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
+-		lumpy_reclaim = 1;
+-	else if (sc->order && priority < DEF_PRIORITY - 2)
+-		lumpy_reclaim = 1;
+ 
+ 	pagevec_init(&pvec, 1);
+ 
+@@ -1158,7 +1148,7 @@ static unsigned long shrink_inactive_lis
+ 		unsigned long nr_freed;
+ 		unsigned long nr_active;
+ 		unsigned int count[NR_LRU_LISTS] = { 0, };
+-		int mode = lumpy_reclaim ? ISOLATE_BOTH : ISOLATE_INACTIVE;
++		int mode = sc->lumpy_reclaim ? ISOLATE_BOTH : ISOLATE_INACTIVE;
+ 		unsigned long nr_anon;
+ 		unsigned long nr_file;
+ 
+@@ -1211,7 +1201,7 @@ static unsigned long shrink_inactive_lis
+ 		 * but that should be acceptable to the caller
+ 		 */
+ 		if (nr_freed < nr_taken && !current_is_kswapd() &&
+-		    lumpy_reclaim) {
++		    sc->lumpy_reclaim) {
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 			/*
+@@ -1653,6 +1643,18 @@ static void shrink_zone(int priority, st
+ 
+ 	get_scan_count(zone, sc, nr, priority);
+ 
++	/*
++	 * If we need a large contiguous chunk of memory, or have
++	 * trouble getting a small set of contiguous pages, we
++	 * will reclaim both active and inactive pages.
++	 */
++	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
++		sc->lumpy_reclaim = 1;
++	else if (sc->order && priority < DEF_PRIORITY - 2)
++		sc->lumpy_reclaim = 1;
++	else
++		sc->lumpy_reclaim = 0;
++
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		for_each_evictable_lru(l) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-jfs-free-sbi-memory-in-error-path.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
+rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+mempolicy-remove-redundant-code.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
+mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
+mempolicy-rename-policy_types-and-cleanup-initialization.patch
+mempolicy-factor-mpol_shared_policy_init-return-paths.patch
+mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
 mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+vmscan-prevent-get_scan_ratio-rounding-errors.patch
+vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
+proc-cleanup-remove-unused-assignments.patch
 reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
 
