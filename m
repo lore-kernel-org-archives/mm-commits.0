@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch added to -mm tree
-Date: Fri, 16 Apr 2010 13:35:29 -0700
-Message-ID: <201004162035.o3GKZTtg025739@imap1.linux-foundation.org>
+Subject: + numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch added to -mm tree
+Date: Fri, 16 Apr 2010 13:35:40 -0700
+Message-ID: <201004162035.o3GKZemj025762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932503Ab0DPUgr (ORCPT
+	by vger.kernel.org with ESMTP id S932506Ab0DPUgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 16:36:47 -0400
+	Fri, 16 Apr 2010 16:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, eric.whitney@hp.com, hpa@z
 
 
 The patch titled
-     numa: ia64: use generic percpu var numa_node_id() implementation
+     numa: in-kernel profiling: use cpu_to_mem() for per cpu allocations
 has been added to the -mm tree.  Its filename is
-     numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+     numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa: ia64: use generic percpu var numa_node_id() implementation
+Subject: numa: in-kernel profiling: use cpu_to_mem() for per cpu allocations
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-ia64:  Use generic percpu implementation of numa_node_id()
-   + intialize per cpu 'numa_node'
-   + remove ia64 cpu_to_node() macro;  use generic
-   + define CONFIG_USE_PERCPU_NUMA_NODE_ID when NUMA configured
+In kernel profiling requires that we be able to allocate "local" memory
+for each cpu.  Use "cpu_to_mem()" instead of "cpu_to_node()" to support
+memoryless nodes.
+
+Depends on the "numa_mem_id()" patch.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -60,63 +60,30 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig                |    4 ++++
- arch/ia64/include/asm/topology.h |    5 -----
- arch/ia64/kernel/smpboot.c       |    6 ++++++
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ kernel/profile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/Kconfig~numa-ia64-use-generic-percpu-var-numa_node_id-implementation arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~numa-ia64-use-generic-percpu-var-numa_node_id-implementation
-+++ a/arch/ia64/Kconfig
-@@ -497,6 +497,10 @@ config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
+diff -puN kernel/profile.c~numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations kernel/profile.c
+--- a/kernel/profile.c~numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations
++++ a/kernel/profile.c
+@@ -363,7 +363,7 @@ static int __cpuinit profile_cpu_callbac
+ 	switch (action) {
+ 	case CPU_UP_PREPARE:
+ 	case CPU_UP_PREPARE_FROZEN:
+-		node = cpu_to_node(cpu);
++		node = cpu_to_mem(cpu);
+ 		per_cpu(cpu_profile_flip, cpu) = 0;
+ 		if (!per_cpu(cpu_profile_hits, cpu)[1]) {
+ 			page = alloc_pages_exact_node(node,
+@@ -565,7 +565,7 @@ static int create_hash_tables(void)
+ 	int cpu;
  
-+config USE_PERCPU_NUMA_NODE_ID
-+	def_bool y
-+	depends on NUMA
-+
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
- 	depends on PROC_KCORE
-diff -puN arch/ia64/include/asm/topology.h~numa-ia64-use-generic-percpu-var-numa_node_id-implementation arch/ia64/include/asm/topology.h
---- a/arch/ia64/include/asm/topology.h~numa-ia64-use-generic-percpu-var-numa_node_id-implementation
-+++ a/arch/ia64/include/asm/topology.h
-@@ -26,11 +26,6 @@
- #define RECLAIM_DISTANCE 15
+ 	for_each_online_cpu(cpu) {
+-		int node = cpu_to_node(cpu);
++		int node = cpu_to_mem(cpu);
+ 		struct page *page;
  
- /*
-- * Returns the number of the node containing CPU 'cpu'
-- */
--#define cpu_to_node(cpu) (int)(cpu_to_node_map[cpu])
--
--/*
-  * Returns a bitmask of CPUs on Node 'node'.
-  */
- #define cpumask_of_node(node) ((node) == -1 ?				\
-diff -puN arch/ia64/kernel/smpboot.c~numa-ia64-use-generic-percpu-var-numa_node_id-implementation arch/ia64/kernel/smpboot.c
---- a/arch/ia64/kernel/smpboot.c~numa-ia64-use-generic-percpu-var-numa_node_id-implementation
-+++ a/arch/ia64/kernel/smpboot.c
-@@ -390,6 +390,11 @@ smp_callin (void)
- 
- 	fix_b0_for_bsp();
- 
-+	/*
-+	 * numa_node_id() works after this.
-+	 */
-+	set_numa_node(cpu_to_node_map[cpuid]);
-+
- 	ipi_call_lock_irq();
- 	spin_lock(&vector_lock);
- 	/* Setup the per cpu irq handling data structures */
-@@ -632,6 +637,7 @@ void __devinit smp_prepare_boot_cpu(void
- {
- 	cpu_set(smp_processor_id(), cpu_online_map);
- 	cpu_set(smp_processor_id(), cpu_callin_map);
-+	set_numa_node(cpu_to_node_map[smp_processor_id()]);
- 	per_cpu(cpu_state, smp_processor_id()) = CPU_ONLINE;
- 	paravirt_post_smp_prepare_boot_cpu();
- }
+ 		page = alloc_pages_exact_node(node,
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
