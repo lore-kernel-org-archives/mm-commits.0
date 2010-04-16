@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-free_pages_prepare.patch added to -mm tree
-Date: Fri, 16 Apr 2010 15:13:21 -0700
-Message-ID: <201004162213.o3GMDL2j029711@imap1.linux-foundation.org>
+Subject: + mm-introduce-free_pages_prepare-fix.patch added to -mm tree
+Date: Fri, 16 Apr 2010 15:14:17 -0700
+Message-ID: <201004162214.o3GMEHUo029731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932622Ab0DPWNu (ORCPT
+	by vger.kernel.org with ESMTP id S932622Ab0DPWOo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 18:13:50 -0400
+	Fri, 16 Apr 2010 18:14:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm: introduce free_pages_prepare()
+     mm-introduce-free_pages_prepare-fix
 has been added to the -mm tree.  Its filename is
-     mm-introduce-free_pages_prepare.patch
+     mm-introduce-free_pages_prepare-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce free_pages_prepare()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm-introduce-free_pages_prepare-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-free_hot_cold_page() and __free_pages_ok() have very similar freeing
-preparation.  Consolidate them.
+fix busted coding style too
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   40 +++++++++++++++++++++-------------------
- 1 file changed, 21 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-introduce-free_pages_prepare mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-free_pages_prepare
+diff -puN mm/page_alloc.c~mm-introduce-free_pages_prepare-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-free_pages_prepare-fix
 +++ a/mm/page_alloc.c
-@@ -620,20 +620,23 @@ static void free_one_page(struct zone *z
- 	spin_unlock(&zone->lock);
- }
- 
--static void __free_pages_ok(struct page *page, unsigned int order)
-+static bool free_pages_prepare(struct page *page, unsigned int order)
- {
--	unsigned long flags;
- 	int i;
- 	int bad = 0;
--	int wasMlocked = __TestClearPageMlocked(page);
- 
+@@ -628,7 +628,7 @@ static bool free_pages_prepare(struct pa
  	trace_mm_page_free_direct(page, order);
  	kmemcheck_free_shadow(page, order);
  
--	for (i = 0 ; i < (1 << order) ; ++i)
--		bad += free_pages_check(page + i);
-+	for (i = 0 ; i < (1 << order) ; ++i) {
-+		struct page *pg = page + i;
-+
-+		if (PageAnon(pg))
-+			pg->mapping = NULL;
-+		bad += free_pages_check(pg);
-+	}
- 	if (bad)
--		return;
-+		return false;
+-	for (i = 0 ; i < (1 << order) ; ++i) {
++	for (i = 0; i < (1 << order); i++) {
+ 		struct page *pg = page + i;
  
- 	if (!PageHighMem(page)) {
- 		debug_check_no_locks_freed(page_address(page),PAGE_SIZE<<order);
-@@ -643,6 +646,17 @@ static void __free_pages_ok(struct page 
- 	arch_free_page(page, order);
- 	kernel_map_pages(page, 1 << order, 0);
- 
-+	return true;
-+}
-+
-+static void __free_pages_ok(struct page *page, unsigned int order)
-+{
-+	unsigned long flags;
-+	int wasMlocked = __TestClearPageMlocked(page);
-+
-+	if (!free_pages_prepare(page, order))
-+		return;
-+
- 	local_irq_save(flags);
- 	if (unlikely(wasMlocked))
- 		free_page_mlock(page);
-@@ -1128,21 +1142,9 @@ void free_hot_cold_page(struct page *pag
- 	int migratetype;
- 	int wasMlocked = __TestClearPageMlocked(page);
- 
--	trace_mm_page_free_direct(page, 0);
--	kmemcheck_free_shadow(page, 0);
--
--	if (PageAnon(page))
--		page->mapping = NULL;
--	if (free_pages_check(page))
-+	if (!free_pages_prepare(page, 0))
- 		return;
- 
--	if (!PageHighMem(page)) {
--		debug_check_no_locks_freed(page_address(page), PAGE_SIZE);
--		debug_check_no_obj_freed(page_address(page), PAGE_SIZE);
--	}
--	arch_free_page(page, 0);
--	kernel_map_pages(page, 1, 0);
--
- 	migratetype = get_pageblock_migratetype(page);
- 	set_page_private(page, migratetype);
- 	local_irq_save(flags);
+ 		if (PageAnon(pg))
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-mempolicy-remove-redundant-code.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
-mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
 mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
-mm-export-fragmentation-index-via-proc-extfrag_index.patch
-mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
-vmscan-prevent-get_scan_ratio-rounding-errors.patch
-vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
-mm-introduce-free_pages_prepare.patch
-proc-cleanup-remove-unused-assignments.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
