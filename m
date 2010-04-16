@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-prepare-migration-fix.patch added to -mm tree
-Date: Thu, 15 Apr 2010 17:24:01 -0400
-Message-ID: <201004160025.o3G0PdfH007748@imap1.linux-foundation.org>
+Subject: + mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch added to -mm tree
+Date: Fri, 16 Apr 2010 11:50:05 -0700
+Message-ID: <201004161850.o3GIo5Aq021397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758184Ab0DPAZ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757722Ab0DPSuo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Apr 2010 20:25:56 -0400
+	Fri, 16 Apr 2010 14:50:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, aarcange@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org
+Cc: mel@csn.ul.ie, aarcange@redhat.com
 
 
 The patch titled
-     memcg-fix-prepare-migration-fix
+     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice
 has been added to the -mm tree.  Its filename is
-     memcg-fix-prepare-migration-fix.patch
+     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-prepare-migration-fix
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice
+From: Mel Gorman <mel@csn.ul.ie>
 
-It seems that the original patch was mangled a bit when it was adjusted to
-mainline.
+mm,compaction: Do not compact twice
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+created a __alloc_pages_direct_compact() function but the old call to
+try_to_compact_pages() was not removed.  This patch removes it.
+
+This is a fix to the mmotm patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_alloc.c |   32 --------------------------------
+ 1 file changed, 32 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-prepare-migration-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-prepare-migration-fix
-+++ a/mm/memcontrol.c
-@@ -2434,7 +2434,6 @@ int mem_cgroup_prepare_migration(struct 
- 		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false);
- 		css_put(&mem->css);
- 	}
--	*ptr = mem;
- 	return ret;
- }
+diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice
++++ a/mm/page_alloc.c
+@@ -1822,38 +1822,6 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
  
+ 	cond_resched();
+ 
+-#ifdef CONFIG_COMPACTION
+-	/* Try memory compaction for high-order allocations before reclaim */
+-	if (order) {
+-		*did_some_progress = try_to_compact_pages(zonelist,
+-						order, gfp_mask, nodemask);
+-		if (*did_some_progress != COMPACT_SKIPPED) {
+-
+-			/* Page migration frees to the PCP lists but we want merging */
+-			drain_pages(get_cpu());
+-			put_cpu();
+-
+-			page = get_page_from_freelist(gfp_mask, nodemask,
+-					order, zonelist, high_zoneidx,
+-					alloc_flags, preferred_zone,
+-					migratetype);
+-			if (page) {
+-				__count_vm_event(COMPACTSUCCESS);
+-				return page;
+-			}
+-
+-			/*
+-			 * It's bad if compaction run occurs and fails.
+-			 * The most likely reason is that pages exist,
+-			 * but not enough to satisfy watermarks.
+-			 */
+-			count_vm_event(COMPACTFAIL);
+-
+-			cond_resched();
+-		}
+-	}
+-#endif
+-
+ 	/* We now go into synchronous reclaim */
+ 	cpuset_memory_pressure_bump();
+ 	p->flags |= PF_MEMALLOC;
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-memcg-fix-prepare-migration.patch
-memcg-fix-prepare-migration-fix.patch
 linux-next.patch
-memcg-oom-wakeup-filter.patch
-memcg-oom-wakeup-filter-update.patch
-memcg-oom-notifier.patch
-memcg-oom-notifier-update.patch
-memcg-oom-kill-disable-and-oom-status.patch
-memcg-oom-kill-disable-and-oom-status-update.patch
-memcg-clean-up-move-charge.patch
-memcg-move-charge-of-file-pages.patch
-memcg-move-charge-of-file-pages-fix.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mempolicy-remove-redundant-code.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
+mm-remove-nodes-validity-check-in-alloc_pages.patch
+mm-change-alloc-function-in-vmemmap_alloc_block.patch
+mm-change-alloc-function-in-__vmalloc_area_node.patch
+mm-add-comment-in-alloc_pages_exact_node.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
