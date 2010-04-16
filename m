@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-factor-timer-allocate-from-open.patch added to -mm tree
-Date: Fri, 16 Apr 2010 12:23:19 -0700
-Message-ID: <201004161923.o3GJNJMn022817@imap1.linux-foundation.org>
+Subject: + hpet-factor-timer-allocate-from-open-fix.patch added to -mm tree
+Date: Fri, 16 Apr 2010 12:23:21 -0700
+Message-ID: <201004161923.o3GJNLbB022820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758496Ab0DPTYJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757978Ab0DPTYI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 15:24:09 -0400
+	Fri, 16 Apr 2010 15:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maglyx@gmail.com, clemens@ladisch.de, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, clemens@ladisch.de, johnstul@us.ibm.com, maglyx@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     hpet: factor timer allocate from open
+     hpet-factor-timer-allocate-from-open-fix
 has been added to the -mm tree.  Its filename is
-     hpet-factor-timer-allocate-from-open.patch
+     hpet-factor-timer-allocate-from-open-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,179 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpet: factor timer allocate from open
-From: Magnus Lynch <maglyx@gmail.com>
+Subject: hpet-factor-timer-allocate-from-open-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The current implementation of the /dev/hpet driver couples opening the
-device with allocating one of the (scarce) timers (aka comparators).  This
-is a limitation in that the main counter may be valuable to applications
-seeking a high-resolution timer who have no use for the interrupt
-generating functionality of the comparators.
+coding-style tweaks
 
-This patch alters the open semantics so that when the device is opened, no
-timer is allocated.  Operations that depend on a timer being in context
-implicitly attempt allocating a timer, to maintain backward compatibility.
- There is also an IOCTL (HPET_ALLOC_TIMER _IO) added so that the
-allocation may be done explicitly.  (I prefer the explicit open then
-allocate pattern but don't know how practical it would be to require all
-existing code to be changed.)
-
-Signed-off-by: Magnus Lynch <maglyx@gmail.com>
 Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Magnus Lynch <maglyx@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c  |   59 ++++++++++++++++++++++++++++++++++++-----
- include/linux/hpet.h |    1 
- 2 files changed, 53 insertions(+), 7 deletions(-)
+ drivers/char/hpet.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/hpet.c~hpet-factor-timer-allocate-from-open drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-factor-timer-allocate-from-open
+diff -puN drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix
 +++ a/drivers/char/hpet.c
-@@ -243,16 +243,40 @@ static void hpet_timer_set_irq(struct hp
- 
- static int hpet_open(struct inode *inode, struct file *file)
- {
--	struct hpet_dev *devp;
- 	struct hpets *hpetp;
--	int i;
- 
- 	if (file->f_mode & FMODE_WRITE)
- 		return -EINVAL;
- 
-+	hpetp = hpets;
-+	/* starting with timer-neutral instance */
-+	file->private_data = &hpetp->hp_dev[hpetp->hp_ntimer];
-+
-+	return 0;
-+}
-+
-+static int hpet_alloc_timer(struct file *file)
-+{
-+	struct hpet_dev *devp;
-+	struct hpets *hpetp;
-+	int i;
-+
-+	/* once acquired, will remain */
-+	devp = file->private_data;
-+	if (devp->hd_timer)
-+		return 0;
-+
- 	lock_kernel();
- 	spin_lock_irq(&hpet_lock);
- 
-+	/* check for race acquiring */
-+	devp = file->private_data;
-+	if (devp->hd_timer) {
-+		spin_unlock_irq(&hpet_lock);
-+		unlock_kernel();
-+		return 0;
-+	}
-+
- 	for (devp = NULL, hpetp = hpets; hpetp && !devp; hpetp = hpetp->hp_next)
- 		for (i = 0; i < hpetp->hp_ntimer; i++)
- 			if (hpetp->hp_dev[i].hd_flags & HPET_OPEN)
-@@ -383,6 +407,10 @@ static int hpet_fasync(int fd, struct fi
+@@ -406,8 +406,9 @@ static int hpet_mmap(struct file *file, 
+ static int hpet_fasync(int fd, struct file *file, int on)
  {
  	struct hpet_dev *devp;
++	int r;
  
-+	int r = hpet_alloc_timer(file);
-+	if (r < 0)
-+		return r;
-+
- 	devp = file->private_data;
+-	int r = hpet_alloc_timer(file);
++	r = hpet_alloc_timer(file);
+ 	if (r < 0)
+ 		return r;
  
- 	if (fasync_helper(fd, file, on, &devp->hd_async_queue) >= 0)
-@@ -400,6 +428,9 @@ static int hpet_release(struct inode *in
- 	devp = file->private_data;
- 	timer = devp->hd_timer;
- 
-+	if (!timer)
-+		goto out;
-+
- 	spin_lock_irq(&hpet_lock);
- 
- 	writeq((readq(&timer->hpet_config) & ~Tn_INT_ENB_CNF_MASK),
-@@ -424,7 +455,7 @@ static int hpet_release(struct inode *in
- 
- 	if (irq)
- 		free_irq(irq, devp);
--
-+out:
- 	file->private_data = NULL;
- 	return 0;
- }
-@@ -437,6 +468,10 @@ hpet_ioctl(struct inode *inode, struct f
+@@ -467,8 +468,9 @@ hpet_ioctl(struct inode *inode, struct f
+ 	   unsigned long arg)
  {
  	struct hpet_dev *devp;
++	int r;
  
-+	int r = hpet_alloc_timer(file);
-+	if (r < 0)
-+		return r;
-+
- 	devp = file->private_data;
- 	return hpet_ioctl_common(devp, cmd, arg, 0);
- }
-@@ -569,6 +604,9 @@ hpet_ioctl_common(struct hpet_dev *devp,
- 		break;
- 	case HPET_IE_ON:
- 		return hpet_ioctl_ieon(devp);
-+	case HPET_ALLOC_TIMER:
-+		/* nothing to do */
-+		return 0;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -793,7 +831,11 @@ int hpet_alloc(struct hpet_data *hdp)
- 		return 0;
- 	}
- 
--	siz = sizeof(struct hpets) + ((hdp->hd_nirqs - 1) *
-+	/*
-+	 * last hpet_dev will have null timer pointer, gives timer-neutral
-+	 * representation of block
-+	 */
-+	siz = sizeof(struct hpets) + ((hdp->hd_nirqs) *
- 				      sizeof(struct hpet_dev));
- 
- 	hpetp = kzalloc(siz, GFP_KERNEL);
-@@ -859,13 +901,16 @@ int hpet_alloc(struct hpet_data *hdp)
- 		writeq(mcfg, &hpet->hpet_config);
- 	}
- 
--	for (i = 0, devp = hpetp->hp_dev; i < hpetp->hp_ntimer; i++, devp++) {
-+	for (i = 0, devp = hpetp->hp_dev; i < hpetp->hp_ntimer + 1;
-+	     i++, devp++) {
- 		struct hpet_timer __iomem *timer;
- 
--		timer = &hpet->hpet_timers[devp - hpetp->hp_dev];
--
- 		devp->hd_hpets = hpetp;
- 		devp->hd_hpet = hpet;
-+		if (i == hpetp->hp_ntimer)
-+			continue;
-+
-+		timer = &hpet->hpet_timers[devp - hpetp->hp_dev];
- 		devp->hd_timer = timer;
- 
- 		/*
-diff -puN include/linux/hpet.h~hpet-factor-timer-allocate-from-open include/linux/hpet.h
---- a/include/linux/hpet.h~hpet-factor-timer-allocate-from-open
-+++ a/include/linux/hpet.h
-@@ -125,6 +125,7 @@ struct hpet_info {
- #define	HPET_EPI	_IO('h', 0x04)	/* enable periodic */
- #define	HPET_DPI	_IO('h', 0x05)	/* disable periodic */
- #define	HPET_IRQFREQ	_IOW('h', 0x6, unsigned long)	/* IRQFREQ usec */
-+#define	HPET_ALLOC_TIMER _IO('h', 0x7)
- 
- #define MAX_HPET_TBS	8		/* maximum hpet timer blocks */
+-	int r = hpet_alloc_timer(file);
++	r = hpet_alloc_timer(file);
+ 	if (r < 0)
+ 		return r;
  
 _
 
-Patches currently in -mm which might be from maglyx@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hpet-factor-timer-allocate-from-open.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
 hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
