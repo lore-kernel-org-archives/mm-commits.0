@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + buffer_head-remove-redundant-test-from-wait_on_buffer.patch added to -mm tree
-Date: Fri, 16 Apr 2010 14:52:02 -0700
-Message-ID: <201004162152.o3GLq3ld028760@imap1.linux-foundation.org>
+Subject: + buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch added to -mm tree
+Date: Fri, 16 Apr 2010 14:52:06 -0700
+Message-ID: <201004162152.o3GLq6O0028763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932490Ab0DPVwb (ORCPT
+	by vger.kernel.org with ESMTP id S932490Ab0DPVwh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Apr 2010 17:52:31 -0400
+	Fri, 16 Apr 2010 17:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, jeffm@suse.com, jens.axboe@oracle.com, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, jeffm@suse.com, jens.axboe@oracle.com, nickpiggin@yahoo.com.au, richard@rsk.demon.co.uk
 
 
 The patch titled
-     buffer_head: remove redundant test from wait_on_buffer
+     buffer_head-remove-redundant-test-from-wait_on_buffer-fix
 has been added to the -mm tree.  Its filename is
-     buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+     buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: buffer_head: remove redundant test from wait_on_buffer
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: buffer_head-remove-redundant-test-from-wait_on_buffer-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The comment suggests that when b_count equals zero it is calling
-__wait_no_buffer to trigger some debug, but as there is no debug in
-__wait_on_buffer the whole thing is redundant.
+restore the test
 
-AFAICT from the git log this has been the case for at least 5 years, so
-it seems safe just to remove this.
-
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Richard Kennedy <richard@rsk.demon.co.uk>
 Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buffer_head.h |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ fs/buffer.c                 |    6 ++++++
+ include/linux/buffer_head.h |    7 ++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/buffer_head.h~buffer_head-remove-redundant-test-from-wait_on_buffer include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~buffer_head-remove-redundant-test-from-wait_on_buffer
+diff -puN fs/buffer.c~buffer_head-remove-redundant-test-from-wait_on_buffer-fix fs/buffer.c
+--- a/fs/buffer.c~buffer_head-remove-redundant-test-from-wait_on_buffer-fix
++++ a/fs/buffer.c
+@@ -90,6 +90,12 @@ EXPORT_SYMBOL(unlock_buffer);
+  */
+ void __wait_on_buffer(struct buffer_head * bh)
+ {
++	/*
++	 * Calling wait_on_buffer() against a zero-ref buffer is a nasty bug
++	 * because it will almost always "work".  However this buffer can be
++	 * reclaimed at any time.  So check for it.
++	 */
++	VM_BUG_ON(atomic_read(&bh->b_count) == 0);
+ 	wait_on_bit(&bh->b_state, BH_Lock, sync_buffer, TASK_UNINTERRUPTIBLE);
+ }
+ EXPORT_SYMBOL(__wait_on_buffer);
+diff -puN include/linux/buffer_head.h~buffer_head-remove-redundant-test-from-wait_on_buffer-fix include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~buffer_head-remove-redundant-test-from-wait_on_buffer-fix
 +++ a/include/linux/buffer_head.h
-@@ -305,15 +305,10 @@ map_bh(struct buffer_head *bh, struct su
+@@ -305,10 +305,15 @@ map_bh(struct buffer_head *bh, struct su
  	bh->b_size = sb->s_blocksize;
  }
  
--/*
-- * Calling wait_on_buffer() for a zero-ref buffer is illegal, so we call into
-- * __wait_on_buffer() just to trip a debug check.  Because debug code in inline
-- * functions is bloaty.
-- */
++/*
++ * Calling wait_on_buffer() for a zero-ref buffer is illegal, so we call into
++ * __wait_on_buffer() just to trip a debug check.  Because debug code in inline
++ * functions is bloaty.
++ */
  static inline void wait_on_buffer(struct buffer_head *bh)
  {
  	might_sleep();
--	if (buffer_locked(bh) || atomic_read(&bh->b_count) == 0)
-+	if (buffer_locked(bh))
+-	if (buffer_locked(bh))
++	if (buffer_locked(bh) || atomic_read(&bh->b_count) == 0)
  		__wait_on_buffer(bh);
  }
  
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
 wait_on_buffer-remove-the-buffer_locked-test.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
