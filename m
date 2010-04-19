@@ -1,60 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-remove-nodes-validity-check-in-alloc_pages.patch removed from -mm tree
-Date: Mon, 19 Apr 2010 15:26:12 -0700
-Message-ID: <201004192226.o3JMQCu7013200@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-change-alloc-function-in-vmemmap_alloc_block.patch removed from -mm tree
+Date: Mon, 19 Apr 2010 15:26:17 -0700
+Message-ID: <201004192226.o3JMQHuH013206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60629 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752716Ab0DSW0l (ORCPT
+	by vger.kernel.org with ESMTP id S1752716Ab0DSW0q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:26:41 -0400
+	Mon, 19 Apr 2010 18:26:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujisu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove node's validity check in alloc_pages
+     mm: change alloc function in vmemmap_alloc_block
 has been removed from the -mm tree.  Its filename was
-     mm-remove-nodes-validity-check-in-alloc_pages.patch
+     mm-change-alloc-function-in-vmemmap_alloc_block.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove node's validity check in alloc_pages
+Subject: mm: change alloc function in vmemmap_alloc_block
 From: Minchan Kim <minchan.kim@gmail.com>
 
-alloc_pages() calls alloc_pages_node() with numa_node_id(). 
-alloc_pages_node can't see nid < 0.
+If node_state is N_HIGH_MEMORY, node doesn't have -1.  It means node's
+validity check is unnecessary.
 
 So we can use alloc_pages_exact_node() instead of alloc_pages_node().  It
 could avoid comparison and branch as 6484eb3e2a81807722 ("page allocator:
 do not check NUMA node ID when the caller knows the node is") tried.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Reviewed-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujisu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
+ mm/sparse-vmemmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-remove-nodes-validity-check-in-alloc_pages include/linux/gfp.h
---- a/include/linux/gfp.h~mm-remove-nodes-validity-check-in-alloc_pages
-+++ a/include/linux/gfp.h
-@@ -308,7 +308,7 @@ extern struct page *alloc_page_vma(gfp_t
- 			struct vm_area_struct *vma, unsigned long addr);
- #else
- #define alloc_pages(gfp_mask, order) \
--		alloc_pages_node(numa_node_id(), gfp_mask, order)
-+		alloc_pages_exact_node(numa_node_id(), gfp_mask, order)
- #define alloc_page_vma(gfp_mask, vma, addr) alloc_pages(gfp_mask, 0)
- #endif
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
+diff -puN mm/sparse-vmemmap.c~mm-change-alloc-function-in-vmemmap_alloc_block mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~mm-change-alloc-function-in-vmemmap_alloc_block
++++ a/mm/sparse-vmemmap.c
+@@ -54,7 +54,7 @@ void * __meminit vmemmap_alloc_block(uns
+ 		struct page *page;
+ 
+ 		if (node_state(node, N_HIGH_MEMORY))
+-			page = alloc_pages_node(node,
++			page = alloc_pages_exact_node(node,
+ 				GFP_KERNEL | __GFP_ZERO, get_order(size));
+ 		else
+ 			page = alloc_pages(GFP_KERNEL | __GFP_ZERO,
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
@@ -102,8 +103,6 @@ mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.pat
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
-mm-remove-nodes-validity-check-in-alloc_pages.patch
-mm-alloc-function-in-pcpu_alloc_pages.patch
 mm-change-alloc-function-in-vmemmap_alloc_block.patch
 mm-change-alloc-function-in-__vmalloc_area_node.patch
 mm-add-comment-in-alloc_pages_exact_node.patch
