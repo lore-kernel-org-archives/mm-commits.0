@@ -1,164 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: + uv_irqc-fix-all-sparse-warnings.patch added to -mm tree
-Date: Mon, 19 Apr 2010 15:06:43 -0700
-Message-ID: <201004192206.o3JM6hWf012331@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-alloc-function-in-pcpu_alloc_pages.patch removed from -mm tree
+Date: Mon, 19 Apr 2010 15:26:15 -0700
+Message-ID: <201004192226.o3JMQFQE013203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752319Ab0DSWHL (ORCPT
+	by vger.kernel.org with ESMTP id S1752716Ab0DSW0S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:07:11 -0400
+	Mon, 19 Apr 2010 18:26:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, cpw@sgi.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, rja@sgi.com, sivanich@sgi.com, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com
+To: minchan.kim@gmail.com, cl@linux-foundation.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uv_irq.c: fix all sparse warnings
-has been added to the -mm tree.  Its filename is
-     uv_irqc-fix-all-sparse-warnings.patch
+     mm: alloc function in pcpu_alloc_pages
+has been removed from the -mm tree.  Its filename was
+     mm-alloc-function-in-pcpu_alloc_pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uv_irq.c: fix all sparse warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: alloc function in pcpu_alloc_pages
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Fix all sparse warnings in building uv_irq.c.
+alloc_pages_node() is called with cpu_to_node(cpu).  I think
+cpu_to_node(cpu) never returns -1.
 
-arch/x86/kernel/uv_irq.c:46:17: warning: symbol 'uv_irq_chip' was not declared. Should it be static?
-arch/x86/kernel/uv_irq.c:143:50: error: no identifier for function argument
-arch/x86/kernel/uv_irq.c:162:13: error: typename in expression
-arch/x86/kernel/uv_irq.c:162:13: error: undefined identifier 'restrict'
-arch/x86/kernel/uv_irq.c:250:44: error: no identifier for function argument
-arch/x86/kernel/uv_irq.c:260:17: error: typename in expression
-arch/x86/kernel/uv_irq.c:260:17: error: undefined identifier 'restrict'
-arch/x86/kernel/uv_irq.c:233:50: warning: incorrect type in argument 3 (different signedness)
-arch/x86/kernel/uv_irq.c:233:50:    expected int *pnode
-arch/x86/kernel/uv_irq.c:233:50:    got unsigned int *<noident>
-arch/x86/include/asm/uv/uv_hub.h:318:44: warning: incorrect type in argument 2 (different address spaces)
-arch/x86/include/asm/uv/uv_hub.h:318:44:    expected void volatile [noderef] <asn:2>*addr
-arch/x86/include/asm/uv/uv_hub.h:318:44:    got unsigned long *
+So we can use alloc_pages_exact_node() instead of alloc_pages_node().  It
+could avoid comparison and branch as 6484eb3e2a81807722 ("page allocator:
+do not check NUMA node ID when the caller knows the node is") tried.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Russ Anderson <rja@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Cliff Wickman <cpw@sgi.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/uv_hub.h |    2 +-
- arch/x86/kernel/uv_irq.c         |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ mm/percpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/uv/uv_hub.h~uv_irqc-fix-all-sparse-warnings arch/x86/include/asm/uv/uv_hub.h
---- a/arch/x86/include/asm/uv/uv_hub.h~uv_irqc-fix-all-sparse-warnings
-+++ a/arch/x86/include/asm/uv/uv_hub.h
-@@ -307,7 +307,7 @@ static inline unsigned long uv_read_glob
-  * Access Global MMR space using the MMR space located at the top of physical
-  * memory.
-  */
--static inline unsigned long *uv_global_mmr64_address(int pnode, unsigned long offset)
-+static inline volatile void __iomem *uv_global_mmr64_address(int pnode, unsigned long offset)
- {
- 	return __va(UV_GLOBAL_MMR64_BASE |
- 		    UV_GLOBAL_MMR64_PNODE_BITS(pnode) | offset);
-diff -puN arch/x86/kernel/uv_irq.c~uv_irqc-fix-all-sparse-warnings arch/x86/kernel/uv_irq.c
---- a/arch/x86/kernel/uv_irq.c~uv_irqc-fix-all-sparse-warnings
-+++ a/arch/x86/kernel/uv_irq.c
-@@ -44,7 +44,7 @@ static void uv_ack_apic(unsigned int irq
- 	ack_APIC_irq();
- }
+diff -puN mm/percpu.c~mm-alloc-function-in-pcpu_alloc_pages mm/percpu.c
+--- a/mm/percpu.c~mm-alloc-function-in-pcpu_alloc_pages
++++ a/mm/percpu.c
+@@ -720,7 +720,7 @@ static int pcpu_alloc_pages(struct pcpu_
+ 		for (i = page_start; i < page_end; i++) {
+ 			struct page **pagep = &pages[pcpu_page_idx(cpu, i)];
  
--struct irq_chip uv_irq_chip = {
-+static struct irq_chip uv_irq_chip = {
- 	.name		= "UV-CORE",
- 	.startup	= uv_noop_ret,
- 	.shutdown	= uv_noop,
-@@ -141,7 +141,7 @@ int uv_irq_2_mmr_info(int irq, unsigned 
-  */
- static int
- arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
--		       unsigned long mmr_offset, int restrict)
-+		       unsigned long mmr_offset, int limit)
- {
- 	const struct cpumask *eligible_cpu = cpumask_of(cpu);
- 	struct irq_desc *desc = irq_to_desc(irq);
-@@ -160,7 +160,7 @@ arch_enable_uv_irq(char *irq_name, unsig
- 	if (err != 0)
- 		return err;
- 
--	if (restrict == UV_AFFINITY_CPU)
-+	if (limit == UV_AFFINITY_CPU)
- 		desc->status |= IRQ_NO_BALANCING;
- 	else
- 		desc->status |= IRQ_MOVE_PCNTXT;
-@@ -214,7 +214,7 @@ static int uv_set_irq_affinity(unsigned 
- 	unsigned long mmr_value;
- 	struct uv_IO_APIC_route_entry *entry;
- 	unsigned long mmr_offset;
--	unsigned mmr_pnode;
-+	int mmr_pnode;
- 
- 	if (set_desc_affinity(desc, mask, &dest))
- 		return -1;
-@@ -248,7 +248,7 @@ static int uv_set_irq_affinity(unsigned 
-  * interrupt is raised.
-  */
- int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
--		 unsigned long mmr_offset, int restrict)
-+		 unsigned long mmr_offset, int limit)
- {
- 	int irq, ret;
- 
-@@ -258,7 +258,7 @@ int uv_setup_irq(char *irq_name, int cpu
- 		return -EBUSY;
- 
- 	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
--		restrict);
-+		limit);
- 	if (ret == irq)
- 		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
- 	else
+-			*pagep = alloc_pages_node(cpu_to_node(cpu), gfp, 0);
++			*pagep = alloc_pages_exact_node(cpu_to_node(cpu), gfp, 0);
+ 			if (!*pagep) {
+ 				pcpu_free_pages(chunk, pages, populated,
+ 						page_start, page_end);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 linux-next.patch
-uv_irqc-fix-all-sparse-warnings.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-usb-fix-serial-build-when-sysrq-is-disabled.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
-xen-fix-build-when-sysrq-is-disabled.patch
-documentation-submittingdrivers-resources.patch
-memcg-update-documentation-v8.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
+ntfs-clean-up-ntfs_attr_extend_initialized.patch
+ntfs-use-add_to_page_cache_lru.patch
+shmem-remove-redundant-code.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+mm-alloc-function-in-pcpu_alloc_pages.patch
+mm-change-alloc-function-in-vmemmap_alloc_block.patch
+mm-change-alloc-function-in-__vmalloc_area_node.patch
+mm-add-comment-in-alloc_pages_exact_node.patch
+vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
 
