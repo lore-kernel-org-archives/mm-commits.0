@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sched-introduce-get_cpu_iowait_time_us.patch added to -mm tree
-Date: Mon, 19 Apr 2010 15:35:44 -0700
-Message-ID: <201004192235.o3JMZi76013702@imap1.linux-foundation.org>
+Subject: + drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths.patch added to -mm tree
+Date: Mon, 19 Apr 2010 15:44:03 -0700
+Message-ID: <201004192244.o3JMi3EH014071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752746Ab0DSWfr (ORCPT
+	by vger.kernel.org with ESMTP id S1751731Ab0DSWoy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:35:47 -0400
+	Mon, 19 Apr 2010 18:44:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com
+Cc: pugs@cisco.com, dwmw2@infradead.org, fenghua.yu@intel.com, jbarnes@virtuousgeek.org, joerg.roedel@amd.com
 
 
 The patch titled
-     sched: introduce get_cpu_iowait_time_us()
+     drivers/pci/intel-iommu.c: errors with smaller iommu widths
 has been added to the -mm tree.  Its filename is
-     sched-introduce-get_cpu_iowait_time_us.patch
+     drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,133 +29,160 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sched: introduce get_cpu_iowait_time_us()
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: drivers/pci/intel-iommu.c: errors with smaller iommu widths
+=46rom: "Tom Lyon" <pugs@cisco.com>
 
-For the ondemand cpufreq governor, it is desired that the iowait
-time is microaccounted in a similar way as idle time is.
+When using iommu_domain_alloc with the Intel iommu, the domain address
+width is always initialized to 48 bits (agaw 2).  =C2=A0This domain->ag=
+aw
+value is then used by pfn_to_dma_pte to (always) build a 4 level page
+table.  =C2=A0However, not all systems support iommu width of 48 or 4 l=
+evel
+page tables.  =C2=A0In particular, the Core i5-660 and i5-670 support a=
+n
+address width of 36 bits (not 39!), an agaw of only 1, and only 3 level
+page tables.
 
-This patch introduces the infrastructure to account and expose
-this information via the get_cpu_iowait_time_us() function.
+This version of the patch simply lops off extra levels of the page tabl=
+es
+if the agaw value of the iommu is less than what is currently allocated
+for the domain (in intel_iommu_attach_device).  If there were already
+allocated addresses above what the new iommu can handle, EFAULT is
+returned.
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+A related bug in intel_iommu_map_range() didn't allow allocation at the
+very end of the address space, that code has been simplified and
+corrected.
+
+Signed-off-by: Tom Lyon <pugs@cisco.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h     |    4 ++++
- kernel/time/tick-sched.c |   28 ++++++++++++++++++++++++++++
- kernel/time/timer_list.c |    1 +
- 3 files changed, 33 insertions(+)
+ drivers/pci/intel-iommu.c |   51 ++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/tick.h~sched-introduce-get_cpu_iowait_time_us include/linux/tick.h
---- a/include/linux/tick.h~sched-introduce-get_cpu_iowait_time_us
-+++ a/include/linux/tick.h
-@@ -42,6 +42,7 @@ enum tick_nohz_mode {
-  * @idle_waketime:	Time when the idle was interrupted
-  * @idle_exittime:	Time when the idle state was left
-  * @idle_sleeptime:	Sum of the time slept in idle with sched tick stopped
-+ * @iowait_sleeptime:	Sum of the time slept in idle with sched tick stopped, with IO outstanding
-  * @sleep_length:	Duration of the current idle sleep
-  * @do_timer_lst:	CPU was the last one doing do_timer before going idle
-  */
-@@ -60,6 +61,7 @@ struct tick_sched {
- 	ktime_t				idle_waketime;
- 	ktime_t				idle_exittime;
- 	ktime_t				idle_sleeptime;
-+	ktime_t				iowait_sleeptime;
- 	ktime_t				sleep_length;
- 	unsigned long			last_jiffies;
- 	unsigned long			next_jiffies;
-@@ -123,6 +125,7 @@ extern void tick_nohz_stop_sched_tick(in
- extern void tick_nohz_restart_sched_tick(void);
- extern ktime_t tick_nohz_get_sleep_length(void);
- extern u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time);
-+extern u64 get_cpu_iowait_time_us(int cpu, u64 *last_update_time);
- # else
- static inline void tick_nohz_stop_sched_tick(int inidle) { }
- static inline void tick_nohz_restart_sched_tick(void) { }
-@@ -133,6 +136,7 @@ static inline ktime_t tick_nohz_get_slee
- 	return len;
- }
- static inline u64 get_cpu_idle_time_us(int cpu, u64 *unused) { return -1; }
-+static inline u64 get_cpu_iowait(int cpu, u64 *unused) { return -1; }
- # endif /* !NO_HZ */
- 
- #endif
-diff -puN kernel/time/tick-sched.c~sched-introduce-get_cpu_iowait_time_us kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~sched-introduce-get_cpu_iowait_time_us
-+++ a/kernel/time/tick-sched.c
-@@ -161,6 +161,8 @@ update_ts_time_stats(struct tick_sched *
- 	if (ts->idle_active) {
- 		delta = ktime_sub(now, ts->idle_entrytime);
- 		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
-+		if (nr_iowait_cpu() > 0)
-+			ts->iowait_sleeptime = ktime_add(ts->iowait_sleeptime, delta);
- 		ts->idle_entrytime = now;
+diff -puN drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-errors-wit=
+h-smaller-iommu-widths drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-errors-with-sm=
+aller-iommu-widths
++++ a/drivers/pci/intel-iommu.c
+@@ -3433,19 +3433,6 @@ static void vm_domain_remove_all_dev_inf
+ /* domain id for virtual machine, it won't be set in context */
+ static unsigned long vm_domid;
+=20
+-static int vm_domain_min_agaw(struct dmar_domain *domain)
+-{
+-	int i;
+-	int min_agaw =3D domain->agaw;
+-
+-	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
+-		if (min_agaw > g_iommus[i]->agaw)
+-			min_agaw =3D g_iommus[i]->agaw;
+-	}
+-
+-	return min_agaw;
+-}
+-
+ static struct dmar_domain *iommu_alloc_vm_domain(void)
+ {
+ 	struct dmar_domain *domain;
+@@ -3574,7 +3561,6 @@ static int intel_iommu_attach_device(str
+ 	struct pci_dev *pdev =3D to_pci_dev(dev);
+ 	struct intel_iommu *iommu;
+ 	int addr_width;
+-	u64 end;
+=20
+ 	/* normally pdev is not mapped */
+ 	if (unlikely(domain_context_mapped(pdev))) {
+@@ -3597,14 +3583,30 @@ static int intel_iommu_attach_device(str
+=20
+ 	/* check if this iommu agaw is sufficient for max mapped address */
+ 	addr_width =3D agaw_to_width(iommu->agaw);
+-	end =3D DOMAIN_MAX_ADDR(addr_width);
+-	end =3D end & VTD_PAGE_MASK;
+-	if (end < dmar_domain->max_addr) {
+-		printk(KERN_ERR "%s: iommu agaw (%d) is not "
++	if (addr_width > cap_mgaw(iommu->cap))
++		addr_width =3D cap_mgaw(iommu->cap);
++
++	if (dmar_domain->max_addr > (1LL << addr_width)) {
++		printk(KERN_ERR "%s: iommu width (%d) is not "
+ 		       "sufficient for the mapped address (%llx)\n",
+-		       __func__, iommu->agaw, dmar_domain->max_addr);
++		       __func__, addr_width, dmar_domain->max_addr);
+ 		return -EFAULT;
  	}
- 
-@@ -220,6 +222,32 @@ u64 get_cpu_idle_time_us(int cpu, u64 *l
++	dmar_domain->gaw =3D addr_width;
++
++	/*
++	 * Knock out extra levels of page tables if necessary
++	 */
++	while (iommu->agaw < dmar_domain->agaw) {
++		struct dma_pte *pte;
++
++		pte =3D dmar_domain->pgd;
++		if (dma_pte_present(pte)) {
++			free_pgtable_page(dmar_domain->pgd);
++			dmar_domain->pgd =3D (struct dma_pte *)dma_pte_addr(pte);
++		}
++		dmar_domain->agaw--;
++	}
+=20
+ 	return domain_add_dev_info(dmar_domain, pdev, CONTEXT_TT_MULTI_LEVEL)=
+;
  }
- EXPORT_SYMBOL_GPL(get_cpu_idle_time_us);
- 
-+/*
-+ * get_cpu_iowait_time_us - get the total iowait time of a cpu
-+ * @cpu: CPU number to query
-+ * @last_update_time: variable to store update time in
-+ *
-+ * Return the cummulative iowait time (since boot) for a given
-+ * CPU, in microseconds.
-+ *
-+ * This time is measured via accounting rather than sampling,
-+ * and is as accurate as ktime_get() is.
-+ *
-+ * This function returns -1 if NOHZ is not enabled.
-+ */
-+u64 get_cpu_iowait_time_us(int cpu, u64 *last_update_time)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+
-+	if (!tick_nohz_enabled)
-+		return -1;
-+
-+	update_ts_time_stats(ts, ktime_get(), last_update_time);
-+
-+	return ktime_to_us(ts->iowait_sleeptime);
-+}
-+EXPORT_SYMBOL_GPL(get_cpu_iowait_time_us);
-+
- /**
-  * tick_nohz_stop_sched_tick - stop the idle tick from the idle task
-  *
-diff -puN kernel/time/timer_list.c~sched-introduce-get_cpu_iowait_time_us kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~sched-introduce-get_cpu_iowait_time_us
-+++ a/kernel/time/timer_list.c
-@@ -176,6 +176,7 @@ static void print_cpu(struct seq_file *m
- 		P_ns(idle_waketime);
- 		P_ns(idle_exittime);
- 		P_ns(idle_sleeptime);
-+		P_ns(iowait_sleeptime);
- 		P(last_jiffies);
- 		P(next_jiffies);
- 		P_ns(idle_expires);
+@@ -3624,7 +3626,6 @@ static int intel_iommu_map_range(struct=20
+ {
+ 	struct dmar_domain *dmar_domain =3D domain->priv;
+ 	u64 max_addr;
+-	int addr_width;
+ 	int prot =3D 0;
+ 	int ret;
+=20
+@@ -3637,18 +3638,14 @@ static int intel_iommu_map_range(struct=20
+=20
+ 	max_addr =3D iova + size;
+ 	if (dmar_domain->max_addr < max_addr) {
+-		int min_agaw;
+ 		u64 end;
+=20
+ 		/* check if minimum agaw is sufficient for mapped address */
+-		min_agaw =3D vm_domain_min_agaw(dmar_domain);
+-		addr_width =3D agaw_to_width(min_agaw);
+-		end =3D DOMAIN_MAX_ADDR(addr_width);
+-		end =3D end & VTD_PAGE_MASK;
++		end =3D __DOMAIN_MAX_ADDR(dmar_domain->gaw) + 1;
+ 		if (end < max_addr) {
+-			printk(KERN_ERR "%s: iommu agaw (%d) is not "
++			printk(KERN_ERR "%s: iommu width (%d) is not "
+ 			       "sufficient for the mapped address (%llx)\n",
+-			       __func__, min_agaw, max_addr);
++			       __func__, dmar_domain->gaw, max_addr);
+ 			return -EFAULT;
+ 		}
+ 		dmar_domain->max_addr =3D max_addr;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from pugs@cisco.com are
 
-linux-next.patch
-sched-add-a-comment-to-get_cpu_idle_time_us.patch
-sched-introduce-a-function-to-update-the-idle-statistics.patch
-sched-update-the-idle-statistics-in-get_cpu_idle_time_us.patch
-sched-fold-updating-of-the-last-update-time-into-update_ts_time_stats.patch
-sched-eliminate-the-ts-idle_lastupdate-field.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-ondemand-solve-the-big-performance-issue-with-ondemand-during-disk-io.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
