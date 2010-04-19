@@ -1,60 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-alloc-function-in-pcpu_alloc_pages.patch removed from -mm tree
-Date: Mon, 19 Apr 2010 15:26:15 -0700
-Message-ID: <201004192226.o3JMQFQE013203@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-remove-nodes-validity-check-in-alloc_pages.patch removed from -mm tree
+Date: Mon, 19 Apr 2010 15:26:12 -0700
+Message-ID: <201004192226.o3JMQCu7013200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752716Ab0DSW0S (ORCPT
+	by vger.kernel.org with ESMTP id S1752716Ab0DSW0l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:26:18 -0400
+	Mon, 19 Apr 2010 18:26:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, cl@linux-foundation.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujisu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: alloc function in pcpu_alloc_pages
+     mm: remove node's validity check in alloc_pages
 has been removed from the -mm tree.  Its filename was
-     mm-alloc-function-in-pcpu_alloc_pages.patch
+     mm-remove-nodes-validity-check-in-alloc_pages.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: alloc function in pcpu_alloc_pages
+Subject: mm: remove node's validity check in alloc_pages
 From: Minchan Kim <minchan.kim@gmail.com>
 
-alloc_pages_node() is called with cpu_to_node(cpu).  I think
-cpu_to_node(cpu) never returns -1.
+alloc_pages() calls alloc_pages_node() with numa_node_id(). 
+alloc_pages_node can't see nid < 0.
 
 So we can use alloc_pages_exact_node() instead of alloc_pages_node().  It
 could avoid comparison and branch as 6484eb3e2a81807722 ("page allocator:
 do not check NUMA node ID when the caller knows the node is") tried.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujisu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    2 +-
+ include/linux/gfp.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/percpu.c~mm-alloc-function-in-pcpu_alloc_pages mm/percpu.c
---- a/mm/percpu.c~mm-alloc-function-in-pcpu_alloc_pages
-+++ a/mm/percpu.c
-@@ -720,7 +720,7 @@ static int pcpu_alloc_pages(struct pcpu_
- 		for (i = page_start; i < page_end; i++) {
- 			struct page **pagep = &pages[pcpu_page_idx(cpu, i)];
- 
--			*pagep = alloc_pages_node(cpu_to_node(cpu), gfp, 0);
-+			*pagep = alloc_pages_exact_node(cpu_to_node(cpu), gfp, 0);
- 			if (!*pagep) {
- 				pcpu_free_pages(chunk, pages, populated,
- 						page_start, page_end);
+diff -puN include/linux/gfp.h~mm-remove-nodes-validity-check-in-alloc_pages include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-remove-nodes-validity-check-in-alloc_pages
++++ a/include/linux/gfp.h
+@@ -308,7 +308,7 @@ extern struct page *alloc_page_vma(gfp_t
+ 			struct vm_area_struct *vma, unsigned long addr);
+ #else
+ #define alloc_pages(gfp_mask, order) \
+-		alloc_pages_node(numa_node_id(), gfp_mask, order)
++		alloc_pages_exact_node(numa_node_id(), gfp_mask, order)
+ #define alloc_page_vma(gfp_mask, vma, addr) alloc_pages(gfp_mask, 0)
+ #endif
+ #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
@@ -102,6 +102,7 @@ mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.pat
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+mm-remove-nodes-validity-check-in-alloc_pages.patch
 mm-alloc-function-in-pcpu_alloc_pages.patch
 mm-change-alloc-function-in-vmemmap_alloc_block.patch
 mm-change-alloc-function-in-__vmalloc_area_node.patch
