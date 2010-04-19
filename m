@@ -1,71 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-add-comment-in-alloc_pages_exact_node.patch removed from -mm tree
-Date: Mon, 19 Apr 2010 15:26:22 -0700
-Message-ID: <201004192226.o3JMQMLK013221@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-change-alloc-function-in-__vmalloc_area_node.patch removed from -mm tree
+Date: Mon, 19 Apr 2010 15:26:20 -0700
+Message-ID: <201004192226.o3JMQKuN013211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49420 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752716Ab0DSW0t (ORCPT
+	by vger.kernel.org with ESMTP id S1752805Ab0DSW0w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:26:49 -0400
+	Mon, 19 Apr 2010 18:26:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, lliubbo@gmail.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add comment in alloc_pages_exact_node
+     mm: change alloc function in __vmalloc_area_node
 has been removed from the -mm tree.  Its filename was
-     mm-add-comment-in-alloc_pages_exact_node.patch
+     mm-change-alloc-function-in-__vmalloc_area_node.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add comment in alloc_pages_exact_node
+Subject: mm: change alloc function in __vmalloc_area_node
 From: Minchan Kim <minchan.kim@gmail.com>
 
-alloc_pages_exact_node() misleads some people.  They considered it
-following as.  "This function will allocate pages from node which I wanted
-exactly".  But it can allocate pages from fallback list if page allocator
-can't find free page from node user wanted.
+__vmalloc_area_node never passes -1 to alloc_pages_node, so the node's
+validity check is unnecessary.
 
-So let's comment this NOTE.
-
-Actually I wanted to change naming with something better, such as
-alloc_pages_explict_node().  But I changed my mind since the comment will
-be enough.
-
-If anybody suggests better name, I will do with pleasure.
+So we can use alloc_pages_exact_node() instead of alloc_pages_node().  It
+could avoid comparison and branch as 6484eb3e2a81807722 ("page allocator:
+do not check NUMA node ID when the caller knows the node is") tried.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-add-comment-in-alloc_pages_exact_node include/linux/gfp.h
---- a/include/linux/gfp.h~mm-add-comment-in-alloc_pages_exact_node
-+++ a/include/linux/gfp.h
-@@ -288,6 +288,12 @@ static inline struct page *alloc_pages_n
- 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
- }
+diff -puN mm/vmalloc.c~mm-change-alloc-function-in-__vmalloc_area_node mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-change-alloc-function-in-__vmalloc_area_node
++++ a/mm/vmalloc.c
+@@ -1499,7 +1499,7 @@ static void *__vmalloc_area_node(struct 
+ 		if (node < 0)
+ 			page = alloc_page(gfp_mask);
+ 		else
+-			page = alloc_pages_node(node, gfp_mask, 0);
++			page = alloc_pages_exact_node(node, gfp_mask, 0);
  
-+/*
-+ * Use this instead of alloc_pages_node when the caller knows
-+ * exactly which node they need (as opposed to passing in -1
-+ * for current). Fallback to other nodes will still occur
-+ * unless __GFP_THISNODE is specified.
-+ */
- static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
- 						unsigned int order)
- {
+ 		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vunmap() */
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
@@ -113,6 +103,7 @@ mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.pat
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+mm-change-alloc-function-in-__vmalloc_area_node.patch
 mm-add-comment-in-alloc_pages_exact_node.patch
 vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
 
