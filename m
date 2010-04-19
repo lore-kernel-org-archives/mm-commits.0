@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sched-add-a-comment-to-get_cpu_idle_time_us.patch added to -mm tree
-Date: Mon, 19 Apr 2010 15:35:34 -0700
-Message-ID: <201004192235.o3JMZYvm013686@imap1.linux-foundation.org>
+Subject: + sched-introduce-a-function-to-update-the-idle-statistics.patch added to -mm tree
+Date: Mon, 19 Apr 2010 15:35:36 -0700
+Message-ID: <201004192235.o3JMZag2013689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752838Ab0DSWfg (ORCPT
+	by vger.kernel.org with ESMTP id S1752882Ab0DSWfi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:35:36 -0400
+	Mon, 19 Apr 2010 18:35:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: arjan@linux.intel.com
 
 
 The patch titled
-     sched: add a comment to get_cpu_idle_time_us()
+     sched: introduce a function to update the idle statistics
 has been added to the -mm tree.  Its filename is
-     sched-add-a-comment-to-get_cpu_idle_time_us.patch
+     sched-introduce-a-function-to-update-the-idle-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: add a comment to get_cpu_idle_time_us()
+Subject: sched: introduce a function to update the idle statistics
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-The exported function get_cpu_idle_time_us() has no comment
-describing it; add a kerneldoc comment
+Currently, two places update the idle statistics (and more to
+come later in this series).
+
+This patch creates a helper function for updating these statistics.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ kernel/time/tick-sched.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~sched-add-a-comment-to-get_cpu_idle_time_us kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~sched-add-a-comment-to-get_cpu_idle_time_us
+diff -puN kernel/time/tick-sched.c~sched-introduce-a-function-to-update-the-idle-statistics kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~sched-introduce-a-function-to-update-the-idle-statistics
 +++ a/kernel/time/tick-sched.c
-@@ -179,6 +179,20 @@ static ktime_t tick_nohz_start_idle(stru
- 	return now;
+@@ -150,14 +150,25 @@ static void tick_nohz_update_jiffies(kti
+ 	touch_softlockup_watchdog();
  }
  
-+/**
-+ * get_cpu_idle_time_us - get the total idle time of a cpu
-+ * @cpu: CPU number to query
-+ * @last_update_time: variable to store update time in
-+ *
-+ * Return the cummulative idle time (since boot) for a given
-+ * CPU, in microseconds. The idle time returned includes
-+ * the iowait time (unlike what "top" and co report).
-+ *
-+ * This time is measured via accounting rather than sampling,
-+ * and is as accurate as ktime_get() is.
-+ *
-+ * This function returns -1 if NOHZ is not enabled.
+-static void tick_nohz_stop_idle(int cpu, ktime_t now)
++/*
++ * Updates the per cpu time idle statistics counters
 + */
- u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
++static void update_ts_time_stats(struct tick_sched *ts, ktime_t now)
  {
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
+-	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
+ 	ktime_t delta;
+ 
+-	delta = ktime_sub(now, ts->idle_entrytime);
+ 	ts->idle_lastupdate = now;
+-	ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
++	if (ts->idle_active) {
++		delta = ktime_sub(now, ts->idle_entrytime);
++		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
++	}
++}
++
++static void tick_nohz_stop_idle(int cpu, ktime_t now)
++{
++	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
++
++	update_ts_time_stats(ts, now);
+ 	ts->idle_active = 0;
+ 
+ 	sched_clock_idle_wakeup_event(0);
+@@ -165,14 +176,12 @@ static void tick_nohz_stop_idle(int cpu,
+ 
+ static ktime_t tick_nohz_start_idle(struct tick_sched *ts)
+ {
+-	ktime_t now, delta;
++	ktime_t now;
+ 
+ 	now = ktime_get();
+-	if (ts->idle_active) {
+-		delta = ktime_sub(now, ts->idle_entrytime);
+-		ts->idle_lastupdate = now;
+-		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
+-	}
++
++	update_ts_time_stats(ts, now);
++
+ 	ts->idle_entrytime = now;
+ 	ts->idle_active = 1;
+ 	sched_clock_idle_sleep_event();
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
