@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch added to -mm tree
-Date: Tue, 20 Apr 2010 12:57:07 -0700
-Message-ID: <201004201957.o3KJv9aN007003@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch added to -mm tree
+Date: Tue, 20 Apr 2010 14:24:32 -0700
+Message-ID: <201004202124.o3KLOWsM011161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754213Ab0DTT5u (ORCPT
+	by vger.kernel.org with ESMTP id S1755260Ab0DTVZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Apr 2010 15:57:50 -0400
+	Tue, 20 Apr 2010 17:25:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: mel@csn.ul.ie, darren@dvhart.com, peterz@infradead.org, stable@kernel.org
 
 
 The patch titled
-     mm,compaction: map free pages in the address space after they get split for compaction
+     hugetlb: fix infinite loop in get_futex_key() when backed by huge pages
 has been added to the -mm tree.  Its filename is
-     mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
+     hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm,compaction: map free pages in the address space after they get split for compaction
+Subject: hugetlb: fix infinite loop in get_futex_key() when backed by huge pages
 From: Mel Gorman <mel@csn.ul.ie>
 
-split_free_page() is a helper function which takes a free page from the
-buddy lists and splits it into order-0 pages.  It is used by memory
-compaction to build a list of destination pages.  If
-CONFIG_DEBUG_PAGEALLOC is set, a kernel paging request bug is triggered
-because split_free_page() did not call the arch-allocation hooks or map
-the page into the kernel address space.
+If a futex key happens to be located within a huge page mapped
+MAP_PRIVATE, get_futex_key() can go into an infinite loop waiting for a
+page->mapping that will never exist.  This was reported and documented in
+an external bugzilla at
 
-This patch does not update split_free_page() as it is called with
-interrupts held.  Instead it documents that callers of split_free_page()
-are responsible for calling the arch hooks and to map the page and fixes
-compaction.
+This patch makes page->mapping a poisoned value that includes
+PAGE_MAPPING_ANON mapped MAP_PRIVATE.  This is enough for futex to
+continue but because of PAGE_MAPPING_ANON, the poisoned value is not
+dereferenced or used by futex.  No other part of the VM should be
+dereferencing the page->mapping of a hugetlbfs page as its page cache is
+not on the LRU.
 
-This is a fix to the patch mm-compaction-memory-compaction-core.patch.
+This patch fixes the problem with the test case described in the bugzilla.
+
+Addresses https://bugzilla.redhat.com/show_bug.cgi?id=552257
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Darren Hart <darren@dvhart.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 ++++++
- mm/page_alloc.c |    3 +++
- 2 files changed, 9 insertions(+)
+ include/linux/poison.h |    9 +++++++++
+ mm/hugetlb.c           |    5 ++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction
-+++ a/mm/compaction.c
-@@ -180,6 +180,12 @@ static void isolate_freepages(struct zon
- 	}
- 	spin_unlock_irqrestore(&zone->lock, flags);
+diff -puN include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages include/linux/poison.h
+--- a/include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages
++++ a/include/linux/poison.h
+@@ -48,6 +48,15 @@
+ #define POISON_FREE	0x6b	/* for use-after-free poisoning */
+ #define	POISON_END	0xa5	/* end-byte of poisoning */
  
-+	/* split_free_page does not map the pages */
-+	list_for_each_entry(page, freelist, lru) {
-+		arch_alloc_page(page, 0);
-+		kernel_map_pages(page, 1, 1);
-+	}
++/********** mm/hugetlb.c **********/
++/*
++ * Private mappings of hugetlb pages use this poisoned value for
++ * page->mapping. The core VM should not be doing anything with this mapping
++ * but futex requires the existance of some page->mapping value even though it
++ * is unused if PAGE_MAPPING_ANON is set.
++ */
++#define HUGETLB_POISON	((void *)(0x00300300 + POISON_POINTER_DELTA + PAGE_MAPPING_ANON))
 +
- 	cc->free_pfn = high_pfn;
- 	cc->nr_freepages = nr_freepages;
- }
-diff -puN mm/page_alloc.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction
-+++ a/mm/page_alloc.c
-@@ -1210,6 +1210,9 @@ void split_page(struct page *page, unsig
- /*
-  * Similar to split_page except the page is already free. As this is only
-  * being used for migration, the migratetype of the block also changes.
-+ * As this is called with interrupts disabled, the caller is responsible
-+ * for calling arch_alloc_page() and kernel_map_page() after interrupts
-+ * are enabled.
-  */
- int split_free_page(struct page *page)
- {
+ /********** arch/$ARCH/mm/init.c **********/
+ #define POISON_FREE_INITMEM	0xcc
+ 
+diff -puN mm/hugetlb.c~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages
++++ a/mm/hugetlb.c
+@@ -546,6 +546,7 @@ static void free_huge_page(struct page *
+ 
+ 	mapping = (struct address_space *) page_private(page);
+ 	set_page_private(page, 0);
++	page->mapping = NULL;
+ 	BUG_ON(page_count(page));
+ 	INIT_LIST_HEAD(&page->lru);
+ 
+@@ -2447,8 +2448,10 @@ retry:
+ 			spin_lock(&inode->i_lock);
+ 			inode->i_blocks += blocks_per_huge_page(h);
+ 			spin_unlock(&inode->i_lock);
+-		} else
++		} else {
+ 			lock_page(page);
++			page->mapping = HUGETLB_POISON;
++		}
+ 	}
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
 
 linux-next.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
