@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-anon_vma_prepare-can-leak-anon_vma_chain.patch added to -mm tree
-Date: Tue, 20 Apr 2010 16:41:04 -0700
-Message-ID: <201004202341.o3KNf4Bb017243@imap1.linux-foundation.org>
+Subject: + gpio-max732x-fix-input-configuration-for-open-drain-pins.patch added to -mm tree
+Date: Tue, 20 Apr 2010 16:52:02 -0700
+Message-ID: <201004202352.o3KNq2YN017703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752320Ab0DTXmE (ORCPT
+	by vger.kernel.org with ESMTP id S1753905Ab0DTXwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Apr 2010 19:42:04 -0400
+	Tue, 20 Apr 2010 19:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, bp@alien8.de, hugh.dickins@tiscali.co.uk, riel@redhat.com, torvalds@linux-foundation.org, zaitcev@redhat.com
+Cc: maz@misterjones.org, eric.y.miao@gmail.com
 
 
 The patch titled
-     rmap: anon_vma_prepare() can leak anon_vma_chain
+     gpio: max732x: fix input configuration for open-drain pins
 has been added to the -mm tree.  Its filename is
-     rmap-anon_vma_prepare-can-leak-anon_vma_chain.patch
+     gpio-max732x-fix-input-configuration-for-open-drain-pins.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: anon_vma_prepare() can leak anon_vma_chain
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: gpio: max732x: fix input configuration for open-drain pins
+From: Marc Zyngier <maz@misterjones.org>
 
-If find_mergeable_anon_vma() succeeds but another thread installs
-->anon_vma before we take ptl, then allocated == NULL but avc should be
-freed.  Change the code to check avc != NULL to detect this case.
+Fix a bug I noticed while hacking on the max732x driver for interrupt
+support.  According to the datasheets, open-drain pins have to be
+configured as output-high (which in that case is actually high impedance)
+to be used as input.
 
-Also, a couple of whitespace changes to make the critical section more
-visible.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Marc Zyngier <maz@misterjones.org>
+Acked-by: Eric Miao <eric.y.miao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/gpio/max732x.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~rmap-anon_vma_prepare-can-leak-anon_vma_chain mm/rmap.c
---- a/mm/rmap.c~rmap-anon_vma_prepare-can-leak-anon_vma_chain
-+++ a/mm/rmap.c
-@@ -133,8 +133,8 @@ int anon_vma_prepare(struct vm_area_stru
- 				goto out_enomem_free_avc;
- 			allocated = anon_vma;
- 		}
--		spin_lock(&anon_vma->lock);
+diff -puN drivers/gpio/max732x.c~gpio-max732x-fix-input-configuration-for-open-drain-pins drivers/gpio/max732x.c
+--- a/drivers/gpio/max732x.c~gpio-max732x-fix-input-configuration-for-open-drain-pins
++++ a/drivers/gpio/max732x.c
+@@ -223,15 +223,25 @@ static int max732x_gpio_direction_input(
+ {
+ 	struct max732x_chip *chip;
+ 	unsigned int mask = 1u << off;
++	unsigned int is_input;
  
-+		spin_lock(&anon_vma->lock);
- 		/* page_table_lock to protect against threads */
- 		spin_lock(&mm->page_table_lock);
- 		if (likely(!vma->anon_vma)) {
-@@ -144,14 +144,15 @@ int anon_vma_prepare(struct vm_area_stru
- 			list_add(&avc->same_vma, &vma->anon_vma_chain);
- 			list_add(&avc->same_anon_vma, &anon_vma->head);
- 			allocated = NULL;
-+			avc = NULL;
- 		}
- 		spin_unlock(&mm->page_table_lock);
--
- 		spin_unlock(&anon_vma->lock);
--		if (unlikely(allocated)) {
+ 	chip = container_of(gc, struct max732x_chip, gpio_chip);
+ 
+-	if ((mask & chip->dir_input) == 0) {
++	is_input = mask & chip->dir_input;
 +
-+		if (unlikely(allocated))
- 			anon_vma_free(allocated);
-+		if (unlikely(avc))
- 			anon_vma_chain_free(avc);
--		}
++	if (!is_input) {
+ 		dev_dbg(&chip->client->dev, "%s port %d is output only\n",
+ 			chip->client->name, off);
+ 		return -EACCES;
  	}
+ 
++	/*
++	 * Open-drain pins must be set to high impedance (which is
++	 * equivalent to output-high) to be turned into an input.
++	 */
++	if ((is_input & chip->dir_output))
++		max732x_gpio_set_value(gc, off, 1);
++
  	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from maz@misterjones.org are
 
 linux-next.patch
-rmap-anon_vma_prepare-can-leak-anon_vma_chain.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
-oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-call_usermodehelper-no-need-to-unblock-signals.patch
-wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
-call_usermodehelper-simplify-fix-umh_no_wait-case.patch
-call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-exit-exit_notify-can-trust-signal-notify_count-0.patch
-exit-change-zap_other_threads-to-count-sub-threads.patch
-exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
-exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
-signals-make-task_struct-signal-immutable-refcountable.patch
-signals-clear-signal-tty-when-the-last-thread-exits.patch
-signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
-signals-kill-the-awful-task_rq_unlock_wait-hack.patch
-exit-__exit_signal-use-thread_group_leader-consistently.patch
-kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
-exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
-check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-proc-turn-signal_struct-count-into-int-nr_threads.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-proc-cleanup-remove-unused-assignments.patch
+gpio-add-interrupt-handling-capability-to-max732x.patch
+gpio-max732x-fix-input-configuration-for-open-drain-pins.patch
 
