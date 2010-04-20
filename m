@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-w1-temp-fix-negative-termperature-calculation.patch added to -mm tree
-Date: Mon, 19 Apr 2010 16:38:23 -0700
-Message-ID: <201004192338.o3JNcN0v016448@imap1.linux-foundation.org>
+Subject: + kernel-sysc-fix-compat-uname-machine.patch added to -mm tree
+Date: Mon, 19 Apr 2010 20:10:59 -0400
+Message-ID: <201004200312.o3K3CZLl024896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752645Ab0DSXjC (ORCPT
+	by vger.kernel.org with ESMTP id S1753158Ab0DTDNG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 19:39:02 -0400
+	Mon, 19 Apr 2010 23:13:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ian@beware.dropbear.id.au, johnpol@2ka.mipt.ru, kelfe@gmx.de, stable@kernel.org
+Cc: schwab@linux-m68k.org, davem@davemloft.net, hch@lst.de
 
 
 The patch titled
-     w1: w1 temp: fix negative termperature calculation
+     kernel/sys.c: fix compat uname machine
 has been added to the -mm tree.  Its filename is
-     w1-w1-temp-fix-negative-termperature-calculation.patch
+     kernel-sysc-fix-compat-uname-machine.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: w1 temp: fix negative termperature calculation
-From: Ian Dall <ian@beware.dropbear.id.au>
+Subject: kernel/sys.c: fix compat uname machine
+From: Andreas Schwab <schwab@linux-m68k.org>
 
-Fix regression caused by commit 507e2fbaaacb6f164b4125b87c5002f95143174b
-("w1: w1 temp calculation overflow fix") whereby negative temperatures for
-the DS18B20 are not converted properly.
+On ppc64 you get this error:
 
-When the temperature exceeds 32767 milli-degrees the temperature overflows
-to -32768 millidegrees.  These are both well within the -55 - +125 degree
-range for the sensor.
+$ setarch ppc -R true
+setarch: ppc: Unrecognized architecture
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=12646
+because uname still reports ppc64 as the machine.
 
-Signed-of-by: Ian Dall <ian@beware.dropbear.id.au>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Tested-by: Karsten Elfenbein <kelfe@gmx.de>
-Cc: <stable@kernel.org>
+So mask off the personality flags when checking for PER_LINUX32.
+
+Signed-off-by: Andreas Schwab <schwab@linux-m68k.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_therm.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/slaves/w1_therm.c~w1-w1-temp-fix-negative-termperature-calculation drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1-w1-temp-fix-negative-termperature-calculation
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -115,9 +115,8 @@ static struct w1_therm_family_converter 
+diff -puN kernel/sys.c~kernel-sysc-fix-compat-uname-machine kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-fix-compat-uname-machine
++++ a/kernel/sys.c
+@@ -1118,7 +1118,7 @@ DECLARE_RWSEM(uts_sem);
  
- static inline int w1_DS18B20_convert_temp(u8 rom[9])
- {
--	int t = ((s16)rom[1] << 8) | rom[0];
--	t = t*1000/16;
--	return t;
-+	s16 t = le16_to_cpup((__le16 *)rom);
-+	return t*1000/16;
- }
- 
- static inline int w1_DS18S20_convert_temp(u8 rom[9])
+ #ifdef COMPAT_UTS_MACHINE
+ #define override_architecture(name) \
+-	(current->personality == PER_LINUX32 && \
++	(personality(current->personality) == PER_LINUX32 && \
+ 	 copy_to_user(name->machine, COMPAT_UTS_MACHINE, \
+ 		      sizeof(COMPAT_UTS_MACHINE)))
+ #else
 _
 
-Patches currently in -mm which might be from ian@beware.dropbear.id.au are
+Patches currently in -mm which might be from schwab@linux-m68k.org are
 
-w1-w1-temp-fix-negative-termperature-calculation.patch
+kernel-sysc-fix-compat-uname-machine.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+improve-sys_personality-for-compat-architectures.patch
 
