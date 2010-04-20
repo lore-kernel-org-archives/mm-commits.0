@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-fix-compat-uname-machine.patch added to -mm tree
-Date: Mon, 19 Apr 2010 20:10:59 -0400
-Message-ID: <201004200312.o3K3CZLl024896@imap1.linux-foundation.org>
+Subject: + x86-correctly-wire-up-the-newuname-system-call.patch added to -mm tree
+Date: Mon, 19 Apr 2010 20:55:27 -0400
+Message-ID: <201004200357.o3K3v3PH026679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753158Ab0DTDNG (ORCPT
+	by vger.kernel.org with ESMTP id S1753116Ab0DTD53 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 23:13:06 -0400
+	Mon, 19 Apr 2010 23:57:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwab@linux-m68k.org, davem@davemloft.net, hch@lst.de
+Cc: hch@lst.de, adi@hexapodia.org, hpa@zytor.com, maciej.rutecki@gmail.com, mingo@elte.hu, rjw@sisk.pl, tglx@linutronix.de
 
 
 The patch titled
-     kernel/sys.c: fix compat uname machine
+     x86: correctly wire up the newuname system call
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-fix-compat-uname-machine.patch
+     x86-correctly-wire-up-the-newuname-system-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/sys.c: fix compat uname machine
-From: Andreas Schwab <schwab@linux-m68k.org>
+Subject: x86: correctly wire up the newuname system call
+From: Christoph Hellwig <hch@lst.de>
 
-On ppc64 you get this error:
+Before commit e28cbf22933d0c0ccaf3c4c27a1a263b41f73859 ("improve
+sys_newuname() for compat architectures") 64-bit x86 had a private
+implementation of sys_uname which was just called sys_uname, which other
+architectures used for the old uname.  Due to some merge issues with the
+uname refactoring patches we ended up calling the old uname version for
+both the old and new system call slots, which lead to the domainname filed
+never be set which caused failures with libnss_nis.
 
-$ setarch ppc -R true
-setarch: ppc: Unrecognized architecture
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=15812
 
-because uname still reports ppc64 as the machine.
-
-So mask off the personality flags when checking for PER_LINUX32.
-
-Signed-off-by: Andreas Schwab <schwab@linux-m68k.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: David S. Miller <davem@davemloft.net>
+Reported-by: Andy Isaacson <adi@hexapodia.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
+ arch/x86/ia32/ia32entry.S |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~kernel-sysc-fix-compat-uname-machine kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-fix-compat-uname-machine
-+++ a/kernel/sys.c
-@@ -1118,7 +1118,7 @@ DECLARE_RWSEM(uts_sem);
- 
- #ifdef COMPAT_UTS_MACHINE
- #define override_architecture(name) \
--	(current->personality == PER_LINUX32 && \
-+	(personality(current->personality) == PER_LINUX32 && \
- 	 copy_to_user(name->machine, COMPAT_UTS_MACHINE, \
- 		      sizeof(COMPAT_UTS_MACHINE)))
- #else
+diff -puN arch/x86/ia32/ia32entry.S~x86-correctly-wire-up-the-newuname-system-call arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86-correctly-wire-up-the-newuname-system-call
++++ a/arch/x86/ia32/ia32entry.S
+@@ -626,7 +626,7 @@ ia32_sys_call_table:
+ 	.quad stub32_sigreturn
+ 	.quad stub32_clone		/* 120 */
+ 	.quad sys_setdomainname
+-	.quad sys_uname
++	.quad sys_newuname
+ 	.quad sys_modify_ldt
+ 	.quad compat_sys_adjtimex
+ 	.quad sys32_mprotect		/* 125 */
 _
 
-Patches currently in -mm which might be from schwab@linux-m68k.org are
+Patches currently in -mm which might be from hch@lst.de are
 
+origin.patch
 kernel-sysc-fix-compat-uname-machine.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
+linux-next.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
 improve-sys_personality-for-compat-architectures.patch
+vfs-introduce-noop_llseek.patch
+x86-correctly-wire-up-the-newuname-system-call.patch
 
