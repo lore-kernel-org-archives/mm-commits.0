@@ -1,87 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: + x86-correctly-wire-up-the-newuname-system-call.patch added to -mm tree
-Date: Mon, 19 Apr 2010 20:55:27 -0400
-Message-ID: <201004200357.o3K3v3PH026679@imap1.linux-foundation.org>
+Subject: [alternative-merged] rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch removed from -mm tree
+Date: Tue, 20 Apr 2010 10:57:49 -0400
+Message-ID: <201004201759.o3KHxPBH002034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753116Ab0DTD53 (ORCPT
+	by vger.kernel.org with ESMTP id S1752884Ab0DTSAq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Apr 2010 23:57:29 -0400
+	Tue, 20 Apr 2010 14:00:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, adi@hexapodia.org, hpa@zytor.com, maciej.rutecki@gmail.com, mingo@elte.hu, rjw@sisk.pl, tglx@linutronix.de
+To: riel@redhat.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, bp@alien8.de, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npi
 
 
 The patch titled
-     x86: correctly wire up the newuname system call
-has been added to the -mm tree.  Its filename is
-     x86-correctly-wire-up-the-newuname-system-call.patch
+     rmap: add exclusively owned pages to the newest anon_vma
+has been removed from the -mm tree.  Its filename was
+     rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: correctly wire up the newuname system call
-From: Christoph Hellwig <hch@lst.de>
+Subject: rmap: add exclusively owned pages to the newest anon_vma
+From: Rik van Riel <riel@redhat.com>
 
-Before commit e28cbf22933d0c0ccaf3c4c27a1a263b41f73859 ("improve
-sys_newuname() for compat architectures") 64-bit x86 had a private
-implementation of sys_uname which was just called sys_uname, which other
-architectures used for the old uname.  Due to some merge issues with the
-uname refactoring patches we ended up calling the old uname version for
-both the old and new system call slots, which lead to the domainname filed
-never be set which caused failures with libnss_nis.
+The recent anon_vma fixes cause many anonymous pages to end up in the
+parent process anon_vma, even when the page is exclusively owned by the
+current process.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=15812
+Adding exclusively owned anonymous pages to the top anon_vma reduces rmap
+scanning overhead, especially in workloads with forking servers.
 
-Reported-by: Andy Isaacson <adi@hexapodia.org>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
+This patch adds a parameter to __page_set_anon_rmap that can be used to
+indicate whether or not the added page is exclusively owned by the current
+process.
+
+Pages added through page_add_new_anon_rmap are exclusively owned by the
+current process, and can be added to the top anon_vma.
+
+Pages added through page_add_anon_rmap can be either shared or exclusively
+owned, so we do the conservative thing and add it to the oldest anon_vma.
+
+A next step would be to add the exclusive parameter to page_add_anon_rmap,
+to be used from functions where we do know for sure whether a page is
+exclusively owned.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |   30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~x86-correctly-wire-up-the-newuname-system-call arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~x86-correctly-wire-up-the-newuname-system-call
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -626,7 +626,7 @@ ia32_sys_call_table:
- 	.quad stub32_sigreturn
- 	.quad stub32_clone		/* 120 */
- 	.quad sys_setdomainname
--	.quad sys_uname
-+	.quad sys_newuname
- 	.quad sys_modify_ldt
- 	.quad compat_sys_adjtimex
- 	.quad sys32_mprotect		/* 125 */
+diff -puN mm/rmap.c~rmap-add-exclusively-owned-pages-to-the-newest-anon_vma mm/rmap.c
+--- a/mm/rmap.c~rmap-add-exclusively-owned-pages-to-the-newest-anon_vma
++++ a/mm/rmap.c
+@@ -730,23 +730,31 @@ void page_move_anon_rmap(struct page *pa
+  * @page:	the page to add the mapping to
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
++ * @exclusive:  the page is exclusively owned by the current process
+  */
+ static void __page_set_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address)
++	struct vm_area_struct *vma, unsigned long address, int exclusive)
+ {
+ 	struct anon_vma_chain *avc;
+ 	struct anon_vma *anon_vma;
+ 
+ 	BUG_ON(!vma->anon_vma);
+ 
+-	/*
+-	 * We must use the _oldest_ possible anon_vma for the page mapping!
+-	 *
+-	 * So take the last AVC chain entry in the vma, which is the deepest
+-	 * ancestor, and use the anon_vma from that.
+-	 */
+-	avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
+-	anon_vma = avc->anon_vma;
++	if (exclusive)
++		anon_vma = vma->anon_vma;
++	else {
++		/*
++		 * The page may be shared between multiple processes.
++		 * We must use the _oldest_ possible anon_vma for the
++		 * page mapping!  That anon_vma is guaranteed to be
++		 * present in all processes that could share this page.
++		 *
++		 * So take the last AVC chain entry in the vma, which is the
++		 * deepest ancestor, and use the anon_vma from that.
++		 */
++		avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
++		anon_vma = avc->anon_vma;
++	}
+ 
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+ 	page->mapping = (struct address_space *) anon_vma;
+@@ -802,7 +810,7 @@ void page_add_anon_rmap(struct page *pag
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 	if (first)
+-		__page_set_anon_rmap(page, vma, address);
++		__page_set_anon_rmap(page, vma, address, 0);
+ 	else
+ 		__page_check_anon_rmap(page, vma, address);
+ }
+@@ -824,7 +832,7 @@ void page_add_new_anon_rmap(struct page 
+ 	SetPageSwapBacked(page);
+ 	atomic_set(&page->_mapcount, 0); /* increment count (starts at -1) */
+ 	__inc_zone_page_state(page, NR_ANON_PAGES);
+-	__page_set_anon_rmap(page, vma, address);
++	__page_set_anon_rmap(page, vma, address, 1);
+ 	if (page_evictable(page, vma))
+ 		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
+ 	else
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
-kernel-sysc-fix-compat-uname-machine.patch
-linux-next.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-improve-sys_personality-for-compat-architectures.patch
-vfs-introduce-noop_llseek.patch
-x86-correctly-wire-up-the-newuname-system-call.patch
+rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
+powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
+vmscan-prevent-get_scan_ratio-rounding-errors.patch
+vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
 
