@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch added to -mm tree
-Date: Tue, 20 Apr 2010 16:33:17 -0700
-Message-ID: <201004202333.o3KNXHWj016952@imap1.linux-foundation.org>
+Subject: + rmap-anon_vma_prepare-can-leak-anon_vma_chain.patch added to -mm tree
+Date: Tue, 20 Apr 2010 16:41:04 -0700
+Message-ID: <201004202341.o3KNf4Bb017243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174Ab0DTXdv (ORCPT
+	by vger.kernel.org with ESMTP id S1752320Ab0DTXmE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Apr 2010 19:33:51 -0400
+	Tue, 20 Apr 2010 19:42:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, andi@firstfloor.org, lee.schermerhorn@hp.com, rientjes@google.com, stable@kernel.org
+Cc: oleg@redhat.com, bp@alien8.de, hugh.dickins@tiscali.co.uk, riel@redhat.com, torvalds@linux-foundation.org, zaitcev@redhat.com
 
 
 The patch titled
-     hugetlbfs: kill applications that use MAP_NORESERVE with SIGBUS instead of OOM-killer
+     rmap: anon_vma_prepare() can leak anon_vma_chain
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
+     rmap-anon_vma_prepare-can-leak-anon_vma_chain.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlbfs: kill applications that use MAP_NORESERVE with SIGBUS instead of OOM-killer
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: rmap: anon_vma_prepare() can leak anon_vma_chain
+From: Oleg Nesterov <oleg@redhat.com>
 
-Ordinarily, application using hugetlbfs will create mappings with
-reserves.  For shared mappings, these pages are reserved before mmap()
-returns success and for private mappings, the caller process is guaranteed
-and a child process that cannot get the pages gets killed with sigbus.
+If find_mergeable_anon_vma() succeeds but another thread installs
+->anon_vma before we take ptl, then allocated == NULL but avc should be
+freed.  Change the code to check avc != NULL to detect this case.
 
-An application that uses MAP_NORESERVE gets no reservations and mmap()
-will always succeed at the risk the page will not be available at fault
-time.  This might be used for example on very large sparse mappings where
-the developer is confident the necessary huge pages exist to satisfy all
-faults even though the whole mapping cannot be backed by huge pages. 
-Unfortunately, if an allocation does fail, VM_FAULT_OOM is returned to the
-fault handler which proceeds to trigger the OOM-killer.  This is
-unhelpful.
+Also, a couple of whitespace changes to make the critical section more
+visible.
 
-This patch alters hugetlbfs to kill a process that uses MAP_NORESERVE
-where huge pages were not available with SIGBUS instead of triggering the
-OOM killer.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer
-+++ a/mm/hugetlb.c
-@@ -1039,7 +1039,7 @@ static struct page *alloc_huge_page(stru
- 		page = alloc_buddy_huge_page(h, vma, addr);
- 		if (!page) {
- 			hugetlb_put_quota(inode->i_mapping, chg);
--			return ERR_PTR(-VM_FAULT_OOM);
-+			return ERR_PTR(-VM_FAULT_SIGBUS);
+diff -puN mm/rmap.c~rmap-anon_vma_prepare-can-leak-anon_vma_chain mm/rmap.c
+--- a/mm/rmap.c~rmap-anon_vma_prepare-can-leak-anon_vma_chain
++++ a/mm/rmap.c
+@@ -133,8 +133,8 @@ int anon_vma_prepare(struct vm_area_stru
+ 				goto out_enomem_free_avc;
+ 			allocated = anon_vma;
  		}
+-		spin_lock(&anon_vma->lock);
+ 
++		spin_lock(&anon_vma->lock);
+ 		/* page_table_lock to protect against threads */
+ 		spin_lock(&mm->page_table_lock);
+ 		if (likely(!vma->anon_vma)) {
+@@ -144,14 +144,15 @@ int anon_vma_prepare(struct vm_area_stru
+ 			list_add(&avc->same_vma, &vma->anon_vma_chain);
+ 			list_add(&avc->same_anon_vma, &anon_vma->head);
+ 			allocated = NULL;
++			avc = NULL;
+ 		}
+ 		spin_unlock(&mm->page_table_lock);
+-
+ 		spin_unlock(&anon_vma->lock);
+-		if (unlikely(allocated)) {
++
++		if (unlikely(allocated))
+ 			anon_vma_free(allocated);
++		if (unlikely(avc))
+ 			anon_vma_chain_free(avc);
+-		}
  	}
+ 	return 0;
  
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mempolicy-remove-redundant-code.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
-mm-export-fragmentation-index-via-proc-extfrag_index.patch
-mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
-mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
-mm-introduce-free_pages_prepare.patch
-mm-introduce-free_pages_prepare-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+rmap-anon_vma_prepare-can-leak-anon_vma_chain.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+proc-turn-signal_struct-count-into-int-nr_threads.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+proc-cleanup-remove-unused-assignments.patch
 
