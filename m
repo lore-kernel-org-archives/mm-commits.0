@@ -1,183 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch removed from -mm tree
-Date: Tue, 20 Apr 2010 10:57:49 -0400
-Message-ID: <201004201759.o3KHxPBH002034@imap1.linux-foundation.org>
+Subject: [merged] pcmcia-fix-error-handling-in-cm4000_csc.patch removed from -mm tree
+Date: Tue, 20 Apr 2010 10:58:43 -0400
+Message-ID: <201004201800.o3KI0JD6002063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752884Ab0DTSAq (ORCPT
+	by vger.kernel.org with ESMTP id S1754105Ab0DTSBL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Apr 2010 14:00:46 -0400
+	Tue, 20 Apr 2010 14:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, bp@alien8.de, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npi
+To: error27@gmail.com, laforge@gnumonks.org, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rmap: add exclusively owned pages to the newest anon_vma
+     pcmcia: fix error handling in cm4000_cs.c
 has been removed from the -mm tree.  Its filename was
-     rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
+     pcmcia-fix-error-handling-in-cm4000_csc.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: add exclusively owned pages to the newest anon_vma
-From: Rik van Riel <riel@redhat.com>
+Subject: pcmcia: fix error handling in cm4000_cs.c
+From: Dan Carpenter <error27@gmail.com>
 
-The recent anon_vma fixes cause many anonymous pages to end up in the
-parent process anon_vma, even when the page is exclusively owned by the
-current process.
+In the original code we used -ENODEV as the number of bytes to
+copy_to_user() and we didn't release the locks.
 
-Adding exclusively owned anonymous pages to the top anon_vma reduces rmap
-scanning overhead, especially in workloads with forking servers.
-
-This patch adds a parameter to __page_set_anon_rmap that can be used to
-indicate whether or not the added page is exclusively owned by the current
-process.
-
-Pages added through page_add_new_anon_rmap are exclusively owned by the
-current process, and can be added to the top anon_vma.
-
-Pages added through page_add_anon_rmap can be either shared or exclusively
-owned, so we do the conservative thing and add it to the oldest anon_vma.
-
-A next step would be to add the exclusive parameter to page_add_anon_rmap,
-to be used from functions where we do know for sure whether a page is
-exclusively owned.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Acked-by: Harald Welte <laforge@gnumonks.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ drivers/char/pcmcia/cm4000_cs.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/rmap.c~rmap-add-exclusively-owned-pages-to-the-newest-anon_vma mm/rmap.c
---- a/mm/rmap.c~rmap-add-exclusively-owned-pages-to-the-newest-anon_vma
-+++ a/mm/rmap.c
-@@ -730,23 +730,31 @@ void page_move_anon_rmap(struct page *pa
-  * @page:	the page to add the mapping to
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-+ * @exclusive:  the page is exclusively owned by the current process
-  */
- static void __page_set_anon_rmap(struct page *page,
--	struct vm_area_struct *vma, unsigned long address)
-+	struct vm_area_struct *vma, unsigned long address, int exclusive)
- {
- 	struct anon_vma_chain *avc;
- 	struct anon_vma *anon_vma;
+diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-fix-error-handling-in-cm4000_csc drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-fix-error-handling-in-cm4000_csc
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -1024,14 +1024,16 @@ static ssize_t cmm_read(struct file *fil
  
- 	BUG_ON(!vma->anon_vma);
- 
--	/*
--	 * We must use the _oldest_ possible anon_vma for the page mapping!
--	 *
--	 * So take the last AVC chain entry in the vma, which is the deepest
--	 * ancestor, and use the anon_vma from that.
--	 */
--	avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
--	anon_vma = avc->anon_vma;
-+	if (exclusive)
-+		anon_vma = vma->anon_vma;
-+	else {
-+		/*
-+		 * The page may be shared between multiple processes.
-+		 * We must use the _oldest_ possible anon_vma for the
-+		 * page mapping!  That anon_vma is guaranteed to be
-+		 * present in all processes that could share this page.
-+		 *
-+		 * So take the last AVC chain entry in the vma, which is the
-+		 * deepest ancestor, and use the anon_vma from that.
-+		 */
-+		avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
-+		anon_vma = avc->anon_vma;
+ 	xoutb(0, REG_FLAGS1(iobase));	/* clear detectCMM */
+ 	/* last check before exit */
+-	if (!io_detect_cm4000(iobase, dev))
+-		count = -ENODEV;
++	if (!io_detect_cm4000(iobase, dev)) {
++		rc = -ENODEV;
++		goto release_io;
 +	}
  
- 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
- 	page->mapping = (struct address_space *) anon_vma;
-@@ -802,7 +810,7 @@ void page_add_anon_rmap(struct page *pag
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
- 	if (first)
--		__page_set_anon_rmap(page, vma, address);
-+		__page_set_anon_rmap(page, vma, address, 0);
- 	else
- 		__page_check_anon_rmap(page, vma, address);
- }
-@@ -824,7 +832,7 @@ void page_add_new_anon_rmap(struct page 
- 	SetPageSwapBacked(page);
- 	atomic_set(&page->_mapcount, 0); /* increment count (starts at -1) */
- 	__inc_zone_page_state(page, NR_ANON_PAGES);
--	__page_set_anon_rmap(page, vma, address);
-+	__page_set_anon_rmap(page, vma, address, 1);
- 	if (page_evictable(page, vma))
- 		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
- 	else
+ 	if (test_bit(IS_INVREV, &dev->flags) && count > 0)
+ 		str_invert_revert(dev->rbuf, count);
+ 
+ 	if (copy_to_user(buf, dev->rbuf, count))
+-		return -EFAULT;
++		rc = -EFAULT;
+ 
+ release_io:
+ 	clear_bit(LOCK_IO, &dev->flags);
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 origin.patch
-rmap-add-exclusively-owned-pages-to-the-newest-anon_vma.patch
-powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
-mm-migration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mm-migration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mm-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
-mm-export-fragmentation-index-via-proc-extfrag_index.patch
-mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
-mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
-vmscan-prevent-get_scan_ratio-rounding-errors.patch
-vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
+linux-next.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
