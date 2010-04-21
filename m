@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cx231xx-improve-error-handling.patch added to -mm tree
-Date: Wed, 21 Apr 2010 11:10:14 -0700
-Message-ID: <201004211810.o3LIAEbv000921@imap1.linux-foundation.org>
+Subject: + rtc-isl1208-use-sysfs_create-remove_group.patch added to -mm tree
+Date: Wed, 21 Apr 2010 11:11:28 -0700
+Message-ID: <201004211811.o3LIBSPY000962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753294Ab0DUSLO (ORCPT
+	by vger.kernel.org with ESMTP id S1753426Ab0DUSMF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Apr 2010 14:11:14 -0400
+	Wed, 21 Apr 2010 14:12:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, dougsland@redhat.com, laurent.pinchart@ideasonboard.com, mchehab@infradead.org, xyzzy@speakeasy.org
+Cc: hartleys@visionengravers.com, a.zummo@towertech.it, hsweeten@visionengravers.com, p_gortmaker@yahoo.com
 
 
 The patch titled
-     cx231xx: improve error handling
+     rtc-isl1208: use sysfs_{create/remove}_group
 has been added to the -mm tree.  Its filename is
-     cx231xx-improve-error-handling.patch
+     rtc-isl1208-use-sysfs_create-remove_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cx231xx: improve error handling
-From: Dan Carpenter <error27@gmail.com>
+Subject: rtc-isl1208: use sysfs_{create/remove}_group
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-Return -EINVAL if we don't find the control id.
+Instead of individually creating and removing the sysfs device attribute
+files, wrap them in an attribute_group and use
+sysfs_{create/remove}_group.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx231xx/cx231xx-video.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-isl1208.c |   45 ++++++++----------------------------
+ 1 file changed, 11 insertions(+), 34 deletions(-)
 
-diff -puN drivers/media/video/cx231xx/cx231xx-video.c~cx231xx-improve-error-handling drivers/media/video/cx231xx/cx231xx-video.c
---- a/drivers/media/video/cx231xx/cx231xx-video.c~cx231xx-improve-error-handling
-+++ a/drivers/media/video/cx231xx/cx231xx-video.c
-@@ -1902,9 +1902,12 @@ static int radio_queryctrl(struct file *
- 	if (c->id < V4L2_CID_BASE || c->id >= V4L2_CID_LASTP1)
- 		return -EINVAL;
- 	if (c->id == V4L2_CID_AUDIO_MUTE) {
--		for (i = 0; i < CX231XX_CTLS; i++)
-+		for (i = 0; i < CX231XX_CTLS; i++) {
- 			if (cx231xx_ctls[i].v.id == c->id)
- 				break;
-+		}
-+		if (i == CX231XX_CTLS)
-+			return -EINVAL;
- 		*c = cx231xx_ctls[i].v;
- 	} else
- 		*c = no_ctl;
+diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-use-sysfs_create-remove_group drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-use-sysfs_create-remove_group
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -462,39 +462,16 @@ isl1208_sysfs_store_usr(struct device *d
+ static DEVICE_ATTR(usr, S_IRUGO | S_IWUSR, isl1208_sysfs_show_usr,
+ 		   isl1208_sysfs_store_usr);
+ 
+-static int
+-isl1208_sysfs_register(struct device *dev)
+-{
+-	int err;
+-
+-	err = device_create_file(dev, &dev_attr_atrim);
+-	if (err)
+-		return err;
+-
+-	err = device_create_file(dev, &dev_attr_dtrim);
+-	if (err) {
+-		device_remove_file(dev, &dev_attr_atrim);
+-		return err;
+-	}
+-
+-	err = device_create_file(dev, &dev_attr_usr);
+-	if (err) {
+-		device_remove_file(dev, &dev_attr_atrim);
+-		device_remove_file(dev, &dev_attr_dtrim);
+-	}
+-
+-	return 0;
+-}
+-
+-static int
+-isl1208_sysfs_unregister(struct device *dev)
+-{
+-	device_remove_file(dev, &dev_attr_dtrim);
+-	device_remove_file(dev, &dev_attr_atrim);
+-	device_remove_file(dev, &dev_attr_usr);
++static struct attribute *isl1208_rtc_attrs[] = {
++	&dev_attr_atrim.attr,
++	&dev_attr_dtrim.attr,
++	&dev_attr_usr.attr,
++	NULL
++};
+ 
+-	return 0;
+-}
++static const struct attribute_group isl1208_rtc_sysfs_files = {
++	.attrs	= isl1208_rtc_attrs,
++};
+ 
+ static int
+ isl1208_probe(struct i2c_client *client, const struct i2c_device_id *id)
+@@ -529,7 +506,7 @@ isl1208_probe(struct i2c_client *client,
+ 		dev_warn(&client->dev, "rtc power failure detected, "
+ 			 "please set clock.\n");
+ 
+-	rc = isl1208_sysfs_register(&client->dev);
++	rc = sysfs_create_group(&client->dev.kobj, &isl1208_rtc_sysfs_files);
+ 	if (rc)
+ 		goto exit_unregister;
+ 
+@@ -546,7 +523,7 @@ isl1208_remove(struct i2c_client *client
+ {
+ 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+-	isl1208_sysfs_unregister(&client->dev);
++	sysfs_remove_group(&client->dev.kobj, &isl1208_rtc_sysfs_files);
+ 	rtc_device_unregister(rtc);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-origin.patch
 linux-next.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-cx231xx-improve-error-handling.patch
-backlight-backlight_device_register-return-err_ptr.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+scsi-sdc-quiet-all-sparse-noise.patch
+fs-writebackc-bitfields-should-be-unsigned.patch
+rtc-isl1208-use-sysfs_create-remove_group.patch
 
