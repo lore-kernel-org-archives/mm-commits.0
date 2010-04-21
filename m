@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-add-missing-export_symbolsimple_strtoll.patch added to -mm tree
-Date: Wed, 21 Apr 2010 11:13:30 -0700
-Message-ID: <201004211813.o3LIDUHL001104@imap1.linux-foundation.org>
+Subject: + pl061-fix-offset-value-range-checking.patch added to -mm tree
+Date: Wed, 21 Apr 2010 12:19:11 -0700
+Message-ID: <201004211919.o3LJJBbX004154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753613Ab0DUSOB (ORCPT
+	by vger.kernel.org with ESMTP id S1754129Ab0DUTTZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Apr 2010 14:14:01 -0400
+	Wed, 21 Apr 2010 15:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hverkuil@xs4all.nl
+Cc: axel.lin@gmail.com, baruch@tkos.co.il
 
 
 The patch titled
-     lib/vsprintf.c: add missing EXPORT_SYMBOL(simple_strtoll)
+     pl061: fix offset value range checking
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-add-missing-export_symbolsimple_strtoll.patch
+     pl061-fix-offset-value-range-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/vsprintf.c: add missing EXPORT_SYMBOL(simple_strtoll)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: pl061: fix offset value range checking
+From: Axel Lin <axel.lin@gmail.com>
 
-Add a missing EXPORT_SYMBOL.
+The valid offset value is 0..PL061_GPIO_NR-1, this patch corrects the
+offset value range checking.
 
-I must be the first person that wants to use this function :-)
-
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Baruch Siach <baruch@tkos.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpio/pl061.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-add-missing-export_symbolsimple_strtoll lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-add-missing-export_symbolsimple_strtoll
-+++ a/lib/vsprintf.c
-@@ -118,6 +118,7 @@ long long simple_strtoll(const char *cp,
+diff -puN drivers/gpio/pl061.c~pl061-fix-offset-value-range-checking drivers/gpio/pl061.c
+--- a/drivers/gpio/pl061.c~pl061-fix-offset-value-range-checking
++++ a/drivers/gpio/pl061.c
+@@ -158,7 +158,7 @@ static int pl061_irq_type(unsigned irq, 
+ 	unsigned long flags;
+ 	u8 gpiois, gpioibe, gpioiev;
  
- 	return simple_strtoull(cp, endp, base);
- }
-+EXPORT_SYMBOL(simple_strtoll);
+-	if (offset < 0 || offset > PL061_GPIO_NR)
++	if (offset < 0 || offset >= PL061_GPIO_NR)
+ 		return -EINVAL;
  
- /**
-  * strict_strtoul - convert a string to an unsigned long strictly
+ 	spin_lock_irqsave(&chip->irq_lock, flags);
 _
 
-Patches currently in -mm which might be from hverkuil@xs4all.nl are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-lib-vsprintfc-add-missing-export_symbolsimple_strtoll.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-cx88-improve-error-handling.patch
+pl061-fix-offset-value-range-checking.patch
 
