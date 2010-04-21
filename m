@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + max732x-correct-nr_port-checking-off-by-one-error.patch added to -mm tree
-Date: Wed, 21 Apr 2010 14:55:58 -0700
-Message-ID: <201004212155.o3LLtwHu011752@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-optionc-zteac8710-support-with-device-id-0xffff.patch added to -mm tree
+Date: Wed, 21 Apr 2010 15:08:02 -0700
+Message-ID: <201004212208.o3LM82WL012621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756811Ab0DUV5R (ORCPT
+	by vger.kernel.org with ESMTP id S1753299Ab0DUWIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Apr 2010 17:57:17 -0400
+	Wed, 21 Apr 2010 18:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, ben-linux@fluff.org, eric.miao@marvell.com
+Cc: maheshkuruganti@gmail.com, gregkh@suse.de, smurf@smurf.noris.de
 
 
 The patch titled
-     max732x: correct nr_port checking off by one error
+     drivers/usb/serial/option.c: ZTEAC8710 support with Device ID 0xffff
 has been added to the -mm tree.  Its filename is
-     max732x-correct-nr_port-checking-off-by-one-error.patch
+     drivers-usb-serial-optionc-zteac8710-support-with-device-id-0xffff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: max732x: correct nr_port checking off by one error
-From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/usb/serial/option.c: ZTEAC8710 support with Device ID 0xffff
+From: Mahesh Kuruganti <maheshkuruganti@gmail.com>
 
-Setup both client_group_a and client_group_b if nr_port > 8 (not including
-nr_port==8).
+Extend support to AC8710 with 0xffff product ID.  I tested it and it
+compiled with no problem and I am using it now as i type.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Eric Miao <eric.miao@marvell.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Mahesh Kuruganti <maheshkuruganti@gmail.com>
+Cc: Matthias Urlichs <smurf@smurf.noris.de>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max732x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/serial/option.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/gpio/max732x.c~max732x-correct-nr_port-checking-off-by-one-error drivers/gpio/max732x.c
---- a/drivers/gpio/max732x.c~max732x-correct-nr_port-checking-off-by-one-error
-+++ a/drivers/gpio/max732x.c
-@@ -285,14 +285,14 @@ static int __devinit max732x_probe(struc
- 	switch (client->addr & 0x70) {
- 	case 0x60:
- 		chip->client_group_a = client;
--		if (nr_port > 7) {
-+		if (nr_port > 8) {
- 			c = i2c_new_dummy(client->adapter, addr_b);
- 			chip->client_group_b = chip->client_dummy = c;
- 		}
- 		break;
- 	case 0x50:
- 		chip->client_group_b = client;
--		if (nr_port > 7) {
-+		if (nr_port > 8) {
- 			c = i2c_new_dummy(client->adapter, addr_a);
- 			chip->client_group_a = chip->client_dummy = c;
- 		}
-@@ -307,7 +307,7 @@ static int __devinit max732x_probe(struc
- 	mutex_init(&chip->lock);
+diff -puN drivers/usb/serial/option.c~drivers-usb-serial-optionc-zteac8710-support-with-device-id-0xffff drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~drivers-usb-serial-optionc-zteac8710-support-with-device-id-0xffff
++++ a/drivers/usb/serial/option.c
+@@ -305,6 +305,8 @@ static int  option_resume(struct usb_ser
+ #define ZTE_PRODUCT_CDMA_TECH			0xfffe
+ #define ZTE_PRODUCT_AC8710			0xfff1
+ #define ZTE_PRODUCT_AC2726			0xfff5
++/* There seems to be an Alternate Device ID for the AC8710 supplied in India */
++#define ZTE_PRODUCT_AC8710T			0xffff
  
- 	max732x_read(chip, is_group_a(chip, 0), &chip->reg_out[0]);
--	if (nr_port > 7)
-+	if (nr_port > 8)
- 		max732x_read(chip, is_group_a(chip, 8), &chip->reg_out[1]);
- 
- 	ret = gpiochip_add(&chip->gpio_chip);
+ #define BENQ_VENDOR_ID				0x04a5
+ #define BENQ_PRODUCT_H10			0x4068
+@@ -678,6 +680,7 @@ static const struct usb_device_id option
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0141, 0xff, 0xff, 0xff) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_CDMA_TECH, 0xff, 0xff, 0xff) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AC8710, 0xff, 0xff, 0xff) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AC8710T, 0xff, 0xff, 0xff) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AC2726, 0xff, 0xff, 0xff) },
+ 	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_H10) },
+ 	{ USB_DEVICE(DLINK_VENDOR_ID, DLINK_PRODUCT_DWM_652) },
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from maheshkuruganti@gmail.com are
 
-linux-next.patch
-pl061-fix-offset-value-range-checking.patch
-max732x-correct-nr_port-checking-off-by-one-error.patch
+drivers-usb-serial-optionc-zteac8710-support-with-device-id-0xffff.patch
 
