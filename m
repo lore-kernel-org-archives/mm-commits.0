@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pl061-fix-offset-value-range-checking.patch added to -mm tree
-Date: Wed, 21 Apr 2010 12:19:11 -0700
-Message-ID: <201004211919.o3LJJBbX004154@imap1.linux-foundation.org>
+Subject: + flex_array-fix-the-panic-when-calling-flex_array_alloc-without-__gfp_zero.patch added to -mm tree
+Date: Wed, 21 Apr 2010 12:35:04 -0700
+Message-ID: <201004211935.o3LJZ4vT004836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754129Ab0DUTTZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755681Ab0DUTfm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Apr 2010 15:19:25 -0400
+	Wed, 21 Apr 2010 15:35:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, baruch@tkos.co.il
+Cc: xiaosuo@gmail.com, kaber@trash.net, rientjes@google.com, stable@kernel.org
 
 
 The patch titled
-     pl061: fix offset value range checking
+     flex_array: fix the panic when calling flex_array_alloc() without __GFP_ZERO
 has been added to the -mm tree.  Its filename is
-     pl061-fix-offset-value-range-checking.patch
+     flex_array-fix-the-panic-when-calling-flex_array_alloc-without-__gfp_zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pl061: fix offset value range checking
-From: Axel Lin <axel.lin@gmail.com>
+Subject: flex_array: fix the panic when calling flex_array_alloc() without __GFP_ZERO
+From: Changli Gao <xiaosuo@gmail.com>
 
-The valid offset value is 0..PL061_GPIO_NR-1, this patch corrects the
-offset value range checking.
+memset() is called with the wrong address and the kernel panics.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Baruch Siach <baruch@tkos.co.il>
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pl061.c |    2 +-
+ lib/flex_array.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/pl061.c~pl061-fix-offset-value-range-checking drivers/gpio/pl061.c
---- a/drivers/gpio/pl061.c~pl061-fix-offset-value-range-checking
-+++ a/drivers/gpio/pl061.c
-@@ -158,7 +158,7 @@ static int pl061_irq_type(unsigned irq, 
- 	unsigned long flags;
- 	u8 gpiois, gpioibe, gpioiev;
- 
--	if (offset < 0 || offset > PL061_GPIO_NR)
-+	if (offset < 0 || offset >= PL061_GPIO_NR)
- 		return -EINVAL;
- 
- 	spin_lock_irqsave(&chip->irq_lock, flags);
+diff -puN lib/flex_array.c~flex_array-fix-the-panic-when-calling-flex_array_alloc-without-__gfp_zero lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-fix-the-panic-when-calling-flex_array_alloc-without-__gfp_zero
++++ a/lib/flex_array.c
+@@ -99,7 +99,7 @@ struct flex_array *flex_array_alloc(int 
+ 	ret->element_size = element_size;
+ 	ret->total_nr_elements = total;
+ 	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
+-		memset(ret->parts[0], FLEX_ARRAY_FREE,
++		memset(&ret->parts[0], FLEX_ARRAY_FREE,
+ 						FLEX_ARRAY_BASE_BYTES_LEFT);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from xiaosuo@gmail.com are
 
+flex_array-fix-the-panic-when-calling-flex_array_alloc-without-__gfp_zero.patch
 linux-next.patch
-pl061-fix-offset-value-range-checking.patch
 
