@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-fix-omap-1-wire-driver-compilation.patch added to -mm tree
-Date: Wed, 21 Apr 2010 11:08:28 -0700
-Message-ID: <201004211808.o3LI8SDi000877@imap1.linux-foundation.org>
+Subject: + cx231xx-improve-error-handling.patch added to -mm tree
+Date: Wed, 21 Apr 2010 11:10:14 -0700
+Message-ID: <201004211810.o3LIAEbv000921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54235 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753200Ab0DUSJJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753294Ab0DUSLO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Apr 2010 14:09:09 -0400
+	Wed, 21 Apr 2010 14:11:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amit.kucheria@canonical.com, johnpol@2ka.mipt.ru, tony@atomide.com
+Cc: error27@gmail.com, dougsland@redhat.com, laurent.pinchart@ideasonboard.com, mchehab@infradead.org, xyzzy@speakeasy.org
 
 
 The patch titled
-     w1: fix omap 1-wire driver compilation
+     cx231xx: improve error handling
 has been added to the -mm tree.  Its filename is
-     w1-fix-omap-1-wire-driver-compilation.patch
+     cx231xx-improve-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: fix omap 1-wire driver compilation
-From: Amit Kucheria <amit.kucheria@canonical.com>
+Subject: cx231xx: improve error handling
+From: Dan Carpenter <error27@gmail.com>
 
-Fixes the following error:
+Return -EINVAL if we don't find the control id.
 
-drivers/w1/masters/omap_hdq.c: In function 'hdq_wait_for_flag':
-drivers/w1/masters/omap_hdq.c:137: error: implicit declaration of function
-'schedule_timeout_uninterruptible'
-drivers/w1/masters/omap_hdq.c: In function 'hdq_write_byte':
-drivers/w1/masters/omap_hdq.c:177: error: 'TASK_UNINTERRUPTIBLE' undeclared
-(first use in this function)
-drivers/w1/masters/omap_hdq.c:177: error: (Each undeclared identifier is
-reported only once
-drivers/w1/masters/omap_hdq.c:177: error: for each function it appears in.)
-drivers/w1/masters/omap_hdq.c:177: error: implicit declaration of function
-'schedule_timeout'
-drivers/w1/masters/omap_hdq.c: In function 'hdq_isr':
-drivers/w1/masters/omap_hdq.c:221: error: 'TASK_NORMAL' undeclared (first use
-in this function)
-drivers/w1/masters/omap_hdq.c: In function 'omap_hdq_break':
-drivers/w1/masters/omap_hdq.c:316: error: 'TASK_UNINTERRUPTIBLE' undeclared
-(first use in this function)
-
-Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/omap_hdq.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/cx231xx/cx231xx-video.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/omap_hdq.c~w1-fix-omap-1-wire-driver-compilation drivers/w1/masters/omap_hdq.c
---- a/drivers/w1/masters/omap_hdq.c~w1-fix-omap-1-wire-driver-compilation
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -16,6 +16,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/sched.h>
- 
- #include <asm/irq.h>
- #include <mach/hardware.h>
+diff -puN drivers/media/video/cx231xx/cx231xx-video.c~cx231xx-improve-error-handling drivers/media/video/cx231xx/cx231xx-video.c
+--- a/drivers/media/video/cx231xx/cx231xx-video.c~cx231xx-improve-error-handling
++++ a/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -1902,9 +1902,12 @@ static int radio_queryctrl(struct file *
+ 	if (c->id < V4L2_CID_BASE || c->id >= V4L2_CID_LASTP1)
+ 		return -EINVAL;
+ 	if (c->id == V4L2_CID_AUDIO_MUTE) {
+-		for (i = 0; i < CX231XX_CTLS; i++)
++		for (i = 0; i < CX231XX_CTLS; i++) {
+ 			if (cx231xx_ctls[i].v.id == c->id)
+ 				break;
++		}
++		if (i == CX231XX_CTLS)
++			return -EINVAL;
+ 		*c = cx231xx_ctls[i].v;
+ 	} else
+ 		*c = no_ctl;
 _
 
-Patches currently in -mm which might be from amit.kucheria@canonical.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
+origin.patch
 linux-next.patch
-w1-fix-omap-1-wire-driver-compilation.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+cx231xx-improve-error-handling.patch
+backlight-backlight_device_register-return-err_ptr.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+musb-potential-use-after-free.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
 
