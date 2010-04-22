@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mmmigration-allow-the-migration-of-pageswapcache-pages.patch added to -mm tree
-Date: Thu, 22 Apr 2010 12:33:35 -0700
-Message-ID: <201004221933.o3MJXZO1003657@imap1.linux-foundation.org>
+Subject: + mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch added to -mm tree
+Date: Thu, 22 Apr 2010 12:33:37 -0700
+Message-ID: <201004221933.o3MJXbCU003662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757210Ab0DVTdy (ORCPT
+	by vger.kernel.org with ESMTP id S1757208Ab0DVTdy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 22 Apr 2010 15:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosa
 
 
 The patch titled
-     mm: migration: allow the migration of PageSwapCache pages
+     mm: allow CONFIG_MIGRATION to be set without CONFIG_NUMA or memory hot-remove
 has been added to the -mm tree.  Its filename is
-     mmmigration-allow-the-migration-of-pageswapcache-pages.patch
+     mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: migration: allow the migration of PageSwapCache pages
+Subject: mm: allow CONFIG_MIGRATION to be set without CONFIG_NUMA or memory hot-remove
 From: Mel Gorman <mel@csn.ul.ie>
 
-PageAnon pages that are unmapped may or may not have an anon_vma so are
-not currently migrated.  However, a swap cache page can be migrated and
-fits this description.  This patch identifies page swap caches and allows
-them to be migrated but ensures that no attempt to made to remap the pages
-would would potentially try to access an already freed anon_vma.
+CONFIG_MIGRATION currently depends on CONFIG_NUMA or on the architecture
+being able to hot-remove memory.  The main users of page migration such as
+sys_move_pages(), sys_migrate_pages() and cpuset process migration are
+only beneficial on NUMA so it makes sense.
 
+As memory compaction will operate within a zone and is useful on both NUMA
+and non-NUMA systems, this patch allows CONFIG_MIGRATION to be set if the
+user selects CONFIG_COMPACTION as an option.
+
+[akpm@linux-foundation.org: Depend on CONFIG_HUGETLB_PAGE]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   53 +++++++++++++++++++++++++++++++++----------------
- 1 file changed, 36 insertions(+), 17 deletions(-)
+ mm/Kconfig |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN mm/migrate.c~mmmigration-allow-the-migration-of-pageswapcache-pages mm/migrate.c
---- a/mm/migrate.c~mmmigration-allow-the-migration-of-pageswapcache-pages
-+++ a/mm/migrate.c
-@@ -485,7 +485,8 @@ static int fallback_migrate_page(struct 
-  *   < 0 - error code
-  *  == 0 - success
-  */
--static int move_to_new_page(struct page *newpage, struct page *page)
-+static int move_to_new_page(struct page *newpage, struct page *page,
-+						int remap_swapcache)
- {
- 	struct address_space *mapping;
- 	int rc;
-@@ -520,10 +521,12 @@ static int move_to_new_page(struct page 
- 	else
- 		rc = fallback_migrate_page(mapping, newpage, page);
+diff -puN mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove mm/Kconfig
+--- a/mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove
++++ a/mm/Kconfig
+@@ -172,6 +172,16 @@ config SPLIT_PTLOCK_CPUS
+ 	default "4"
  
--	if (!rc)
--		remove_migration_ptes(page, newpage);
--	else
-+	if (rc) {
- 		newpage->mapping = NULL;
-+	} else {
-+		if (remap_swapcache)
-+			remove_migration_ptes(page, newpage);
-+	}
+ #
++# support for memory compaction
++config COMPACTION
++	bool "Allow for memory compaction"
++	def_bool y
++	select MIGRATION
++	depends on EXPERIMENTAL && HUGETLB_PAGE && MMU
++	help
++	  Allows the compaction of memory for the allocation of huge pages.
++
++#
+ # support for page migration
+ #
+ config MIGRATION
+@@ -180,9 +190,11 @@ config MIGRATION
+ 	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	help
+ 	  Allows the migration of the physical location of pages of processes
+-	  while the virtual addresses are not changed. This is useful for
+-	  example on NUMA systems to put pages nearer to the processors accessing
+-	  the page.
++	  while the virtual addresses are not changed. This is useful in
++	  two situations. The first is on NUMA systems to put pages nearer
++	  to the processors accessing. The second is when allocating huge
++	  pages as migration can relocate pages to satisfy a huge page
++	  allocation instead of reclaiming.
  
- 	unlock_page(newpage);
- 
-@@ -540,6 +543,7 @@ static int unmap_and_move(new_page_t get
- 	int rc = 0;
- 	int *result = NULL;
- 	struct page *newpage = get_new_page(page, private, &result);
-+	int remap_swapcache = 1;
- 	int rcu_locked = 0;
- 	int charge = 0;
- 	struct mem_cgroup *mem = NULL;
-@@ -601,18 +605,33 @@ static int unmap_and_move(new_page_t get
- 		rcu_read_lock();
- 		rcu_locked = 1;
- 
--		/*
--		 * If the page has no mappings any more, just bail. An
--		 * unmapped anon page is likely to be freed soon but worse,
--		 * it's possible its anon_vma disappeared between when
--		 * the page was isolated and when we reached here while
--		 * the RCU lock was not held
--		 */
--		if (!page_mapped(page))
--			goto rcu_unlock;
-+		/* Determine how to safely use anon_vma */
-+		if (!page_mapped(page)) {
-+			if (!PageSwapCache(page))
-+				goto rcu_unlock;
- 
--		anon_vma = page_anon_vma(page);
--		atomic_inc(&anon_vma->external_refcount);
-+			/*
-+			 * We cannot be sure that the anon_vma of an unmapped
-+			 * swapcache page is safe to use because we don't
-+			 * know in advance if the VMA that this page belonged
-+			 * to still exists. If the VMA and others sharing the
-+			 * data have been freed, then the anon_vma could
-+			 * already be invalid.
-+			 *
-+			 * To avoid this possibility, swapcache pages get
-+			 * migrated but are not remapped when migration
-+			 * completes
-+			 */
-+			remap_swapcache = 0;
-+		} else {
-+			/*
-+			 * Take a reference count on the anon_vma if the
-+			 * page is mapped so that it is guaranteed to
-+			 * exist when the page is remapped later
-+			 */
-+			anon_vma = page_anon_vma(page);
-+			atomic_inc(&anon_vma->external_refcount);
-+		}
- 	}
- 
- 	/*
-@@ -647,9 +666,9 @@ static int unmap_and_move(new_page_t get
- 
- skip_unmap:
- 	if (!page_mapped(page))
--		rc = move_to_new_page(newpage, page);
-+		rc = move_to_new_page(newpage, page, remap_swapcache);
- 
--	if (rc)
-+	if (rc && remap_swapcache)
- 		remove_migration_ptes(page, page);
- rcu_unlock:
- 
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
