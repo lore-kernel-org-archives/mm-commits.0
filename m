@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmcompaction-add-proc-trigger-for-memory-compaction.patch added to -mm tree
-Date: Thu, 22 Apr 2010 12:33:51 -0700
-Message-ID: <201004221933.o3MJXqSZ003680@imap1.linux-foundation.org>
+Subject: + mm-export-unusable-free-space-index-via-debugfs.patch added to -mm tree
+Date: Thu, 22 Apr 2010 12:33:39 -0700
+Message-ID: <201004221933.o3MJXesU003668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757221Ab0DVTeI (ORCPT
+	by vger.kernel.org with ESMTP id S1757187Ab0DVTdz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:34:08 -0400
+	Thu, 22 Apr 2010 15:33:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosa
 
 
 The patch titled
-     mm: compaction: add /proc trigger for memory compaction
+     mm: export unusable free space index via debugfs
 has been added to the -mm tree.  Its filename is
-     mmcompaction-add-proc-trigger-for-memory-compaction.patch
+     mm-export-unusable-free-space-index-via-debugfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,172 +34,206 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: add /proc trigger for memory compaction
+Subject: mm: export unusable free space index via debugfs
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds a proc file /proc/sys/vm/compact_memory.  When an
-arbitrary value is written to the file, all zones are compacted.  The
-expected user of such a trigger is a job scheduler that prepares the
-system before the target application runs.
+The unusable free space index measures how much of the available free
+memory cannot be used to satisfy an allocation of a given size and is a
+value between 0 and 1.  The higher the value, the more of free memory is
+unusable and by implication, the worse the external fragmentation is.  For
+the most part, the huge page size will be the size of interest but not
+necessarily so it is exported on a per-order and per-zone basis via
+/sys/kernel/debug/extfrag/unusable_index.
 
+> cat /sys/kernel/debug/extfrag/unusable_index
+Node 0, zone      DMA 0.000 0.000 0.000 0.001 0.005 0.013 0.021 0.037 0.037 0.101 0.230
+Node 0, zone   Normal 0.000 0.000 0.000 0.001 0.002 0.002 0.005 0.015 0.028 0.028 0.054
+
+[akpm@linux-foundation.org: Fix allnoconfig]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   10 +++++
- include/linux/compaction.h  |    6 +++
- kernel/sysctl.c             |   10 +++++
- mm/compaction.c             |   61 ++++++++++++++++++++++++++++++++++
- 4 files changed, 87 insertions(+)
+ mm/vmstat.c |  150 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 149 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~mmcompaction-add-proc-trigger-for-memory-compaction Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mmcompaction-add-proc-trigger-for-memory-compaction
-+++ a/Documentation/sysctl/vm.txt
-@@ -19,6 +19,7 @@ files can be found in mm/swap.c.
- Currently, these files are in /proc/sys/vm:
- 
- - block_dump
-+- compact_memory
- - dirty_background_bytes
- - dirty_background_ratio
- - dirty_bytes
-@@ -64,6 +65,15 @@ information on block I/O debugging is in
- 
- ==============================================================
- 
-+compact_memory
-+
-+Available only when CONFIG_COMPACTION is set. When 1 is written to the file,
-+all zones are compacted such that free memory is available in contiguous
-+blocks where possible. This can be important for example in the allocation of
-+huge pages although processes will also directly compact memory as required.
-+
-+==============================================================
-+
- dirty_background_bytes
- 
- Contains the amount of dirty memory at which the pdflush background writeback
-diff -puN include/linux/compaction.h~mmcompaction-add-proc-trigger-for-memory-compaction include/linux/compaction.h
---- a/include/linux/compaction.h~mmcompaction-add-proc-trigger-for-memory-compaction
-+++ a/include/linux/compaction.h
-@@ -6,4 +6,10 @@
- #define COMPACT_PARTIAL		1
- #define COMPACT_COMPLETE	2
- 
-+#ifdef CONFIG_COMPACTION
-+extern int sysctl_compact_memory;
-+extern int sysctl_compaction_handler(struct ctl_table *table, int write,
-+			void __user *buffer, size_t *length, loff_t *ppos);
-+#endif /* CONFIG_COMPACTION */
-+
- #endif /* _LINUX_COMPACTION_H */
-diff -puN kernel/sysctl.c~mmcompaction-add-proc-trigger-for-memory-compaction kernel/sysctl.c
---- a/kernel/sysctl.c~mmcompaction-add-proc-trigger-for-memory-compaction
-+++ a/kernel/sysctl.c
-@@ -37,6 +37,7 @@
- #include <linux/highuid.h>
- #include <linux/writeback.h>
- #include <linux/ratelimit.h>
-+#include <linux/compaction.h>
- #include <linux/hugetlb.h>
- #include <linux/initrd.h>
- #include <linux/key.h>
-@@ -1121,6 +1122,15 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= drop_caches_sysctl_handler,
- 	},
-+#ifdef CONFIG_COMPACTION
-+	{
-+		.procname	= "compact_memory",
-+		.data		= &sysctl_compact_memory,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0200,
-+		.proc_handler	= sysctl_compaction_handler,
-+	},
-+#endif /* CONFIG_COMPACTION */
- 	{
- 		.procname	= "min_free_kbytes",
- 		.data		= &min_free_kbytes,
-diff -puN mm/compaction.c~mmcompaction-add-proc-trigger-for-memory-compaction mm/compaction.c
---- a/mm/compaction.c~mmcompaction-add-proc-trigger-for-memory-compaction
-+++ a/mm/compaction.c
-@@ -12,6 +12,7 @@
- #include <linux/compaction.h>
- #include <linux/mm_inline.h>
- #include <linux/backing-dev.h>
-+#include <linux/sysctl.h>
- #include "internal.h"
- 
- /*
-@@ -392,3 +393,63 @@ static int compact_zone(struct zone *zon
- 	return ret;
+diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-debugfs mm/vmstat.c
+--- a/mm/vmstat.c~mm-export-unusable-free-space-index-via-debugfs
++++ a/mm/vmstat.c
+@@ -379,7 +379,50 @@ void zone_statistics(struct zone *prefer
  }
+ #endif
  
-+/* Compact all zones within a node */
-+static int compact_node(int nid)
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_COMPACTION
++struct contig_page_info {
++	unsigned long free_pages;
++	unsigned long free_blocks_total;
++	unsigned long free_blocks_suitable;
++};
++
++/*
++ * Calculate the number of free pages in a zone, how many contiguous
++ * pages are free and how many are large enough to satisfy an allocation of
++ * the target size. Note that this function makes no attempt to estimate
++ * how many suitable free blocks there *might* be if MOVABLE pages were
++ * migrated. Calculating that is possible, but expensive and can be
++ * figured out from userspace
++ */
++static void fill_contig_page_info(struct zone *zone,
++				unsigned int suitable_order,
++				struct contig_page_info *info)
 +{
-+	int zoneid;
-+	pg_data_t *pgdat;
-+	struct zone *zone;
++	unsigned int order;
 +
-+	if (nid < 0 || nid >= nr_node_ids || !node_online(nid))
-+		return -EINVAL;
-+	pgdat = NODE_DATA(nid);
++	info->free_pages = 0;
++	info->free_blocks_total = 0;
++	info->free_blocks_suitable = 0;
 +
-+	/* Flush pending updates to the LRU lists */
-+	lru_add_drain_all();
++	for (order = 0; order < MAX_ORDER; order++) {
++		unsigned long blocks;
 +
-+	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-+		struct compact_control cc = {
-+			.nr_freepages = 0,
-+			.nr_migratepages = 0,
-+		};
++		/* Count number of free blocks */
++		blocks = zone->free_area[order].nr_free;
++		info->free_blocks_total += blocks;
 +
-+		zone = &pgdat->node_zones[zoneid];
-+		if (!populated_zone(zone))
-+			continue;
++		/* Count free base pages */
++		info->free_pages += blocks << order;
 +
-+		cc.zone = zone;
-+		INIT_LIST_HEAD(&cc.freepages);
-+		INIT_LIST_HEAD(&cc.migratepages);
++		/* Count the suitable free blocks */
++		if (order >= suitable_order)
++			info->free_blocks_suitable += blocks <<
++						(order - suitable_order);
++	}
++}
++#endif
 +
-+		compact_zone(zone, &cc);
++#if defined(CONFIG_PROC_FS) || defined(CONFIG_COMPACTION)
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ 
+@@ -432,7 +475,9 @@ static void walk_zones_in_node(struct se
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+ }
++#endif
+ 
++#ifdef CONFIG_PROC_FS
+ static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
+ 						struct zone *zone)
+ {
+@@ -954,3 +999,106 @@ static int __init setup_vmstat(void)
+ 	return 0;
+ }
+ module_init(setup_vmstat)
 +
-+		VM_BUG_ON(!list_empty(&cc.freepages));
-+		VM_BUG_ON(!list_empty(&cc.migratepages));
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)
++#include <linux/debugfs.h>
++
++static struct dentry *extfrag_debug_root;
++
++/*
++ * Return an index indicating how much of the available free memory is
++ * unusable for an allocation of the requested size.
++ */
++static int unusable_free_index(unsigned int order,
++				struct contig_page_info *info)
++{
++	/* No free memory is interpreted as all free memory is unusable */
++	if (info->free_pages == 0)
++		return 1000;
++
++	/*
++	 * Index should be a value between 0 and 1. Return a value to 3
++	 * decimal places.
++	 *
++	 * 0 => no fragmentation
++	 * 1 => high fragmentation
++	 */
++	return div_u64((info->free_pages - (info->free_blocks_suitable << order)) * 1000ULL, info->free_pages);
++
++}
++
++static void unusable_show_print(struct seq_file *m,
++					pg_data_t *pgdat, struct zone *zone)
++{
++	unsigned int order;
++	int index;
++	struct contig_page_info info;
++
++	seq_printf(m, "Node %d, zone %8s ",
++				pgdat->node_id,
++				zone->name);
++	for (order = 0; order < MAX_ORDER; ++order) {
++		fill_contig_page_info(zone, order, &info);
++		index = unusable_free_index(order, &info);
++		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
 +	}
 +
++	seq_putc(m, '\n');
++}
++
++/*
++ * Display unusable free space index
++ *
++ * The unusable free space index measures how much of the available free
++ * memory cannot be used to satisfy an allocation of a given size and is a
++ * value between 0 and 1. The higher the value, the more of free memory is
++ * unusable and by implication, the worse the external fragmentation is. This
++ * can be expressed as a percentage by multiplying by 100.
++ */
++static int unusable_show(struct seq_file *m, void *arg)
++{
++	pg_data_t *pgdat = (pg_data_t *)arg;
++
++	/* check memoryless node */
++	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
++		return 0;
++
++	walk_zones_in_node(m, pgdat, unusable_show_print);
++
 +	return 0;
 +}
 +
-+/* Compact all nodes in the system */
-+static int compact_nodes(void)
++static const struct seq_operations unusable_op = {
++	.start	= frag_start,
++	.next	= frag_next,
++	.stop	= frag_stop,
++	.show	= unusable_show,
++};
++
++static int unusable_open(struct inode *inode, struct file *file)
 +{
-+	int nid;
-+
-+	for_each_online_node(nid)
-+		compact_node(nid);
-+
-+	return COMPACT_COMPLETE;
++	return seq_open(file, &unusable_op);
 +}
 +
-+/* The written value is actually unused, all memory is compacted */
-+int sysctl_compact_memory;
++static const struct file_operations unusable_file_ops = {
++	.open		= unusable_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
 +
-+/* This is the entry point for compacting all nodes via /proc/sys/vm */
-+int sysctl_compaction_handler(struct ctl_table *table, int write,
-+			void __user *buffer, size_t *length, loff_t *ppos)
++static int __init extfrag_debug_init(void)
 +{
-+	if (write)
-+		return compact_nodes();
++	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
++	if (!extfrag_debug_root)
++		return -ENOMEM;
++
++	if (!debugfs_create_file("unusable_index", 0444,
++			extfrag_debug_root, NULL, &unusable_file_ops))
++		return -ENOMEM;
 +
 +	return 0;
 +}
++
++module_init(extfrag_debug_init);
++#endif
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
