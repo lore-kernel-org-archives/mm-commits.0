@@ -1,96 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:46 -0700
-Message-ID: <201004221906.o3MJ6kd2002144@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:40 -0700
+Message-ID: <201004221906.o3MJ6eJs002138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755403Ab0DVTHa (ORCPT
+	by vger.kernel.org with ESMTP id S1755352Ab0DVTH0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:07:30 -0400
+	Thu, 22 Apr 2010 15:07:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: compaction: tighten up the allowed values for compact_memory and initialisation
+     mm,compaction: map free pages in the address space after they get split for compaction
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+     mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: tighten up the allowed values for compact_memory and initialisation
+Subject: mm,compaction: map free pages in the address space after they get split for compaction
 From: Mel Gorman <mel@csn.ul.ie>
 
-Update the documentation on compact_memory to only define 1 as an allowed
-value in case it needs to be expanded later.  It also changes how a
-compact_control structure is initialised to avoid potential trouble in the
-future.
+split_free_page() is a helper function which takes a free page from the
+buddy lists and splits it into order-0 pages.  It is used by memory
+compaction to build a list of destination pages.  If
+CONFIG_DEBUG_PAGEALLOC is set, a kernel paging request bug is triggered
+because split_free_page() did not call the arch-allocation hooks or map
+the page into the kernel address space.
 
-This is a fix to the patch "Add /proc trigger for memory compaction".
+This patch does not update split_free_page() as it is called with
+interrupts held.  Instead it documents that callers of split_free_page()
+are responsible for calling the arch hooks and to map the page and fixes
+compaction.
+
+This is a fix to the patch mm-compaction-memory-compaction-core.patch.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
+Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    9 ++++-----
- mm/compaction.c             |    9 +++++----
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ mm/compaction.c |    6 ++++++
+ mm/page_alloc.c |    3 +++
+ 2 files changed, 9 insertions(+)
 
-diff -puN Documentation/sysctl/vm.txt~mm-compaction-add-proc-trigger-for-memory-compaction-fix Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-compaction-add-proc-trigger-for-memory-compaction-fix
-+++ a/Documentation/sysctl/vm.txt
-@@ -67,11 +67,10 @@ information on block I/O debugging is in
- 
- compact_memory
- 
--Available only when CONFIG_COMPACTION is set. When an arbitrary value
--is written to the file, all zones are compacted such that free memory
--is available in contiguous blocks where possible. This can be important
--for example in the allocation of huge pages although processes will also
--directly compact memory as required.
-+Available only when CONFIG_COMPACTION is set. When 1 is written to the file,
-+all zones are compacted such that free memory is available in contiguous
-+blocks where possible. This can be important for example in the allocation of
-+huge pages although processes will also directly compact memory as required.
- 
- ==============================================================
- 
-diff -puN mm/compaction.c~mm-compaction-add-proc-trigger-for-memory-compaction-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-add-proc-trigger-for-memory-compaction-fix
+diff -puN mm/compaction.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction
 +++ a/mm/compaction.c
-@@ -404,15 +404,16 @@ static int compact_node(int nid)
- 	lru_add_drain_all();
+@@ -180,6 +180,12 @@ static void isolate_freepages(struct zon
+ 	}
+ 	spin_unlock_irqrestore(&zone->lock, flags);
  
- 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
--		struct compact_control cc;
-+		struct compact_control cc = {
-+			.nr_freepages = 0,
-+			.nr_migratepages = 0,
-+			.zone = zone,
-+		};
- 
- 		zone = &pgdat->node_zones[zoneid];
- 		if (!populated_zone(zone))
- 			continue;
- 
--		cc.nr_freepages = 0;
--		cc.nr_migratepages = 0;
--		cc.zone = zone;
- 		INIT_LIST_HEAD(&cc.freepages);
- 		INIT_LIST_HEAD(&cc.migratepages);
- 
++	/* split_free_page does not map the pages */
++	list_for_each_entry(page, freelist, lru) {
++		arch_alloc_page(page, 0);
++		kernel_map_pages(page, 1, 1);
++	}
++
+ 	cc->free_pfn = high_pfn;
+ 	cc->nr_freepages = nr_freepages;
+ }
+diff -puN mm/page_alloc.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction
++++ a/mm/page_alloc.c
+@@ -1210,6 +1210,9 @@ void split_page(struct page *page, unsig
+ /*
+  * Similar to split_page except the page is already free. As this is only
+  * being used for migration, the migratetype of the block also changes.
++ * As this is called with interrupts disabled, the caller is responsible
++ * for calling arch_alloc_page() and kernel_map_page() after interrupts
++ * are enabled.
+  */
+ int split_free_page(struct page *page)
+ {
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -102,6 +95,8 @@ hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-ki
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
 mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
 mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
 mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
