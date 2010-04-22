@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-additions-to-submitchecklist.patch added to -mm tree
-Date: Thu, 22 Apr 2010 14:11:01 -0700
-Message-ID: <201004222111.o3MLB10R011261@imap1.linux-foundation.org>
+Subject: + scsi-fix-operator-precedence-warning.patch added to -mm tree
+Date: Thu, 22 Apr 2010 14:11:46 -0700
+Message-ID: <201004222111.o3MLBkGS011281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755257Ab0DVVLH (ORCPT
+	by vger.kernel.org with ESMTP id S1755257Ab0DVVLz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 17:11:07 -0400
+	Thu, 22 Apr 2010 17:11:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, david.somayajulu@qlogic.com, karen.higgins@qlogic.com, ravi.anand@qlogic.com, vikas.chaudhary@qlogic.com
 
 
 The patch titled
-     Documentation: additions to SubmitChecklist
+     scsi: fix operator precedence warning
 has been added to the -mm tree.  Its filename is
-     documentation-additions-to-submitchecklist.patch
+     scsi-fix-operator-precedence-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: additions to SubmitChecklist
+Subject: scsi: fix operator precedence warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add build testing using 'O=builddir'.
+Fix operator precedence warning (from sparse), which results in the data
+value always being 0:
 
-Add build testing with various kconfig symbols disabled, listing
-common ones that are known to cause build problems.
+drivers/scsi/qla4xxx/ql4_mbx.c:470:66: warning: right shift by bigger than source value
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Ravi Anand <ravi.anand@qlogic.com>
+Cc: David C Somayajulu <david.somayajulu@qlogic.com>
+Cc: Karen Higgins <karen.higgins@qlogic.com>
+Cc: Vikas Chaudhary <vikas.chaudhary@qlogic.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmitChecklist |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/scsi/qla4xxx/ql4_mbx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/SubmitChecklist~documentation-additions-to-submitchecklist Documentation/SubmitChecklist
---- a/Documentation/SubmitChecklist~documentation-additions-to-submitchecklist
-+++ a/Documentation/SubmitChecklist
-@@ -18,6 +18,8 @@ kernel patches.
- 
- 2b: Passes allnoconfig, allmodconfig
- 
-+2c: Builds successfully when using O=builddir
-+
- 3: Builds on multiple CPU architectures by using local cross-compile tools
-    or some other build farm.
- 
-@@ -95,3 +97,13 @@ kernel patches.
- 
- 25: If any ioctl's are added by the patch, then also update
-     Documentation/ioctl/ioctl-number.txt.
-+
-+26: If your modified source code depends on or uses any of the kernel
-+    APIs or features that are related to the following kconfig symbols,
-+    then test multiple builds with the related kconfig symbols disabled
-+    and/or =m (if that option is available) [not all of these at the
-+    same time, just various/random combinations of them]:
-+
-+    CONFIG_SMP, CONFIG_SYSFS, CONFIG_PROC_FS, CONFIG_INPUT, CONFIG_PCI,
-+    CONFIG_BLOCK, CONFIG_PM, CONFIG_HOTPLUG, CONFIG_MAGIC_SYSRQ,
-+    CONFIG_NET, CONFIG_INET=n (but latter with CONFIG_NET=y)
+diff -puN drivers/scsi/qla4xxx/ql4_mbx.c~scsi-fix-operator-precedence-warning drivers/scsi/qla4xxx/ql4_mbx.c
+--- a/drivers/scsi/qla4xxx/ql4_mbx.c~scsi-fix-operator-precedence-warning
++++ a/drivers/scsi/qla4xxx/ql4_mbx.c
+@@ -467,7 +467,7 @@ int qla4xxx_get_fwddb_entry(struct scsi_
+ 	if (conn_err_detail)
+ 		*conn_err_detail = mbox_sts[5];
+ 	if (tcp_source_port_num)
+-		*tcp_source_port_num = (uint16_t) mbox_sts[6] >> 16;
++		*tcp_source_port_num = (uint16_t) (mbox_sts[6] >> 16);
+ 	if (connection_id)
+ 		*connection_id = (uint16_t) mbox_sts[6] & 0x00FF;
+ 	status = QLA_SUCCESS;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -88,6 +79,7 @@ led-driver-for-the-soekris-net5501-board-fix-2.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
 scsi-fix-convert-scsi_scanc-kernel-doc.patch
 scsi-update-drivers-tools-url-references.patch
+scsi-fix-operator-precedence-warning.patch
 usb-fix-serial-build-when-sysrq-is-disabled.patch
 mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
 lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
