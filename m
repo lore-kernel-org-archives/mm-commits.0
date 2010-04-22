@@ -1,315 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-memory-compaction-core-fix.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:34 -0700
-Message-ID: <201004221906.o3MJ6YWt002128@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:07:16 -0700
+Message-ID: <201004221907.o3MJ7GcU002187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753960Ab0DVTO7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754651Ab0DVTPA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:14:59 -0400
+	Thu, 22 Apr 2010 15:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@red
 
 
 The patch titled
-     mm: compaction: various fixes to the patch 'Memory compaction core'
+     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-memory-compaction-core-fix.patch
+     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: various fixes to the patch 'Memory compaction core'
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
- o Use unsigned long instead of int for page counters
- o Simplify logic in isolate_freepages_block() and isolate_migratepages()
- o Optimise isolate_freepages_block to use a cursor
- o Use bool instead of int for true/false
- o Clarify some comments
- o Improve control flow in isolate_migratepages()
- o Add newlines for clarity
- o Simply loop in compact_zones
+mm/page_alloc.c: In function '__alloc_pages_direct_compact':
+mm/page_alloc.c:1797: error: implicit declaration of function 'defer_compaction'
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+blah.
+
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   81 ++++++++++++++++++++++++++--------------------
- mm/page_alloc.c |    2 -
- 2 files changed, 47 insertions(+), 36 deletions(-)
+ mm/page_alloc.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/Kconfig~mm-compaction-memory-compaction-core-fix mm/Kconfig
-diff -puN mm/compaction.c~mm-compaction-memory-compaction-core-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-memory-compaction-core-fix
-+++ a/mm/compaction.c
-@@ -36,10 +36,10 @@ struct compact_control {
- 	struct zone *zone;
- };
- 
--static int release_freepages(struct list_head *freelist)
-+static unsigned long release_freepages(struct list_head *freelist)
- {
- 	struct page *page, *next;
--	int count = 0;
-+	unsigned long count = 0;
- 
- 	list_for_each_entry_safe(page, next, freelist, lru) {
- 		list_del(&page->lru);
-@@ -51,28 +51,33 @@ static int release_freepages(struct list
- }
- 
- /* Isolate free pages onto a private freelist. Must hold zone->lock */
--static int isolate_freepages_block(struct zone *zone,
-+static unsigned long isolate_freepages_block(struct zone *zone,
- 				unsigned long blockpfn,
- 				struct list_head *freelist)
- {
- 	unsigned long zone_end_pfn, end_pfn;
- 	int total_isolated = 0;
-+	struct page *cursor;
- 
- 	/* Get the last PFN we should scan for free pages at */
- 	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
--	end_pfn = blockpfn + pageblock_nr_pages;
--	if (end_pfn > zone_end_pfn)
--		end_pfn = zone_end_pfn;
-+	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
- 
--	/* Isolate free pages. This assumes the block is valid */
-+	/* Find the first usable PFN in the block to initialse page cursor */
- 	for (; blockpfn < end_pfn; blockpfn++) {
--		struct page *page;
-+		if (pfn_valid_within(blockpfn))
-+			break;
-+	}
-+	cursor = pfn_to_page(blockpfn);
-+
-+	/* Isolate free pages. This assumes the block is valid */
-+	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
- 		int isolated, i;
-+		struct page *page = cursor;
- 
- 		if (!pfn_valid_within(blockpfn))
- 			continue;
- 
--		page = pfn_to_page(blockpfn);
- 		if (!PageBuddy(page))
- 			continue;
- 
-@@ -85,38 +90,40 @@ static int isolate_freepages_block(struc
- 		}
- 
- 		/* If a page was split, advance to the end of it */
--		if (isolated)
-+		if (isolated) {
- 			blockpfn += isolated - 1;
-+			cursor += isolated - 1;
-+		}
- 	}
- 
- 	return total_isolated;
- }
- 
--/* Returns 1 if the page is within a block suitable for migration to */
--static int suitable_migration_target(struct page *page)
-+/* Returns true if the page is within a block suitable for migration to */
-+static bool suitable_migration_target(struct page *page)
- {
- 
- 	int migratetype = get_pageblock_migratetype(page);
- 
- 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
- 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
--		return 0;
-+		return false;
- 
- 	/* If the page is a large free page, then allow migration */
- 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
--		return 1;
-+		return true;
- 
- 	/* If the block is MIGRATE_MOVABLE, allow migration */
- 	if (migratetype == MIGRATE_MOVABLE)
--		return 1;
-+		return true;
- 
- 	/* Otherwise skip the block */
--	return 0;
-+	return false;
- }
- 
- /*
-  * Based on information in the current compact_control, find blocks
-- * suitable for isolating free pages from
-+ * suitable for isolating free pages from and then isolate them.
-  */
- static void isolate_freepages(struct zone *zone,
- 				struct compact_control *cc)
-@@ -139,7 +146,7 @@ static void isolate_freepages(struct zon
- 	spin_lock_irqsave(&zone->lock, flags);
- 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
- 					pfn -= pageblock_nr_pages) {
--		int isolated;
-+		unsigned long isolated;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -195,7 +202,7 @@ static void acct_isolated(struct zone *z
- }
- 
- /* Similar to reclaim, but different enough that they don't share logic */
--static int too_many_isolated(struct zone *zone)
-+static bool too_many_isolated(struct zone *zone)
- {
- 
- 	unsigned long inactive, isolated;
-@@ -216,16 +223,12 @@ static unsigned long isolate_migratepage
- 					struct compact_control *cc)
- {
- 	unsigned long low_pfn, end_pfn;
--	struct list_head *migratelist;
--
--	low_pfn = cc->migrate_pfn;
--	migratelist = &cc->migratepages;
-+	struct list_head *migratelist = &cc->migratepages;
- 
- 	/* Do not scan outside zone boundaries */
--	if (low_pfn < zone->zone_start_pfn)
--		low_pfn = zone->zone_start_pfn;
-+	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
- 
--	/* Setup to scan one block but not past where we are migrating to */
-+	/* Only scan within a pageblock boundary */
- 	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
- 
- 	/* Do not cross the free scanner or scan within a memory hole */
-@@ -234,7 +237,11 @@ static unsigned long isolate_migratepage
- 		return 0;
- 	}
- 
--	/* Do not isolate the world */
-+	/*
-+	 * Ensure that there are not too many pages isolated from the LRU
-+	 * list by either parallel reclaimers or compaction. If there are,
-+	 * delay for some time until fewer pages are isolated
-+	 */
- 	while (unlikely(too_many_isolated(zone))) {
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
- 
-@@ -257,12 +264,14 @@ static unsigned long isolate_migratepage
- 		}
- 
- 		/* Try isolate the page */
--		if (__isolate_lru_page(page, ISOLATE_BOTH, 0) == 0) {
--			del_page_from_lru_list(zone, page, page_lru(page));
--			list_add(&page->lru, migratelist);
--			mem_cgroup_del_lru(page);
--			cc->nr_migratepages++;
--		}
-+		if (__isolate_lru_page(page, ISOLATE_BOTH, 0) != 0)
-+			continue;
-+
-+		/* Successfully isolated */
-+		del_page_from_lru_list(zone, page, page_lru(page));
-+		list_add(&page->lru, migratelist);
-+		mem_cgroup_del_lru(page);
-+		cc->nr_migratepages++;
- 
- 		/* Avoid isolating too much */
- 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
-@@ -313,6 +322,7 @@ static void update_nr_listpages(struct c
- 	int nr_migratepages = 0;
- 	int nr_freepages = 0;
- 	struct page *page;
-+
- 	list_for_each_entry(page, &cc->migratepages, lru)
- 		nr_migratepages++;
- 	list_for_each_entry(page, &cc->freepages, lru)
-@@ -337,7 +347,7 @@ static inline int compact_finished(struc
- 
- static int compact_zone(struct zone *zone, struct compact_control *cc)
- {
--	int ret = COMPACT_INCOMPLETE;
-+	int ret;
- 
- 	/* Setup to move all movable pages to the end of the zone */
- 	cc->migrate_pfn = zone->zone_start_pfn;
-@@ -346,8 +356,9 @@ static int compact_zone(struct zone *zon
- 
- 	migrate_prep();
- 
--	for (; ret == COMPACT_INCOMPLETE; ret = compact_finished(zone, cc)) {
-+	while ((ret = compact_finished(zone, cc)) == COMPACT_INCOMPLETE) {
- 		unsigned long nr_migrate, nr_remaining;
-+
- 		if (!isolate_migratepages(zone, cc))
- 			continue;
- 
-diff -puN mm/page_alloc.c~mm-compaction-memory-compaction-core-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-memory-compaction-core-fix
+diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
 +++ a/mm/page_alloc.c
-@@ -1222,7 +1222,7 @@ int split_free_page(struct page *page)
- 	zone = page_zone(page);
- 	order = page_order(page);
+@@ -1793,9 +1793,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		 */
+ 		count_vm_event(COMPACTFAIL);
  
--	/* Obey watermarks or the system could deadlock */
-+	/* Obey watermarks as if the page was being allocated */
- 	watermark = low_wmark_pages(zone) + (1 << order);
- 	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
- 		return 0;
+-		/* On failure, avoid compaction for a short time. */
+-		defer_compaction(preferred_zone, jiffies + HZ/50);
+-
+ 		cond_resched();
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
 hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mempolicy-remove-redundant-code.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
-mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
-mm-introduce-free_pages_prepare.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
 mm-introduce-free_pages_prepare-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
