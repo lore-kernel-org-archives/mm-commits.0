@@ -1,227 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vmstat-fix-build-errors-when-proc_fs-is-disabled.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:07:02 -0700
-Message-ID: <201004221907.o3MJ72fw002165@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:49 -0700
+Message-ID: <201004221906.o3MJ6nCJ002147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47277 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754651Ab0DVTHk (ORCPT
+	by vger.kernel.org with ESMTP id S1755341Ab0DVTHg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:07:40 -0400
+	Thu, 22 Apr 2010 15:07:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmstat: fix build errors when PROC_FS is disabled
+     mm: compaction: initialise cc->zone at the correct time
 has been removed from the -mm tree.  Its filename was
-     vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
+     mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat: fix build errors when PROC_FS is disabled
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: compaction: initialise cc->zone at the correct time
+From: Mel Gorman <mel@csn.ul.ie>
 
-Fix vmstat.c to build when CONFIG_PROC_FS is disabled
-but CONFIG_DEBUG_FS is enabled.
+Init cc->zone after we know what zone we are looking for.  This is a fix
+to the fix patch "mm,compaction: Tighten up the allowed values for
+compact_memory and initialisation"
 
-Fixes around 25 errors.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |  119 ++++++++++++++++++++++++--------------------------
- 1 file changed, 59 insertions(+), 60 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-build-errors-when-proc_fs-is-disabled
-+++ a/mm/vmstat.c
-@@ -16,6 +16,7 @@
- #include <linux/cpu.h>
- #include <linux/vmstat.h>
- #include <linux/sched.h>
-+#include <linux/seq_file.h>
- #include <linux/math64.h>
+diff -puN mm/compaction.c~mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix
++++ a/mm/compaction.c
+@@ -407,13 +407,13 @@ static int compact_node(int nid)
+ 		struct compact_control cc = {
+ 			.nr_freepages = 0,
+ 			.nr_migratepages = 0,
+-			.zone = zone,
+ 		};
  
- #ifdef CONFIG_VM_EVENT_COUNTERS
-@@ -380,18 +381,57 @@ void zone_statistics(struct zone *prefer
- }
- #endif
+ 		zone = &pgdat->node_zones[zoneid];
+ 		if (!populated_zone(zone))
+ 			continue;
  
--#ifdef CONFIG_PROC_FS
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--
--static char * const migratetype_names[MIGRATE_TYPES] = {
--	"Unmovable",
--	"Reclaimable",
--	"Movable",
--	"Reserve",
--	"Isolate",
-+struct contig_page_info {
-+	unsigned long free_pages;
-+	unsigned long free_blocks_total;
-+	unsigned long free_blocks_suitable;
- };
- 
-+/* Walk all the zones in a node and print using a callback */
-+static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
-+		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
-+{
-+	struct zone *zone;
-+	struct zone *node_zones = pgdat->node_zones;
-+	unsigned long flags;
-+
-+	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		print(m, pgdat, zone);
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+	}
-+}
-+
-+/*
-+ * A fragmentation index only makes sense if an allocation of a requested
-+ * size would fail. If that is true, the fragmentation index indicates
-+ * whether external fragmentation or a lack of memory was the problem.
-+ * The value can be used to determine if page reclaim or compaction
-+ * should be used
-+ */
-+int __fragmentation_index(unsigned int order, struct contig_page_info *info)
-+{
-+	unsigned long requested = 1UL << order;
-+
-+	if (!info->free_blocks_total)
-+		return 0;
-+
-+	/* Fragmentation index only makes sense when a request would fail */
-+	if (info->free_blocks_suitable)
-+		return -1000;
-+
-+	/*
-+	 * Index is between 0 and 1 so return within 3 decimal places
-+	 *
-+	 * 0 => allocation would fail due to lack of memory
-+	 * 1 => allocation would fail due to fragmentation
-+	 */
-+	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
-+}
-+
- static void *frag_start(struct seq_file *m, loff_t *pos)
- {
- 	pg_data_t *pgdat;
-@@ -416,23 +456,16 @@ static void frag_stop(struct seq_file *m
- {
- }
- 
--/* Walk all the zones in a node and print using a callback */
--static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
--		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
--{
--	struct zone *zone;
--	struct zone *node_zones = pgdat->node_zones;
--	unsigned long flags;
--
--	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
--		if (!populated_zone(zone))
--			continue;
-+#ifdef CONFIG_PROC_FS
-+#include <linux/proc_fs.h>
- 
--		spin_lock_irqsave(&zone->lock, flags);
--		print(m, pgdat, zone);
--		spin_unlock_irqrestore(&zone->lock, flags);
--	}
--}
-+static char * const migratetype_names[MIGRATE_TYPES] = {
-+	"Unmovable",
-+	"Reclaimable",
-+	"Movable",
-+	"Reserve",
-+	"Isolate",
-+};
- 
- static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
- 						struct zone *zone)
-@@ -455,39 +488,6 @@ static int frag_show(struct seq_file *m,
- 	return 0;
- }
- 
--struct contig_page_info {
--	unsigned long free_pages;
--	unsigned long free_blocks_total;
--	unsigned long free_blocks_suitable;
--};
--
--/*
-- * A fragmentation index only makes sense if an allocation of a requested
-- * size would fail. If that is true, the fragmentation index indicates
-- * whether external fragmentation or a lack of memory was the problem.
-- * The value can be used to determine if page reclaim or compaction
-- * should be used
-- */
--int __fragmentation_index(unsigned int order, struct contig_page_info *info)
--{
--	unsigned long requested = 1UL << order;
--
--	if (!info->free_blocks_total)
--		return 0;
--
--	/* Fragmentation index only makes sense when a request would fail */
--	if (info->free_blocks_suitable)
--		return -1000;
--
--	/*
--	 * Index is between 0 and 1 so return within 3 decimal places
--	 *
--	 * 0 => allocation would fail due to lack of memory
--	 * 1 => allocation would fail due to fragmentation
--	 */
--	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
--}
--
- static void pagetypeinfo_showfree_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
- {
-@@ -999,7 +999,6 @@ module_init(setup_vmstat)
- 
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
--#include <linux/seq_file.h>
- 
- static struct dentry *extfrag_debug_root;
++		cc.zone = zone,
+ 		INIT_LIST_HEAD(&cc.freepages);
+ 		INIT_LIST_HEAD(&cc.migratepages);
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
 linux-next.patch
-uv_irqc-fix-all-sparse-warnings.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-usb-fix-serial-build-when-sysrq-is-disabled.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
+hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mempolicy-remove-redundant-code.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
-xen-fix-build-when-sysrq-is-disabled.patch
-documentation-submittingdrivers-resources.patch
-memcg-move-charge-of-file-pages-fix-2.patch
-memcg-update-documentation-v8.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+mm-introduce-free_pages_prepare.patch
+mm-introduce-free_pages_prepare-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
+numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
+numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
 numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
