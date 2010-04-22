@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch added to -mm tree
-Date: Thu, 22 Apr 2010 12:33:37 -0700
-Message-ID: <201004221933.o3MJXbCU003662@imap1.linux-foundation.org>
+Subject: + mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch added to -mm tree
+Date: Thu, 22 Apr 2010 12:34:00 -0700
+Message-ID: <201004221934.o3MJY0FH003689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757208Ab0DVTdy (ORCPT
+	by vger.kernel.org with ESMTP id S1756945Ab0DVTeS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:33:54 -0400
+	Thu, 22 Apr 2010 15:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, randy.dunlap@oracle.com, riel@redhat.com
 
 
 The patch titled
-     mm: allow CONFIG_MIGRATION to be set without CONFIG_NUMA or memory hot-remove
+     mm: compaction: add a tunable that decides when memory should be compacted and when it should be reclaimed
 has been added to the -mm tree.  Its filename is
-     mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+     mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: allow CONFIG_MIGRATION to be set without CONFIG_NUMA or memory hot-remove
+Subject: mm: compaction: add a tunable that decides when memory should be compacted and when it should be reclaimed
 From: Mel Gorman <mel@csn.ul.ie>
 
-CONFIG_MIGRATION currently depends on CONFIG_NUMA or on the architecture
-being able to hot-remove memory.  The main users of page migration such as
-sys_move_pages(), sys_migrate_pages() and cpuset process migration are
-only beneficial on NUMA so it makes sense.
+The kernel applies some heuristics when deciding if memory should be
+compacted or reclaimed to satisfy a high-order allocation.  One of these
+is based on the fragmentation.  If the index is below 500, memory will not
+be compacted.  This choice is arbitrary and not based on data.  To help
+optimise the system and set a sensible default for this value, this patch
+adds a sysctl extfrag_threshold.  The kernel will only compact memory if
+the fragmentation index is above the extfrag_threshold.
 
-As memory compaction will operate within a zone and is useful on both NUMA
-and non-NUMA systems, this patch allows CONFIG_MIGRATION to be set if the
-user selects CONFIG_COMPACTION as an option.
-
-[akpm@linux-foundation.org: Depend on CONFIG_HUGETLB_PAGE]
+[randy.dunlap@oracle.com: Fix build errors when proc fs is not configured]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt |   15 +++++++++++++++
+ include/linux/compaction.h  |    3 +++
+ kernel/sysctl.c             |   15 +++++++++++++++
+ mm/compaction.c             |   12 +++++++++++-
+ 4 files changed, 44 insertions(+), 1 deletion(-)
 
-diff -puN mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove mm/Kconfig
---- a/mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove
-+++ a/mm/Kconfig
-@@ -172,6 +172,16 @@ config SPLIT_PTLOCK_CPUS
- 	default "4"
+diff -puN Documentation/sysctl/vm.txt~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/Documentation/sysctl/vm.txt
+@@ -27,6 +27,7 @@ Currently, these files are in /proc/sys/
+ - dirty_ratio
+ - dirty_writeback_centisecs
+ - drop_caches
++- extfrag_threshold
+ - hugepages_treat_as_movable
+ - hugetlb_shm_group
+ - laptop_mode
+@@ -149,6 +150,20 @@ user should run `sync' first.
  
- #
-+# support for memory compaction
-+config COMPACTION
-+	bool "Allow for memory compaction"
-+	def_bool y
-+	select MIGRATION
-+	depends on EXPERIMENTAL && HUGETLB_PAGE && MMU
-+	help
-+	  Allows the compaction of memory for the allocation of huge pages.
+ ==============================================================
+ 
++extfrag_threshold
 +
-+#
- # support for page migration
- #
- config MIGRATION
-@@ -180,9 +190,11 @@ config MIGRATION
- 	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE
- 	help
- 	  Allows the migration of the physical location of pages of processes
--	  while the virtual addresses are not changed. This is useful for
--	  example on NUMA systems to put pages nearer to the processors accessing
--	  the page.
-+	  while the virtual addresses are not changed. This is useful in
-+	  two situations. The first is on NUMA systems to put pages nearer
-+	  to the processors accessing. The second is when allocating huge
-+	  pages as migration can relocate pages to satisfy a huge page
-+	  allocation instead of reclaiming.
++This parameter affects whether the kernel will compact memory or direct
++reclaim to satisfy a high-order allocation. /proc/extfrag_index shows what
++the fragmentation index for each order is in each zone in the system. Values
++tending towards 0 imply allocations would fail due to lack of memory,
++values towards 1000 imply failures are due to fragmentation and -1 implies
++that the allocation will succeed as long as watermarks are met.
++
++The kernel will not compact memory in a zone if the
++fragmentation index is <= extfrag_threshold. The default value is 500.
++
++==============================================================
++
+ hugepages_treat_as_movable
  
- config PHYS_ADDR_T_64BIT
- 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
+ This parameter is only useful when kernelcore= is specified at boot time to
+diff -puN include/linux/compaction.h~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed include/linux/compaction.h
+--- a/include/linux/compaction.h~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/include/linux/compaction.h
+@@ -15,6 +15,9 @@
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+ 			void __user *buffer, size_t *length, loff_t *ppos);
++extern int sysctl_extfrag_threshold;
++extern int sysctl_extfrag_handler(struct ctl_table *table, int write,
++			void __user *buffer, size_t *length, loff_t *ppos);
+ 
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+ extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
+diff -puN kernel/sysctl.c~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed kernel/sysctl.c
+--- a/kernel/sysctl.c~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/kernel/sysctl.c
+@@ -262,6 +262,11 @@ static int min_sched_shares_ratelimit = 
+ static int max_sched_shares_ratelimit = NSEC_PER_SEC; /* 1 second */
+ #endif
+ 
++#ifdef CONFIG_COMPACTION
++static int min_extfrag_threshold;
++static int max_extfrag_threshold = 1000;
++#endif
++
+ static struct ctl_table kern_table[] = {
+ 	{
+ 		.procname	= "sched_child_runs_first",
+@@ -1130,6 +1135,16 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0200,
+ 		.proc_handler	= sysctl_compaction_handler,
+ 	},
++	{
++		.procname	= "extfrag_threshold",
++		.data		= &sysctl_extfrag_threshold,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= sysctl_extfrag_handler,
++		.extra1		= &min_extfrag_threshold,
++		.extra2		= &max_extfrag_threshold,
++	},
++
+ #endif /* CONFIG_COMPACTION */
+ 	{
+ 		.procname	= "min_free_kbytes",
+diff -puN mm/compaction.c~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed mm/compaction.c
+--- a/mm/compaction.c~mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/mm/compaction.c
+@@ -433,6 +433,8 @@ static unsigned long compact_zone_order(
+ 	return compact_zone(zone, &cc);
+ }
+ 
++int sysctl_extfrag_threshold = 500;
++
+ /**
+  * try_to_compact_pages - Direct compact to satisfy a high-order allocation
+  * @zonelist: The zonelist used for the current allocation
+@@ -491,7 +493,7 @@ unsigned long try_to_compact_pages(struc
+ 		 * Only compact if a failure would be due to fragmentation.
+ 		 */
+ 		fragindex = fragmentation_index(zone, order);
+-		if (fragindex >= 0 && fragindex <= 500)
++		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+ 			continue;
+ 
+ 		if (fragindex == -1 && zone_watermark_ok(zone, order, watermark, 0, 0)) {
+@@ -572,6 +574,14 @@ int sysctl_compaction_handler(struct ctl
+ 	return 0;
+ }
+ 
++int sysctl_extfrag_handler(struct ctl_table *table, int write,
++			void __user *buffer, size_t *length, loff_t *ppos)
++{
++	proc_dointvec_minmax(table, write, buffer, length, ppos);
++
++	return 0;
++}
++
+ #if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
+ ssize_t sysfs_compact_node(struct sys_device *dev,
+ 			struct sysdev_attribute *attr,
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
