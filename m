@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-export-unusable-free-space-index-via-proc-unusable_index.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:13 -0700
-Message-ID: <201004221906.o3MJ6DYb002098@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-export-fragmentation-index-via-proc-extfrag_index.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:22 -0700
+Message-ID: <201004221906.o3MJ6MgL002108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754132Ab0DVTOi (ORCPT
+	by vger.kernel.org with ESMTP id S1754533Ab0DVTOi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 22 Apr 2010 15:14:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,153 +15,118 @@ To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu
 
 
 The patch titled
-     mm: export unusable free space index via /proc/unusable_index
+     mm: export fragmentation index via /proc/extfrag_index
 has been removed from the -mm tree.  Its filename was
-     mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+     mm-export-fragmentation-index-via-proc-extfrag_index.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: export unusable free space index via /proc/unusable_index
+Subject: mm: export fragmentation index via /proc/extfrag_index
 From: Mel Gorman <mel@csn.ul.ie>
 
-Unusable free space index is a measure of external fragmentation that
-takes the allocation size into account.  For the most part, the huge page
-size will be the size of interest but not necessarily so it is exported on
-a per-order and per-zone basis via /proc/unusable_index.
-
-The index is a value between 0 and 1.  It can be expressed as a percentage
-by multiplying by 100 as documented in Documentation/filesystems/proc.txt.
+Fragmentation index is a value that makes sense when an allocation of a
+given size would fail.  The index indicates whether an allocation failure
+is due to a lack of memory (values towards 0) or due to external
+fragmentation (value towards 1).  For the most part, the huge page size
+will be the size of interest but not necessarily so it is exported on a
+per-order and per-zone basis via /proc/extfrag_index
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   13 ++
- mm/vmstat.c                        |  120 +++++++++++++++++++++++++++
- 2 files changed, 132 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |   12 +++
+ mm/vmstat.c                        |   82 +++++++++++++++++++++++++++
+ 2 files changed, 94 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~mm-export-unusable-free-space-index-via-proc-unusable_index Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-export-unusable-free-space-index-via-proc-unusable_index
+diff -puN Documentation/filesystems/proc.txt~mm-export-fragmentation-index-via-proc-extfrag_index Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-export-fragmentation-index-via-proc-extfrag_index
 +++ a/Documentation/filesystems/proc.txt
-@@ -453,6 +453,7 @@ Table 1-5: Kernel info in /proc
-  sys         See chapter 2                                     
-  sysvipc     Info of SysVIPC Resources (msg, sem, shm)		(2.4)
-  tty	     Info of tty drivers
-+ unusable_index Additional page allocator information (see text)(2.5)
-  uptime      System uptime                                     
-  version     Kernel version                                    
-  video	     bttv info of video resources			(2.4)
-@@ -610,7 +611,7 @@ ZONE_DMA, 4 chunks of 2^1*PAGE_SIZE in Z
- available in ZONE_NORMAL, etc... 
- 
- More information relevant to external fragmentation can be found in
--pagetypeinfo.
-+pagetypeinfo and unusable_index
- 
- > cat /proc/pagetypeinfo
- Page block order: 9
-@@ -651,6 +652,16 @@ unless memory has been mlock()'d. Some o
+@@ -421,6 +421,7 @@ Table 1-5: Kernel info in /proc
+  filesystems Supported filesystems                             
+  driver	     Various drivers grouped here, currently rtc (2.4)
+  execdomains Execdomains, related to security			(2.4)
++ extfrag_index Additional page allocator information (see text) (2.5)
+  fb	     Frame Buffer devices				(2.4)
+  fs	     File system parameters, currently nfs/exports	(2.4)
+  ide         Directory containing info about the IDE subsystem 
+@@ -650,6 +651,17 @@ unless memory has been mlock()'d. Some o
  also be allocatable although a lot of filesystem metadata may have to be
  reclaimed to achieve this.
  
-+> cat /proc/unusable_index
-+Node 0, zone      DMA 0.000 0.000 0.000 0.001 0.005 0.013 0.021 0.037 0.037 0.101 0.230
-+Node 0, zone   Normal 0.000 0.000 0.000 0.001 0.002 0.002 0.005 0.015 0.028 0.028 0.054
++> cat /proc/extfrag_index
++Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.00
++Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.954
 +
-+The unusable free space index measures how much of the available free
-+memory cannot be used to satisfy an allocation of a given size and is a
-+value between 0 and 1. The higher the value, the more of free memory is
-+unusable and by implication, the worse the external fragmentation is. This
-+can be expressed as a percentage by multiplying by 100.
++The external fragmentation index, is only meaningful if an allocation
++would fail and indicates what the failure is due to. A value of -1 such as
++in many of the examples above states that the allocation would succeed.
++If it would fail, the value is between 0 and 1. A value tending towards
++0 implies the allocation failed due to a lack of memory. A value tending
++towards 1 implies it failed due to external fragmentation.
 +
  ..............................................................................
  
  meminfo:
-diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index mm/vmstat.c
---- a/mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index
+diff -puN mm/vmstat.c~mm-export-fragmentation-index-via-proc-extfrag_index mm/vmstat.c
+--- a/mm/vmstat.c~mm-export-fragmentation-index-via-proc-extfrag_index
 +++ a/mm/vmstat.c
-@@ -454,6 +454,106 @@ static int frag_show(struct seq_file *m,
- 	return 0;
- }
+@@ -16,6 +16,7 @@
+ #include <linux/cpu.h>
+ #include <linux/vmstat.h>
+ #include <linux/sched.h>
++#include <linux/math64.h>
  
-+
-+struct contig_page_info {
-+	unsigned long free_pages;
-+	unsigned long free_blocks_total;
-+	unsigned long free_blocks_suitable;
-+};
-+
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+@@ -460,6 +461,67 @@ struct contig_page_info {
+ 	unsigned long free_blocks_suitable;
+ };
+ 
 +/*
-+ * Calculate the number of free pages in a zone, how many contiguous
-+ * pages are free and how many are large enough to satisfy an allocation of
-+ * the target size. Note that this function makes no attempt to estimate
-+ * how many suitable free blocks there *might* be if MOVABLE pages were
-+ * migrated. Calculating that is possible, but expensive and can be
-+ * figured out from userspace
++ * A fragmentation index only makes sense if an allocation of a requested
++ * size would fail. If that is true, the fragmentation index indicates
++ * whether external fragmentation or a lack of memory was the problem.
++ * The value can be used to determine if page reclaim or compaction
++ * should be used
 + */
-+static void fill_contig_page_info(struct zone *zone,
-+				unsigned int suitable_order,
-+				struct contig_page_info *info)
++int fragmentation_index(unsigned int order, struct contig_page_info *info)
 +{
-+	unsigned int order;
++	unsigned long requested = 1UL << order;
 +
-+	info->free_pages = 0;
-+	info->free_blocks_total = 0;
-+	info->free_blocks_suitable = 0;
++	if (!info->free_blocks_total)
++		return 0;
 +
-+	for (order = 0; order < MAX_ORDER; order++) {
-+		unsigned long blocks;
-+
-+		/* Count number of free blocks */
-+		blocks = zone->free_area[order].nr_free;
-+		info->free_blocks_total += blocks;
-+
-+		/* Count free base pages */
-+		info->free_pages += blocks << order;
-+
-+		/* Count the suitable free blocks */
-+		if (order >= suitable_order)
-+			info->free_blocks_suitable += blocks <<
-+						(order - suitable_order);
-+	}
-+}
-+
-+/*
-+ * Return an index indicating how much of the available free memory is
-+ * unusable for an allocation of the requested size.
-+ */
-+static int unusable_free_index(unsigned int order,
-+				struct contig_page_info *info)
-+{
-+	/* No free memory is interpreted as all free memory is unusable */
-+	if (info->free_pages == 0)
-+		return 1000;
++	/* Fragmentation index only makes sense when a request would fail */
++	if (info->free_blocks_suitable)
++		return -1000;
 +
 +	/*
-+	 * Index should be a value between 0 and 1. Return a value to 3
-+	 * decimal places.
++	 * Index is between 0 and 1 so return within 3 decimal places
 +	 *
-+	 * 0 => no fragmentation
-+	 * 1 => high fragmentation
++	 * 0 => allocation would fail due to lack of memory
++	 * 1 => allocation would fail due to fragmentation
 +	 */
-+	return div_u64((info->free_pages - (info->free_blocks_suitable << order)) * 1000ULL, info->free_pages);
-+
++	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
 +}
 +
-+static void unusable_show_print(struct seq_file *m,
++
++static void extfrag_show_print(struct seq_file *m,
 +					pg_data_t *pgdat, struct zone *zone)
 +{
 +	unsigned int order;
 +	int index;
++
++	/* Alloc on stack as interrupts are disabled for zone walk */
 +	struct contig_page_info info;
 +
 +	seq_printf(m, "Node %d, zone %8s ",
@@ -169,7 +134,7 @@ diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_inde
 +				zone->name);
 +	for (order = 0; order < MAX_ORDER; ++order) {
 +		fill_contig_page_info(zone, order, &info);
-+		index = unusable_free_index(order, &info);
++		index = fragmentation_index(order, &info);
 +		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
 +	}
 +
@@ -177,18 +142,13 @@ diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_inde
 +}
 +
 +/*
-+ * Display unusable free space index
-+ * XXX: Could be a lot more efficient, but it's not a critical path
++ * Display fragmentation index for orders that allocations would fail for
 + */
-+static int unusable_show(struct seq_file *m, void *arg)
++static int extfrag_show(struct seq_file *m, void *arg)
 +{
 +	pg_data_t *pgdat = (pg_data_t *)arg;
 +
-+	/* check memoryless node */
-+	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
-+		return 0;
-+
-+	walk_zones_in_node(m, pgdat, unusable_show_print);
++	walk_zones_in_node(m, pgdat, extfrag_show_print);
 +
 +	return 0;
 +}
@@ -196,24 +156,24 @@ diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_inde
  static void pagetypeinfo_showfree_print(struct seq_file *m,
  					pg_data_t *pgdat, struct zone *zone)
  {
-@@ -604,6 +704,25 @@ static const struct file_operations page
+@@ -610,6 +672,25 @@ static const struct file_operations page
  	.release	= seq_release,
  };
  
-+static const struct seq_operations unusable_op = {
++static const struct seq_operations extfrag_op = {
 +	.start	= frag_start,
 +	.next	= frag_next,
 +	.stop	= frag_stop,
-+	.show	= unusable_show,
++	.show	= extfrag_show,
 +};
 +
-+static int unusable_open(struct inode *inode, struct file *file)
++static int extfrag_open(struct inode *inode, struct file *file)
 +{
-+	return seq_open(file, &unusable_op);
++	return seq_open(file, &extfrag_op);
 +}
 +
-+static const struct file_operations unusable_file_ops = {
-+	.open		= unusable_open,
++static const struct file_operations extfrag_file_ops = {
++	.open		= extfrag_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= seq_release,
@@ -222,11 +182,11 @@ diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_inde
  #ifdef CONFIG_ZONE_DMA
  #define TEXT_FOR_DMA(xx) xx "_dma",
  #else
-@@ -948,6 +1067,7 @@ static int __init setup_vmstat(void)
+@@ -954,6 +1035,7 @@ static int __init setup_vmstat(void)
  #ifdef CONFIG_PROC_FS
  	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
  	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
-+	proc_create("unusable_index", S_IRUGO, NULL, &unusable_file_ops);
++	proc_create("extfrag_index", S_IRUGO, NULL, &extfrag_file_ops);
  	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
  	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
  #endif
@@ -241,9 +201,6 @@ hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-ki
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
 mm-export-fragmentation-index-via-proc-extfrag_index.patch
 mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
 mm-move-definition-for-lru-isolation-modes-to-a-header.patch
