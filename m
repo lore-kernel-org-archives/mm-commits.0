@@ -1,240 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-export-fragmentation-index-via-proc-extfrag_index.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:22 -0700
-Message-ID: <201004221906.o3MJ6MgL002108@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:57 -0700
+Message-ID: <201004221906.o3MJ6vEf002156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754533Ab0DVTOi (ORCPT
+	by vger.kernel.org with ESMTP id S1754533Ab0DVTOj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:14:38 -0400
+	Thu, 22 Apr 2010 15:14:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@red
 
 
 The patch titled
-     mm: export fragmentation index via /proc/extfrag_index
+     mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix
 has been removed from the -mm tree.  Its filename was
-     mm-export-fragmentation-index-via-proc-extfrag_index.patch
+     mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: export fragmentation index via /proc/extfrag_index
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fragmentation index is a value that makes sense when an allocation of a
-given size would fail.  The index indicates whether an allocation failure
-is due to a lack of memory (values towards 0) or due to external
-fragmentation (value towards 1).  For the most part, the huge page size
-will be the size of interest but not necessarily so it is exported on a
-per-order and per-zone basis via /proc/extfrag_index
+Fix a hunk that fell out.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   12 +++
- mm/vmstat.c                        |   82 +++++++++++++++++++++++++++
- 2 files changed, 94 insertions(+)
+ mm/compaction.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/filesystems/proc.txt~mm-export-fragmentation-index-via-proc-extfrag_index Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-export-fragmentation-index-via-proc-extfrag_index
-+++ a/Documentation/filesystems/proc.txt
-@@ -421,6 +421,7 @@ Table 1-5: Kernel info in /proc
-  filesystems Supported filesystems                             
-  driver	     Various drivers grouped here, currently rtc (2.4)
-  execdomains Execdomains, related to security			(2.4)
-+ extfrag_index Additional page allocator information (see text) (2.5)
-  fb	     Frame Buffer devices				(2.4)
-  fs	     File system parameters, currently nfs/exports	(2.4)
-  ide         Directory containing info about the IDE subsystem 
-@@ -650,6 +651,17 @@ unless memory has been mlock()'d. Some o
- also be allocatable although a lot of filesystem metadata may have to be
- reclaimed to achieve this.
+diff -puN mm/compaction.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix
++++ a/mm/compaction.c
+@@ -524,6 +524,7 @@ static int compact_node(int nid)
+ 		struct compact_control cc = {
+ 			.nr_freepages = 0,
+ 			.nr_migratepages = 0,
++			.order = -1,
+ 		};
  
-+> cat /proc/extfrag_index
-+Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.00
-+Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.954
-+
-+The external fragmentation index, is only meaningful if an allocation
-+would fail and indicates what the failure is due to. A value of -1 such as
-+in many of the examples above states that the allocation would succeed.
-+If it would fail, the value is between 0 and 1. A value tending towards
-+0 implies the allocation failed due to a lack of memory. A value tending
-+towards 1 implies it failed due to external fragmentation.
-+
- ..............................................................................
- 
- meminfo:
-diff -puN mm/vmstat.c~mm-export-fragmentation-index-via-proc-extfrag_index mm/vmstat.c
---- a/mm/vmstat.c~mm-export-fragmentation-index-via-proc-extfrag_index
-+++ a/mm/vmstat.c
-@@ -16,6 +16,7 @@
- #include <linux/cpu.h>
- #include <linux/vmstat.h>
- #include <linux/sched.h>
-+#include <linux/math64.h>
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
-@@ -460,6 +461,67 @@ struct contig_page_info {
- 	unsigned long free_blocks_suitable;
- };
- 
-+/*
-+ * A fragmentation index only makes sense if an allocation of a requested
-+ * size would fail. If that is true, the fragmentation index indicates
-+ * whether external fragmentation or a lack of memory was the problem.
-+ * The value can be used to determine if page reclaim or compaction
-+ * should be used
-+ */
-+int fragmentation_index(unsigned int order, struct contig_page_info *info)
-+{
-+	unsigned long requested = 1UL << order;
-+
-+	if (!info->free_blocks_total)
-+		return 0;
-+
-+	/* Fragmentation index only makes sense when a request would fail */
-+	if (info->free_blocks_suitable)
-+		return -1000;
-+
-+	/*
-+	 * Index is between 0 and 1 so return within 3 decimal places
-+	 *
-+	 * 0 => allocation would fail due to lack of memory
-+	 * 1 => allocation would fail due to fragmentation
-+	 */
-+	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
-+}
-+
-+
-+static void extfrag_show_print(struct seq_file *m,
-+					pg_data_t *pgdat, struct zone *zone)
-+{
-+	unsigned int order;
-+	int index;
-+
-+	/* Alloc on stack as interrupts are disabled for zone walk */
-+	struct contig_page_info info;
-+
-+	seq_printf(m, "Node %d, zone %8s ",
-+				pgdat->node_id,
-+				zone->name);
-+	for (order = 0; order < MAX_ORDER; ++order) {
-+		fill_contig_page_info(zone, order, &info);
-+		index = fragmentation_index(order, &info);
-+		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
-+	}
-+
-+	seq_putc(m, '\n');
-+}
-+
-+/*
-+ * Display fragmentation index for orders that allocations would fail for
-+ */
-+static int extfrag_show(struct seq_file *m, void *arg)
-+{
-+	pg_data_t *pgdat = (pg_data_t *)arg;
-+
-+	walk_zones_in_node(m, pgdat, extfrag_show_print);
-+
-+	return 0;
-+}
-+
- static void pagetypeinfo_showfree_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
- {
-@@ -610,6 +672,25 @@ static const struct file_operations page
- 	.release	= seq_release,
- };
- 
-+static const struct seq_operations extfrag_op = {
-+	.start	= frag_start,
-+	.next	= frag_next,
-+	.stop	= frag_stop,
-+	.show	= extfrag_show,
-+};
-+
-+static int extfrag_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &extfrag_op);
-+}
-+
-+static const struct file_operations extfrag_file_ops = {
-+	.open		= extfrag_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
- #ifdef CONFIG_ZONE_DMA
- #define TEXT_FOR_DMA(xx) xx "_dma",
- #else
-@@ -954,6 +1035,7 @@ static int __init setup_vmstat(void)
- #ifdef CONFIG_PROC_FS
- 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
- 	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
-+	proc_create("extfrag_index", S_IRUGO, NULL, &extfrag_file_ops);
- 	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
- 	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
- #endif
+ 		zone = &pgdat->node_zones[zoneid];
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
 hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mempolicy-remove-redundant-code.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mm-export-fragmentation-index-via-proc-extfrag_index.patch
-mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
-mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
-mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages.patch
-mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
 mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
-mm-introduce-free_pages_prepare.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
 mm-introduce-free_pages_prepare-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
