@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch added to -mm tree
-Date: Thu, 22 Apr 2010 12:33:30 -0700
-Message-ID: <201004221933.o3MJXU79003650@imap1.linux-foundation.org>
+Subject: + mm-export-fragmentation-index-via-debugfs.patch added to -mm tree
+Date: Thu, 22 Apr 2010 12:33:43 -0700
+Message-ID: <201004221933.o3MJXhTX003671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757202Ab0DVTdr (ORCPT
+	by vger.kernel.org with ESMTP id S1756813Ab0DVTeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:33:47 -0400
+	Thu, 22 Apr 2010 15:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosa
 
 
 The patch titled
-     mm: migration: share the anon_vma ref counts between KSM and page migration
+     mm: export fragmentation index via debugfs
 has been added to the -mm tree.  Its filename is
-     mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+     mm-export-fragmentation-index-via-debugfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,170 +34,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: migration: share the anon_vma ref counts between KSM and page migration
+Subject: mm: export fragmentation index via debugfs
 From: Mel Gorman <mel@csn.ul.ie>
 
-For clarity of review, KSM and page migration have separate refcounts on
-the anon_vma.  While clear, this is a waste of memory.  This patch gets
-KSM and page migration to share their toys in a spirit of harmony.
+The fragmentation fragmentation index, is only meaningful if an allocation
+would fail and indicates what the failure is due to.  A value of -1 such
+as in many of the examples above states that the allocation would succeed.
+ If it would fail, the value is between 0 and 1.  A value tending towards
+0 implies the allocation failed due to a lack of memory.  A value tending
+towards 1 implies it failed due to external fragmentation.
+
+For the most part, the huge page size will be the size of interest but not
+necessarily so it is exported on a per-order and per-zo basis via
+/sys/kernel/debug/extfrag/extfrag_index
+
+> cat /sys/kernel/debug/extfrag/extfrag_index
+Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.00
+Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.954
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   50 ++++++++++++++---------------------------
- mm/ksm.c             |    4 +--
- mm/migrate.c         |    4 +--
- mm/rmap.c            |    6 +---
- 4 files changed, 24 insertions(+), 40 deletions(-)
+ mm/vmstat.c |   84 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
 
-diff -puN include/linux/rmap.h~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration include/linux/rmap.h
---- a/include/linux/rmap.h~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration
-+++ a/include/linux/rmap.h
-@@ -26,11 +26,17 @@
-  */
- struct anon_vma {
- 	spinlock_t lock;	/* Serialize access to vma list */
--#ifdef CONFIG_KSM
--	atomic_t ksm_refcount;
--#endif
--#ifdef CONFIG_MIGRATION
--	atomic_t migrate_refcount;
-+#if defined(CONFIG_KSM) || defined(CONFIG_MIGRATION)
+diff -puN mm/vmstat.c~mm-export-fragmentation-index-via-debugfs mm/vmstat.c
+--- a/mm/vmstat.c~mm-export-fragmentation-index-via-debugfs
++++ a/mm/vmstat.c
+@@ -16,6 +16,7 @@
+ #include <linux/cpu.h>
+ #include <linux/vmstat.h>
+ #include <linux/sched.h>
++#include <linux/math64.h>
+ 
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+@@ -420,6 +421,33 @@ static void fill_contig_page_info(struct
+ 						(order - suitable_order);
+ 	}
+ }
++
++/*
++ * A fragmentation index only makes sense if an allocation of a requested
++ * size would fail. If that is true, the fragmentation index indicates
++ * whether external fragmentation or a lack of memory was the problem.
++ * The value can be used to determine if page reclaim or compaction
++ * should be used
++ */
++int fragmentation_index(unsigned int order, struct contig_page_info *info)
++{
++	unsigned long requested = 1UL << order;
++
++	if (!info->free_blocks_total)
++		return 0;
++
++	/* Fragmentation index only makes sense when a request would fail */
++	if (info->free_blocks_suitable)
++		return -1000;
 +
 +	/*
-+	 * The external_refcount is taken by either KSM or page migration
-+	 * to take a reference to an anon_vma when there is no
-+	 * guarantee that the vma of page tables will exist for
-+	 * the duration of the operation. A caller that takes
-+	 * the reference is responsible for clearing up the
-+	 * anon_vma if they are the last user on release
++	 * Index is between 0 and 1 so return within 3 decimal places
++	 *
++	 * 0 => allocation would fail due to lack of memory
++	 * 1 => allocation would fail due to fragmentation
 +	 */
-+	atomic_t external_refcount;
++	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
++}
  #endif
- 	/*
- 	 * NOTE: the LSB of the head.next is set by
-@@ -64,46 +70,26 @@ struct anon_vma_chain {
+ 
+ #if defined(CONFIG_PROC_FS) || defined(CONFIG_COMPACTION)
+@@ -1087,6 +1115,58 @@ static const struct file_operations unus
+ 	.release	= seq_release,
  };
  
- #ifdef CONFIG_MMU
--#ifdef CONFIG_KSM
--static inline void ksm_refcount_init(struct anon_vma *anon_vma)
-+#if defined(CONFIG_KSM) || defined(CONFIG_MIGRATION)
-+static inline void anonvma_external_refcount_init(struct anon_vma *anon_vma)
++static void extfrag_show_print(struct seq_file *m,
++					pg_data_t *pgdat, struct zone *zone)
++{
++	unsigned int order;
++	int index;
++
++	/* Alloc on stack as interrupts are disabled for zone walk */
++	struct contig_page_info info;
++
++	seq_printf(m, "Node %d, zone %8s ",
++				pgdat->node_id,
++				zone->name);
++	for (order = 0; order < MAX_ORDER; ++order) {
++		fill_contig_page_info(zone, order, &info);
++		index = fragmentation_index(order, &info);
++		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
++	}
++
++	seq_putc(m, '\n');
++}
++
++/*
++ * Display fragmentation index for orders that allocations would fail for
++ */
++static int extfrag_show(struct seq_file *m, void *arg)
++{
++	pg_data_t *pgdat = (pg_data_t *)arg;
++
++	walk_zones_in_node(m, pgdat, extfrag_show_print);
++
++	return 0;
++}
++
++static const struct seq_operations extfrag_op = {
++	.start	= frag_start,
++	.next	= frag_next,
++	.stop	= frag_stop,
++	.show	= extfrag_show,
++};
++
++static int extfrag_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &extfrag_op);
++}
++
++static const struct file_operations extfrag_file_ops = {
++	.open		= extfrag_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
+ static int __init extfrag_debug_init(void)
  {
--	atomic_set(&anon_vma->ksm_refcount, 0);
-+	atomic_set(&anon_vma->external_refcount, 0);
- }
+ 	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
+@@ -1097,6 +1177,10 @@ static int __init extfrag_debug_init(voi
+ 			extfrag_debug_root, NULL, &unusable_file_ops))
+ 		return -ENOMEM;
  
--static inline int ksm_refcount(struct anon_vma *anon_vma)
-+static inline int anonvma_external_refcount(struct anon_vma *anon_vma)
- {
--	return atomic_read(&anon_vma->ksm_refcount);
-+	return atomic_read(&anon_vma->external_refcount);
- }
- #else
--static inline void ksm_refcount_init(struct anon_vma *anon_vma)
-+static inline void anonvma_external_refcount_init(struct anon_vma *anon_vma)
- {
- }
- 
--static inline int ksm_refcount(struct anon_vma *anon_vma)
-+static inline int anonvma_external_refcount(struct anon_vma *anon_vma)
- {
++	if (!debugfs_create_file("extfrag_index", 0444,
++			extfrag_debug_root, NULL, &extfrag_file_ops))
++		return -ENOMEM;
++
  	return 0;
- }
- #endif /* CONFIG_KSM */
--#ifdef CONFIG_MIGRATION
--static inline void migrate_refcount_init(struct anon_vma *anon_vma)
--{
--	atomic_set(&anon_vma->migrate_refcount, 0);
--}
--
--static inline int migrate_refcount(struct anon_vma *anon_vma)
--{
--	return atomic_read(&anon_vma->migrate_refcount);
--}
--#else
--static inline void migrate_refcount_init(struct anon_vma *anon_vma)
--{
--}
--
--static inline int migrate_refcount(struct anon_vma *anon_vma)
--{
--	return 0;
--}
--#endif /* CONFIG_MIGRATE */
- 
- static inline struct anon_vma *page_anon_vma(struct page *page)
- {
-diff -puN mm/ksm.c~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration mm/ksm.c
---- a/mm/ksm.c~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration
-+++ a/mm/ksm.c
-@@ -318,14 +318,14 @@ static void hold_anon_vma(struct rmap_it
- 			  struct anon_vma *anon_vma)
- {
- 	rmap_item->anon_vma = anon_vma;
--	atomic_inc(&anon_vma->ksm_refcount);
-+	atomic_inc(&anon_vma->external_refcount);
- }
- 
- static void drop_anon_vma(struct rmap_item *rmap_item)
- {
- 	struct anon_vma *anon_vma = rmap_item->anon_vma;
- 
--	if (atomic_dec_and_lock(&anon_vma->ksm_refcount, &anon_vma->lock)) {
-+	if (atomic_dec_and_lock(&anon_vma->external_refcount, &anon_vma->lock)) {
- 		int empty = list_empty(&anon_vma->head);
- 		spin_unlock(&anon_vma->lock);
- 		if (empty)
-diff -puN mm/migrate.c~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration mm/migrate.c
---- a/mm/migrate.c~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration
-+++ a/mm/migrate.c
-@@ -601,7 +601,7 @@ static int unmap_and_move(new_page_t get
- 		rcu_read_lock();
- 		rcu_locked = 1;
- 		anon_vma = page_anon_vma(page);
--		atomic_inc(&anon_vma->migrate_refcount);
-+		atomic_inc(&anon_vma->external_refcount);
- 	}
- 
- 	/*
-@@ -643,7 +643,7 @@ skip_unmap:
- rcu_unlock:
- 
- 	/* Drop an anon_vma reference if we took one */
--	if (anon_vma && atomic_dec_and_lock(&anon_vma->migrate_refcount, &anon_vma->lock)) {
-+	if (anon_vma && atomic_dec_and_lock(&anon_vma->external_refcount, &anon_vma->lock)) {
- 		int empty = list_empty(&anon_vma->head);
- 		spin_unlock(&anon_vma->lock);
- 		if (empty)
-diff -puN mm/rmap.c~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration mm/rmap.c
---- a/mm/rmap.c~mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration
-+++ a/mm/rmap.c
-@@ -250,8 +250,7 @@ static void anon_vma_unlink(struct anon_
- 	list_del(&anon_vma_chain->same_anon_vma);
- 
- 	/* We must garbage collect the anon_vma if it's empty */
--	empty = list_empty(&anon_vma->head) && !ksm_refcount(anon_vma) &&
--					!migrate_refcount(anon_vma);
-+	empty = list_empty(&anon_vma->head) && !anonvma_external_refcount(anon_vma);
- 	spin_unlock(&anon_vma->lock);
- 
- 	if (empty)
-@@ -275,8 +274,7 @@ static void anon_vma_ctor(void *data)
- 	struct anon_vma *anon_vma = data;
- 
- 	spin_lock_init(&anon_vma->lock);
--	ksm_refcount_init(anon_vma);
--	migrate_refcount_init(anon_vma);
-+	anonvma_external_refcount_init(anon_vma);
- 	INIT_LIST_HEAD(&anon_vma->head);
  }
  
 _
