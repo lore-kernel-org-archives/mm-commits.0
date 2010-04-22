@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch added to -mm tree
-Date: Thu, 22 Apr 2010 12:34:03 -0700
-Message-ID: <201004221934.o3MJY3SZ003699@imap1.linux-foundation.org>
+Subject: + drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 22 Apr 2010 13:36:52 -0700
+Message-ID: <201004222036.o3MKaqTU007822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754596Ab0DVTej (ORCPT
+	by vger.kernel.org with ESMTP id S1756225Ab0DVUiE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:34:39 -0400
+	Thu, 22 Apr 2010 16:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, dougthompson@xmission.com, joe@perches.com, mchehab@redhat.com, tim@buttersideup.com
 
 
 The patch titled
-     mm: compaction: defer compaction using an exponential backoff when compaction fails
+     drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
+     drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: defer compaction using an exponential backoff when compaction fails
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The fragmentation index may indicate that a failure is due to external
-fragmentation but after a compaction run completes, it is still possible
-for an allocation to fail.  There are two obvious reasons as to why
+WARNING: unnecessary whitespace before a quoted newline
+#199: FILE: drivers/edac/i82443bxgx_edac.c:206:
+ 			"Boundry Address=%#0x, Last = %#0x \n",
 
-  o Page migration cannot move all pages so fragmentation remains
-  o A suitable page may exist but watermarks are not met
+total: 0 errors, 1 warnings, 201 lines checked
 
-In the event of compaction followed by an allocation failure, this patch
-defers further compaction in the zone (1 << compact_defer_shift) times. 
-If the next compaction attempt also fails, compact_defer_shift is
-increased up to a maximum of 6.  If compaction succeeds, the defer
-counters are reset again.
+./patches/drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-The zone that is deferred is the first zone in the zonelist - i.e.  the
-preferred zone.  To defer compaction in the other zones, the information
-would need to be stored in the zonelist or implemented similar to the
-zonelist_cache.  This would impact the fast-paths and is not justified at
-this time.
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Tim Small <tim@buttersideup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   39 +++++++++++++++++++++++++++++++++++
- include/linux/mmzone.h     |    9 ++++++++
- mm/page_alloc.c            |    5 +++-
- 3 files changed, 52 insertions(+), 1 deletion(-)
+ drivers/edac/i82443bxgx_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compaction.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails include/linux/compaction.h
---- a/include/linux/compaction.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails
-+++ a/include/linux/compaction.h
-@@ -22,6 +22,36 @@ extern int sysctl_extfrag_handler(struct
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *mask);
-+
-+/* Do not skip compaction more than 64 times */
-+#define COMPACT_MAX_DEFER_SHIFT 6
-+
-+/*
-+ * Compaction is deferred when compaction fails to result in a page
-+ * allocation success. 1 << compact_defer_limit compactions are skipped up
-+ * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
-+ */
-+static inline void defer_compaction(struct zone *zone)
-+{
-+	zone->compact_considered = 0;
-+	zone->compact_defer_shift++;
-+
-+	if (zone->compact_defer_shift > COMPACT_MAX_DEFER_SHIFT)
-+		zone->compact_defer_shift = COMPACT_MAX_DEFER_SHIFT;
-+}
-+
-+/* Returns true if compaction should be skipped this time */
-+static inline bool compaction_deferred(struct zone *zone)
-+{
-+	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
-+
-+	/* Avoid possible overflow */
-+	if (++zone->compact_considered > defer_limit)
-+		zone->compact_considered = defer_limit;
-+
-+	return zone->compact_considered < (1UL << zone->compact_defer_shift);
-+}
-+
- #else
- static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask)
-@@ -29,6 +59,15 @@ static inline unsigned long try_to_compa
- 	return COMPACT_CONTINUE;
- }
+diff -puN drivers/edac/i82443bxgx_edac.c~drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes drivers/edac/i82443bxgx_edac.c
+--- a/drivers/edac/i82443bxgx_edac.c~drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes
++++ a/drivers/edac/i82443bxgx_edac.c
+@@ -203,7 +203,7 @@ static void i82443bxgx_init_csrows(struc
+ 		row_high_limit = ((u32) drbar << 23);
+ 		/* find the DRAM Chip Select Base address and mask */
+ 		debugf1("MC%d: %s: %s() Row=%d, "
+-			"Boundry Address=%#0x, Last = %#0x \n",
++			"Boundry Address=%#0x, Last = %#0x\n",
+ 			mci->mc_idx, __FILE__, __func__, index, row_high_limit,
+ 			row_high_limit_last);
  
-+static inline void defer_compaction(struct zone *zone)
-+{
-+}
-+
-+static inline bool compaction_deferred(struct zone *zone)
-+{
-+	return 1;
-+}
-+
- #endif /* CONFIG_COMPACTION */
- 
- #if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-diff -puN include/linux/mmzone.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails include/linux/mmzone.h
---- a/include/linux/mmzone.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails
-+++ a/include/linux/mmzone.h
-@@ -321,6 +321,15 @@ struct zone {
- 	unsigned long		*pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
- 
-+#ifdef CONFIG_COMPACTION
-+	/*
-+	 * On compaction failure, 1<<compact_defer_shift compactions
-+	 * are skipped before trying again. The number attempted since
-+	 * last failure is tracked with compact_considered.
-+	 */
-+	unsigned int		compact_considered;
-+	unsigned int		compact_defer_shift;
-+#endif
- 
- 	ZONE_PADDING(_pad1_)
- 
-diff -puN mm/page_alloc.c~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails mm/page_alloc.c
---- a/mm/page_alloc.c~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails
-+++ a/mm/page_alloc.c
-@@ -1772,7 +1772,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- {
- 	struct page *page;
- 
--	if (!order)
-+	if (!order || compaction_deferred(preferred_zone))
- 		return NULL;
- 
- 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
-@@ -1788,6 +1788,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 				alloc_flags, preferred_zone,
- 				migratetype);
- 		if (page) {
-+			preferred_zone->compact_considered = 0;
-+			preferred_zone->compact_defer_shift = 0;
- 			__count_vm_event(COMPACTSUCCESS);
- 			return page;
- 		}
-@@ -1798,6 +1800,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		 * but not enough to satisfy watermarks.
- 		 */
- 		count_vm_event(COMPACTFAIL);
-+		defer_compaction(preferred_zone);
- 
- 		cond_resched();
- 	}
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
 hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mempolicy-remove-redundant-code.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mmmigration-allow-the-migration-of-pageswapcache-pages.patch
+intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
 mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
 mm-export-unusable-free-space-index-via-debugfs.patch
-mm-export-fragmentation-index-via-debugfs.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mmcompaction-memory-compaction-core.patch
-mmcompaction-add-proc-trigger-for-memory-compaction.patch
-mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
 mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
-mm-introduce-free_pages_prepare.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
 mm-introduce-free_pages_prepare-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix.patch
+firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
