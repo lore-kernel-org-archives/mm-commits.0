@@ -1,235 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:25 -0700
-Message-ID: <201004221906.o3MJ6PTn002111@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:59 -0700
+Message-ID: <201004221906.o3MJ6xvG002160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754738Ab0DVTOj (ORCPT
+	by vger.kernel.org with ESMTP id S1753960Ab0DVTO5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:14:39 -0400
+	Thu, 22 Apr 2010 15:14:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: compaction: move extfrag_index to debugfs
+     mm: compaction: add a tunable that decides when memory should be compacted and when it should be reclaimed
 has been removed from the -mm tree.  Its filename was
-     mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+     mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: move extfrag_index to debugfs
+Subject: mm: compaction: add a tunable that decides when memory should be compacted and when it should be reclaimed
 From: Mel Gorman <mel@csn.ul.ie>
 
-extfrag_index can be worked out from userspace but for debugging and
-tuning compaction, it'd be best for all users to have the same
-information.  This patch moves extfrag_index to debugfs where it is both
-easier to configure out and remove at some future date.
-
-This is a fix to the patch "Export fragmentation index via
-/proc/extfrag_index".  When merged, it'll collide with the patch "Direct
-compact when a high-order allocation fails" but the resolution is
-relatively straight forward - preserve the fragmentation_index functions
-and delete the proc-related functions as they are now at the bottom of the
-file under ifdef CONFIG_DEBUG_FS.
+The kernel applies some heuristics when deciding if memory should be
+compacted or reclaimed to satisfy a high-order allocation.  One of these
+is based on the fragmentation.  If the index is below 500, memory will not
+be compacted.  This choice is arbitrary and not based on data.  To help
+optimise the system and set a sensible default for this value, this patch
+adds a sysctl extfrag_threshold.  The kernel will only compact memory if
+the fragmentation index is above the extfrag_threshold.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   12 --
- mm/vmstat.c                        |  110 +++++++++++++--------------
- 2 files changed, 56 insertions(+), 66 deletions(-)
+ Documentation/sysctl/vm.txt |   16 +++++++++++++++-
+ include/linux/compaction.h  |    3 +++
+ kernel/sysctl.c             |   15 +++++++++++++++
+ mm/compaction.c             |   12 +++++++++++-
+ 4 files changed, 44 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-export-fragmentation-index-via-proc-extfrag_index-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-export-fragmentation-index-via-proc-extfrag_index-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -422,7 +422,6 @@ Table 1-5: Kernel info in /proc
-  filesystems Supported filesystems                             
-  driver	     Various drivers grouped here, currently rtc (2.4)
-  execdomains Execdomains, related to security			(2.4)
-- extfrag_index Additional page allocator information (see text) (2.5)
-  fb	     Frame Buffer devices				(2.4)
-  fs	     File system parameters, currently nfs/exports	(2.4)
-  ide         Directory containing info about the IDE subsystem 
-@@ -652,17 +651,6 @@ unless memory has been mlock()'d. Some o
- also be allocatable although a lot of filesystem metadata may have to be
- reclaimed to achieve this.
+diff -puN Documentation/sysctl/vm.txt~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/Documentation/sysctl/vm.txt
+@@ -27,6 +27,7 @@ Currently, these files are in /proc/sys/
+ - dirty_ratio
+ - dirty_writeback_centisecs
+ - drop_caches
++- extfrag_threshold
+ - hugepages_treat_as_movable
+ - hugetlb_shm_group
+ - laptop_mode
+@@ -132,7 +133,6 @@ out to disk.  This tunable expresses the
+ Setting this to zero disables periodic writeback altogether.
  
--> cat /proc/extfrag_index
--Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.00
--Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 0.954
+ ==============================================================
 -
--The external fragmentation index, is only meaningful if an allocation
--would fail and indicates what the failure is due to. A value of -1 such as
--in many of the examples above states that the allocation would succeed.
--If it would fail, the value is between 0 and 1. A value tending towards
--0 implies the allocation failed due to a lack of memory. A value tending
--towards 1 implies it failed due to external fragmentation.
--
- ..............................................................................
+ drop_caches
  
- meminfo:
-diff -puN mm/vmstat.c~mm-export-fragmentation-index-via-proc-extfrag_index-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-export-fragmentation-index-via-proc-extfrag_index-fix
-+++ a/mm/vmstat.c
-@@ -523,40 +523,6 @@ int fragmentation_index(unsigned int ord
- 	return 1000 - div_u64( (1000+(div_u64(info->free_pages * 1000ULL, requested))), info->free_blocks_total);
+ Writing to this will cause the kernel to drop clean caches, dentries and
+@@ -150,6 +150,20 @@ user should run `sync' first.
+ 
+ ==============================================================
+ 
++extfrag_threshold
++
++This parameter affects whether the kernel will compact memory or direct
++reclaim to satisfy a high-order allocation. /proc/extfrag_index shows what
++the fragmentation index for each order is in each zone in the system. Values
++tending towards 0 imply allocations would fail due to lack of memory,
++values towards 1000 imply failures are due to fragmentation and -1 implies
++that the allocation will succeed as long as watermarks are met.
++
++The kernel will not compact memory in a zone if the
++fragmentation index is <= extfrag_threshold. The default value is 500.
++
++==============================================================
++
+ hugepages_treat_as_movable
+ 
+ This parameter is only useful when kernelcore= is specified at boot time to
+diff -puN include/linux/compaction.h~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/include/linux/compaction.h
+@@ -11,6 +11,9 @@
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+ 			void __user *buffer, size_t *length, loff_t *ppos);
++extern int sysctl_extfrag_threshold;
++extern int sysctl_extfrag_handler(struct ctl_table *table, int write,
++			void __user *buffer, size_t *length, loff_t *ppos);
+ 
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+ extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
+diff -puN kernel/sysctl.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/kernel/sysctl.c
+@@ -262,6 +262,11 @@ static int min_sched_shares_ratelimit = 
+ static int max_sched_shares_ratelimit = NSEC_PER_SEC; /* 1 second */
+ #endif
+ 
++#ifdef CONFIG_COMPACTION
++static int min_extfrag_threshold = 0;
++static int max_extfrag_threshold = 1000;
++#endif
++
+ static struct ctl_table kern_table[] = {
+ 	{
+ 		.procname	= "sched_child_runs_first",
+@@ -1130,6 +1135,16 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0200,
+ 		.proc_handler	= sysctl_compaction_handler,
+ 	},
++	{
++		.procname	= "extfrag_threshold",
++		.data		= &sysctl_extfrag_threshold,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= sysctl_extfrag_handler,
++		.extra1		= &min_extfrag_threshold,
++		.extra2		= &max_extfrag_threshold,
++	},
++
+ #endif /* CONFIG_COMPACTION */
+ 	{
+ 		.procname	= "min_free_kbytes",
+diff -puN mm/compaction.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
++++ a/mm/compaction.c
+@@ -418,6 +418,8 @@ static unsigned long compact_zone_order(
+ 	return compact_zone(zone, &cc);
  }
  
--
--static void extfrag_show_print(struct seq_file *m,
--					pg_data_t *pgdat, struct zone *zone)
--{
--	unsigned int order;
--	int index;
--
--	/* Alloc on stack as interrupts are disabled for zone walk */
--	struct contig_page_info info;
--
--	seq_printf(m, "Node %d, zone %8s ",
--				pgdat->node_id,
--				zone->name);
--	for (order = 0; order < MAX_ORDER; ++order) {
--		fill_contig_page_info(zone, order, &info);
--		index = fragmentation_index(order, &info);
--		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
--	}
--
--	seq_putc(m, '\n');
--}
--
--/*
-- * Display fragmentation index for orders that allocations would fail for
-- */
--static int extfrag_show(struct seq_file *m, void *arg)
--{
--	pg_data_t *pgdat = (pg_data_t *)arg;
--
--	walk_zones_in_node(m, pgdat, extfrag_show_print);
--
--	return 0;
--}
--
- static void pagetypeinfo_showfree_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
- {
-@@ -707,25 +673,6 @@ static const struct file_operations page
- 	.release	= seq_release,
- };
++int sysctl_extfrag_threshold = 500;
++
+ /**
+  * try_to_compact_pages - Direct compact to satisfy a high-order allocation
+  * @zonelist: The zonelist used for the current allocation
+@@ -476,7 +478,7 @@ unsigned long try_to_compact_pages(struc
+ 		 * Only compact if a failure would be due to fragmentation.
+ 		 */
+ 		fragindex = fragmentation_index(zone, order);
+-		if (fragindex >= 0 && fragindex <= 500)
++		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+ 			continue;
  
--static const struct seq_operations extfrag_op = {
--	.start	= frag_start,
--	.next	= frag_next,
--	.stop	= frag_stop,
--	.show	= extfrag_show,
--};
--
--static int extfrag_open(struct inode *inode, struct file *file)
--{
--	return seq_open(file, &extfrag_op);
--}
--
--static const struct file_operations extfrag_file_ops = {
--	.open		= extfrag_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= seq_release,
--};
--
- #ifdef CONFIG_ZONE_DMA
- #define TEXT_FOR_DMA(xx) xx "_dma",
- #else
-@@ -1070,7 +1017,6 @@ static int __init setup_vmstat(void)
- #ifdef CONFIG_PROC_FS
- 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
- 	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
--	proc_create("extfrag_index", S_IRUGO, NULL, &extfrag_file_ops);
- 	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
- 	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
- #endif
-@@ -1166,6 +1112,58 @@ static const struct file_operations unus
- 	.release	= seq_release,
- };
+ 		if (fragindex == -1 && zone_watermark_ok(zone, order, watermark, 0, 0)) {
+@@ -556,6 +558,14 @@ int sysctl_compaction_handler(struct ctl
+ 	return 0;
+ }
  
-+static void extfrag_show_print(struct seq_file *m,
-+					pg_data_t *pgdat, struct zone *zone)
++int sysctl_extfrag_handler(struct ctl_table *table, int write,
++			void __user *buffer, size_t *length, loff_t *ppos)
 +{
-+	unsigned int order;
-+	int index;
-+
-+	/* Alloc on stack as interrupts are disabled for zone walk */
-+	struct contig_page_info info;
-+
-+	seq_printf(m, "Node %d, zone %8s ",
-+				pgdat->node_id,
-+				zone->name);
-+	for (order = 0; order < MAX_ORDER; ++order) {
-+		fill_contig_page_info(zone, order, &info);
-+		index = fragmentation_index(order, &info);
-+		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
-+	}
-+
-+	seq_putc(m, '\n');
-+}
-+
-+/*
-+ * Display fragmentation index for orders that allocations would fail for
-+ */
-+static int extfrag_show(struct seq_file *m, void *arg)
-+{
-+	pg_data_t *pgdat = (pg_data_t *)arg;
-+
-+	walk_zones_in_node(m, pgdat, extfrag_show_print);
++	proc_dointvec_minmax(table, write, buffer, length, ppos);
 +
 +	return 0;
 +}
 +
-+static const struct seq_operations extfrag_op = {
-+	.start	= frag_start,
-+	.next	= frag_next,
-+	.stop	= frag_stop,
-+	.show	= extfrag_show,
-+};
-+
-+static int extfrag_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &extfrag_op);
-+}
-+
-+static const struct file_operations extfrag_file_ops = {
-+	.open		= extfrag_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
- static int __init extfrag_debug_init(void)
- {
- 	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
-@@ -1176,6 +1174,10 @@ static int __init extfrag_debug_init(voi
- 			extfrag_debug_root, NULL, &unusable_file_ops))
- 		return -ENOMEM;
- 
-+	if (!debugfs_create_file("extfrag_index", 0444,
-+			extfrag_debug_root, NULL, &extfrag_file_ops))
-+		return -ENOMEM;
-+
- 	return 0;
- }
- 
+ #if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
+ ssize_t sysfs_compact_node(struct sys_device *dev,
+ 			struct sysdev_attribute *attr,
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -241,18 +183,6 @@ hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-ki
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
-mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
-mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
 mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
