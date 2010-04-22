@@ -1,305 +1,350 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:16 -0700
-Message-ID: <201004221906.o3MJ6GLo002101@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:54 -0700
+Message-ID: <201004221906.o3MJ6sW7002153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754651Ab0DVTHW (ORCPT
+	by vger.kernel.org with ESMTP id S1755420Ab0DVTHl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:07:22 -0400
+	Thu, 22 Apr 2010 15:07:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: compaction: move unusable_index to debugfs
+     mm: compaction: direct compact when a high-order allocation fails
 has been removed from the -mm tree.  Its filename was
-     mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+     mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: move unusable_index to debugfs
+Subject: mm: compaction: direct compact when a high-order allocation fails
 From: Mel Gorman <mel@csn.ul.ie>
 
-unusable_index can be worked out from userspace but for debugging and
-tuning compaction, it'd be best for all users to have the same
-information.  This patch moves extfrag_index to debugfs where it is both
-easier to configure out and remove at some future date.
+Ordinarily when a high-order allocation fails, direct reclaim is entered
+to free pages to satisfy the allocation.  With this patch, it is
+determined if an allocation failed due to external fragmentation instead
+of low memory and if so, the calling process will compact until a suitable
+page is freed.  Compaction by moving pages in memory is considerably
+cheaper than paging out to disk and works where there are locked pages or
+no swap.  If compaction fails to free a page of a suitable size, then
+reclaim will still occur.
+
+Direct compaction returns as soon as possible.  As each block is
+compacted, it is checked if a suitable page has been freed and if so, it
+returns.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   13 -
- mm/vmstat.c                        |  183 +++++++++++++++------------
- 2 files changed, 105 insertions(+), 91 deletions(-)
+ include/linux/compaction.h |   20 ++++--
+ include/linux/vmstat.h     |    1 
+ mm/compaction.c            |  116 +++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c            |   31 +++++++++
+ mm/vmstat.c                |   16 ++++
+ 5 files changed, 178 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-export-unusable-free-space-index-via-proc-unusable_index-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-export-unusable-free-space-index-via-proc-unusable_index-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -453,7 +453,6 @@ Table 1-5: Kernel info in /proc
-  sys         See chapter 2                                     
-  sysvipc     Info of SysVIPC Resources (msg, sem, shm)		(2.4)
-  tty	     Info of tty drivers
-- unusable_index Additional page allocator information (see text)(2.5)
-  uptime      System uptime                                     
-  version     Kernel version                                    
-  video	     bttv info of video resources			(2.4)
-@@ -611,7 +610,7 @@ ZONE_DMA, 4 chunks of 2^1*PAGE_SIZE in Z
- available in ZONE_NORMAL, etc... 
+diff -puN include/linux/compaction.h~mm-compaction-direct-compact-when-a-high-order-allocation-fails include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-direct-compact-when-a-high-order-allocation-fails
++++ a/include/linux/compaction.h
+@@ -1,15 +1,27 @@
+ #ifndef _LINUX_COMPACTION_H
+ #define _LINUX_COMPACTION_H
  
- More information relevant to external fragmentation can be found in
--pagetypeinfo and unusable_index
-+pagetypeinfo.
+-/* Return values for compact_zone() */
+-#define COMPACT_INCOMPLETE	0
+-#define COMPACT_PARTIAL		1
+-#define COMPACT_COMPLETE	2
++/* Return values for compact_zone() and try_to_compact_pages() */
++#define COMPACT_SKIPPED		0
++#define COMPACT_INCOMPLETE	1
++#define COMPACT_PARTIAL		2
++#define COMPACT_COMPLETE	3
  
- > cat /proc/pagetypeinfo
- Page block order: 9
-@@ -652,16 +651,6 @@ unless memory has been mlock()'d. Some o
- also be allocatable although a lot of filesystem metadata may have to be
- reclaimed to achieve this.
+ #ifdef CONFIG_COMPACTION
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+ 			void __user *buffer, size_t *length, loff_t *ppos);
++
++extern int fragmentation_index(struct zone *zone, unsigned int order);
++extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
++			int order, gfp_t gfp_mask, nodemask_t *mask);
++#else
++static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
++			int order, gfp_t gfp_mask, nodemask_t *nodemask)
++{
++	return COMPACT_INCOMPLETE;
++}
++
+ #endif /* CONFIG_COMPACTION */
  
--> cat /proc/unusable_index
--Node 0, zone      DMA 0.000 0.000 0.000 0.001 0.005 0.013 0.021 0.037 0.037 0.101 0.230
--Node 0, zone   Normal 0.000 0.000 0.000 0.001 0.002 0.002 0.005 0.015 0.028 0.028 0.054
--
--The unusable free space index measures how much of the available free
--memory cannot be used to satisfy an allocation of a given size and is a
--value between 0 and 1. The higher the value, the more of free memory is
--unusable and by implication, the worse the external fragmentation is. This
--can be expressed as a percentage by multiplying by 100.
--
- ..............................................................................
+ #if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
+diff -puN include/linux/vmstat.h~mm-compaction-direct-compact-when-a-high-order-allocation-fails include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-compaction-direct-compact-when-a-high-order-allocation-fails
++++ a/include/linux/vmstat.h
+@@ -44,6 +44,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		KSWAPD_SKIP_CONGESTION_WAIT,
+ 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
+ 		COMPACTBLOCKS, COMPACTPAGES, COMPACTPAGEFAILED,
++		COMPACTSTALL, COMPACTFAIL, COMPACTSUCCESS,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
+ #endif
+diff -puN mm/compaction.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails
++++ a/mm/compaction.c
+@@ -35,6 +35,8 @@ struct compact_control {
+ 	unsigned long nr_anon;
+ 	unsigned long nr_file;
  
- meminfo:
-diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix
-+++ a/mm/vmstat.c
-@@ -454,7 +454,6 @@ static int frag_show(struct seq_file *m,
- 	return 0;
- }
++	unsigned int order;		/* order a direct compactor needs */
++	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
+ 	struct zone *zone;
+ };
  
--
- struct contig_page_info {
- 	unsigned long free_pages;
- 	unsigned long free_blocks_total;
-@@ -496,64 +495,6 @@ static void fill_contig_page_info(struct
- 	}
- }
- 
--/*
-- * Return an index indicating how much of the available free memory is
-- * unusable for an allocation of the requested size.
-- */
--static int unusable_free_index(unsigned int order,
--				struct contig_page_info *info)
--{
--	/* No free memory is interpreted as all free memory is unusable */
--	if (info->free_pages == 0)
--		return 1000;
--
--	/*
--	 * Index should be a value between 0 and 1. Return a value to 3
--	 * decimal places.
--	 *
--	 * 0 => no fragmentation
--	 * 1 => high fragmentation
--	 */
--	return div_u64((info->free_pages - (info->free_blocks_suitable << order)) * 1000ULL, info->free_pages);
--
--}
--
--static void unusable_show_print(struct seq_file *m,
--					pg_data_t *pgdat, struct zone *zone)
--{
--	unsigned int order;
--	int index;
--	struct contig_page_info info;
--
--	seq_printf(m, "Node %d, zone %8s ",
--				pgdat->node_id,
--				zone->name);
--	for (order = 0; order < MAX_ORDER; ++order) {
--		fill_contig_page_info(zone, order, &info);
--		index = unusable_free_index(order, &info);
--		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
--	}
--
--	seq_putc(m, '\n');
--}
--
--/*
-- * Display unusable free space index
-- * XXX: Could be a lot more efficient, but it's not a critical path
-- */
--static int unusable_show(struct seq_file *m, void *arg)
--{
--	pg_data_t *pgdat = (pg_data_t *)arg;
--
--	/* check memoryless node */
--	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
--		return 0;
--
--	walk_zones_in_node(m, pgdat, unusable_show_print);
--
--	return 0;
--}
--
- static void pagetypeinfo_showfree_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
+@@ -335,6 +337,9 @@ static void update_nr_listpages(struct c
+ static int compact_finished(struct zone *zone,
+ 						struct compact_control *cc)
  {
-@@ -704,25 +645,6 @@ static const struct file_operations page
++	unsigned int order;
++	unsigned long watermark = low_wmark_pages(zone) + (1 << cc->order);
++
+ 	if (fatal_signal_pending(current))
+ 		return COMPACT_PARTIAL;
+ 
+@@ -342,6 +347,24 @@ static int compact_finished(struct zone 
+ 	if (cc->free_pfn <= cc->migrate_pfn)
+ 		return COMPACT_COMPLETE;
+ 
++	/* Compaction run is not finished if the watermark is not met */
++	if (!zone_watermark_ok(zone, cc->order, watermark, 0, 0))
++		return COMPACT_INCOMPLETE;
++
++	if (cc->order == -1)
++		return COMPACT_INCOMPLETE;
++
++	/* Direct compactor: Is a suitable page free? */
++	for (order = cc->order; order < MAX_ORDER; order++) {
++		/* Job done if page is free of the right migratetype */
++		if (!list_empty(&zone->free_area[order].free_list[cc->migratetype]))
++			return COMPACT_PARTIAL;
++
++		/* Job done if allocation would set block type */
++		if (order >= pageblock_order && zone->free_area[order].nr_free)
++			return COMPACT_PARTIAL;
++	}
++
+ 	return COMPACT_INCOMPLETE;
+ }
+ 
+@@ -388,6 +411,99 @@ static int compact_zone(struct zone *zon
+ 	return ret;
+ }
+ 
++static unsigned long compact_zone_order(struct zone *zone,
++						int order, gfp_t gfp_mask)
++{
++	struct compact_control cc = {
++		.nr_freepages = 0,
++		.nr_migratepages = 0,
++		.order = order,
++		.migratetype = allocflags_to_migratetype(gfp_mask),
++		.zone = zone,
++	};
++	INIT_LIST_HEAD(&cc.freepages);
++	INIT_LIST_HEAD(&cc.migratepages);
++
++	return compact_zone(zone, &cc);
++}
++
++/**
++ * try_to_compact_pages - Direct compact to satisfy a high-order allocation
++ * @zonelist: The zonelist used for the current allocation
++ * @order: The order of the current allocation
++ * @gfp_mask: The GFP mask of the current allocation
++ * @nodemask: The allowed nodes to allocate from
++ *
++ * This is the main entry point for direct page compaction.
++ */
++unsigned long try_to_compact_pages(struct zonelist *zonelist,
++			int order, gfp_t gfp_mask, nodemask_t *nodemask)
++{
++	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
++	int may_enter_fs = gfp_mask & __GFP_FS;
++	int may_perform_io = gfp_mask & __GFP_IO;
++	unsigned long watermark;
++	struct zoneref *z;
++	struct zone *zone;
++	int rc = COMPACT_SKIPPED;
++
++	/*
++	 * Check whether it is worth even starting compaction. The order check is
++	 * made because an assumption is made that the page allocator can satisfy
++	 * the "cheaper" orders without taking special steps
++	 */
++	if (order <= PAGE_ALLOC_COSTLY_ORDER || !may_enter_fs || !may_perform_io)
++		return rc;
++
++	count_vm_event(COMPACTSTALL);
++
++	/* Compact each zone in the list */
++	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
++								nodemask) {
++		int fragindex;
++		int status;
++
++		/*
++		 * Watermarks for order-0 must be met for compaction. Note
++		 * the 2UL. This is because during migration, copies of
++		 * pages need to be allocated and for a short time, the
++		 * footprint is higher
++		 */
++		watermark = low_wmark_pages(zone) + (2UL << order);
++		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
++			continue;
++
++		/*
++		 * fragmentation index determines if allocation failures are
++		 * due to low memory or external fragmentation
++		 *
++		 * index of -1 implies allocations might succeed depending
++		 * 	on watermarks
++		 * index towards 0 implies failure is due to lack of memory
++		 * index towards 1000 implies failure is due to fragmentation
++		 *
++		 * Only compact if a failure would be due to fragmentation.
++		 */
++		fragindex = fragmentation_index(zone, order);
++		if (fragindex >= 0 && fragindex <= 500)
++			continue;
++
++		if (fragindex == -1 && zone_watermark_ok(zone, order, watermark, 0, 0)) {
++			rc = COMPACT_PARTIAL;
++			break;
++		}
++
++		status = compact_zone_order(zone, order, gfp_mask);
++		rc = max(status, rc);
++
++		if (zone_watermark_ok(zone, order, watermark, 0, 0))
++			break;
++	}
++
++	return rc;
++}
++
++
+ /* Compact all zones within a node */
+ static int compact_node(int nid)
+ {
+diff -puN mm/page_alloc.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails
++++ a/mm/page_alloc.c
+@@ -49,6 +49,7 @@
+ #include <linux/debugobjects.h>
+ #include <linux/kmemleak.h>
+ #include <linux/memory.h>
++#include <linux/compaction.h>
+ #include <trace/events/kmem.h>
+ #include <linux/ftrace_event.h>
+ 
+@@ -1768,6 +1769,36 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
+ 
+ 	cond_resched();
+ 
++	/* Try memory compaction for high-order allocations before reclaim */
++	if (order) {
++		*did_some_progress = try_to_compact_pages(zonelist,
++						order, gfp_mask, nodemask);
++		if (*did_some_progress != COMPACT_SKIPPED) {
++
++			/* Page migration frees to the PCP lists but we want merging */
++			drain_pages(get_cpu());
++			put_cpu();
++
++			page = get_page_from_freelist(gfp_mask, nodemask,
++					order, zonelist, high_zoneidx,
++					alloc_flags, preferred_zone,
++					migratetype);
++			if (page) {
++				__count_vm_event(COMPACTSUCCESS);
++				return page;
++			}
++
++			/*
++			 * It's bad if compaction run occurs and fails.
++			 * The most likely reason is that pages exist,
++			 * but not enough to satisfy watermarks.
++			 */
++			count_vm_event(COMPACTFAIL);
++
++			cond_resched();
++		}
++	}
++
+ 	/* We now go into synchronous reclaim */
+ 	cpuset_memory_pressure_bump();
+ 	p->flags |= PF_MEMALLOC;
+diff -puN mm/vmstat.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails mm/vmstat.c
+--- a/mm/vmstat.c~mm-compaction-direct-compact-when-a-high-order-allocation-fails
++++ a/mm/vmstat.c
+@@ -503,7 +503,7 @@ static void fill_contig_page_info(struct
+  * The value can be used to determine if page reclaim or compaction
+  * should be used
+  */
+-int fragmentation_index(unsigned int order, struct contig_page_info *info)
++int __fragmentation_index(unsigned int order, struct contig_page_info *info)
+ {
+ 	unsigned long requested = 1UL << order;
+ 
+@@ -766,6 +766,9 @@ static const char * const vmstat_text[] 
+ 	"compact_blocks_moved",
+ 	"compact_pages_moved",
+ 	"compact_pagemigrate_failed",
++	"compact_stall",
++	"compact_fail",
++	"compact_success",
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	"htlb_buddy_alloc_success",
+@@ -1117,6 +1120,15 @@ static const struct file_operations unus
  	.release	= seq_release,
  };
  
--static const struct seq_operations unusable_op = {
--	.start	= frag_start,
--	.next	= frag_next,
--	.stop	= frag_stop,
--	.show	= unusable_show,
--};
--
--static int unusable_open(struct inode *inode, struct file *file)
--{
--	return seq_open(file, &unusable_op);
--}
--
--static const struct file_operations unusable_file_ops = {
--	.open		= unusable_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= seq_release,
--};
--
- #ifdef CONFIG_ZONE_DMA
- #define TEXT_FOR_DMA(xx) xx "_dma",
- #else
-@@ -1067,10 +989,113 @@ static int __init setup_vmstat(void)
- #ifdef CONFIG_PROC_FS
- 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
- 	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
--	proc_create("unusable_index", S_IRUGO, NULL, &unusable_file_ops);
- 	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
- 	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
- #endif
- 	return 0;
- }
- module_init(setup_vmstat)
-+
-+#ifdef CONFIG_DEBUG_FS
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+
-+static struct dentry *extfrag_debug_root;
-+
-+/*
-+ * Return an index indicating how much of the available free memory is
-+ * unusable for an allocation of the requested size.
-+ */
-+static int unusable_free_index(unsigned int order,
-+				struct contig_page_info *info)
++/* Same as __fragmentation index but allocs contig_page_info on stack */
++int fragmentation_index(struct zone *zone, unsigned int order)
 +{
-+	/* No free memory is interpreted as all free memory is unusable */
-+	if (info->free_pages == 0)
-+		return 1000;
-+
-+	/*
-+	 * Index should be a value between 0 and 1. Return a value to 3
-+	 * decimal places.
-+	 *
-+	 * 0 => no fragmentation
-+	 * 1 => high fragmentation
-+	 */
-+	return div_u64((info->free_pages - (info->free_blocks_suitable << order)) * 1000ULL, info->free_pages);
-+
-+}
-+
-+static void unusable_show_print(struct seq_file *m,
-+					pg_data_t *pgdat, struct zone *zone)
-+{
-+	unsigned int order;
-+	int index;
 +	struct contig_page_info info;
 +
-+	seq_printf(m, "Node %d, zone %8s ",
-+				pgdat->node_id,
-+				zone->name);
-+	for (order = 0; order < MAX_ORDER; ++order) {
-+		fill_contig_page_info(zone, order, &info);
-+		index = unusable_free_index(order, &info);
-+		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
-+	}
-+
-+	seq_putc(m, '\n');
++	fill_contig_page_info(zone, order, &info);
++	return __fragmentation_index(order, &info);
 +}
 +
-+/*
-+ * Display unusable free space index
-+ *
-+ * The unusable free space index measures how much of the available free
-+ * memory cannot be used to satisfy an allocation of a given size and is a
-+ * value between 0 and 1. The higher the value, the more of free memory is
-+ * unusable and by implication, the worse the external fragmentation is. This
-+ * can be expressed as a percentage by multiplying by 100.
-+ */
-+static int unusable_show(struct seq_file *m, void *arg)
-+{
-+	pg_data_t *pgdat = (pg_data_t *)arg;
-+
-+	/* check memoryless node */
-+	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
-+		return 0;
-+
-+	walk_zones_in_node(m, pgdat, unusable_show_print);
-+
-+	return 0;
-+}
-+
-+static const struct seq_operations unusable_op = {
-+	.start	= frag_start,
-+	.next	= frag_next,
-+	.stop	= frag_stop,
-+	.show	= unusable_show,
-+};
-+
-+static int unusable_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &unusable_op);
-+}
-+
-+static const struct file_operations unusable_file_ops = {
-+	.open		= unusable_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
-+static int __init extfrag_debug_init(void)
-+{
-+	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
-+	if (!extfrag_debug_root)
-+		return -ENOMEM;
-+
-+	if (!debugfs_create_file("unusable_index", 0444,
-+			extfrag_debug_root, NULL, &unusable_file_ops))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+module_init(extfrag_debug_init);
-+#endif
+ static void extfrag_show_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -1131,7 +1143,7 @@ static void extfrag_show_print(struct se
+ 				zone->name);
+ 	for (order = 0; order < MAX_ORDER; ++order) {
+ 		fill_contig_page_info(zone, order, &info);
+-		index = fragmentation_index(order, &info);
++		index = __fragmentation_index(order, &info);
+ 		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -311,19 +356,6 @@ hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-ki
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
-mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
-mm-export-fragmentation-index-via-proc-extfrag_index.patch
-mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mm-compaction-memory-compaction-core.patch
-mm-compaction-memory-compaction-core-fix.patch
-mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
-mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
-mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
-mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
 mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
 mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
