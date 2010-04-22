@@ -1,171 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + vmware-balloon-driver-fix.patch added to -mm tree
-Date: Wed, 21 Apr 2010 18:17:12 -0700
-Message-ID: <201004220117.o3M1HCJo020880@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:10 -0700
+Message-ID: <201004221906.o3MJ6AWe002094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753304Ab0DVBRv (ORCPT
+	by vger.kernel.org with ESMTP id S1753585Ab0DVTHF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Apr 2010 21:17:51 -0400
+	Thu, 22 Apr 2010 15:07:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dtor@vmware.com, avi@redhat.com, jeremy@goop.org, mingo@elte.hu
+To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmware-balloon-driver-fix
-has been added to the -mm tree.  Its filename is
-     vmware-balloon-driver-fix.patch
+     mm: compaction: have CONFIG_COMPACTION depend on HUGETLB_PAGE instead of HUGETLBFS
+has been removed from the -mm tree.  Its filename was
+     mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmware-balloon-driver-fix
-From: Dmitry Torokhov <dtor@vmware.com>
+Subject: mm: compaction: have CONFIG_COMPACTION depend on HUGETLB_PAGE instead of HUGETLBFS
+From: Mel Gorman <mel@csn.ul.ie>
 
- - document rate allocation constants
- - do not compile statistics code when debugfs is disabled
- - fix compilation error when debugfs is disabled
+There is a strong coupling between HUGETLB_PAGE and HUGETLBFS but in theory
+there can be alternative interfaces to huge pages than HUGETLB_PAGE. This
+patch makes CONFIG_COMPACTION depend on the right thing.
 
-Signed-off-by: Dmitry Torokhov <dtor@vmware.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+This is a fix to the patch "Allow CONFIG_MIGRATION to be set without
+CONFIG_NUMA or memory hot-remove" and should be merged together.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/vmware_balloon.c |   38 ++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/vmware_balloon.c~vmware-balloon-driver-fix drivers/misc/vmware_balloon.c
---- a/drivers/misc/vmware_balloon.c~vmware-balloon-driver-fix
-+++ a/drivers/misc/vmware_balloon.c
-@@ -50,12 +50,28 @@ MODULE_ALIAS("dmi:*:svnVMware*:*");
- MODULE_ALIAS("vmware_vmmemctl");
- MODULE_LICENSE("GPL");
- 
-+/*
-+ * Various constants controlling rate of inflaint/deflating balloon,
-+ * measured in pages.
-+ */
-+
-+/*
-+ * Rate of allocating memory when there is no memory pressure
-+ * (driver performs non-sleeping allocations).
-+ */
- #define VMW_BALLOON_NOSLEEP_ALLOC_MAX	16384U
- 
-+/*
-+ * Rates of memory allocaton when guest experiences memory pressure
-+ * (driver performs sleeping allocations).
-+ */
- #define VMW_BALLOON_RATE_ALLOC_MIN	512U
- #define VMW_BALLOON_RATE_ALLOC_MAX	2048U
- #define VMW_BALLOON_RATE_ALLOC_INC	16U
- 
-+/*
-+ * Rates for releasing pages while deflating balloon.
-+ */
- #define VMW_BALLOON_RATE_FREE_MIN	512U
- #define VMW_BALLOON_RATE_FREE_MAX	16384U
- #define VMW_BALLOON_RATE_FREE_INC	16U
-@@ -85,6 +101,10 @@ MODULE_LICENSE("GPL");
- /* Maximum number of page allocations without yielding processor */
- #define VMW_BALLOON_YIELD_THRESHOLD	1024
- 
-+
-+/*
-+ * Hypervisor communication port definitions.
-+ */
- #define VMW_BALLOON_HV_PORT		0x5670
- #define VMW_BALLOON_HV_MAGIC		0x456c6d6f
- #define VMW_BALLOON_PROTOCOL_VERSION	2
-@@ -125,8 +145,7 @@ MODULE_LICENSE("GPL");
- 	__stat & -1UL;					\
- })
- 
--#define STATS_INC(stat) (stat)++
--
-+#ifdef CONFIG_DEBUG_FS
- struct vmballoon_stats {
- 	unsigned int timer;
- 
-@@ -152,6 +171,11 @@ struct vmballoon_stats {
- 	unsigned int guest_type_fail;
- };
- 
-+#define STATS_INC(stat) (stat)++
-+#else
-+#define STATS_INC(stat)
-+#endif
-+
- struct vmballoon {
- 
- 	/* list of reserved physical pages */
-@@ -174,11 +198,13 @@ struct vmballoon {
- 	/* slowdown page allocations for next few cycles */
- 	unsigned int slow_allocation_cycles;
- 
-+#ifdef CONFIG_DEBUG_FS
- 	/* statistics */
- 	struct vmballoon_stats stats;
- 
- 	/* debugfs file exporting statistics */
- 	struct dentry *dbg_entry;
-+#endif
- 
- 	struct sysinfo sysinfo;
- 
-@@ -637,7 +663,7 @@ static void vmballoon_work(struct work_s
- }
- 
- /*
-- * PROCFS Interface
-+ * DEBUGFS Interface
-  */
- #ifdef CONFIG_DEBUG_FS
- 
-@@ -727,11 +753,11 @@ static inline int vmballoon_debugfs_init
- 	return 0;
- }
- 
--static inline void vmballoon_debugfs_exit(void)
-+static inline void vmballoon_debugfs_exit(struct vmballoon *b)
- {
- }
- 
--#endif	/* CONFIG_PROC_FS */
-+#endif	/* CONFIG_DEBUG_FS */
- 
- static int __init vmballoon_init(void)
- {
-@@ -750,8 +776,6 @@ static int __init vmballoon_init(void)
- 		return -ENOMEM;
- 	}
- 
--	/* initialize global state */
--	memset(&balloon, 0, sizeof(balloon));
- 	INIT_LIST_HEAD(&balloon.pages);
- 	INIT_LIST_HEAD(&balloon.refused_pages);
+diff -puN mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix mm/Kconfig
+--- a/mm/Kconfig~mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix
++++ a/mm/Kconfig
+@@ -177,7 +177,7 @@ config COMPACTION
+ 	bool "Allow for memory compaction"
+ 	def_bool y
+ 	select MIGRATION
+-	depends on EXPERIMENTAL && HUGETLBFS && MMU
++	depends on EXPERIMENTAL && HUGETLB_PAGE && MMU
+ 	help
+ 	  Allows the compaction of memory for the allocation of huge pages.
  
 _
 
-Patches currently in -mm which might be from dtor@vmware.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-vmware-balloon-driver.patch
-vmware-balloon-driver-fix.patch
+linux-next.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
+hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mempolicy-remove-redundant-code.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
+mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
+mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
+vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages.patch
+mm-migration-allow-the-migration-of-pageswapcache-pages-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2-do-not-compact-twice.patch
+mm-compaction-do-not-display-compaction-related-stats-when-config_co-mpaction-reject-fixpatch-added-to-mm-tree.patch
+mm-introduce-free_pages_prepare.patch
+mm-introduce-free_pages_prepare-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
+numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
+numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
