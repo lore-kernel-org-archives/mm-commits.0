@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-check-for-err_ptr-from-follow_page.patch added to -mm tree
-Date: Thu, 22 Apr 2010 13:52:03 -0700
-Message-ID: <201004222052.o3MKq3nh009012@imap1.linux-foundation.org>
+Subject: + mm-document-follow_page.patch added to -mm tree
+Date: Thu, 22 Apr 2010 13:53:52 -0700
+Message-ID: <201004222053.o3MKrqDW009188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754975Ab0DVUwY (ORCPT
+	by vger.kernel.org with ESMTP id S1755600Ab0DVUyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 16:52:24 -0400
+	Thu, 22 Apr 2010 16:54:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, ieidus@redhat.com, riel@redhat.com
+Cc: hannes@cmpxchg.org, aarcange@redhat.com, error27@gmail.com, ieidus@redhat.com, riel@redhat.com
 
 
 The patch titled
-     ksm: check for ERR_PTR from follow_page()
+     mm: document follow_page()
 has been added to the -mm tree.  Its filename is
-     ksm-check-for-err_ptr-from-follow_page.patch
+     mm-document-follow_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: check for ERR_PTR from follow_page()
-From: Dan Carpenter <error27@gmail.com>
+Subject: mm: document follow_page()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-The follow_page() function can potentially return -EFAULT so I added
-checks for this.
-
-Also I silenced an uninitialized variable warning on my version of gcc
-(version 4.3.2).
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Izik Eidus <ieidus@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memory.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN mm/ksm.c~ksm-check-for-err_ptr-from-follow_page mm/ksm.c
---- a/mm/ksm.c~ksm-check-for-err_ptr-from-follow_page
-+++ a/mm/ksm.c
-@@ -365,7 +365,7 @@ static int break_ksm(struct vm_area_stru
- 	do {
- 		cond_resched();
- 		page = follow_page(vma, addr, FOLL_GET);
--		if (!page)
-+		if (IS_ERR_OR_NULL(page))
- 			break;
- 		if (PageKsm(page))
- 			ret = handle_mm_fault(vma->vm_mm, vma, addr,
-@@ -447,7 +447,7 @@ static struct page *get_mergeable_page(s
- 		goto out;
+diff -puN mm/memory.c~mm-document-follow_page mm/memory.c
+--- a/mm/memory.c~mm-document-follow_page
++++ a/mm/memory.c
+@@ -1227,8 +1227,17 @@ int zap_vma_ptes(struct vm_area_struct *
+ }
+ EXPORT_SYMBOL_GPL(zap_vma_ptes);
  
- 	page = follow_page(vma, addr, FOLL_GET);
--	if (!page)
-+	if (IS_ERR_OR_NULL(page))
- 		goto out;
- 	if (PageAnon(page)) {
- 		flush_anon_page(vma, page, addr);
-@@ -1086,7 +1086,7 @@ struct rmap_item *unstable_tree_search_i
- 		cond_resched();
- 		tree_rmap_item = rb_entry(*new, struct rmap_item, node);
- 		tree_page = get_mergeable_page(tree_rmap_item);
--		if (!tree_page)
-+		if (IS_ERR_OR_NULL(tree_page))
- 			return NULL;
- 
- 		/*
-@@ -1294,7 +1294,7 @@ next_mm:
- 			if (ksm_test_exit(mm))
- 				break;
- 			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
--			if (*page && PageAnon(*page)) {
-+			if (!IS_ERR_OR_NULL(*page) && PageAnon(*page)) {
- 				flush_anon_page(vma, *page, ksm_scan.address);
- 				flush_dcache_page(*page);
- 				rmap_item = get_next_rmap_item(slot,
-@@ -1308,7 +1308,7 @@ next_mm:
- 				up_read(&mm->mmap_sem);
- 				return rmap_item;
- 			}
--			if (*page)
-+			if (!IS_ERR_OR_NULL(*page))
- 				put_page(*page);
- 			ksm_scan.address += PAGE_SIZE;
- 			cond_resched();
-@@ -1367,7 +1367,7 @@ next_mm:
- static void ksm_do_scan(unsigned int scan_npages)
- {
- 	struct rmap_item *rmap_item;
--	struct page *page;
-+	struct page *uninitialized_var(page);
- 
- 	while (scan_npages--) {
- 		cond_resched();
+-/*
+- * Do a quick page-table lookup for a single page.
++/**
++ * follow_page - look up a page descriptor from a user-virtual address
++ * @vma: vm_area_struct mapping @address
++ * @address: virtual address to look up
++ * @flags: flags modifying lookup behaviour
++ *
++ * @flags can have FOLL_ flags set, defined in <linux/mm.h>
++ *
++ * Returns the mapped (struct page *), %NULL if no mapping exists, or
++ * an error pointer if there is a mapping to something not represented
++ * by a page descriptor (see also vm_normal_page()).
+  */
+ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+ 			unsigned int flags)
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-origin.patch
-linux-next.patch
 ksm-check-for-err_ptr-from-follow_page.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-cx231xx-improve-error-handling.patch
-backlight-backlight_device_register-return-err_ptr.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
+mincore-cleanups.patch
+mincore-break-do_mincore-into-logical-pieces.patch
+mincore-pass-ranges-as-startend-address-pairs.patch
+mincore-do-nested-page-table-walks.patch
+mm-document-follow_page.patch
 
