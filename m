@@ -1,89 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:40 -0700
-Message-ID: <201004221906.o3MJ6eJs002138@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:16 -0700
+Message-ID: <201004221906.o3MJ6GLo002101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755352Ab0DVTH0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754651Ab0DVTHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:07:26 -0400
+	Thu, 22 Apr 2010 15:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm,compaction: map free pages in the address space after they get split for compaction
+     mm: compaction: move unusable_index to debugfs
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
+     mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm,compaction: map free pages in the address space after they get split for compaction
+Subject: mm: compaction: move unusable_index to debugfs
 From: Mel Gorman <mel@csn.ul.ie>
 
-split_free_page() is a helper function which takes a free page from the
-buddy lists and splits it into order-0 pages.  It is used by memory
-compaction to build a list of destination pages.  If
-CONFIG_DEBUG_PAGEALLOC is set, a kernel paging request bug is triggered
-because split_free_page() did not call the arch-allocation hooks or map
-the page into the kernel address space.
-
-This patch does not update split_free_page() as it is called with
-interrupts held.  Instead it documents that callers of split_free_page()
-are responsible for calling the arch hooks and to map the page and fixes
-compaction.
-
-This is a fix to the patch mm-compaction-memory-compaction-core.patch.
+unusable_index can be worked out from userspace but for debugging and
+tuning compaction, it'd be best for all users to have the same
+information.  This patch moves extfrag_index to debugfs where it is both
+easier to configure out and remove at some future date.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 ++++++
- mm/page_alloc.c |    3 +++
- 2 files changed, 9 insertions(+)
+ Documentation/filesystems/proc.txt |   13 -
+ mm/vmstat.c                        |  183 +++++++++++++++------------
+ 2 files changed, 105 insertions(+), 91 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction
-+++ a/mm/compaction.c
-@@ -180,6 +180,12 @@ static void isolate_freepages(struct zon
- 	}
- 	spin_unlock_irqrestore(&zone->lock, flags);
+diff -puN Documentation/filesystems/proc.txt~mm-export-unusable-free-space-index-via-proc-unusable_index-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-export-unusable-free-space-index-via-proc-unusable_index-fix
++++ a/Documentation/filesystems/proc.txt
+@@ -453,7 +453,6 @@ Table 1-5: Kernel info in /proc
+  sys         See chapter 2                                     
+  sysvipc     Info of SysVIPC Resources (msg, sem, shm)		(2.4)
+  tty	     Info of tty drivers
+- unusable_index Additional page allocator information (see text)(2.5)
+  uptime      System uptime                                     
+  version     Kernel version                                    
+  video	     bttv info of video resources			(2.4)
+@@ -611,7 +610,7 @@ ZONE_DMA, 4 chunks of 2^1*PAGE_SIZE in Z
+ available in ZONE_NORMAL, etc... 
  
-+	/* split_free_page does not map the pages */
-+	list_for_each_entry(page, freelist, lru) {
-+		arch_alloc_page(page, 0);
-+		kernel_map_pages(page, 1, 1);
+ More information relevant to external fragmentation can be found in
+-pagetypeinfo and unusable_index
++pagetypeinfo.
+ 
+ > cat /proc/pagetypeinfo
+ Page block order: 9
+@@ -652,16 +651,6 @@ unless memory has been mlock()'d. Some o
+ also be allocatable although a lot of filesystem metadata may have to be
+ reclaimed to achieve this.
+ 
+-> cat /proc/unusable_index
+-Node 0, zone      DMA 0.000 0.000 0.000 0.001 0.005 0.013 0.021 0.037 0.037 0.101 0.230
+-Node 0, zone   Normal 0.000 0.000 0.000 0.001 0.002 0.002 0.005 0.015 0.028 0.028 0.054
+-
+-The unusable free space index measures how much of the available free
+-memory cannot be used to satisfy an allocation of a given size and is a
+-value between 0 and 1. The higher the value, the more of free memory is
+-unusable and by implication, the worse the external fragmentation is. This
+-can be expressed as a percentage by multiplying by 100.
+-
+ ..............................................................................
+ 
+ meminfo:
+diff -puN mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-export-unusable-free-space-index-via-proc-unusable_index-fix
++++ a/mm/vmstat.c
+@@ -454,7 +454,6 @@ static int frag_show(struct seq_file *m,
+ 	return 0;
+ }
+ 
+-
+ struct contig_page_info {
+ 	unsigned long free_pages;
+ 	unsigned long free_blocks_total;
+@@ -496,64 +495,6 @@ static void fill_contig_page_info(struct
+ 	}
+ }
+ 
+-/*
+- * Return an index indicating how much of the available free memory is
+- * unusable for an allocation of the requested size.
+- */
+-static int unusable_free_index(unsigned int order,
+-				struct contig_page_info *info)
+-{
+-	/* No free memory is interpreted as all free memory is unusable */
+-	if (info->free_pages == 0)
+-		return 1000;
+-
+-	/*
+-	 * Index should be a value between 0 and 1. Return a value to 3
+-	 * decimal places.
+-	 *
+-	 * 0 => no fragmentation
+-	 * 1 => high fragmentation
+-	 */
+-	return div_u64((info->free_pages - (info->free_blocks_suitable << order)) * 1000ULL, info->free_pages);
+-
+-}
+-
+-static void unusable_show_print(struct seq_file *m,
+-					pg_data_t *pgdat, struct zone *zone)
+-{
+-	unsigned int order;
+-	int index;
+-	struct contig_page_info info;
+-
+-	seq_printf(m, "Node %d, zone %8s ",
+-				pgdat->node_id,
+-				zone->name);
+-	for (order = 0; order < MAX_ORDER; ++order) {
+-		fill_contig_page_info(zone, order, &info);
+-		index = unusable_free_index(order, &info);
+-		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
+-	}
+-
+-	seq_putc(m, '\n');
+-}
+-
+-/*
+- * Display unusable free space index
+- * XXX: Could be a lot more efficient, but it's not a critical path
+- */
+-static int unusable_show(struct seq_file *m, void *arg)
+-{
+-	pg_data_t *pgdat = (pg_data_t *)arg;
+-
+-	/* check memoryless node */
+-	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
+-		return 0;
+-
+-	walk_zones_in_node(m, pgdat, unusable_show_print);
+-
+-	return 0;
+-}
+-
+ static void pagetypeinfo_showfree_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -704,25 +645,6 @@ static const struct file_operations page
+ 	.release	= seq_release,
+ };
+ 
+-static const struct seq_operations unusable_op = {
+-	.start	= frag_start,
+-	.next	= frag_next,
+-	.stop	= frag_stop,
+-	.show	= unusable_show,
+-};
+-
+-static int unusable_open(struct inode *inode, struct file *file)
+-{
+-	return seq_open(file, &unusable_op);
+-}
+-
+-static const struct file_operations unusable_file_ops = {
+-	.open		= unusable_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= seq_release,
+-};
+-
+ #ifdef CONFIG_ZONE_DMA
+ #define TEXT_FOR_DMA(xx) xx "_dma",
+ #else
+@@ -1067,10 +989,113 @@ static int __init setup_vmstat(void)
+ #ifdef CONFIG_PROC_FS
+ 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
+ 	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
+-	proc_create("unusable_index", S_IRUGO, NULL, &unusable_file_ops);
+ 	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
+ 	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
+ #endif
+ 	return 0;
+ }
+ module_init(setup_vmstat)
++
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++static struct dentry *extfrag_debug_root;
++
++/*
++ * Return an index indicating how much of the available free memory is
++ * unusable for an allocation of the requested size.
++ */
++static int unusable_free_index(unsigned int order,
++				struct contig_page_info *info)
++{
++	/* No free memory is interpreted as all free memory is unusable */
++	if (info->free_pages == 0)
++		return 1000;
++
++	/*
++	 * Index should be a value between 0 and 1. Return a value to 3
++	 * decimal places.
++	 *
++	 * 0 => no fragmentation
++	 * 1 => high fragmentation
++	 */
++	return div_u64((info->free_pages - (info->free_blocks_suitable << order)) * 1000ULL, info->free_pages);
++
++}
++
++static void unusable_show_print(struct seq_file *m,
++					pg_data_t *pgdat, struct zone *zone)
++{
++	unsigned int order;
++	int index;
++	struct contig_page_info info;
++
++	seq_printf(m, "Node %d, zone %8s ",
++				pgdat->node_id,
++				zone->name);
++	for (order = 0; order < MAX_ORDER; ++order) {
++		fill_contig_page_info(zone, order, &info);
++		index = unusable_free_index(order, &info);
++		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
 +	}
 +
- 	cc->free_pfn = high_pfn;
- 	cc->nr_freepages = nr_freepages;
- }
-diff -puN mm/page_alloc.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction
-+++ a/mm/page_alloc.c
-@@ -1210,6 +1210,9 @@ void split_page(struct page *page, unsig
- /*
-  * Similar to split_page except the page is already free. As this is only
-  * being used for migration, the migratetype of the block also changes.
-+ * As this is called with interrupts disabled, the caller is responsible
-+ * for calling arch_alloc_page() and kernel_map_page() after interrupts
-+ * are enabled.
-  */
- int split_free_page(struct page *page)
- {
++	seq_putc(m, '\n');
++}
++
++/*
++ * Display unusable free space index
++ *
++ * The unusable free space index measures how much of the available free
++ * memory cannot be used to satisfy an allocation of a given size and is a
++ * value between 0 and 1. The higher the value, the more of free memory is
++ * unusable and by implication, the worse the external fragmentation is. This
++ * can be expressed as a percentage by multiplying by 100.
++ */
++static int unusable_show(struct seq_file *m, void *arg)
++{
++	pg_data_t *pgdat = (pg_data_t *)arg;
++
++	/* check memoryless node */
++	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
++		return 0;
++
++	walk_zones_in_node(m, pgdat, unusable_show_print);
++
++	return 0;
++}
++
++static const struct seq_operations unusable_op = {
++	.start	= frag_start,
++	.next	= frag_next,
++	.stop	= frag_stop,
++	.show	= unusable_show,
++};
++
++static int unusable_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &unusable_op);
++}
++
++static const struct file_operations unusable_file_ops = {
++	.open		= unusable_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
++static int __init extfrag_debug_init(void)
++{
++	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
++	if (!extfrag_debug_root)
++		return -ENOMEM;
++
++	if (!debugfs_create_file("unusable_index", 0444,
++			extfrag_debug_root, NULL, &unusable_file_ops))
++		return -ENOMEM;
++
++	return 0;
++}
++
++module_init(extfrag_debug_init);
++#endif
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -95,6 +311,14 @@ hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-ki
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix.patch
+mm-export-unusable-free-space-index-via-proc-unusable_index-fix-fix-2.patch
+mm-export-fragmentation-index-via-proc-extfrag_index.patch
+mm-export-fragmentation-index-via-proc-extfrag_index-fix.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mm-compaction-memory-compaction-core.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
 mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
 mm-compaction-add-proc-trigger-for-memory-compaction.patch
 mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
