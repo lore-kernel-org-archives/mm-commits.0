@@ -1,177 +1,274 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:06:59 -0700
-Message-ID: <201004221906.o3MJ6xvG002160@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-memory-compaction-core-fix.patch removed from -mm tree
+Date: Thu, 22 Apr 2010 12:06:34 -0700
+Message-ID: <201004221906.o3MJ6YWt002128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753960Ab0DVTO5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753960Ab0DVTO7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:14:57 -0400
+	Thu, 22 Apr 2010 15:14:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: compaction: add a tunable that decides when memory should be compacted and when it should be reclaimed
+     mm: compaction: various fixes to the patch 'Memory compaction core'
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+     mm-compaction-memory-compaction-core-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: add a tunable that decides when memory should be compacted and when it should be reclaimed
+Subject: mm: compaction: various fixes to the patch 'Memory compaction core'
 From: Mel Gorman <mel@csn.ul.ie>
 
-The kernel applies some heuristics when deciding if memory should be
-compacted or reclaimed to satisfy a high-order allocation.  One of these
-is based on the fragmentation.  If the index is below 500, memory will not
-be compacted.  This choice is arbitrary and not based on data.  To help
-optimise the system and set a sensible default for this value, this patch
-adds a sysctl extfrag_threshold.  The kernel will only compact memory if
-the fragmentation index is above the extfrag_threshold.
+ o Use unsigned long instead of int for page counters
+ o Simplify logic in isolate_freepages_block() and isolate_migratepages()
+ o Optimise isolate_freepages_block to use a cursor
+ o Use bool instead of int for true/false
+ o Clarify some comments
+ o Improve control flow in isolate_migratepages()
+ o Add newlines for clarity
+ o Simply loop in compact_zones
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   16 +++++++++++++++-
- include/linux/compaction.h  |    3 +++
- kernel/sysctl.c             |   15 +++++++++++++++
- mm/compaction.c             |   12 +++++++++++-
- 4 files changed, 44 insertions(+), 2 deletions(-)
+ mm/compaction.c |   81 ++++++++++++++++++++++++++--------------------
+ mm/page_alloc.c |    2 -
+ 2 files changed, 47 insertions(+), 36 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
-+++ a/Documentation/sysctl/vm.txt
-@@ -27,6 +27,7 @@ Currently, these files are in /proc/sys/
- - dirty_ratio
- - dirty_writeback_centisecs
- - drop_caches
-+- extfrag_threshold
- - hugepages_treat_as_movable
- - hugetlb_shm_group
- - laptop_mode
-@@ -132,7 +133,6 @@ out to disk.  This tunable expresses the
- Setting this to zero disables periodic writeback altogether.
- 
- ==============================================================
--
- drop_caches
- 
- Writing to this will cause the kernel to drop clean caches, dentries and
-@@ -150,6 +150,20 @@ user should run `sync' first.
- 
- ==============================================================
- 
-+extfrag_threshold
-+
-+This parameter affects whether the kernel will compact memory or direct
-+reclaim to satisfy a high-order allocation. /proc/extfrag_index shows what
-+the fragmentation index for each order is in each zone in the system. Values
-+tending towards 0 imply allocations would fail due to lack of memory,
-+values towards 1000 imply failures are due to fragmentation and -1 implies
-+that the allocation will succeed as long as watermarks are met.
-+
-+The kernel will not compact memory in a zone if the
-+fragmentation index is <= extfrag_threshold. The default value is 500.
-+
-+==============================================================
-+
- hugepages_treat_as_movable
- 
- This parameter is only useful when kernelcore= is specified at boot time to
-diff -puN include/linux/compaction.h~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
-+++ a/include/linux/compaction.h
-@@ -11,6 +11,9 @@
- extern int sysctl_compact_memory;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void __user *buffer, size_t *length, loff_t *ppos);
-+extern int sysctl_extfrag_threshold;
-+extern int sysctl_extfrag_handler(struct ctl_table *table, int write,
-+			void __user *buffer, size_t *length, loff_t *ppos);
- 
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
-diff -puN kernel/sysctl.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed kernel/sysctl.c
---- a/kernel/sysctl.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
-+++ a/kernel/sysctl.c
-@@ -262,6 +262,11 @@ static int min_sched_shares_ratelimit = 
- static int max_sched_shares_ratelimit = NSEC_PER_SEC; /* 1 second */
- #endif
- 
-+#ifdef CONFIG_COMPACTION
-+static int min_extfrag_threshold = 0;
-+static int max_extfrag_threshold = 1000;
-+#endif
-+
- static struct ctl_table kern_table[] = {
- 	{
- 		.procname	= "sched_child_runs_first",
-@@ -1130,6 +1135,16 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0200,
- 		.proc_handler	= sysctl_compaction_handler,
- 	},
-+	{
-+		.procname	= "extfrag_threshold",
-+		.data		= &sysctl_extfrag_threshold,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= sysctl_extfrag_handler,
-+		.extra1		= &min_extfrag_threshold,
-+		.extra2		= &max_extfrag_threshold,
-+	},
-+
- #endif /* CONFIG_COMPACTION */
- 	{
- 		.procname	= "min_free_kbytes",
-diff -puN mm/compaction.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed mm/compaction.c
---- a/mm/compaction.c~mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed
+diff -puN mm/Kconfig~mm-compaction-memory-compaction-core-fix mm/Kconfig
+diff -puN mm/compaction.c~mm-compaction-memory-compaction-core-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-memory-compaction-core-fix
 +++ a/mm/compaction.c
-@@ -418,6 +418,8 @@ static unsigned long compact_zone_order(
- 	return compact_zone(zone, &cc);
+@@ -36,10 +36,10 @@ struct compact_control {
+ 	struct zone *zone;
+ };
+ 
+-static int release_freepages(struct list_head *freelist)
++static unsigned long release_freepages(struct list_head *freelist)
+ {
+ 	struct page *page, *next;
+-	int count = 0;
++	unsigned long count = 0;
+ 
+ 	list_for_each_entry_safe(page, next, freelist, lru) {
+ 		list_del(&page->lru);
+@@ -51,28 +51,33 @@ static int release_freepages(struct list
  }
  
-+int sysctl_extfrag_threshold = 500;
+ /* Isolate free pages onto a private freelist. Must hold zone->lock */
+-static int isolate_freepages_block(struct zone *zone,
++static unsigned long isolate_freepages_block(struct zone *zone,
+ 				unsigned long blockpfn,
+ 				struct list_head *freelist)
+ {
+ 	unsigned long zone_end_pfn, end_pfn;
+ 	int total_isolated = 0;
++	struct page *cursor;
+ 
+ 	/* Get the last PFN we should scan for free pages at */
+ 	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	end_pfn = blockpfn + pageblock_nr_pages;
+-	if (end_pfn > zone_end_pfn)
+-		end_pfn = zone_end_pfn;
++	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
+ 
+-	/* Isolate free pages. This assumes the block is valid */
++	/* Find the first usable PFN in the block to initialse page cursor */
+ 	for (; blockpfn < end_pfn; blockpfn++) {
+-		struct page *page;
++		if (pfn_valid_within(blockpfn))
++			break;
++	}
++	cursor = pfn_to_page(blockpfn);
 +
- /**
-  * try_to_compact_pages - Direct compact to satisfy a high-order allocation
-  * @zonelist: The zonelist used for the current allocation
-@@ -476,7 +478,7 @@ unsigned long try_to_compact_pages(struc
- 		 * Only compact if a failure would be due to fragmentation.
- 		 */
- 		fragindex = fragmentation_index(zone, order);
--		if (fragindex >= 0 && fragindex <= 500)
-+		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
++	/* Isolate free pages. This assumes the block is valid */
++	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
+ 		int isolated, i;
++		struct page *page = cursor;
+ 
+ 		if (!pfn_valid_within(blockpfn))
  			continue;
  
- 		if (fragindex == -1 && zone_watermark_ok(zone, order, watermark, 0, 0)) {
-@@ -556,6 +558,14 @@ int sysctl_compaction_handler(struct ctl
- 	return 0;
+-		page = pfn_to_page(blockpfn);
+ 		if (!PageBuddy(page))
+ 			continue;
+ 
+@@ -85,38 +90,40 @@ static int isolate_freepages_block(struc
+ 		}
+ 
+ 		/* If a page was split, advance to the end of it */
+-		if (isolated)
++		if (isolated) {
+ 			blockpfn += isolated - 1;
++			cursor += isolated - 1;
++		}
+ 	}
+ 
+ 	return total_isolated;
  }
  
-+int sysctl_extfrag_handler(struct ctl_table *table, int write,
-+			void __user *buffer, size_t *length, loff_t *ppos)
-+{
-+	proc_dointvec_minmax(table, write, buffer, length, ppos);
+-/* Returns 1 if the page is within a block suitable for migration to */
+-static int suitable_migration_target(struct page *page)
++/* Returns true if the page is within a block suitable for migration to */
++static bool suitable_migration_target(struct page *page)
+ {
+ 
+ 	int migratetype = get_pageblock_migratetype(page);
+ 
+ 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
+ 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
+-		return 0;
++		return false;
+ 
+ 	/* If the page is a large free page, then allow migration */
+ 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+-		return 1;
++		return true;
+ 
+ 	/* If the block is MIGRATE_MOVABLE, allow migration */
+ 	if (migratetype == MIGRATE_MOVABLE)
+-		return 1;
++		return true;
+ 
+ 	/* Otherwise skip the block */
+-	return 0;
++	return false;
+ }
+ 
+ /*
+  * Based on information in the current compact_control, find blocks
+- * suitable for isolating free pages from
++ * suitable for isolating free pages from and then isolate them.
+  */
+ static void isolate_freepages(struct zone *zone,
+ 				struct compact_control *cc)
+@@ -139,7 +146,7 @@ static void isolate_freepages(struct zon
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
+ 					pfn -= pageblock_nr_pages) {
+-		int isolated;
++		unsigned long isolated;
+ 
+ 		if (!pfn_valid(pfn))
+ 			continue;
+@@ -195,7 +202,7 @@ static void acct_isolated(struct zone *z
+ }
+ 
+ /* Similar to reclaim, but different enough that they don't share logic */
+-static int too_many_isolated(struct zone *zone)
++static bool too_many_isolated(struct zone *zone)
+ {
+ 
+ 	unsigned long inactive, isolated;
+@@ -216,16 +223,12 @@ static unsigned long isolate_migratepage
+ 					struct compact_control *cc)
+ {
+ 	unsigned long low_pfn, end_pfn;
+-	struct list_head *migratelist;
+-
+-	low_pfn = cc->migrate_pfn;
+-	migratelist = &cc->migratepages;
++	struct list_head *migratelist = &cc->migratepages;
+ 
+ 	/* Do not scan outside zone boundaries */
+-	if (low_pfn < zone->zone_start_pfn)
+-		low_pfn = zone->zone_start_pfn;
++	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+ 
+-	/* Setup to scan one block but not past where we are migrating to */
++	/* Only scan within a pageblock boundary */
+ 	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+ 
+ 	/* Do not cross the free scanner or scan within a memory hole */
+@@ -234,7 +237,11 @@ static unsigned long isolate_migratepage
+ 		return 0;
+ 	}
+ 
+-	/* Do not isolate the world */
++	/*
++	 * Ensure that there are not too many pages isolated from the LRU
++	 * list by either parallel reclaimers or compaction. If there are,
++	 * delay for some time until fewer pages are isolated
++	 */
+ 	while (unlikely(too_many_isolated(zone))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+@@ -257,12 +264,14 @@ static unsigned long isolate_migratepage
+ 		}
+ 
+ 		/* Try isolate the page */
+-		if (__isolate_lru_page(page, ISOLATE_BOTH, 0) == 0) {
+-			del_page_from_lru_list(zone, page, page_lru(page));
+-			list_add(&page->lru, migratelist);
+-			mem_cgroup_del_lru(page);
+-			cc->nr_migratepages++;
+-		}
++		if (__isolate_lru_page(page, ISOLATE_BOTH, 0) != 0)
++			continue;
 +
-+	return 0;
-+}
++		/* Successfully isolated */
++		del_page_from_lru_list(zone, page, page_lru(page));
++		list_add(&page->lru, migratelist);
++		mem_cgroup_del_lru(page);
++		cc->nr_migratepages++;
+ 
+ 		/* Avoid isolating too much */
+ 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
+@@ -313,6 +322,7 @@ static void update_nr_listpages(struct c
+ 	int nr_migratepages = 0;
+ 	int nr_freepages = 0;
+ 	struct page *page;
 +
- #if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
- ssize_t sysfs_compact_node(struct sys_device *dev,
- 			struct sysdev_attribute *attr,
+ 	list_for_each_entry(page, &cc->migratepages, lru)
+ 		nr_migratepages++;
+ 	list_for_each_entry(page, &cc->freepages, lru)
+@@ -337,7 +347,7 @@ static inline int compact_finished(struc
+ 
+ static int compact_zone(struct zone *zone, struct compact_control *cc)
+ {
+-	int ret = COMPACT_INCOMPLETE;
++	int ret;
+ 
+ 	/* Setup to move all movable pages to the end of the zone */
+ 	cc->migrate_pfn = zone->zone_start_pfn;
+@@ -346,8 +356,9 @@ static int compact_zone(struct zone *zon
+ 
+ 	migrate_prep();
+ 
+-	for (; ret == COMPACT_INCOMPLETE; ret = compact_finished(zone, cc)) {
++	while ((ret = compact_finished(zone, cc)) == COMPACT_INCOMPLETE) {
+ 		unsigned long nr_migrate, nr_remaining;
++
+ 		if (!isolate_migratepages(zone, cc))
+ 			continue;
+ 
+diff -puN mm/page_alloc.c~mm-compaction-memory-compaction-core-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-memory-compaction-core-fix
++++ a/mm/page_alloc.c
+@@ -1222,7 +1222,7 @@ int split_free_page(struct page *page)
+ 	zone = page_zone(page);
+ 	order = page_order(page);
+ 
+-	/* Obey watermarks or the system could deadlock */
++	/* Obey watermarks as if the page was being allocated */
+ 	watermark = low_wmark_pages(zone) + (1 << order);
+ 	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -183,6 +280,15 @@ hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-ki
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
 mempolicy-remove-redundant-code.patch
 mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mm-compaction-memory-compaction-core-fix.patch
+mm-compaction-memory-compaction-core-fix-page-buddy-can-go-away-before-reading-page_order-while-isolating-pages-for-migration.patch
+mm-compaction-memory-compaction-core-map-free-pages-in-the-address-space-after-they-get-split-for-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix.patch
+mm-compaction-add-proc-trigger-for-memory-compaction-fix-fix.patch
+mm-compaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails.patch
+mm-compaction-direct-compact-when-a-high-order-allocation-fails-reject-fix.patch
 mm-compaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled.patch
 vmstat-fix-build-errors-when-proc_fs-is-disabled-checkpatch-fixes.patch
