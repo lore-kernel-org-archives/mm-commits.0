@@ -1,127 +1,363 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch removed from -mm tree
-Date: Thu, 22 Apr 2010 12:07:16 -0700
-Message-ID: <201004221907.o3MJ7GcU002187@imap1.linux-foundation.org>
+Subject: + mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch added to -mm tree
+Date: Thu, 22 Apr 2010 12:33:28 -0700
+Message-ID: <201004221933.o3MJXSOG003647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754651Ab0DVTPA (ORCPT
+	by vger.kernel.org with ESMTP id S1756981Ab0DVTds (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:15:00 -0400
+	Thu, 22 Apr 2010 15:33:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@red
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
-has been removed from the -mm tree.  Its filename was
-     mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
+     mm: migration: take a reference to the anon_vma before migrating
+has been added to the -mm tree.  Its filename is
+     mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: migration: take a reference to the anon_vma before migrating
+From: Mel Gorman <mel@csn.ul.ie>
 
-mm/page_alloc.c: In function '__alloc_pages_direct_compact':
-mm/page_alloc.c:1797: error: implicit declaration of function 'defer_compaction'
+This patchset is a memory compaction mechanism that reduces external
+fragmentation memory by moving GFP_MOVABLE pages to a fewer number of
+pageblocks.  The term "compaction" was chosen as there are is a number of
+mechanisms that are not mutually exclusive that can be used to defragment
+memory.  For example, lumpy reclaim is a form of defragmentation as was
+slub "defragmentation" (really a form of targeted reclaim).  Hence, this
+is called "compaction" to distinguish it from other forms of
+defragmentation.
 
-blah.
+In this implementation, a full compaction run involves two scanners
+operating within a zone - a migration and a free scanner.  The migration
+scanner starts at the beginning of a zone and finds all movable pages
+within one pageblock_nr_pages-sized area and isolates them on a
+migratepages list.  The free scanner begins at the end of the zone and
+searches on a per-area basis for enough free pages to migrate all the
+pages on the migratepages list.  As each area is respectively migrated or
+exhausted of free pages, the scanners are advanced one area.  A compaction
+run completes within a zone when the two scanners meet.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+This method is a bit primitive but is easy to understand and greater
+sophistication would require maintenance of counters on a per-pageblock
+basis.  This would have a big impact on allocator fast-paths to improve
+compaction which is a poor trade-off.
+
+It also does not try relocate virtually contiguous pages to be physically
+contiguous.  However, assuming transparent hugepages were in use, a
+hypothetical khugepaged might reuse compaction code to isolate free pages,
+split them and relocate userspace pages for promotion.
+
+Memory compaction can be triggered in one of three ways.  It may be
+triggered explicitly by writing any value to /proc/sys/vm/compact_memory
+and compacting all of memory.  It can be triggered on a per-node basis by
+writing any value to /sys/devices/system/node/nodeN/compact where N is the
+node ID to be compacted.  When a process fails to allocate a high-order
+page, it may compact memory in an attempt to satisfy the allocation
+instead of entering direct reclaim.  Explicit compaction does not finish
+until the two scanners meet and direct compaction ends if a suitable page
+becomes available that would meet watermarks.
+
+The series is in 14 patches.  The first three are not "core" to the series
+but are important pre-requisites.
+
+Patch 1 reference counts anon_vma for rmap_walk_anon(). Without this
+	patch, it's possible to use anon_vma after free if the caller is
+	not holding a VMA or mmap_sem for the pages in question. While
+	there should be no existing user that causes this problem,
+	it's a requirement for memory compaction to be stable. The patch
+	is at the start of the series for bisection reasons.
+Patch 2 merges the KSM and migrate counts. It could be merged with patch 1
+	but would be slightly harder to review.
+Patch 3 skips over unmapped anon pages during migration as there are no
+	guarantees about the anon_vma existing. There is a window between
+	when a page was isolated and migration started during which anon_vma
+	could disappear.
+Patch 4 notes that PageSwapCache pages can still be migrated even if they
+	are unmapped.
+Patch 5 allows CONFIG_MIGRATION to be set without CONFIG_NUMA
+Patch 6 exports a "unusable free space index" via debugfs. It's
+	a measure of external fragmentation that takes the size of the
+	allocation request into account. It can also be calculated from
+	userspace so can be dropped if requested
+Patch 7 exports a "fragmentation index" which only has meaning when an
+	allocation request fails. It determines if an allocation failure
+	would be due to a lack of memory or external fragmentation.
+Patch 8 moves the definition for LRU isolation modes for use by compaction
+Patch 9 is the compaction mechanism although it's unreachable at this point
+Patch 10 adds a means of compacting all of memory with a proc trgger
+Patch 11 adds a means of compacting a specific node with a sysfs trigger
+Patch 12 adds "direct compaction" before "direct reclaim" if it is
+	determined there is a good chance of success.
+Patch 13 adds a sysctl that allows tuning of the threshold at which the
+	kernel will compact or direct reclaim
+Patch 14 temporarily disables compaction if an allocation failure occurs
+	after compaction.
+
+Testing of compaction was in three stages.  For the test, debugging,
+preempt, the sleep watchdog and lockdep were all enabled but nothing nasty
+popped out.  min_free_kbytes was tuned as recommended by hugeadm to help
+fragmentation avoidance and high-order allocations.  It was tested on X86,
+X86-64 and PPC64.
+
+Ths first test represents one of the easiest cases that can be faced for
+lumpy reclaim or memory compaction.
+
+1. Machine freshly booted and configured for hugepage usage with
+	a) hugeadm --create-global-mounts
+	b) hugeadm --pool-pages-max DEFAULT:8G
+	c) hugeadm --set-recommended-min_free_kbytes
+	d) hugeadm --set-recommended-shmmax
+
+	The min_free_kbytes here is important. Anti-fragmentation works best
+	when pageblocks don't mix. hugeadm knows how to calculate a value that
+	will significantly reduce the worst of external-fragmentation-related
+	events as reported by the mm_page_alloc_extfrag tracepoint.
+
+2. Load up memory
+	a) Start updatedb
+	b) Create in parallel a X files of pagesize*128 in size. Wait
+	   until files are created. By parallel, I mean that 4096 instances
+	   of dd were launched, one after the other using &. The crude
+	   objective being to mix filesystem metadata allocations with
+	   the buffer cache.
+	c) Delete every second file so that pageblocks are likely to
+	   have holes
+	d) kill updatedb if it's still running
+
+	At this point, the system is quiet, memory is full but it's full with
+	clean filesystem metadata and clean buffer cache that is unmapped.
+	This is readily migrated or discarded so you'd expect lumpy reclaim
+	to have no significant advantage over compaction but this is at
+	the POC stage.
+
+3. In increments, attempt to allocate 5% of memory as hugepages.
+	   Measure how long it took, how successful it was, how many
+	   direct reclaims took place and how how many compactions. Note
+	   the compaction figures might not fully add up as compactions
+	   can take place for orders other than the hugepage size
+
+X86				vanilla		compaction
+Final page count                    913                916 (attempted 1002)
+pages reclaimed                   68296               9791
+
+X86-64				vanilla		compaction
+Final page count:                   901                902 (attempted 1002)
+Total pages reclaimed:           112599              53234
+
+PPC64				vanilla		compaction
+Final page count:                    93                 94 (attempted 110)
+Total pages reclaimed:           103216              61838
+
+There was not a dramatic improvement in success rates but it wouldn't be
+expected in this case either.  What was important is that fewer pages were
+reclaimed in all cases reducing the amount of IO required to satisfy a
+huge page allocation.
+
+The second tests were all performance related - kernbench, netperf, iozone
+and sysbench.  None showed anything too remarkable.
+
+The last test was a high-order allocation stress test.  Many kernel
+compiles are started to fill memory with a pressured mix of unmovable and
+movable allocations.  During this, an attempt is made to allocate 90% of
+memory as huge pages - one at a time with small delays between attempts to
+avoid flooding the IO queue.
+
+                                             vanilla   compaction
+Percentage of request allocated X86               98           99
+Percentage of request allocated X86-64            95           98
+Percentage of request allocated PPC64             55           70
+
+
+
+This patch:
+
+rmap_walk_anon() does not use page_lock_anon_vma() for looking up and
+locking an anon_vma and it does not appear to have sufficient locking to
+ensure the anon_vma does not disappear from under it.
+
+This patch copies an approach used by KSM to take a reference on the
+anon_vma while pages are being migrated.  This should prevent rmap_walk()
+running into nasty surprises later because anon_vma has been freed.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/rmap.h |   23 +++++++++++++++++++++++
+ mm/migrate.c         |   12 ++++++++++++
+ mm/rmap.c            |   10 +++++-----
+ 3 files changed, 40 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix
-+++ a/mm/page_alloc.c
-@@ -1793,9 +1793,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		 */
- 		count_vm_event(COMPACTFAIL);
+diff -puN include/linux/rmap.h~mmmigration-take-a-reference-to-the-anon_vma-before-migrating include/linux/rmap.h
+--- a/include/linux/rmap.h~mmmigration-take-a-reference-to-the-anon_vma-before-migrating
++++ a/include/linux/rmap.h
+@@ -29,6 +29,9 @@ struct anon_vma {
+ #ifdef CONFIG_KSM
+ 	atomic_t ksm_refcount;
+ #endif
++#ifdef CONFIG_MIGRATION
++	atomic_t migrate_refcount;
++#endif
+ 	/*
+ 	 * NOTE: the LSB of the head.next is set by
+ 	 * mm_take_all_locks() _after_ taking the above lock. So the
+@@ -81,6 +84,26 @@ static inline int ksm_refcount(struct an
+ 	return 0;
+ }
+ #endif /* CONFIG_KSM */
++#ifdef CONFIG_MIGRATION
++static inline void migrate_refcount_init(struct anon_vma *anon_vma)
++{
++	atomic_set(&anon_vma->migrate_refcount, 0);
++}
++
++static inline int migrate_refcount(struct anon_vma *anon_vma)
++{
++	return atomic_read(&anon_vma->migrate_refcount);
++}
++#else
++static inline void migrate_refcount_init(struct anon_vma *anon_vma)
++{
++}
++
++static inline int migrate_refcount(struct anon_vma *anon_vma)
++{
++	return 0;
++}
++#endif /* CONFIG_MIGRATE */
  
--		/* On failure, avoid compaction for a short time. */
--		defer_compaction(preferred_zone, jiffies + HZ/50);
--
- 		cond_resched();
+ static inline struct anon_vma *page_anon_vma(struct page *page)
+ {
+diff -puN mm/migrate.c~mmmigration-take-a-reference-to-the-anon_vma-before-migrating mm/migrate.c
+--- a/mm/migrate.c~mmmigration-take-a-reference-to-the-anon_vma-before-migrating
++++ a/mm/migrate.c
+@@ -543,6 +543,7 @@ static int unmap_and_move(new_page_t get
+ 	int rcu_locked = 0;
+ 	int charge = 0;
+ 	struct mem_cgroup *mem = NULL;
++	struct anon_vma *anon_vma = NULL;
+ 
+ 	if (!newpage)
+ 		return -ENOMEM;
+@@ -599,6 +600,8 @@ static int unmap_and_move(new_page_t get
+ 	if (PageAnon(page)) {
+ 		rcu_read_lock();
+ 		rcu_locked = 1;
++		anon_vma = page_anon_vma(page);
++		atomic_inc(&anon_vma->migrate_refcount);
  	}
  
+ 	/*
+@@ -638,6 +641,15 @@ skip_unmap:
+ 	if (rc)
+ 		remove_migration_ptes(page, page);
+ rcu_unlock:
++
++	/* Drop an anon_vma reference if we took one */
++	if (anon_vma && atomic_dec_and_lock(&anon_vma->migrate_refcount, &anon_vma->lock)) {
++		int empty = list_empty(&anon_vma->head);
++		spin_unlock(&anon_vma->lock);
++		if (empty)
++			anon_vma_free(anon_vma);
++	}
++
+ 	if (rcu_locked)
+ 		rcu_read_unlock();
+ uncharge:
+diff -puN mm/rmap.c~mmmigration-take-a-reference-to-the-anon_vma-before-migrating mm/rmap.c
+--- a/mm/rmap.c~mmmigration-take-a-reference-to-the-anon_vma-before-migrating
++++ a/mm/rmap.c
+@@ -250,7 +250,8 @@ static void anon_vma_unlink(struct anon_
+ 	list_del(&anon_vma_chain->same_anon_vma);
+ 
+ 	/* We must garbage collect the anon_vma if it's empty */
+-	empty = list_empty(&anon_vma->head) && !ksm_refcount(anon_vma);
++	empty = list_empty(&anon_vma->head) && !ksm_refcount(anon_vma) &&
++					!migrate_refcount(anon_vma);
+ 	spin_unlock(&anon_vma->lock);
+ 
+ 	if (empty)
+@@ -275,6 +276,7 @@ static void anon_vma_ctor(void *data)
+ 
+ 	spin_lock_init(&anon_vma->lock);
+ 	ksm_refcount_init(anon_vma);
++	migrate_refcount_init(anon_vma);
+ 	INIT_LIST_HEAD(&anon_vma->head);
+ }
+ 
+@@ -1356,10 +1358,8 @@ static int rmap_walk_anon(struct page *p
+ 	/*
+ 	 * Note: remove_migration_ptes() cannot use page_lock_anon_vma()
+ 	 * because that depends on page_mapped(); but not all its usages
+-	 * are holding mmap_sem, which also gave the necessary guarantee
+-	 * (that this anon_vma's slab has not already been destroyed).
+-	 * This needs to be reviewed later: avoiding page_lock_anon_vma()
+-	 * is risky, and currently limits the usefulness of rmap_walk().
++	 * are holding mmap_sem. Users without mmap_sem are required to
++	 * take a reference count to prevent the anon_vma disappearing
+ 	 */
+ 	anon_vma = page_anon_vma(page);
+ 	if (!anon_vma)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
 hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-jfs-free-sbi-memory-in-error-path.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix.patch
-mm-compaction-do-not-display-compaction-related-stats-when-config_compaction-fix-fix-2.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
+hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mempolicy-remove-redundant-code.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mmmigration-allow-the-migration-of-pageswapcache-pages.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mm-export-fragmentation-index-via-debugfs.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mmcompaction-memory-compaction-core.patch
+mmcompaction-add-proc-trigger-for-memory-compaction.patch
+mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
+mm-introduce-free_pages_prepare.patch
 mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
+numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
+numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
