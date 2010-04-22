@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch added to -mm tree
-Date: Thu, 22 Apr 2010 12:33:54 -0700
-Message-ID: <201004221933.o3MJXs1o003683@imap1.linux-foundation.org>
+Subject: + mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch added to -mm tree
+Date: Thu, 22 Apr 2010 12:34:03 -0700
+Message-ID: <201004221934.o3MJY3SZ003699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757223Ab0DVTeJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754596Ab0DVTej (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:34:09 -0400
+	Thu, 22 Apr 2010 15:34:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosa
 
 
 The patch titled
-     mm: compaction: add /sys trigger for per-node memory compaction
+     mm: compaction: defer compaction using an exponential backoff when compaction fails
 has been added to the -mm tree.  Its filename is
-     mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
+     mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: add /sys trigger for per-node memory compaction
+Subject: mm: compaction: defer compaction using an exponential backoff when compaction fails
 From: Mel Gorman <mel@csn.ul.ie>
 
-Add a per-node sysfs file called compact.  When the file is written to,
-each zone in that node is compacted.  The intention that this would be
-used by something like a job scheduler in a batch system before a job
-starts so that the job can allocate the maximum number of hugepages
-without significant start-up cost.
+The fragmentation index may indicate that a failure is due to external
+fragmentation but after a compaction run completes, it is still possible
+for an allocation to fail.  There are two obvious reasons as to why
+
+  o Page migration cannot move all pages so fragmentation remains
+  o A suitable page may exist but watermarks are not met
+
+In the event of compaction followed by an allocation failure, this patch
+defers further compaction in the zone (1 << compact_defer_shift) times. 
+If the next compaction attempt also fails, compact_defer_shift is
+increased up to a maximum of 6.  If compaction succeeds, the defer
+counters are reset again.
+
+The zone that is deferred is the first zone in the zonelist - i.e.  the
+preferred zone.  To defer compaction in the other zones, the information
+would need to be stored in the zonelist or implemented similar to the
+zonelist_cache.  This would impact the fast-paths and is not justified at
+this time.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-devices-node |    7 +++++
- drivers/base/node.c                          |    3 ++
- include/linux/compaction.h                   |   16 +++++++++++
- mm/compaction.c                              |   23 +++++++++++++++++
- 4 files changed, 49 insertions(+)
+ include/linux/compaction.h |   39 +++++++++++++++++++++++++++++++++++
+ include/linux/mmzone.h     |    9 ++++++++
+ mm/page_alloc.c            |    5 +++-
+ 3 files changed, 52 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-node
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-devices-node
-@@ -0,0 +1,7 @@
-+What:		/sys/devices/system/node/nodeX/compact
-+Date:		February 2010
-+Contact:	Mel Gorman <mel@csn.ul.ie>
-+Description:
-+		When this file is written to, all memory within that node
-+		will be compacted. When it completes, memory will be freed
-+		into blocks which have as many contiguous pages as possible
-diff -puN drivers/base/node.c~mmcompaction-add-sys-trigger-for-per-node-memory-compaction drivers/base/node.c
---- a/drivers/base/node.c~mmcompaction-add-sys-trigger-for-per-node-memory-compaction
-+++ a/drivers/base/node.c
-@@ -9,6 +9,7 @@
- #include <linux/memory.h>
- #include <linux/node.h>
- #include <linux/hugetlb.h>
-+#include <linux/compaction.h>
- #include <linux/cpumask.h>
- #include <linux/topology.h>
- #include <linux/nodemask.h>
-@@ -246,6 +247,8 @@ int register_node(struct node *node, int
- 		scan_unevictable_register_node(node);
- 
- 		hugetlb_register_node(node);
-+
-+		compaction_register_node(node);
- 	}
- 	return error;
- }
-diff -puN include/linux/compaction.h~mmcompaction-add-sys-trigger-for-per-node-memory-compaction include/linux/compaction.h
---- a/include/linux/compaction.h~mmcompaction-add-sys-trigger-for-per-node-memory-compaction
+diff -puN include/linux/compaction.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails include/linux/compaction.h
+--- a/include/linux/compaction.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails
 +++ a/include/linux/compaction.h
-@@ -12,4 +12,20 @@ extern int sysctl_compaction_handler(str
- 			void __user *buffer, size_t *length, loff_t *ppos);
+@@ -22,6 +22,36 @@ extern int sysctl_extfrag_handler(struct
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+ extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
+ 			int order, gfp_t gfp_mask, nodemask_t *mask);
++
++/* Do not skip compaction more than 64 times */
++#define COMPACT_MAX_DEFER_SHIFT 6
++
++/*
++ * Compaction is deferred when compaction fails to result in a page
++ * allocation success. 1 << compact_defer_limit compactions are skipped up
++ * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
++ */
++static inline void defer_compaction(struct zone *zone)
++{
++	zone->compact_considered = 0;
++	zone->compact_defer_shift++;
++
++	if (zone->compact_defer_shift > COMPACT_MAX_DEFER_SHIFT)
++		zone->compact_defer_shift = COMPACT_MAX_DEFER_SHIFT;
++}
++
++/* Returns true if compaction should be skipped this time */
++static inline bool compaction_deferred(struct zone *zone)
++{
++	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
++
++	/* Avoid possible overflow */
++	if (++zone->compact_considered > defer_limit)
++		zone->compact_considered = defer_limit;
++
++	return zone->compact_considered < (1UL << zone->compact_defer_shift);
++}
++
+ #else
+ static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
+ 			int order, gfp_t gfp_mask, nodemask_t *nodemask)
+@@ -29,6 +59,15 @@ static inline unsigned long try_to_compa
+ 	return COMPACT_CONTINUE;
+ }
+ 
++static inline void defer_compaction(struct zone *zone)
++{
++}
++
++static inline bool compaction_deferred(struct zone *zone)
++{
++	return 1;
++}
++
  #endif /* CONFIG_COMPACTION */
  
-+#if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-+extern int compaction_register_node(struct node *node);
-+extern void compaction_unregister_node(struct node *node);
-+
-+#else
-+
-+static inline int compaction_register_node(struct node *node)
-+{
-+	return 0;
-+}
-+
-+static inline void compaction_unregister_node(struct node *node)
-+{
-+}
-+#endif /* CONFIG_COMPACTION && CONFIG_SYSFS && CONFIG_NUMA */
-+
- #endif /* _LINUX_COMPACTION_H */
-diff -puN mm/compaction.c~mmcompaction-add-sys-trigger-for-per-node-memory-compaction mm/compaction.c
---- a/mm/compaction.c~mmcompaction-add-sys-trigger-for-per-node-memory-compaction
-+++ a/mm/compaction.c
-@@ -13,6 +13,7 @@
- #include <linux/mm_inline.h>
- #include <linux/backing-dev.h>
- #include <linux/sysctl.h>
-+#include <linux/sysfs.h>
- #include "internal.h"
+ #if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
+diff -puN include/linux/mmzone.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails
++++ a/include/linux/mmzone.h
+@@ -321,6 +321,15 @@ struct zone {
+ 	unsigned long		*pageblock_flags;
+ #endif /* CONFIG_SPARSEMEM */
  
- /*
-@@ -453,3 +454,25 @@ int sysctl_compaction_handler(struct ctl
++#ifdef CONFIG_COMPACTION
++	/*
++	 * On compaction failure, 1<<compact_defer_shift compactions
++	 * are skipped before trying again. The number attempted since
++	 * last failure is tracked with compact_considered.
++	 */
++	unsigned int		compact_considered;
++	unsigned int		compact_defer_shift;
++#endif
  
- 	return 0;
- }
-+
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-+ssize_t sysfs_compact_node(struct sys_device *dev,
-+			struct sysdev_attribute *attr,
-+			const char *buf, size_t count)
-+{
-+	compact_node(dev->id);
-+
-+	return count;
-+}
-+static SYSDEV_ATTR(compact, S_IWUSR, NULL, sysfs_compact_node);
-+
-+int compaction_register_node(struct node *node)
-+{
-+	return sysdev_create_file(&node->sysdev, &attr_compact);
-+}
-+
-+void compaction_unregister_node(struct node *node)
-+{
-+	return sysdev_remove_file(&node->sysdev, &attr_compact);
-+}
-+#endif /* CONFIG_SYSFS && CONFIG_NUMA */
+ 	ZONE_PADDING(_pad1_)
+ 
+diff -puN mm/page_alloc.c~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails mm/page_alloc.c
+--- a/mm/page_alloc.c~mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails
++++ a/mm/page_alloc.c
+@@ -1772,7 +1772,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ {
+ 	struct page *page;
+ 
+-	if (!order)
++	if (!order || compaction_deferred(preferred_zone))
+ 		return NULL;
+ 
+ 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
+@@ -1788,6 +1788,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 				alloc_flags, preferred_zone,
+ 				migratetype);
+ 		if (page) {
++			preferred_zone->compact_considered = 0;
++			preferred_zone->compact_defer_shift = 0;
+ 			__count_vm_event(COMPACTSUCCESS);
+ 			return page;
+ 		}
+@@ -1798,6 +1800,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		 * but not enough to satisfy watermarks.
+ 		 */
+ 		count_vm_event(COMPACTFAIL);
++		defer_compaction(preferred_zone);
+ 
+ 		cond_resched();
+ 	}
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
