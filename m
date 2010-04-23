@@ -1,83 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-fix-operator-precedence-warning.patch removed from -mm tree
-Date: Fri, 23 Apr 2010 10:49:22 -0400
-Message-ID: <201004231750.o3NHov2K002977@imap1.linux-foundation.org>
+Subject: + mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch added to -mm tree
+Date: Fri, 23 Apr 2010 11:01:17 -0700
+Message-ID: <201004231801.o3NI1IUA003410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758466Ab0DWR6h (ORCPT
+	by vger.kernel.org with ESMTP id S1758577Ab0DWSBy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Apr 2010 13:58:37 -0400
+	Fri, 23 Apr 2010 14:01:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, david.somayajulu@qlogic.com, karen.higgins@qlogic.com, ravi.anand@qlogic.com, vikas.chaudhary@qlogic.com, mm-commits@vg
+To: mm-commits@vger.kernel.org
+Cc: paulius.zaleckas@gmail.com, dedekind1@gmail.com, dwmw2@infradead.org, jamie@shareable.org, nico@fluxnic.net
 
 
 The patch titled
-     scsi: fix operator precedence warning
-has been removed from the -mm tree.  Its filename was
-     scsi-fix-operator-precedence-warning.patch
+     mtd: fix Orion NAND driver compilation with ARM OABI
+has been added to the -mm tree.  Its filename is
+     mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix operator precedence warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mtd: fix Orion NAND driver compilation with ARM OABI
+From: Paulius Zaleckas <paulius.zaleckas@gmail.com>
 
-Fix operator precedence warning (from sparse), which results in the data
-value always being 0:
+We must tell GCC to use even register for variable passed to ldrd
+instruction.  Without this patch GCC 4.2.1 puts this variable to r2/r3 on
+EABI and r3/r4 on OABI, so force it to r2/r3.  This does not change
+anything when EABI and OABI compilation works OK.
 
-drivers/scsi/qla4xxx/ql4_mbx.c:470:66: warning: right shift by bigger than source value
+Without this patch and with OABI I get:
+  CC      drivers/mtd/nand/orion_nand.o
+/tmp/ccMkwOCs.s: Assembler messages:
+/tmp/ccMkwOCs.s:63: Error: first destination register must be even -- `ldrd r3,[ip]'
+make[5]: *** [drivers/mtd/nand/orion_nand.o] Error 1
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Ravi Anand <ravi.anand@qlogic.com>
-Cc: David C Somayajulu <david.somayajulu@qlogic.com>
-Cc: Karen Higgins <karen.higgins@qlogic.com>
-Cc: Vikas Chaudhary <vikas.chaudhary@qlogic.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Paulius Zaleckas <paulius.zaleckas@gmail.com>
+Acked-by: Nicolas Pitre <nico@fluxnic.net>
+Acked-by: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jamie Lokier <jamie@shareable.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla4xxx/ql4_mbx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/nand/orion_nand.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/qla4xxx/ql4_mbx.c~scsi-fix-operator-precedence-warning drivers/scsi/qla4xxx/ql4_mbx.c
---- a/drivers/scsi/qla4xxx/ql4_mbx.c~scsi-fix-operator-precedence-warning
-+++ a/drivers/scsi/qla4xxx/ql4_mbx.c
-@@ -467,7 +467,7 @@ int qla4xxx_get_fwddb_entry(struct scsi_
- 	if (conn_err_detail)
- 		*conn_err_detail = mbox_sts[5];
- 	if (tcp_source_port_num)
--		*tcp_source_port_num = (uint16_t) mbox_sts[6] >> 16;
-+		*tcp_source_port_num = (uint16_t) (mbox_sts[6] >> 16);
- 	if (connection_id)
- 		*connection_id = (uint16_t) mbox_sts[6] & 0x00FF;
- 	status = QLA_SUCCESS;
+diff -puN drivers/mtd/nand/orion_nand.c~mtd-fix-orion-nand-driver-compilation-with-arm-oabi drivers/mtd/nand/orion_nand.c
+--- a/drivers/mtd/nand/orion_nand.c~mtd-fix-orion-nand-driver-compilation-with-arm-oabi
++++ a/drivers/mtd/nand/orion_nand.c
+@@ -60,7 +60,13 @@ static void orion_nand_read_buf(struct m
+ 	}
+ 	buf64 = (uint64_t *)buf;
+ 	while (i < len/8) {
+-		uint64_t x;
++		/*
++		 * Since GCC has no proper constraint (PR 43518)
++		 * force x variable to r2/r3 registers as ldrd instruction
++		 * requires first register to be even.
++		 */
++		register uint64_t x asm ("r2");
++
+ 		asm volatile ("ldrd\t%0, [%1]" : "=&r" (x) : "r" (io_base));
+ 		buf64[i++] = x;
+ 	}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from paulius.zaleckas@gmail.com are
 
-origin.patch
+mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch
 linux-next.patch
-uv_irqc-fix-all-sparse-warnings.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-usb-fix-serial-build-when-sysrq-is-disabled.patch
-mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
-xen-fix-build-when-sysrq-is-disabled.patch
-documentation-submittingdrivers-resources.patch
-documentation-additions-to-submitchecklist.patch
-memcg-move-charge-of-file-pages-fix-2.patch
-memcg-update-documentation-v8.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
