@@ -1,60 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch removed from -mm tree
-Date: Fri, 23 Apr 2010 13:11:23 -0400
-Message-ID: <201004232012.o3NKCw3d009548@imap1.linux-foundation.org>
+Subject: [folded] hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch removed from -mm tree
+Date: Fri, 23 Apr 2010 13:11:49 -0400
+Message-ID: <201004232013.o3NKDOAN009557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756725Ab0DWUNk (ORCPT
+	by vger.kernel.org with ESMTP id S1756711Ab0DWUOZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Apr 2010 16:13:40 -0400
+	Fri, 23 Apr 2010 16:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, pjones@redhat.com, t.m.gerlach@freenet.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, darren@dvhart.com, mel@csn.ul.ie, peterz@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix
+     hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+     hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
 
-This patch was dropped because it was folded into drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51.patch
+This patch was dropped because it was folded into hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix
+Subject: hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-rename optname, per Peter Jones
+mel cant spel
 
-Cc: Peter Jones <pjones@redhat.com>
-Cc: Thomas Gerlach <t.m.gerlach@freenet.de>
+Cc: <stable@kernel.org>
+Cc: Darren Hart <darren@dvhart.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/efifb.c |    2 +-
+ include/linux/poison.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/efifb.c~drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix drivers/video/efifb.c
---- a/drivers/video/efifb.c~drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix
-+++ a/drivers/video/efifb.c
-@@ -71,7 +71,7 @@ static struct efifb_dmi_info {
- 	[M_MBP_2] = { "mbp2", 0, 0, 0, 0 }, /* placeholder */
- 	[M_MBP_SR] = { "mbp3", 0x80030000, 2048 * 4, 1440, 900 },
- 	[M_MBP_4] = { "mbp4", 0xc0060000, 2048 * 4, 1920, 1200 },
--	[M_MBP_5_1] = { "mbp5,1", 0xc0010000, 2048 * 4, 1440, 900 },
-+	[M_MBP_5_1] = { "mbp51", 0xc0010000, 2048 * 4, 1440, 900 },
- 	[M_UNKNOWN] = { NULL, 0, 0, 0, 0 }
- };
- 
+diff -puN include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix include/linux/poison.h
+--- a/include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix
++++ a/include/linux/poison.h
+@@ -52,7 +52,7 @@
+ /*
+  * Private mappings of hugetlb pages use this poisoned value for
+  * page->mapping. The core VM should not be doing anything with this mapping
+- * but futex requires the existance of some page->mapping value even though it
++ * but futex requires the existence of some page->mapping value even though it
+  * is unused if PAGE_MAPPING_ANON is set.
+  */
+ #define HUGETLB_POISON	((void *)(0x00300300 + POISON_POINTER_DELTA + PAGE_MAPPING_ANON))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51.patch
-drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
+hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
 hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
