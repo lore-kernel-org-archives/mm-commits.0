@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 23 Apr 2010 11:30:10 -0700
-Message-ID: <201004231830.o3NIUAEn004774@imap1.linux-foundation.org>
+Subject: + sdhci-pltfm-implement-platform-data-passing-fix.patch added to -mm tree
+Date: Fri, 23 Apr 2010 11:33:09 -0700
+Message-ID: <201004231833.o3NIX9Xw004976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751319Ab0DWSas (ORCPT
+	by vger.kernel.org with ESMTP id S1751319Ab0DWSeI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Apr 2010 14:30:48 -0400
+	Fri, 23 Apr 2010 14:34:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mjg59@srcf.ucam.org, roald.frederickx@gmail.com
+Cc: avorontsov@mvista.com, ben@simtec.co.uk, david.vrabel@csr.com, linux-mmc@vger.kernel.org, pierre@ossman.eu, richard.rojfors@pelagicore.com
 
 
 The patch titled
-     compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes
+     sdhci-pltfm-implement-platform-data-passing-fix
 has been added to the -mm tree.  Its filename is
-     compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
+     sdhci-pltfm-implement-platform-data-passing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,246 +29,77 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sdhci-pltfm-implement-platform-data-passing-fix
+=46rom: Anton Vorontsov <avorontsov@mvista.com>
 
-WARNING: please, no space before tabs
-#112: FILE: drivers/platform/x86/compal-laptop.c:89:
-+#define DRIVER_VERSION ^I"0.2.7"$
+On Wed, Mar 17, 2010 at 07:14:03AM +0100, Richard R=C3=B6jfors wrote:
+> On 3/16/10 7:34 PM, Anton Vorontsov wrote:
+> > This includes platform ops, quirks and (de)initialization callbacks=
+=2E
+>
+> Good idea, just a doc comment below.
+[....]
+> > +struct sdhci_pltfm_data {
+> > +	struct sdhci_ops *ops;
+> > +	unsigned int quirks;
+> > +	int (*init)(struct sdhci_host *host);
+> > +	void (*exit)(struct sdhci_host *host);
+> > +};
+>
+> I would like to see this struct kernel-doc:ed.
 
-WARNING: please, no space before tabs
-#115: FILE: drivers/platform/x86/compal-laptop.c:92:
-+#define BACKLIGHT_LEVEL_MAX ^I^I7$
-
-WARNING: please, no space before tabs
-#130: FILE: drivers/platform/x86/compal-laptop.c:107:
-+#define WIRELESS_BT ^I^I^I(1 << 1)$
-
-WARNING: please, no space before tabs
-#229: FILE: drivers/platform/x86/compal-laptop.c:202:
-+ * ^Iu8 writeData = 0x33;$
-
-WARNING: please, no space before tabs
-#230: FILE: drivers/platform/x86/compal-laptop.c:203:
-+ * ^Iec_transaction(0x4F, &writeData, 1, buffer, 32, 0);$
-
-WARNING: struct backlight_ops should normally be const
-#387: FILE: drivers/platform/x86/compal-laptop.c:343:
-+static struct backlight_ops compalbl_ops = {
-
-WARNING: please, no space before tabs
-#435: FILE: drivers/platform/x86/compal-laptop.c:381:
-+^Istruct device_attribute *attr, char *buf) ^I^I^I\$
-
-WARNING: please, no space before tabs
-#436: FILE: drivers/platform/x86/compal-laptop.c:382:
-+{ ^I^I^I^I^I^I^I^I^I\$
-
-WARNING: please, no space before tabs
-#569: FILE: drivers/platform/x86/compal-laptop.c:487:
-+#define TEMPERATURE_SHOW_TEMP_AND_LABEL(POSTFIX, ADDRESS, LABEL) ^I\$
-
-WARNING: please, no space before tabs
-#570: FILE: drivers/platform/x86/compal-laptop.c:488:
-+static ssize_t temp_##POSTFIX(struct device *dev, ^I^I^I\$
-
-WARNING: please, no space before tabs
-#571: FILE: drivers/platform/x86/compal-laptop.c:489:
-+^I^Istruct device_attribute *attr, char *buf) ^I^I\$
-
-WARNING: please, no space before tabs
-#575: FILE: drivers/platform/x86/compal-laptop.c:493:
-+static ssize_t label_##POSTFIX(struct device *dev, ^I^I^I\$
-
-WARNING: please, no space before tabs
-#576: FILE: drivers/platform/x86/compal-laptop.c:494:
-+^I^Istruct device_attribute *attr, char *buf) ^I^I\$
-
-WARNING: please, no space before tabs
-#578: FILE: drivers/platform/x86/compal-laptop.c:496:
-+^Ireturn sprintf(buf, "%s\n", LABEL); ^I^I^I^I\$
-
-ERROR: space required after that ',' (ctx:VxV)
-#585: FILE: drivers/platform/x86/compal-laptop.c:503:
-+TEMPERATURE_SHOW_TEMP_AND_LABEL(northbridge,TEMP_NORTHBRIDGE,"NorthBridge");
-                                            ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#585: FILE: drivers/platform/x86/compal-laptop.c:503:
-+TEMPERATURE_SHOW_TEMP_AND_LABEL(northbridge,TEMP_NORTHBRIDGE,"NorthBridge");
-                                                             ^
-
-total: 2 errors, 14 warnings, 1090 lines checked
-
-./patches/compal-laptop-added-jhl90-battery-hwmon-interface.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Roald Frederickx <roald.frederickx@gmail.com>
+Suggested-by: Richard Rojfors <richard.rojfors@pelagicore.com>
+Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Cc: David Vrabel <david.vrabel@csr.com>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Ben Dooks <ben@simtec.co.uk>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/compal-laptop.c |   28 ++++++++++++-------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ include/linux/sdhci-pltfm.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes drivers/platform/x86/compal-laptop.c
---- a/drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes
-+++ a/drivers/platform/x86/compal-laptop.c
-@@ -86,10 +86,10 @@
- /* Defines */
- /* ======= */
- #define DRIVER_NAME "compal-laptop"
--#define DRIVER_VERSION 	"0.2.7"
-+#define DRIVER_VERSION	"0.2.7"
- 
- #define BACKLIGHT_LEVEL_ADDR		0xB9
--#define BACKLIGHT_LEVEL_MAX 		7
-+#define BACKLIGHT_LEVEL_MAX		7
- #define BACKLIGHT_STATE_ADDR		0x59
- #define BACKLIGHT_STATE_ON_DATA		0xE1
- #define BACKLIGHT_STATE_OFF_DATA	0xE2
-@@ -104,7 +104,7 @@
- 
- #define WIRELESS_ADDR			0xBB
- #define WIRELESS_WLAN			(1 << 0)
--#define WIRELESS_BT 			(1 << 1)
-+#define WIRELESS_BT			(1 << 1)
- #define WIRELESS_WLAN_EXISTS		(1 << 2)
- #define WIRELESS_BT_EXISTS		(1 << 3)
- #define WIRELESS_KILLSWITCH		(1 << 4)
-@@ -199,8 +199,8 @@ static bool extra_features;
-  * come up with these values by looping through the possible inputs and
-  * watching the output of address 0x4F (do an ec_transaction writing 0x33
-  * into 0x4F and read a few bytes from the output, like so:
-- * 	u8 writeData = 0x33;
-- * 	ec_transaction(0x4F, &writeData, 1, buffer, 32, 0);
-+ *	u8 writeData = 0x33;
-+ *	ec_transaction(0x4F, &writeData, 1, buffer, 32, 0);
-  * That address is labled "fan1 table information" in the service manual.
-  * It should be clear which value in 'buffer' changes). This seems to be
-  * related to fan speed. It isn't a proper 'realtime' fan speed value
-@@ -340,7 +340,7 @@ static int bl_update_status(struct backl
- 	return 0;
- }
- 
--static struct backlight_ops compalbl_ops = {
-+static const struct backlight_ops compalbl_ops = {
- 	.get_brightness = bl_get_brightness,
- 	.update_status	= bl_update_status,
- };
-@@ -378,8 +378,8 @@ static const struct rfkill_ops compal_rf
- /* Wake_up interface */
- #define SIMPLE_MASKED_STORE_SHOW(NAME, ADDR, MASK)			\
- static ssize_t NAME##_show(struct device *dev,				\
--	struct device_attribute *attr, char *buf) 			\
--{ 									\
-+	struct device_attribute *attr, char *buf)			\
-+{									\
- 	return sprintf(buf, "%d\n", ((ec_read_u8(ADDR) & MASK) != 0));	\
- }									\
- static ssize_t NAME##_store(struct device *dev,				\
-@@ -484,16 +484,16 @@ static ssize_t fan_show(struct device *d
- 
- 
- /* Temperature interface */
--#define TEMPERATURE_SHOW_TEMP_AND_LABEL(POSTFIX, ADDRESS, LABEL) 	\
--static ssize_t temp_##POSTFIX(struct device *dev, 			\
--		struct device_attribute *attr, char *buf) 		\
-+#define TEMPERATURE_SHOW_TEMP_AND_LABEL(POSTFIX, ADDRESS, LABEL)	\
-+static ssize_t temp_##POSTFIX(struct device *dev,			\
-+		struct device_attribute *attr, char *buf)		\
- {									\
- 	return sprintf(buf, "%d\n", 1000 * (int)ec_read_s8(ADDRESS));	\
- }									\
--static ssize_t label_##POSTFIX(struct device *dev, 			\
--		struct device_attribute *attr, char *buf) 		\
-+static ssize_t label_##POSTFIX(struct device *dev,			\
-+		struct device_attribute *attr, char *buf)		\
- {									\
--	return sprintf(buf, "%s\n", LABEL); 				\
-+	return sprintf(buf, "%s\n", LABEL);				\
- }
- 
- /* Labels as in service guide */
+diff -puN include/linux/sdhci-pltfm.h~sdhci-pltfm-implement-platform-da=
+ta-passing-fix include/linux/sdhci-pltfm.h
+--- a/include/linux/sdhci-pltfm.h~sdhci-pltfm-implement-platform-data-p=
+assing-fix
++++ a/include/linux/sdhci-pltfm.h
+@@ -17,6 +17,14 @@
+ struct sdhci_ops;
+ struct sdhci_host;
+=20
++/**
++ * struct sdhci_pltfm_data - SDHCI platform-specific information & hoo=
+ks
++ * @ops: optional pointer to the platform-provided SDHCI ops
++ * @quirks: optional SDHCI quirks
++ * @init: optional hook that is called during device probe, before the
++ *        driver tries to access any SDHCI registers
++ * @exit: optional hook that is called during device removal
++ */
+ struct sdhci_pltfm_data {
+ 	struct sdhci_ops *ops;
+ 	unsigned int quirks;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from avorontsov@mvista.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51-fix.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-jfs-free-sbi-memory-in-error-path.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+sdhci-pltfm-implement-platform-data-passing-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
