@@ -1,78 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-handle-unrecognised-decompressor-when-unpacking.patch added to -mm tree
-Date: Fri, 23 Apr 2010 12:21:42 -0700
-Message-ID: <201004231921.o3NJLgQm007161@imap1.linux-foundation.org>
+Subject: [folded] memcg-fix-prepare-migration-fix.patch removed from -mm tree
+Date: Fri, 23 Apr 2010 13:10:49 -0400
+Message-ID: <201004232012.o3NKCObC009450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755839Ab0DWTWq (ORCPT
+	by vger.kernel.org with ESMTP id S1756517Ab0DWUNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Apr 2010 15:22:46 -0400
+	Fri, 23 Apr 2010 16:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: phillip@lougher.demon.co.uk, aaro.koskinen@iki.fi
+To: nishimura@mxp.nes.nec.co.jp, aarcange@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     initramfs: handle unrecognised decompressor when unpacking
-has been added to the -mm tree.  Its filename is
-     initramfs-handle-unrecognised-decompressor-when-unpacking.patch
+     memcg-fix-prepare-migration-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-fix-prepare-migration-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into memcg-fix-prepare-migration.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initramfs: handle unrecognised decompressor when unpacking
-From: Phillip Lougher <phillip@lougher.demon.co.uk>
+Subject: memcg-fix-prepare-migration-fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-The unpack routine fails to handle the decompress_method() returning
-unrecognised decompressor (compress_name == NULL).  This results in the
-routine looping eventually oopsing on an out of bounds memory access.
+It seems that the original patch was mangled a bit when it was adjusted to
+mainline.
 
-Note this bug is usually hidden, only triggering on trailing junk after
-one or more correct compressed blocks.  The case of the compressed archive
-being complete junk is (by accident?) caught by the if (state != Reset)
-check because state is initialised to Start, but not updated due to the
-decompressor not having been called.  Obviously if the junk is trailing a
-correctly decompressed buffer, state == Reset from the previous call to
-the decompressor.
-
-Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
-Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN init/initramfs.c~initramfs-handle-unrecognised-decompressor-when-unpacking init/initramfs.c
---- a/init/initramfs.c~initramfs-handle-unrecognised-decompressor-when-unpacking
-+++ a/init/initramfs.c
-@@ -457,7 +457,8 @@ static char * __init unpack_to_rootfs(ch
- 					 compress_name);
- 				message = msg_buf;
- 			}
--		}
-+		} else
-+			error("junk in compressed archive");
- 		if (state != Reset)
- 			error("junk in compressed archive");
- 		this_header = saved_offset + my_inptr;
+diff -puN mm/memcontrol.c~memcg-fix-prepare-migration-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-prepare-migration-fix
++++ a/mm/memcontrol.c
+@@ -2434,7 +2434,6 @@ int mem_cgroup_prepare_migration(struct 
+ 		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false);
+ 		css_put(&mem->css);
+ 	}
+-	*ptr = mem;
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from phillip@lougher.demon.co.uk are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-initramfs-handle-unrecognised-decompressor-when-unpacking.patch
+memcg-fix-prepare-migration.patch
+memcg-fix-prepare-migration-fix.patch
+linux-next.patch
+memcg-oom-wakeup-filter.patch
+memcg-oom-wakeup-filter-update.patch
+memcg-oom-notifier.patch
+memcg-oom-notifier-update.patch
+memcg-oom-kill-disable-and-oom-status.patch
+memcg-oom-kill-disable-and-oom-status-update.patch
+memcg-clean-up-move-charge.patch
+memcg-move-charge-of-file-pages.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-2.patch
+memcg-update-documentation-v8.patch
 
