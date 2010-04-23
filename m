@@ -1,125 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch removed from -mm tree
-Date: Fri, 23 Apr 2010 13:11:49 -0400
-Message-ID: <201004232013.o3NKDOAN009557@imap1.linux-foundation.org>
+Subject: [folded] vmware-balloon-driver-fix.patch removed from -mm tree
+Date: Fri, 23 Apr 2010 13:12:16 -0400
+Message-ID: <201004232013.o3NKDpv6009563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756711Ab0DWUOZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756730Ab0DWUOm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Apr 2010 16:14:25 -0400
+	Fri, 23 Apr 2010 16:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, darren@dvhart.com, mel@csn.ul.ie, peterz@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: dtor@vmware.com, avi@redhat.com, jeremy@goop.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix
+     vmware-balloon-driver-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
+     vmware-balloon-driver-fix.patch
 
-This patch was dropped because it was folded into hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+This patch was dropped because it was folded into vmware-balloon-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmware-balloon-driver-fix
+From: Dmitry Torokhov <dtor@vmware.com>
 
-mel cant spel
+ - document rate allocation constants
+ - do not compile statistics code when debugfs is disabled
+ - fix compilation error when debugfs is disabled
 
-Cc: <stable@kernel.org>
-Cc: Darren Hart <darren@dvhart.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Dmitry Torokhov <dtor@vmware.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/vmware_balloon.c |   38 ++++++++++++++++++++++++++------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix include/linux/poison.h
---- a/include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix
-+++ a/include/linux/poison.h
-@@ -52,7 +52,7 @@
+diff -puN drivers/misc/vmware_balloon.c~vmware-balloon-driver-fix drivers/misc/vmware_balloon.c
+--- a/drivers/misc/vmware_balloon.c~vmware-balloon-driver-fix
++++ a/drivers/misc/vmware_balloon.c
+@@ -50,12 +50,28 @@ MODULE_ALIAS("dmi:*:svnVMware*:*");
+ MODULE_ALIAS("vmware_vmmemctl");
+ MODULE_LICENSE("GPL");
+ 
++/*
++ * Various constants controlling rate of inflaint/deflating balloon,
++ * measured in pages.
++ */
++
++/*
++ * Rate of allocating memory when there is no memory pressure
++ * (driver performs non-sleeping allocations).
++ */
+ #define VMW_BALLOON_NOSLEEP_ALLOC_MAX	16384U
+ 
++/*
++ * Rates of memory allocaton when guest experiences memory pressure
++ * (driver performs sleeping allocations).
++ */
+ #define VMW_BALLOON_RATE_ALLOC_MIN	512U
+ #define VMW_BALLOON_RATE_ALLOC_MAX	2048U
+ #define VMW_BALLOON_RATE_ALLOC_INC	16U
+ 
++/*
++ * Rates for releasing pages while deflating balloon.
++ */
+ #define VMW_BALLOON_RATE_FREE_MIN	512U
+ #define VMW_BALLOON_RATE_FREE_MAX	16384U
+ #define VMW_BALLOON_RATE_FREE_INC	16U
+@@ -85,6 +101,10 @@ MODULE_LICENSE("GPL");
+ /* Maximum number of page allocations without yielding processor */
+ #define VMW_BALLOON_YIELD_THRESHOLD	1024
+ 
++
++/*
++ * Hypervisor communication port definitions.
++ */
+ #define VMW_BALLOON_HV_PORT		0x5670
+ #define VMW_BALLOON_HV_MAGIC		0x456c6d6f
+ #define VMW_BALLOON_PROTOCOL_VERSION	2
+@@ -125,8 +145,7 @@ MODULE_LICENSE("GPL");
+ 	__stat & -1UL;					\
+ })
+ 
+-#define STATS_INC(stat) (stat)++
+-
++#ifdef CONFIG_DEBUG_FS
+ struct vmballoon_stats {
+ 	unsigned int timer;
+ 
+@@ -152,6 +171,11 @@ struct vmballoon_stats {
+ 	unsigned int guest_type_fail;
+ };
+ 
++#define STATS_INC(stat) (stat)++
++#else
++#define STATS_INC(stat)
++#endif
++
+ struct vmballoon {
+ 
+ 	/* list of reserved physical pages */
+@@ -174,11 +198,13 @@ struct vmballoon {
+ 	/* slowdown page allocations for next few cycles */
+ 	unsigned int slow_allocation_cycles;
+ 
++#ifdef CONFIG_DEBUG_FS
+ 	/* statistics */
+ 	struct vmballoon_stats stats;
+ 
+ 	/* debugfs file exporting statistics */
+ 	struct dentry *dbg_entry;
++#endif
+ 
+ 	struct sysinfo sysinfo;
+ 
+@@ -637,7 +663,7 @@ static void vmballoon_work(struct work_s
+ }
+ 
  /*
-  * Private mappings of hugetlb pages use this poisoned value for
-  * page->mapping. The core VM should not be doing anything with this mapping
-- * but futex requires the existance of some page->mapping value even though it
-+ * but futex requires the existence of some page->mapping value even though it
-  * is unused if PAGE_MAPPING_ANON is set.
+- * PROCFS Interface
++ * DEBUGFS Interface
   */
- #define HUGETLB_POISON	((void *)(0x00300300 + POISON_POINTER_DELTA + PAGE_MAPPING_ANON))
+ #ifdef CONFIG_DEBUG_FS
+ 
+@@ -727,11 +753,11 @@ static inline int vmballoon_debugfs_init
+ 	return 0;
+ }
+ 
+-static inline void vmballoon_debugfs_exit(void)
++static inline void vmballoon_debugfs_exit(struct vmballoon *b)
+ {
+ }
+ 
+-#endif	/* CONFIG_PROC_FS */
++#endif	/* CONFIG_DEBUG_FS */
+ 
+ static int __init vmballoon_init(void)
+ {
+@@ -750,8 +776,6 @@ static int __init vmballoon_init(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	/* initialize global state */
+-	memset(&balloon, 0, sizeof(balloon));
+ 	INIT_LIST_HEAD(&balloon.pages);
+ 	INIT_LIST_HEAD(&balloon.refused_pages);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dtor@vmware.com are
 
-drivers-video-efifbc-framebuffer-for-nvidia-9400m-in-macbook-pro-51.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
-hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-intel-agpc-fix-crash-when-accessing-nonexistent-gtt-entries-in-i915-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails-fix.patch
-jfs-free-sbi-memory-in-error-path.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix.patch
-firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+vmware-balloon-driver.patch
+vmware-balloon-driver-fix.patch
 
