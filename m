@@ -1,136 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-check-for-err_ptr-from-follow_page.patch removed from -mm tree
-Date: Mon, 26 Apr 2010 10:26:57 -0400
-Message-ID: <201004261728.o3QHSV56009129@imap1.linux-foundation.org>
+Subject: [merged] fs-block_devc-fix-performance-regression-in-o_directo_sync-writes-to-block-devices.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:26:49 -0400
+Message-ID: <201004261728.o3QHSNiX009120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752865Ab0DZR3C (ORCPT
+	by vger.kernel.org with ESMTP id S1752997Ab0DZR3E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Apr 2010 13:29:02 -0400
+	Mon, 26 Apr 2010 13:29:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, ieidus@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: anton@samba.org, hch@lst.de, jack@suse.cz, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: check for ERR_PTR from follow_page()
+     fs/block_dev.c: fix performance regression in O_DIRECT|O_SYNC writes to block devices
 has been removed from the -mm tree.  Its filename was
-     ksm-check-for-err_ptr-from-follow_page.patch
+     fs-block_devc-fix-performance-regression-in-o_directo_sync-writes-to-block-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: check for ERR_PTR from follow_page()
-From: Dan Carpenter <error27@gmail.com>
+Subject: fs/block_dev.c: fix performance regression in O_DIRECT|O_SYNC writes to block devices
+From: Anton Blanchard <anton@samba.org>
 
-The follow_page() function can potentially return -EFAULT so I added
-checks for this.
+We are seeing a large regression in database performance on recent
+kernels.  The database opens a block device with O_DIRECT|O_SYNC and a
+number of threads write to different regions of the file at the same time.
 
-Also I silenced an uninitialized variable warning on my version of gcc
-(version 4.3.2).
+A simple test case is below.  I haven't defined DEVICE since getting it
+wrong will destroy your data :) On an 3 disk LVM with a 64k chunk size we
+see about 17MB/sec and only a few threads in IO wait:
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+procs  -----io---- -system-- -----cpu------
+ r  b     bi    bo   in   cs us sy id wa st
+ 0  3      0 16170  656 2259  0  0 86 14  0
+ 0  2      0 16704  695 2408  0  0 92  8  0
+ 0  2      0 17308  744 2653  0  0 86 14  0
+ 0  2      0 17933  759 2777  0  0 89 10  0
+
+Most threads are blocking in vfs_fsync_range, which has:
+
+        mutex_lock(&mapping->host->i_mutex);
+        err = fop->fsync(file, dentry, datasync);
+        if (!ret)
+                ret = err;
+        mutex_unlock(&mapping->host->i_mutex);
+
+commit 148f948ba877f4d3cdef036b1ff6d9f68986706a (vfs: Introduce new
+helpers for syncing after writing to O_SYNC file or IS_SYNC inode) offers
+some explanation of what is going on:
+
+    Use these new helpers for syncing from generic VFS functions. This makes
+    O_SYNC writes to block devices acquire i_mutex for syncing. If we really
+    care about this, we can make block_fsync() drop the i_mutex and reacquire
+    it before it returns.
+
+Thanks Jan for such a good commit message!  As well as dropping i_mutex,
+Christoph suggests we should remove the call to sync_blockdev():
+
+> sync_blockdev is an overcomplicated alias for filemap_write_and_wait on
+> the block device inode, which is exactly what we did just before calling
+> into ->fsync
+
+The patch below incorporates both suggestions. With it the testcase improves
+from 17MB/s to 68M/sec:
+
+procs  -----io---- -system-- -----cpu------
+ r  b     bi    bo   in   cs us sy id wa st
+ 0  7      0 65536 1000 3878  0  0 70 30  0
+ 0 34      0 69632 1016 3921  0  1 46 53  0
+ 0 57      0 69632 1000 3921  0  0 55 45  0
+ 0 53      0 69640  754 4111  0  0 81 19  0
+
+Testcase:
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define NR_THREADS 64
+#define BUFSIZE (64 * 1024)
+
+#define DEVICE "/dev/mapper/XXXXXX"
+
+#define ALIGN(VAL, SIZE) (((VAL)+(SIZE)-1) & ~((SIZE)-1))
+
+static int fd;
+
+static void *doit(void *arg)
+{
+	unsigned long offset = (long)arg;
+	char *b, *buf;
+
+	b = malloc(BUFSIZE + 1024);
+	buf = (char *)ALIGN((unsigned long)b, 1024);
+	memset(buf, 0, BUFSIZE);
+
+	while (1)
+		pwrite(fd, buf, BUFSIZE, offset);
+}
+
+int main(int argc, char *argv[])
+{
+	int flags = O_RDWR|O_DIRECT;
+	int i;
+	unsigned long offset = 0;
+
+	if (argc > 1 && !strcmp(argv[1], "O_SYNC"))
+		flags |= O_SYNC;
+
+	fd = open(DEVICE, flags);
+	if (fd == -1) {
+		perror("open");
+		exit(1);
+	}
+
+	for (i = 0; i < NR_THREADS-1; i++) {
+		pthread_t tid;
+		pthread_create(&tid, NULL, doit, (void *)offset);
+		offset += BUFSIZE;
+	}
+	doit((void *)offset);
+
+	return 0;
+}
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/block_dev.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN mm/ksm.c~ksm-check-for-err_ptr-from-follow_page mm/ksm.c
---- a/mm/ksm.c~ksm-check-for-err_ptr-from-follow_page
-+++ a/mm/ksm.c
-@@ -365,7 +365,7 @@ static int break_ksm(struct vm_area_stru
- 	do {
- 		cond_resched();
- 		page = follow_page(vma, addr, FOLL_GET);
--		if (!page)
-+		if (IS_ERR_OR_NULL(page))
- 			break;
- 		if (PageKsm(page))
- 			ret = handle_mm_fault(vma->vm_mm, vma, addr,
-@@ -447,7 +447,7 @@ static struct page *get_mergeable_page(s
- 		goto out;
- 
- 	page = follow_page(vma, addr, FOLL_GET);
--	if (!page)
-+	if (IS_ERR_OR_NULL(page))
- 		goto out;
- 	if (PageAnon(page)) {
- 		flush_anon_page(vma, page, addr);
-@@ -1086,7 +1086,7 @@ struct rmap_item *unstable_tree_search_i
- 		cond_resched();
- 		tree_rmap_item = rb_entry(*new, struct rmap_item, node);
- 		tree_page = get_mergeable_page(tree_rmap_item);
--		if (!tree_page)
-+		if (IS_ERR_OR_NULL(tree_page))
- 			return NULL;
- 
- 		/*
-@@ -1294,7 +1294,7 @@ next_mm:
- 			if (ksm_test_exit(mm))
- 				break;
- 			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
--			if (*page && PageAnon(*page)) {
-+			if (!IS_ERR_OR_NULL(*page) && PageAnon(*page)) {
- 				flush_anon_page(vma, *page, ksm_scan.address);
- 				flush_dcache_page(*page);
- 				rmap_item = get_next_rmap_item(slot,
-@@ -1308,7 +1308,7 @@ next_mm:
- 				up_read(&mm->mmap_sem);
- 				return rmap_item;
- 			}
--			if (*page)
-+			if (!IS_ERR_OR_NULL(*page))
- 				put_page(*page);
- 			ksm_scan.address += PAGE_SIZE;
- 			cond_resched();
-@@ -1367,7 +1367,7 @@ next_mm:
- static void ksm_do_scan(unsigned int scan_npages)
+diff -puN fs/block_dev.c~fs-block_devc-fix-performance-regression-in-o_directo_sync-writes-to-block-devices fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_devc-fix-performance-regression-in-o_directo_sync-writes-to-block-devices
++++ a/fs/block_dev.c
+@@ -406,16 +406,23 @@ static loff_t block_llseek(struct file *
+  
+ int blkdev_fsync(struct file *filp, struct dentry *dentry, int datasync)
  {
- 	struct rmap_item *rmap_item;
--	struct page *page;
-+	struct page *uninitialized_var(page);
+-	struct block_device *bdev = I_BDEV(filp->f_mapping->host);
++	struct inode *bd_inode = filp->f_mapping->host;
++	struct block_device *bdev = I_BDEV(bd_inode);
+ 	int error;
  
- 	while (scan_npages--) {
- 		cond_resched();
+-	error = sync_blockdev(bdev);
+-	if (error)
+-		return error;
+-	
++	/*
++	 * There is no need to serialise calls to blkdev_issue_flush with
++	 * i_mutex and doing so causes performance issues with concurrent
++	 * O_SYNC writers to a block device.
++	 */
++	mutex_unlock(&bd_inode->i_mutex);
++
+ 	error = blkdev_issue_flush(bdev, NULL);
+ 	if (error == -EOPNOTSUPP)
+ 		error = 0;
++
++	mutex_lock(&bd_inode->i_mutex);
++
+ 	return error;
+ }
+ EXPORT_SYMBOL(blkdev_fsync);
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from anton@samba.org are
 
 origin.patch
 linux-next.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-cx231xx-improve-error-handling.patch
-backlight-backlight_device_register-return-err_ptr.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
-musb-potential-use-after-free.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-mm-document-follow_page.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
-fs-sysv-dereferencing-err_ptr.patch
 
