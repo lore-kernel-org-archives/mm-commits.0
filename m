@@ -1,56 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch removed from -mm tree
-Date: Mon, 26 Apr 2010 10:27:13 -0400
-Message-ID: <201004261728.o3QHSlL6009135@imap1.linux-foundation.org>
+Subject: [merged] initramfs-handle-unrecognised-decompressor-when-unpacking.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:27:09 -0400
+Message-ID: <201004261728.o3QHSigs009132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36517 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752997Ab0DZR3O (ORCPT
+	by vger.kernel.org with ESMTP id S1753164Ab0DZR3h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Apr 2010 13:29:14 -0400
+	Mon, 26 Apr 2010 13:29:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@ahash.de, greg@kroah.com, mm-commits@vger.kernel.org
+To: phillip@lougher.demon.co.uk, aaro.koskinen@iki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kaweth: new USB ID 07c9:b010 Allied Telesyn AT-USB10
+     initramfs: handle unrecognised decompressor when unpacking
 has been removed from the -mm tree.  Its filename was
-     kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10.patch
+     initramfs-handle-unrecognised-decompressor-when-unpacking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kaweth: new USB ID 07c9:b010 Allied Telesyn AT-USB10
-From: Andreas Hartmann <andi@ahash.de>
+Subject: initramfs: handle unrecognised decompressor when unpacking
+From: Phillip Lougher <phillip@lougher.demon.co.uk>
 
-New USB ID 07c9:b010 Allied Telesyn AT-USB10.
+The unpack routine fails to handle the decompress_method() returning
+unrecognised decompressor (compress_name == NULL).  This results in the
+routine looping eventually oopsing on an out of bounds memory access.
 
-Signed-off-by: Andreas Hartmann <andi@ahash.de>
-Cc: Greg KH <greg@kroah.com>
+Note this bug is usually hidden, only triggering on trailing junk after
+one or more correct compressed blocks.  The case of the compressed archive
+being complete junk is (by accident?) caught by the if (state != Reset)
+check because state is initialised to Start, but not updated due to the
+decompressor not having been called.  Obviously if the junk is trailing a
+correctly decompressed buffer, state == Reset from the previous call to
+the decompressor.
+
+Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
+Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/kaweth.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/initramfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/usb/kaweth.c~kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10 drivers/net/usb/kaweth.c
---- a/drivers/net/usb/kaweth.c~kaweth-new-usb-id-07c9-b010-allied-telesyn-at-usb10
-+++ a/drivers/net/usb/kaweth.c
-@@ -145,6 +145,7 @@ static struct usb_device_id usb_klsi_tab
- 	{ USB_DEVICE(0x0707, 0x0100) }, /* SMC 2202USB */
- 	{ USB_DEVICE(0x07aa, 0x0001) }, /* Correga K.K. */
- 	{ USB_DEVICE(0x07b8, 0x4000) }, /* D-Link DU-E10 */
-+	{ USB_DEVICE(0x07c9, 0xb010) }, /* Allied Telesyn AT-USB10 */
- 	{ USB_DEVICE(0x0846, 0x1001) }, /* NetGear EA-101 */
- 	{ USB_DEVICE(0x0846, 0x1002) }, /* NetGear EA-101 */
- 	{ USB_DEVICE(0x085a, 0x0008) }, /* PortGear Ethernet Adapter */
+diff -puN init/initramfs.c~initramfs-handle-unrecognised-decompressor-when-unpacking init/initramfs.c
+--- a/init/initramfs.c~initramfs-handle-unrecognised-decompressor-when-unpacking
++++ a/init/initramfs.c
+@@ -457,7 +457,8 @@ static char * __init unpack_to_rootfs(ch
+ 					 compress_name);
+ 				message = msg_buf;
+ 			}
+-		}
++		} else
++			error("junk in compressed archive");
+ 		if (state != Reset)
+ 			error("junk in compressed archive");
+ 		this_header = saved_offset + my_inptr;
 _
 
-Patches currently in -mm which might be from andi@ahash.de are
+Patches currently in -mm which might be from phillip@lougher.demon.co.uk are
 
-drivers-usb-net-kawethc-add-device-allied-telesyn-at-usb10-usb-ethernet-adapter.patch
+origin.patch
 
