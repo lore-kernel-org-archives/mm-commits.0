@@ -1,137 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch removed from -mm tree
-Date: Mon, 26 Apr 2010 10:26:31 -0400
-Message-ID: <201004261728.o3QHS5uY009090@imap1.linux-foundation.org>
+Subject: [merged] w1-w1-temp-fix-negative-termperature-calculation.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:26:25 -0400
+Message-ID: <201004261728.o3QHRxK6009086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752875Ab0DZR2k (ORCPT
+	by vger.kernel.org with ESMTP id S1752952Ab0DZR2l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Apr 2010 13:28:40 -0400
+	Mon, 26 Apr 2010 13:28:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, darren@dvhart.com, peterz@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: ian@beware.dropbear.id.au, johnpol@2ka.mipt.ru, kelfe@gmx.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix infinite loop in get_futex_key() when backed by huge pages
+     w1: w1 temp: fix negative termperature calculation
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages.patch
+     w1-w1-temp-fix-negative-termperature-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix infinite loop in get_futex_key() when backed by huge pages
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: w1: w1 temp: fix negative termperature calculation
+From: Ian Dall <ian@beware.dropbear.id.au>
 
-If a futex key happens to be located within a huge page mapped
-MAP_PRIVATE, get_futex_key() can go into an infinite loop waiting for a
-page->mapping that will never exist.  This was reported and documented in
-an external bugzilla at
+Fix regression caused by commit 507e2fbaaacb6f164b4125b87c5002f95143174b
+("w1: w1 temp calculation overflow fix") whereby negative temperatures for
+the DS18B20 are not converted properly.
 
-This patch makes page->mapping a poisoned value that includes
-PAGE_MAPPING_ANON mapped MAP_PRIVATE.  This is enough for futex to
-continue but because of PAGE_MAPPING_ANON, the poisoned value is not
-dereferenced or used by futex.  No other part of the VM should be
-dereferencing the page->mapping of a hugetlbfs page as its page cache is
-not on the LRU.
+When the temperature exceeds 32767 milli-degrees the temperature overflows
+to -32768 millidegrees.  These are both well within the -55 - +125 degree
+range for the sensor.
 
-This patch fixes the problem with the test case described in the bugzilla.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=12646
 
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=552257
-
-[akpm@linux-foundation.org: mel cant spel]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Darren Hart <darren@dvhart.com>
+Signed-of-by: Ian Dall <ian@beware.dropbear.id.au>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Tested-by: Karsten Elfenbein <kelfe@gmx.de>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    9 +++++++++
- mm/hugetlb.c           |    5 ++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/w1/slaves/w1_therm.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages include/linux/poison.h
---- a/include/linux/poison.h~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages
-+++ a/include/linux/poison.h
-@@ -48,6 +48,15 @@
- #define POISON_FREE	0x6b	/* for use-after-free poisoning */
- #define	POISON_END	0xa5	/* end-byte of poisoning */
+diff -puN drivers/w1/slaves/w1_therm.c~w1-w1-temp-fix-negative-termperature-calculation drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-w1-temp-fix-negative-termperature-calculation
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -115,9 +115,8 @@ static struct w1_therm_family_converter 
  
-+/********** mm/hugetlb.c **********/
-+/*
-+ * Private mappings of hugetlb pages use this poisoned value for
-+ * page->mapping. The core VM should not be doing anything with this mapping
-+ * but futex requires the existence of some page->mapping value even though it
-+ * is unused if PAGE_MAPPING_ANON is set.
-+ */
-+#define HUGETLB_POISON	((void *)(0x00300300 + POISON_POINTER_DELTA + PAGE_MAPPING_ANON))
-+
- /********** arch/$ARCH/mm/init.c **********/
- #define POISON_FREE_INITMEM	0xcc
+ static inline int w1_DS18B20_convert_temp(u8 rom[9])
+ {
+-	int t = ((s16)rom[1] << 8) | rom[0];
+-	t = t*1000/16;
+-	return t;
++	s16 t = le16_to_cpup((__le16 *)rom);
++	return t*1000/16;
+ }
  
-diff -puN mm/hugetlb.c~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-infinite-loop-in-get_futex_key-when-backed-by-huge-pages
-+++ a/mm/hugetlb.c
-@@ -546,6 +546,7 @@ static void free_huge_page(struct page *
- 
- 	mapping = (struct address_space *) page_private(page);
- 	set_page_private(page, 0);
-+	page->mapping = NULL;
- 	BUG_ON(page_count(page));
- 	INIT_LIST_HEAD(&page->lru);
- 
-@@ -2447,8 +2448,10 @@ retry:
- 			spin_lock(&inode->i_lock);
- 			inode->i_blocks += blocks_per_huge_page(h);
- 			spin_unlock(&inode->i_lock);
--		} else
-+		} else {
- 			lock_page(page);
-+			page->mapping = HUGETLB_POISON;
-+		}
- 	}
- 
- 	/*
+ static inline int w1_DS18S20_convert_temp(u8 rom[9])
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from ian@beware.dropbear.id.au are
 
 origin.patch
-linux-next.patch
-hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mempolicy-remove-redundant-code.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mmmigration-allow-the-migration-of-pageswapcache-pages.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mm-export-fragmentation-index-via-debugfs.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mmcompaction-memory-compaction-core.patch
-mmcompaction-add-proc-trigger-for-memory-compaction.patch
-mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
-mm-introduce-free_pages_prepare.patch
-mm-introduce-free_pages_prepare-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
 
