@@ -1,76 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch removed from -mm tree
-Date: Mon, 26 Apr 2010 10:26:13 -0400
-Message-ID: <201004261727.o3QHRlsC009074@imap1.linux-foundation.org>
+Subject: [merged] cgroups-fix-procs-documentation.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:26:22 -0400
+Message-ID: <201004261727.o3QHRuu4009083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752635Ab0DZR2I (ORCPT
+	by vger.kernel.org with ESMTP id S1752952Ab0DZR2J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Apr 2010 13:28:08 -0400
+	Mon, 26 Apr 2010 13:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulius.zaleckas@gmail.com, dedekind1@gmail.com, dwmw2@infradead.org, jamie@shareable.org, nico@fluxnic.net, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, bblum@andrew.cmu.edu, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: fix Orion NAND driver compilation with ARM OABI
+     cgroups: fix procs documentation
 has been removed from the -mm tree.  Its filename was
-     mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch
+     cgroups-fix-procs-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: fix Orion NAND driver compilation with ARM OABI
-From: Paulius Zaleckas <paulius.zaleckas@gmail.com>
+Subject: cgroups: fix procs documentation
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-We must tell GCC to use even register for variable passed to ldrd
-instruction.  Without this patch GCC 4.2.1 puts this variable to r2/r3 on
-EABI and r3/r4 on OABI, so force it to r2/r3.  This does not change
-anything when EABI and OABI compilation works OK.
+Writing to cgroup.procs is not supported now.
 
-Without this patch and with OABI I get:
-  CC      drivers/mtd/nand/orion_nand.o
-/tmp/ccMkwOCs.s: Assembler messages:
-/tmp/ccMkwOCs.s:63: Error: first destination register must be even -- `ldrd r3,[ip]'
-make[5]: *** [drivers/mtd/nand/orion_nand.o] Error 1
-
-Signed-off-by: Paulius Zaleckas <paulius.zaleckas@gmail.com>
-Acked-by: Nicolas Pitre <nico@fluxnic.net>
-Acked-by: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jamie Lokier <jamie@shareable.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Ben Blum <bblum@andrew.cmu.edu>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/orion_nand.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ Documentation/cgroups/cgroups.txt |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/mtd/nand/orion_nand.c~mtd-fix-orion-nand-driver-compilation-with-arm-oabi drivers/mtd/nand/orion_nand.c
---- a/drivers/mtd/nand/orion_nand.c~mtd-fix-orion-nand-driver-compilation-with-arm-oabi
-+++ a/drivers/mtd/nand/orion_nand.c
-@@ -60,7 +60,13 @@ static void orion_nand_read_buf(struct m
- 	}
- 	buf64 = (uint64_t *)buf;
- 	while (i < len/8) {
--		uint64_t x;
-+		/*
-+		 * Since GCC has no proper constraint (PR 43518)
-+		 * force x variable to r2/r3 registers as ldrd instruction
-+		 * requires first register to be even.
-+		 */
-+		register uint64_t x asm ("r2");
-+
- 		asm volatile ("ldrd\t%0, [%1]" : "=&r" (x) : "r" (io_base));
- 		buf64[i++] = x;
- 	}
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-fix-procs-documentation Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-fix-procs-documentation
++++ a/Documentation/cgroups/cgroups.txt
+@@ -235,8 +235,7 @@ containing the following files describin
+  - cgroup.procs: list of tgids in the cgroup.  This list is not
+    guaranteed to be sorted or free of duplicate tgids, and userspace
+    should sort/uniquify the list if this property is required.
+-   Writing a tgid into this file moves all threads with that tgid into
+-   this cgroup.
++   This is a read-only file, for now.
+  - notify_on_release flag: run the release agent on exit?
+  - release_agent: the path to use for release notifications (this file
+    exists in the top cgroup only)
 _
 
-Patches currently in -mm which might be from paulius.zaleckas@gmail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mmmigration-allow-the-migration-of-pageswapcache-pages.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mm-export-fragmentation-index-via-debugfs.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mmcompaction-memory-compaction-core.patch
+mmcompaction-add-proc-trigger-for-memory-compaction.patch
+mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
+memcg-oom-wakeup-filter.patch
+memcg-oom-wakeup-filter-update.patch
+memcg-oom-notifier.patch
+memcg-oom-notifier-update.patch
+memcg-oom-kill-disable-and-oom-status.patch
+memcg-oom-kill-disable-and-oom-status-update.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-clean-up-move-charge.patch
+memcg-move-charge-of-file-pages.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-2.patch
+memcg-update-documentation-v8.patch
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
+numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
+numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
 
