@@ -1,67 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-sysc-fix-compat-uname-machine.patch removed from -mm tree
-Date: Mon, 26 Apr 2010 10:26:05 -0400
-Message-ID: <201004261727.o3QHRdUY009048@imap1.linux-foundation.org>
+Subject: [merged] mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:26:13 -0400
+Message-ID: <201004261727.o3QHRlsC009074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752431Ab0DZR2I (ORCPT
+	by vger.kernel.org with ESMTP id S1752635Ab0DZR2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 26 Apr 2010 13:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwab@linux-m68k.org, davem@davemloft.net, hch@lst.de, mm-commits@vger.kernel.org
+To: paulius.zaleckas@gmail.com, dedekind1@gmail.com, dwmw2@infradead.org, jamie@shareable.org, nico@fluxnic.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sys.c: fix compat uname machine
+     mtd: fix Orion NAND driver compilation with ARM OABI
 has been removed from the -mm tree.  Its filename was
-     kernel-sysc-fix-compat-uname-machine.patch
+     mtd-fix-orion-nand-driver-compilation-with-arm-oabi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/sys.c: fix compat uname machine
-From: Andreas Schwab <schwab@linux-m68k.org>
+Subject: mtd: fix Orion NAND driver compilation with ARM OABI
+From: Paulius Zaleckas <paulius.zaleckas@gmail.com>
 
-On ppc64 you get this error:
+We must tell GCC to use even register for variable passed to ldrd
+instruction.  Without this patch GCC 4.2.1 puts this variable to r2/r3 on
+EABI and r3/r4 on OABI, so force it to r2/r3.  This does not change
+anything when EABI and OABI compilation works OK.
 
-$ setarch ppc -R true
-setarch: ppc: Unrecognized architecture
+Without this patch and with OABI I get:
+  CC      drivers/mtd/nand/orion_nand.o
+/tmp/ccMkwOCs.s: Assembler messages:
+/tmp/ccMkwOCs.s:63: Error: first destination register must be even -- `ldrd r3,[ip]'
+make[5]: *** [drivers/mtd/nand/orion_nand.o] Error 1
 
-because uname still reports ppc64 as the machine.
-
-So mask off the personality flags when checking for PER_LINUX32.
-
-Signed-off-by: Andreas Schwab <schwab@linux-m68k.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Paulius Zaleckas <paulius.zaleckas@gmail.com>
+Acked-by: Nicolas Pitre <nico@fluxnic.net>
+Acked-by: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jamie Lokier <jamie@shareable.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/nand/orion_nand.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~kernel-sysc-fix-compat-uname-machine kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-fix-compat-uname-machine
-+++ a/kernel/sys.c
-@@ -1118,7 +1118,7 @@ DECLARE_RWSEM(uts_sem);
- 
- #ifdef COMPAT_UTS_MACHINE
- #define override_architecture(name) \
--	(current->personality == PER_LINUX32 && \
-+	(personality(current->personality) == PER_LINUX32 && \
- 	 copy_to_user(name->machine, COMPAT_UTS_MACHINE, \
- 		      sizeof(COMPAT_UTS_MACHINE)))
- #else
+diff -puN drivers/mtd/nand/orion_nand.c~mtd-fix-orion-nand-driver-compilation-with-arm-oabi drivers/mtd/nand/orion_nand.c
+--- a/drivers/mtd/nand/orion_nand.c~mtd-fix-orion-nand-driver-compilation-with-arm-oabi
++++ a/drivers/mtd/nand/orion_nand.c
+@@ -60,7 +60,13 @@ static void orion_nand_read_buf(struct m
+ 	}
+ 	buf64 = (uint64_t *)buf;
+ 	while (i < len/8) {
+-		uint64_t x;
++		/*
++		 * Since GCC has no proper constraint (PR 43518)
++		 * force x variable to r2/r3 registers as ldrd instruction
++		 * requires first register to be even.
++		 */
++		register uint64_t x asm ("r2");
++
+ 		asm volatile ("ldrd\t%0, [%1]" : "=&r" (x) : "r" (io_base));
+ 		buf64[i++] = x;
+ 	}
 _
 
-Patches currently in -mm which might be from schwab@linux-m68k.org are
+Patches currently in -mm which might be from paulius.zaleckas@gmail.com are
 
 origin.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-improve-sys_personality-for-compat-architectures.patch
+linux-next.patch
 
