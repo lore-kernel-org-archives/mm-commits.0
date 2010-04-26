@@ -1,86 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-prepare-migration.patch removed from -mm tree
-Date: Mon, 26 Apr 2010 10:25:58 -0400
-Message-ID: <201004261727.o3QHRWSW009041@imap1.linux-foundation.org>
+Subject: [merged] reiserfs-fix-corruption-during-shrinking-of-xattrs.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:26:01 -0400
+Message-ID: <201004261727.o3QHRZ8W009044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753041Ab0DZR16 (ORCPT
+	by vger.kernel.org with ESMTP id S1752675Ab0DZR1w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Apr 2010 13:27:58 -0400
+	Mon, 26 Apr 2010 13:27:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, stable@kernel.org, mm-commits@vger.kernel.org
+To: jeffm@suse.com, edward.shishkin@gmail.com, gregsurbey@hotmail.com, kernel@jbeekman.nl, lists@nerdbynature.de, marco.gatti@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix prepare migration
+     reiserfs: fix corruption during shrinking of xattrs
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-prepare-migration.patch
+     reiserfs-fix-corruption-during-shrinking-of-xattrs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix prepare migration
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: reiserfs: fix corruption during shrinking of xattrs
+From: Jeff Mahoney <jeffm@suse.com>
 
-If a signal is pending (task being killed by sigkill)
-__mem_cgroup_try_charge will write NULL into &mem, and css_put will oops
-on null pointer dereference.
+Commit 48b32a3553a54740d236b79a90f20147a25875e3 ("reiserfs: use generic
+xattr handlers") introduced a problem that causes corruption when extended
+attributes are replaced with a smaller value.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
-IP: [<ffffffff810fc6cc>] mem_cgroup_prepare_migration+0x7c/0xc0
-PGD a5d89067 PUD a5d8a067 PMD 0
-Oops: 0000 [#1] SMP
-last sysfs file: /sys/devices/platform/microcode/firmware/microcode/loading
-CPU 0
-Modules linked in: nfs lockd nfs_acl auth_rpcgss sunrpc acpi_cpufreq pcspkr sg [last unloaded: microcode]
+The issue is that the reiserfs_setattr to shrink the xattr file was moved
+from before the write to after the write.
 
-Pid: 5299, comm: largepages Tainted: G        W  2.6.34-rc3 #3 Penryn1600SLI-110dB/To Be Filled By O.E.M.
-RIP: 0010:[<ffffffff810fc6cc>]  [<ffffffff810fc6cc>] mem_cgroup_prepare_migration+0x7c/0xc0
+The root issue has always been in the reiserfs xattr code, but was papered
+over by the fact that in the shrink case, the file would just be expanded
+again while the xattr was written.
 
-[nishimura@mxp.nes.nec.co.jp: fix merge issues]
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+The end result is that the last 8 bytes of xattr data are lost.
+
+This patch fixes it to use new_size.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=14826
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Reported-by: Christian Kujau <lists@nerdbynature.de>
+Tested-by: Christian Kujau <lists@nerdbynature.de>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Jethro Beekman <kernel@jbeekman.nl>
+Cc: Greg Surbey <gregsurbey@hotmail.com>
+Cc: Marco Gatti <marco.gatti@gmail.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/reiserfs/xattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-prepare-migration mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-prepare-migration
-+++ a/mm/memcontrol.c
-@@ -2429,11 +2429,11 @@ int mem_cgroup_prepare_migration(struct 
- 	}
- 	unlock_page_cgroup(pc);
- 
-+	*ptr = mem;
- 	if (mem) {
--		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, &mem, false);
-+		ret = __mem_cgroup_try_charge(NULL, GFP_KERNEL, ptr, false);
- 		css_put(&mem->css);
- 	}
--	*ptr = mem;
- 	return ret;
- }
+diff -puN fs/reiserfs/xattr.c~reiserfs-fix-corruption-during-shrinking-of-xattrs fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-fix-corruption-during-shrinking-of-xattrs
++++ a/fs/reiserfs/xattr.c
+@@ -554,7 +554,7 @@ reiserfs_xattr_set_handle(struct reiserf
+ 	if (!err && new_size < i_size_read(dentry->d_inode)) {
+ 		struct iattr newattrs = {
+ 			.ia_ctime = current_fs_time(inode->i_sb),
+-			.ia_size = buffer_size,
++			.ia_size = new_size,
+ 			.ia_valid = ATTR_SIZE | ATTR_CTIME,
+ 		};
  
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
-define-madv_hugepage.patch
-mincore-cleanups.patch
-mincore-break-do_mincore-into-logical-pieces.patch
-mincore-pass-ranges-as-startend-address-pairs.patch
-mincore-do-nested-page-table-walks.patch
-mmcompaction-memory-compaction-core.patch
-mm-document-follow_page.patch
+linux-next.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
 
