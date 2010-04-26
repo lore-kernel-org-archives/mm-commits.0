@@ -1,161 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmware-balloon-driver-fix.patch removed from -mm tree
-Date: Fri, 23 Apr 2010 13:12:16 -0400
-Message-ID: <201004232013.o3NKDpv6009563@imap1.linux-foundation.org>
+Subject: [merged] reiserfs-fix-permissions-on-reiserfs_priv.patch removed from -mm tree
+Date: Mon, 26 Apr 2010 10:25:54 -0400
+Message-ID: <201004261727.o3QHRTc8009034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756730Ab0DWUOm (ORCPT
+	by vger.kernel.org with ESMTP id S1752098Ab0DZR1j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Apr 2010 16:14:42 -0400
+	Mon, 26 Apr 2010 13:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dtor@vmware.com, avi@redhat.com, jeremy@goop.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jeffm@suse.com, edward.shishkin@gmail.com, fweisbec@gmail.com, matt@mattmccutchen.net, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmware-balloon-driver-fix
+     reiserfs: fix permissions on .reiserfs_priv
 has been removed from the -mm tree.  Its filename was
-     vmware-balloon-driver-fix.patch
+     reiserfs-fix-permissions-on-reiserfs_priv.patch
 
-This patch was dropped because it was folded into vmware-balloon-driver.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmware-balloon-driver-fix
-From: Dmitry Torokhov <dtor@vmware.com>
+Subject: reiserfs: fix permissions on .reiserfs_priv
+From: Jeff Mahoney <jeffm@suse.com>
 
- - document rate allocation constants
- - do not compile statistics code when debugfs is disabled
- - fix compilation error when debugfs is disabled
+Commit 677c9b2e393a0cd203bd54e9c18b012b2c73305a ("reiserfs: remove
+privroot hiding in lookup") removed the magic from the lookup code to hide
+the .reiserfs_priv directory since it was getting loaded at mount-time
+instead.  The intent was that the entry would be hidden from the user via
+a poisoned d_compare, but this was faulty.
 
-Signed-off-by: Dmitry Torokhov <dtor@vmware.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+This introduced a security issue where unprivileged users could access and
+modify extended attributes or ACLs belonging to other users, including
+root.
+
+This patch resolves the issue by properly hiding .reiserfs_priv.  This was
+the intent of the xattr poisoning code, but it appears to have never
+worked as expected.  This is fixed by using d_revalidate instead of
+d_compare.
+
+This patch makes -oexpose_privroot a no-op.  I'm fine leaving it this way.
+The effort involved in working out the corner cases wrt permissions and
+caching outweigh the benefit of the feature.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Acked-by: Edward Shishkin <edward.shishkin@gmail.com>
+Reported-by: Matt McCutchen <matt@mattmccutchen.net>
+Tested-by: Matt McCutchen <matt@mattmccutchen.net>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/vmware_balloon.c |   38 ++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+ fs/reiserfs/dir.c   |    2 --
+ fs/reiserfs/xattr.c |   17 ++++-------------
+ 2 files changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN drivers/misc/vmware_balloon.c~vmware-balloon-driver-fix drivers/misc/vmware_balloon.c
---- a/drivers/misc/vmware_balloon.c~vmware-balloon-driver-fix
-+++ a/drivers/misc/vmware_balloon.c
-@@ -50,12 +50,28 @@ MODULE_ALIAS("dmi:*:svnVMware*:*");
- MODULE_ALIAS("vmware_vmmemctl");
- MODULE_LICENSE("GPL");
+diff -puN fs/reiserfs/dir.c~reiserfs-fix-permissions-on-reiserfs_priv fs/reiserfs/dir.c
+--- a/fs/reiserfs/dir.c~reiserfs-fix-permissions-on-reiserfs_priv
++++ a/fs/reiserfs/dir.c
+@@ -46,8 +46,6 @@ static inline bool is_privroot_deh(struc
+ 				   struct reiserfs_de_head *deh)
+ {
+ 	struct dentry *privroot = REISERFS_SB(dir->d_sb)->priv_root;
+-	if (reiserfs_expose_privroot(dir->d_sb))
+-		return 0;
+ 	return (dir == dir->d_parent && privroot->d_inode &&
+ 	        deh->deh_objectid == INODE_PKEY(privroot->d_inode)->k_objectid);
+ }
+diff -puN fs/reiserfs/xattr.c~reiserfs-fix-permissions-on-reiserfs_priv fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-fix-permissions-on-reiserfs_priv
++++ a/fs/reiserfs/xattr.c
+@@ -973,21 +973,13 @@ int reiserfs_permission(struct inode *in
+ 	return generic_permission(inode, mask, NULL);
+ }
  
-+/*
-+ * Various constants controlling rate of inflaint/deflating balloon,
-+ * measured in pages.
-+ */
-+
-+/*
-+ * Rate of allocating memory when there is no memory pressure
-+ * (driver performs non-sleeping allocations).
-+ */
- #define VMW_BALLOON_NOSLEEP_ALLOC_MAX	16384U
+-/* This will catch lookups from the fs root to .reiserfs_priv */
+-static int
+-xattr_lookup_poison(struct dentry *dentry, struct qstr *q1, struct qstr *name)
++static int xattr_hide_revalidate(struct dentry *dentry, struct nameidata *nd)
+ {
+-	struct dentry *priv_root = REISERFS_SB(dentry->d_sb)->priv_root;
+-	if (container_of(q1, struct dentry, d_name) == priv_root)
+-		return -ENOENT;
+-	if (q1->len == name->len &&
+-		   !memcmp(q1->name, name->name, name->len))
+-		return 0;
+-	return 1;
++	return -EPERM;
+ }
  
-+/*
-+ * Rates of memory allocaton when guest experiences memory pressure
-+ * (driver performs sleeping allocations).
-+ */
- #define VMW_BALLOON_RATE_ALLOC_MIN	512U
- #define VMW_BALLOON_RATE_ALLOC_MAX	2048U
- #define VMW_BALLOON_RATE_ALLOC_INC	16U
- 
-+/*
-+ * Rates for releasing pages while deflating balloon.
-+ */
- #define VMW_BALLOON_RATE_FREE_MIN	512U
- #define VMW_BALLOON_RATE_FREE_MAX	16384U
- #define VMW_BALLOON_RATE_FREE_INC	16U
-@@ -85,6 +101,10 @@ MODULE_LICENSE("GPL");
- /* Maximum number of page allocations without yielding processor */
- #define VMW_BALLOON_YIELD_THRESHOLD	1024
- 
-+
-+/*
-+ * Hypervisor communication port definitions.
-+ */
- #define VMW_BALLOON_HV_PORT		0x5670
- #define VMW_BALLOON_HV_MAGIC		0x456c6d6f
- #define VMW_BALLOON_PROTOCOL_VERSION	2
-@@ -125,8 +145,7 @@ MODULE_LICENSE("GPL");
- 	__stat & -1UL;					\
- })
- 
--#define STATS_INC(stat) (stat)++
--
-+#ifdef CONFIG_DEBUG_FS
- struct vmballoon_stats {
- 	unsigned int timer;
- 
-@@ -152,6 +171,11 @@ struct vmballoon_stats {
- 	unsigned int guest_type_fail;
+ static const struct dentry_operations xattr_lookup_poison_ops = {
+-	.d_compare = xattr_lookup_poison,
++	.d_revalidate = xattr_hide_revalidate,
  };
  
-+#define STATS_INC(stat) (stat)++
-+#else
-+#define STATS_INC(stat)
-+#endif
-+
- struct vmballoon {
- 
- 	/* list of reserved physical pages */
-@@ -174,11 +198,13 @@ struct vmballoon {
- 	/* slowdown page allocations for next few cycles */
- 	unsigned int slow_allocation_cycles;
- 
-+#ifdef CONFIG_DEBUG_FS
- 	/* statistics */
- 	struct vmballoon_stats stats;
- 
- 	/* debugfs file exporting statistics */
- 	struct dentry *dbg_entry;
-+#endif
- 
- 	struct sysinfo sysinfo;
- 
-@@ -637,7 +663,7 @@ static void vmballoon_work(struct work_s
- }
- 
- /*
-- * PROCFS Interface
-+ * DEBUGFS Interface
-  */
- #ifdef CONFIG_DEBUG_FS
- 
-@@ -727,11 +753,11 @@ static inline int vmballoon_debugfs_init
- 	return 0;
- }
- 
--static inline void vmballoon_debugfs_exit(void)
-+static inline void vmballoon_debugfs_exit(struct vmballoon *b)
- {
- }
- 
--#endif	/* CONFIG_PROC_FS */
-+#endif	/* CONFIG_DEBUG_FS */
- 
- static int __init vmballoon_init(void)
- {
-@@ -750,8 +776,6 @@ static int __init vmballoon_init(void)
- 		return -ENOMEM;
- 	}
- 
--	/* initialize global state */
--	memset(&balloon, 0, sizeof(balloon));
- 	INIT_LIST_HEAD(&balloon.pages);
- 	INIT_LIST_HEAD(&balloon.refused_pages);
- 
+ int reiserfs_lookup_privroot(struct super_block *s)
+@@ -1001,8 +993,7 @@ int reiserfs_lookup_privroot(struct supe
+ 				strlen(PRIVROOT_NAME));
+ 	if (!IS_ERR(dentry)) {
+ 		REISERFS_SB(s)->priv_root = dentry;
+-		if (!reiserfs_expose_privroot(s))
+-			s->s_root->d_op = &xattr_lookup_poison_ops;
++		dentry->d_op = &xattr_lookup_poison_ops;
+ 		if (dentry->d_inode)
+ 			dentry->d_inode->i_flags |= S_PRIVATE;
+ 	} else
 _
 
-Patches currently in -mm which might be from dtor@vmware.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-vmware-balloon-driver.patch
-vmware-balloon-driver-fix.patch
+origin.patch
+linux-next.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
 
