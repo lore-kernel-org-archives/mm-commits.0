@@ -1,67 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:34:53 -0700
-Message-ID: <201004271902.o3RJ2I1w013823@imap1.linux-foundation.org>
+Subject: [folded] leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:35:46 -0700
+Message-ID: <201004271903.o3RJ3BPt013932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754520Ab0D0TDI (ORCPT
+	by vger.kernel.org with ESMTP id S1753728Ab0D0TEG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:03:08 -0400
+	Tue, 27 Apr 2010 15:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, gurligebis@gentoo.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, pavel@ucw.cz, rpurdie@rpsys.net, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     led-driver-for-the-soekris-net5501-board-checkpatch-fixes
+     leds-route-kbd-leds-through-the-generic-leds-layer-fix
 has been removed from the -mm tree.  Its filename was
-     led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+     leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 
-This patch was dropped because it was folded into led-driver-for-the-soekris-net5501-board.patch
+This patch was dropped because it was folded into leds-route-kbd-leds-through-the-generic-leds-layer.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: led-driver-for-the-soekris-net5501-board-checkpatch-fixes
+Subject: leds-route-kbd-leds-through-the-generic-leds-layer-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: that open brace { should be on the previous line
-#120: FILE: drivers/leds/leds-net5501.c:67:
-+	if (!rombase)
-+	{
+fix build
 
-total: 1 errors, 0 warnings, 117 lines checked
-
-./patches/led-driver-for-the-soekris-net5501-board.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Bjarke Istrup Pedersen <gurligebis@gentoo.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-net5501.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/leds/leds-input.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-net5501.c~led-driver-for-the-soekris-net5501-board-checkpatch-fixes drivers/leds/leds-net5501.c
---- a/drivers/leds/leds-net5501.c~led-driver-for-the-soekris-net5501-board-checkpatch-fixes
-+++ a/drivers/leds/leds-net5501.c
-@@ -64,8 +64,7 @@ static int __init soekris_init(void)
- 		return 0;
+diff -puN drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix drivers/leds/leds-input.c
+--- a/drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix
++++ a/drivers/leds/leds-input.c
+@@ -10,6 +10,7 @@
  
- 	rombase = ioremap(0xffff0000, 0xffff);
--	if (!rombase)
--	{
-+	if (!rombase) {
- 		printk(KERN_INFO "Soekris net5501 LED driver failed to get rombase");
- 		return 0;
- 	}
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/slab.h>
+ #include <linux/leds.h>
+ #include <linux/input.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +70,7 @@ fs-fscache-object-listc-fix-warning-on-32-bit.patch
 of-gpio-implement-gpiolib-notifier-hooks.patch
 hpet-factor-timer-allocate-from-open.patch
 led-driver-for-the-soekris-net5501-board.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
 3x59x-fix-pci-resource-management.patch
