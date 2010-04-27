@@ -1,70 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 13:12:15 -0700
-Message-ID: <201004272039.o3RKdef6018397@imap1.linux-foundation.org>
+Subject: [folded] compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 14:06:34 -0700
+Message-ID: <201004272106.o3RL6YVA019720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754929Ab0D0Ujy (ORCPT
+	by vger.kernel.org with ESMTP id S1753915Ab0D0VGm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 16:39:54 -0400
+	Tue, 27 Apr 2010 17:06:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, maz@misterjones.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mjg59@srcf.ucam.org, roald.frederickx@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes
+     compal-laptop-added-jhl90-battery-hwmon-interface-fix
 has been removed from the -mm tree.  Its filename was
-     fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
+     compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch
 
-This patch was dropped because it was folded into fix-pca953x-set_type-scheduling-while-atomic-bug.patch
+This patch was dropped because it was folded into compal-laptop-added-jhl90-battery-hwmon-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes
+Subject: compal-laptop-added-jhl90-battery-hwmon-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required before the open parenthesis '('
-#39: FILE: drivers/gpio/pca953x.c:262:
-+	while(new_irqs) {
+add missing semicolon
 
-total: 1 errors, 0 warnings, 26 lines checked
-
-./patches/fix-pca953x-set_type-scheduling-while-atomic-bug.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Marc Zyngier <maz@misterjones.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Roald Frederickx <roald.frederickx@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |    2 +-
+ drivers/platform/x86/compal-laptop.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/pca953x.c~fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes
-+++ a/drivers/gpio/pca953x.c
-@@ -259,7 +259,7 @@ static void pca953x_irq_bus_sync_unlock(
- 	new_irqs = chip->irq_trig_fall | chip->irq_trig_raise;
- 	new_irqs &= ~chip->reg_direction;
+diff -puN drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-fix drivers/platform/x86/compal-laptop.c
+--- a/drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-fix
++++ a/drivers/platform/x86/compal-laptop.c
+@@ -1015,7 +1015,7 @@ static int __devinit compal_probe(struct
  
--	while(new_irqs) {
-+	while (new_irqs) {
- 		level = __ffs(new_irqs);
- 		pca953x_gpio_direction_input(&chip->gpio_chip, level);
- 		new_irqs &= ~(1 << level);
+ 	initialize_fan_control_data(data);
+ 
+-	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group)
++	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group);
+ 	if (err)
+ 		return err;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 fix-pca953x-set_type-scheduling-while-atomic-bug.patch
-fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
