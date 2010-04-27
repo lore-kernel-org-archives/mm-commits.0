@@ -1,54 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 14:06:34 -0700
-Message-ID: <201004272106.o3RL6YVA019720@imap1.linux-foundation.org>
+Subject: [merged] gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 14:13:48 -0700
+Message-ID: <201004272113.o3RLDmie020236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753915Ab0D0VGm (ORCPT
+	by vger.kernel.org with ESMTP id S1752792Ab0D0VO3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:06:42 -0400
+	Tue, 27 Apr 2010 17:14:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mjg59@srcf.ucam.org, roald.frederickx@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david-b@pacbell.net, iws@ovro.caltech.edu, sameo@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     compal-laptop-added-jhl90-battery-hwmon-interface-fix
+     gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix
 has been removed from the -mm tree.  Its filename was
-     compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch
+     gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
 
-This patch was dropped because it was folded into compal-laptop-added-jhl90-battery-hwmon-interface.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compal-laptop-added-jhl90-battery-hwmon-interface-fix
+Subject: gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-add missing semicolon
+fix build
 
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Roald Frederickx <roald.frederickx@gmail.com>
+Cc: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ira W. Snyder <iws@ovro.caltech.edu>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/compal-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/janz-ttl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-fix drivers/platform/x86/compal-laptop.c
---- a/drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-fix
-+++ a/drivers/platform/x86/compal-laptop.c
-@@ -1015,7 +1015,7 @@ static int __devinit compal_probe(struct
+diff -puN drivers/gpio/janz-ttl.c~gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix drivers/gpio/janz-ttl.c
+--- a/drivers/gpio/janz-ttl.c~gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix
++++ a/drivers/gpio/janz-ttl.c
+@@ -11,6 +11,7 @@
  
- 	initialize_fan_control_data(data);
- 
--	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group)
-+	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group);
- 	if (err)
- 		return err;
- 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +64,6 @@ include-linux-fsh-complete-hexification-of-fmode_-constants.patch
 drivers-acpi-use-kasprintf.patch
 acpi_pad-processor_aggregator-name-too-long.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
-compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch
 arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 sched-introduce-get_cpu_iowait_time_us.patch
 jfs-free-sbi-memory-in-error-path.patch
