@@ -1,297 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ibft-update-ibft-handling-for-v103-of-the-spec.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:02:26 -0400
-Message-ID: <201004271804.o3RI401k011033@imap1.linux-foundation.org>
+Subject: [merged] mmap-check-vm_ops-before-dereferencing.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:01:35 -0400
+Message-ID: <201004271803.o3RI39Gf010951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756499Ab0D0SFM (ORCPT
+	by vger.kernel.org with ESMTP id S1756515Ab0D0SEP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:05:12 -0400
+	Tue, 27 Apr 2010 14:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pjones@redhat.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, konrad@kernel.org, michaelc@cs.wisc.edu, mm-commits@vger.kernel.org
+To: riel@redhat.com, error27@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ibft: update iBFT handling for v1.03 of the spec.
+     mmap: check ->vm_ops before dereferencing
 has been removed from the -mm tree.  Its filename was
-     ibft-update-ibft-handling-for-v103-of-the-spec.patch
+     mmap-check-vm_ops-before-dereferencing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibft: update iBFT handling for v1.03 of the spec.
-From: Peter Jones <pjones@redhat.com>
+Subject: mmap: check ->vm_ops before dereferencing
+From: Rik van Riel <riel@redhat.com>
 
-This patch series written by Peter Jones and Mike Christie expands on the
-iBFT firmware driver to support v1.03 of the spec.  The spec in question
-is available at:
+Check whether the VMA has a vm_ops before calling close, just like we
+check vm_ops before calling open a few dozen lines higher up in the
+function.
 
-ftp://ftp.software.ibm.com/systems/support/bladecenter/iscsi_boot_firmware_table_v1.03.pdf
+akpm: lots of vm_operations_structs have a NULL ->close.  If vma_adjust()
+fails, we oops.
 
-Linux kernel has support for the iBFT 1.0 spec and this update to 1.03
-adds three more things:
-
- - There is now a ACPI table either called 'iBFT' or 'IBFT' that should
-   be parsed.
-
- - If running with UEFI, only look at the ACPI table.
-
- - If not found within ACPI tables, fall back to the old mechanism of
-   scanning memory for the signature.
-
-It has been tested with gPXE and also a real hardware.
-
-
-This patch:
-
-- Use struct acpi_table_ibft instead of struct ibft_table_header
-
-- Don't do reserve_ibft_region() on UEFI machines (section 1.4.3.1)
-
-- If ibft_addr isn't initialized when ibft_init() is called, check for
-  ACPI-based tables.
-
-Signed-off-by: Konrad Rzeszutek Wilk <konrad@kernel.org>
-Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Dan Carpenter <error27@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/iscsi_ibft.c      |   30 ++++++++++++++---------
- drivers/firmware/iscsi_ibft_find.c |   34 +++++++++++++++++++++++----
- include/linux/iscsi_ibft.h         |   12 +--------
- 3 files changed, 49 insertions(+), 27 deletions(-)
+ mm/mmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/firmware/iscsi_ibft.c~ibft-update-ibft-handling-for-v103-of-the-spec drivers/firmware/iscsi_ibft.c
---- a/drivers/firmware/iscsi_ibft.c~ibft-update-ibft-handling-for-v103-of-the-spec
-+++ a/drivers/firmware/iscsi_ibft.c
-@@ -1,5 +1,5 @@
- /*
-- *  Copyright 2007 Red Hat, Inc.
-+ *  Copyright 2007-2010 Red Hat, Inc.
-  *  by Peter Jones <pjones@redhat.com>
-  *  Copyright 2008 IBM, Inc.
-  *  by Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
-@@ -19,6 +19,9 @@
-  *
-  * Changelog:
-  *
-+ *  06 Jan 2010 - Peter Jones <pjones@redhat.com>
-+ *    New changelog entries are in the git log from now on.  Not here.
-+ *
-  *  14 Mar 2008 - Konrad Rzeszutek <ketuzsezr@darnok.org>
-  *    Updated comments and copyrights. (v0.4.9)
-  *
-@@ -78,9 +81,10 @@
- #include <linux/stat.h>
- #include <linux/string.h>
- #include <linux/types.h>
-+#include <linux/acpi.h>
+diff -puN mm/mmap.c~mmap-check-vm_ops-before-dereferencing mm/mmap.c
+--- a/mm/mmap.c~mmap-check-vm_ops-before-dereferencing
++++ a/mm/mmap.c
+@@ -1977,7 +1977,8 @@ static int __split_vma(struct mm_struct 
+ 		return 0;
  
--#define IBFT_ISCSI_VERSION "0.4.9"
--#define IBFT_ISCSI_DATE "2008-Mar-14"
-+#define IBFT_ISCSI_VERSION "0.5.0"
-+#define IBFT_ISCSI_DATE "2010-Feb-25"
- 
- MODULE_AUTHOR("Peter Jones <pjones@redhat.com> and \
- Konrad Rzeszutek <ketuzsezr@darnok.org>");
-@@ -238,7 +242,7 @@ static const char *ibft_initiator_proper
-  */
- 
- struct ibft_kobject {
--	struct ibft_table_header *header;
-+	struct acpi_table_ibft *header;
- 	union {
- 		struct ibft_initiator *initiator;
- 		struct ibft_nic *nic;
-@@ -536,12 +540,13 @@ static int __init ibft_check_device(void
- 	u8 *pos;
- 	u8 csum = 0;
- 
--	len = ibft_addr->length;
-+	len = ibft_addr->header.length;
- 
- 	/* Sanity checking of iBFT. */
--	if (ibft_addr->revision != 1) {
-+	if (ibft_addr->header.revision != 1) {
- 		printk(KERN_ERR "iBFT module supports only revision 1, " \
--				"while this is %d.\n", ibft_addr->revision);
-+				"while this is %d.\n",
-+				ibft_addr->header.revision);
- 		return -ENOENT;
- 	}
- 	for (pos = (u8 *)ibft_addr; pos < (u8 *)ibft_addr + len; pos++)
-@@ -558,7 +563,7 @@ static int __init ibft_check_device(void
- /*
-  * Helper function for ibft_register_kobjects.
-  */
--static int __init ibft_create_kobject(struct ibft_table_header *header,
-+static int __init ibft_create_kobject(struct acpi_table_ibft *header,
- 				       struct ibft_hdr *hdr,
- 				       struct list_head *list)
- {
-@@ -596,7 +601,7 @@ static int __init ibft_create_kobject(st
- 	default:
- 		printk(KERN_ERR "iBFT has unknown structure type (%d). " \
- 				"Report this bug to %.6s!\n", hdr->id,
--				header->oem_id);
-+				header->header.oem_id);
- 		rc = 1;
- 		break;
- 	}
-@@ -649,7 +654,7 @@ out_invalid_struct:
-  * found add them on the passed-in list. We do not support the other
-  * fields at this point, so they are skipped.
-  */
--static int __init ibft_register_kobjects(struct ibft_table_header *header,
-+static int __init ibft_register_kobjects(struct acpi_table_ibft *header,
- 					  struct list_head *list)
- {
- 	struct ibft_control *control = NULL;
-@@ -660,7 +665,7 @@ static int __init ibft_register_kobjects
- 
- 	control = (void *)header + sizeof(*header);
- 	end = (void *)control + control->hdr.length;
--	eot_offset = (void *)header + header->length - (void *)control;
-+	eot_offset = (void *)header + header->header.length - (void *)control;
- 	rc = ibft_verify_hdr("control", (struct ibft_hdr *)control, id_control,
- 			     sizeof(*control));
- 
-@@ -672,7 +677,8 @@ static int __init ibft_register_kobjects
- 	}
- 	for (ptr = &control->initiator_off; ptr < end; ptr += sizeof(u16)) {
- 		offset = *(u16 *)ptr;
--		if (offset && offset < header->length && offset < eot_offset) {
-+		if (offset && offset < header->header.length &&
-+						offset < eot_offset) {
- 			rc = ibft_create_kobject(header,
- 						 (void *)header + offset,
- 						 list);
-diff -puN drivers/firmware/iscsi_ibft_find.c~ibft-update-ibft-handling-for-v103-of-the-spec drivers/firmware/iscsi_ibft_find.c
---- a/drivers/firmware/iscsi_ibft_find.c~ibft-update-ibft-handling-for-v103-of-the-spec
-+++ a/drivers/firmware/iscsi_ibft_find.c
-@@ -1,5 +1,5 @@
- /*
-- *  Copyright 2007 Red Hat, Inc.
-+ *  Copyright 2007-2010 Red Hat, Inc.
-  *  by Peter Jones <pjones@redhat.com>
-  *  Copyright 2007 IBM, Inc.
-  *  by Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
-@@ -22,6 +22,7 @@
- #include <linux/blkdev.h>
- #include <linux/ctype.h>
- #include <linux/device.h>
-+#include <linux/efi.h>
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/limits.h>
-@@ -30,13 +31,14 @@
- #include <linux/stat.h>
- #include <linux/string.h>
- #include <linux/types.h>
-+#include <linux/acpi.h>
- 
- #include <asm/mmzone.h>
- 
- /*
-  * Physical location of iSCSI Boot Format Table.
-  */
--struct ibft_table_header *ibft_addr;
-+struct acpi_table_ibft *ibft_addr;
- EXPORT_SYMBOL_GPL(ibft_addr);
- 
- #define IBFT_SIGN "iBFT"
-@@ -46,6 +48,13 @@ EXPORT_SYMBOL_GPL(ibft_addr);
- #define VGA_MEM 0xA0000 /* VGA buffer */
- #define VGA_SIZE 0x20000 /* 128kB */
- 
-+#ifdef CONFIG_ACPI
-+static int __init acpi_find_ibft(struct acpi_table_header *header)
-+{
-+	ibft_addr = (struct acpi_table_ibft *)header;
-+	return 0;
-+}
-+#endif /* CONFIG_ACPI */
- 
- /*
-  * Routine used to find the iSCSI Boot Format Table. The logical
-@@ -59,6 +68,11 @@ unsigned long __init find_ibft_region(un
- 
- 	ibft_addr = NULL;
- 
-+	/* iBFT 1.03 section 1.4.3.1 mandates that UEFI machines will
-+	 * only use ACPI for this */
-+	if (efi_enabled)
-+		return 0;
-+
- 	for (pos = IBFT_START; pos < IBFT_END; pos += 16) {
- 		/* The table can't be inside the VGA BIOS reserved space,
- 		 * so skip that area */
-@@ -72,14 +86,24 @@ unsigned long __init find_ibft_region(un
- 			/* if the length of the table extends past 1M,
- 			 * the table cannot be valid. */
- 			if (pos + len <= (IBFT_END-1)) {
--				ibft_addr = (struct ibft_table_header *)virt;
-+				ibft_addr = (struct acpi_table_ibft *)virt;
- 				break;
- 			}
- 		}
- 	}
-+#ifdef CONFIG_ACPI
-+	/*
-+	 * One spec says "IBFT", the other says "iBFT". We have to check
-+	 * for both.
-+	 */
-+	if (!ibft_addr)
-+		acpi_table_parse(ACPI_SIG_IBFT, acpi_find_ibft);
-+	if (!ibft_addr)
-+		acpi_table_parse("iBFT", acpi_find_ibft);
-+#endif /* CONFIG_ACPI */
- 	if (ibft_addr) {
--		*sizep = PAGE_ALIGN(len);
--		return pos;
-+		*sizep = PAGE_ALIGN(ibft_addr->header.length);
-+		return (u64)isa_virt_to_bus(ibft_addr);
- 	}
- 
- 	*sizep = 0;
-diff -puN include/linux/iscsi_ibft.h~ibft-update-ibft-handling-for-v103-of-the-spec include/linux/iscsi_ibft.h
---- a/include/linux/iscsi_ibft.h~ibft-update-ibft-handling-for-v103-of-the-spec
-+++ a/include/linux/iscsi_ibft.h
-@@ -21,21 +21,13 @@
- #ifndef ISCSI_IBFT_H
- #define ISCSI_IBFT_H
- 
--struct ibft_table_header {
--	char signature[4];
--	u32 length;
--	u8 revision;
--	u8 checksum;
--	char oem_id[6];
--	char oem_table_id[8];
--	char reserved[24];
--} __attribute__((__packed__));
-+#include <acpi/acpi.h>
- 
- /*
-  * Logical location of iSCSI Boot Format Table.
-  * If the value is NULL there is no iBFT on the machine.
-  */
--extern struct ibft_table_header *ibft_addr;
-+extern struct acpi_table_ibft *ibft_addr;
- 
- /*
-  * Routine used to find and reserve the iSCSI Boot Format Table. The
+ 	/* Clean everything up if vma_adjust failed. */
+-	new->vm_ops->close(new);
++	if (new->vm_ops && new->vm_ops->close)
++		new->vm_ops->close(new);
+ 	if (new->vm_file) {
+ 		if (vma->vm_flags & VM_EXECUTABLE)
+ 			removed_exe_file_vma(mm);
 _
 
-Patches currently in -mm which might be from pjones@redhat.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
-linux-next.patch
+powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mmmigration-allow-the-migration-of-pageswapcache-pages.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mm-export-fragmentation-index-via-debugfs.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mmcompaction-memory-compaction-core.patch
+mmcompaction-add-proc-trigger-for-memory-compaction.patch
+mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
+mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
+vmscan-prevent-get_scan_ratio-rounding-errors.patch
+vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
+mm-document-follow_page.patch
 
