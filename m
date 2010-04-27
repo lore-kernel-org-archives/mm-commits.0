@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:30:01 -0700
-Message-ID: <201004271830.o3RIU1t9012357@imap1.linux-foundation.org>
+Subject: [obsolete] arch-x86-crypto-aesni-intel_asms-still-busted.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:19:20 -0700
+Message-ID: <201004271846.o3RIkjrP013071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49352 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751815Ab0D0SaL (ORCPT
+	by vger.kernel.org with ESMTP id S1755848Ab0D0Sr6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:30:11 -0400
+	Tue, 27 Apr 2010 14:47:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, jic23@cam.ac.uk, sonic.adi@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, herbert@gondor.hengli.com.au, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iio-iio_get_new_idr_val-return-negative-value-on-failure-fix
+     arch/x86/crypto/aesni-intel_asm.S still busted
 has been removed from the -mm tree.  Its filename was
-     iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+     arch-x86-crypto-aesni-intel_asms-still-busted.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iio-iio_get_new_idr_val-return-negative-value-on-failure-fix
+Subject: arch/x86/crypto/aesni-intel_asm.S still busted
 From: Andrew Morton <akpm@linux-foundation.org>
 
-improve the comment a bit
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Sonic Zhang <sonic.adi@gmail.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/industrialio-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/crypto/aesni-intel_asm.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/iio/industrialio-core.c~iio-iio_get_new_idr_val-return-negative-value-on-failure-fix drivers/staging/iio/industrialio-core.c
---- a/drivers/staging/iio/industrialio-core.c~iio-iio_get_new_idr_val-return-negative-value-on-failure-fix
-+++ a/drivers/staging/iio/industrialio-core.c
-@@ -537,7 +537,7 @@ static void iio_device_unregister_sysfs(
- 	sysfs_remove_group(&dev_info->dev.kobj, dev_info->attrs);
- }
+diff -puN arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-still-busted arch/x86/crypto/aesni-intel_asm.S
+--- a/arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-still-busted
++++ a/arch/x86/crypto/aesni-intel_asm.S
+@@ -749,8 +749,8 @@ _aesni_inc_init:
+ 	movaps IV, CTR
+ 	PSHUFB_XMM BSWAP_MASK CTR
+ 	mov $1, TCTR_LOW
+-	MOVQ_R64_XMM TCTR_LOW INC
+-	MOVQ_R64_XMM CTR TCTR_LOW
++//	MOVQ_R64_XMM TCTR_LOW INC
++//	MOVQ_R64_XMM CTR TCTR_LOW
+ 	ret
  
--/* This function return negative value if fails. */
-+/* Return a negative errno on failure */
- int iio_get_new_idr_val(struct idr *this_idr)
- {
- 	int ret;
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +61,6 @@ i-need-old-gcc.patch
 arch-x86-crypto-aesni-intel_asms-still-busted.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
 fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
 drivers-acpi-use-kasprintf-fix.patch
 acpi_pad-processor_aggregator-name-too-long-fix.patch
 compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
