@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch added to -mm tree
-Date: Tue, 27 Apr 2010 12:30:59 -0700
-Message-ID: <201004271958.o3RJwOX4016563@imap1.linux-foundation.org>
+Subject: + libertastf-add-configurable-debug-messages-fix.patch added to -mm tree
+Date: Tue, 27 Apr 2010 12:49:46 -0700
+Message-ID: <201004272017.o3RKHBsq017295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754999Ab0D0T6e (ORCPT
+	by vger.kernel.org with ESMTP id S1753569Ab0D0UR0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:58:34 -0400
+	Tue, 27 Apr 2010 16:17:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mjg59@srcf.ucam.org, roald.frederickx@gmail.com
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, steve@cozybit.com
 
 
 The patch titled
-     compal-laptop-added-jhl90-battery-hwmon-interface-fix
+     "libertastf: add configurable debug messages" fix
 has been added to the -mm tree.  Its filename is
-     compal-laptop-added-jhl90-battery-hwmon-interface-fix.patch
+     libertastf-add-configurable-debug-messages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compal-laptop-added-jhl90-battery-hwmon-interface-fix
+Subject: "libertastf: add configurable debug messages" fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-add missing semicolon
+In file included from drivers/net/wireless/libertas_tf/main.c:12:
+drivers/net/wireless/libertas_tf/deb_defs.h:12:1: warning: "pr_fmt" redefined
+In file included from /usr/src/devel/arch/x86/include/asm/percpu.h:44,
+                 from /usr/src/devel/arch/x86/include/asm/current.h:5,
+                 from /usr/src/devel/arch/x86/include/asm/processor.h:15,
+                 from /usr/src/devel/arch/x86/include/asm/thread_info.h:22,
+                 from include/linux/thread_info.h:56,
+                 from include/linux/preempt.h:9,
+                 from include/linux/spinlock.h:50,
+                 from include/linux/mmzone.h:7,
+                 from include/linux/gfp.h:4,
+                 from include/linux/slab.h:12,
+                 from drivers/net/wireless/libertas_tf/main.c:10:
+include/linux/kernel.h:376:1: warning: this is the location of the previous definition
 
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Roald Frederickx <roald.frederickx@gmail.com>
+Cc: Steve deRosier <steve@cozybit.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/compal-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/libertas_tf/deb_defs.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-fix drivers/platform/x86/compal-laptop.c
---- a/drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-fix
-+++ a/drivers/platform/x86/compal-laptop.c
-@@ -1015,7 +1015,7 @@ static int __devinit compal_probe(struct
+diff -puN drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix drivers/net/wireless/libertas_tf/deb_defs.h
+--- a/drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix
++++ a/drivers/net/wireless/libertas_tf/deb_defs.h
+@@ -9,8 +9,6 @@
+ #define DRV_NAME "libertas_tf"
+ #endif
  
- 	initialize_fan_control_data(data);
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include <linux/spinlock.h>
  
--	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group)
-+	err = sysfs_create_group(&pdev->dev.kobj, &compal_attribute_group);
- 	if (err)
- 		return err;
- 
+ #ifdef CONFIG_LIBERTAS_THINFIRM_DEBUG
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +103,7 @@ kernel-irq-managec-add-raise_threaded_irq.patch
 max3100-to_max3100_port-small-style-fixes.patch
 drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
 laptop-mode-make-flushes-per-device-fix.patch
+libertastf-add-configurable-debug-messages-fix.patch
 mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
 mm-export-unusable-free-space-index-via-debugfs.patch
 mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
