@@ -1,122 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] firmware-loader-use-statically-initialized-data-attribute.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:02:15 -0400
-Message-ID: <201004271803.o3RI3mSN011017@imap1.linux-foundation.org>
+Subject: [merged] firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:02:21 -0400
+Message-ID: <201004271803.o3RI3sTC011024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50742 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756672Ab0D0SIb (ORCPT
+	by vger.kernel.org with ESMTP id S1756605Ab0D0SI1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:08:31 -0400
+	Tue, 27 Apr 2010 14:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmitry.torokhov@gmail.com, Valdis.Kletnieks@vt.edu, dtor@mail.ru, greg@kroah.com, peterz@infradead.org, tglx@linutronix.de, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, dtor@mail.ru, greg@kroah.com, peterz@infradead.org, tglx@linutronix.de, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     firmware loader: use statically initialized data attribute
+     firmware-loader-use-statically-initialized-data-attribute-fix-fix
 has been removed from the -mm tree.  Its filename was
-     firmware-loader-use-statically-initialized-data-attribute.patch
+     firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware loader: use statically initialized data attribute
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: firmware-loader-use-statically-initialized-data-attribute-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There is no reason why we are using a template for binary attribute and
-copying it into per-firmware data before registering.  Using the original
-works as well and gets rid of the following lockdep complaint:
-
- platform microcode: firmware: requesting intel-ucode/06-0f-0b
- BUG: key ffff88011371be70 not in .data!
- ------------[ cut here ]------------
- WARNING: at kernel/lockdep.c:2706 lockdep_init_map+0x125/0x140()
- Hardware name: Latitude D630
- Modules linked in: ...
- Pid: 738, comm: modprobe Tainted: P           2.6.34-rc1 #237
- Call Trace:
-  [<ffffffff81048fb6>] warn_slowpath_common+0x76/0xb0
-  [<ffffffff81048fff>] warn_slowpath_null+0xf/0x20
-  [<ffffffff8107c915>] lockdep_init_map+0x125/0x140
-  [<ffffffff8118485a>] sysfs_add_file_mode+0x6a/0xc0
-  [<ffffffff811848bc>] sysfs_add_file+0xc/0x10
-  [<ffffffff811870e1>] sysfs_create_bin_file+0x21/0x30
-  [<ffffffff8130dff1>] fw_setup_device+0x81/0x120
-  [<ffffffff8130e14f>] _request_firmware+0xbf/0x270
-  [<ffffffff8130e38e>] request_firmware+0xe/0x10
-  [<ffffffffa0064be1>] request_microcode_fw+0x61/0xa0 [microcode]
-  [<ffffffffa00643b8>] microcode_init_cpu+0xb8/0xd0 [microcode]
-  [<ffffffffa0064426>] mc_sysdev_add+0x56/0x70 [microcode]
-  [<ffffffff813032ae>] sysdev_driver_register+0x9e/0x130
-  [<ffffffffa006a000>] ? microcode_init+0x0/0x12a [microcode]
-  [<ffffffffa006a0bd>] microcode_init+0xbd/0x12a [microcode]
-  [<ffffffff810001d7>] do_one_initcall+0x37/0x190
-  [<ffffffff8108d178>] sys_init_module+0xd8/0x250
-  [<ffffffff81002fab>] system_call_fastpath+0x16/0x1b
- ---[ end trace 93c9f72439beee7f ]---
-
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Greg KH <greg@kroah.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/base/firmware_class.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute
+diff -puN drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix-fix drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix-fix
 +++ a/drivers/base/firmware_class.c
-@@ -42,7 +42,6 @@ static DEFINE_MUTEX(fw_lock);
- struct firmware_priv {
- 	char *fw_id;
- 	struct completion completion;
--	struct bin_attribute attr_data;
- 	struct firmware *fw;
- 	unsigned long status;
- 	struct page **pages;
-@@ -346,8 +345,8 @@ out:
- 	return retval;
- }
- 
--static struct bin_attribute firmware_attr_data_tmpl = {
--	.attr = {.name = "data", .mode = 0644},
-+static struct bin_attribute firmware_attr_data = {
-+	.attr = { .name = "data", .mode = 0644 },
- 	.size = 0,
- 	.read = firmware_data_read,
- 	.write = firmware_data_write,
-@@ -392,7 +391,6 @@ static int fw_register_device(struct dev
- 	}
- 
- 	init_completion(&fw_priv->completion);
--	fw_priv->attr_data = firmware_attr_data_tmpl;
- 	fw_priv->fw_id = kstrdup(fw_name, GFP_KERNEL);
- 	if (!fw_priv->fw_id) {
- 		dev_err(device, "%s: Firmware name allocation failed\n",
-@@ -445,7 +443,7 @@ static int fw_setup_device(struct firmwa
+@@ -442,7 +442,6 @@ static int fw_setup_device(struct firmwa
+ 	fw_priv = dev_get_drvdata(f_dev);
  
  	fw_priv->fw = fw;
- 	sysfs_bin_attr_init(&fw_priv->attr_data);
--	retval = sysfs_create_bin_file(&f_dev->kobj, &fw_priv->attr_data);
-+	retval = sysfs_create_bin_file(&f_dev->kobj, &firmware_attr_data);
+-	sysfs_bin_attr_init(&firmware_attr_data);
+ 	retval = sysfs_create_bin_file(&f_dev->kobj, &firmware_attr_data);
  	if (retval) {
  		dev_err(device, "%s: sysfs_create_bin_file failed\n", __func__);
- 		goto error_unreg;
 _
 
-Patches currently in -mm which might be from dmitry.torokhov@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-vfs-clarify-that-nonseekable_open-will-never-fail.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
+laptop-mode-make-flushes-per-device-fix.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
