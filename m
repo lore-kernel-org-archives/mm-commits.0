@@ -1,69 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpet-factor-timer-allocate-from-open-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:34:22 -0700
-Message-ID: <201004271901.o3RJ1ldO013804@imap1.linux-foundation.org>
+Subject: [folded] led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:34:53 -0700
+Message-ID: <201004271902.o3RJ2I1w013823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754520Ab0D0TCe (ORCPT
+	by vger.kernel.org with ESMTP id S1754520Ab0D0TDI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:02:34 -0400
+	Tue, 27 Apr 2010 15:03:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clemens@ladisch.de, johnstul@us.ibm.com, maglyx@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, gurligebis@gentoo.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpet-factor-timer-allocate-from-open-fix
+     led-driver-for-the-soekris-net5501-board-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hpet-factor-timer-allocate-from-open-fix.patch
+     led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hpet-factor-timer-allocate-from-open.patch
+This patch was dropped because it was folded into led-driver-for-the-soekris-net5501-board.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpet-factor-timer-allocate-from-open-fix
+Subject: led-driver-for-the-soekris-net5501-board-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-coding-style tweaks
+ERROR: that open brace { should be on the previous line
+#120: FILE: drivers/leds/leds-net5501.c:67:
++	if (!rombase)
++	{
 
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: Magnus Lynch <maglyx@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+total: 1 errors, 0 warnings, 117 lines checked
+
+./patches/led-driver-for-the-soekris-net5501-board.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Bjarke Istrup Pedersen <gurligebis@gentoo.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/leds/leds-net5501.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix
-+++ a/drivers/char/hpet.c
-@@ -406,8 +406,9 @@ static int hpet_mmap(struct file *file, 
- static int hpet_fasync(int fd, struct file *file, int on)
- {
- 	struct hpet_dev *devp;
-+	int r;
+diff -puN drivers/leds/leds-net5501.c~led-driver-for-the-soekris-net5501-board-checkpatch-fixes drivers/leds/leds-net5501.c
+--- a/drivers/leds/leds-net5501.c~led-driver-for-the-soekris-net5501-board-checkpatch-fixes
++++ a/drivers/leds/leds-net5501.c
+@@ -64,8 +64,7 @@ static int __init soekris_init(void)
+ 		return 0;
  
--	int r = hpet_alloc_timer(file);
-+	r = hpet_alloc_timer(file);
- 	if (r < 0)
- 		return r;
- 
-@@ -467,8 +468,9 @@ hpet_ioctl(struct inode *inode, struct f
- 	   unsigned long arg)
- {
- 	struct hpet_dev *devp;
-+	int r;
- 
--	int r = hpet_alloc_timer(file);
-+	r = hpet_alloc_timer(file);
- 	if (r < 0)
- 		return r;
- 
+ 	rombase = ioremap(0xffff0000, 0xffff);
+-	if (!rombase)
+-	{
++	if (!rombase) {
+ 		printk(KERN_INFO "Soekris net5501 LED driver failed to get rombase");
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +81,7 @@ jfs-free-sbi-memory-in-error-path.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 of-gpio-implement-gpiolib-notifier-hooks.patch
 hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board.patch
 led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
