@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch added to -mm tree
-Date: Tue, 27 Apr 2010 15:26:44 -0700
-Message-ID: <201004272226.o3RMQiJ1023850@imap1.linux-foundation.org>
+Subject: + swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch added to -mm tree
+Date: Tue, 27 Apr 2010 15:27:05 -0700
+Message-ID: <201004272227.o3RMR5lO023860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755272Ab0D0W1R (ORCPT
+	by vger.kernel.org with ESMTP id S1753477Ab0D0W1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 18:27:17 -0400
+	Tue, 27 Apr 2010 18:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, beckyb@kernel.crashing.org, benh@kernel.crashing.org, paulus@samba.org
+Cc: fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     powerpc: remove unnecessary sync_single_range_* in swiotlb_dma_ops
+     swiotlb: remove unnecessary swiotlb_sync_single_range_*
 has been added to the -mm tree.  Its filename is
-     powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+     swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: remove unnecessary sync_single_range_* in swiotlb_dma_ops
+Subject: swiotlb: remove unnecessary swiotlb_sync_single_range_*
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-sync_single_range_for_cpu and sync_single_range_for_device hooks in
-swiotlb_dma_ops are unnecessary because sync_single_for_cpu and
-sync_single_for_device are used there.
+swiotlb_sync_single_range_for_cpu and swiotlb_sync_single_range_for_device
+are unnecessary because swiotlb_sync_single_for_cpu and
+swiotlb_sync_single_for_device can be used instead.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Becky Bruce <beckyb@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/dma-swiotlb.c |    4 ++--
- arch/powerpc/kernel/dma.c         |   12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/swiotlb.h |   10 ----------
+ lib/swiotlb.c           |   31 -------------------------------
+ 2 files changed, 41 deletions(-)
 
-diff -puN arch/powerpc/kernel/dma-swiotlb.c~powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops arch/powerpc/kernel/dma-swiotlb.c
---- a/arch/powerpc/kernel/dma-swiotlb.c~powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops
-+++ a/arch/powerpc/kernel/dma-swiotlb.c
-@@ -38,8 +38,8 @@ struct dma_map_ops swiotlb_dma_ops = {
- 	.dma_supported = swiotlb_dma_supported,
- 	.map_page = swiotlb_map_page,
- 	.unmap_page = swiotlb_unmap_page,
--	.sync_single_range_for_cpu = swiotlb_sync_single_range_for_cpu,
--	.sync_single_range_for_device = swiotlb_sync_single_range_for_device,
-+	.sync_single_for_cpu = swiotlb_sync_single_for_cpu,
-+	.sync_single_for_device = swiotlb_sync_single_for_device,
- 	.sync_sg_for_cpu = swiotlb_sync_sg_for_cpu,
- 	.sync_sg_for_device = swiotlb_sync_sg_for_device,
- 	.mapping_error = swiotlb_dma_mapping_error,
-diff -puN arch/powerpc/kernel/dma.c~powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops arch/powerpc/kernel/dma.c
---- a/arch/powerpc/kernel/dma.c~powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops
-+++ a/arch/powerpc/kernel/dma.c
-@@ -127,11 +127,11 @@ static inline void dma_direct_sync_sg(st
- 		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
- }
+diff -puN include/linux/swiotlb.h~swiotlb-remove-unnecessary-swiotlb_sync_single_range_ include/linux/swiotlb.h
+--- a/include/linux/swiotlb.h~swiotlb-remove-unnecessary-swiotlb_sync_single_range_
++++ a/include/linux/swiotlb.h
+@@ -73,16 +73,6 @@ extern void
+ swiotlb_sync_sg_for_device(struct device *hwdev, struct scatterlist *sg,
+ 			   int nelems, enum dma_data_direction dir);
  
--static inline void dma_direct_sync_single_range(struct device *dev,
--		dma_addr_t dma_handle, unsigned long offset, size_t size,
--		enum dma_data_direction direction)
-+static inline void dma_direct_sync_single(struct device *dev,
-+					  dma_addr_t dma_handle, size_t size,
-+					  enum dma_data_direction direction)
- {
--	__dma_sync(bus_to_virt(dma_handle+offset), size, direction);
-+	__dma_sync(bus_to_virt(dma_handle), size, direction);
- }
- #endif
+-extern void
+-swiotlb_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
+-				  unsigned long offset, size_t size,
+-				  enum dma_data_direction dir);
+-
+-extern void
+-swiotlb_sync_single_range_for_device(struct device *hwdev, dma_addr_t dev_addr,
+-				     unsigned long offset, size_t size,
+-				     enum dma_data_direction dir);
+-
+ extern int
+ swiotlb_dma_mapping_error(struct device *hwdev, dma_addr_t dma_addr);
  
-@@ -144,8 +144,8 @@ struct dma_map_ops dma_direct_ops = {
- 	.map_page	= dma_direct_map_page,
- 	.unmap_page	= dma_direct_unmap_page,
- #ifdef CONFIG_NOT_COHERENT_CACHE
--	.sync_single_range_for_cpu 	= dma_direct_sync_single_range,
--	.sync_single_range_for_device 	= dma_direct_sync_single_range,
-+	.sync_single_for_cpu 		= dma_direct_sync_single,
-+	.sync_single_for_device 	= dma_direct_sync_single,
- 	.sync_sg_for_cpu 		= dma_direct_sync_sg,
- 	.sync_sg_for_device 		= dma_direct_sync_sg,
- #endif
+diff -puN lib/swiotlb.c~swiotlb-remove-unnecessary-swiotlb_sync_single_range_ lib/swiotlb.c
+--- a/lib/swiotlb.c~swiotlb-remove-unnecessary-swiotlb_sync_single_range_
++++ a/lib/swiotlb.c
+@@ -757,37 +757,6 @@ swiotlb_sync_single_for_device(struct de
+ EXPORT_SYMBOL(swiotlb_sync_single_for_device);
+ 
+ /*
+- * Same as above, but for a sub-range of the mapping.
+- */
+-static void
+-swiotlb_sync_single_range(struct device *hwdev, dma_addr_t dev_addr,
+-			  unsigned long offset, size_t size,
+-			  int dir, int target)
+-{
+-	swiotlb_sync_single(hwdev, dev_addr + offset, size, dir, target);
+-}
+-
+-void
+-swiotlb_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
+-				  unsigned long offset, size_t size,
+-				  enum dma_data_direction dir)
+-{
+-	swiotlb_sync_single_range(hwdev, dev_addr, offset, size, dir,
+-				  SYNC_FOR_CPU);
+-}
+-EXPORT_SYMBOL_GPL(swiotlb_sync_single_range_for_cpu);
+-
+-void
+-swiotlb_sync_single_range_for_device(struct device *hwdev, dma_addr_t dev_addr,
+-				     unsigned long offset, size_t size,
+-				     enum dma_data_direction dir)
+-{
+-	swiotlb_sync_single_range(hwdev, dev_addr, offset, size, dir,
+-				  SYNC_FOR_DEVICE);
+-}
+-EXPORT_SYMBOL_GPL(swiotlb_sync_single_range_for_device);
+-
+-/*
+  * Map a set of buffers described by scatterlist in streaming mode for DMA.
+  * This is the scatter-gather version of the above swiotlb_map_page
+  * interface.  Here the scatter gather list elements are each tagged with the
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
