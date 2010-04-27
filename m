@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dib7000p-reduce-large-stack-usage-fix.patch added to -mm tree
-Date: Tue, 27 Apr 2010 15:09:45 -0700
-Message-ID: <201004272209.o3RM9jcM023078@imap1.linux-foundation.org>
+Subject: + dib3000mc-reduce-large-stack-usage-fix.patch added to -mm tree
+Date: Tue, 27 Apr 2010 15:10:44 -0700
+Message-ID: <201004272210.o3RMAi3w023114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757292Ab0D0WKG (ORCPT
+	by vger.kernel.org with ESMTP id S1754928Ab0D0WLA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 18:10:06 -0400
+	Tue, 27 Apr 2010 18:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mchehab@infradead.org, obi@linuxtv.org, pboettche
 
 
 The patch titled
-     dib7000p-reduce-large-stack-usage-fix
+     dib3000mc-reduce-large-stack-usage-fix
 has been added to the -mm tree.  Its filename is
-     dib7000p-reduce-large-stack-usage-fix.patch
+     dib3000mc-reduce-large-stack-usage-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dib7000p-reduce-large-stack-usage-fix
+Subject: dib3000mc-reduce-large-stack-usage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andreas Oberritter <obi@linuxtv.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: Patrick Boettcher <pboettcher@dibcom.fr>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/dib7000p.c |    2 +-
+ drivers/media/dvb/frontends/dib3000mc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage-fix drivers/media/dvb/frontends/dib7000p.c
---- a/drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage-fix
-+++ a/drivers/media/dvb/frontends/dib7000p.c
-@@ -1330,7 +1330,7 @@ int dib7000p_i2c_enumeration(struct i2c_
+diff -puN drivers/media/dvb/frontends/dib3000mc.c~dib3000mc-reduce-large-stack-usage-fix drivers/media/dvb/frontends/dib3000mc.c
+--- a/drivers/media/dvb/frontends/dib3000mc.c~dib3000mc-reduce-large-stack-usage-fix
++++ a/drivers/media/dvb/frontends/dib3000mc.c
+@@ -822,7 +822,7 @@ int dib3000mc_i2c_enumeration(struct i2c
  
- 	dpst = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
- 	if (!dpst)
+ 	dmcst = kzalloc(sizeof(struct dib3000mc_state), GFP_KERNEL);
+ 	if (dmcst == NULL)
 -		return -ENODEV;
 +		return -ENOMEM;
  
- 	dpst->i2c_adap = i2c;
+ 	dmcst->i2c_adap = i2c;
  
 _
 
@@ -76,6 +76,7 @@ compal-laptop-added-jhl90-battery-hwmon-interface.patch
 arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 sched-introduce-get_cpu_iowait_time_us.patch
 jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
 dib7000p-reduce-large-stack-usage-fix.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 of-gpio-implement-gpiolib-notifier-hooks.patch
