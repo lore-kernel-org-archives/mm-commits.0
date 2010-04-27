@@ -1,57 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: [folded] acpi_pad-processor_aggregator-name-too-long-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:29:03 -0700
-Message-ID: <201004271856.o3RIuSYq013527@imap1.linux-foundation.org>
+Subject: [folded] compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:32:27 -0700
+Message-ID: <201004271859.o3RIxqgu013710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754467Ab0D0S5P (ORCPT
+	by vger.kernel.org with ESMTP id S1756042Ab0D0TA3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:57:15 -0400
+	Tue, 27 Apr 2010 15:00:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, error27@gmail.com, lenb@kernel.org, pavel@ucw.cz, shaohua.li@intel.com, wharms@bfs.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mjg59@srcf.ucam.org, roald.frederickx@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi_pad-processor_aggregator-name-too-long-fix
+     compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     acpi_pad-processor_aggregator-name-too-long-fix.patch
+     compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into acpi_pad-processor_aggregator-name-too-long.patch
+This patch was dropped because it was folded into compal-laptop-added-jhl90-battery-hwmon-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi_pad-processor_aggregator-name-too-long-fix
+Subject: compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-call it acpi_pad, per Shaohua Li <shaohua.li@intel.com>
+WARNING: please, no space before tabs
+#112: FILE: drivers/platform/x86/compal-laptop.c:89:
++#define DRIVER_VERSION ^I"0.2.7"$
 
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: walter harms <wharms@bfs.de>
+WARNING: please, no space before tabs
+#115: FILE: drivers/platform/x86/compal-laptop.c:92:
++#define BACKLIGHT_LEVEL_MAX ^I^I7$
+
+WARNING: please, no space before tabs
+#130: FILE: drivers/platform/x86/compal-laptop.c:107:
++#define WIRELESS_BT ^I^I^I(1 << 1)$
+
+WARNING: please, no space before tabs
+#229: FILE: drivers/platform/x86/compal-laptop.c:202:
++ * ^Iu8 writeData = 0x33;$
+
+WARNING: please, no space before tabs
+#230: FILE: drivers/platform/x86/compal-laptop.c:203:
++ * ^Iec_transaction(0x4F, &writeData, 1, buffer, 32, 0);$
+
+WARNING: struct backlight_ops should normally be const
+#387: FILE: drivers/platform/x86/compal-laptop.c:343:
++static struct backlight_ops compalbl_ops = {
+
+WARNING: please, no space before tabs
+#435: FILE: drivers/platform/x86/compal-laptop.c:381:
++^Istruct device_attribute *attr, char *buf) ^I^I^I\$
+
+WARNING: please, no space before tabs
+#436: FILE: drivers/platform/x86/compal-laptop.c:382:
++{ ^I^I^I^I^I^I^I^I^I\$
+
+WARNING: please, no space before tabs
+#569: FILE: drivers/platform/x86/compal-laptop.c:487:
++#define TEMPERATURE_SHOW_TEMP_AND_LABEL(POSTFIX, ADDRESS, LABEL) ^I\$
+
+WARNING: please, no space before tabs
+#570: FILE: drivers/platform/x86/compal-laptop.c:488:
++static ssize_t temp_##POSTFIX(struct device *dev, ^I^I^I\$
+
+WARNING: please, no space before tabs
+#571: FILE: drivers/platform/x86/compal-laptop.c:489:
++^I^Istruct device_attribute *attr, char *buf) ^I^I\$
+
+WARNING: please, no space before tabs
+#575: FILE: drivers/platform/x86/compal-laptop.c:493:
++static ssize_t label_##POSTFIX(struct device *dev, ^I^I^I\$
+
+WARNING: please, no space before tabs
+#576: FILE: drivers/platform/x86/compal-laptop.c:494:
++^I^Istruct device_attribute *attr, char *buf) ^I^I\$
+
+WARNING: please, no space before tabs
+#578: FILE: drivers/platform/x86/compal-laptop.c:496:
++^Ireturn sprintf(buf, "%s\n", LABEL); ^I^I^I^I\$
+
+ERROR: space required after that ',' (ctx:VxV)
+#585: FILE: drivers/platform/x86/compal-laptop.c:503:
++TEMPERATURE_SHOW_TEMP_AND_LABEL(northbridge,TEMP_NORTHBRIDGE,"NorthBridge");
+                                            ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#585: FILE: drivers/platform/x86/compal-laptop.c:503:
++TEMPERATURE_SHOW_TEMP_AND_LABEL(northbridge,TEMP_NORTHBRIDGE,"NorthBridge");
+                                                             ^
+
+total: 2 errors, 14 warnings, 1090 lines checked
+
+./patches/compal-laptop-added-jhl90-battery-hwmon-interface.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Roald Frederickx <roald.frederickx@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_pad.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/compal-laptop.c |   28 ++++++++++++-------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/acpi/acpi_pad.c~acpi_pad-processor_aggregator-name-too-long-fix drivers/acpi/acpi_pad.c
---- a/drivers/acpi/acpi_pad.c~acpi_pad-processor_aggregator-name-too-long-fix
-+++ a/drivers/acpi/acpi_pad.c
-@@ -31,7 +31,7 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
+diff -puN drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes drivers/platform/x86/compal-laptop.c
+--- a/drivers/platform/x86/compal-laptop.c~compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes
++++ a/drivers/platform/x86/compal-laptop.c
+@@ -86,10 +86,10 @@
+ /* Defines */
+ /* ======= */
+ #define DRIVER_NAME "compal-laptop"
+-#define DRIVER_VERSION 	"0.2.7"
++#define DRIVER_VERSION	"0.2.7"
  
--#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"cpu_aggregator"
-+#define ACPI_PROCESSOR_AGGREGATOR_CLASS	"acpi_pad"
- #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
- #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
- static DEFINE_MUTEX(isolated_cpus_lock);
+ #define BACKLIGHT_LEVEL_ADDR		0xB9
+-#define BACKLIGHT_LEVEL_MAX 		7
++#define BACKLIGHT_LEVEL_MAX		7
+ #define BACKLIGHT_STATE_ADDR		0x59
+ #define BACKLIGHT_STATE_ON_DATA		0xE1
+ #define BACKLIGHT_STATE_OFF_DATA	0xE2
+@@ -104,7 +104,7 @@
+ 
+ #define WIRELESS_ADDR			0xBB
+ #define WIRELESS_WLAN			(1 << 0)
+-#define WIRELESS_BT 			(1 << 1)
++#define WIRELESS_BT			(1 << 1)
+ #define WIRELESS_WLAN_EXISTS		(1 << 2)
+ #define WIRELESS_BT_EXISTS		(1 << 3)
+ #define WIRELESS_KILLSWITCH		(1 << 4)
+@@ -199,8 +199,8 @@ static bool extra_features;
+  * come up with these values by looping through the possible inputs and
+  * watching the output of address 0x4F (do an ec_transaction writing 0x33
+  * into 0x4F and read a few bytes from the output, like so:
+- * 	u8 writeData = 0x33;
+- * 	ec_transaction(0x4F, &writeData, 1, buffer, 32, 0);
++ *	u8 writeData = 0x33;
++ *	ec_transaction(0x4F, &writeData, 1, buffer, 32, 0);
+  * That address is labled "fan1 table information" in the service manual.
+  * It should be clear which value in 'buffer' changes). This seems to be
+  * related to fan speed. It isn't a proper 'realtime' fan speed value
+@@ -340,7 +340,7 @@ static int bl_update_status(struct backl
+ 	return 0;
+ }
+ 
+-static struct backlight_ops compalbl_ops = {
++static const struct backlight_ops compalbl_ops = {
+ 	.get_brightness = bl_get_brightness,
+ 	.update_status	= bl_update_status,
+ };
+@@ -378,8 +378,8 @@ static const struct rfkill_ops compal_rf
+ /* Wake_up interface */
+ #define SIMPLE_MASKED_STORE_SHOW(NAME, ADDR, MASK)			\
+ static ssize_t NAME##_show(struct device *dev,				\
+-	struct device_attribute *attr, char *buf) 			\
+-{ 									\
++	struct device_attribute *attr, char *buf)			\
++{									\
+ 	return sprintf(buf, "%d\n", ((ec_read_u8(ADDR) & MASK) != 0));	\
+ }									\
+ static ssize_t NAME##_store(struct device *dev,				\
+@@ -484,16 +484,16 @@ static ssize_t fan_show(struct device *d
+ 
+ 
+ /* Temperature interface */
+-#define TEMPERATURE_SHOW_TEMP_AND_LABEL(POSTFIX, ADDRESS, LABEL) 	\
+-static ssize_t temp_##POSTFIX(struct device *dev, 			\
+-		struct device_attribute *attr, char *buf) 		\
++#define TEMPERATURE_SHOW_TEMP_AND_LABEL(POSTFIX, ADDRESS, LABEL)	\
++static ssize_t temp_##POSTFIX(struct device *dev,			\
++		struct device_attribute *attr, char *buf)		\
+ {									\
+ 	return sprintf(buf, "%d\n", 1000 * (int)ec_read_s8(ADDRESS));	\
+ }									\
+-static ssize_t label_##POSTFIX(struct device *dev, 			\
+-		struct device_attribute *attr, char *buf) 		\
++static ssize_t label_##POSTFIX(struct device *dev,			\
++		struct device_attribute *attr, char *buf)		\
+ {									\
+-	return sprintf(buf, "%s\n", LABEL); 				\
++	return sprintf(buf, "%s\n", LABEL);				\
+ }
+ 
+ /* Labels as in service guide */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +201,7 @@ include-linux-fsh-complete-hexification-of-fmode_-constants.patch
 fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
 drivers-acpi-use-kasprintf.patch
 acpi_pad-processor_aggregator-name-too-long.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
 compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
 arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 jfs-free-sbi-memory-in-error-path.patch
