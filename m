@@ -1,74 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded] of-gpio-implement-gpiolib-notifier-hooks-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:33:29 -0700
-Message-ID: <201004271900.o3RJ0sQj013773@imap1.linux-foundation.org>
+Subject: [folded] hpet-factor-timer-allocate-from-open-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:34:22 -0700
+Message-ID: <201004271901.o3RJ1ldO013804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38707 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756042Ab0D0TBw (ORCPT
+	by vger.kernel.org with ESMTP id S1754520Ab0D0TCe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:01:52 -0400
+	Tue, 27 Apr 2010 15:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avorontsov@ru.mvista.com, benh@kernel.crashing.org, bgat@billgatliff.com, dbaryshkov@gmail.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
+To: akpm@linux-foundation.org, clemens@ladisch.de, johnstul@us.ibm.com, maglyx@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     of-gpio-implement-gpiolib-notifier-hooks-fix
+     hpet-factor-timer-allocate-from-open-fix
 has been removed from the -mm tree.  Its filename was
-     of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+     hpet-factor-timer-allocate-from-open-fix.patch
 
-This patch was dropped because it was folded into of-gpio-implement-gpiolib-notifier-hooks.patch
+This patch was dropped because it was folded into hpet-factor-timer-allocate-from-open.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: of-gpio-implement-gpiolib-notifier-hooks-fix
+Subject: hpet-factor-timer-allocate-from-open-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARN_ON cleanups.
+coding-style tweaks
 
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Bill Gatliff <bgat@billgatliff.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Magnus Lynch <maglyx@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/gpio.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/char/hpet.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix drivers/of/gpio.c
---- a/drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix
-+++ a/drivers/of/gpio.c
-@@ -257,10 +257,8 @@ static int of_gpiochip_register_simple(s
+diff -puN drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-factor-timer-allocate-from-open-fix
++++ a/drivers/char/hpet.c
+@@ -406,8 +406,9 @@ static int hpet_mmap(struct file *file, 
+ static int hpet_fasync(int fd, struct file *file, int on)
  {
- 	struct of_gpio_chip *of_gc;
+ 	struct hpet_dev *devp;
++	int r;
  
--	if (np->data) {
--		WARN_ON(1);
-+	if (WARN_ON(np->data))
- 		return -EBUSY;
--	}
+-	int r = hpet_alloc_timer(file);
++	r = hpet_alloc_timer(file);
+ 	if (r < 0)
+ 		return r;
  
- 	of_gc = kzalloc(sizeof(*of_gc), GFP_KERNEL);
- 	if (!of_gc)
-@@ -289,10 +287,8 @@ static int of_gpiochip_unregister(struct
+@@ -467,8 +468,9 @@ hpet_ioctl(struct inode *inode, struct f
+ 	   unsigned long arg)
  {
- 	struct of_gpio_chip *of_gc = np->data;
+ 	struct hpet_dev *devp;
++	int r;
  
--	if (!of_gc || of_gc->chip != chip) {
--		WARN_ON(1);
-+	if (WARN_ON(!of_gc || of_gc->chip != chip))
- 		return -EINVAL;
--	}
+-	int r = hpet_alloc_timer(file);
++	r = hpet_alloc_timer(file);
+ 	if (r < 0)
+ 		return r;
  
- 	np->data = NULL;
- 	kfree(of_gc);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,8 +82,7 @@ arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 jfs-free-sbi-memory-in-error-path.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 of-gpio-implement-gpiolib-notifier-hooks.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open.patch
 hpet-factor-timer-allocate-from-open-fix.patch
 led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
