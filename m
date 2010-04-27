@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch added to -mm tree
-Date: Tue, 27 Apr 2010 15:30:36 -0700
-Message-ID: <201004272230.o3RMUaRT024069@imap1.linux-foundation.org>
+Subject: + tosa_battery-fix-build-error.patch added to -mm tree
+Date: Tue, 27 Apr 2010 15:49:28 -0700
+Message-ID: <201004272249.o3RMnSBV025104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757421Ab0D0WbI (ORCPT
+	by vger.kernel.org with ESMTP id S1755065Ab0D0Wtg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 18:31:08 -0400
+	Tue, 27 Apr 2010 18:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp
+Cc: dbaryshkov@gmail.com, cbou@mail.ru, dwmw2@infradead.org
 
 
 The patch titled
-     dma-mapping: remove unnecessary sync_single_range_* in dma_map_ops
+     tosa_battery: fix build error
 has been added to the -mm tree.  Its filename is
-     dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch
+     tosa_battery-fix-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: remove unnecessary sync_single_range_* in dma_map_ops
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: tosa_battery: fix build error
+From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 
-sync_single_range_for_cpu and sync_single_range_for_device hooks are
-unnecessary because sync_single_for_cpu and sync_single_for_device can
-be used instead.
+-ENOCHANGELOG
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Signed-off-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/dma-mapping-common.h |   20 ++------------------
- include/linux/dma-mapping.h              |   10 ----------
- 2 files changed, 2 insertions(+), 28 deletions(-)
+ drivers/power/tosa_battery.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops include/asm-generic/dma-mapping-common.h
---- a/include/asm-generic/dma-mapping-common.h~dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops
-+++ a/include/asm-generic/dma-mapping-common.h
-@@ -123,15 +123,7 @@ static inline void dma_sync_single_range
- 						 size_t size,
- 						 enum dma_data_direction dir)
- {
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_single_range_for_cpu) {
--		ops->sync_single_range_for_cpu(dev, addr, offset, size, dir);
--		debug_dma_sync_single_range_for_cpu(dev, addr, offset, size, dir);
--
--	} else
--		dma_sync_single_for_cpu(dev, addr + offset, size, dir);
-+	dma_sync_single_for_cpu(dev, addr + offset, size, dir);
- }
- 
- static inline void dma_sync_single_range_for_device(struct device *dev,
-@@ -140,15 +132,7 @@ static inline void dma_sync_single_range
- 						    size_t size,
- 						    enum dma_data_direction dir)
- {
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	BUG_ON(!valid_dma_direction(dir));
--	if (ops->sync_single_range_for_device) {
--		ops->sync_single_range_for_device(dev, addr, offset, size, dir);
--		debug_dma_sync_single_range_for_device(dev, addr, offset, size, dir);
--
--	} else
--		dma_sync_single_for_device(dev, addr + offset, size, dir);
-+	dma_sync_single_for_device(dev, addr + offset, size, dir);
- }
- 
- static inline void
-diff -puN include/linux/dma-mapping.h~dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops
-+++ a/include/linux/dma-mapping.h
-@@ -40,16 +40,6 @@ struct dma_map_ops {
- 	void (*sync_single_for_device)(struct device *dev,
- 				       dma_addr_t dma_handle, size_t size,
- 				       enum dma_data_direction dir);
--	void (*sync_single_range_for_cpu)(struct device *dev,
--					  dma_addr_t dma_handle,
--					  unsigned long offset,
--					  size_t size,
--					  enum dma_data_direction dir);
--	void (*sync_single_range_for_device)(struct device *dev,
--					     dma_addr_t dma_handle,
--					     unsigned long offset,
--					     size_t size,
--					     enum dma_data_direction dir);
- 	void (*sync_sg_for_cpu)(struct device *dev,
- 				struct scatterlist *sg, int nents,
- 				enum dma_data_direction dir);
+diff -puN drivers/power/tosa_battery.c~tosa_battery-fix-build-error drivers/power/tosa_battery.c
+--- a/drivers/power/tosa_battery.c~tosa_battery-fix-build-error
++++ a/drivers/power/tosa_battery.c
+@@ -61,7 +61,7 @@ static unsigned long tosa_read_bat(struc
+ 	mutex_lock(&bat_lock);
+ 	gpio_set_value(bat->gpio_bat, 1);
+ 	msleep(5);
+-	value = wm97xx_read_aux_adc(bat->psy.dev->parent->driver_data,
++	value = wm97xx_read_aux_adc(dev_get_drvdata(bat->psy.dev->parent),
+ 			bat->adc_bat);
+ 	gpio_set_value(bat->gpio_bat, 0);
+ 	mutex_unlock(&bat_lock);
+@@ -81,7 +81,7 @@ static unsigned long tosa_read_temp(stru
+ 	mutex_lock(&bat_lock);
+ 	gpio_set_value(bat->gpio_temp, 1);
+ 	msleep(5);
+-	value = wm97xx_read_aux_adc(bat->psy.dev->parent->driver_data,
++	value = wm97xx_read_aux_adc(dev_get_drvdata(bat->psy.dev->parent),
+ 			bat->adc_temp);
+ 	gpio_set_value(bat->gpio_temp, 0);
+ 	mutex_unlock(&bat_lock);
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from dbaryshkov@gmail.com are
 
-origin.patch
-dma-mapping-fix-dma_sync_single_range_.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
-dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
-asm-generic-remove-isa_dma_threshold-in-scatterlisth.patch
-asm-generic-add-need_sg_dma_length-to-define-sg_dma_len.patch
-x86_32-use-asm-generic-scatterlisth.patch
-powerpc-use-asm-generic-scatterlisth.patch
-arm-use-asm-generic-scatterlisth.patch
-alpha-use-asm-generic-scatterlisth.patch
-asm-generic-remove-arch_has_sg_chain-in-scatterlisth.patch
-avr32-use-asm-generic-scatterlisth.patch
-cris-use-asm-generic-scatterlisth.patch
-h8300-use-asm-generic-scatterlisth.patch
-m32r-use-use-asm-generic-scatterlisth.patch
-m68k-use-asm-generic-scatterlisth.patch
-mips-use-use-asm-generic-scatterlisth.patch
-xtensa-use-use-asm-generic-scatterlisth.patch
-blackfin-use-use-asm-generic-scatterlisth.patch
-frv-use-asm-generic-scatterlisth.patch
-mn10300-use-asm-generic-scatterlisth.patch
-parisc-use-asm-generic-scatterlisth.patch
+tosa_battery-fix-build-error.patch
+gpiolib-introduce-chip-addition-removal-notifier.patch
+of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
 
