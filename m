@@ -1,176 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 14:39:14 -0700
-Message-ID: <201004272139.o3RLdEPN021658@imap1.linux-foundation.org>
+Subject: [obsolete] gpio-potential-null-dereference.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 14:50:19 -0700
+Message-ID: <201004272150.o3RLoJJm022169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757149Ab0D0VtV (ORCPT
+	by vger.kernel.org with ESMTP id S1757036Ab0D0Vux (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:49:21 -0400
+	Tue, 27 Apr 2010 17:50:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chripell@fsfe.org, alan@lxorguk.ukuu.org.uk, feng.tang@intel.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: error27@gmail.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     max3100: fixes for the MAX31x0 console
+     gpio: potential null dereference
 has been removed from the -mm tree.  Its filename was
-     max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console.patch
+     gpio-potential-null-dereference.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: max3100: fixes for the MAX31x0 console
-From: Christian Pellegrin <chripell@fsfe.org>
+Subject: gpio: potential null dereference
+From: Dan Carpenter <error27@gmail.com>
 
-Fix problems reported about the MAX31x0 console.  RTS is asserted only if
-flow control is explicitly enabled on kernel command line.  Chars inputed
-during console output are not lost.
+Smatch found a potential null dereference in gpio_setup_irq().  The
+"pdesc" variable is allocated with idr_find() that can return NULL.  If
+gpio_setup_irq() is called with 0 as gpio_flags and "pdesc" is null, it
+would OOPs here.
 
-Signed-off-by: Christian Pellegrin <chripell@fsfe.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/max3100.c |   48 +++++++++++++++++++++++++++++++++----
- 1 file changed, 43 insertions(+), 5 deletions(-)
+ drivers/gpio/gpiolib.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/max3100.c~max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console drivers/serial/max3100.c
---- a/drivers/serial/max3100.c~max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console
-+++ a/drivers/serial/max3100.c
-@@ -148,6 +148,8 @@ struct max3100_port {
- 	struct work_struct console_work;
- 	/* char tx timeout */
- 	int console_tout;
-+	/* lock on receiving chars */
-+	struct mutex rx_lock;
- #endif
- };
+diff -puN drivers/gpio/gpiolib.c~gpio-potential-null-dereference drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-potential-null-dereference
++++ a/drivers/gpio/gpiolib.c
+@@ -416,7 +416,8 @@ static int gpio_setup_irq(struct gpio_de
+ 	return 0;
  
-@@ -193,6 +195,19 @@ static void max3100_calc_parity(struct m
- 		*c |= max3100_do_parity(s, *c) << 8;
- }
- 
-+static void max3100_flip(struct max3100_port *s)
-+{
-+	if (s->port.state->port.tty != NULL) {
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+		mutex_lock(&s->rx_lock);
-+#endif
-+		tty_flip_buffer_push(s->port.state->port.tty);
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+		mutex_unlock(&s->rx_lock);
-+#endif
-+	}
-+}
-+
- static void max3100_resume_work(struct work_struct *w)
- {
- 	struct max3100_port *s = container_of(w, struct max3100_port,
-@@ -243,6 +258,10 @@ static int max3100_handlerx(struct max31
- 	unsigned int ch, flg, status = 0;
- 	int ret = 0, cts;
- 
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	mutex_lock(&s->rx_lock);
-+#endif
-+
- 	if (rx & MAX3100_R && s->rx_enabled) {
- 		dev_dbg(&s->spi->dev, "%s\n", __func__);
- 		ch = rx & (s->parity & MAX3100_7BIT ? 0x7f : 0xff);
-@@ -275,6 +294,10 @@ static int max3100_handlerx(struct max31
- 		uart_handle_cts_change(&s->port, cts ? TIOCM_CTS : 0);
- 	}
- 
-+#ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	mutex_unlock(&s->rx_lock);
-+#endif
-+
- 	return ret;
- }
- 
-@@ -330,8 +353,8 @@ static irqreturn_t max3100_ist(int irq, 
- 			}
- 		}
- 
--		if (rxchars > 16 && s->port.state->port.tty != NULL) {
--			tty_flip_buffer_push(s->port.state->port.tty);
-+		if (rxchars > 16) {
-+			max3100_flip(s);
- 			rxchars = 0;
- 		}
- 		if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
-@@ -342,8 +365,8 @@ static irqreturn_t max3100_ist(int irq, 
- 		  (!uart_circ_empty(xmit) &&
- 		   !uart_tx_stopped(&s->port))));
- 
--	if (rxchars > 0 && s->port.state->port.tty != NULL)
--		tty_flip_buffer_push(s->port.state->port.tty);
-+	if (rxchars > 0)
-+		max3100_flip(s);
- 
- 	return IRQ_HANDLED;
- }
-@@ -700,6 +723,7 @@ static void max3100_console_work(struct 
- 					      console_work);
- 	unsigned long start;
- 	u16 tx, rx;
-+	int rxchars = 0;
- 
- 	while (s->console_head != s->console_tail &&
- 	       (s->console_flags & MAX3100_SUSPENDING) == 0) {
-@@ -711,10 +735,19 @@ static void max3100_console_work(struct 
- 			 !time_after(jiffies, start + s->console_tout));
- 		tx = s->console_buf[s->console_tail];
- 		max3100_calc_parity(s, &tx);
--		tx |= MAX3100_WD | MAX3100_RTS;
-+		tx |= MAX3100_WD | (s->rts ? MAX3100_RTS : 0);
- 		max3100_sr(s, tx, &rx);
-+		if (s->port.state->port.tty != NULL) {
-+			rxchars += max3100_handlerx(s, rx);
-+			if (rxchars > 16) {
-+				max3100_flip(s);
-+				rxchars = 0;
-+			}
-+		}
- 		s->console_tail = (s->console_tail + 1) % CONSOLE_BUF_SIZE;
- 	}
-+	if (rxchars)
-+		max3100_flip(s);
- }
- 
- static void max3100_console_putchar(struct uart_port *port, int ch)
-@@ -810,6 +843,10 @@ static int max3100_console_setup(struct 
- 	if (parity == 'o')
- 		s->parity |= MAX3100_PARITY_ODD;
- 	s->console_tout = 1 + (20 * HZ) / baud; /* jiffies to send 20 bits */
-+	if (flow != 'n')
-+		s->rts = 1;
-+	else
-+		s->rts = 0;
- 
- 	tx |= MAX3100_WC;
- 	max3100_sr(s, tx, &rx);
-@@ -913,6 +950,7 @@ static int __devinit max3100_probe(struc
- 			 i, retval);
- 
- #ifdef CONFIG_SERIAL_MAX3100_CONSOLE
-+	mutex_init(&max3100s[i]->rx_lock);
- 	if (pdata->console && !max3100_console_registered) {
- 		register_console(&max3100_console);
- 		max3100_console_registered = 1;
+ free_sd:
+-	sysfs_put(pdesc->value_sd);
++	if (pdesc)
++		sysfs_put(pdesc->value_sd);
+ free_id:
+ 	idr_remove(&pdesc_idr, id);
+ 	desc->flags &= GPIO_FLAGS_MASK;
 _
 
-Patches currently in -mm which might be from chripell@fsfe.org are
+Patches currently in -mm which might be from error27@gmail.com are
 
+origin.patch
 linux-next.patch
-max3100-add-console-support-for-max3100-fixes-for-the-max31x0-console.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+cx231xx-improve-error-handling.patch
+gpio-potential-null-dereference.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+mm-document-follow_page.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
+fs-sysv-dereferencing-err_ptr.patch
 
