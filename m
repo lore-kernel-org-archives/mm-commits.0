@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch added to -mm tree
-Date: Tue, 27 Apr 2010 15:27:05 -0700
-Message-ID: <201004272227.o3RMR5lO023860@imap1.linux-foundation.org>
+Subject: + x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch added to -mm tree
+Date: Tue, 27 Apr 2010 15:26:37 -0700
+Message-ID: <201004272226.o3RMQbJn023841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753477Ab0D0W1k (ORCPT
+	by vger.kernel.org with ESMTP id S1755272Ab0D0W15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 18:27:40 -0400
+	Tue, 27 Apr 2010 18:27:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp
+Cc: fujita.tomonori@lab.ntt.co.jp, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     swiotlb: remove unnecessary swiotlb_sync_single_range_*
+     x86: remove unnecessary sync_single_range_* in swiotlb_dma_ops
 has been added to the -mm tree.  Its filename is
-     swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
+     x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swiotlb: remove unnecessary swiotlb_sync_single_range_*
+Subject: x86: remove unnecessary sync_single_range_* in swiotlb_dma_ops
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-swiotlb_sync_single_range_for_cpu and swiotlb_sync_single_range_for_device
-are unnecessary because swiotlb_sync_single_for_cpu and
-swiotlb_sync_single_for_device can be used instead.
+sync_single_range_for_cpu and sync_single_range_for_device hooks in
+swiotlb_dma_ops are unnecessary because sync_single_for_cpu and
+sync_single_for_device are used there.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swiotlb.h |   10 ----------
- lib/swiotlb.c           |   31 -------------------------------
- 2 files changed, 41 deletions(-)
+ arch/x86/kernel/pci-swiotlb.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/swiotlb.h~swiotlb-remove-unnecessary-swiotlb_sync_single_range_ include/linux/swiotlb.h
---- a/include/linux/swiotlb.h~swiotlb-remove-unnecessary-swiotlb_sync_single_range_
-+++ a/include/linux/swiotlb.h
-@@ -73,16 +73,6 @@ extern void
- swiotlb_sync_sg_for_device(struct device *hwdev, struct scatterlist *sg,
- 			   int nelems, enum dma_data_direction dir);
- 
--extern void
--swiotlb_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
--				  unsigned long offset, size_t size,
--				  enum dma_data_direction dir);
--
--extern void
--swiotlb_sync_single_range_for_device(struct device *hwdev, dma_addr_t dev_addr,
--				     unsigned long offset, size_t size,
--				     enum dma_data_direction dir);
--
- extern int
- swiotlb_dma_mapping_error(struct device *hwdev, dma_addr_t dma_addr);
- 
-diff -puN lib/swiotlb.c~swiotlb-remove-unnecessary-swiotlb_sync_single_range_ lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-remove-unnecessary-swiotlb_sync_single_range_
-+++ a/lib/swiotlb.c
-@@ -757,37 +757,6 @@ swiotlb_sync_single_for_device(struct de
- EXPORT_SYMBOL(swiotlb_sync_single_for_device);
- 
- /*
-- * Same as above, but for a sub-range of the mapping.
-- */
--static void
--swiotlb_sync_single_range(struct device *hwdev, dma_addr_t dev_addr,
--			  unsigned long offset, size_t size,
--			  int dir, int target)
--{
--	swiotlb_sync_single(hwdev, dev_addr + offset, size, dir, target);
--}
--
--void
--swiotlb_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
--				  unsigned long offset, size_t size,
--				  enum dma_data_direction dir)
--{
--	swiotlb_sync_single_range(hwdev, dev_addr, offset, size, dir,
--				  SYNC_FOR_CPU);
--}
--EXPORT_SYMBOL_GPL(swiotlb_sync_single_range_for_cpu);
--
--void
--swiotlb_sync_single_range_for_device(struct device *hwdev, dma_addr_t dev_addr,
--				     unsigned long offset, size_t size,
--				     enum dma_data_direction dir)
--{
--	swiotlb_sync_single_range(hwdev, dev_addr, offset, size, dir,
--				  SYNC_FOR_DEVICE);
--}
--EXPORT_SYMBOL_GPL(swiotlb_sync_single_range_for_device);
--
--/*
-  * Map a set of buffers described by scatterlist in streaming mode for DMA.
-  * This is the scatter-gather version of the above swiotlb_map_page
-  * interface.  Here the scatter gather list elements are each tagged with the
+diff -puN arch/x86/kernel/pci-swiotlb.c~x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops arch/x86/kernel/pci-swiotlb.c
+--- a/arch/x86/kernel/pci-swiotlb.c~x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops
++++ a/arch/x86/kernel/pci-swiotlb.c
+@@ -31,8 +31,6 @@ static struct dma_map_ops swiotlb_dma_op
+ 	.free_coherent = swiotlb_free_coherent,
+ 	.sync_single_for_cpu = swiotlb_sync_single_for_cpu,
+ 	.sync_single_for_device = swiotlb_sync_single_for_device,
+-	.sync_single_range_for_cpu = swiotlb_sync_single_range_for_cpu,
+-	.sync_single_range_for_device = swiotlb_sync_single_range_for_device,
+ 	.sync_sg_for_cpu = swiotlb_sync_sg_for_cpu,
+ 	.sync_sg_for_device = swiotlb_sync_sg_for_device,
+ 	.map_sg = swiotlb_map_sg_attrs,
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
