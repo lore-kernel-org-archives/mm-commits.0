@@ -1,54 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] arch-x86-crypto-aesni-intel_asms-still-busted.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:19:20 -0700
-Message-ID: <201004271846.o3RIkjrP013071@imap1.linux-foundation.org>
+Subject: [folded] drivers-acpi-use-kasprintf-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:28:09 -0700
+Message-ID: <201004271855.o3RItXcE013467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755848Ab0D0Sr6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754477Ab0D0S4I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:47:58 -0400
+	Tue, 27 Apr 2010 14:56:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, herbert@gondor.hengli.com.au, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, julia@diku.dk, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/crypto/aesni-intel_asm.S still busted
+     drivers-acpi-use-kasprintf-fix
 has been removed from the -mm tree.  Its filename was
-     arch-x86-crypto-aesni-intel_asms-still-busted.patch
+     drivers-acpi-use-kasprintf-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into drivers-acpi-use-kasprintf.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/crypto/aesni-intel_asm.S still busted
+Subject: drivers-acpi-use-kasprintf-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Julia Lawall <julia@diku.dk>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/crypto/aesni-intel_asm.S |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/video.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-still-busted arch/x86/crypto/aesni-intel_asm.S
---- a/arch/x86/crypto/aesni-intel_asm.S~arch-x86-crypto-aesni-intel_asms-still-busted
-+++ a/arch/x86/crypto/aesni-intel_asm.S
-@@ -749,8 +749,8 @@ _aesni_inc_init:
- 	movaps IV, CTR
- 	PSHUFB_XMM BSWAP_MASK CTR
- 	mov $1, TCTR_LOW
--	MOVQ_R64_XMM TCTR_LOW INC
--	MOVQ_R64_XMM CTR TCTR_LOW
-+//	MOVQ_R64_XMM TCTR_LOW INC
-+//	MOVQ_R64_XMM CTR TCTR_LOW
- 	ret
+diff -puN drivers/acpi/video.c~drivers-acpi-use-kasprintf-fix drivers/acpi/video.c
+--- a/drivers/acpi/video.c~drivers-acpi-use-kasprintf-fix
++++ a/drivers/acpi/video.c
+@@ -1007,9 +1007,10 @@ static void acpi_video_device_find_cap(s
+ 		result = acpi_video_init_brightness(device);
+ 		if (result)
+ 			return;
+-		name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
++		name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
+ 		if (!name)
+ 			return;
++		count++;
  
- /*
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.max_brightness = device->brightness->count - 3;
+@@ -1059,9 +1060,10 @@ static void acpi_video_device_find_cap(s
+ 		if (device->cap._DCS && device->cap._DSS) {
+ 			static int count;
+ 			char *name;
+-			name = kasprintf(GFP_KERNEL, "acpi_video%d", count++);
++			name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
+ 			if (!name)
+ 				return;
++			count++;
+ 			device->output_dev = video_output_register(name,
+ 					NULL, device, &acpi_output_properties);
+ 			kfree(name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,9 +71,9 @@ linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
 fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
+drivers-acpi-use-kasprintf.patch
 drivers-acpi-use-kasprintf-fix.patch
 acpi_pad-processor_aggregator-name-too-long-fix.patch
 compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
