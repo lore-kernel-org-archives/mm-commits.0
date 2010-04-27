@@ -1,183 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oprofile-remove-double-ring-buffering.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:01:43 -0400
-Message-ID: <201004271803.o3RI3GdH010972@imap1.linux-foundation.org>
+Subject: + laptop-mode-make-flushes-per-device-fix.patch added to -mm tree
+Date: Tue, 27 Apr 2010 11:04:53 -0400
+Message-ID: <201004271806.o3RI6QYW011137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41831 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756515Ab0D0SEU (ORCPT
+	by vger.kernel.org with ESMTP id S1752857Ab0D0SG7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:04:20 -0400
+	Tue, 27 Apr 2010 14:06:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, robert.richter@amd.com, rostedt@goodmis.org, sodarock@gmail.com, stable@kernel.org, suravee.suthikulpanit@amd.com, tj@kernel.org, mm-commits@v
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, mjg@redhat.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     oprofile: remove double ring buffering
-has been removed from the -mm tree.  Its filename was
-     oprofile-remove-double-ring-buffering.patch
+     "laptop-mode: Make flushes per-device" fix
+has been added to the -mm tree.  Its filename is
+     laptop-mode-make-flushes-per-device-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oprofile: remove double ring buffering
-From: Andi Kleen <andi@firstfloor.org>
+Subject: "laptop-mode: Make flushes per-device" fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-oprofile used a double buffer scheme for its cpu event buffer to avoid
-races on reading with the old locked ring buffer.
+When CONFIG_BLOCK is not enabled:
 
-But that is obsolete now with the new ring buffer, so simply use a single
-buffer.  This greatly simplifies the code and avoids a lot of sample drops
-on large runs, especially with call graph.
+mm/page-writeback.c:707: error: dereferencing pointer to incomplete type
+mm/page-writeback.c:708: error: dereferencing pointer to incomplete type
 
-Based on suggestions from Steven Rostedt
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: <stable@kernel.org>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/oprofile/cpu_buffer.c |   63 ++++++--------------------------
- 1 file changed, 13 insertions(+), 50 deletions(-)
+ block/blk-core.c          |   15 +++++++++++++++
+ include/linux/writeback.h |    1 -
+ mm/page-writeback.c       |   15 ---------------
+ 3 files changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN drivers/oprofile/cpu_buffer.c~oprofile-remove-double-ring-buffering drivers/oprofile/cpu_buffer.c
---- a/drivers/oprofile/cpu_buffer.c~oprofile-remove-double-ring-buffering
-+++ a/drivers/oprofile/cpu_buffer.c
-@@ -30,23 +30,7 @@
+diff -puN block/blk-core.c~laptop-mode-make-flushes-per-device-fix block/blk-core.c
+--- a/block/blk-core.c~laptop-mode-make-flushes-per-device-fix
++++ a/block/blk-core.c
+@@ -488,6 +488,21 @@ struct request_queue *blk_alloc_queue(gf
+ }
+ EXPORT_SYMBOL(blk_alloc_queue);
  
- #define OP_BUFFER_FLAGS	0
- 
--/*
-- * Read and write access is using spin locking. Thus, writing to the
-- * buffer by NMI handler (x86) could occur also during critical
-- * sections when reading the buffer. To avoid this, there are 2
-- * buffers for independent read and write access. Read access is in
-- * process context only, write access only in the NMI handler. If the
-- * read buffer runs empty, both buffers are swapped atomically. There
-- * is potentially a small window during swapping where the buffers are
-- * disabled and samples could be lost.
-- *
-- * Using 2 buffers is a little bit overhead, but the solution is clear
-- * and does not require changes in the ring buffer implementation. It
-- * can be changed to a single buffer solution when the ring buffer
-- * access is implemented as non-locking atomic code.
-- */
--static struct ring_buffer *op_ring_buffer_read;
--static struct ring_buffer *op_ring_buffer_write;
-+static struct ring_buffer *op_ring_buffer;
- DEFINE_PER_CPU(struct oprofile_cpu_buffer, op_cpu_buffer);
- 
- static void wq_sync_buffer(struct work_struct *work);
-@@ -68,12 +52,9 @@ void oprofile_cpu_buffer_inc_smpl_lost(v
- 
- void free_cpu_buffers(void)
++static void laptop_mode_timer_fn(unsigned long data)
++{
++	struct request_queue *q = (struct request_queue *)data;
++	int nr_pages = global_page_state(NR_FILE_DIRTY) +
++		global_page_state(NR_UNSTABLE_NFS);
++
++	/*
++	 * We want to write everything out, not just down to the dirty
++	 * threshold
++	 */
++
++	if (bdi_has_dirty_io(&q->backing_dev_info))
++		bdi_start_writeback(&q->backing_dev_info, NULL, nr_pages);
++}
++
+ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
  {
--	if (op_ring_buffer_read)
--		ring_buffer_free(op_ring_buffer_read);
--	op_ring_buffer_read = NULL;
--	if (op_ring_buffer_write)
--		ring_buffer_free(op_ring_buffer_write);
--	op_ring_buffer_write = NULL;
-+	if (op_ring_buffer)
-+		ring_buffer_free(op_ring_buffer);
-+	op_ring_buffer = NULL;
+ 	struct request_queue *q;
+diff -puN mm/page-writeback.c~laptop-mode-make-flushes-per-device-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~laptop-mode-make-flushes-per-device-fix
++++ a/mm/page-writeback.c
+@@ -693,21 +693,6 @@ int dirty_writeback_centisecs_handler(ct
+ 	return 0;
  }
  
- #define RB_EVENT_HDR_SIZE 4
-@@ -86,11 +67,8 @@ int alloc_cpu_buffers(void)
- 	unsigned long byte_size = buffer_size * (sizeof(struct op_sample) +
- 						 RB_EVENT_HDR_SIZE);
- 
--	op_ring_buffer_read = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
--	if (!op_ring_buffer_read)
--		goto fail;
--	op_ring_buffer_write = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
--	if (!op_ring_buffer_write)
-+	op_ring_buffer = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
-+	if (!op_ring_buffer)
- 		goto fail;
- 
- 	for_each_possible_cpu(i) {
-@@ -162,16 +140,11 @@ struct op_sample
- *op_cpu_buffer_write_reserve(struct op_entry *entry, unsigned long size)
- {
- 	entry->event = ring_buffer_lock_reserve
--		(op_ring_buffer_write, sizeof(struct op_sample) +
-+		(op_ring_buffer, sizeof(struct op_sample) +
- 		 size * sizeof(entry->sample->data[0]));
--	if (entry->event)
--		entry->sample = ring_buffer_event_data(entry->event);
--	else
--		entry->sample = NULL;
+-void laptop_mode_timer_fn(unsigned long data)
+-{
+-	struct request_queue *q = (struct request_queue *)data;
+-	int nr_pages = global_page_state(NR_FILE_DIRTY) +
+-		global_page_state(NR_UNSTABLE_NFS);
 -
--	if (!entry->sample)
-+	if (!entry->event)
- 		return NULL;
+-	/*
+-	 * We want to write everything out, not just down to the dirty
+-	 * threshold
+-	 */
 -
-+	entry->sample = ring_buffer_event_data(entry->event);
- 	entry->size = size;
- 	entry->data = entry->sample->data;
+-	if (bdi_has_dirty_io(&q->backing_dev_info))
+-		bdi_start_writeback(&q->backing_dev_info, NULL, nr_pages);
+-}
+-
+ /*
+  * We've spun up the disk and we're in laptop mode: schedule writeback
+  * of all dirty data a few seconds from now.  If the flush is already scheduled
+diff -puN include/linux/writeback.h~laptop-mode-make-flushes-per-device-fix include/linux/writeback.h
+--- a/include/linux/writeback.h~laptop-mode-make-flushes-per-device-fix
++++ a/include/linux/writeback.h
+@@ -99,7 +99,6 @@ static inline void inode_sync_wait(struc
+ void laptop_io_completion(struct backing_dev_info *info);
+ void laptop_sync_completion(void);
+ void laptop_mode_sync(struct work_struct *work);
+-void laptop_mode_timer_fn(unsigned long data);
+ void throttle_vm_writeout(gfp_t gfp_mask);
  
-@@ -180,25 +153,16 @@ struct op_sample
- 
- int op_cpu_buffer_write_commit(struct op_entry *entry)
- {
--	return ring_buffer_unlock_commit(op_ring_buffer_write, entry->event);
-+	return ring_buffer_unlock_commit(op_ring_buffer, entry->event);
- }
- 
- struct op_sample *op_cpu_buffer_read_entry(struct op_entry *entry, int cpu)
- {
- 	struct ring_buffer_event *e;
--	e = ring_buffer_consume(op_ring_buffer_read, cpu, NULL, NULL);
--	if (e)
--		goto event;
--	if (ring_buffer_swap_cpu(op_ring_buffer_read,
--				 op_ring_buffer_write,
--				 cpu))
-+	e = ring_buffer_consume(op_ring_buffer, cpu, NULL, NULL);
-+	if (!e)
- 		return NULL;
--	e = ring_buffer_consume(op_ring_buffer_read, cpu, NULL, NULL);
--	if (e)
--		goto event;
--	return NULL;
- 
--event:
- 	entry->event = e;
- 	entry->sample = ring_buffer_event_data(e);
- 	entry->size = (ring_buffer_event_length(e) - sizeof(struct op_sample))
-@@ -209,8 +173,7 @@ event:
- 
- unsigned long op_cpu_buffer_entries(int cpu)
- {
--	return ring_buffer_entries_cpu(op_ring_buffer_read, cpu)
--		+ ring_buffer_entries_cpu(op_ring_buffer_write, cpu);
-+	return ring_buffer_entries_cpu(op_ring_buffer, cpu);
- }
- 
- static int
+ /* These are exported to sysctl. */
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-crypto-aesni-intel_asms-still-busted.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
+drivers-acpi-use-kasprintf-fix.patch
+acpi_pad-processor_aggregator-name-too-long-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+jfs-free-sbi-memory-in-error-path.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
+kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes-fix.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
+laptop-mode-make-flushes-per-device-fix.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
