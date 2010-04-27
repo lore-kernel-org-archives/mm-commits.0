@@ -1,188 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] time-remove-xtime_cache-take-2.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:02:01 -0400
-Message-ID: <201004271803.o3RI3YWa010997@imap1.linux-foundation.org>
+Subject: [merged] iio-iio_get_new_idr_val-return-negative-value-on-failure.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:01:47 -0400
+Message-ID: <201004271803.o3RI3KMP010981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756549Ab0D0SIQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756605Ab0D0SIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:08:16 -0400
+	Tue, 27 Apr 2010 14:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, P.Titera@century.cz, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sonic.adi@gmail.com, greg@kroah.com, jic23@cam.ac.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: remove xtime_cache
+     iio: iio_get_new_idr_val() return negative value on failure
 has been removed from the -mm tree.  Its filename was
-     time-remove-xtime_cache-take-2.patch
+     iio-iio_get_new_idr_val-return-negative-value-on-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: time: remove xtime_cache
-From: John Stultz <johnstul@us.ibm.com>
+Subject: iio: iio_get_new_idr_val() return negative value on failure
+From: sonic zhang <sonic.adi@gmail.com>
 
-With the earlier logarithmic time accumulation patch, xtime will now
-always be within one "tick" of the current time, instead of possibly half
-a second off.
+Function iio_get_new_idr_val() returns a negative value if it fails.  So,
+only error when ret < 0 in iio_device_register_eventset().
 
-This removes the need for the xtime_cache value, which always stored the
-time at the last interrupt, so this patch cleans that up removing the
-xtime_cache related code.
-
-This patch also addresses an issue with an earlier version of this change,
-where xtime_cache was normalizing xtime, which could in some cases be not
-valid (ie: tv_nsec == NSEC_PER_SEC).  This is fixed by handling the edge
-case in update_wall_time().
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Petr Titera <P.Titera@century.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-
+Signed-off-by: Sonic Zhang <sonic.adi@gmail.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h      |    1 -
- kernel/time/timekeeping.c |   35 ++++++++++++++++-------------------
- 2 files changed, 16 insertions(+), 20 deletions(-)
+ drivers/staging/iio/industrialio-core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/time.h~time-remove-xtime_cache-take-2 include/linux/time.h
---- a/include/linux/time.h~time-remove-xtime_cache-take-2
-+++ a/include/linux/time.h
-@@ -150,7 +150,6 @@ extern struct timespec timespec_trunc(st
- extern int timekeeping_valid_for_hres(void);
- extern u64 timekeeping_max_deferment(void);
- extern void update_wall_time(void);
--extern void update_xtime_cache(u64 nsec);
- extern void timekeeping_leap_insert(int leapsecond);
- 
- struct tms;
-diff -puN kernel/time/timekeeping.c~time-remove-xtime_cache-take-2 kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~time-remove-xtime_cache-take-2
-+++ a/kernel/time/timekeeping.c
-@@ -165,13 +165,6 @@ struct timespec raw_time;
- /* flag for if timekeeping is suspended */
- int __read_mostly timekeeping_suspended;
- 
--static struct timespec xtime_cache __attribute__ ((aligned (16)));
--void update_xtime_cache(u64 nsec)
--{
--	xtime_cache = xtime;
--	timespec_add_ns(&xtime_cache, nsec);
--}
--
- /* must hold xtime_lock */
- void timekeeping_leap_insert(int leapsecond)
- {
-@@ -332,8 +325,6 @@ int do_settimeofday(struct timespec *tv)
- 
- 	xtime = *tv;
- 
--	update_xtime_cache(0);
--
- 	timekeeper.ntp_error = 0;
- 	ntp_clear();
- 
-@@ -559,7 +550,6 @@ void __init timekeeping_init(void)
- 	}
- 	set_normalized_timespec(&wall_to_monotonic,
- 				-boot.tv_sec, -boot.tv_nsec);
--	update_xtime_cache(0);
- 	total_sleep_time.tv_sec = 0;
- 	total_sleep_time.tv_nsec = 0;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-@@ -593,7 +583,6 @@ static int timekeeping_resume(struct sys
- 		wall_to_monotonic = timespec_sub(wall_to_monotonic, ts);
- 		total_sleep_time = timespec_add_safe(total_sleep_time, ts);
- 	}
--	update_xtime_cache(0);
- 	/* re-base the last cycle value */
- 	timekeeper.clock->cycle_last = timekeeper.clock->read(timekeeper.clock);
- 	timekeeper.ntp_error = 0;
-@@ -788,7 +777,6 @@ void update_wall_time(void)
- {
- 	struct clocksource *clock;
- 	cycle_t offset;
--	u64 nsecs;
- 	int shift = 0, maxshift;
- 
- 	/* Make sure we're fully resumed: */
-@@ -847,7 +835,9 @@ void update_wall_time(void)
- 		timekeeper.ntp_error += neg << timekeeper.ntp_error_shift;
- 	}
- 
--	/* store full nanoseconds into xtime after rounding it up and
-+
-+	/*
-+	 * Store full nanoseconds into xtime after rounding it up and
- 	 * add the remainder to the error difference.
- 	 */
- 	xtime.tv_nsec =	((s64) timekeeper.xtime_nsec >> timekeeper.shift) + 1;
-@@ -855,8 +845,15 @@ void update_wall_time(void)
- 	timekeeper.ntp_error +=	timekeeper.xtime_nsec <<
- 				timekeeper.ntp_error_shift;
- 
--	nsecs = clocksource_cyc2ns(offset, timekeeper.mult, timekeeper.shift);
--	update_xtime_cache(nsecs);
-+	/*
-+	 * Finally, make sure that after the rounding
-+	 * xtime.tv_nsec isn't larger then NSEC_PER_SEC
-+	 */
-+	if (unlikely(xtime.tv_nsec >= NSEC_PER_SEC)) {
-+		xtime.tv_nsec -= NSEC_PER_SEC;
-+		xtime.tv_sec++;
-+		second_overflow();
-+	}
- 
- 	/* check to see if there is a new clocksource to use */
- 	update_vsyscall(&xtime, timekeeper.clock, timekeeper.mult);
-@@ -896,13 +893,13 @@ EXPORT_SYMBOL_GPL(monotonic_to_bootbased
- 
- unsigned long get_seconds(void)
- {
--	return xtime_cache.tv_sec;
-+	return xtime.tv_sec;
- }
- EXPORT_SYMBOL(get_seconds);
- 
- struct timespec __current_kernel_time(void)
- {
--	return xtime_cache;
-+	return xtime;
+diff -puN drivers/staging/iio/industrialio-core.c~iio-iio_get_new_idr_val-return-negative-value-on-failure drivers/staging/iio/industrialio-core.c
+--- a/drivers/staging/iio/industrialio-core.c~iio-iio_get_new_idr_val-return-negative-value-on-failure
++++ a/drivers/staging/iio/industrialio-core.c
+@@ -537,6 +537,7 @@ static void iio_device_unregister_sysfs(
+ 	sysfs_remove_group(&dev_info->dev.kobj, dev_info->attrs);
  }
  
- struct timespec current_kernel_time(void)
-@@ -913,7 +910,7 @@ struct timespec current_kernel_time(void
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
- 
--		now = xtime_cache;
-+		now = xtime;
- 	} while (read_seqretry(&xtime_lock, seq));
- 
- 	return now;
-@@ -928,7 +925,7 @@ struct timespec get_monotonic_coarse(voi
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
- 
--		now = xtime_cache;
-+		now = xtime;
- 		mono = wall_to_monotonic;
- 	} while (read_seqretry(&xtime_lock, seq));
- 
++/* This function return negative value if fails. */
+ int iio_get_new_idr_val(struct idr *this_idr)
+ {
+ 	int ret;
+@@ -660,7 +661,7 @@ static int iio_device_register_eventset(
+ 	for (i = 0; i < dev_info->num_interrupt_lines; i++) {
+ 		dev_info->event_interfaces[i].owner = dev_info->driver_module;
+ 		ret = iio_get_new_idr_val(&iio_event_idr);
+-		if (ret)
++		if (ret < 0)
+ 			goto error_free_setup_ev_ints;
+ 		else
+ 			dev_info->event_interfaces[i].id = ret;
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from sonic.adi@gmail.com are
 
 linux-next.patch
-arch-x86-kernel-hpetc-make-the-hpet-compare-register-read-back-failed-warning-conditional-on-the-hpet=verbose-boot-option.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-hangcheck-timer-fix-x86_32-bugs.patch
-time-kill-off-config_generic_time.patch
+iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
 
