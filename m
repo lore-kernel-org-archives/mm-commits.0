@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kernel-irq-managec-add-raise_threaded_irq-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:39:01 -0700
-Message-ID: <201004271906.o3RJ6QEL014041@imap1.linux-foundation.org>
+Subject: [folded] max3100-to_max3100_port-small-style-fixes-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:39:30 -0700
+Message-ID: <201004271906.o3RJ6thh014062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754300Ab0D0TIH (ORCPT
+	by vger.kernel.org with ESMTP id S1754300Ab0D0TII (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:08:07 -0400
+	Tue, 27 Apr 2010 15:08:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, chripell@fsfe.org, feng.tang@intel.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-irq-managec-add-raise_threaded_irq-fix
+     max3100-to_max3100_port-small-style-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-irq-managec-add-raise_threaded_irq-fix.patch
+     max3100-to_max3100_port-small-style-fixes-fix.patch
 
-This patch was dropped because it was folded into kernel-irq-managec-add-raise_threaded_irq.patch
+This patch was dropped because it was folded into max3100-to_max3100_port-small-style-fixes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-irq-managec-add-raise_threaded_irq-fix
+Subject: max3100-to_max3100_port-small-style-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix comment typo
+unbust whitespace
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Christian Pellegrin <chripell@fsfe.org>
@@ -38,21 +38,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |    2 +-
+ drivers/serial/max3100.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/manage.c~kernel-irq-managec-add-raise_threaded_irq-fix kernel/irq/manage.c
---- a/kernel/irq/manage.c~kernel-irq-managec-add-raise_threaded_irq-fix
-+++ a/kernel/irq/manage.c
-@@ -1112,7 +1112,7 @@ int request_threaded_irq(unsigned int ir
- EXPORT_SYMBOL(request_threaded_irq);
+diff -puN drivers/serial/max3100.c~max3100-to_max3100_port-small-style-fixes-fix drivers/serial/max3100.c
+--- a/drivers/serial/max3100.c~max3100-to_max3100_port-small-style-fixes-fix
++++ a/drivers/serial/max3100.c
+@@ -156,7 +156,7 @@ static DEFINE_MUTEX(max3100s_lock);		   
  
- /**
-- *	raise_threaded_irq - triggers a threded interrupt
-+ *	raise_threaded_irq - triggers a threaded interrupt
-  *	@irq: Interrupt line to trigger
-  */
- int raise_threaded_irq(unsigned int irq)
+ static inline struct max3100_port *to_max3100_port(struct uart_port *port)
+ {
+-  return container_of(port, struct max3100_port, port);
++	return container_of(port, struct max3100_port, port);
+ }
+ 
+ static int max3100_do_parity(struct max3100_port *s, u16 c)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +79,7 @@ gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
 backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
 serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
 kernel-irq-managec-add-raise_threaded_irq.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
+max3100-to_max3100_port-small-style-fixes.patch
 max3100-to_max3100_port-small-style-fixes-fix.patch
 drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
 laptop-mode-make-flushes-per-device-fix.patch
