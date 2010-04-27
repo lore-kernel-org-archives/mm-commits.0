@@ -1,88 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + libertastf-add-configurable-debug-messages-fix.patch added to -mm tree
-Date: Tue, 27 Apr 2010 12:49:46 -0700
-Message-ID: <201004272017.o3RKHBsq017295@imap1.linux-foundation.org>
+Subject: [folded] fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 13:12:15 -0700
+Message-ID: <201004272039.o3RKdef6018397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753569Ab0D0UR0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754929Ab0D0Ujy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 16:17:26 -0400
+	Tue, 27 Apr 2010 16:39:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, steve@cozybit.com
+To: akpm@linux-foundation.org, maz@misterjones.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "libertastf: add configurable debug messages" fix
-has been added to the -mm tree.  Its filename is
-     libertastf-add-configurable-debug-messages-fix.patch
+     fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into fix-pca953x-set_type-scheduling-while-atomic-bug.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: "libertastf: add configurable debug messages" fix
+Subject: fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/net/wireless/libertas_tf/main.c:12:
-drivers/net/wireless/libertas_tf/deb_defs.h:12:1: warning: "pr_fmt" redefined
-In file included from /usr/src/devel/arch/x86/include/asm/percpu.h:44,
-                 from /usr/src/devel/arch/x86/include/asm/current.h:5,
-                 from /usr/src/devel/arch/x86/include/asm/processor.h:15,
-                 from /usr/src/devel/arch/x86/include/asm/thread_info.h:22,
-                 from include/linux/thread_info.h:56,
-                 from include/linux/preempt.h:9,
-                 from include/linux/spinlock.h:50,
-                 from include/linux/mmzone.h:7,
-                 from include/linux/gfp.h:4,
-                 from include/linux/slab.h:12,
-                 from drivers/net/wireless/libertas_tf/main.c:10:
-include/linux/kernel.h:376:1: warning: this is the location of the previous definition
+ERROR: space required before the open parenthesis '('
+#39: FILE: drivers/gpio/pca953x.c:262:
++	while(new_irqs) {
 
-Cc: Steve deRosier <steve@cozybit.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+total: 1 errors, 0 warnings, 26 lines checked
+
+./patches/fix-pca953x-set_type-scheduling-while-atomic-bug.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Marc Zyngier <maz@misterjones.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas_tf/deb_defs.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/gpio/pca953x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix drivers/net/wireless/libertas_tf/deb_defs.h
---- a/drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix
-+++ a/drivers/net/wireless/libertas_tf/deb_defs.h
-@@ -9,8 +9,6 @@
- #define DRV_NAME "libertas_tf"
- #endif
+diff -puN drivers/gpio/pca953x.c~fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes
++++ a/drivers/gpio/pca953x.c
+@@ -259,7 +259,7 @@ static void pca953x_irq_bus_sync_unlock(
+ 	new_irqs = chip->irq_trig_fall | chip->irq_trig_raise;
+ 	new_irqs &= ~chip->reg_direction;
  
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
- #include <linux/spinlock.h>
- 
- #ifdef CONFIG_LIBERTAS_THINFIRM_DEBUG
+-	while(new_irqs) {
++	while (new_irqs) {
+ 		level = __ffs(new_irqs);
+ 		pca953x_gpio_direction_input(&chip->gpio_chip, level);
+ 		new_irqs &= ~(1 << level);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+fix-pca953x-set_type-scheduling-while-atomic-bug.patch
+fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
 drivers-acpi-use-kasprintf.patch
 acpi_pad-processor_aggregator-name-too-long.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
