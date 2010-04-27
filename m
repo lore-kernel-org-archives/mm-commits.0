@@ -1,58 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] max3100-to_max3100_port-small-style-fixes-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:39:30 -0700
-Message-ID: <201004271906.o3RJ6thh014062@imap1.linux-foundation.org>
+Subject: [folded] drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:40:35 -0700
+Message-ID: <201004271908.o3RJ80VP014232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754300Ab0D0TII (ORCPT
+	by vger.kernel.org with ESMTP id S1756160Ab0D0TIX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:08:08 -0400
+	Tue, 27 Apr 2010 15:08:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, chripell@fsfe.org, feng.tang@intel.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, kusumi.tomohiro@jp.fujitsu.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     max3100-to_max3100_port-small-style-fixes-fix
+     drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     max3100-to_max3100_port-small-style-fixes-fix.patch
+     drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into max3100-to_max3100_port-small-style-fixes.patch
+This patch was dropped because it was folded into drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: max3100-to_max3100_port-small-style-fixes-fix
+Subject: drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-unbust whitespace
+WARNING: space prohibited between function name and open parenthesis '('
+#38: FILE: drivers/scsi/scsi_sysfs.c:489:
++	sscanf (buf, format_string, &sdev->field);			\
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Christian Pellegrin <chripell@fsfe.org>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+total: 0 errors, 1 warnings, 16 lines checked
+
+./patches/drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Tomohiro Kusumi <kusumi.tomohiro@jp.fujitsu.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/max3100.c |    2 +-
+ drivers/scsi/scsi_sysfs.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/max3100.c~max3100-to_max3100_port-small-style-fixes-fix drivers/serial/max3100.c
---- a/drivers/serial/max3100.c~max3100-to_max3100_port-small-style-fixes-fix
-+++ a/drivers/serial/max3100.c
-@@ -156,7 +156,7 @@ static DEFINE_MUTEX(max3100s_lock);		   
- 
- static inline struct max3100_port *to_max3100_port(struct uart_port *port)
- {
--  return container_of(port, struct max3100_port, port);
-+	return container_of(port, struct max3100_port, port);
- }
- 
- static int max3100_do_parity(struct max3100_port *s, u16 c)
+diff -puN drivers/scsi/scsi_sysfs.c~drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -486,7 +486,7 @@ sdev_store_##field (struct device *dev, 
+ {									\
+ 	struct scsi_device *sdev;					\
+ 	sdev = to_scsi_device(dev);					\
+-	sscanf (buf, format_string, &sdev->field);			\
++	sscanf(buf, format_string, &sdev->field);			\
+ 	return count;							\
+ }									\
+ static DEVICE_ATTR(field, S_IRUGO | S_IWUSR, sdev_show_##field, sdev_store_##field);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +87,7 @@ backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
 serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
 kernel-irq-managec-add-raise_threaded_irq.patch
 max3100-to_max3100_port-small-style-fixes.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
 drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
 laptop-mode-make-flushes-per-device-fix.patch
 mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
