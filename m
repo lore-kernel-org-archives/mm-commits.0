@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [folded] of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:33:32 -0700
-Message-ID: <201004271900.o3RJ0vxN013776@imap1.linux-foundation.org>
+Subject: [folded] of-gpio-implement-gpiolib-notifier-hooks-fix.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:33:29 -0700
+Message-ID: <201004271900.o3RJ0sQj013773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756224Ab0D0TBw (ORCPT
+	by vger.kernel.org with ESMTP id S1756042Ab0D0TBw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 27 Apr 2010 15:01:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,19 @@ To: akpm@linux-foundation.org, avorontsov@ru.mvista.com, benh@kernel.crashing.or
 
 
 The patch titled
-     of-gpio-implement-gpiolib-notifier-hooks-fix-fix2
+     of-gpio-implement-gpiolib-notifier-hooks-fix
 has been removed from the -mm tree.  Its filename was
-     of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
+     of-gpio-implement-gpiolib-notifier-hooks-fix.patch
 
 This patch was dropped because it was folded into of-gpio-implement-gpiolib-notifier-hooks.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: of-gpio-implement-gpiolib-notifier-hooks-fix-fix2
+Subject: of-gpio-implement-gpiolib-notifier-hooks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove unusable module export.
+WARN_ON cleanups.
 
 Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -39,20 +39,36 @@ Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/gpio.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/of/gpio.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix-fix2 drivers/of/gpio.c
---- a/drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix-fix2
+diff -puN drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix drivers/of/gpio.c
+--- a/drivers/of/gpio.c~of-gpio-implement-gpiolib-notifier-hooks-fix
 +++ a/drivers/of/gpio.c
-@@ -272,7 +272,6 @@ static int of_gpiochip_register_simple(s
+@@ -257,10 +257,8 @@ static int of_gpiochip_register_simple(s
+ {
+ 	struct of_gpio_chip *of_gc;
  
- 	return 0;
- }
--EXPORT_SYMBOL(of_gpiochip_register_simple);
+-	if (np->data) {
+-		WARN_ON(1);
++	if (WARN_ON(np->data))
+ 		return -EBUSY;
+-	}
  
- /**
-  * of_gpiochip_unregister - Unregister a GPIO chip
+ 	of_gc = kzalloc(sizeof(*of_gc), GFP_KERNEL);
+ 	if (!of_gc)
+@@ -289,10 +287,8 @@ static int of_gpiochip_unregister(struct
+ {
+ 	struct of_gpio_chip *of_gc = np->data;
+ 
+-	if (!of_gc || of_gc->chip != chip) {
+-		WARN_ON(1);
++	if (WARN_ON(!of_gc || of_gc->chip != chip))
+ 		return -EINVAL;
+-	}
+ 
+ 	np->data = NULL;
+ 	kfree(of_gc);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +87,7 @@ arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
 jfs-free-sbi-memory-in-error-path.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 of-gpio-implement-gpiolib-notifier-hooks.patch
+of-gpio-implement-gpiolib-notifier-hooks-fix.patch
 of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
 hpet-factor-timer-allocate-from-open-fix.patch
 led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
