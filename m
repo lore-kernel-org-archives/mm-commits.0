@@ -1,90 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded] led-driver-for-the-soekris-net5501-board-fix-2.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:34:56 -0700
-Message-ID: <201004271902.o3RJ2LPE013828@imap1.linux-foundation.org>
+Subject: [folded] vfs-o_-bit-numbers-uniqueness-check-update.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:41:00 -0700
+Message-ID: <201004271908.o3RJ8PhY014254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754300Ab0D0TIl (ORCPT
+	by vger.kernel.org with ESMTP id S1754300Ab0D0TIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 15:08:41 -0400
+	Tue, 27 Apr 2010 15:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, a.zummo@towertech.it, gurligebis@gentoo.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: fix net5501 kconfig
+     vfs: O_* bit numbers uniqueness check
 has been removed from the -mm tree.  Its filename was
-     led-driver-for-the-soekris-net5501-board-fix-2.patch
+     vfs-o_-bit-numbers-uniqueness-check-update.patch
 
-This patch was dropped because it was folded into led-driver-for-the-soekris-net5501-board.patch
+This patch was dropped because it was folded into vfs-o_-bit-numbers-uniqueness-check.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: fix net5501 kconfig
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vfs: O_* bit numbers uniqueness check
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-LEDS_NET5501 selects LEDS_TRIGGER_DEFAULT_ON even when the symbol
-LEDS_TRIGGERS is not enabled.  This causes build errors, so make
-LEDS_NET5501 depend on LEDS_TRIGGERS to prevent the build errors.
-
-drivers/leds/ledtrig-default-on.c:25: error: variable 'defon_led_trigger' has initializer but incomplete type
-drivers/leds/ledtrig-default-on.c:26: error: unknown field 'name' specified in initializer
-drivers/leds/ledtrig-default-on.c:26: warning: excess elements in struct initializer
-drivers/leds/ledtrig-default-on.c:26: warning: (near initialization for 'defon_led_trigger')
-drivers/leds/ledtrig-default-on.c:27: error: unknown field 'activate' specified in initializer
-drivers/leds/ledtrig-default-on.c:27: warning: excess elements in struct initializer
-drivers/leds/ledtrig-default-on.c:27: warning: (near initialization for 'defon_led_trigger')
-drivers/leds/ledtrig-default-on.c:32: error: implicit declaration of function 'led_trigger_register'
-drivers/leds/ledtrig-default-on.c:37: error: implicit declaration of function 'led_trigger_unregister'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bjarke Istrup Pedersen <gurligebis@gentoo.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/asm-generic/fcntl.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/Kconfig~led-driver-for-the-soekris-net5501-board-fix-2 drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~led-driver-for-the-soekris-net5501-board-fix-2
-+++ a/drivers/leds/Kconfig
-@@ -69,7 +69,8 @@ config LEDS_NET48XX
+diff -puN include/asm-generic/fcntl.h~vfs-o_-bit-numbers-uniqueness-check-update include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~vfs-o_-bit-numbers-uniqueness-check-update
++++ a/include/asm-generic/fcntl.h
+@@ -4,8 +4,6 @@
+ #include <linux/types.h>
  
- config LEDS_NET5501
- 	tristate "LED Support for Soekris net5501 series Error LED"
--	depends on LEDS_CLASS && LEDS_GPIO_PLATFORM && GPIO_CS5535
-+	depends on LEDS_CLASS && LEDS_TRIGGERS
-+	depends on LEDS_GPIO_PLATFORM && GPIO_CS5535
- 	select LEDS_TRIGGER_DEFAULT_ON
- 	default n
- 	help
+ /*
+- * When introducing new O_* bits, please check its uniqueness in fcntl_init().
+- *
+  * FMODE_EXEC is 0x20
+  * FMODE_NONOTIFY is 0x1000000
+  * These cannot be used by userspace O_* until internal and external open
+@@ -13,6 +11,10 @@
+  * -Eric Paris
+  */
+ 
++/*
++ * When introducing new O_* bits, please check its uniqueness in fcntl_init().
++ */
++
+ #define O_ACCMODE	00000003
+ #define O_RDONLY	00000000
+ #define O_WRONLY	00000001
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-origin.patch
 linux-next.patch
-dib3000mc-reduce-large-stack-usage.patch
-dib7000p-reduce-large-stack-usage.patch
-led-driver-for-the-soekris-net5501-board.patch
-led-driver-for-the-soekris-net5501-board-fix-2.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
-scsi-fix-convert-scsi_scanc-kernel-doc.patch
-scsi-update-drivers-tools-url-references.patch
-laptop-mode-make-flushes-per-device-fix.patch
-mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
-xen-fix-build-when-sysrq-is-disabled.patch
-documentation-submittingdrivers-resources.patch
-memcg-move-charge-of-file-pages-fix-2.patch
-memcg-update-documentation-v8.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+vfs-o_-bit-numbers-uniqueness-check-update.patch
+vfs-o_-bit-numbers-uniqueness-check-fix.patch
+vfs-o_-bit-numbers-uniqueness-check-fix-2.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+vmscan-prevent-get_scan_ratio-rounding-errors.patch
+readaheadc-fix-comment.patch
+fs-writeback-check-sync-bit-earlier-in-inode_wait_for_writeback.patch
+vfs-add-super-operation-writeback_inodes.patch
 
