@@ -1,122 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:02:21 -0400
-Message-ID: <201004271803.o3RI3sTC011024@imap1.linux-foundation.org>
+Subject: [merged] uv_irqc-fix-all-sparse-warnings.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:01:54 -0400
+Message-ID: <201004271803.o3RI3SqY010991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756605Ab0D0SI1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756660Ab0D0SI3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:08:27 -0400
+	Tue, 27 Apr 2010 14:08:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, dtor@mail.ru, greg@kroah.com, peterz@infradead.org, tglx@linutronix.de, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, cpw@sgi.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, rja@sgi.com, sivanich@sgi.com, steiner@sgi.com, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     firmware-loader-use-statically-initialized-data-attribute-fix-fix
+     uv_irq.c: fix all sparse warnings
 has been removed from the -mm tree.  Its filename was
-     firmware-loader-use-statically-initialized-data-attribute-fix-fix.patch
+     uv_irqc-fix-all-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware-loader-use-statically-initialized-data-attribute-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uv_irq.c: fix all sparse warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Greg KH <greg@kroah.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Fix all sparse warnings in building uv_irq.c.
+
+arch/x86/kernel/uv_irq.c:46:17: warning: symbol 'uv_irq_chip' was not declared. Should it be static?
+arch/x86/kernel/uv_irq.c:143:50: error: no identifier for function argument
+arch/x86/kernel/uv_irq.c:162:13: error: typename in expression
+arch/x86/kernel/uv_irq.c:162:13: error: undefined identifier 'restrict'
+arch/x86/kernel/uv_irq.c:250:44: error: no identifier for function argument
+arch/x86/kernel/uv_irq.c:260:17: error: typename in expression
+arch/x86/kernel/uv_irq.c:260:17: error: undefined identifier 'restrict'
+arch/x86/kernel/uv_irq.c:233:50: warning: incorrect type in argument 3 (different signedness)
+arch/x86/kernel/uv_irq.c:233:50:    expected int *pnode
+arch/x86/kernel/uv_irq.c:233:50:    got unsigned int *<noident>
+arch/x86/include/asm/uv/uv_hub.h:318:44: warning: incorrect type in argument 2 (different address spaces)
+arch/x86/include/asm/uv/uv_hub.h:318:44:    expected void volatile [noderef] <asn:2>*addr
+arch/x86/include/asm/uv/uv_hub.h:318:44:    got unsigned long *
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Cliff Wickman <cpw@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/include/asm/uv/uv_hub.h |    2 +-
+ arch/x86/kernel/uv_irq.c         |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix-fix drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~firmware-loader-use-statically-initialized-data-attribute-fix-fix
-+++ a/drivers/base/firmware_class.c
-@@ -442,7 +442,6 @@ static int fw_setup_device(struct firmwa
- 	fw_priv = dev_get_drvdata(f_dev);
+diff -puN arch/x86/include/asm/uv/uv_hub.h~uv_irqc-fix-all-sparse-warnings arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~uv_irqc-fix-all-sparse-warnings
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -307,7 +307,7 @@ static inline unsigned long uv_read_glob
+  * Access Global MMR space using the MMR space located at the top of physical
+  * memory.
+  */
+-static inline unsigned long *uv_global_mmr64_address(int pnode, unsigned long offset)
++static inline volatile void __iomem *uv_global_mmr64_address(int pnode, unsigned long offset)
+ {
+ 	return __va(UV_GLOBAL_MMR64_BASE |
+ 		    UV_GLOBAL_MMR64_PNODE_BITS(pnode) | offset);
+diff -puN arch/x86/kernel/uv_irq.c~uv_irqc-fix-all-sparse-warnings arch/x86/kernel/uv_irq.c
+--- a/arch/x86/kernel/uv_irq.c~uv_irqc-fix-all-sparse-warnings
++++ a/arch/x86/kernel/uv_irq.c
+@@ -44,7 +44,7 @@ static void uv_ack_apic(unsigned int irq
+ 	ack_APIC_irq();
+ }
  
- 	fw_priv->fw = fw;
--	sysfs_bin_attr_init(&firmware_attr_data);
- 	retval = sysfs_create_bin_file(&f_dev->kobj, &firmware_attr_data);
- 	if (retval) {
- 		dev_err(device, "%s: sysfs_create_bin_file failed\n", __func__);
+-struct irq_chip uv_irq_chip = {
++static struct irq_chip uv_irq_chip = {
+ 	.name		= "UV-CORE",
+ 	.startup	= uv_noop_ret,
+ 	.shutdown	= uv_noop,
+@@ -141,7 +141,7 @@ int uv_irq_2_mmr_info(int irq, unsigned 
+  */
+ static int
+ arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
+-		       unsigned long mmr_offset, int restrict)
++		       unsigned long mmr_offset, int limit)
+ {
+ 	const struct cpumask *eligible_cpu = cpumask_of(cpu);
+ 	struct irq_desc *desc = irq_to_desc(irq);
+@@ -160,7 +160,7 @@ arch_enable_uv_irq(char *irq_name, unsig
+ 	if (err != 0)
+ 		return err;
+ 
+-	if (restrict == UV_AFFINITY_CPU)
++	if (limit == UV_AFFINITY_CPU)
+ 		desc->status |= IRQ_NO_BALANCING;
+ 	else
+ 		desc->status |= IRQ_MOVE_PCNTXT;
+@@ -214,7 +214,7 @@ static int uv_set_irq_affinity(unsigned 
+ 	unsigned long mmr_value;
+ 	struct uv_IO_APIC_route_entry *entry;
+ 	unsigned long mmr_offset;
+-	unsigned mmr_pnode;
++	int mmr_pnode;
+ 
+ 	if (set_desc_affinity(desc, mask, &dest))
+ 		return -1;
+@@ -248,7 +248,7 @@ static int uv_set_irq_affinity(unsigned 
+  * interrupt is raised.
+  */
+ int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
+-		 unsigned long mmr_offset, int restrict)
++		 unsigned long mmr_offset, int limit)
+ {
+ 	int irq, ret;
+ 
+@@ -258,7 +258,7 @@ int uv_setup_irq(char *irq_name, int cpu
+ 		return -EBUSY;
+ 
+ 	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
+-		restrict);
++		limit);
+ 	if (ret == irq)
+ 		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
+ 	else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-crypto-aesni-intel_asms-still-busted.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-fix-pca953x-set_type-scheduling-while-atomic-bug-checkpatch-fixes.patch
-iio-iio_get_new_idr_val-return-negative-value-on-failure-fix.patch
-drivers-acpi-use-kasprintf-fix.patch
-acpi_pad-processor_aggregator-name-too-long-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface-checkpatch-fixes.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-jfs-free-sbi-memory-in-error-path.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix.patch
-of-gpio-implement-gpiolib-notifier-hooks-fix-fix2.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-led-driver-for-the-soekris-net5501-board-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-gpio-add-support-for-janz-vmod-ttl-digital-io-module-fix.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed-fix.patch
-kernel-irq-managec-add-raise_threaded_irq-fix.patch
-max3100-to_max3100_port-small-style-fixes-fix.patch
-drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries-checkpatch-fixes.patch
+dib3000mc-reduce-large-stack-usage.patch
+dib7000p-reduce-large-stack-usage.patch
+led-driver-for-the-soekris-net5501-board-fix-2.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-leds-input-depends-on-input.patch
+scsi-fix-convert-scsi_scanc-kernel-doc.patch
+scsi-update-drivers-tools-url-references.patch
 laptop-mode-make-flushes-per-device-fix.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
+xen-fix-build-when-sysrq-is-disabled.patch
+documentation-submittingdrivers-resources.patch
+memcg-move-charge-of-file-pages-fix-2.patch
+memcg-update-documentation-v8.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-notify_change-callers-must-hold-i_mutex.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
