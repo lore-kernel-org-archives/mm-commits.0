@@ -1,100 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmap-check-vm_ops-before-dereferencing.patch removed from -mm tree
-Date: Tue, 27 Apr 2010 11:01:35 -0400
-Message-ID: <201004271803.o3RI39Gf010951@imap1.linux-foundation.org>
+Subject: [merged] oprofile-remove-double-ring-buffering.patch removed from -mm tree
+Date: Tue, 27 Apr 2010 11:01:43 -0400
+Message-ID: <201004271803.o3RI3GdH010972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756515Ab0D0SEP (ORCPT
+	by vger.kernel.org with ESMTP id S1756515Ab0D0SEU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 14:04:15 -0400
+	Tue, 27 Apr 2010 14:04:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, error27@gmail.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, robert.richter@amd.com, rostedt@goodmis.org, sodarock@gmail.com, stable@kernel.org, suravee.suthikulpanit@amd.com, tj@kernel.org, mm-commits@v
 
 
 The patch titled
-     mmap: check ->vm_ops before dereferencing
+     oprofile: remove double ring buffering
 has been removed from the -mm tree.  Its filename was
-     mmap-check-vm_ops-before-dereferencing.patch
+     oprofile-remove-double-ring-buffering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap: check ->vm_ops before dereferencing
-From: Rik van Riel <riel@redhat.com>
+Subject: oprofile: remove double ring buffering
+From: Andi Kleen <andi@firstfloor.org>
 
-Check whether the VMA has a vm_ops before calling close, just like we
-check vm_ops before calling open a few dozen lines higher up in the
-function.
+oprofile used a double buffer scheme for its cpu event buffer to avoid
+races on reading with the old locked ring buffer.
 
-akpm: lots of vm_operations_structs have a NULL ->close.  If vma_adjust()
-fails, we oops.
+But that is obsolete now with the new ring buffer, so simply use a single
+buffer.  This greatly simplifies the code and avoids a lot of sample drops
+on large runs, especially with call graph.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
+Based on suggestions from Steven Rostedt
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Robert Richter <robert.richter@amd.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/oprofile/cpu_buffer.c |   63 ++++++--------------------------
+ 1 file changed, 13 insertions(+), 50 deletions(-)
 
-diff -puN mm/mmap.c~mmap-check-vm_ops-before-dereferencing mm/mmap.c
---- a/mm/mmap.c~mmap-check-vm_ops-before-dereferencing
-+++ a/mm/mmap.c
-@@ -1977,7 +1977,8 @@ static int __split_vma(struct mm_struct 
- 		return 0;
+diff -puN drivers/oprofile/cpu_buffer.c~oprofile-remove-double-ring-buffering drivers/oprofile/cpu_buffer.c
+--- a/drivers/oprofile/cpu_buffer.c~oprofile-remove-double-ring-buffering
++++ a/drivers/oprofile/cpu_buffer.c
+@@ -30,23 +30,7 @@
  
- 	/* Clean everything up if vma_adjust failed. */
--	new->vm_ops->close(new);
-+	if (new->vm_ops && new->vm_ops->close)
-+		new->vm_ops->close(new);
- 	if (new->vm_file) {
- 		if (vma->vm_flags & VM_EXECUTABLE)
- 			removed_exe_file_vma(mm);
+ #define OP_BUFFER_FLAGS	0
+ 
+-/*
+- * Read and write access is using spin locking. Thus, writing to the
+- * buffer by NMI handler (x86) could occur also during critical
+- * sections when reading the buffer. To avoid this, there are 2
+- * buffers for independent read and write access. Read access is in
+- * process context only, write access only in the NMI handler. If the
+- * read buffer runs empty, both buffers are swapped atomically. There
+- * is potentially a small window during swapping where the buffers are
+- * disabled and samples could be lost.
+- *
+- * Using 2 buffers is a little bit overhead, but the solution is clear
+- * and does not require changes in the ring buffer implementation. It
+- * can be changed to a single buffer solution when the ring buffer
+- * access is implemented as non-locking atomic code.
+- */
+-static struct ring_buffer *op_ring_buffer_read;
+-static struct ring_buffer *op_ring_buffer_write;
++static struct ring_buffer *op_ring_buffer;
+ DEFINE_PER_CPU(struct oprofile_cpu_buffer, op_cpu_buffer);
+ 
+ static void wq_sync_buffer(struct work_struct *work);
+@@ -68,12 +52,9 @@ void oprofile_cpu_buffer_inc_smpl_lost(v
+ 
+ void free_cpu_buffers(void)
+ {
+-	if (op_ring_buffer_read)
+-		ring_buffer_free(op_ring_buffer_read);
+-	op_ring_buffer_read = NULL;
+-	if (op_ring_buffer_write)
+-		ring_buffer_free(op_ring_buffer_write);
+-	op_ring_buffer_write = NULL;
++	if (op_ring_buffer)
++		ring_buffer_free(op_ring_buffer);
++	op_ring_buffer = NULL;
+ }
+ 
+ #define RB_EVENT_HDR_SIZE 4
+@@ -86,11 +67,8 @@ int alloc_cpu_buffers(void)
+ 	unsigned long byte_size = buffer_size * (sizeof(struct op_sample) +
+ 						 RB_EVENT_HDR_SIZE);
+ 
+-	op_ring_buffer_read = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
+-	if (!op_ring_buffer_read)
+-		goto fail;
+-	op_ring_buffer_write = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
+-	if (!op_ring_buffer_write)
++	op_ring_buffer = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
++	if (!op_ring_buffer)
+ 		goto fail;
+ 
+ 	for_each_possible_cpu(i) {
+@@ -162,16 +140,11 @@ struct op_sample
+ *op_cpu_buffer_write_reserve(struct op_entry *entry, unsigned long size)
+ {
+ 	entry->event = ring_buffer_lock_reserve
+-		(op_ring_buffer_write, sizeof(struct op_sample) +
++		(op_ring_buffer, sizeof(struct op_sample) +
+ 		 size * sizeof(entry->sample->data[0]));
+-	if (entry->event)
+-		entry->sample = ring_buffer_event_data(entry->event);
+-	else
+-		entry->sample = NULL;
+-
+-	if (!entry->sample)
++	if (!entry->event)
+ 		return NULL;
+-
++	entry->sample = ring_buffer_event_data(entry->event);
+ 	entry->size = size;
+ 	entry->data = entry->sample->data;
+ 
+@@ -180,25 +153,16 @@ struct op_sample
+ 
+ int op_cpu_buffer_write_commit(struct op_entry *entry)
+ {
+-	return ring_buffer_unlock_commit(op_ring_buffer_write, entry->event);
++	return ring_buffer_unlock_commit(op_ring_buffer, entry->event);
+ }
+ 
+ struct op_sample *op_cpu_buffer_read_entry(struct op_entry *entry, int cpu)
+ {
+ 	struct ring_buffer_event *e;
+-	e = ring_buffer_consume(op_ring_buffer_read, cpu, NULL, NULL);
+-	if (e)
+-		goto event;
+-	if (ring_buffer_swap_cpu(op_ring_buffer_read,
+-				 op_ring_buffer_write,
+-				 cpu))
++	e = ring_buffer_consume(op_ring_buffer, cpu, NULL, NULL);
++	if (!e)
+ 		return NULL;
+-	e = ring_buffer_consume(op_ring_buffer_read, cpu, NULL, NULL);
+-	if (e)
+-		goto event;
+-	return NULL;
+ 
+-event:
+ 	entry->event = e;
+ 	entry->sample = ring_buffer_event_data(e);
+ 	entry->size = (ring_buffer_event_length(e) - sizeof(struct op_sample))
+@@ -209,8 +173,7 @@ event:
+ 
+ unsigned long op_cpu_buffer_entries(int cpu)
+ {
+-	return ring_buffer_entries_cpu(op_ring_buffer_read, cpu)
+-		+ ring_buffer_entries_cpu(op_ring_buffer_write, cpu);
++	return ring_buffer_entries_cpu(op_ring_buffer, cpu);
+ }
+ 
+ static int
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-origin.patch
-powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-remove-return-value-of-putback_lru_pages.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-hold-tasklist_lock-when-dumping-tasks.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-clean-up-oom_kill_task.patch
-oom-clean-up-oom_badness.patch
-mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
-mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
-mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
-mmmigration-allow-the-migration-of-pageswapcache-pages.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mm-export-fragmentation-index-via-debugfs.patch
-mm-move-definition-for-lru-isolation-modes-to-a-header.patch
-mmcompaction-memory-compaction-core.patch
-mmcompaction-add-proc-trigger-for-memory-compaction.patch
-mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
-mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
-mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
-vmscan-prevent-get_scan_ratio-rounding-errors.patch
-vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
-mm-document-follow_page.patch
+linux-next.patch
+hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
+modpost-support-objects-with-more-than-64k-sections.patch
+mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
+mempolicy-remove-redundant-check.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
 
