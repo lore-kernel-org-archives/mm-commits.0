@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-fix-dma_sync_single_range_.patch added to -mm tree
-Date: Tue, 27 Apr 2010 15:25:49 -0700
-Message-ID: <201004272225.o3RMPnOT023812@imap1.linux-foundation.org>
+Subject: + ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch added to -mm tree
+Date: Tue, 27 Apr 2010 15:26:09 -0700
+Message-ID: <201004272226.o3RMQ9m9023829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755272Ab0D0W0N (ORCPT
+	by vger.kernel.org with ESMTP id S1757331Ab0D0W0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Apr 2010 18:26:13 -0400
+	Tue, 27 Apr 2010 18:26:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, stable@kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, fenghua.yu@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     dma-mapping: fix dma_sync_single_range_*
+     ia64: remove unnecessary sync_single_range_* in swiotlb_dma_ops
 has been added to the -mm tree.  Its filename is
-     dma-mapping-fix-dma_sync_single_range_.patch
+     ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping: fix dma_sync_single_range_*
+Subject: ia64: remove unnecessary sync_single_range_* in swiotlb_dma_ops
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-dma_sync_single_range_for_cpu() and dma_sync_single_range_for_device() use
-a wrong address with a partial synchronization.
+sync_single_range_for_cpu and sync_single_range_for_device hooks in
+swiotlb_dma_ops are unnecessary because sync_single_for_cpu and
+sync_single_for_device are used there.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: <stable@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/dma-mapping-common.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/pci-swiotlb.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-fix-dma_sync_single_range_ include/asm-generic/dma-mapping-common.h
---- a/include/asm-generic/dma-mapping-common.h~dma-mapping-fix-dma_sync_single_range_
-+++ a/include/asm-generic/dma-mapping-common.h
-@@ -131,7 +131,7 @@ static inline void dma_sync_single_range
- 		debug_dma_sync_single_range_for_cpu(dev, addr, offset, size, dir);
- 
- 	} else
--		dma_sync_single_for_cpu(dev, addr, size, dir);
-+		dma_sync_single_for_cpu(dev, addr + offset, size, dir);
- }
- 
- static inline void dma_sync_single_range_for_device(struct device *dev,
-@@ -148,7 +148,7 @@ static inline void dma_sync_single_range
- 		debug_dma_sync_single_range_for_device(dev, addr, offset, size, dir);
- 
- 	} else
--		dma_sync_single_for_device(dev, addr, size, dir);
-+		dma_sync_single_for_device(dev, addr + offset, size, dir);
- }
- 
- static inline void
+diff -puN arch/ia64/kernel/pci-swiotlb.c~ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops arch/ia64/kernel/pci-swiotlb.c
+--- a/arch/ia64/kernel/pci-swiotlb.c~ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops
++++ a/arch/ia64/kernel/pci-swiotlb.c
+@@ -31,8 +31,6 @@ struct dma_map_ops swiotlb_dma_ops = {
+ 	.unmap_sg = swiotlb_unmap_sg_attrs,
+ 	.sync_single_for_cpu = swiotlb_sync_single_for_cpu,
+ 	.sync_single_for_device = swiotlb_sync_single_for_device,
+-	.sync_single_range_for_cpu = swiotlb_sync_single_range_for_cpu,
+-	.sync_single_range_for_device = swiotlb_sync_single_range_for_device,
+ 	.sync_sg_for_cpu = swiotlb_sync_sg_for_cpu,
+ 	.sync_sg_for_device = swiotlb_sync_sg_for_device,
+ 	.dma_supported = swiotlb_dma_supported,
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 origin.patch
+dma-mapping-fix-dma_sync_single_range_.patch
 linux-next.patch
 scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-dma-mapping-fix-dma_sync_single_range_.patch
 ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
 x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
 powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
