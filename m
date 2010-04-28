@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-atmel-mci-remove-data-error-interrupt-after-xfer.patch added to -mm tree
-Date: Wed, 28 Apr 2010 11:25:11 -0700
-Message-ID: <201004281825.o3SIPBRm011939@imap1.linux-foundation.org>
+Subject: + mmc-atmel-mci-fix-two-parameters-swapped.patch added to -mm tree
+Date: Wed, 28 Apr 2010 11:25:04 -0700
+Message-ID: <201004281825.o3SIP5Zb011924__40126.6228095212$1272479124$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754016Ab0D1SZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754882Ab0D1SZS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Apr 2010 14:25:16 -0400
+	Wed, 28 Apr 2010 14:25:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org
+Cc: nicolas.ferre@atmel.com, anders.grahn@hd-wireless.se, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     mmc: atmel-mci: remove data error interrupt after xfer
+     mmc: atmel-mci: fix two parameters swapped
 has been added to the -mm tree.  Its filename is
-     mmc-atmel-mci-remove-data-error-interrupt-after-xfer.patch
+     mmc-atmel-mci-fix-two-parameters-swapped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: atmel-mci: remove data error interrupt after xfer
+Subject: mmc: atmel-mci: fix two parameters swapped
 From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Disable data error interrupts while we are actually recording that there
-is not such errors.  This will prevent, in some cases, the warning message
-printed at new request queuing (in atmci_start_request()).
+Two parameters were swapped in the calls to atmci_init_slot().
 
 Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Reported-by: Anders Grahn <anders.grahn@hd-wireless.se>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/atmel-mci.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/atmel-mci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-remove-data-error-interrupt-after-xfer drivers/mmc/host/atmel-mci.c
---- a/drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-remove-data-error-interrupt-after-xfer
+diff -puN drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-fix-two-parameters-swapped drivers/mmc/host/atmel-mci.c
+--- a/drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-fix-two-parameters-swapped
 +++ a/drivers/mmc/host/atmel-mci.c
-@@ -1308,6 +1308,7 @@ static void atmci_tasklet_func(unsigned 
- 			} else {
- 				data->bytes_xfered = data->blocks * data->blksz;
- 				data->error = 0;
-+				mci_writel(host, IDR, ATMCI_DATA_ERROR_FLAGS);
- 			}
- 
- 			if (!data->stop) {
+@@ -1767,13 +1767,13 @@ static int __init atmci_probe(struct pla
+ 	ret = -ENODEV;
+ 	if (pdata->slot[0].bus_width) {
+ 		ret = atmci_init_slot(host, &pdata->slot[0],
+-				MCI_SDCSEL_SLOT_A, 0);
++				0, MCI_SDCSEL_SLOT_A);
+ 		if (!ret)
+ 			nr_slots++;
+ 	}
+ 	if (pdata->slot[1].bus_width) {
+ 		ret = atmci_init_slot(host, &pdata->slot[1],
+-				MCI_SDCSEL_SLOT_B, 1);
++				1, MCI_SDCSEL_SLOT_B);
+ 		if (!ret)
+ 			nr_slots++;
+ 	}
 _
 
 Patches currently in -mm which might be from nicolas.ferre@atmel.com are
