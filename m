@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hitfb-correct-sections.patch added to -mm tree
-Date: Wed, 28 Apr 2010 11:58:36 -0700
-Message-ID: <201004281858.o3SIwaPu013677@imap1.linux-foundation.org>
+Subject: + s3c2410fb-correct-sections.patch added to -mm tree
+Date: Wed, 28 Apr 2010 11:58:38 -0700
+Message-ID: <201004281858.o3SIwcmu013680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754263Ab0D1S6m (ORCPT
+	by vger.kernel.org with ESMTP id S1754263Ab0D1S6v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Apr 2010 14:58:42 -0400
+	Wed, 28 Apr 2010 14:58:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: henne@nachtwindheim.de, lethal@linux-sh.org
+Cc: henne@nachtwindheim.de, support@simtec.co.uk
 
 
 The patch titled
-     hitfb: fix sections
+     s3c2410fb: fix sections
 has been added to the -mm tree.  Its filename is
-     hitfb-correct-sections.patch
+     s3c2410fb-correct-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hitfb: fix sections
+Subject: s3c2410fb: fix sections
 From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Since the drivers probe call was changed from .init.text to .devinit.text
-in commit c2e13037e6794bd0d9de3f9ecabf5615f15c160b ("platform-drivers:
-move probe to .devinit.text in drivers/video") the fb_fix_screeninfo and
-fb_var_screeninfo structures must be changed from .init.data to
-.devinit.data, too.
+Since the drivers probe calls were changed from .init.text to
+.devinit.text in commit c2e13037e6794bd0d9de3f9ecabf5615f15c160b
+("platform-drivers: move probe to .devinit.text in drivers/video") all the
+function from .init.text should be moved to .devinit.text, too.
 
-Also the drivers remove routine should be moved from .exit.text to
-.devexit.text
+The drivers remove calls can also be move from .text to .devexit.text.
 
 Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Vincent Sanders <support@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hitfb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/s3c2410fb.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/hitfb.c~hitfb-correct-sections drivers/video/hitfb.c
---- a/drivers/video/hitfb.c~hitfb-correct-sections
-+++ a/drivers/video/hitfb.c
-@@ -30,14 +30,14 @@
- 
- #define	WIDTH 640
- 
--static struct fb_var_screeninfo hitfb_var __initdata = {
-+static struct fb_var_screeninfo hitfb_var __devinitdata = {
- 	.activate	= FB_ACTIVATE_NOW,
- 	.height		= -1,
- 	.width		= -1,
- 	.vmode		= FB_VMODE_NONINTERLACED,
- };
- 
--static struct fb_fix_screeninfo hitfb_fix __initdata = {
-+static struct fb_fix_screeninfo hitfb_fix __devinitdata = {
- 	.id		= "Hitachi HD64461",
- 	.type		= FB_TYPE_PACKED_PIXELS,
- 	.accel		= FB_ACCEL_NONE,
-@@ -417,7 +417,7 @@ err_fb:
- 	return ret;
- }
- 
--static int __exit hitfb_remove(struct platform_device *dev)
-+static int __devexit hitfb_remove(struct platform_device *dev)
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-correct-sections drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-correct-sections
++++ a/drivers/video/s3c2410fb.c
+@@ -631,7 +631,7 @@ static struct fb_ops s3c2410fb_ops = {
+  *	cache.  Once this area is remapped, all virtual memory
+  *	access to the video memory should occur at the new region.
+  */
+-static int __init s3c2410fb_map_video_memory(struct fb_info *info)
++static int __devinit s3c2410fb_map_video_memory(struct fb_info *info)
  {
- 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct s3c2410fb_info *fbi = info->par;
+ 	dma_addr_t map_dma;
+@@ -814,7 +814,7 @@ static inline void s3c2410fb_cpufreq_der
  
-@@ -462,7 +462,7 @@ static const struct dev_pm_ops hitfb_dev
+ static char driver_name[] = "s3c2410fb";
  
- static struct platform_driver hitfb_driver = {
- 	.probe		= hitfb_probe,
--	.remove		= __exit_p(hitfb_remove),
-+	.remove		= __devexit_p(hitfb_remove),
+-static int __init s3c24xxfb_probe(struct platform_device *pdev,
++static int __devinit s3c24xxfb_probe(struct platform_device *pdev,
+ 				  enum s3c_drv_type drv_type)
+ {
+ 	struct s3c2410fb_info *info;
+@@ -1018,7 +1018,7 @@ static int __devinit s3c2412fb_probe(str
+ /*
+  *  Cleanup
+  */
+-static int s3c2410fb_remove(struct platform_device *pdev)
++static int __devexit s3c2410fb_remove(struct platform_device *pdev)
+ {
+ 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
+ 	struct s3c2410fb_info *info = fbinfo->par;
+@@ -1096,7 +1096,7 @@ static int s3c2410fb_resume(struct platf
+ 
+ static struct platform_driver s3c2410fb_driver = {
+ 	.probe		= s3c2410fb_probe,
+-	.remove		= s3c2410fb_remove,
++	.remove		= __devexit_p(s3c2410fb_remove),
+ 	.suspend	= s3c2410fb_suspend,
+ 	.resume		= s3c2410fb_resume,
  	.driver		= {
- 		.name	= "hitfb",
- 		.owner	= THIS_MODULE,
+@@ -1107,7 +1107,7 @@ static struct platform_driver s3c2410fb_
+ 
+ static struct platform_driver s3c2412fb_driver = {
+ 	.probe		= s3c2412fb_probe,
+-	.remove		= s3c2410fb_remove,
++	.remove		= __devexit_p(s3c2410fb_remove),
+ 	.suspend	= s3c2410fb_suspend,
+ 	.resume		= s3c2410fb_resume,
+ 	.driver		= {
 _
 
 Patches currently in -mm which might be from henne@nachtwindheim.de are
