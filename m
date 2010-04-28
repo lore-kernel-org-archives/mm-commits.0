@@ -1,274 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better.patch removed from -mm tree
-Date: Wed, 28 Apr 2010 09:50:08 -0400
-Message-ID: <201004281651.o3SGpfXx007566@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 28 Apr 2010 11:01:45 -0400
+Message-ID: <201004281803.o3SI3Ija010920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752704Ab0D1Qvz (ORCPT
+	by vger.kernel.org with ESMTP id S1754850Ab0D1SDU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Apr 2010 12:51:55 -0400
+	Wed, 28 Apr 2010 14:03:20 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o3SI3IRc006365
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 28 Apr 2010 11:03:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: damjan.jov@gmail.com, dtor@mail.ru, rubini@cvml.unipv.it, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: handle bad parity PS/2 packets in mouse drivers better
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: handle bad parity PS/2 packets in mouse drivers better
-From: Damjan Jovanovic <damjan.jov@gmail.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes a regression introduced in Linux 2.6.2 where mice that
-sporadically produce bad parity go crazy and start jumping around and
-clicking randomly, which never happens in any version of Windows running
-on the same hardware.  The bugzilla bug is
-https://bugzilla.kernel.org/show_bug.cgi?id=6105
-
-The patch works by always accumulating a full PS/2 packet, then ignoring
-the packet if any byte had a bad checksum.  A month of testing it against
-an affected mouse has revealed it works perfectly in practice.
-
-Signed-off-by: Damjan Jovanovic <damjan.jov@gmail.com>
-Cc: Alessandro Rubini <rubini@cvml.unipv.it>
-Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/alps.c         |   15 ++++++++++++---
- drivers/input/mouse/elantech.c     |    3 +++
- drivers/input/mouse/hgpk.c         |    3 ++-
- drivers/input/mouse/lifebook.c     |    6 ++++++
- drivers/input/mouse/logips2pp.c    |    3 +++
- drivers/input/mouse/psmouse-base.c |   15 +++++++++++++--
- drivers/input/mouse/psmouse.h      |    1 +
- drivers/input/mouse/sentelic.c     |    3 +++
- drivers/input/mouse/synaptics.c    |    3 +++
- drivers/input/mouse/touchkit_ps2.c |    3 +++
- 10 files changed, 49 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/radeon/r300.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/input/mouse/alps.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/alps.c
---- a/drivers/input/mouse/alps.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/alps.c
-@@ -379,10 +379,16 @@ static psmouse_ret_t alps_process_byte(s
- 	struct alps_data *priv = psmouse->private;
- 	const struct alps_model_info *model = priv->i;
- 
-+	if (psmouse->pktcnt == 1 && psmouse->badparity)
-+		return PSMOUSE_BAD_DATA;
-+
- 	if ((psmouse->packet[0] & 0xc8) == 0x08) { /* PS/2 packet */
- 		if (psmouse->pktcnt == 3) {
--			alps_report_bare_ps2_packet(psmouse, psmouse->packet,
--						    true);
-+			if (psmouse->badparity) {
-+				alps_report_bare_ps2_packet(psmouse,
-+							    psmouse->packet,
-+							    true);
-+			}
- 			return PSMOUSE_FULL_PACKET;
- 		}
- 		return PSMOUSE_GOOD_DATA;
-@@ -392,6 +398,8 @@ static psmouse_ret_t alps_process_byte(s
- 
- 	if ((model->flags & ALPS_PS2_INTERLEAVED) &&
- 	    psmouse->pktcnt >= 4 && (psmouse->packet[3] & 0x0f) == 0x0f) {
-+		if (psmouse->badparity)
-+			return PSMOUSE_BAD_DATA;
- 		return alps_handle_interleaved_ps2(psmouse);
- 	}
- 
-@@ -410,7 +418,8 @@ static psmouse_ret_t alps_process_byte(s
- 	}
- 
- 	if (psmouse->pktcnt == 6) {
--		alps_process_packet(psmouse);
-+		if (!psmouse->badparity)
-+			alps_process_packet(psmouse);
- 		return PSMOUSE_FULL_PACKET;
- 	}
- 
-diff -puN drivers/input/mouse/elantech.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/elantech.c
---- a/drivers/input/mouse/elantech.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/elantech.c
-@@ -325,6 +325,9 @@ static psmouse_ret_t elantech_process_by
- 	if (psmouse->pktcnt < psmouse->pktsize)
- 		return PSMOUSE_GOOD_DATA;
- 
-+	if (psmouse->pktcnt == psmouse->pktsize && psmouse->badparity)
-+		return PSMOUSE_FULL_PACKET;
-+
- 	if (etd->debug > 1)
- 		elantech_packet_dump(psmouse->packet, psmouse->pktsize);
- 
-diff -puN drivers/input/mouse/hgpk.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/hgpk.c
---- a/drivers/input/mouse/hgpk.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/hgpk.c
-@@ -188,7 +188,8 @@ static psmouse_ret_t hgpk_process_byte(s
- 	}
- 
- 	if (psmouse->pktcnt >= psmouse->pktsize) {
--		hgpk_process_packet(psmouse);
-+		if (!psmouse->badparity)
-+			hgpk_process_packet(psmouse);
- 		return PSMOUSE_FULL_PACKET;
- 	}
- 
-diff -puN drivers/input/mouse/lifebook.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/lifebook.c
---- a/drivers/input/mouse/lifebook.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/lifebook.c
-@@ -139,6 +139,9 @@ static psmouse_ret_t lifebook_process_by
- 	unsigned char *packet = psmouse->packet;
- 	bool relative_packet = packet[0] & 0x08;
- 
-+	if (psmouse->pktcnt == 1 && psmouse->badparity)
-+		return PSMOUSE_BAD_DATA;
-+
- 	if (relative_packet || !lifebook_use_6byte_proto) {
- 		if (psmouse->pktcnt != 3)
- 			return PSMOUSE_GOOD_DATA;
-@@ -167,6 +170,9 @@ static psmouse_ret_t lifebook_process_by
- 		}
- 	}
- 
-+	if (psmouse->badparity)
-+		return PSMOUSE_FULL_PACKET;
-+
- 	if (relative_packet) {
- 		if (!dev2)
- 			printk(KERN_WARNING "lifebook.c: got relative packet "
-diff -puN drivers/input/mouse/logips2pp.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/logips2pp.c
---- a/drivers/input/mouse/logips2pp.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/logips2pp.c
-@@ -51,6 +51,9 @@ static psmouse_ret_t ps2pp_process_byte(
-  * Full packet accumulated, process it
-  */
- 
-+	if (psmouse->badparity)
-+		return PSMOUSE_FULL_PACKET;
-+
- 	if ((packet[0] & 0x48) == 0x48 && (packet[1] & 0x02) == 0x02) {
- 
- 		/* Logitech extended packet */
-diff -puN drivers/input/mouse/psmouse-base.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/psmouse-base.c
---- a/drivers/input/mouse/psmouse-base.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/psmouse-base.c
-@@ -134,6 +134,9 @@ static psmouse_ret_t psmouse_process_byt
-  * Full packet accumulated, process it
-  */
- 
-+	if (psmouse->badparity)
-+		return PSMOUSE_FULL_PACKET;
-+
- /*
-  * Scroll wheel on IntelliMice, scroll buttons on NetMice
-  */
-@@ -218,6 +221,7 @@ void psmouse_queue_work(struct psmouse *
- static inline void __psmouse_set_state(struct psmouse *psmouse, enum psmouse_state new_state)
+diff -puN drivers/gpu/drm/radeon/r300.c~linux-next-git-rejects drivers/gpu/drm/radeon/r300.c
+--- a/drivers/gpu/drm/radeon/r300.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/radeon/r300.c
+@@ -328,11 +328,7 @@ void r300_gpu_init(struct radeon_device 
  {
- 	psmouse->state = new_state;
-+	psmouse->badparity = 0;
- 	psmouse->pktcnt = psmouse->out_of_sync_cnt = 0;
- 	psmouse->ps2dev.flags = 0;
- 	psmouse->last = jiffies;
-@@ -258,10 +262,12 @@ static int psmouse_handle_byte(struct ps
- 					return -1;
- 				}
- 			}
-+			psmouse->badparity = 0;
- 			psmouse->pktcnt = 0;
- 			break;
+ 	uint32_t gb_tile_config, tmp;
  
- 		case PSMOUSE_FULL_PACKET:
-+			psmouse->badparity = 0;
- 			psmouse->pktcnt = 0;
- 			if (psmouse->out_of_sync_cnt) {
- 				psmouse->out_of_sync_cnt = 0;
-@@ -271,6 +277,7 @@ static int psmouse_handle_byte(struct ps
- 			break;
- 
- 		case PSMOUSE_GOOD_DATA:
-+			psmouse->badparity = 0;
- 			break;
- 	}
- 	return 0;
-@@ -296,8 +303,12 @@ static irqreturn_t psmouse_interrupt(str
- 			printk(KERN_WARNING "psmouse.c: bad data from KBC -%s%s\n",
- 				flags & SERIO_TIMEOUT ? " timeout" : "",
- 				flags & SERIO_PARITY ? " bad parity" : "");
--		ps2_cmd_aborted(&psmouse->ps2dev);
--		goto out;
-+		if (flags & SERIO_TIMEOUT) {
-+			ps2_cmd_aborted(&psmouse->ps2dev);
-+			goto out;
-+		} else {
-+			psmouse->badparity = 1;
-+		}
- 	}
- 
- 	if (unlikely(psmouse->ps2dev.flags & PS2_FLAG_ACK))
-diff -puN drivers/input/mouse/psmouse.h~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/psmouse.h
---- a/drivers/input/mouse/psmouse.h~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/psmouse.h
-@@ -43,6 +43,7 @@ struct psmouse {
- 	char *vendor;
- 	char *name;
- 	unsigned char packet[8];
-+	int badparity;
- 	unsigned char badbyte;
- 	unsigned char pktcnt;
- 	unsigned char pktsize;
-diff -puN drivers/input/mouse/sentelic.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/sentelic.c
---- a/drivers/input/mouse/sentelic.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/sentelic.c
-@@ -638,6 +638,9 @@ static psmouse_ret_t fsp_process_byte(st
- 	 * Full packet accumulated, process it
- 	 */
- 
-+	if (psmouse->badparity)
-+		return PSMOUSE_FULL_PACKET;
-+
- 	switch (psmouse->packet[0] >> FSP_PKT_TYPE_SHIFT) {
- 	case FSP_PKT_TYPE_ABS:
- 		dev_warn(&psmouse->ps2dev.serio->dev,
-diff -puN drivers/input/mouse/synaptics.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/synaptics.c
---- a/drivers/input/mouse/synaptics.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/synaptics.c
-@@ -554,6 +554,9 @@ static psmouse_ret_t synaptics_process_b
- 	struct synaptics_data *priv = psmouse->private;
- 
- 	if (psmouse->pktcnt >= 6) { /* Full packet received */
-+		if (psmouse->badparity)
-+			return PSMOUSE_FULL_PACKET;
-+
- 		if (unlikely(priv->pkt_type == SYN_NEWABS))
- 			priv->pkt_type = synaptics_detect_pkt_type(psmouse);
- 
-diff -puN drivers/input/mouse/touchkit_ps2.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better drivers/input/mouse/touchkit_ps2.c
---- a/drivers/input/mouse/touchkit_ps2.c~input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better
-+++ a/drivers/input/mouse/touchkit_ps2.c
-@@ -58,6 +58,9 @@ static psmouse_ret_t touchkit_ps2_proces
- 	if (psmouse->pktcnt != 5)
- 		return PSMOUSE_GOOD_DATA;
- 
-+	if (psmouse->badparity)
-+		return PSMOUSE_FULL_PACKET;
-+
- 	input_report_abs(dev, ABS_X, TOUCHKIT_GET_X(packet));
- 	input_report_abs(dev, ABS_Y, TOUCHKIT_GET_Y(packet));
- 	input_report_key(dev, BTN_TOUCH, TOUCHKIT_GET_TOUCHED(packet));
+-<<<<<<< HEAD
+-	r100_hdp_reset(rdev);
+-=======
+ 	/* FIXME: rv380 one pipes ? */
+->>>>>>> FETCH_HEAD
+ 	if ((rdev->family == CHIP_R300 && rdev->pdev->device != 0x4144) ||
+ 	    (rdev->family == CHIP_R350 && rdev->pdev->device != 0x4148)) {
+ 		/* r300,r350 */
 _
 
-Patches currently in -mm which might be from damjan.jov@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-input-handle-bad-parity-ps-2-packets-in-mouse-drivers-better.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-acpi-use-kasprintf.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+dib7000p-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
+laptop-mode-make-flushes-per-device-fix.patch
+libertastf-add-configurable-debug-messages-fix.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
