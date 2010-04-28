@@ -1,81 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch removed from -mm tree
-Date: Wed, 28 Apr 2010 11:03:18 -0400
-Message-ID: <201004281804.o3SI4pnw010988@imap1.linux-foundation.org>
+Subject: [merged] fix-pca953x-set_type-scheduling-while-atomic-bug.patch removed from -mm tree
+Date: Wed, 28 Apr 2010 11:03:06 -0400
+Message-ID: <201004281804.o3SI4d1e010974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756203Ab0D1SEz (ORCPT
+	by vger.kernel.org with ESMTP id S1756109Ab0D1SEy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Apr 2010 14:04:55 -0400
+	Wed, 28 Apr 2010 14:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, greg@kroah.com, wfp5p@virginia.edu, mm-commits@vger.kernel.org
+To: maz@misterjones.org, bgat@billgatliff.com, eric.y.miao@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/staging/comedi/drivers/dt2801.c: off by one issue
+     gpio: fix pca953x set_type 'scheduling while atomic' bug
 has been removed from the -mm tree.  Its filename was
-     drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
+     fix-pca953x-set_type-scheduling-while-atomic-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/comedi/drivers/dt2801.c: off by one issue
-From: Dan Carpenter <error27@gmail.com>
+Subject: gpio: fix pca953x set_type 'scheduling while atomic' bug
+From: Marc Zyngier <maz@misterjones.org>
 
-"dac_range_table" has 5 elements.
+Bill Gatliff reported the following bug when using the irq_chip facility
+of the pca953x driver on a PPC platform:
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Greg KH <greg@kroah.com>
+BUG: scheduling while atomic: insmod/1530/0x00000002
+
+He traced it back to an i2c transaction in pca953x_irq_set_type(), which
+can be called with interrupt disabled (from __setup_irq()).  As the i2c
+controller can sleep while sending a message, this qualifies as a bad
+idea.
+
+This patch moves the i2c transaction to pca953x_irq_bus_sync_unlock(),
+where it is actually safe to send an i2c message.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Marc Zyngier <maz@misterjones.org>
+Reported-by: Bill Gatliff <bgat@billgatliff.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/dt2801.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/pca953x.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/comedi/drivers/dt2801.c~drivers-staging-comedi-drivers-dt2801c-off-by-one-issue drivers/staging/comedi/drivers/dt2801.c
---- a/drivers/staging/comedi/drivers/dt2801.c~drivers-staging-comedi-drivers-dt2801c-off-by-one-issue
-+++ a/drivers/staging/comedi/drivers/dt2801.c
-@@ -472,7 +472,7 @@ static const struct comedi_lrange *dac_r
- 
- static const struct comedi_lrange *dac_range_lkup(int opt)
+diff -puN drivers/gpio/pca953x.c~fix-pca953x-set_type-scheduling-while-atomic-bug drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~fix-pca953x-set_type-scheduling-while-atomic-bug
++++ a/drivers/gpio/pca953x.c
+@@ -252,6 +252,18 @@ static void pca953x_irq_bus_lock(unsigne
+ static void pca953x_irq_bus_sync_unlock(unsigned int irq)
  {
--	if (opt < 0 || opt > 5)
-+	if (opt < 0 || opt >= 5)
- 		return &range_unknown;
- 	return dac_range_table[opt];
+ 	struct pca953x_chip *chip = get_irq_chip_data(irq);
++	uint16_t new_irqs;
++	uint16_t level;
++
++	/* Look for any newly setup interrupt */
++	new_irqs = chip->irq_trig_fall | chip->irq_trig_raise;
++	new_irqs &= ~chip->reg_direction;
++
++	while (new_irqs) {
++		level = __ffs(new_irqs);
++		pca953x_gpio_direction_input(&chip->gpio_chip, level);
++		new_irqs &= ~(1 << level);
++	}
+ 
+ 	mutex_unlock(&chip->irq_lock);
  }
+@@ -278,7 +290,7 @@ static int pca953x_irq_set_type(unsigned
+ 	else
+ 		chip->irq_trig_raise &= ~mask;
+ 
+-	return pca953x_gpio_direction_input(&chip->gpio_chip, level);
++	return 0;
+ }
+ 
+ static struct irq_chip pca953x_irq_chip = {
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from maz@misterjones.org are
 
 origin.patch
 linux-next.patch
-power_meter-acpi_device_class-power_meter_resource-too-long.patch
-sbshc-acpi_device_class-smbus_host_controller-too-long.patch
-acpi_pad-processor_aggregator-name-too-long.patch
-drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
-drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
-drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
-drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
-drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
-drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
-drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
-drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
-cx88-improve-error-handling.patch
-ir-keytable-avoid-double-lock.patch
-cx231xx-improve-error-handling.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
-usb-oxu210hp-release-spinlock-on-error-path.patch
-mm-document-follow_page.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
-fs-sysv-dereferencing-err_ptr.patch
+rtc-ds1302-add-some-abstraction-for-new-platform-support.patch
+gpio-add-interrupt-handling-capability-to-max732x.patch
+gpio-max732x-fix-input-configuration-for-open-drain-pins.patch
 
