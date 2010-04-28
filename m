@@ -1,67 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-avr32-fix-build-failure-caused-by-wrong-prototype.patch removed from -mm tree
-Date: Wed, 28 Apr 2010 11:02:58 -0400
-Message-ID: <201004281804.o3SI4V7b010968@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch removed from -mm tree
+Date: Wed, 28 Apr 2010 11:03:18 -0400
+Message-ID: <201004281804.o3SI4pnw010988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756109Ab0D1SEx (ORCPT
+	by vger.kernel.org with ESMTP id S1756203Ab0D1SEz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Apr 2010 14:04:53 -0400
+	Wed, 28 Apr 2010 14:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterhuewe@gmx.de, hch@lst.de, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, greg@kroah.com, wfp5p@virginia.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/avr32: fix build failure caused by wrong prototype
+     drivers/staging/comedi/drivers/dt2801.c: off by one issue
 has been removed from the -mm tree.  Its filename was
-     arch-avr32-fix-build-failure-caused-by-wrong-prototype.patch
+     drivers-staging-comedi-drivers-dt2801c-off-by-one-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/avr32: fix build failure caused by wrong prototype
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: drivers/staging/comedi/drivers/dt2801.c: off by one issue
+From: Dan Carpenter <error27@gmail.com>
 
-This patch fixes a build failure introduced by 1d8393171 ("avr32: use
-generic ptrace_resume code") which had the static keyword as a leftover.
+"dac_range_table" has 5 elements.
 
-arch/avr32/kernel/ptrace.c:32: error: static declaration of `user_enable_single_step' follows non-static declaration
-include/linux/ptrace.h:268: error: previous declaration of `user_enable_single_step' was here
-
-References:
-[1]http://kisskb.ellerman.id.au/kisskb/buildresult/2448162/
-
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/ptrace.c |    2 +-
+ drivers/staging/comedi/drivers/dt2801.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/avr32/kernel/ptrace.c~arch-avr32-fix-build-failure-caused-by-wrong-prototype arch/avr32/kernel/ptrace.c
---- a/arch/avr32/kernel/ptrace.c~arch-avr32-fix-build-failure-caused-by-wrong-prototype
-+++ a/arch/avr32/kernel/ptrace.c
-@@ -28,7 +28,7 @@ static struct pt_regs *get_user_regs(str
- 				  THREAD_SIZE - sizeof(struct pt_regs));
- }
+diff -puN drivers/staging/comedi/drivers/dt2801.c~drivers-staging-comedi-drivers-dt2801c-off-by-one-issue drivers/staging/comedi/drivers/dt2801.c
+--- a/drivers/staging/comedi/drivers/dt2801.c~drivers-staging-comedi-drivers-dt2801c-off-by-one-issue
++++ a/drivers/staging/comedi/drivers/dt2801.c
+@@ -472,7 +472,7 @@ static const struct comedi_lrange *dac_r
  
--static void user_enable_single_step(struct task_struct *tsk)
-+void user_enable_single_step(struct task_struct *tsk)
+ static const struct comedi_lrange *dac_range_lkup(int opt)
  {
- 	pr_debug("user_enable_single_step: pid=%u, PC=0x%08lx, SR=0x%08lx\n",
- 		 tsk->pid, task_pt_regs(tsk)->pc, task_pt_regs(tsk)->sr);
+-	if (opt < 0 || opt > 5)
++	if (opt < 0 || opt >= 5)
+ 		return &range_unknown;
+ 	return dac_range_table[opt];
+ }
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from error27@gmail.com are
 
 origin.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+cx231xx-improve-error-handling.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
+usb-oxu210hp-release-spinlock-on-error-path.patch
+mm-document-follow_page.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
+fs-sysv-dereferencing-err_ptr.patch
 
