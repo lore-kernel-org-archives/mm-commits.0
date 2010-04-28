@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-handling-of-the-reservetop-boot-option.patch added to -mm tree
-Date: Wed, 28 Apr 2010 11:36:17 -0700
-Message-ID: <201004281836.o3SIaIsw012541@imap1.linux-foundation.org>
+Subject: + linux-next-fix-rejects.patch added to -mm tree
+Date: Wed, 28 Apr 2010 11:42:50 -0700
+Message-ID: <201004281842.o3SIgo9i012903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756388Ab0D1ShI (ORCPT
+	by vger.kernel.org with ESMTP id S1754136Ab0D1SnT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Apr 2010 14:37:08 -0400
+	Wed, 28 Apr 2010 14:43:19 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o3SIgo2f011021
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 28 Apr 2010 11:42:51 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liang.li@windriver.com, akpm@linux-foundation.org, hpa@zytor.com, jeremy.fitzhardinge@citrix.com, konrad.wilk@oracle.com, mingo@elte.hu, tglx@linutronix.de, wangchen@cn.fujitsu.com, yinghai@kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86: fix handling of the 'reservetop' boot option
+     linux-next-fix-rejects
 has been added to the -mm tree.  Its filename is
-     x86-fix-handling-of-the-reservetop-boot-option.patch
+     linux-next-fix-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +38,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix handling of the 'reservetop' boot option
-From: Liang Li <liang.li@windriver.com>
+Subject: linux-next-fix-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When specifying the 'reservetop=0xbadc0de' kernel parameter, the kernel
-will stop booting due to a early_ioremap bug that relate to commit
-8827247ff ("x86: don't define __this_fixmap_does_not_exist()").
-
-The root cause of boot failure problem is the value of 'slot_virt[i]' was
-initialized in setup_arch->early_ioremap_init.  But later in setup_arch,
-the function 'parse_early_param' will modify 'FIXADDR_TOP' when
-'reservetop=0xbadc0de' being specified.
-
-The simplest fix might be use __fix_to_virt(idx0) to get updated value of
-'FIXADDR_TOP' in '__early_ioremap' instead of reference old value from
-slot_virt[slot] directly.
-
-Signed-off-by: Liang Li <liang.li@windriver.com>
-Cc: Wang Chen <wangchen@cn.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/io.h |    1 +
- arch/x86/mm/ioremap.c     |   15 +++++++++++++++
- arch/x86/mm/pgtable_32.c  |    1 +
- 3 files changed, 17 insertions(+)
+ kernel/fork.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/include/asm/io.h~x86-fix-handling-of-the-reservetop-boot-option arch/x86/include/asm/io.h
---- a/arch/x86/include/asm/io.h~x86-fix-handling-of-the-reservetop-boot-option
-+++ a/arch/x86/include/asm/io.h
-@@ -347,6 +347,7 @@ extern void __iomem *early_ioremap(resou
- extern void __iomem *early_memremap(resource_size_t phys_addr,
- 				    unsigned long size);
- extern void early_iounmap(void __iomem *addr, unsigned long size);
-+extern void fixup_early_ioremap(void);
+diff -puN kernel/fork.c~linux-next-fix-rejects kernel/fork.c
+--- a/kernel/fork.c~linux-next-fix-rejects
++++ a/kernel/fork.c
+@@ -1112,8 +1112,6 @@ static struct task_struct *copy_process(
+ 	p->memcg_batch.memcg = NULL;
+ #endif
  
- #define IO_SPACE_LIMIT 0xffff
+-	p->bts = NULL;
+-
+ 	/* Perform scheduler related setup. Assign this task to a CPU. */
+ 	sched_fork(p, clone_flags);
  
-diff -puN arch/x86/mm/ioremap.c~x86-fix-handling-of-the-reservetop-boot-option arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~x86-fix-handling-of-the-reservetop-boot-option
-+++ a/arch/x86/mm/ioremap.c
-@@ -448,6 +448,21 @@ static inline void __init early_clear_fi
- static void __iomem *prev_map[FIX_BTMAPS_SLOTS] __initdata;
- static unsigned long prev_size[FIX_BTMAPS_SLOTS] __initdata;
- 
-+void __init fixup_early_ioremap(void)
-+{
-+	int i;
-+	for (i = 0; i < FIX_BTMAPS_SLOTS; i++) {
-+		if (prev_map[i])
-+			break;
-+	}
-+
-+	if (i < FIX_BTMAPS_SLOTS)
-+		BUG_ON(1);
-+
-+	early_ioremap_init();
-+	return;
-+}
-+
- static int __init check_early_ioremap_leak(void)
- {
- 	int count = 0;
-diff -puN arch/x86/mm/pgtable_32.c~x86-fix-handling-of-the-reservetop-boot-option arch/x86/mm/pgtable_32.c
---- a/arch/x86/mm/pgtable_32.c~x86-fix-handling-of-the-reservetop-boot-option
-+++ a/arch/x86/mm/pgtable_32.c
-@@ -127,6 +127,7 @@ static int __init parse_reservetop(char 
- 
- 	address = memparse(arg, &arg);
- 	reserve_top_address(address);
-+	fixup_early_ioremap();
- 	return 0;
- }
- early_param("reservetop", parse_reservetop);
 _
 
-Patches currently in -mm which might be from liang.li@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+linux-next.patch
+linux-next-fix-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-acpi-use-kasprintf.patch
+acpi_pad-processor_aggregator-name-too-long.patch
 x86-fix-handling-of-the-reservetop-boot-option.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+dib7000p-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
+laptop-mode-make-flushes-per-device-fix.patch
+libertastf-add-configurable-debug-messages-fix.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+notify_change-callers-must-hold-i_mutex.patch
 
