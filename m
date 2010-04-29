@@ -1,68 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] booke_wdt-fix-build-unconstify-watchdog_info.patch removed from -mm tree
-Date: Thu, 29 Apr 2010 13:56:49 -0400
-Message-ID: <201004292058.o3TKwMsW011784@imap1.linux-foundation.org>
+Subject: [merged] serial-8250_pnp-add-fujitsu-wacom-device.patch removed from -mm tree
+Date: Thu, 29 Apr 2010 13:56:52 -0400
+Message-ID: <201004292058.o3TKwPEe011789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:53812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757115Ab0D3RJ2 (ORCPT
+	by vger.kernel.org with ESMTP id S932652Ab0D3RJY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:09:28 -0400
+	Fri, 30 Apr 2010 13:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@mvista.com, galak@kernel.crashing.org, stable@kernel.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: pingc@wacom.com, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     booke_wdt: fix build - unconstify watchdog_info
+     serial: 8250_pnp: add Fujitsu Wacom device
 has been removed from the -mm tree.  Its filename was
-     booke_wdt-fix-build-unconstify-watchdog_info.patch
+     serial-8250_pnp-add-fujitsu-wacom-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: booke_wdt: fix build - unconstify watchdog_info
-From: Anton Vorontsov <avorontsov@mvista.com>
+Subject: serial: 8250_pnp: add Fujitsu Wacom device
+From: Ping Cheng <pingc@wacom.com>
 
-commit 42747d712de56cf2087b702d2ad90af114c53138 ("[WATCHDOG] watchdog_info
-constify") introduced the following build failure:
+Add Fujitsu Wacom 1FGT Tablet PC device
 
-   CC      booke_wdt.o
- booke_wdt.c: In function 'booke_wdt_init':
- booke_wdt.c:220: error: assignment of read-only variable 'ident'
-
-Fix this by removing 'const' qualifier from watchdog_info struct.
-
-Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Ping Cheng <pingc@wacom.com>
+Cc: Greg KH <greg@kroah.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/booke_wdt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250_pnp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/watchdog/booke_wdt.c~booke_wdt-fix-build-unconstify-watchdog_info drivers/watchdog/booke_wdt.c
---- a/drivers/watchdog/booke_wdt.c~booke_wdt-fix-build-unconstify-watchdog_info
-+++ a/drivers/watchdog/booke_wdt.c
-@@ -121,7 +121,7 @@ static ssize_t booke_wdt_write(struct fi
- 	return count;
- }
- 
--static const struct watchdog_info ident = {
-+static struct watchdog_info ident = {
- 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
- 	.identity = "PowerPC Book-E Watchdog",
- };
+diff -puN drivers/serial/8250_pnp.c~serial-8250_pnp-add-fujitsu-wacom-device drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~serial-8250_pnp-add-fujitsu-wacom-device
++++ a/drivers/serial/8250_pnp.c
+@@ -348,6 +348,8 @@ static const struct pnp_device_id pnp_de
+ 	{	"FUJ02E6",		0	},
+ 	/* Fujitsu Wacom 2FGT Tablet PC device */
+ 	{	"FUJ02E7",		0	},
++	/* Fujitsu Wacom 1FGT Tablet PC device */
++	{	"FUJ02E9",		0	},
+ 	/*
+ 	 * LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in
+ 	 * disguise)
 _
 
-Patches currently in -mm which might be from avorontsov@mvista.com are
+Patches currently in -mm which might be from pingc@wacom.com are
 
-origin.patch
 linux-next.patch
-sdhci-pltfm-implement-platform-data-passing-fix.patch
 
