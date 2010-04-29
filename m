@@ -1,81 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vt6655-cgi-csi-confusion-in-device_ioctl.patch removed from -mm tree
-Date: Thu, 29 Apr 2010 13:56:58 -0400
-Message-ID: <201004292058.o3TKwU4B011795@imap1.linux-foundation.org>
+Subject: [merged] usb-oxu210hp-release-spinlock-on-error-path.patch removed from -mm tree
+Date: Thu, 29 Apr 2010 13:57:02 -0400
+Message-ID: <201004292058.o3TKwZcN011801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:60996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932752Ab0D3RJX (ORCPT
+	by vger.kernel.org with ESMTP id S932728Ab0D3RJY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:09:23 -0400
+	Fri, 30 Apr 2010 13:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, gadiyar@ti.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt6655: CGI/CSI confusion in device_ioctl()
+     drivers/usb/host/oxu210hp-hcd.c: release spinlock on error path
 has been removed from the -mm tree.  Its filename was
-     vt6655-cgi-csi-confusion-in-device_ioctl.patch
+     usb-oxu210hp-release-spinlock-on-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt6655: CGI/CSI confusion in device_ioctl()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/usb/host/oxu210hp-hcd.c: release spinlock on error path
+From: Dan Carpenter <error27@gmail.com>
 
-The wrong messages were printed.
+Smatch complained about this missing spinlock.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/vt6655/device_main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/host/oxu210hp-hcd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/staging/vt6655/device_main.c~vt6655-cgi-csi-confusion-in-device_ioctl drivers/staging/vt6655/device_main.c
---- a/drivers/staging/vt6655/device_main.c~vt6655-cgi-csi-confusion-in-device_ioctl
-+++ a/drivers/staging/vt6655/device_main.c
-@@ -3328,7 +3328,7 @@ static int  device_ioctl(struct net_devi
- 		break;
+diff -puN drivers/usb/host/oxu210hp-hcd.c~usb-oxu210hp-release-spinlock-on-error-path drivers/usb/host/oxu210hp-hcd.c
+--- a/drivers/usb/host/oxu210hp-hcd.c~usb-oxu210hp-release-spinlock-on-error-path
++++ a/drivers/usb/host/oxu210hp-hcd.c
+@@ -660,13 +660,13 @@ static struct ehci_qh *oxu_qh_alloc(stru
+ 		if (qh->dummy == NULL) {
+ 			oxu_dbg(oxu, "no dummy td\n");
+ 			oxu->qh_used[i] = 0;
+-
+-			return NULL;
++			qh = NULL;
++			goto unlock;
+ 		}
  
- 	case SIOCSIWTXPOW:
--        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWTXPOW \n");
-+        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWTXPOW \n");
-         rc = -EOPNOTSUPP;
- 		break;
+ 		oxu->qh_used[i] = 1;
+ 	}
+-
++unlock:
+ 	spin_unlock(&oxu->mem_lock);
  
-@@ -3406,7 +3406,7 @@ static int  device_ioctl(struct net_devi
- 		// Get the spy list
- 	case SIOCGIWSPY:
- 
--        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCSIWSPY \n");
-+        DBG_PRT(MSG_LEVEL_DEBUG, KERN_INFO " SIOCGIWSPY \n");
- 		rc = -EOPNOTSUPP;
- 		break;
- 
+ 	return qh;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 origin.patch
 linux-next.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-serial-two-branches-the-same-in-timbuart_set_mctrl.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-lpfc-positive-error-return-into-negative.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hvsi-messed-up-error-checking-getting-state-name.patch
+power_meter-acpi_device_class-power_meter_resource-too-long.patch
+sbshc-acpi_device_class-smbus_host_controller-too-long.patch
+acpi_pad-processor_aggregator-name-too-long.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+drivers-media-video-au0828-au0828-videoc-off-by-one-bug.patch
+drivers-media-video-zc0301-zc0301_corec-improve-error-handling.patch
+drivers-media-video-et61x251-et61x251_corec-improve-error-handling.patch
+drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+cx88-improve-error-handling.patch
+ir-keytable-avoid-double-lock.patch
+cx231xx-improve-error-handling.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+mm-document-follow_page.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
+fs-sysv-dereferencing-err_ptr.patch
 
