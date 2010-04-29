@@ -1,107 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch removed from -mm tree
-Date: Thu, 29 Apr 2010 13:56:46 -0400
-Message-ID: <201004292058.o3TKwJfV011781@imap1.linux-foundation.org>
+Subject: [merged] cobalt_lcdfb-fix-section-mismatch-cobalt_lcdfb_fix.patch removed from -mm tree
+Date: Thu, 29 Apr 2010 13:57:05 -0400
+Message-ID: <201004292058.o3TKwc1H011804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932756Ab0D3RJZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757756Ab0D3RJ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:09:25 -0400
+	Fri, 30 Apr 2010 13:09:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, dbrownell@users.sourceforge.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: yuasa@linux-mips.org, arnaud.patard@rtp-net.org, henne@nachtwindheim.de, jayakumar.lkml@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/gadget/s3c-hsotg.c: add missing unlock
+     cobalt_lcdfb: fix section mismatch cobalt_lcdfb_fix
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-gadget-s3c-hsotgc-add-missing-unlock.patch
+     cobalt_lcdfb-fix-section-mismatch-cobalt_lcdfb_fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/gadget/s3c-hsotg.c: add missing unlock
-From: Julia Lawall <julia@diku.dk>
+Subject: cobalt_lcdfb: fix section mismatch cobalt_lcdfb_fix
+From: Yoichi Yuasa <yuasa@linux-mips.org>
 
-In an error handling case the lock is not unlocked.  The return is
-converted to a goto, to share the unlock at the end of the function.
+WARNING: drivers/video/built-in.o(.devinit.text+0x78): Section mismatch in reference from the function cobalt_lcdfb_probe() to the variable .init.data:cobalt_lcdfb_fix
+The function __devinit cobalt_lcdfb_probe() references
+a variable __initdata cobalt_lcdfb_fix.
+If cobalt_lcdfb_fix is only used by cobalt_lcdfb_probe then
+annotate cobalt_lcdfb_fix with a matching annotation.
 
-A simplified version of the semantic patch that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r exists@
-expression E1;
-identifier f;
-@@
-
-f (...) { <+...
-* spin_lock_irqsave (E1,...);
-... when != E1
-* return ...;
-...+> }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Yoichi Yuasa <yuasa@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnaud Patard <arnaud.patard@rtp-net.org>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/s3c-hsotg.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/video/cobalt_lcdfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-add-missing-unlock drivers/usb/gadget/s3c-hsotg.c
---- a/drivers/usb/gadget/s3c-hsotg.c~drivers-usb-gadget-s3c-hsotgc-add-missing-unlock
-+++ a/drivers/usb/gadget/s3c-hsotg.c
-@@ -2145,6 +2145,7 @@ static int s3c_hsotg_ep_enable(struct us
- 	u32 epctrl;
- 	u32 mps;
- 	int dir_in;
-+	int ret = 0;
- 
- 	dev_dbg(hsotg->dev,
- 		"%s: ep %s: a 0x%02x, attr 0x%02x, mps 0x%04x, intr %d\n",
-@@ -2196,7 +2197,8 @@ static int s3c_hsotg_ep_enable(struct us
- 	switch (desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) {
- 	case USB_ENDPOINT_XFER_ISOC:
- 		dev_err(hsotg->dev, "no current ISOC support\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out;
- 
- 	case USB_ENDPOINT_XFER_BULK:
- 		epctrl |= S3C_DxEPCTL_EPType_Bulk;
-@@ -2235,8 +2237,9 @@ static int s3c_hsotg_ep_enable(struct us
- 	/* enable the endpoint interrupt */
- 	s3c_hsotg_ctrl_epint(hsotg, index, dir_in, 1);
- 
-+out:
- 	spin_unlock_irqrestore(&hs_ep->lock, flags);
--	return 0;
-+	return ret;
+diff -puN drivers/video/cobalt_lcdfb.c~cobalt_lcdfb-fix-section-mismatch-cobalt_lcdfb_fix drivers/video/cobalt_lcdfb.c
+--- a/drivers/video/cobalt_lcdfb.c~cobalt_lcdfb-fix-section-mismatch-cobalt_lcdfb_fix
++++ a/drivers/video/cobalt_lcdfb.c
+@@ -123,7 +123,7 @@ static void lcd_clear(struct fb_info *in
+ 	lcd_write_control(info, LCD_RESET);
  }
  
- static int s3c_hsotg_ep_disable(struct usb_ep *ep)
+-static struct fb_fix_screeninfo cobalt_lcdfb_fix __initdata = {
++static struct fb_fix_screeninfo cobalt_lcdfb_fix __devinitdata = {
+ 	.id		= "cobalt-lcd",
+ 	.type		= FB_TYPE_TEXT,
+ 	.type_aux	= FB_AUX_TEXT_MDA,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from yuasa@linux-mips.org are
 
-origin.patch
-linux-next.patch
-drivers-serial-pmac_zilogc-add-missing-unlock.patch
-drivers-acpi-use-kasprintf.patch
-arch-x86-pci-use-kasprintf.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-media-video-avoid-null-dereference.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-char-ppdevc-use-kasprintf.patch
-drivers-edac-introduce-missing-kfree.patch
+char-drivers-ram-oops-panic-logger.patch
+char-drivers-ram-oops-panic-logger-update.patch
 
