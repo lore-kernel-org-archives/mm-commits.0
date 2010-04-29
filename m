@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pids-increase-pid_max-based-on-num_possible_cpus.patch added to -mm tree
-Date: Thu, 29 Apr 2010 15:38:08 -0700
-Message-ID: <201004292238.o3TMc8CV015656@imap1.linux-foundation.org>
+Subject: + sdhci-rename-sdhci-i-o-accessor-functions.patch added to -mm tree
+Date: Thu, 29 Apr 2010 15:29:26 -0700
+Message-ID: <201004292229.o3TMTQcA015391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:53812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932727Ab0D3RIw (ORCPT
+	by vger.kernel.org with ESMTP id S932710Ab0D3RIi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:08:52 -0400
+	Fri, 30 Apr 2010 13:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, hedi@sgi.com, holt@sgi.com, john@stoffel.org, mingo@elte.hu, pavel@ucw.cz, riel@redhat.com, steiner@sgi.com, torvalds@linux-foundation.org
+Cc: matt@console-pimps.org, cbouatmailru@gmail.com, linux-mmc@vger.kernel.org, zgao6@marvell.com
 
 
 The patch titled
-     pids: increase pid_max based on num_possible_cpus
+     sdhci: build fix: rename SDHCI I/O accessor functions
 has been added to the -mm tree.  Its filename is
-     pids-increase-pid_max-based-on-num_possible_cpus.patch
+     sdhci-rename-sdhci-i-o-accessor-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,168 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: increase pid_max based on num_possible_cpus
-From: Mike Travis <travis@sgi.com>
+Subject: sdhci: build fix: rename SDHCI I/O accessor functions
+From: Matt Fleming <matt@console-pimps.org>
 
-On a system with a substantial number of processors, the early default
-pid_max of 32k will not be enough.  A system with 1664 CPU's, there are
-25163 processes started before the login prompt.  It's estimated that with
-2048 CPU's we will pass the 32k limit.  With 4096, we'll reach that limit
-very early during the boot cycle, and processes would stall waiting for an
-available pid.
+Unfortunately some architectures #define their read{b,w,l} and
+write{b,w,l} I/O accessors which makes the SDHCI I/O accessor functions of
+the same names subject to preprocessing.  This leads to the following
+compiler error,
 
-This patch increases the early maximum number of pids available, and
-increases the minimum number of pids that can be set during runtime.
+In file included from drivers/mmc/host/sdhci.c:26:
+drivers/mmc/host/sdhci.h:318:35: error: macro "writel" passed 3 arguments, but takes just 2
 
-Signed-off-by: Hedi Berriche <hedi@sgi.com>
-Signed-off-by: Mike Travis <travis@sgi.com>
-Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: John Stoffel <john@stoffel.org>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Rename the SDHCI I/O functions so that CONFIG_MMC_SDHCI_IO_ACCESSORS can
+be enabled for architectures that implement their read{b,w,l} and
+write{b,w,l} functions with macros.
+
+Signed-off-by: Matt Fleming <matt@console-pimps.org>
+Cc: Zhangfei Gao <zgao6@marvell.com>
+Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/threads.h |    9 +++++++++
- kernel/pid.c            |    7 +++++++
- 2 files changed, 16 insertions(+)
+ drivers/mmc/host/sdhci-of-esdhc.c |   12 ++++-----
+ drivers/mmc/host/sdhci-of-hlwd.c  |   12 ++++-----
+ drivers/mmc/host/sdhci.h          |   36 ++++++++++++++--------------
+ 3 files changed, 30 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/threads.h~pids-increase-pid_max-based-on-num_possible_cpus include/linux/threads.h
---- a/include/linux/threads.h~pids-increase-pid_max-based-on-num_possible_cpus
-+++ a/include/linux/threads.h
-@@ -33,4 +33,13 @@
- #define PID_MAX_LIMIT (CONFIG_BASE_SMALL ? PAGE_SIZE * 8 : \
- 	(sizeof(long) > 4 ? 4 * 1024 * 1024 : PID_MAX_DEFAULT))
+diff -puN drivers/mmc/host/sdhci-of-esdhc.c~sdhci-rename-sdhci-i-o-accessor-functions drivers/mmc/host/sdhci-of-esdhc.c
+--- a/drivers/mmc/host/sdhci-of-esdhc.c~sdhci-rename-sdhci-i-o-accessor-functions
++++ a/drivers/mmc/host/sdhci-of-esdhc.c
+@@ -129,12 +129,12 @@ struct sdhci_of_data sdhci_esdhc = {
+ 		  SDHCI_QUIRK_RESTORE_IRQS_AFTER_RESET |
+ 		  SDHCI_QUIRK_NO_CARD_NO_RESET,
+ 	.ops = {
+-		.readl = sdhci_be32bs_readl,
+-		.readw = esdhc_readw,
+-		.readb = sdhci_be32bs_readb,
+-		.writel = sdhci_be32bs_writel,
+-		.writew = esdhc_writew,
+-		.writeb = esdhc_writeb,
++		.read_l = sdhci_be32bs_readl,
++		.read_w = esdhc_readw,
++		.read_b = sdhci_be32bs_readb,
++		.write_l = sdhci_be32bs_writel,
++		.write_w = esdhc_writew,
++		.write_b = esdhc_writeb,
+ 		.set_clock = esdhc_set_clock,
+ 		.enable_dma = esdhc_enable_dma,
+ 		.get_max_clock = esdhc_get_max_clock,
+diff -puN drivers/mmc/host/sdhci-of-hlwd.c~sdhci-rename-sdhci-i-o-accessor-functions drivers/mmc/host/sdhci-of-hlwd.c
+--- a/drivers/mmc/host/sdhci-of-hlwd.c~sdhci-rename-sdhci-i-o-accessor-functions
++++ a/drivers/mmc/host/sdhci-of-hlwd.c
+@@ -55,11 +55,11 @@ struct sdhci_of_data sdhci_hlwd = {
+ 	.quirks = SDHCI_QUIRK_32BIT_DMA_ADDR |
+ 		  SDHCI_QUIRK_32BIT_DMA_SIZE,
+ 	.ops = {
+-		.readl = sdhci_be32bs_readl,
+-		.readw = sdhci_be32bs_readw,
+-		.readb = sdhci_be32bs_readb,
+-		.writel = sdhci_hlwd_writel,
+-		.writew = sdhci_hlwd_writew,
+-		.writeb = sdhci_hlwd_writeb,
++		.read_l = sdhci_be32bs_readl,
++		.read_w = sdhci_be32bs_readw,
++		.read_b = sdhci_be32bs_readb,
++		.write_l = sdhci_hlwd_writel,
++		.write_w = sdhci_hlwd_writew,
++		.write_b = sdhci_hlwd_writeb,
+ 	},
+ };
+diff -puN drivers/mmc/host/sdhci.h~sdhci-rename-sdhci-i-o-accessor-functions drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-rename-sdhci-i-o-accessor-functions
++++ a/drivers/mmc/host/sdhci.h
+@@ -296,12 +296,12 @@ struct sdhci_host {
  
-+/*
-+ * Define a minimum number of pids per cpu.  Heuristically based
-+ * on original pid max of 32k for 32 cpus.  Also, increase the
-+ * minimum settable value for pid_max on the running system based
-+ * on similar defaults.  See kernel/pid.c:pidmap_init() for details.
-+ */
-+#define PIDS_PER_CPU_DEFAULT	1024
-+#define PIDS_PER_CPU_MIN	8
-+
+ struct sdhci_ops {
+ #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
+-	u32		(*readl)(struct sdhci_host *host, int reg);
+-	u16		(*readw)(struct sdhci_host *host, int reg);
+-	u8		(*readb)(struct sdhci_host *host, int reg);
+-	void		(*writel)(struct sdhci_host *host, u32 val, int reg);
+-	void		(*writew)(struct sdhci_host *host, u16 val, int reg);
+-	void		(*writeb)(struct sdhci_host *host, u8 val, int reg);
++	u32		(*read_l)(struct sdhci_host *host, int reg);
++	u16		(*read_w)(struct sdhci_host *host, int reg);
++	u8		(*read_b)(struct sdhci_host *host, int reg);
++	void		(*write_l)(struct sdhci_host *host, u32 val, int reg);
++	void		(*write_w)(struct sdhci_host *host, u16 val, int reg);
++	void		(*write_b)(struct sdhci_host *host, u8 val, int reg);
  #endif
-diff -puN kernel/pid.c~pids-increase-pid_max-based-on-num_possible_cpus kernel/pid.c
---- a/kernel/pid.c~pids-increase-pid_max-based-on-num_possible_cpus
-+++ a/kernel/pid.c
-@@ -513,6 +513,13 @@ void __init pidhash_init(void)
  
- void __init pidmap_init(void)
+ 	void	(*set_clock)(struct sdhci_host *host, unsigned int clock);
+@@ -316,48 +316,48 @@ struct sdhci_ops {
+ 
+ static inline void sdhci_writel(struct sdhci_host *host, u32 val, int reg)
  {
-+	/* bump default and minimum pid_max based on number of cpus */
-+	pid_max = min(pid_max_max, max(pid_max,
-+				PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
-+	pid_max_min = max(pid_max_min,
-+				PIDS_PER_CPU_MIN * num_possible_cpus());
-+	pr_info("pid_max: default: %u minimum: %u\n", pid_max, pid_max_min);
-+
- 	init_pid_ns.pidmap[0].page = kzalloc(PAGE_SIZE, GFP_KERNEL);
- 	/* Reserve PID 0. We never call free_pidmap(0) */
- 	set_bit(0, init_pid_ns.pidmap[0].page);
+-	if (unlikely(host->ops->writel))
+-		host->ops->writel(host, val, reg);
++	if (unlikely(host->ops->write_l))
++		host->ops->write_l(host, val, reg);
+ 	else
+ 		writel(val, host->ioaddr + reg);
+ }
+ 
+ static inline void sdhci_writew(struct sdhci_host *host, u16 val, int reg)
+ {
+-	if (unlikely(host->ops->writew))
+-		host->ops->writew(host, val, reg);
++	if (unlikely(host->ops->write_w))
++		host->ops->write_w(host, val, reg);
+ 	else
+ 		writew(val, host->ioaddr + reg);
+ }
+ 
+ static inline void sdhci_writeb(struct sdhci_host *host, u8 val, int reg)
+ {
+-	if (unlikely(host->ops->writeb))
+-		host->ops->writeb(host, val, reg);
++	if (unlikely(host->ops->write_b))
++		host->ops->write_b(host, val, reg);
+ 	else
+ 		writeb(val, host->ioaddr + reg);
+ }
+ 
+ static inline u32 sdhci_readl(struct sdhci_host *host, int reg)
+ {
+-	if (unlikely(host->ops->readl))
+-		return host->ops->readl(host, reg);
++	if (unlikely(host->ops->read_l))
++		return host->ops->read_l(host, reg);
+ 	else
+ 		return readl(host->ioaddr + reg);
+ }
+ 
+ static inline u16 sdhci_readw(struct sdhci_host *host, int reg)
+ {
+-	if (unlikely(host->ops->readw))
+-		return host->ops->readw(host, reg);
++	if (unlikely(host->ops->read_w))
++		return host->ops->read_w(host, reg);
+ 	else
+ 		return readw(host->ioaddr + reg);
+ }
+ 
+ static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
+ {
+-	if (unlikely(host->ops->readb))
+-		return host->ops->readb(host, reg);
++	if (unlikely(host->ops->read_b))
++		return host->ops->read_b(host, reg);
+ 	else
+ 		return readb(host->ioaddr + reg);
+ }
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from matt@console-pimps.org are
 
 linux-next.patch
-pids-increase-pid_max-based-on-num_possible_cpus.patch
+mmc-sdhci_int_data_mask-typo-error.patch
+sdhci-rename-sdhci-i-o-accessor-functions.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn.patch
+panic-add-taint-flag-taint_firmware_workaround-i.patch
+pci-dmar-combine-the-bios-dmar-table-warning-messages.patch
+pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables.patch
 
