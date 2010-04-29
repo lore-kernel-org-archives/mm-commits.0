@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-sdhci_int_data_mask-typo-error.patch added to -mm tree
-Date: Thu, 29 Apr 2010 15:26:32 -0700
-Message-ID: <201004292226.o3TMQW9M015239@imap1.linux-foundation.org>
+Subject: + spi-spidev_test-gives-error-upon-1-byte-transfer.patch added to -mm tree
+Date: Thu, 29 Apr 2010 15:02:28 -0700
+Message-ID: <201004292202.o3TM2TZv014295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:53812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932705Ab0D3RIf (ORCPT
+	by vger.kernel.org with ESMTP id S932740Ab0D3RJN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:08:35 -0400
+	Fri, 30 Apr 2010 13:09:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zgao6@marvell.com, linux-mmc@vger.kernel.org, matt@console-pimps.org
+Cc: hector.palacios@digi.com, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
 
 
 The patch titled
-     mmc: SDHCI_INT_DATA_MASK typo error
+     spi: spidev_test gives error upon 1-byte transfer
 has been added to the -mm tree.  Its filename is
-     mmc-sdhci_int_data_mask-typo-error.patch
+     spi-spidev_test-gives-error-upon-1-byte-transfer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: SDHCI_INT_DATA_MASK typo error
-From: Zhangfei Gao <zgao6@marvell.com>
+Subject: spi: spidev_test gives error upon 1-byte transfer
+From: Hector Palacios <hector.palacios@digi.com>
 
-Signed-off-by: Zhangfei Gao <zgao6@marvell.com>
-Reviewed-by: Matt Fleming <matt@console-pimps.org>
-Cc: <linux-mmc@vger.kernel.org>
+The sample application spidev_test.c is using SPI_IOC_MESSAGE ioctl to do
+an SPI transfer.  This ioctl returns the number of bytes successfully
+transmitted or a negative error code upon erroneous completion.  The
+application however is returning an error if the result of the ioclt if
+the return value is 1.  This makes the application to fail upon 1-byte
+length transfers.
+
+Signed-off-by: Hector Palacios <hector.palacios@digi.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.h |    2 +-
+ Documentation/spi/spidev_test.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci.h~mmc-sdhci_int_data_mask-typo-error drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~mmc-sdhci_int_data_mask-typo-error
-+++ a/drivers/mmc/host/sdhci.h
-@@ -127,7 +127,7 @@
- #define  SDHCI_INT_DATA_MASK	(SDHCI_INT_DATA_END | SDHCI_INT_DMA_END | \
- 		SDHCI_INT_DATA_AVAIL | SDHCI_INT_SPACE_AVAIL | \
- 		SDHCI_INT_DATA_TIMEOUT | SDHCI_INT_DATA_CRC | \
--		SDHCI_INT_DATA_END_BIT | SDHCI_ADMA_ERROR)
-+		SDHCI_INT_DATA_END_BIT | SDHCI_INT_ADMA_ERROR)
- #define SDHCI_INT_ALL_MASK	((unsigned int)-1)
+diff -puN Documentation/spi/spidev_test.c~spi-spidev_test-gives-error-upon-1-byte-transfer Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~spi-spidev_test-gives-error-upon-1-byte-transfer
++++ a/Documentation/spi/spidev_test.c
+@@ -58,7 +58,7 @@ static void transfer(int fd)
+ 	};
  
- #define SDHCI_ACMD12_ERR	0x3C
+ 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+-	if (ret == 1)
++	if (ret < 1)
+ 		pabort("can't send spi message");
+ 
+ 	for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {
 _
 
-Patches currently in -mm which might be from zgao6@marvell.com are
+Patches currently in -mm which might be from hector.palacios@digi.com are
 
-mmc-sdhci_int_data_mask-typo-error.patch
+spi-spidev_test-gives-error-upon-1-byte-transfer.patch
 
