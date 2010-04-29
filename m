@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-oxu210hp-release-spinlock-on-error-path.patch removed from -mm tree
-Date: Thu, 29 Apr 2010 13:57:02 -0400
-Message-ID: <201004292058.o3TKwZcN011801@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch removed from -mm tree
+Date: Thu, 29 Apr 2010 13:57:00 -0400
+Message-ID: <201004292058.o3TKwXF0011798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60996 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932728Ab0D3RJY (ORCPT
+	by vger.kernel.org with ESMTP id S932482Ab0D3RJX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:09:24 -0400
+	Fri, 30 Apr 2010 13:09:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, gadiyar@ti.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/host/oxu210hp-hcd.c: release spinlock on error path
+     drivers/staging/otus/hal/hpani.c: using the wrong variable
 has been removed from the -mm tree.  Its filename was
-     usb-oxu210hp-release-spinlock-on-error-path.patch
+     drivers-staging-otus-hal-hpanic-using-the-wrong-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/oxu210hp-hcd.c: release spinlock on error path
+Subject: drivers/staging/otus/hal/hpani.c: using the wrong variable
 From: Dan Carpenter <error27@gmail.com>
 
-Smatch complained about this missing spinlock.
+We're updating the "HpPriv->ani" array here so we should use that to
+determine the end of the for loop.  "HpPriv->ani" has 50 elements and
+"wd->regulationTable.allowChannel" has 59 elements.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/oxu210hp-hcd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/staging/otus/hal/hpani.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/oxu210hp-hcd.c~usb-oxu210hp-release-spinlock-on-error-path drivers/usb/host/oxu210hp-hcd.c
---- a/drivers/usb/host/oxu210hp-hcd.c~usb-oxu210hp-release-spinlock-on-error-path
-+++ a/drivers/usb/host/oxu210hp-hcd.c
-@@ -660,13 +660,13 @@ static struct ehci_qh *oxu_qh_alloc(stru
- 		if (qh->dummy == NULL) {
- 			oxu_dbg(oxu, "no dummy td\n");
- 			oxu->qh_used[i] = 0;
--
--			return NULL;
-+			qh = NULL;
-+			goto unlock;
- 		}
+diff -puN drivers/staging/otus/hal/hpani.c~drivers-staging-otus-hal-hpanic-using-the-wrong-variable drivers/staging/otus/hal/hpani.c
+--- a/drivers/staging/otus/hal/hpani.c~drivers-staging-otus-hal-hpanic-using-the-wrong-variable
++++ a/drivers/staging/otus/hal/hpani.c
+@@ -96,7 +96,7 @@ void zfHpAniAttach(zdev_t* dev)
+     HpPriv->hasHwPhyCounters = 1;
  
- 		oxu->qh_used[i] = 1;
- 	}
--
-+unlock:
- 	spin_unlock(&oxu->mem_lock);
- 
- 	return qh;
+     memset((char *)&HpPriv->ani, 0, sizeof(HpPriv->ani));
+-    for (i = 0; i < N(wd->regulationTable.allowChannel); i++)
++    for (i = 0; i < ARRAY_SIZE(HpPriv->ani); i++)
+     {
+         /* New ANI stuff */
+         HpPriv->ani[i].ofdmTrigHigh = ZM_HAL_ANI_OFDM_TRIG_HIGH;
 _
 
 Patches currently in -mm which might be from error27@gmail.com are
