@@ -1,105 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-dont-warn-that-atomic_t-is-only-24-bit.patch added to -mm tree
-Date: Fri, 30 Apr 2010 14:58:25 -0700
-Message-ID: <201004302158.o3ULwPMW016143@imap1.linux-foundation.org>
+Subject: [to-be-updated] powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch removed from -mm tree
+Date: Fri, 30 Apr 2010 15:05:29 -0700
+Message-ID: <201004302205.o3UM5Tui016437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59368 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756320Ab0D3V7U (ORCPT
+	by vger.kernel.org with ESMTP id S1759763Ab0D3WGZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 17:59:20 -0400
+	Fri, 30 Apr 2010 18:06:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: peter.fritzsche@gmx.de
+To: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, npiggin@suse.de, paulmck@linux.vnet.ibm.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic: don't warn that atomic_t is only 24 bit
-has been added to the -mm tree.  Its filename is
-     asm-generic-dont-warn-that-atomic_t-is-only-24-bit.patch
+     powerpc: add rcu_read_lock() to gup_fast() implementation
+has been removed from the -mm tree.  Its filename was
+     powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic: don't warn that atomic_t is only 24 bit
-From: Peter Fritzsche <peter.fritzsche@gmx.de>
+Subject: powerpc: add rcu_read_lock() to gup_fast() implementation
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-32-bit Sparc used to only allow usage of 24-bit of it's atomic_t type. 
-This was corrected with linux 2.6.3 when Keith M Wesolowski changed the
-implementation to use the parisc approach of having an array of spinlocks
-to protect the atomic_t.
+The powerpc page table freeing relies on the fact that IRQs hold off an
+RCU grace period, this is currently true for all existing RCU
+implementations but is not an assumption Paul wants to support.
 
-These warnings were also removed from the sparc implementation when the
-new implementation was merged in BKrev:402e4949VThdc6D3iaosSFUgabMfvw, but
-the warning still remained in some other places without any 24-bit-only
-atomic_t implementation inside the kernel.
+Therefore, also take the RCU read lock along with disabling IRQs to ensure
+the RCU grace period does at least cover these lookups.
 
-We should remove these warnings to allow users to rely on the full 32-bit
-range of atomic_t.
-
-Signed-off-by: Peter Fritzsche <peter.fritzsche@gmx.de>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Requested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/atomic.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/powerpc/mm/gup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/asm-generic/atomic.h~asm-generic-dont-warn-that-atomic_t-is-only-24-bit include/asm-generic/atomic.h
---- a/include/asm-generic/atomic.h~asm-generic-dont-warn-that-atomic_t-is-only-24-bit
-+++ a/include/asm-generic/atomic.h
-@@ -30,8 +30,7 @@
-  * atomic_read - read atomic variable
-  * @v: pointer of type atomic_t
-  *
-- * Atomically reads the value of @v.  Note that the guaranteed
-- * useful range of an atomic_t is only 24 bits.
-+ * Atomically reads the value of @v.
-  */
- #define atomic_read(v)	((v)->counter)
+diff -puN arch/powerpc/mm/gup.c~powerpc-add-rcu_read_lock-to-gup_fast-implementation arch/powerpc/mm/gup.c
+--- a/arch/powerpc/mm/gup.c~powerpc-add-rcu_read_lock-to-gup_fast-implementation
++++ a/arch/powerpc/mm/gup.c
+@@ -142,6 +142,7 @@ int get_user_pages_fast(unsigned long st
+ 	 * So long as we atomically load page table pointers versus teardown,
+ 	 * we can follow the address down to the the page and take a ref on it.
+ 	 */
++	rcu_read_lock();
+ 	local_irq_disable();
  
-@@ -40,8 +39,7 @@
-  * @v: pointer of type atomic_t
-  * @i: required value
-  *
-- * Atomically sets the value of @v to @i.  Note that the guaranteed
-- * useful range of an atomic_t is only 24 bits.
-+ * Atomically sets the value of @v to @i.
-  */
- #define atomic_set(v, i) (((v)->counter) = (i))
+ 	pgdp = pgd_offset(mm, addr);
+@@ -162,6 +163,7 @@ int get_user_pages_fast(unsigned long st
+ 	} while (pgdp++, addr = next, addr != end);
  
-@@ -53,7 +51,6 @@
-  * @v: pointer of type atomic_t
-  *
-  * Atomically adds @i to @v and returns the result
-- * Note that the guaranteed useful range of an atomic_t is only 24 bits.
-  */
- static inline int atomic_add_return(int i, atomic_t *v)
- {
-@@ -75,7 +72,6 @@ static inline int atomic_add_return(int 
-  * @v: pointer of type atomic_t
-  *
-  * Atomically subtracts @i from @v and returns the result
-- * Note that the guaranteed useful range of an atomic_t is only 24 bits.
-  */
- static inline int atomic_sub_return(int i, atomic_t *v)
- {
+ 	local_irq_enable();
++	rcu_read_unlock();
+ 
+ 	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
+ 	return nr;
+@@ -171,6 +173,7 @@ int get_user_pages_fast(unsigned long st
+ 
+ slow:
+ 		local_irq_enable();
++		rcu_read_unlock();
+ slow_irqon:
+ 		pr_devel("  slow path ! nr = %d\n", nr);
+ 
 _
 
-Patches currently in -mm which might be from peter.fritzsche@gmx.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-mn10300-use-generic-atomich.patch
-asm-generic-dont-warn-that-atomic_t-is-only-24-bit.patch
+linux-next.patch
+x86-remove-last-traces-of-quicklist-usage.patch
+powerpc-add-rcu_read_lock-to-gup_fast-implementation.patch
+cpu-timers-optimize-run_posix_cpu_timers.patch
+rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
+mm-revalidate-anon_vma-in-page_lock_anon_vma.patch
+bitops-optimize-hweight-by-making-use-of-compile-time-evaluation.patch
+x86-add-optimized-popcnt-variants.patch
 
