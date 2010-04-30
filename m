@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch added to -mm tree
-Date: Fri, 30 Apr 2010 13:53:38 -0700
-Message-ID: <201004302053.o3UKrcwR012896@imap1.linux-foundation.org>
+Subject: + cpusets-new-round-robin-rotor-for-slab-allocations.patch added to -mm tree
+Date: Fri, 30 Apr 2010 13:53:36 -0700
+Message-ID: <201004302053.o3UKrax1012891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753524Ab0D3UyV (ORCPT
+	by vger.kernel.org with ESMTP id S1752494Ab0D3UyT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 16:54:21 -0400
+	Fri, 30 Apr 2010 16:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com, cl@linux-foundation.org, holt@sgi.com, menage@google.com, p
 
 
 The patch titled
-     cpusets: randomize node rotor used in cpuset_mem_spread_node()
+     cpusets: new round-robin rotor for SLAB allocations
 has been added to the -mm tree.  Its filename is
-     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+     cpusets-new-round-robin-rotor-for-slab-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets: randomize node rotor used in cpuset_mem_spread_node()
+Subject: cpusets: new round-robin rotor for SLAB allocations
 From: Jack Steiner <steiner@sgi.com>
 
-Some workloads that create a large number of small files tend to assign
-too many pages to node 0 (multi-node systems).  Part of the reason is that
-the rotor (in cpuset_mem_spread_node()) used to assign nodes starts at
-node 0 for newly created tasks.
+We have observed several workloads running on multi-node systems where
+memory is assigned unevenly across the nodes in the system.  There are
+numerous reasons for this but one is the round-robin rotor in
+cpuset_mem_spread_node().
 
-This patch changes the rotor to be initialized to a random node number of
-the cpuset.
+For example, a simple test that writes a multi-page file will allocate
+pages on nodes 0 2 4 6 ...  Odd nodes are skipped.  (Sometimes it
+allocates on odd nodes & skips even nodes).
+
+An example is shown below.  The program "lfile" writes a file consisting
+of 10 pages.  The program then mmaps the file & uses get_mempolicy(...,
+MPOL_F_NODE) to determine the nodes where the file pages were allocated. 
+The output is shown below:
+
+	# ./lfile
+	 allocated on nodes: 2 4 6 0 1 2 6 0 2
+
+There is a single rotor that is used for allocating both file pages & slab
+pages.  Writing the file allocates both a data page & a slab page
+(buffer_head).  This advances the RR rotor 2 nodes for each page
+allocated.
+
+A quick confirmation seems to confirm this is the cause of the uneven
+allocation:
+
+	# echo 0 >/dev/cpuset/memory_spread_slab
+	# ./lfile
+	 allocated on nodes: 6 7 8 9 0 1 2 3 4 5
+
+This patch introduces a second rotor that is used for slab allocations.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Paul Menage <menage@google.com>
 Cc: Jack Steiner <steiner@sgi.com>
@@ -54,103 +77,102 @@ Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c       |   17 +++++++++++++++++
- include/linux/bitmap.h   |    1 +
- include/linux/nodemask.h |    5 +++++
- kernel/fork.c            |    4 ++++
- lib/bitmap.c             |    2 +-
- 5 files changed, 28 insertions(+), 1 deletion(-)
+ include/linux/cpuset.h |    6 ++++++
+ include/linux/sched.h  |    1 +
+ kernel/cpuset.c        |   20 ++++++++++++++++----
+ mm/slab.c              |    2 +-
+ 4 files changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/mm/numa.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node
-+++ a/arch/x86/mm/numa.c
-@@ -2,6 +2,7 @@
- #include <linux/topology.h>
- #include <linux/module.h>
- #include <linux/bootmem.h>
-+#include <linux/random.h>
+diff -puN include/linux/cpuset.h~cpusets-new-round-robin-rotor-for-slab-allocations include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpusets-new-round-robin-rotor-for-slab-allocations
++++ a/include/linux/cpuset.h
+@@ -69,6 +69,7 @@ extern void cpuset_task_status_allowed(s
+ 					struct task_struct *task);
  
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
- # define DBG(x...) printk(KERN_DEBUG x)
-@@ -65,3 +66,19 @@ const struct cpumask *cpumask_of_node(in
- }
- EXPORT_SYMBOL(cpumask_of_node);
- #endif
-+
-+/*
-+ * Return the bit number of a random bit set in the nodemask.
-+ *   (returns -1 if nodemask is empty)
-+ */
-+int __node_random(const nodemask_t *maskp)
-+{
-+	int w, bit = -1;
-+
-+	w = nodes_weight(*maskp);
-+	if (w)
-+		bit = bitmap_ord_to_pos(maskp->bits,
-+			get_random_int() % w, MAX_NUMNODES);
-+	return bit;
-+}
-+EXPORT_SYMBOL(__node_random);
-diff -puN include/linux/bitmap.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node include/linux/bitmap.h
---- a/include/linux/bitmap.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node
-+++ a/include/linux/bitmap.h
-@@ -141,6 +141,7 @@ extern int bitmap_find_free_region(unsig
- extern void bitmap_release_region(unsigned long *bitmap, int pos, int order);
- extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
- extern void bitmap_copy_le(void *dst, const unsigned long *src, int nbits);
-+extern int bitmap_ord_to_pos(const unsigned long *bitmap, int n, int bits);
+ extern int cpuset_mem_spread_node(void);
++extern int cpuset_slab_spread_node(void);
  
- #define BITMAP_LAST_WORD_MASK(nbits)					\
- (									\
-diff -puN include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node include/linux/nodemask.h
---- a/include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node
-+++ a/include/linux/nodemask.h
-@@ -66,6 +66,8 @@
-  * int num_online_nodes()		Number of online Nodes
-  * int num_possible_nodes()		Number of all possible Nodes
-  *
-+ * int node_random(mask)              Random node with set bit in mask
-+ *
-  * int node_online(node)		Is some node online?
-  * int node_possible(node)		Is some node possible?
-  *
-@@ -267,6 +269,9 @@ static inline int __first_unset_node(con
- 			find_first_zero_bit(maskp->bits, MAX_NUMNODES));
- }
- 
-+#define node_random(mask) __node_random(&(mask))
-+extern int __node_random(const nodemask_t *maskp);
-+
- #define NODE_MASK_LAST_WORD BITMAP_LAST_WORD_MASK(MAX_NUMNODES)
- 
- #if MAX_NUMNODES <= BITS_PER_LONG
-diff -puN kernel/fork.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node kernel/fork.c
---- a/kernel/fork.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node
-+++ a/kernel/fork.c
-@@ -1080,6 +1080,10 @@ static struct task_struct *copy_process(
-  	}
- 	mpol_fix_fork_child_flag(p);
- #endif
-+#ifdef CONFIG_CPUSETS
-+	p->cpuset_mem_spread_rotor = node_random(p->mems_allowed);
-+	p->cpuset_slab_spread_rotor = node_random(p->mems_allowed);
-+#endif
- #ifdef CONFIG_TRACE_IRQFLAGS
- 	p->irq_events = 0;
- #ifdef __ARCH_WANT_INTERRUPTS_ON_CTXSW
-diff -puN lib/bitmap.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node lib/bitmap.c
---- a/lib/bitmap.c~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node
-+++ a/lib/bitmap.c
-@@ -672,7 +672,7 @@ static int bitmap_pos_to_ord(const unsig
-  *
-  * The bit positions 0 through @bits are valid positions in @buf.
-  */
--static int bitmap_ord_to_pos(const unsigned long *buf, int ord, int bits)
-+int bitmap_ord_to_pos(const unsigned long *buf, int ord, int bits)
+ static inline int cpuset_do_page_mem_spread(void)
  {
- 	int pos = 0;
+@@ -159,6 +160,11 @@ static inline int cpuset_mem_spread_node
+ 	return 0;
+ }
  
++static inline int cpuset_slab_spread_node(void)
++{
++	return 0;
++}
++
+ static inline int cpuset_do_page_mem_spread(void)
+ {
+ 	return 0;
+diff -puN include/linux/sched.h~cpusets-new-round-robin-rotor-for-slab-allocations include/linux/sched.h
+--- a/include/linux/sched.h~cpusets-new-round-robin-rotor-for-slab-allocations
++++ a/include/linux/sched.h
+@@ -1423,6 +1423,7 @@ struct task_struct {
+ #ifdef CONFIG_CPUSETS
+ 	nodemask_t mems_allowed;	/* Protected by alloc_lock */
+ 	int cpuset_mem_spread_rotor;
++	int cpuset_slab_spread_rotor;
+ #endif
+ #ifdef CONFIG_CGROUPS
+ 	/* Control Group info protected by css_set_lock */
+diff -puN kernel/cpuset.c~cpusets-new-round-robin-rotor-for-slab-allocations kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-new-round-robin-rotor-for-slab-allocations
++++ a/kernel/cpuset.c
+@@ -2427,7 +2427,8 @@ void cpuset_unlock(void)
+ }
+ 
+ /**
+- * cpuset_mem_spread_node() - On which node to begin search for a page
++ * cpuset_mem_spread_node() - On which node to begin search for a file page
++ * cpuset_slab_spread_node() - On which node to begin search for a slab page
+  *
+  * If a task is marked PF_SPREAD_PAGE or PF_SPREAD_SLAB (as for
+  * tasks in a cpuset with is_spread_page or is_spread_slab set),
+@@ -2452,16 +2453,27 @@ void cpuset_unlock(void)
+  * See kmem_cache_alloc_node().
+  */
+ 
+-int cpuset_mem_spread_node(void)
++static int cpuset_spread_node(int *rotor)
+ {
+ 	int node;
+ 
+-	node = next_node(current->cpuset_mem_spread_rotor, current->mems_allowed);
++	node = next_node(*rotor, current->mems_allowed);
+ 	if (node == MAX_NUMNODES)
+ 		node = first_node(current->mems_allowed);
+-	current->cpuset_mem_spread_rotor = node;
++	*rotor = node;
+ 	return node;
+ }
++
++int cpuset_mem_spread_node(void)
++{
++	return cpuset_spread_node(&current->cpuset_mem_spread_rotor);
++}
++
++int cpuset_slab_spread_node(void)
++{
++	return cpuset_spread_node(&current->cpuset_slab_spread_rotor);
++}
++
+ EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
+ 
+ /**
+diff -puN mm/slab.c~cpusets-new-round-robin-rotor-for-slab-allocations mm/slab.c
+--- a/mm/slab.c~cpusets-new-round-robin-rotor-for-slab-allocations
++++ a/mm/slab.c
+@@ -3242,7 +3242,7 @@ static void *alternate_node_alloc(struct
+ 		return NULL;
+ 	nid_alloc = nid_here = numa_node_id();
+ 	if (cpuset_do_slab_mem_spread() && (cachep->flags & SLAB_MEM_SPREAD))
+-		nid_alloc = cpuset_mem_spread_node();
++		nid_alloc = cpuset_slab_spread_node();
+ 	else if (current->mempolicy)
+ 		nid_alloc = slab_node(current->mempolicy);
+ 	if (nid_alloc != nid_here)
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
