@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-new-driver-for-the-adp8860-backlight-parts.patch added to -mm tree
-Date: Fri, 30 Apr 2010 14:09:51 -0700
-Message-ID: <201004302109.o3UL9pia013625@imap1.linux-foundation.org>
+Subject: + ipc-semc-optimize-update_queue-for-bulk-wakeup-calls.patch added to -mm tree
+Date: Fri, 30 Apr 2010 14:22:04 -0700
+Message-ID: <201004302122.o3ULM4gw014184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754226Ab0D3VKL (ORCPT
+	by vger.kernel.org with ESMTP id S1759612Ab0D3VWo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 17:10:11 -0400
+	Fri, 30 Apr 2010 17:22:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, rpurdie@rpsys.net, vapier@gentoo.org
+Cc: manfred@colorfullife.com, chris.mason@oracle.com, jens.axboe@oracle.com, npiggin@suse.de, zach.brown@oracle.com
 
 
 The patch titled
-     backlight: new driver for the ADP8860 backlight parts
+     ipc/sem.c: optimize update_queue() for bulk wakeup calls
 has been added to the -mm tree.  Its filename is
-     backlight-new-driver-for-the-adp8860-backlight-parts.patch
+     ipc-semc-optimize-update_queue-for-bulk-wakeup-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,1016 +34,217 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: new driver for the ADP8860 backlight parts
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: ipc/sem.c: optimize update_queue() for bulk wakeup calls
+From: Manfred Spraul <manfred@colorfullife.com>
 
-The ADP8860 combines a programmable backlight LED charge pump driver with
-automatic phototransistor control.
+The following series of patches tries to fix the spinlock contention
+reported by Chris Mason - his benchmark exposes problems of the current
+code:
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+- In the worst case, the algorithm used by update_queue() is O(N^2). 
+  Bulk wake-up calls can enter this worst case.  The patch series fix
+  that.
+
+  Note that the benchmark app doesn't expose the problem, it just should
+  be fixed: Real world apps might do the wake-ups in another order than
+  perfect FIFO.
+
+- The part of the code that runs within the semaphore array spinlock is
+  significantly larger than necessary.
+
+  The patch series fixes that.  This change is responsible for the main
+  improvement.
+
+- The cacheline with the spinlock is also used for a variable that is
+  read in the hot path (sem_base) and for a variable that is unnecessarily
+  written to multiple times (sem_otime).  The last step of the series
+  cacheline-aligns the spinlock.
+
+
+
+This patch:
+
+The SysV semaphore code allows to perform multiple operations on all
+semaphores in the array as atomic operations.  After a modification,
+update_queue() checks which of the waiting tasks can complete.
+
+The algorithm that is used to identify the tasks is O(N^2) in the worst
+case.  For some cases, it is simple to avoid the O(N^2).
+
+The patch adds a detection logic for some cases, especially for the case
+of an array where all sleeping tasks are single sembuf operations and a
+multi-sembuf operation is used to wake up multiple tasks.
+
+A big database application uses that approach.
+
+The patch fixes wakeup due to semctl(,,SETALL,) - the initial version of
+the patch breaks that.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig      |   12 
- drivers/video/backlight/Makefile     |    1 
- drivers/video/backlight/adp8860_bl.c |  809 +++++++++++++++++++++++++
- include/linux/i2c/adp8860.h          |  137 ++++
- 4 files changed, 959 insertions(+)
+ ipc/sem.c |  110 +++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 97 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-new-driver-for-the-adp8860-backlight-parts drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-new-driver-for-the-adp8860-backlight-parts
-+++ a/drivers/video/backlight/Kconfig
-@@ -270,6 +270,18 @@ config BACKLIGHT_ADP5520
- 	  To compile this driver as a module, choose M here: the module will
- 	  be called adp5520_bl.
+diff -puN ipc/sem.c~ipc-semc-optimize-update_queue-for-bulk-wakeup-calls ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-optimize-update_queue-for-bulk-wakeup-calls
++++ a/ipc/sem.c
+@@ -434,6 +434,69 @@ static void unlink_queue(struct sem_arra
+ 		sma->complex_count--;
+ }
  
-+config BACKLIGHT_ADP8860
-+	tristate "Backlight Driver for ADP8860 using WLED"
-+	depends on BACKLIGHT_CLASS_DEVICE && I2C
-+	select NEW_LEDS
-+	select LEDS_CLASS
-+	help
-+	  If you have a LCD backlight connected to the ADP8860,
-+	  say Y here to enable this driver.
-+
-+	  To compile this driver as a module, choose M here: the module will
-+	  be called adp8860_bl.
-+
- config BACKLIGHT_88PM860X
- 	tristate "Backlight Driver for 88PM8606 using WLED"
- 	depends on MFD_88PM860X
-diff -puN drivers/video/backlight/Makefile~backlight-new-driver-for-the-adp8860-backlight-parts drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~backlight-new-driver-for-the-adp8860-backlight-parts
-+++ a/drivers/video/backlight/Makefile
-@@ -31,5 +31,6 @@ obj-$(CONFIG_BACKLIGHT_SAHARA)	+= kb3886
- obj-$(CONFIG_BACKLIGHT_WM831X)	+= wm831x_bl.o
- obj-$(CONFIG_BACKLIGHT_ADX)    += adx_bl.o
- obj-$(CONFIG_BACKLIGHT_ADP5520)	+= adp5520_bl.o
-+obj-$(CONFIG_BACKLIGHT_ADP8860)	+= adp8860_bl.o
- obj-$(CONFIG_BACKLIGHT_88PM860X) += 88pm860x_bl.o
- 
-diff -puN /dev/null drivers/video/backlight/adp8860_bl.c
---- /dev/null
-+++ a/drivers/video/backlight/adp8860_bl.c
-@@ -0,0 +1,809 @@
-+/*
-+ * Backlight driver for Analog Devices ADP8860 Backlight Devices
++/** check_restart(sma, q)
++ * @sma: semaphore array
++ * @q: the operation that just completed
 + *
-+ * Copyright 2009-2010 Analog Devices Inc.
-+ *
-+ * Licensed under the GPL-2 or later.
++ * update_queue is O(N^2) when it restarts scanning the whole queue of
++ * waiting operations. Therefore this function checks if the restart is
++ * really necessary. It is called after a previously waiting operation
++ * was completed.
 + */
-+
-+#include <linux/module.h>
-+#include <linux/version.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/pm.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <linux/fb.h>
-+#include <linux/backlight.h>
-+#include <linux/leds.h>
-+#include <linux/workqueue.h>
-+
-+#include <linux/i2c/adp8860.h>
-+#define ADP8860_EXT_FEATURES
-+#define ADP8860_USE_LEDS
-+
-+#define ADP8860_MFDVID 0x00 /* Manufacturer and device ID */
-+#define ADP8860_MDCR 0x01 /* Device mode and status */
-+#define ADP8860_MDCR2 0x02 /* Device mode and Status Register 2 */
-+#define ADP8860_INTR_EN 0x03 /* Interrupts enable */
-+#define ADP8860_CFGR 0x04 /* Configuration register */
-+#define ADP8860_BLSEN 0x05 /* Sink enable backlight or independent */
-+#define ADP8860_BLOFF 0x06 /* Backlight off timeout */
-+#define ADP8860_BLDIM 0x07 /* Backlight dim timeout */
-+#define ADP8860_BLFR 0x08 /* Backlight fade in and out rates */
-+#define ADP8860_BLMX1 0x09 /* Backlight (Brightness Level 1-daylight) maximum current */
-+#define ADP8860_BLDM1 0x0A /* Backlight (Brightness Level 1-daylight) dim current */
-+#define ADP8860_BLMX2 0x0B /* Backlight (Brightness Level 2-office) maximum current */
-+#define ADP8860_BLDM2 0x0C /* Backlight (Brightness Level 2-office) dim current */
-+#define ADP8860_BLMX3 0x0D /* Backlight (Brightness Level 3-dark) maximum current */
-+#define ADP8860_BLDM3 0x0E /* Backlight (Brightness Level 3-dark) dim current */
-+#define ADP8860_ISCFR 0x0F /* Independent sink current fade control register */
-+#define ADP8860_ISCC 0x10 /* Independent sink current control register */
-+#define ADP8860_ISCT1 0x11 /* Independent Sink Current Timer Register LED[7:5] */
-+#define ADP8860_ISCT2 0x12 /* Independent Sink Current Timer Register LED[4:1] */
-+#define ADP8860_ISCF 0x13 /* Independent sink current fade register */
-+#define ADP8860_ISC7 0x14 /* Independent Sink Current LED7 */
-+#define ADP8860_ISC6 0x15 /* Independent Sink Current LED6 */
-+#define ADP8860_ISC5 0x16 /* Independent Sink Current LED5 */
-+#define ADP8860_ISC4 0x17 /* Independent Sink Current LED4 */
-+#define ADP8860_ISC3 0x18 /* Independent Sink Current LED3 */
-+#define ADP8860_ISC2 0x19 /* Independent Sink Current LED2 */
-+#define ADP8860_ISC1 0x1A /* Independent Sink Current LED1 */
-+#define ADP8860_CCFG 0x1B /* Comparator configuration */
-+#define ADP8860_CCFG2 0x1C /* Second comparator configuration */
-+#define ADP8860_L2_TRP 0x1D /* L2 comparator reference */
-+#define ADP8860_L2_HYS 0x1E /* L2 hysteresis */
-+#define ADP8860_L3_TRP 0x1F /* L3 comparator reference */
-+#define ADP8860_L3_HYS 0x20 /* L3 hysteresis */
-+#define ADP8860_PH1LEVL 0x21 /* First phototransistor ambient light level-low byte register */
-+#define ADP8860_PH1LEVH 0x22 /* First phototransistor ambient light level-high byte register */
-+#define ADP8860_PH2LEVL 0x23 /* Second phototransistor ambient light level-low byte register */
-+#define ADP8860_PH2LEVH 0x24 /* Second phototransistor ambient light level-high byte register */
-+
-+#define ADP8860_MANUFID		0x0  /* Analog Devices ADP8860 Manufacturer ID */
-+#define ADP8860_DEVICEID	0x7  /* Analog Devices ADP8860 Device ID */
-+#define ADP8860_DEVID(x)	((x) & 0xF)
-+#define ADP8860_MANID(x)	((x) >> 4)
-+
-+/* MDCR Device mode and status */
-+#define INT_CFG			(1 << 6)
-+#define NSTBY			(1 << 5)
-+#define DIM_EN			(1 << 4)
-+#define SIS_EN			(1 << 2)
-+#define CMP_AUTOEN		(1 << 1)
-+#define BLEN			(1 << 0)
-+
-+/* ADP8860_CCFG Main ALS comparator level enable */
-+#define L3_EN			(1 << 1)
-+#define L2_EN			(1 << 0)
-+
-+#define CFGR_BLV_SHIFT		3
-+#define CFGR_BLV_MASK		0x3
-+#define ADP8860_FLAG_LED_MASK	0xFF
-+
-+#define FADE_VAL(in, out)	((0xF & (in)) | ((0xF & (out)) << 4))
-+#define BL_CFGR_VAL(law, blv)	((((blv) & CFGR_BLV_MASK) << CFGR_BLV_SHIFT) | ((0x3 & (law)) << 1))
-+#define ALS_CCFG_VAL(filt)	((0x7 & filt) << 5)
-+
-+struct adp8860_led {
-+	struct led_classdev	cdev;
-+	struct work_struct	work;
-+	struct i2c_client	*client;
-+	enum led_brightness	new_brightness;
-+	int			id;
-+	int			flags;
-+};
-+
-+struct adp8860_bl {
-+	struct i2c_client *client;
-+	struct backlight_device *bl;
-+	struct adp8860_led *led;
-+	struct adp8860_backlight_platform_data *pdata;
-+	struct mutex lock;
-+	unsigned long cached_daylight_max;
-+	int id;
-+	int revid;
-+	int current_brightness;
-+};
-+
-+static int adp8860_read(struct i2c_client *client, int reg, uint8_t *val)
++static int check_restart(struct sem_array *sma, struct sem_queue *q)
 +{
-+	int ret;
++	struct sem *curr;
++	struct sem_queue *h;
 +
-+	ret = i2c_smbus_read_byte_data(client, reg);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed reading at 0x%02x\n", reg);
-+		return ret;
++	/* if the operation didn't modify the array, then no restart */
++	if (q->alter == 0)
++		return 0;
++
++	/* pending complex operations are too difficult to analyse */
++	if (sma->complex_count)
++		return 1;
++
++	/* we were a sleeping complex operation. Too difficult */
++	if (q->nsops > 1)
++		return 1;
++
++	curr = sma->sem_base + q->sops[0].sem_num;
++
++	/* No-one waits on this queue */
++	if (list_empty(&curr->sem_pending))
++		return 0;
++
++	/* the new semaphore value */
++	if (curr->semval) {
++		/* It is impossible that someone waits for the new value:
++		 * - q is a previously sleeping simple operation that
++		 *   altered the array. It must be a decrement, because
++		 *   simple increments never sleep.
++		 * - The value is not 0, thus wait-for-zero won't proceed.
++		 * - If there are older (higher priority) decrements
++		 *   in the queue, then they have observed the original
++		 *   semval value and couldn't proceed. The operation
++		 *   decremented to value - thus they won't proceed either.
++		 */
++		BUG_ON(q->sops[0].sem_op >= 0);
++		return 0;
 +	}
++	/*
++	 * semval is 0. Check if there are wait-for-zero semops.
++	 * They must be the first entries in the per-semaphore simple queue
++	 */
++	h = list_first_entry(&curr->sem_pending, struct sem_queue, simple_list);
++	BUG_ON(h->nsops != 1);
++	BUG_ON(h->sops[0].sem_num != q->sops[0].sem_num);
 +
-+	*val = (uint8_t)ret;
++	/* Yes, there is a wait-for-zero semop. Restart */
++	if (h->sops[0].sem_op == 0)
++		return 1;
++
++	/* Again - no-one is waiting for the new value. */
 +	return 0;
 +}
 +
+ 
+ /**
+  * update_queue(sma, semnum): Look for tasks that can be completed.
+@@ -469,7 +532,7 @@ static void update_queue(struct sem_arra
+ again:
+ 	walk = pending_list->next;
+ 	while (walk != pending_list) {
+-		int error, alter;
++		int error, restart;
+ 
+ 		q = (struct sem_queue *)((char *)walk - offset);
+ 		walk = walk->next;
+@@ -494,22 +557,43 @@ again:
+ 
+ 		unlink_queue(sma, q);
+ 
+-		/*
+-		 * The next operation that must be checked depends on the type
+-		 * of the completed operation:
+-		 * - if the operation modified the array, then restart from the
+-		 *   head of the queue and check for threads that might be
+-		 *   waiting for the new semaphore values.
+-		 * - if the operation didn't modify the array, then just
+-		 *   continue.
+-		 */
+-		alter = q->alter;
++		if (error)
++			restart = 0;
++		else
++			restart = check_restart(sma, q);
 +
-+static int adp8860_write(struct i2c_client *client, u8 reg, u8 val)
-+{
-+	return i2c_smbus_write_byte_data(client, reg, val);
-+}
-+
-+static int adp8860_set_bits(struct i2c_client *client, int reg, uint8_t bit_mask)
-+{
-+	struct adp8860_bl *data = i2c_get_clientdata(client);
-+	uint8_t reg_val;
-+	int ret;
-+
-+	mutex_lock(&data->lock);
-+
-+	ret = adp8860_read(client, reg, &reg_val);
-+
-+	if (!ret && ((reg_val & bit_mask) == 0)) {
-+		reg_val |= bit_mask;
-+		ret = adp8860_write(client, reg, reg_val);
-+	}
-+
-+	mutex_unlock(&data->lock);
-+	return ret;
-+}
-+
-+static int adp8860_clr_bits(struct i2c_client *client, int reg, uint8_t bit_mask)
-+{
-+	struct adp8860_bl *data = i2c_get_clientdata(client);
-+	uint8_t reg_val;
-+	int ret;
-+
-+	mutex_lock(&data->lock);
-+
-+	ret = adp8860_read(client, reg, &reg_val);
-+
-+	if (!ret && (reg_val & bit_mask)) {
-+		reg_val &= ~bit_mask;
-+		ret = adp8860_write(client, reg, reg_val);
-+	}
-+
-+	mutex_unlock(&data->lock);
-+	return ret;
-+}
-+
-+/*
-+ * Independent sink / LED
+ 		wake_up_sem_queue(q, error);
+-		if (alter && !error)
++		if (restart)
+ 			goto again;
+ 	}
+ }
+ 
++/** do_smart_update(sma, sops, nsops): Optimized update_queue
++ * @sma: semaphore array
++ * @sops: operations that were performed
++ * @nsops: number of operations
++ *
++ * do_smart_update() does the required called to update_queue, based on the
++ * actual changes that were performed on the semaphore array.
 + */
-+#if defined(ADP8860_USE_LEDS)
-+static void adp8860_led_work(struct work_struct *work)
++void do_smart_update(struct sem_array *sma, struct sembuf *sops, int nsops)
 +{
-+	struct adp8860_led *led = container_of(work, struct adp8860_led, work);
-+	adp8860_write(led->client, ADP8860_ISC1 - led->id + 1,
-+			 led->new_brightness >> 1);
-+}
-+
-+static void adp8860_led_set(struct led_classdev *led_cdev,
-+			   enum led_brightness value)
-+{
-+	struct adp8860_led *led;
-+
-+	led = container_of(led_cdev, struct adp8860_led, cdev);
-+	led->new_brightness = value;
-+	schedule_work(&led->work);
-+}
-+
-+static int adp8860_led_setup(struct adp8860_led *led)
-+{
-+	struct i2c_client *client = led->client;
-+	int ret = 0;
-+
-+	ret = adp8860_write(client, ADP8860_ISC1 - led->id + 1, 0);
-+	ret |= adp8860_set_bits(client, ADP8860_ISCC, 1 << (led->id - 1));
-+
-+	if (led->id > 4)
-+		ret |= adp8860_set_bits(client, ADP8860_ISCT1,
-+				(led->flags & 0x3) << ((led->id - 5) * 2));
-+	else
-+		ret |= adp8860_set_bits(client, ADP8860_ISCT2,
-+				(led->flags & 0x3) << ((led->id - 1) * 2));
-+
-+	return ret;
-+}
-+
-+static int __devinit adp8860_led_probe(struct i2c_client *client)
-+{
-+	struct adp8860_backlight_platform_data *pdata =
-+		client->dev.platform_data;
-+	struct adp8860_bl *data = i2c_get_clientdata(client);
-+	struct adp8860_led *led, *led_dat;
-+	struct led_info *cur_led;
-+	int ret, i;
-+
-+	led = kzalloc(sizeof(*led) * pdata->num_leds, GFP_KERNEL);
-+	if (led == NULL) {
-+		dev_err(&client->dev, "failed to alloc memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	ret = adp8860_write(client, ADP8860_ISCFR, pdata->led_fade_law);
-+	ret = adp8860_write(client, ADP8860_ISCT1,
-+			(pdata->led_on_time & 0x3) << 6);
-+	ret |= adp8860_write(client, ADP8860_ISCF,
-+			FADE_VAL(pdata->led_fade_in, pdata->led_fade_out));
-+
-+	if (ret) {
-+		dev_err(&client->dev, "failed to write\n");
-+		goto err_free;
-+	}
-+
-+	for (i = 0; i < pdata->num_leds; ++i) {
-+		cur_led = &pdata->leds[i];
-+		led_dat = &led[i];
-+
-+		led_dat->id = cur_led->flags & ADP8860_FLAG_LED_MASK;
-+
-+		if (led_dat->id > 7 || led_dat->id < 1) {
-+			dev_err(&client->dev, "Invalid LED ID %d\n",
-+				led_dat->id);
-+			goto err;
-+		}
-+
-+		if (pdata->bl_led_assign & (1 << (led_dat->id - 1))) {
-+			dev_err(&client->dev, "LED %d used by Backlight\n",
-+				led_dat->id);
-+			goto err;
-+		}
-+
-+		led_dat->cdev.name = cur_led->name;
-+		led_dat->cdev.default_trigger = cur_led->default_trigger;
-+		led_dat->cdev.brightness_set = adp8860_led_set;
-+		led_dat->cdev.brightness = LED_OFF;
-+		led_dat->flags = cur_led->flags >> FLAG_OFFT_SHIFT;
-+		led_dat->client = client;
-+		led_dat->new_brightness = LED_OFF;
-+		INIT_WORK(&led_dat->work, adp8860_led_work);
-+
-+		ret = led_classdev_register(&client->dev, &led_dat->cdev);
-+		if (ret) {
-+			dev_err(&client->dev, "failed to register LED %d\n",
-+				led_dat->id);
-+			goto err;
-+		}
-+
-+		ret = adp8860_led_setup(led_dat);
-+		if (ret) {
-+			dev_err(&client->dev, "failed to write\n");
-+			i++;
-+			goto err;
-+		}
-+	}
-+
-+	data->led = led;
-+
-+	return 0;
-+
-+ err:
-+	for (i = i - 1; i >= 0; --i) {
-+		led_classdev_unregister(&led[i].cdev);
-+		cancel_work_sync(&led[i].work);
-+	}
-+
-+ err_free:
-+	kfree(led);
-+
-+	return ret;
-+}
-+
-+static int __devexit adp8860_led_remove(struct i2c_client *client)
-+{
-+	struct adp8860_backlight_platform_data *pdata =
-+		client->dev.platform_data;
-+	struct adp8860_bl *data = i2c_get_clientdata(client);
 +	int i;
 +
-+	for (i = 0; i < pdata->num_leds; i++) {
-+		led_classdev_unregister(&data->led[i].cdev);
-+		cancel_work_sync(&data->led[i].work);
++	if (sma->complex_count || sops == NULL) {
++		update_queue(sma, -1);
++		return;
 +	}
 +
-+	kfree(data->led);
-+	return 0;
-+}
-+#else
-+static int __devinit adp8860_led_probe(struct i2c_client *client)
-+{
-+	return 0;
-+}
-+
-+static int __devexit adp8860_led_remove(struct i2c_client *client)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static int adp8860_bl_set(struct backlight_device *bl, int brightness)
-+{
-+	struct adp8860_bl *data = bl_get_data(bl);
-+	struct i2c_client *client = data->client;
-+	int ret = 0;
-+
-+	if (data->pdata->en_ambl_sens) {
-+		if ((brightness > 0) && (brightness < ADP8860_MAX_BRIGHTNESS)) {
-+			/* Disable Ambient Light auto adjust */
-+			ret |= adp8860_clr_bits(client, ADP8860_MDCR,
-+					CMP_AUTOEN);
-+			ret |= adp8860_write(client, ADP8860_BLMX1, brightness);
-+		} else {
-+			/*
-+			 * MAX_BRIGHTNESS -> Enable Ambient Light auto adjust
-+			 * restore daylight l1 sysfs brightness
-+			 */
-+			ret |= adp8860_write(client, ADP8860_BLMX1,
-+					 data->cached_daylight_max);
-+			ret |= adp8860_set_bits(client, ADP8860_MDCR,
-+					 CMP_AUTOEN);
-+		}
-+	} else
-+		ret |= adp8860_write(client, ADP8860_BLMX1, brightness);
-+
-+	if (data->current_brightness && brightness == 0)
-+		ret |= adp8860_set_bits(client,
-+				ADP8860_MDCR, DIM_EN);
-+	else if (data->current_brightness == 0 && brightness)
-+		ret |= adp8860_clr_bits(client,
-+				ADP8860_MDCR, DIM_EN);
-+
-+	if (!ret)
-+		data->current_brightness = brightness;
-+
-+	return ret;
-+}
-+
-+static int adp8860_bl_update_status(struct backlight_device *bl)
-+{
-+	int brightness = bl->props.brightness;
-+	if (bl->props.power != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+
-+	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+
-+	return adp8860_bl_set(bl, brightness);
-+}
-+
-+static int adp8860_bl_get_brightness(struct backlight_device *bl)
-+{
-+	struct adp8860_bl *data = bl_get_data(bl);
-+
-+	return data->current_brightness;
-+}
-+
-+static const struct backlight_ops adp8860_bl_ops = {
-+	.update_status	= adp8860_bl_update_status,
-+	.get_brightness	= adp8860_bl_get_brightness,
-+};
-+
-+static int adp8860_bl_setup(struct backlight_device *bl)
-+{
-+	struct adp8860_bl *data = bl_get_data(bl);
-+	struct i2c_client *client = data->client;
-+	struct adp8860_backlight_platform_data *pdata = data->pdata;
-+	int ret = 0;
-+
-+	ret |= adp8860_write(client, ADP8860_BLSEN, ~pdata->bl_led_assign);
-+	ret |= adp8860_write(client, ADP8860_BLMX1, pdata->l1_daylight_max);
-+	ret |= adp8860_write(client, ADP8860_BLDM1, pdata->l1_daylight_dim);
-+
-+	if (pdata->en_ambl_sens) {
-+		data->cached_daylight_max = pdata->l1_daylight_max;
-+		ret |= adp8860_write(client, ADP8860_BLMX2,
-+						pdata->l2_office_max);
-+		ret |= adp8860_write(client, ADP8860_BLDM2,
-+						pdata->l2_office_dim);
-+		ret |= adp8860_write(client, ADP8860_BLMX3,
-+						pdata->l3_dark_max);
-+		ret |= adp8860_write(client, ADP8860_BLDM3,
-+						pdata->l3_dark_dim);
-+
-+		ret |= adp8860_write(client, ADP8860_L2_TRP, pdata->l2_trip);
-+		ret |= adp8860_write(client, ADP8860_L2_HYS, pdata->l2_hyst);
-+		ret |= adp8860_write(client, ADP8860_L3_TRP, pdata->l3_trip);
-+		ret |= adp8860_write(client, ADP8860_L3_HYS, pdata->l3_hyst);
-+		ret |= adp8860_write(client, ADP8860_CCFG, L2_EN | L3_EN |
-+						ALS_CCFG_VAL(pdata->abml_filt));
++	for (i = 0; i < nsops; i++) {
++		if (sops[i].sem_op > 0 ||
++			(sops[i].sem_op < 0 &&
++				sma->sem_base[sops[i].sem_num].semval == 0))
++			update_queue(sma, sops[i].sem_num);
 +	}
-+
-+	ret |= adp8860_write(client, ADP8860_CFGR,
-+			BL_CFGR_VAL(pdata->bl_fade_law, 0));
-+
-+	ret |= adp8860_write(client, ADP8860_BLFR, FADE_VAL(pdata->bl_fade_in,
-+			pdata->bl_fade_out));
-+
-+	ret |= adp8860_set_bits(client, ADP8860_MDCR, BLEN | DIM_EN | NSTBY);
-+
-+	return ret;
 +}
 +
-+static ssize_t adp8860_show(struct device *dev, char *buf, int reg)
-+{
-+	struct adp8860_bl *data = dev_get_drvdata(dev);
-+	int error;
-+	uint8_t reg_val;
 +
-+	mutex_lock(&data->lock);
-+	error = adp8860_read(data->client, reg, &reg_val);
-+	mutex_unlock(&data->lock);
-+
-+	if (error < 0)
-+		return error;
-+
-+	return sprintf(buf, "%u\n", reg_val);
-+}
-+
-+static ssize_t adp8860_store(struct device *dev, const char *buf,
-+			 size_t count, int reg)
-+{
-+	struct adp8860_bl *data = dev_get_drvdata(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	ret = strict_strtoul(buf, 10, &val);
-+	if (ret)
-+		return ret;
-+
-+	mutex_lock(&data->lock);
-+	adp8860_write(data->client, reg, val);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t adp8860_bl_l3_dark_max_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	return adp8860_show(dev, buf, ADP8860_BLMX3);
-+}
-+
-+static ssize_t adp8860_bl_l3_dark_max_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	return adp8860_store(dev, buf, count, ADP8860_BLMX3);
-+}
-+
-+static DEVICE_ATTR(l3_dark_max, 0664, adp8860_bl_l3_dark_max_show,
-+			adp8860_bl_l3_dark_max_store);
-+
-+static ssize_t adp8860_bl_l2_office_max_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	return adp8860_show(dev, buf, ADP8860_BLMX2);
-+}
-+
-+static ssize_t adp8860_bl_l2_office_max_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	return adp8860_store(dev, buf, count, ADP8860_BLMX2);
-+}
-+static DEVICE_ATTR(l2_office_max, 0664, adp8860_bl_l2_office_max_show,
-+			adp8860_bl_l2_office_max_store);
-+
-+static ssize_t adp8860_bl_l1_daylight_max_show(struct device *dev,
-+			struct device_attribute *attr, char *buf)
-+{
-+	return adp8860_show(dev, buf, ADP8860_BLMX1);
-+}
-+
-+static ssize_t adp8860_bl_l1_daylight_max_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct adp8860_bl *data = dev_get_drvdata(dev);
-+
-+	strict_strtoul(buf, 10, &data->cached_daylight_max);
-+	return adp8860_store(dev, buf, count, ADP8860_BLMX1);
-+}
-+static DEVICE_ATTR(l1_daylight_max, 0664, adp8860_bl_l1_daylight_max_show,
-+			adp8860_bl_l1_daylight_max_store);
-+
-+static ssize_t adp8860_bl_l3_dark_dim_show(struct device *dev,
-+			struct device_attribute *attr, char *buf)
-+{
-+	return adp8860_show(dev, buf, ADP8860_BLDM3);
-+}
-+
-+static ssize_t adp8860_bl_l3_dark_dim_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	return adp8860_store(dev, buf, count, ADP8860_BLDM3);
-+}
-+static DEVICE_ATTR(l3_dark_dim, 0664, adp8860_bl_l3_dark_dim_show,
-+			adp8860_bl_l3_dark_dim_store);
-+
-+static ssize_t adp8860_bl_l2_office_dim_show(struct device *dev,
-+			struct device_attribute *attr, char *buf)
-+{
-+	return adp8860_show(dev, buf, ADP8860_BLDM2);
-+}
-+
-+static ssize_t adp8860_bl_l2_office_dim_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	return adp8860_store(dev, buf, count, ADP8860_BLDM2);
-+}
-+static DEVICE_ATTR(l2_office_dim, 0664, adp8860_bl_l2_office_dim_show,
-+			adp8860_bl_l2_office_dim_store);
-+
-+static ssize_t adp8860_bl_l1_daylight_dim_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	return adp8860_show(dev, buf, ADP8860_BLDM1);
-+}
-+
-+static ssize_t adp8860_bl_l1_daylight_dim_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	return adp8860_store(dev, buf, count, ADP8860_BLDM1);
-+}
-+static DEVICE_ATTR(l1_daylight_dim, 0664, adp8860_bl_l1_daylight_dim_show,
-+			adp8860_bl_l1_daylight_dim_store);
-+
-+#ifdef ADP8860_EXT_FEATURES
-+static ssize_t adp8860_bl_ambient_light_level_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct adp8860_bl *data = dev_get_drvdata(dev);
-+	int error;
-+	uint8_t reg_val;
-+	uint16_t ret_val;
-+
-+	mutex_lock(&data->lock);
-+	error = adp8860_read(data->client, ADP8860_PH1LEVL, &reg_val);
-+	ret_val = reg_val;
-+	error |= adp8860_read(data->client, ADP8860_PH1LEVH, &reg_val);
-+	mutex_unlock(&data->lock);
-+
-+	if (error < 0)
-+		return error;
-+
-+	/* Return 13-bit conversion value for the first light sensor */
-+	ret_val += (reg_val & 0x1F) << 8;
-+
-+	return sprintf(buf, "%u\n", ret_val);
-+}
-+static DEVICE_ATTR(ambient_light_level, 0444,
-+		adp8860_bl_ambient_light_level_show, NULL);
-+
-+static ssize_t adp8860_bl_ambient_light_zone_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct adp8860_bl *data = dev_get_drvdata(dev);
-+	int error;
-+	uint8_t reg_val;
-+
-+	mutex_lock(&data->lock);
-+	error = adp8860_read(data->client, ADP8860_CFGR, &reg_val);
-+	mutex_unlock(&data->lock);
-+
-+	if (error < 0)
-+		return error;
-+
-+	return sprintf(buf, "%u\n",
-+		((reg_val >> CFGR_BLV_SHIFT) & CFGR_BLV_MASK) + 1);
-+}
-+
-+static ssize_t adp8860_bl_ambient_light_zone_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct adp8860_bl *data = dev_get_drvdata(dev);
-+	unsigned long val;
-+	uint8_t reg_val;
-+	int ret;
-+
-+	ret = strict_strtoul(buf, 10, &val);
-+	if (ret)
-+		return ret;
-+
-+	if (val == 0) {
-+		/* Enable automatic ambient light sensing */
-+		adp8860_set_bits(data->client, ADP8860_MDCR, CMP_AUTOEN);
-+	} else if ((val > 0) && (val < 6)) {
-+		/* Disable automatic ambient light sensing */
-+		adp8860_clr_bits(data->client, ADP8860_MDCR, CMP_AUTOEN);
-+
-+		/* Set user supplied ambient light zone */
-+		mutex_lock(&data->lock);
-+		adp8860_read(data->client, ADP8860_CFGR, &reg_val);
-+		reg_val &= ~(CFGR_BLV_MASK << CFGR_BLV_SHIFT);
-+		reg_val |= val << CFGR_BLV_SHIFT;
-+		adp8860_write(data->client, ADP8860_CFGR, reg_val);
-+		mutex_unlock(&data->lock);
-+	}
-+
-+	return count;
-+}
-+static DEVICE_ATTR(ambient_light_zone, 0664,
-+		adp8860_bl_ambient_light_zone_show,
-+		adp8860_bl_ambient_light_zone_store);
-+#endif
-+
-+static struct attribute *adp8860_bl_attributes[] = {
-+	&dev_attr_l3_dark_max.attr,
-+	&dev_attr_l3_dark_dim.attr,
-+	&dev_attr_l2_office_max.attr,
-+	&dev_attr_l2_office_dim.attr,
-+	&dev_attr_l1_daylight_max.attr,
-+	&dev_attr_l1_daylight_dim.attr,
-+#ifdef ADP8860_EXT_FEATURES
-+	&dev_attr_ambient_light_level.attr,
-+	&dev_attr_ambient_light_zone.attr,
-+#endif
-+	NULL
-+};
-+
-+static const struct attribute_group adp8860_bl_attr_group = {
-+	.attrs = adp8860_bl_attributes,
-+};
-+
-+static int __devinit adp8860_probe(struct i2c_client *client,
-+					const struct i2c_device_id *id)
-+{
-+	struct backlight_device *bl;
-+	struct adp8860_bl *data;
-+	struct adp8860_backlight_platform_data *pdata =
-+		client->dev.platform_data;
-+	uint8_t reg_val;
-+	int ret;
-+
-+	if (!i2c_check_functionality(client->adapter,
-+					I2C_FUNC_SMBUS_BYTE_DATA)) {
-+		dev_err(&client->dev, "SMBUS Byte Data not Supported\n");
-+		return -EIO;
-+	}
-+
-+	if (!pdata) {
-+		dev_err(&client->dev, "no platform data?\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = adp8860_read(client, ADP8860_MFDVID, &reg_val);
-+	if (ret < 0)
-+		return -EIO;
-+
-+	if (ADP8860_MANID(reg_val) != ADP8860_MANUFID) {
-+		dev_err(&client->dev, "failed to probe\n");
-+		return -ENODEV;
-+	}
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (data == NULL)
-+		return -ENOMEM;
-+
-+	/* It's confirmed that the DEVID field is actually a REVID */
-+
-+	data->revid = ADP8860_DEVID(reg_val);
-+	data->client = client;
-+	data->pdata = pdata;
-+	data->id = id->driver_data;
-+	data->current_brightness = 0;
-+	i2c_set_clientdata(client, data);
-+
-+	mutex_init(&data->lock);
-+
-+	bl = backlight_device_register(dev_driver_string(&client->dev),
-+			&client->dev, data, &adp8860_bl_ops);
-+	if (IS_ERR(bl)) {
-+		dev_err(&client->dev, "failed to register backlight\n");
-+		ret = PTR_ERR(bl);
-+		goto out2;
-+	}
-+
-+	bl->props.max_brightness =
-+		bl->props.brightness = ADP8860_MAX_BRIGHTNESS;
-+
-+	data->bl = bl;
-+
-+	if (pdata->en_ambl_sens)
-+		ret = sysfs_create_group(&bl->dev.kobj,
-+			&adp8860_bl_attr_group);
-+
-+	if (ret) {
-+		dev_err(&client->dev, "failed to register sysfs\n");
-+		goto out1;
-+	}
-+
-+	ret = adp8860_bl_setup(bl);
-+	if (ret) {
-+		ret = -EIO;
-+		goto out;
-+	}
-+
-+	backlight_update_status(bl);
-+
-+	dev_info(&client->dev, "Rev.%d Backlight\n", data->revid);
-+
-+	if (pdata->num_leds)
-+		adp8860_led_probe(client);
-+
-+	return 0;
-+
-+out:
-+	if (data->pdata->en_ambl_sens)
-+		sysfs_remove_group(&data->bl->dev.kobj,
-+			&adp8860_bl_attr_group);
-+out1:
-+	backlight_device_unregister(bl);
-+out2:
-+	i2c_set_clientdata(client, NULL);
-+	kfree(data);
-+
-+	return ret;
-+}
-+
-+static int __devexit adp8860_remove(struct i2c_client *client)
-+{
-+	struct adp8860_bl *data = i2c_get_clientdata(client);
-+
-+	adp8860_clr_bits(client, ADP8860_MDCR, NSTBY);
-+
-+	if (data->led)
-+		adp8860_led_remove(client);
-+
-+	if (data->pdata->en_ambl_sens)
-+		sysfs_remove_group(&data->bl->dev.kobj,
-+			&adp8860_bl_attr_group);
-+
-+	backlight_device_unregister(data->bl);
-+	i2c_set_clientdata(client, NULL);
-+	kfree(data);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int adp8860_i2c_suspend(struct i2c_client *client, pm_message_t message)
-+{
-+	adp8860_clr_bits(client, ADP8860_MDCR, NSTBY);
-+
-+	return 0;
-+}
-+
-+static int adp8860_i2c_resume(struct i2c_client *client)
-+{
-+	adp8860_set_bits(client, ADP8860_MDCR, NSTBY);
-+
-+	return 0;
-+}
-+#else
-+#define adp8860_i2c_suspend NULL
-+#define adp8860_i2c_resume NULL
-+#endif
-+
-+static const struct i2c_device_id adp8860_id[] = {
-+	{ "adp8860", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, adp8860_id);
-+
-+static struct i2c_driver adp8860_driver = {
-+	.driver = {
-+		.name = KBUILD_MODNAME,
-+	},
-+	.probe    = adp8860_probe,
-+	.remove   = __devexit_p(adp8860_remove),
-+	.suspend = adp8860_i2c_suspend,
-+	.resume  = adp8860_i2c_resume,
-+	.id_table = adp8860_id,
-+};
-+
-+static int __init adp8860_init(void)
-+{
-+	return i2c_add_driver(&adp8860_driver);
-+}
-+module_init(adp8860_init);
-+
-+static void __exit adp8860_exit(void)
-+{
-+	i2c_del_driver(&adp8860_driver);
-+}
-+module_exit(adp8860_exit);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
-+MODULE_DESCRIPTION("ADP8860 Backlight driver");
-+MODULE_ALIAS("i2c:adp8860-backlight");
-diff -puN /dev/null include/linux/i2c/adp8860.h
---- /dev/null
-+++ a/include/linux/i2c/adp8860.h
-@@ -0,0 +1,137 @@
-+/*
-+ * Definitions and platform data for Analog Devices
-+ * Backlight drivers ADP8860
-+ *
-+ * Copyright 2009-2010 Analog Devices Inc.
-+ *
-+ * Licensed under the GPL-2 or later.
-+ */
-+
-+#ifndef __LINUX_I2C_ADP8860_H
-+#define __LINUX_I2C_ADP8860_H
-+
-+#include <linux/leds.h>
-+#include <linux/types.h>
-+
-+#define ID_ADP8860		8860
-+
-+#define ADP8860_MAX_BRIGHTNESS	0x7F
-+#define FLAG_OFFT_SHIFT 8
-+
-+/*
-+ * LEDs subdevice platform data
-+ */
-+
-+#define ADP8860_LED_DIS_BLINK	(0 << FLAG_OFFT_SHIFT)
-+#define ADP8860_LED_OFFT_600ms	(1 << FLAG_OFFT_SHIFT)
-+#define ADP8860_LED_OFFT_1200ms	(2 << FLAG_OFFT_SHIFT)
-+#define ADP8860_LED_OFFT_1800ms	(3 << FLAG_OFFT_SHIFT)
-+
-+#define ADP8860_LED_ONT_200ms	0
-+#define ADP8860_LED_ONT_600ms	1
-+#define ADP8860_LED_ONT_800ms	2
-+#define ADP8860_LED_ONT_1200ms	3
-+
-+#define ADP8860_LED_D7		(7)
-+#define ADP8860_LED_D6		(6)
-+#define ADP8860_LED_D5		(5)
-+#define ADP8860_LED_D4		(4)
-+#define ADP8860_LED_D3		(3)
-+#define ADP8860_LED_D2		(2)
-+#define ADP8860_LED_D1		(1)
-+
-+/*
-+ * Backlight subdevice platform data
-+ */
-+
-+#define ADP8860_BL_D7		(1 << 6)
-+#define ADP8860_BL_D6		(1 << 5)
-+#define ADP8860_BL_D5		(1 << 4)
-+#define ADP8860_BL_D4		(1 << 3)
-+#define ADP8860_BL_D3		(1 << 2)
-+#define ADP8860_BL_D2		(1 << 1)
-+#define ADP8860_BL_D1		(1 << 0)
-+
-+#define ADP8860_FADE_T_DIS	0	/* Fade Timer Disabled */
-+#define ADP8860_FADE_T_300ms	1	/* 0.3 Sec */
-+#define ADP8860_FADE_T_600ms	2
-+#define ADP8860_FADE_T_900ms	3
-+#define ADP8860_FADE_T_1200ms	4
-+#define ADP8860_FADE_T_1500ms	5
-+#define ADP8860_FADE_T_1800ms	6
-+#define ADP8860_FADE_T_2100ms	7
-+#define ADP8860_FADE_T_2400ms	8
-+#define ADP8860_FADE_T_2700ms	9
-+#define ADP8860_FADE_T_3000ms	10
-+#define ADP8860_FADE_T_3500ms	11
-+#define ADP8860_FADE_T_4000ms	12
-+#define ADP8860_FADE_T_4500ms	13
-+#define ADP8860_FADE_T_5000ms	14
-+#define ADP8860_FADE_T_5500ms	15	/* 5.5 Sec */
-+
-+#define ADP8860_FADE_LAW_LINEAR	0
-+#define ADP8860_FADE_LAW_SQUARE	1
-+#define ADP8860_FADE_LAW_CUBIC1	2
-+#define ADP8860_FADE_LAW_CUBIC2	3
-+
-+#define ADP8860_BL_AMBL_FILT_80ms	0	/* Light sensor filter time */
-+#define ADP8860_BL_AMBL_FILT_160ms	1
-+#define ADP8860_BL_AMBL_FILT_320ms	2
-+#define ADP8860_BL_AMBL_FILT_640ms	3
-+#define ADP8860_BL_AMBL_FILT_1280ms	4
-+#define ADP8860_BL_AMBL_FILT_2560ms	5
-+#define ADP8860_BL_AMBL_FILT_5120ms	6
-+#define ADP8860_BL_AMBL_FILT_10240ms	7	/* 10.24 sec */
-+
-+/*
-+ * Blacklight current 0..30mA
-+ */
-+#define ADP8860_BL_CUR_mA(I)		((I * 127) / 30)
-+
-+/*
-+ * L2 comparator current 0..1106uA
-+ */
-+#define ADP8860_L2_COMP_CURR_uA(I)	((I * 255) / 1106)
-+
-+/*
-+ * L3 comparator current 0..138uA
-+ */
-+#define ADP8860_L3_COMP_CURR_uA(I)	((I * 255) / 138)
-+
-+struct adp8860_backlight_platform_data {
-+	u8 bl_led_assign;	/* 1 = Backlight 0 = Individual LED */
-+
-+	u8 bl_fade_in;		/* Backlight Fade-In Timer */
-+	u8 bl_fade_out;		/* Backlight Fade-Out Timer */
-+	u8 bl_fade_law;		/* fade-on/fade-off transfer characteristic */
-+
-+	u8 en_ambl_sens;	/* 1 = enable ambient light sensor */
-+	u8 abml_filt;		/* Light sensor filter time */
-+
-+	u8 l1_daylight_max;	/* use BL_CUR_mA(I) 0 <= I <= 30 mA */
-+	u8 l1_daylight_dim;	/* typ = 0, use BL_CUR_mA(I) 0 <= I <= 30 mA */
-+	u8 l2_office_max;	/* use BL_CUR_mA(I) 0 <= I <= 30 mA */
-+	u8 l2_office_dim;	/* typ = 0, use BL_CUR_mA(I) 0 <= I <= 30 mA */
-+	u8 l3_dark_max;		/* use BL_CUR_mA(I) 0 <= I <= 30 mA */
-+	u8 l3_dark_dim;		/* typ = 0, use BL_CUR_mA(I) 0 <= I <= 30 mA */
-+
-+	u8 l2_trip;		/* use L2_COMP_CURR_uA(I) 0 <= I <= 1106 uA */
-+	u8 l2_hyst;		/* use L2_COMP_CURR_uA(I) 0 <= I <= 1106 uA */
-+	u8 l3_trip;		/* use L3_COMP_CURR_uA(I) 0 <= I <= 551 uA */
-+	u8 l3_hyst;		/* use L3_COMP_CURR_uA(I) 0 <= I <= 551 uA */
-+
-+	/**
-+	 * Independent Current Sinks / LEDS
-+	 * Sinks not assigned to the Backlight can be exposed to
-+	 * user space using the LEDS CLASS interface
-+	 */
-+
-+	int num_leds;
-+	struct led_info	*leds;
-+	u8 led_fade_in;		/* LED Fade-In Timer */
-+	u8 led_fade_out;	/* LED Fade-Out Timer */
-+	u8 led_fade_law;	/* fade-on/fade-off transfer characteristic */
-+	u8 led_on_time;
-+};
-+
-+#endif /* __LINUX_I2C_ADP8860_H */
+ /* The following counts are associated to each semaphore:
+  *   semncnt        number of tasks waiting on semval being nonzero
+  *   semzcnt        number of tasks waiting on semval being zero
+@@ -1225,7 +1309,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
+ 	error = try_atomic_semop (sma, sops, nsops, un, task_tgid_vnr(current));
+ 	if (error <= 0) {
+ 		if (alter && error == 0)
+-			update_queue(sma, (nsops == 1) ? sops[0].sem_num : -1);
++			do_smart_update(sma, sops, nsops);
+ 
+ 		goto out_unlock_free;
+ 	}
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-origin.patch
-linux-next.patch
-backlight-new-driver-for-the-adp8860-backlight-parts.patch
-fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-cacheline-align-the-ipc-spinlock-for-semaphores.patch
+slab-leaks3-default-y.patch
 
