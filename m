@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-s6e63m0-amoled-lcd-panel-driver-update.patch added to -mm tree
-Date: Fri, 30 Apr 2010 14:04:09 -0700
-Message-ID: <201004302104.o3UL49VQ013414@imap1.linux-foundation.org>
+Subject: + acpi-sleep-init_set_sci_en_on_resume-for-dell-studio-155x.patch added to -mm tree
+Date: Fri, 30 Apr 2010 14:05:22 -0700
+Message-ID: <201004302105.o3UL5Mt4013457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33865 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756650Ab0D3VEM (ORCPT
+	by vger.kernel.org with ESMTP id S1756650Ab0D3VF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 17:04:12 -0400
+	Fri, 30 Apr 2010 17:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daeinki@gmail.com
+Cc: kamal@canonical.com, achiang@canonical.com, lenb@kernel.org, stable@kernel.org
 
 
 The patch titled
-     backlight-add-s6e63m0-amoled-lcd-panel-driver update
+     acpi: sleep: init_set_sci_en_on_resume for Dell Studio 155x
 has been added to the -mm tree.  Its filename is
-     backlight-add-s6e63m0-amoled-lcd-panel-driver-update.patch
+     acpi-sleep-init_set_sci_en_on_resume-for-dell-studio-155x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-add-s6e63m0-amoled-lcd-panel-driver update
-From: InKi Dae <daeinki@gmail.com>
+Subject: acpi: sleep: init_set_sci_en_on_resume for Dell Studio 155x
+From: Kamal Mostafa <kamal@canonical.com>
 
+Add Dell Studio models (1558, 1557, 1555) to the 'set_sci_en_on_resume'
+list to fix hang on resume.
 
+Addresses http://bugs.launchpad.net/bugs/553498
 
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Acked-by: Alex Chiang <achiang@canonical.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |   72 +++++++++++++++++++++-------
- 1 file changed, 54 insertions(+), 18 deletions(-)
+ drivers/acpi/sleep.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-add-s6e63m0-amoled-lcd-panel-driver-update drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-add-s6e63m0-amoled-lcd-panel-driver-update
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -420,13 +420,25 @@ static int _s6e63m0_gamma_ctl(struct s6e
- 
- 	/* disable gamma table updating. */
- 	ret = s6e63m0_spi_write(lcd, 0xfa, 0x00);
-+	if (ret) {
-+		dev_err(lcd->dev, "failed to disable gamma table updating.\n");
-+		goto gamma_err;
-+	}
- 
--	for (i = 0 ; i < GAMMA_TABLE_COUNT; i++)
--		ret |= s6e63m0_spi_write(lcd, DATA_ONLY, gamma[i]);
-+	for (i = 0 ; i < GAMMA_TABLE_COUNT; i++) {
-+		ret = s6e63m0_spi_write(lcd, DATA_ONLY, gamma[i]);
-+		if (ret) {
-+			dev_err(lcd->dev, "failed to set gamma table.\n");
-+			goto gamma_err;
-+		}
-+	}
- 
- 	/* update gamma table. */
--	ret |= s6e63m0_spi_write(lcd, 0xfa, 0x01);
-+	ret = s6e63m0_spi_write(lcd, 0xfa, 0x01);
-+	if (ret)
-+		dev_err(lcd->dev, "failed to update gamma table.\n");
- 
-+gamma_err:
- 	return ret;
- }
- 
-@@ -442,24 +454,38 @@ static int s6e63m0_gamma_ctl(struct s6e6
- 
- static int s6e63m0_ldi_init(struct s6e63m0 *lcd)
- {
--	int ret;
--
--	ret = s6e63m0_panel_send_sequence(lcd, SEQ_PANEL_CONDITION_SET);
--	ret |= s6e63m0_panel_send_sequence(lcd, SEQ_DISPLAY_CONDITION_SET);
--	ret |= s6e63m0_panel_send_sequence(lcd, SEQ_GAMMA_SETTING);
--	ret |= s6e63m0_panel_send_sequence(lcd, SEQ_ETC_CONDITION_SET);
--	ret |= s6e63m0_panel_send_sequence(lcd, SEQ_ACL_ON);
--	ret |= s6e63m0_panel_send_sequence(lcd, SEQ_ELVSS_ON);
-+	int ret, i;
-+	const unsigned short *init_seq[] = {
-+		SEQ_PANEL_CONDITION_SET,
-+		SEQ_DISPLAY_CONDITION_SET,
-+		SEQ_GAMMA_SETTING,
-+		SEQ_ETC_CONDITION_SET,
-+		SEQ_ACL_ON,
-+		SEQ_ELVSS_ON,
-+	};
-+
-+	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {
-+		ret = s6e63m0_panel_send_sequence(lcd, init_seq[i]);
-+		if (ret)
-+			break;
-+	}
- 
- 	return ret;
- }
- 
- static int s6e63m0_ldi_enable(struct s6e63m0 *lcd)
- {
--	int ret = 0;
--
--	ret = s6e63m0_panel_send_sequence(lcd, SEQ_STAND_BY_OFF);
--	ret = s6e63m0_panel_send_sequence(lcd, SEQ_DISPLAY_ON);
-+	int ret = 0, i;
-+	const unsigned short *enable_seq[] = {
-+		SEQ_STAND_BY_OFF,
-+		SEQ_DISPLAY_ON,
-+	};
-+
-+	for (i = 0; i < ARRAY_SIZE(enable_seq); i++) {
-+		ret = s6e63m0_panel_send_sequence(lcd, enable_seq[i]);
-+		if (ret)
-+			break;
-+	}
- 
- 	return ret;
- }
-@@ -508,12 +534,22 @@ static int s6e63m0_power_on(struct s6e63
- 	}
- 
- 	ret = s6e63m0_ldi_init(lcd);
--	ret |= s6e63m0_ldi_enable(lcd);
-+	if (ret) {
-+		dev_err(lcd->dev, "failed to initialize ldi.\n");
-+		return ret;
-+	}
-+
-+	ret = s6e63m0_ldi_enable(lcd);
-+	if (ret) {
-+		dev_err(lcd->dev, "failed to enable ldi.\n");
-+		return ret;
-+	}
-+
- 	/* set brightness to current value after power on or resume. */
--	ret |= s6e63m0_gamma_ctl(lcd, bd->props.brightness);
-+	ret = s6e63m0_gamma_ctl(lcd, bd->props.brightness);
- 	if (ret) {
- 		dev_err(lcd->dev, "lcd gamma setting failed.\n");
--		return -EIO;
-+		return ret;
- 	}
- 
- 	return 0;
+diff -puN drivers/acpi/sleep.c~acpi-sleep-init_set_sci_en_on_resume-for-dell-studio-155x drivers/acpi/sleep.c
+--- a/drivers/acpi/sleep.c~acpi-sleep-init_set_sci_en_on_resume-for-dell-studio-155x
++++ a/drivers/acpi/sleep.c
+@@ -468,6 +468,30 @@ static struct dmi_system_id __initdata a
+ 		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
+ 		},
+ 	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Dell Studio 1558",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1558"),
++		},
++	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Dell Studio 1557",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1557"),
++		},
++	},
++	{
++	.callback = init_set_sci_en_on_resume,
++	.ident = "Dell Studio 1555",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Studio 1555"),
++		},
++	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
 _
 
-Patches currently in -mm which might be from daeinki@gmail.com are
+Patches currently in -mm which might be from kamal@canonical.com are
 
-backlight-add-s6e63m0-amoled-lcd-panel-driver.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-update.patch
+acpi-sleep-init_set_sci_en_on_resume-for-dell-studio-155x.patch
 
