@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-wireless-use-new-hex_to_bin-method.patch added to -mm tree
-Date: Fri, 30 Apr 2010 12:02:22 -0700
-Message-ID: <201004301902.o3UJ2Mhx005923@imap1.linux-foundation.org>
+Subject: + lib-introduce-common-method-to-convert-hex-digits-fix.patch added to -mm tree
+Date: Fri, 30 Apr 2010 12:07:29 -0700
+Message-ID: <201004301907.o3UJ7Txx006195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933345Ab0D3TEq (ORCPT
+	by vger.kernel.org with ESMTP id S934271Ab0D3TIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 15:04:46 -0400
+	Fri, 30 Apr 2010 15:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-andriy.shevchenko@nokia.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, ext-andriy.shevchenko@nokia.com
 
 
 The patch titled
-     drivers: wireless: use new hex_to_bin() method
+     lib-introduce-common-method-to-convert-hex-digits-fix
 has been added to the -mm tree.  Its filename is
-     drivers-wireless-use-new-hex_to_bin-method.patch
+     lib-introduce-common-method-to-convert-hex-digits-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers: wireless: use new hex_to_bin() method
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Subject: lib-introduce-common-method-to-convert-hex-digits-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Instead of using own implementation involve hex_to_bin() function.
+- use tolower(), saving 3 bytes!
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
-Acked-by: John W. Linville <linville@tuxdriver.com>
+- test the more common case first - it's quicker.
+
+Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ lib/hexdump.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/airo.c~drivers-wireless-use-new-hex_to_bin-method drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~drivers-wireless-use-new-hex_to_bin-method
-+++ a/drivers/net/wireless/airo.c
-@@ -5162,13 +5162,6 @@ static void proc_SSID_on_close(struct in
- 	enable_MAC(ai, 1);
+diff -puN include/linux/kernel.h~lib-introduce-common-method-to-convert-hex-digits-fix include/linux/kernel.h
+diff -puN lib/hexdump.c~lib-introduce-common-method-to-convert-hex-digits-fix lib/hexdump.c
+--- a/lib/hexdump.c~lib-introduce-common-method-to-convert-hex-digits-fix
++++ a/lib/hexdump.c
+@@ -24,12 +24,11 @@ EXPORT_SYMBOL(hex_asc);
+  */
+ int hex_to_bin(char ch)
+ {
+-	if ((ch >= 'a') && (ch <= 'f'))
+-		return ch - 'a' + 10;
++	ch = tolower(ch);
+ 	if ((ch >= '0') && (ch <= '9'))
+ 		return ch - '0';
+-	if ((ch >= 'A') && (ch <= 'F'))
+-		return ch - 'A' + 10;
++	if ((ch >= 'a') && (ch <= 'f'))
++		return ch - 'a' + 10;
+ 	return -1;
  }
- 
--static inline u8 hexVal(char c) {
--	if (c>='0' && c<='9') return c -= '0';
--	if (c>='a' && c<='f') return c -= 'a'-10;
--	if (c>='A' && c<='F') return c -= 'A'-10;
--	return 0;
--}
--
- static void proc_APList_on_close( struct inode *inode, struct file *file ) {
- 	struct proc_data *data = (struct proc_data *)file->private_data;
- 	struct proc_dir_entry *dp = PDE(inode);
-@@ -5188,11 +5181,11 @@ static void proc_APList_on_close( struct
- 			switch(j%3) {
- 			case 0:
- 				APList_rid.ap[i][j/3]=
--					hexVal(data->wbuffer[j+i*6*3])<<4;
-+					hex_to_bin(data->wbuffer[j+i*6*3])<<4;
- 				break;
- 			case 1:
- 				APList_rid.ap[i][j/3]|=
--					hexVal(data->wbuffer[j+i*6*3]);
-+					hex_to_bin(data->wbuffer[j+i*6*3]);
- 				break;
- 			}
- 		}
-@@ -5340,10 +5333,10 @@ static void proc_wepkey_on_close( struct
- 	for( i = 0; i < 16*3 && data->wbuffer[i+j]; i++ ) {
- 		switch(i%3) {
- 		case 0:
--			key[i/3] = hexVal(data->wbuffer[i+j])<<4;
-+			key[i/3] = hex_to_bin(data->wbuffer[i+j])<<4;
- 			break;
- 		case 1:
--			key[i/3] |= hexVal(data->wbuffer[i+j]);
-+			key[i/3] |= hex_to_bin(data->wbuffer[i+j]);
- 			break;
- 		}
- 	}
+ EXPORT_SYMBOL(hex_to_bin);
 _
 
-Patches currently in -mm which might be from ext-andriy.shevchenko@nokia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-lib-introduce-common-method-to-convert-hex-digits.patch
-drivers-isdn-use-new-hex_to_bin-method.patch
-usb-atm-speedtch-use-new-hex_to_bin-method.patch
-sysctl-dont-use-own-implementation-of-hex_to_bin.patch
-staging-rt2860-use-new-hex_to_bin-method.patch
-fs-ldm-dont-use-own-implementation-of-hex_to_bin.patch
-drivers-wireless-use-new-hex_to_bin-method.patch
-drivers-acpi-dont-use-own-implementation-of-hex_to_bin.patch
+linux-next-fix-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+x86-fix-handling-of-the-reservetop-boot-option.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+dib7000p-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
+drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
+libertastf-add-configurable-debug-messages-fix.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
 
