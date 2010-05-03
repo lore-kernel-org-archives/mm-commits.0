@@ -1,127 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] libertastf-add-configurable-debug-messages-fix.patch removed from -mm tree
-Date: Mon, 03 May 2010 13:09:54 -0400
-Message-ID: <201005032011.o43KBPwL019207@imap1.linux-foundation.org>
+Subject: [merged] tosa_battery-fix-build-error.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:37 -0400
+Message-ID: <201005032011.o43KB8lB019170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756660Ab0ECULm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:42 -0400
+	by vger.kernel.org with ESMTP id S1756660Ab0ECULz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linville@tuxdriver.com, steve@cozybit.com, mm-commits@vger.kernel.org
+To: dbaryshkov@gmail.com, cbou@mail.ru, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "libertastf: add configurable debug messages" fix
+     tosa_battery: fix build error
 has been removed from the -mm tree.  Its filename was
-     libertastf-add-configurable-debug-messages-fix.patch
+     tosa_battery-fix-build-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: "libertastf: add configurable debug messages" fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tosa_battery: fix build error
+From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 
-In file included from drivers/net/wireless/libertas_tf/main.c:12:
-drivers/net/wireless/libertas_tf/deb_defs.h:12:1: warning: "pr_fmt" redefined
-In file included from /usr/src/devel/arch/x86/include/asm/percpu.h:44,
-                 from /usr/src/devel/arch/x86/include/asm/current.h:5,
-                 from /usr/src/devel/arch/x86/include/asm/processor.h:15,
-                 from /usr/src/devel/arch/x86/include/asm/thread_info.h:22,
-                 from include/linux/thread_info.h:56,
-                 from include/linux/preempt.h:9,
-                 from include/linux/spinlock.h:50,
-                 from include/linux/mmzone.h:7,
-                 from include/linux/gfp.h:4,
-                 from include/linux/slab.h:12,
-                 from drivers/net/wireless/libertas_tf/main.c:10:
-include/linux/kernel.h:376:1: warning: this is the location of the previous definition
+-ENOCHANGELOG
 
-Cc: Steve deRosier <steve@cozybit.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas_tf/deb_defs.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/power/tosa_battery.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix drivers/net/wireless/libertas_tf/deb_defs.h
---- a/drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix
-+++ a/drivers/net/wireless/libertas_tf/deb_defs.h
-@@ -9,8 +9,6 @@
- #define DRV_NAME "libertas_tf"
- #endif
- 
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
- #include <linux/spinlock.h>
- 
- #ifdef CONFIG_LIBERTAS_THINFIRM_DEBUG
+diff -puN drivers/power/tosa_battery.c~tosa_battery-fix-build-error drivers/power/tosa_battery.c
+--- a/drivers/power/tosa_battery.c~tosa_battery-fix-build-error
++++ a/drivers/power/tosa_battery.c
+@@ -61,7 +61,7 @@ static unsigned long tosa_read_bat(struc
+ 	mutex_lock(&bat_lock);
+ 	gpio_set_value(bat->gpio_bat, 1);
+ 	msleep(5);
+-	value = wm97xx_read_aux_adc(bat->psy.dev->parent->driver_data,
++	value = wm97xx_read_aux_adc(dev_get_drvdata(bat->psy.dev->parent),
+ 			bat->adc_bat);
+ 	gpio_set_value(bat->gpio_bat, 0);
+ 	mutex_unlock(&bat_lock);
+@@ -81,7 +81,7 @@ static unsigned long tosa_read_temp(stru
+ 	mutex_lock(&bat_lock);
+ 	gpio_set_value(bat->gpio_temp, 1);
+ 	msleep(5);
+-	value = wm97xx_read_aux_adc(bat->psy.dev->parent->driver_data,
++	value = wm97xx_read_aux_adc(dev_get_drvdata(bat->psy.dev->parent),
+ 			bat->adc_temp);
+ 	gpio_set_value(bat->gpio_temp, 0);
+ 	mutex_unlock(&bat_lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dbaryshkov@gmail.com are
 
-origin.patch
 linux-next.patch
-linux-next-fix-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-jfs-free-sbi-memory-in-error-path.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-dib7000p-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
+gpiolib-introduce-chip-addition-removal-notifier.patch
+of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
 of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
 
