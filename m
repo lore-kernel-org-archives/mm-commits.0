@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-remove-isolate_pages-callback-scan-control.patch added to -mm tree
-Date: Mon, 03 May 2010 14:44:45 -0700
-Message-ID: <201005032144.o43LikOn023371@imap1.linux-foundation.org>
+Subject: + vmscan-remove-all_unreclaimable-scan-control.patch added to -mm tree
+Date: Mon, 03 May 2010 14:44:43 -0700
+Message-ID: <201005032144.o43LihnX023366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756863Ab0ECVpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 17:45:54 -0400
+	by vger.kernel.org with ESMTP id S1757337Ab0ECVpz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 17:45:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redh
 
 
 The patch titled
-     vmscan: remove isolate_pages callback scan control
+     vmscan: remove all_unreclaimable scan control
 has been added to the -mm tree.  Its filename is
-     vmscan-remove-isolate_pages-callback-scan-control.patch
+     vmscan-remove-all_unreclaimable-scan-control.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: remove isolate_pages callback scan control
+Subject: vmscan: remove all_unreclaimable scan control
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-For now, we have global isolation vs.  memory control group isolation, do
-not allow the reclaim entry function to set an arbitrary page isolation
-callback, we do not need that flexibility.
-
-And since we already pass around the group descriptor for the memory
-control group isolation case, just use it to decide which one of the two
-isolator functions to use.
-
-The decisions can be merged into nearby branches, so no extra cost there. 
-In fact, we save the indirect calls.
+This scan control is abused to communicate a return value from
+shrink_zones().  Write this idiomatically and remove the knob.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -54,176 +46,78 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   13 ++++----
- mm/vmscan.c                |   52 ++++++++++++++++++-----------------
- 2 files changed, 35 insertions(+), 30 deletions(-)
+ mm/vmscan.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/memcontrol.h~vmscan-remove-isolate_pages-callback-scan-control include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~vmscan-remove-isolate_pages-callback-scan-control
-+++ a/include/linux/memcontrol.h
-@@ -25,6 +25,13 @@ struct page_cgroup;
- struct page;
- struct mm_struct;
- 
-+extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
-+					struct list_head *dst,
-+					unsigned long *scanned, int order,
-+					int mode, struct zone *z,
-+					struct mem_cgroup *mem_cont,
-+					int active, int file);
-+
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- /*
-  * All "charge" functions with gfp_mask should use GFP_KERNEL or
-@@ -64,12 +71,6 @@ extern void mem_cgroup_uncharge_cache_pa
- extern int mem_cgroup_shmem_charge_fallback(struct page *page,
- 			struct mm_struct *mm, gfp_t gfp_mask);
- 
--extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
--					struct list_head *dst,
--					unsigned long *scanned, int order,
--					int mode, struct zone *z,
--					struct mem_cgroup *mem_cont,
--					int active, int file);
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
- 
-diff -puN mm/vmscan.c~vmscan-remove-isolate_pages-callback-scan-control mm/vmscan.c
---- a/mm/vmscan.c~vmscan-remove-isolate_pages-callback-scan-control
+diff -puN mm/vmscan.c~vmscan-remove-all_unreclaimable-scan-control mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-remove-all_unreclaimable-scan-control
 +++ a/mm/vmscan.c
-@@ -82,12 +82,6 @@ struct scan_control {
- 	 * are scanned.
- 	 */
- 	nodemask_t	*nodemask;
--
--	/* Pluggable isolate pages callback */
--	unsigned long (*isolate_pages)(unsigned long nr, struct list_head *dst,
--			unsigned long *scanned, int order, int mode,
--			struct zone *z, struct mem_cgroup *mem_cont,
--			int active, int file);
- };
+@@ -70,8 +70,6 @@ struct scan_control {
  
- #define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
-@@ -1000,7 +994,6 @@ static unsigned long isolate_pages_globa
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
- 					int mode, struct zone *z,
--					struct mem_cgroup *mem_cont,
- 					int active, int file)
+ 	int swappiness;
+ 
+-	int all_unreclaimable;
+-
+ 	int order;
+ 
+ 	int lumpy_reclaim;
+@@ -1701,14 +1699,14 @@ static void shrink_zone(int priority, st
+  * If a zone is deemed to be full of pinned pages then just give it a light
+  * scan then give up on it.
+  */
+-static void shrink_zones(int priority, struct zonelist *zonelist,
++static int shrink_zones(int priority, struct zonelist *zonelist,
+ 					struct scan_control *sc)
  {
- 	int lru = LRU_BASE;
-@@ -1144,11 +1137,11 @@ static unsigned long shrink_inactive_lis
- 		unsigned long nr_anon;
- 		unsigned long nr_file;
+ 	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
+ 	struct zoneref *z;
+ 	struct zone *zone;
++	int progress = 0;
  
--		nr_taken = sc->isolate_pages(SWAP_CLUSTER_MAX,
--			     &page_list, &nr_scan, sc->order, mode,
--				zone, sc->mem_cgroup, 0, file);
--
- 		if (scanning_global_lru(sc)) {
-+			nr_taken = isolate_pages_global(SWAP_CLUSTER_MAX,
-+							&page_list, &nr_scan,
-+							sc->order, mode,
-+							zone, 0, file);
- 			zone->pages_scanned += nr_scan;
- 			if (current_is_kswapd())
- 				__count_zone_vm_events(PGSCAN_KSWAPD, zone,
-@@ -1156,6 +1149,16 @@ static unsigned long shrink_inactive_lis
- 			else
- 				__count_zone_vm_events(PGSCAN_DIRECT, zone,
- 						       nr_scan);
-+		} else {
-+			nr_taken = mem_cgroup_isolate_pages(SWAP_CLUSTER_MAX,
-+							&page_list, &nr_scan,
-+							sc->order, mode,
-+							zone, sc->mem_cgroup,
-+							0, file);
-+			/*
-+			 * mem_cgroup_isolate_pages() keeps track of
-+			 * scanned pages on its own.
-+			 */
+-	sc->all_unreclaimable = 1;
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
+ 					sc->nodemask) {
+ 		if (!populated_zone(zone))
+@@ -1724,19 +1722,19 @@ static void shrink_zones(int priority, s
+ 
+ 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
+ 				continue;	/* Let kswapd poll it */
+-			sc->all_unreclaimable = 0;
+ 		} else {
+ 			/*
+ 			 * Ignore cpuset limitation here. We just want to reduce
+ 			 * # of used pages by us regardless of memory shortage.
+ 			 */
+-			sc->all_unreclaimable = 0;
+ 			mem_cgroup_note_reclaim_priority(sc->mem_cgroup,
+ 							priority);
  		}
  
- 		if (nr_taken == 0)
-@@ -1333,16 +1336,23 @@ static void shrink_active_list(unsigned 
- 
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
--	nr_taken = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
--					ISOLATE_ACTIVE, zone,
--					sc->mem_cgroup, 1, file);
--	/*
--	 * zone->pages_scanned is used for detect zone's oom
--	 * mem_cgroup remembers nr_scan by itself.
--	 */
- 	if (scanning_global_lru(sc)) {
-+		nr_taken = isolate_pages_global(nr_pages, &l_hold,
-+						&pgscanned, sc->order,
-+						ISOLATE_ACTIVE, zone,
-+						1, file);
- 		zone->pages_scanned += pgscanned;
-+	} else {
-+		nr_taken = mem_cgroup_isolate_pages(nr_pages, &l_hold,
-+						&pgscanned, sc->order,
-+						ISOLATE_ACTIVE, zone,
-+						sc->mem_cgroup, 1, file);
-+		/*
-+		 * mem_cgroup_isolate_pages() keeps track of
-+		 * scanned pages on its own.
-+		 */
+ 		shrink_zone(priority, zone, sc);
++		progress = 1;
  	}
-+
- 	reclaim_stat->recent_scanned[file] += nr_taken;
++	return progress;
+ }
  
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
-@@ -1864,7 +1874,6 @@ unsigned long try_to_free_pages(struct z
- 		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
--		.isolate_pages = isolate_pages_global,
- 		.nodemask = nodemask,
- 	};
- 
-@@ -1884,7 +1893,6 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem,
--		.isolate_pages = mem_cgroup_isolate_pages,
- 	};
- 	nodemask_t nm  = nodemask_of_node(nid);
- 
-@@ -1917,7 +1925,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.swappiness = swappiness,
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
--		.isolate_pages = mem_cgroup_isolate_pages,
- 		.nodemask = NULL, /* we don't care the placement */
- 	};
- 
-@@ -1994,7 +2001,6 @@ static unsigned long balance_pgdat(pg_da
- 		.swappiness = vm_swappiness,
- 		.order = order,
- 		.mem_cgroup = NULL,
--		.isolate_pages = isolate_pages_global,
- 	};
+ /*
+@@ -1789,7 +1787,7 @@ static unsigned long do_try_to_free_page
+ 		sc->nr_scanned = 0;
+ 		if (!priority)
+ 			disable_swap_token();
+-		shrink_zones(priority, zonelist, sc);
++		ret = shrink_zones(priority, zonelist, sc);
+ 		/*
+ 		 * Don't shrink slabs when reclaiming memory from
+ 		 * over limit cgroups
+@@ -1826,7 +1824,7 @@ static unsigned long do_try_to_free_page
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
+ 	/* top priority shrink_zones still had more to do? don't OOM, then */
+-	if (!sc->all_unreclaimable && scanning_global_lru(sc))
++	if (ret && scanning_global_lru(sc))
+ 		ret = sc->nr_reclaimed;
+ out:
  	/*
- 	 * temp_priority is used to remember the scanning priority at which
-@@ -2372,7 +2378,6 @@ unsigned long shrink_all_memory(unsigned
- 		.hibernation_mode = 1,
- 		.swappiness = vm_swappiness,
- 		.order = 0,
--		.isolate_pages = isolate_pages_global,
- 	};
- 	struct zonelist * zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 	struct task_struct *p = current;
-@@ -2556,7 +2561,6 @@ static int __zone_reclaim(struct zone *z
- 		.gfp_mask = gfp_mask,
- 		.swappiness = vm_swappiness,
- 		.order = order,
--		.isolate_pages = isolate_pages_global,
- 	};
- 	unsigned long slab_reclaimable;
- 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
