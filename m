@@ -1,130 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch added to -mm tree
-Date: Fri, 30 Apr 2010 20:06:12 -0400
-Message-ID: <201005010307.o4137iCQ028773@imap1.linux-foundation.org>
+Subject: [merged] hpsa-remove-unneeded-defines.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:45 -0400
+Message-ID: <201005032011.o43KBGI5019183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754908Ab0EADHy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Apr 2010 23:07:54 -0400
+	by vger.kernel.org with ESMTP id S1756660Ab0ECULV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ext-andriy.shevchenko@nokia.com, joe@perches.com
+To: mike.miller@hp.com, James.Bottomley@HansenPartnership.com, steve.cameron@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-introduce-common-method-to-convert-hex-digits-fix-fix
-has been added to the -mm tree.  Its filename is
-     lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+     hpsa: remove unneeded defines
+has been removed from the -mm tree.  Its filename was
+     hpsa-remove-unneeded-defines.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-introduce-common-method-to-convert-hex-digits-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hpsa: remove unneeded defines
+From: Mike Miller <mike.miller@hp.com>
 
-relocate tlower to make it even faster! (Joe)
+Remove unnecessary #define's from hpsa.  The SCSI midlayer handles all
+this for us.
 
-Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Steve Cameron <steve.cameron@hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/hpsa.c     |    8 --------
+ drivers/scsi/hpsa_cmd.h |   15 ---------------
+ 2 files changed, 23 deletions(-)
 
-diff -puN lib/hexdump.c~lib-introduce-common-method-to-convert-hex-digits-fix-fix lib/hexdump.c
---- a/lib/hexdump.c~lib-introduce-common-method-to-convert-hex-digits-fix-fix
-+++ a/lib/hexdump.c
-@@ -24,9 +24,9 @@ EXPORT_SYMBOL(hex_asc);
-  */
- int hex_to_bin(char ch)
- {
--	ch = tolower(ch);
- 	if ((ch >= '0') && (ch <= '9'))
- 		return ch - '0';
-+	ch = tolower(ch);
- 	if ((ch >= 'a') && (ch <= 'f'))
- 		return ch - 'a' + 10;
- 	return -1;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-linux-next-fix-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-jfs-free-sbi-memory-in-error-path.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-dib7000p-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
-drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
-libertastf-add-configurable-debug-messages-fix.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-
+diff -puN drivers/scsi/hpsa.c~hpsa-remove-unneeded-defines drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-remove-unneeded-defines
++++ a/drivers/scsi/hpsa.c
+@@ -2708,14 +2708,6 @@ static void fill_cmd(struct CommandList 
+ 			c->Request.CDB[8] = (size >> 8) & 0xFF;
+ 			c->Request.CDB[9] = size & 0xFF;
+ 			break;
+-
+-		case HPSA_READ_CAPACITY:
+-			c->Request.CDBLen = 10;
+-			c->Request.Type.Attribute = ATTR_SIMPLE;
+-			c->Request.Type.Direction = XFER_READ;
+-			c->Request.Timeout = 0;
+-			c->Request.CDB[0] = cmd;
+-			break;
+ 		case HPSA_CACHE_FLUSH:
+ 			c->Request.CDBLen = 12;
+ 			c->Request.Type.Attribute = ATTR_SIMPLE;
+diff -puN drivers/scsi/hpsa_cmd.h~hpsa-remove-unneeded-defines drivers/scsi/hpsa_cmd.h
+--- a/drivers/scsi/hpsa_cmd.h~hpsa-remove-unneeded-defines
++++ a/drivers/scsi/hpsa_cmd.h
+@@ -152,21 +152,6 @@ struct SenseSubsystem_info {
+ 	u8 reserved1[1108];
+ };
+ 
+-#define HPSA_READ_CAPACITY 0x25 /* Read Capacity */
+-struct ReadCapdata {
+-	u8 total_size[4];	/* Total size in blocks */
+-	u8 block_size[4];	/* Size of blocks in bytes */
+-};
+-
+-#if 0
+-/* 12 byte commands not implemented in firmware yet. */
+-#define HPSA_READ 	0xa8
+-#define HPSA_WRITE	0xaa
+-#endif
+-
+-#define HPSA_READ   0x28    /* Read(10) */
+-#define HPSA_WRITE  0x2a    /* Write(10) */
