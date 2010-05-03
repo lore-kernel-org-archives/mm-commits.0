@@ -1,74 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch removed from -mm tree
-Date: Mon, 03 May 2010 13:09:48 -0400
-Message-ID: <201005032011.o43KBJpF019191@imap1.linux-foundation.org>
+Subject: [merged] arm-use-asm-generic-scatterlisth.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:57 -0400
+Message-ID: <201005032011.o43KBSjK019212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756660Ab0ECUL3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:29 -0400
+	by vger.kernel.org with ESMTP id S1756721Ab0ECULg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@jp.fujitsu.com, James.Bottomley@HansenPartnership.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/scsi_sysfs.c: fix sdev_rw_attr macro for scsi device sysfs entries
+     arm: use asm-generic/scatterlist.h
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
+     arm-use-asm-generic-scatterlisth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/scsi_sysfs.c: fix sdev_rw_attr macro for scsi device sysfs entries
-From: Tomohiro Kusumi <kusumi.tomohiro@jp.fujitsu.com>
+Subject: arm: use asm-generic/scatterlist.h
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Fix the sdev_rw_attr() macro for scsi device sysfs entries.  It seems
-there is no such function snscanf in the current linux kernel, so it fails
-to compile scsi driver when someone try to add a new rw entry.  This has
-been unfixed for a long time probably because current scsi device has no
-rw entries.
-
-# grep snscanf . -rn
-./drivers/scsi/scsi_sysfs.c:489:        snscanf (buf, 20, format_string, &sdev->field);                 \
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@jp.fujitsu.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/include/asm/scatterlist.h |   20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
-diff -puN drivers/scsi/scsi_sysfs.c~drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -474,7 +474,7 @@ static DEVICE_ATTR(field, S_IRUGO, sdev_
+diff -puN arch/arm/include/asm/scatterlist.h~arm-use-asm-generic-scatterlisth arch/arm/include/asm/scatterlist.h
+--- a/arch/arm/include/asm/scatterlist.h~arm-use-asm-generic-scatterlisth
++++ a/arch/arm/include/asm/scatterlist.h
+@@ -4,24 +4,8 @@
+ #include <asm/memory.h>
+ #include <asm/types.h>
  
+-struct scatterlist {
+-#ifdef CONFIG_DEBUG_SG
+-	unsigned long	sg_magic;
+-#endif
+-	unsigned long	page_link;
+-	unsigned int	offset;		/* buffer offset		 */
+-	dma_addr_t	dma_address;	/* dma address			 */
+-	unsigned int	length;		/* length			 */
+-};
++#include <asm-generic/scatterlist.h>
  
- /*
-- * sdev_rd_attr: create a function and attribute variable for a
-+ * sdev_rw_attr: create a function and attribute variable for a
-  * read/write field.
-  */
- #define sdev_rw_attr(field, format_string)				\
-@@ -486,7 +486,7 @@ sdev_store_##field (struct device *dev, 
- {									\
- 	struct scsi_device *sdev;					\
- 	sdev = to_scsi_device(dev);					\
--	snscanf (buf, 20, format_string, &sdev->field);			\
-+	sscanf(buf, format_string, &sdev->field);			\
- 	return count;							\
- }									\
- static DEVICE_ATTR(field, S_IRUGO | S_IWUSR, sdev_show_##field, sdev_store_##field);
+-/*
+- * These macros should be used after a pci_map_sg call has been done
+- * to get bus addresses of each of the SG entries and their lengths.
+- * You should only work with the number of sg entries pci_map_sg
+- * returns, or alternatively stop on the first sg_dma_len(sg) which
+- * is 0.
+- */
+-#define sg_dma_address(sg)      ((sg)->dma_address)
+-#define sg_dma_len(sg)          ((sg)->length)
++#undef ARCH_HAS_SG_CHAIN
+ 
+ #endif /* _ASMARM_SCATTERLIST_H */
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
+dma-mapping-fix-dma_sync_single_range_.patch
 linux-next.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
+dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch
+ssb-add-dma_dev-to-ssb_device-structure.patch
+b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+ssb-remove-the-ssb-dma-api.patch
+asm-generic-remove-isa_dma_threshold-in-scatterlisth.patch
+asm-generic-add-need_sg_dma_length-to-define-sg_dma_len.patch
+x86_32-use-asm-generic-scatterlisth.patch
+powerpc-use-asm-generic-scatterlisth.patch
+alpha-use-asm-generic-scatterlisth.patch
+asm-generic-remove-arch_has_sg_chain-in-scatterlisth.patch
+avr32-use-asm-generic-scatterlisth.patch
+cris-use-asm-generic-scatterlisth.patch
+h8300-use-asm-generic-scatterlisth.patch
+m32r-use-use-asm-generic-scatterlisth.patch
+m68k-use-asm-generic-scatterlisth.patch
+mips-use-use-asm-generic-scatterlisth.patch
+xtensa-use-use-asm-generic-scatterlisth.patch
+blackfin-use-use-asm-generic-scatterlisth.patch
+frv-use-asm-generic-scatterlisth.patch
+mn10300-use-asm-generic-scatterlisth.patch
+parisc-use-asm-generic-scatterlisth.patch
 
