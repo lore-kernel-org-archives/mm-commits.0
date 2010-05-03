@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-remove-all_unreclaimable-scan-control.patch added to -mm tree
-Date: Mon, 03 May 2010 14:44:43 -0700
-Message-ID: <201005032144.o43LihnX023366@imap1.linux-foundation.org>
+Subject: + vmscan-remove-may_swap-scan-control.patch added to -mm tree
+Date: Mon, 03 May 2010 14:44:47 -0700
+Message-ID: <201005032144.o43Lil5h023374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757337Ab0ECVpz (ORCPT
+	by vger.kernel.org with ESMTP id S1756146Ab0ECVpz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 17:45:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redh
 
 
 The patch titled
-     vmscan: remove all_unreclaimable scan control
+     vmscan: remove may_swap scan control
 has been added to the -mm tree.  Its filename is
-     vmscan-remove-all_unreclaimable-scan-control.patch
+     vmscan-remove-may_swap-scan-control.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: remove all_unreclaimable scan control
+Subject: vmscan: remove may_swap scan control
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-This scan control is abused to communicate a return value from
-shrink_zones().  Write this idiomatically and remove the knob.
+The may_swap scan control flag can be naturally merged into the swappiness
+parameter: swap only if swappiness is non-zero.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -46,77 +46,167 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/swap.h |    4 ++--
+ mm/memcontrol.c      |   13 +++++++++----
+ mm/vmscan.c          |   27 +++++++++------------------
+ 3 files changed, 20 insertions(+), 24 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-remove-all_unreclaimable-scan-control mm/vmscan.c
---- a/mm/vmscan.c~vmscan-remove-all_unreclaimable-scan-control
-+++ a/mm/vmscan.c
-@@ -70,8 +70,6 @@ struct scan_control {
+diff -puN include/linux/swap.h~vmscan-remove-may_swap-scan-control include/linux/swap.h
+--- a/include/linux/swap.h~vmscan-remove-may_swap-scan-control
++++ a/include/linux/swap.h
+@@ -248,10 +248,10 @@ static inline void lru_cache_add_active_
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+-						  gfp_t gfp_mask, bool noswap,
++						  gfp_t gfp_mask,
+ 						  unsigned int swappiness);
+ extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
+-						gfp_t gfp_mask, bool noswap,
++						gfp_t gfp_mask,
+ 						unsigned int swappiness,
+ 						struct zone *zone,
+ 						int nid);
+diff -puN mm/memcontrol.c~vmscan-remove-may_swap-scan-control mm/memcontrol.c
+--- a/mm/memcontrol.c~vmscan-remove-may_swap-scan-control
++++ a/mm/memcontrol.c
+@@ -1205,6 +1205,8 @@ static int mem_cgroup_hierarchical_recla
+ 		noswap = true;
  
+ 	while (1) {
++		unsigned int swappiness;
++
+ 		victim = mem_cgroup_select_victim(root_mem);
+ 		if (victim == root_mem) {
+ 			loop++;
+@@ -1239,13 +1241,16 @@ static int mem_cgroup_hierarchical_recla
+ 			continue;
+ 		}
+ 		/* we use swappiness of local cgroup */
++		if (noswap)
++			swappiness = 0;
++		else
++			swappiness = get_swappiness(victim);
+ 		if (check_soft)
+ 			ret = mem_cgroup_shrink_node_zone(victim, gfp_mask,
+-				noswap, get_swappiness(victim), zone,
+-				zone->zone_pgdat->node_id);
++				swappiness, zone, zone->zone_pgdat->node_id);
+ 		else
+ 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
+-						noswap, get_swappiness(victim));
++							swappiness);
+ 		css_put(&victim->css);
+ 		/*
+ 		 * At shrinking usage, we can't check we should stop here or
+@@ -2869,7 +2874,7 @@ try_to_free:
+ 			goto out;
+ 		}
+ 		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
+-						false, get_swappiness(mem));
++							get_swappiness(mem));
+ 		if (!progress) {
+ 			nr_retries--;
+ 			/* maybe some writeback is necessary */
+diff -puN mm/vmscan.c~vmscan-remove-may_swap-scan-control mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-remove-may_swap-scan-control
++++ a/mm/vmscan.c
+@@ -65,9 +65,6 @@ struct scan_control {
+ 
+ 	int may_writepage;
+ 
+-	/* Can pages be swapped as part of reclaim? */
+-	int may_swap;
+-
  	int swappiness;
  
--	int all_unreclaimable;
--
  	int order;
+@@ -1545,7 +1542,7 @@ static void get_scan_count(struct zone *
+ 	int noswap = 0;
  
- 	int lumpy_reclaim;
-@@ -1701,14 +1699,14 @@ static void shrink_zone(int priority, st
-  * If a zone is deemed to be full of pinned pages then just give it a light
-  * scan then give up on it.
-  */
--static void shrink_zones(int priority, struct zonelist *zonelist,
-+static int shrink_zones(int priority, struct zonelist *zonelist,
- 					struct scan_control *sc)
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+-	if (!sc->may_swap || (nr_swap_pages <= 0)) {
++	if (!sc->swappiness || (nr_swap_pages <= 0)) {
+ 		noswap = 1;
+ 		fraction[0] = 0;
+ 		fraction[1] = 1;
+@@ -1870,7 +1867,6 @@ unsigned long try_to_free_pages(struct z
+ 		.gfp_mask = gfp_mask,
+ 		.may_writepage = !laptop_mode,
+ 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
+-		.may_swap = 1,
+ 		.swappiness = vm_swappiness,
+ 		.order = order,
+ 		.mem_cgroup = NULL,
+@@ -1883,13 +1879,11 @@ unsigned long try_to_free_pages(struct z
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 
+ unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
+-						gfp_t gfp_mask, bool noswap,
+-						unsigned int swappiness,
+-						struct zone *zone, int nid)
++					gfp_t gfp_mask, unsigned int swappiness,
++					struct zone *zone, int nid)
  {
- 	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
- 	struct zoneref *z;
- 	struct zone *zone;
-+	int progress = 0;
- 
--	sc->all_unreclaimable = 1;
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
- 					sc->nodemask) {
- 		if (!populated_zone(zone))
-@@ -1724,19 +1722,19 @@ static void shrink_zones(int priority, s
- 
- 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
- 				continue;	/* Let kswapd poll it */
--			sc->all_unreclaimable = 0;
- 		} else {
- 			/*
- 			 * Ignore cpuset limitation here. We just want to reduce
- 			 * # of used pages by us regardless of memory shortage.
- 			 */
--			sc->all_unreclaimable = 0;
- 			mem_cgroup_note_reclaim_priority(sc->mem_cgroup,
- 							priority);
- 		}
- 
- 		shrink_zone(priority, zone, sc);
-+		progress = 1;
- 	}
-+	return progress;
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+-		.may_swap = !noswap,
+ 		.swappiness = swappiness,
+ 		.order = 0,
+ 		.mem_cgroup = mem,
+@@ -1913,14 +1907,11 @@ unsigned long mem_cgroup_shrink_node_zon
  }
  
- /*
-@@ -1789,7 +1787,7 @@ static unsigned long do_try_to_free_page
- 		sc->nr_scanned = 0;
- 		if (!priority)
- 			disable_swap_token();
--		shrink_zones(priority, zonelist, sc);
-+		ret = shrink_zones(priority, zonelist, sc);
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
+-					   gfp_t gfp_mask,
+-					   bool noswap,
+-					   unsigned int swappiness)
++					gfp_t gfp_mask, unsigned int swappiness)
+ {
+ 	struct zonelist *zonelist;
+ 	struct scan_control sc = {
+ 		.may_writepage = !laptop_mode,
+-		.may_swap = !noswap,
+ 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
+ 		.swappiness = swappiness,
+ 		.order = 0,
+@@ -1992,7 +1983,6 @@ static unsigned long balance_pgdat(pg_da
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+-		.may_swap = 1,
  		/*
- 		 * Don't shrink slabs when reclaiming memory from
- 		 * over limit cgroups
-@@ -1826,7 +1824,7 @@ static unsigned long do_try_to_free_page
- 			congestion_wait(BLK_RW_ASYNC, HZ/10);
- 	}
- 	/* top priority shrink_zones still had more to do? don't OOM, then */
--	if (!sc->all_unreclaimable && scanning_global_lru(sc))
-+	if (ret && scanning_global_lru(sc))
- 		ret = sc->nr_reclaimed;
- out:
+ 		 * kswapd doesn't want to be bailed out while reclaim. because
+ 		 * we want to put equal scanning pressure on each zone.
+@@ -2372,7 +2362,6 @@ unsigned long shrink_all_memory(unsigned
+ 	struct reclaim_state reclaim_state;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_HIGHUSER_MOVABLE,
+-		.may_swap = 1,
+ 		.may_writepage = 1,
+ 		.nr_to_reclaim = nr_to_reclaim,
+ 		.hibernation_mode = 1,
+@@ -2554,16 +2543,18 @@ static int __zone_reclaim(struct zone *z
+ 	struct reclaim_state reclaim_state;
+ 	int priority;
+ 	struct scan_control sc = {
+-		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+-		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+ 		.nr_to_reclaim = max_t(unsigned long, nr_pages,
+ 				       SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
+-		.swappiness = vm_swappiness,
+ 		.order = order,
+ 	};
+ 	unsigned long slab_reclaimable;
+ 
++	if (zone_reclaim_mode & RECLAIM_WRITE)
++		sc.may_writepage = 1;
++	if (zone_reclaim_mode & RECLAIM_SWAP)
++		sc.swappiness = vm_swappiness;
++
+ 	disable_swap_token();
+ 	cond_resched();
  	/*
 _
 
