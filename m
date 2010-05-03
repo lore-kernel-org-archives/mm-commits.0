@@ -1,118 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch removed from -mm tree
-Date: Mon, 03 May 2010 13:09:43 -0400
-Message-ID: <201005032011.o43KBEX2019180@imap1.linux-foundation.org>
+Subject: [merged] bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:51 -0400
+Message-ID: <201005032011.o43KBMLj019197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756642Ab0ECUL0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756716Ab0ECUL0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: huangj@Brocade.com, James.Bottomley@HansenPartnership.comhuangj@Brocade.com, kgudipat@Brocade.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/arm/include/asm/elf.h: forward-declare the task-struct
+     bfa: fix compilation warning and endianness issues in powerpc
 has been removed from the -mm tree.  Its filename was
-     arch-arm-include-asm-elfh-forward-declare-the-task-struct.patch
+     bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/arm/include/asm/elf.h: forward-declare the task-struct
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bfa: fix compilation warning and endianness issues in powerpc
+From: Jing Huang <huangj@Brocade.com>
 
-iop32x_defconfig:
+Fix the compilation warning in powerpc:
 
-In file included from include/linux/elf.h:7,
-                 from kernel/elfcore.c:1:
-arch/arm/include/asm/elf.h:101: warning: "struct task_struct" declared inside parameter list
-arch/arm/include/asm/elf.h:101: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/scsi/bfa/bfa_ioc.c: In function 'bfa_ioc_msgget':
+drivers/scsi/bfa/bfa_ioc.c:1331: warning: value computed is not used
+drivers/scsi/bfa/bfa_ioc_ct.c: In function 'bfa_ioc_ct_notify_hbfail':
+drivers/scsi/bfa/bfa_ioc_ct.c:177: warning: value computed is not used
+drivers/scsi/bfa/bfa_ioc_ct.c:180: warning: value computed is not used
+drivers/scsi/bfa/bfa_ioc_ct.c: In function 'bfa_ioc_ct_pll_init':
+drivers/scsi/bfa/bfa_ioc_ct.c:381: warning: value computed is not used
+drivers/scsi/bfa/bfa_ioc_ct.c: In function 'bfa_ioc_ct_ownership_reset':
+drivers/scsi/bfa/bfa_ioc_ct.c:421: warning: value computed is not used
+drivers/scsi/bfa/bfa_ioc_cb.c: In function 'bfa_ioc_cb_notify_hbfail':
+drivers/scsi/bfa/bfa_ioc_cb.c:99: warning: value computed is not used
+drivers/scsi/bfa/bfa_ioc_cb.c: In function 'bfa_ioc_cb_ownership_reset':
+drivers/scsi/bfa/bfa_ioc_cb.c:272: warning: value computed is not used
 
-Cc: Russell King <rmk@arm.linux.org.uk>
+The same change also fixes endian issues we found in powerpc test.  I
+remove an unnecessary word swap in bfa_os_reg_read() and
+bfa_os_reg_write() because the kernel provided readl and writel are
+already doing so.  The compilation warning also goes away after this
+change.  For bfa_os_mem_read() and bfa_os_mem_write() macros, I add a swap
+since these two macros are designed to read/write from/to a memory region
+that is in BE format per ASIC spec.
+
+This patch has been tested in x86 and powerpc platform.
+
+Signed-off-by: Jing Huang <huangj@brocade.com>
+Cc: Jing Huang <huangj@brocade.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Krishna Gudipati <kgudipat@brocade.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/elf.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/scsi/bfa/bfa_os_inc.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/include/asm/elf.h~arch-arm-include-asm-elfh-forward-declare-the-task-struct arch/arm/include/asm/elf.h
---- a/arch/arm/include/asm/elf.h~arch-arm-include-asm-elfh-forward-declare-the-task-struct
-+++ a/arch/arm/include/asm/elf.h
-@@ -9,6 +9,8 @@
- #include <asm/ptrace.h>
- #include <asm/user.h>
+diff -puN drivers/scsi/bfa/bfa_os_inc.h~bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc drivers/scsi/bfa/bfa_os_inc.h
+--- a/drivers/scsi/bfa/bfa_os_inc.h~bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc
++++ a/drivers/scsi/bfa/bfa_os_inc.h
+@@ -176,12 +176,12 @@ int bfa_os_MWB(void *);
+ #define bfa_os_addr_t char __iomem *
+ #define bfa_os_panic()
  
-+struct task_struct;
-+
- typedef unsigned long elf_greg_t;
- typedef unsigned long elf_freg_t[3];
+-#define bfa_os_reg_read(_raddr) bfa_os_wtole(readl(_raddr))
+-#define bfa_os_reg_write(_raddr, _val) writel(bfa_os_wtole((_val)), (_raddr))
++#define bfa_os_reg_read(_raddr) readl(_raddr)
++#define bfa_os_reg_write(_raddr, _val) writel((_val), (_raddr))
+ #define bfa_os_mem_read(_raddr, _off)                                   \
+-	bfa_os_ntohl(readl(((_raddr) + (_off))))
++	bfa_os_swap32(readl(((_raddr) + (_off))))
+ #define bfa_os_mem_write(_raddr, _off, _val)                            \
+-	writel(bfa_os_htonl((_val)), ((_raddr) + (_off)))
++	writel(bfa_os_swap32((_val)), ((_raddr) + (_off)))
  
+ #define BFA_TRC_TS(_trcm)						\
+ 			({						\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from huangj@Brocade.com are
 
-origin.patch
 linux-next.patch
-linux-next-fix-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-jfs-free-sbi-memory-in-error-path.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-dib7000p-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
 
