@@ -1,90 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc.patch removed from -mm tree
-Date: Mon, 03 May 2010 13:09:51 -0400
-Message-ID: <201005032011.o43KBMLj019197@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:48 -0400
+Message-ID: <201005032011.o43KBJpF019191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756716Ab0ECUL0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:26 -0400
+	by vger.kernel.org with ESMTP id S1756660Ab0ECUL3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huangj@Brocade.com, James.Bottomley@HansenPartnership.comhuangj@Brocade.com, kgudipat@Brocade.com, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@jp.fujitsu.com, James.Bottomley@HansenPartnership.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bfa: fix compilation warning and endianness issues in powerpc
+     drivers/scsi/scsi_sysfs.c: fix sdev_rw_attr macro for scsi device sysfs entries
 has been removed from the -mm tree.  Its filename was
-     bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc.patch
+     drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bfa: fix compilation warning and endianness issues in powerpc
-From: Jing Huang <huangj@Brocade.com>
+Subject: drivers/scsi/scsi_sysfs.c: fix sdev_rw_attr macro for scsi device sysfs entries
+From: Tomohiro Kusumi <kusumi.tomohiro@jp.fujitsu.com>
 
-Fix the compilation warning in powerpc:
+Fix the sdev_rw_attr() macro for scsi device sysfs entries.  It seems
+there is no such function snscanf in the current linux kernel, so it fails
+to compile scsi driver when someone try to add a new rw entry.  This has
+been unfixed for a long time probably because current scsi device has no
+rw entries.
 
-drivers/scsi/bfa/bfa_ioc.c: In function 'bfa_ioc_msgget':
-drivers/scsi/bfa/bfa_ioc.c:1331: warning: value computed is not used
-drivers/scsi/bfa/bfa_ioc_ct.c: In function 'bfa_ioc_ct_notify_hbfail':
-drivers/scsi/bfa/bfa_ioc_ct.c:177: warning: value computed is not used
-drivers/scsi/bfa/bfa_ioc_ct.c:180: warning: value computed is not used
-drivers/scsi/bfa/bfa_ioc_ct.c: In function 'bfa_ioc_ct_pll_init':
-drivers/scsi/bfa/bfa_ioc_ct.c:381: warning: value computed is not used
-drivers/scsi/bfa/bfa_ioc_ct.c: In function 'bfa_ioc_ct_ownership_reset':
-drivers/scsi/bfa/bfa_ioc_ct.c:421: warning: value computed is not used
-drivers/scsi/bfa/bfa_ioc_cb.c: In function 'bfa_ioc_cb_notify_hbfail':
-drivers/scsi/bfa/bfa_ioc_cb.c:99: warning: value computed is not used
-drivers/scsi/bfa/bfa_ioc_cb.c: In function 'bfa_ioc_cb_ownership_reset':
-drivers/scsi/bfa/bfa_ioc_cb.c:272: warning: value computed is not used
+# grep snscanf . -rn
+./drivers/scsi/scsi_sysfs.c:489:        snscanf (buf, 20, format_string, &sdev->field);                 \
 
-The same change also fixes endian issues we found in powerpc test.  I
-remove an unnecessary word swap in bfa_os_reg_read() and
-bfa_os_reg_write() because the kernel provided readl and writel are
-already doing so.  The compilation warning also goes away after this
-change.  For bfa_os_mem_read() and bfa_os_mem_write() macros, I add a swap
-since these two macros are designed to read/write from/to a memory region
-that is in BE format per ASIC spec.
-
-This patch has been tested in x86 and powerpc platform.
-
-Signed-off-by: Jing Huang <huangj@brocade.com>
-Cc: Jing Huang <huangj@brocade.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@jp.fujitsu.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Krishna Gudipati <kgudipat@brocade.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/bfa/bfa_os_inc.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/scsi_sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/bfa/bfa_os_inc.h~bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc drivers/scsi/bfa/bfa_os_inc.h
---- a/drivers/scsi/bfa/bfa_os_inc.h~bfa-fix-compilation-warning-and-endianness-bugs-in-powerpc
-+++ a/drivers/scsi/bfa/bfa_os_inc.h
-@@ -176,12 +176,12 @@ int bfa_os_MWB(void *);
- #define bfa_os_addr_t char __iomem *
- #define bfa_os_panic()
+diff -puN drivers/scsi/scsi_sysfs.c~drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~drivers-scsi-scsi_sysfsc-fix-sdev_rw_attr-macro-for-scsi-device-sysfs-entries
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -474,7 +474,7 @@ static DEVICE_ATTR(field, S_IRUGO, sdev_
  
--#define bfa_os_reg_read(_raddr) bfa_os_wtole(readl(_raddr))
--#define bfa_os_reg_write(_raddr, _val) writel(bfa_os_wtole((_val)), (_raddr))
-+#define bfa_os_reg_read(_raddr) readl(_raddr)
-+#define bfa_os_reg_write(_raddr, _val) writel((_val), (_raddr))
- #define bfa_os_mem_read(_raddr, _off)                                   \
--	bfa_os_ntohl(readl(((_raddr) + (_off))))
-+	bfa_os_swap32(readl(((_raddr) + (_off))))
- #define bfa_os_mem_write(_raddr, _off, _val)                            \
--	writel(bfa_os_htonl((_val)), ((_raddr) + (_off)))
-+	writel(bfa_os_swap32((_val)), ((_raddr) + (_off)))
  
- #define BFA_TRC_TS(_trcm)						\
- 			({						\
+ /*
+- * sdev_rd_attr: create a function and attribute variable for a
++ * sdev_rw_attr: create a function and attribute variable for a
+  * read/write field.
+  */
+ #define sdev_rw_attr(field, format_string)				\
+@@ -486,7 +486,7 @@ sdev_store_##field (struct device *dev, 
+ {									\
+ 	struct scsi_device *sdev;					\
+ 	sdev = to_scsi_device(dev);					\
+-	snscanf (buf, 20, format_string, &sdev->field);			\
++	sscanf(buf, format_string, &sdev->field);			\
+ 	return count;							\
+ }									\
+ static DEVICE_ATTR(field, S_IRUGO | S_IWUSR, sdev_show_##field, sdev_store_##field);
 _
 
-Patches currently in -mm which might be from huangj@Brocade.com are
+Patches currently in -mm which might be from kusumi.tomohiro@jp.fujitsu.com are
 
 linux-next.patch
 
