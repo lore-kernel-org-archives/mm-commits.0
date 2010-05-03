@@ -1,70 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tosa_battery-fix-build-error.patch removed from -mm tree
-Date: Mon, 03 May 2010 13:09:37 -0400
-Message-ID: <201005032011.o43KB8lB019170@imap1.linux-foundation.org>
+Subject: [merged] arch-arm-plat-pxa-dmac-correct-null-test.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:40 -0400
+Message-ID: <201005032011.o43KBB4C019176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756660Ab0ECULz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:55 -0400
+	by vger.kernel.org with ESMTP id S1756660Ab0ECULv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbaryshkov@gmail.com, cbou@mail.ru, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, eric.y.miao@gmail.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tosa_battery: fix build error
+     arch/arm/plat-pxa/dma.c: correct NULL test
 has been removed from the -mm tree.  Its filename was
-     tosa_battery-fix-build-error.patch
+     arch-arm-plat-pxa-dmac-correct-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tosa_battery: fix build error
-From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Subject: arch/arm/plat-pxa/dma.c: correct NULL test
+From: Julia Lawall <julia@diku.dk>
 
--ENOCHANGELOG
+Test the just-allocated value for NULL rather than some other value.
 
-Signed-off-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression x,y;
+statement S;
+@@
+
+x = \(kmalloc\|kcalloc\|kzalloc\)(...);
+(
+if ((x) == NULL) S
+|
+if (
+-   y
++   x
+       == NULL)
+ S
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Eric Miao <eric.y.miao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/tosa_battery.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/plat-pxa/dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/power/tosa_battery.c~tosa_battery-fix-build-error drivers/power/tosa_battery.c
---- a/drivers/power/tosa_battery.c~tosa_battery-fix-build-error
-+++ a/drivers/power/tosa_battery.c
-@@ -61,7 +61,7 @@ static unsigned long tosa_read_bat(struc
- 	mutex_lock(&bat_lock);
- 	gpio_set_value(bat->gpio_bat, 1);
- 	msleep(5);
--	value = wm97xx_read_aux_adc(bat->psy.dev->parent->driver_data,
-+	value = wm97xx_read_aux_adc(dev_get_drvdata(bat->psy.dev->parent),
- 			bat->adc_bat);
- 	gpio_set_value(bat->gpio_bat, 0);
- 	mutex_unlock(&bat_lock);
-@@ -81,7 +81,7 @@ static unsigned long tosa_read_temp(stru
- 	mutex_lock(&bat_lock);
- 	gpio_set_value(bat->gpio_temp, 1);
- 	msleep(5);
--	value = wm97xx_read_aux_adc(bat->psy.dev->parent->driver_data,
-+	value = wm97xx_read_aux_adc(dev_get_drvdata(bat->psy.dev->parent),
- 			bat->adc_temp);
- 	gpio_set_value(bat->gpio_temp, 0);
- 	mutex_unlock(&bat_lock);
+diff -puN arch/arm/plat-pxa/dma.c~arch-arm-plat-pxa-dmac-correct-null-test arch/arm/plat-pxa/dma.c
+--- a/arch/arm/plat-pxa/dma.c~arch-arm-plat-pxa-dmac-correct-null-test
++++ a/arch/arm/plat-pxa/dma.c
+@@ -245,7 +245,7 @@ static void pxa_dma_init_debugfs(void)
+ 
+ 	dbgfs_chan = kmalloc(sizeof(*dbgfs_state) * num_dma_channels,
+ 			     GFP_KERNEL);
+-	if (!dbgfs_state)
++	if (!dbgfs_chan)
+ 		goto err_alloc;
+ 
+ 	chandir = debugfs_create_dir("channels", dbgfs_root);
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
+origin.patch
 linux-next.patch
-gpiolib-introduce-chip-addition-removal-notifier.patch
-of-gpio-add-support-for-two-stage-registration-for-the-of_gpio_chips.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-powerpc-mcu_mpc8349emitx-remove-of-gpio-handling-stuff.patch
+arch-x86-pci-use-kasprintf.patch
+drivers-media-video-avoid-null-dereference.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-char-ppdevc-use-kasprintf.patch
+drivers-edac-introduce-missing-kfree.patch
 
