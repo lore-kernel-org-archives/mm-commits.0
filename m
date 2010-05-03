@@ -1,101 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-use-asm-generic-scatterlisth.patch removed from -mm tree
-Date: Mon, 03 May 2010 13:09:57 -0400
-Message-ID: <201005032011.o43KBSjK019212@imap1.linux-foundation.org>
+Subject: [merged] libertastf-add-configurable-debug-messages-fix.patch removed from -mm tree
+Date: Mon, 03 May 2010 13:09:54 -0400
+Message-ID: <201005032011.o43KBPwL019207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756721Ab0ECULg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:36 -0400
+	by vger.kernel.org with ESMTP id S1756660Ab0ECULm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 May 2010 16:11:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, steve@cozybit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: use asm-generic/scatterlist.h
+     "libertastf: add configurable debug messages" fix
 has been removed from the -mm tree.  Its filename was
-     arm-use-asm-generic-scatterlisth.patch
+     libertastf-add-configurable-debug-messages-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: use asm-generic/scatterlist.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: "libertastf: add configurable debug messages" fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Russell King <linux@arm.linux.org.uk>
+In file included from drivers/net/wireless/libertas_tf/main.c:12:
+drivers/net/wireless/libertas_tf/deb_defs.h:12:1: warning: "pr_fmt" redefined
+In file included from /usr/src/devel/arch/x86/include/asm/percpu.h:44,
+                 from /usr/src/devel/arch/x86/include/asm/current.h:5,
+                 from /usr/src/devel/arch/x86/include/asm/processor.h:15,
+                 from /usr/src/devel/arch/x86/include/asm/thread_info.h:22,
+                 from include/linux/thread_info.h:56,
+                 from include/linux/preempt.h:9,
+                 from include/linux/spinlock.h:50,
+                 from include/linux/mmzone.h:7,
+                 from include/linux/gfp.h:4,
+                 from include/linux/slab.h:12,
+                 from drivers/net/wireless/libertas_tf/main.c:10:
+include/linux/kernel.h:376:1: warning: this is the location of the previous definition
+
+Cc: Steve deRosier <steve@cozybit.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/scatterlist.h |   20 ++------------------
- 1 file changed, 2 insertions(+), 18 deletions(-)
+ drivers/net/wireless/libertas_tf/deb_defs.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/arm/include/asm/scatterlist.h~arm-use-asm-generic-scatterlisth arch/arm/include/asm/scatterlist.h
---- a/arch/arm/include/asm/scatterlist.h~arm-use-asm-generic-scatterlisth
-+++ a/arch/arm/include/asm/scatterlist.h
-@@ -4,24 +4,8 @@
- #include <asm/memory.h>
- #include <asm/types.h>
+diff -puN drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix drivers/net/wireless/libertas_tf/deb_defs.h
+--- a/drivers/net/wireless/libertas_tf/deb_defs.h~libertastf-add-configurable-debug-messages-fix
++++ a/drivers/net/wireless/libertas_tf/deb_defs.h
+@@ -9,8 +9,6 @@
+ #define DRV_NAME "libertas_tf"
+ #endif
  
--struct scatterlist {
--#ifdef CONFIG_DEBUG_SG
--	unsigned long	sg_magic;
--#endif
--	unsigned long	page_link;
--	unsigned int	offset;		/* buffer offset		 */
--	dma_addr_t	dma_address;	/* dma address			 */
--	unsigned int	length;		/* length			 */
--};
-+#include <asm-generic/scatterlist.h>
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include <linux/spinlock.h>
  
--/*
-- * These macros should be used after a pci_map_sg call has been done
-- * to get bus addresses of each of the SG entries and their lengths.
-- * You should only work with the number of sg entries pci_map_sg
-- * returns, or alternatively stop on the first sg_dma_len(sg) which
-- * is 0.
-- */
--#define sg_dma_address(sg)      ((sg)->dma_address)
--#define sg_dma_len(sg)          ((sg)->length)
-+#undef ARCH_HAS_SG_CHAIN
- 
- #endif /* _ASMARM_SCATTERLIST_H */
+ #ifdef CONFIG_LIBERTAS_THINFIRM_DEBUG
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dma-mapping-fix-dma_sync_single_range_.patch
+origin.patch
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
-dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
-asm-generic-remove-isa_dma_threshold-in-scatterlisth.patch
-asm-generic-add-need_sg_dma_length-to-define-sg_dma_len.patch
+linux-next-fix-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+dib7000p-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
 x86_32-use-asm-generic-scatterlisth.patch
-powerpc-use-asm-generic-scatterlisth.patch
-alpha-use-asm-generic-scatterlisth.patch
-asm-generic-remove-arch_has_sg_chain-in-scatterlisth.patch
-avr32-use-asm-generic-scatterlisth.patch
-cris-use-asm-generic-scatterlisth.patch
-h8300-use-asm-generic-scatterlisth.patch
-m32r-use-use-asm-generic-scatterlisth.patch
-m68k-use-asm-generic-scatterlisth.patch
-mips-use-use-asm-generic-scatterlisth.patch
-xtensa-use-use-asm-generic-scatterlisth.patch
-blackfin-use-use-asm-generic-scatterlisth.patch
-frv-use-asm-generic-scatterlisth.patch
-mn10300-use-asm-generic-scatterlisth.patch
-parisc-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
