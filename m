@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-typos-and-minor-edits.patch added to -mm tree
-Date: Tue, 04 May 2010 16:25:09 -0700
-Message-ID: <201005042325.o44NPAkI025139@imap1.linux-foundation.org>
+Subject: + rapidio-use-default-route-value-for-cps-switches.patch added to -mm tree
+Date: Tue, 04 May 2010 16:25:21 -0700
+Message-ID: <201005042325.o44NPLvG025158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934634Ab0EDXZ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 19:25:57 -0400
+	by vger.kernel.org with ESMTP id S934634Ab0EDX0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 19:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, m
 
 
 The patch titled
-     rapidio: fix typos and minor edits
+     rapidio: use default route value for CPS switches
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-typos-and-minor-edits.patch
+     rapidio-use-default-route-value-for-cps-switches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,8 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: fix typos and minor edits
+Subject: rapidio: use default route value for CPS switches
 From: Alexandre Bounine <alexandre.bounine@idt.com>
+
+Fix to use correct default value for routing table entries.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -44,53 +46,51 @@ Cc: Thomas Moll <thomas.moll@sysgo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c            |    1 -
- drivers/rapidio/switches/Kconfig |    8 ++++----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/rapidio/switches/idtcps.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-fix-typos-and-minor-edits drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-fix-typos-and-minor-edits
-+++ a/drivers/rapidio/rio.c
-@@ -445,7 +445,6 @@ static struct rio_dev *rio_get_comptag(u
- 	struct list_head *n;
- 	struct rio_dev *rdev;
+diff -puN drivers/rapidio/switches/idtcps.c~rapidio-use-default-route-value-for-cps-switches drivers/rapidio/switches/idtcps.c
+--- a/drivers/rapidio/switches/idtcps.c~rapidio-use-default-route-value-for-cps-switches
++++ a/drivers/rapidio/switches/idtcps.c
+@@ -15,7 +15,8 @@
+ #include <linux/rio_ids.h>
+ #include "../rio.h"
  
--	WARN_ON(in_interrupt());
- 	spin_lock(&rio_global_list_lock);
- 	n = from ? from->global_list.next : rio_devices.next;
+-#define CPS_NO_ROUTE 0xdf
++#define CPS_DEFAULT_ROUTE	0xde
++#define CPS_NO_ROUTE		0xdf
  
-diff -puN drivers/rapidio/switches/Kconfig~rapidio-fix-typos-and-minor-edits drivers/rapidio/switches/Kconfig
---- a/drivers/rapidio/switches/Kconfig~rapidio-fix-typos-and-minor-edits
-+++ a/drivers/rapidio/switches/Kconfig
-@@ -5,24 +5,24 @@ config RAPIDIO_TSI57X
- 	bool "IDT Tsi57x SRIO switches support"
- 	depends on RAPIDIO
- 	---help---
--	  Includes support for ITD Tsi57x family of serial RapidIO switches.
-+	  Includes support for IDT Tsi57x family of serial RapidIO switches.
+ #define IDTCPS_RIO_DOMAIN 0xf20020
  
- config RAPIDIO_CPS_XX
- 	bool "IDT CPS-xx SRIO switches support"
- 	depends on RAPIDIO
- 	---help---
--	  Includes support for ITD CPS-16/12/10/8 serial RapidIO switches.
-+	  Includes support for IDT CPS-16/12/10/8 serial RapidIO switches.
+@@ -53,10 +54,11 @@ idtcps_route_get_entry(struct rio_mport 
+ 		rio_mport_read_config_32(mport, destid, hopcount,
+ 				RIO_STD_RTE_CONF_PORT_SEL_CSR, &result);
  
- config RAPIDIO_TSI568
- 	bool "Tsi568 SRIO switch support"
- 	depends on RAPIDIO
- 	default n
- 	---help---
--	  Includes support for ITD Tsi568 serial RapidIO switch.
-+	  Includes support for IDT Tsi568 serial RapidIO switch.
+-		if (CPS_NO_ROUTE == (u8)result)
+-			result = RIO_INVALID_ROUTE;
+-
+-		*route_port = (u8)result;
++		if (CPS_DEFAULT_ROUTE == (u8)result ||
++		    CPS_NO_ROUTE == (u8)result)
++			*route_port = RIO_INVALID_ROUTE;
++		else
++			*route_port = (u8)result;
+ 	}
  
- config RAPIDIO_TSI500
- 	bool "Tsi500 Parallel RapidIO switch support"
- 	depends on RAPIDIO
- 	default n
- 	---help---
--	  Includes support for ITD Tsi500 parallel RapidIO switch.
-+	  Includes support for IDT Tsi500 parallel RapidIO switch.
+ 	return 0;
+@@ -74,9 +76,9 @@ idtcps_route_clr_table(struct rio_mport 
+ 				RIO_STD_RTE_CONF_DESTID_SEL_CSR, i);
+ 			rio_mport_write_config_32(mport, destid, hopcount,
+ 				RIO_STD_RTE_CONF_PORT_SEL_CSR,
+-				(RIO_INVALID_ROUTE << 24) |
+-				(RIO_INVALID_ROUTE << 16) |
+-				(RIO_INVALID_ROUTE << 8) | RIO_INVALID_ROUTE);
++				(CPS_DEFAULT_ROUTE << 24) |
++				(CPS_DEFAULT_ROUTE << 16) |
++				(CPS_DEFAULT_ROUTE << 8) | CPS_DEFAULT_ROUTE);
+ 			i += 4;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
