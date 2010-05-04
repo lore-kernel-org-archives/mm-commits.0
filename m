@@ -1,56 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch removed from -mm tree
-Date: Tue, 04 May 2010 11:28:23 -0400
-Message-ID: <201005041829.o44ITsKG011411@imap1.linux-foundation.org>
+Subject: [merged] cx231xx-improve-error-handling.patch removed from -mm tree
+Date: Tue, 04 May 2010 11:28:29 -0400
+Message-ID: <201005041830.o44IU0M4011420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932941Ab0EDSad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 14:30:33 -0400
+	by vger.kernel.org with ESMTP id S932269Ab0EDSiq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 14:38:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, laurent.pinchart@ideasonboard.com, luca.risolia@studio.unibo.it, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: error27@gmail.com, dougsland@redhat.com, laurent.pinchart@ideasonboard.com, mchehab@infradead.org, xyzzy@speakeasy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/sn9c102/sn9c102_core.c: improve error handling
+     cx231xx: improve error handling
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling.patch
+     cx231xx-improve-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/sn9c102/sn9c102_core.c: improve error handling
+Subject: cx231xx: improve error handling
 From: Dan Carpenter <error27@gmail.com>
 
-Return an error if the controller is not found.
+Return -EINVAL if we don't find the control id.
 
 Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/sn9c102/sn9c102_core.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/video/cx231xx/cx231xx-video.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/sn9c102/sn9c102_core.c~drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling drivers/media/video/sn9c102/sn9c102_core.c
---- a/drivers/media/video/sn9c102/sn9c102_core.c~drivers-media-video-sn9c102-sn9c102_corec-improve-error-handling
-+++ a/drivers/media/video/sn9c102/sn9c102_core.c
-@@ -2295,7 +2295,7 @@ sn9c102_vidioc_s_ctrl(struct sn9c102_dev
- 	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
- 		return -EFAULT;
- 
--	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
-+	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++) {
- 		if (ctrl.id == s->qctrl[i].id) {
- 			if (s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)
- 				return -EINVAL;
-@@ -2305,7 +2305,9 @@ sn9c102_vidioc_s_ctrl(struct sn9c102_dev
- 			ctrl.value -= ctrl.value % s->qctrl[i].step;
- 			break;
- 		}
+diff -puN drivers/media/video/cx231xx/cx231xx-video.c~cx231xx-improve-error-handling drivers/media/video/cx231xx/cx231xx-video.c
+--- a/drivers/media/video/cx231xx/cx231xx-video.c~cx231xx-improve-error-handling
++++ a/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -1902,9 +1902,12 @@ static int radio_queryctrl(struct file *
+ 	if (c->id < V4L2_CID_BASE || c->id >= V4L2_CID_LASTP1)
+ 		return -EINVAL;
+ 	if (c->id == V4L2_CID_AUDIO_MUTE) {
+-		for (i = 0; i < CX231XX_CTLS; i++)
++		for (i = 0; i < CX231XX_CTLS; i++) {
+ 			if (cx231xx_ctls[i].v.id == c->id)
+ 				break;
++		}
++		if (i == CX231XX_CTLS)
++			return -EINVAL;
+ 		*c = cx231xx_ctls[i].v;
+ 	} else
+ 		*c = no_ctl;
+_
+
+Patches currently in -mm which might be from error27@gmail.com are
+
+origin.patch
+linux-next.patch
+drivers-gpu-drm-via-via_videoc-fix-off-by-one-issue.patch
+drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+drivers-gpu-drm-drm_sysfsc-sysfs-files-error-handling.patch
+drivers-gpu-drm-drm_memoryc-fix-check-for-end-of-loop.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+mm-document-follow_page.patch
+dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
+sis-strcpy-=-strlcpy.patch
+proc-cleanup-remove-unused-assignments.patch
+fs-sysv-dereferencing-err_ptr.patch
+
