@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-split-device-discovery-and-registration.patch added to -mm tree
-Date: Tue, 04 May 2010 15:54:09 -0700
-Message-ID: <201005042254.o44Ms90u023800@imap1.linux-foundation.org>
+Subject: + ipmi-change-device-discovery-order.patch added to -mm tree
+Date: Tue, 04 May 2010 15:54:13 -0700
+Message-ID: <201005042254.o44MsDuQ023806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60605 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757833Ab0EDWyW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 18:54:22 -0400
+	by vger.kernel.org with ESMTP id S934524Ab0EDWy3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 18:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mjg@redhat.com, cminyard@mvista.com
 
 
 The patch titled
-     ipmi: split device discovery and registration
+     ipmi: change device discovery order
 has been added to the -mm tree.  Its filename is
-     ipmi-split-device-discovery-and-registration.patch
+     ipmi-change-device-discovery-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,302 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: split device discovery and registration
+Subject: ipmi: change device discovery order
 From: Matthew Garrett <mjg@redhat.com>
 
-The ipmi spec indicates that we should only make use of one si per bmc, so
-separate device discovery and registration to make that possible.
+The ipmi spec provides an ordering for si discovery.  Change the driver to
+match, with the exception of preferring smbios to SPMI as HPs (at least)
+contain accurate information in the former but not the latter.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |  126 +++++++++++++++++++----------
- 1 file changed, 84 insertions(+), 42 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-split-device-discovery-and-registration drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-split-device-discovery-and-registration
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-change-device-discovery-order drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-change-device-discovery-order
 +++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -308,6 +308,7 @@ static int num_max_busy_us;
- 
- static int unload_when_empty = 1;
- 
-+static int add_smi(struct smi_info *smi);
- static int try_smi_init(struct smi_info *smi);
- static void cleanup_one_si(struct smi_info *to_clean);
- 
-@@ -1785,7 +1786,9 @@ static int hotmod_handler(const char *va
- 				info->irq_setup = std_irq_setup;
- 			info->slave_addr = ipmb;
- 
--			try_smi_init(info);
-+			if (!add_smi(info))
-+				if (try_smi_init(info))
-+					cleanup_one_si(info);
- 		} else {
- 			/* remove */
- 			struct smi_info *e, *tmp_e;
-@@ -1871,7 +1874,9 @@ static __devinit void hardcode_find_bmc(
- 			info->irq_setup = std_irq_setup;
- 		info->slave_addr = slave_addrs[i];
- 
--		try_smi_init(info);
-+		if (!add_smi(info))
-+			if (try_smi_init(info))
-+				cleanup_one_si(info);
+@@ -3307,17 +3307,6 @@ static __devinit int init_ipmi_si(void)
  	}
- }
- 
-@@ -2069,7 +2074,7 @@ static __devinit int try_init_spmi(struc
- 	}
- 	info->io.addr_data = spmi->addr.address;
- 
--	try_smi_init(info);
-+	add_smi(info);
- 
- 	return 0;
- }
-@@ -2167,7 +2172,7 @@ static int __devinit ipmi_pnp_probe(stru
- 	info->dev = &acpi_dev->dev;
- 	pnp_set_drvdata(dev, info);
- 
--	return try_smi_init(info);
-+	return add_smi(info);
- 
- err_free:
- 	kfree(info);
-@@ -2326,7 +2331,7 @@ static __devinit void try_init_dmi(struc
- 	if (info->irq)
- 		info->irq_setup = std_irq_setup;
- 
--	try_smi_init(info);
-+	add_smi(info);
- }
- 
- static void __devinit dmi_find_bmc(void)
-@@ -2429,7 +2434,7 @@ static int __devinit ipmi_pci_probe(stru
- 	info->dev = &pdev->dev;
- 	pci_set_drvdata(pdev, info);
- 
--	return try_smi_init(info);
-+	return add_smi(info);
- }
- 
- static void __devexit ipmi_pci_remove(struct pci_dev *pdev)
-@@ -2542,7 +2547,7 @@ static int __devinit ipmi_of_probe(struc
- 
- 	dev_set_drvdata(&dev->dev, info);
- 
--	return try_smi_init(info);
-+	return add_smi(info);
- }
- 
- static int __devexit ipmi_of_remove(struct of_device *dev)
-@@ -2968,14 +2973,16 @@ static __devinit void default_find_bmc(v
- 		info->io.regsize = DEFAULT_REGSPACING;
- 		info->io.regshift = 0;
- 
--		if (try_smi_init(info) == 0) {
--			/* Found one... */
--			printk(KERN_INFO "ipmi_si: Found default %s state"
--			       " machine at %s address 0x%lx\n",
--			       si_to_str[info->si_type],
--			       addr_space_to_str[info->io.addr_type],
--			       info->io.addr_data);
--			return;
-+		if (add_smi(info) == 0) {
-+			if ((try_smi_init(info)) == 0) {
-+				/* Found one... */
-+				printk(KERN_INFO "ipmi_si: Found default %s"
-+				" state machine at %s address 0x%lx\n",
-+				si_to_str[info->si_type],
-+				addr_space_to_str[info->io.addr_type],
-+				info->io.addr_data);
-+			} else
-+				cleanup_one_si(info);
- 		}
- 	}
- }
-@@ -2994,32 +3001,48 @@ static int is_new_interface(struct smi_i
- 	return 1;
- }
- 
--static int try_smi_init(struct smi_info *new_smi)
-+static int add_smi(struct smi_info *new_smi)
- {
--	int rv;
--	int i;
--
--	printk(KERN_INFO "ipmi_si: Trying %s-specified %s state"
--	       " machine at %s address 0x%lx, slave address 0x%x,"
--	       " irq %d\n",
--	       ipmi_addr_src_to_str[new_smi->addr_source],
--	       si_to_str[new_smi->si_type],
--	       addr_space_to_str[new_smi->io.addr_type],
--	       new_smi->io.addr_data,
--	       new_smi->slave_addr, new_smi->irq);
-+	int rv = 0;
- 
-+	printk(KERN_INFO "ipmi_si: Adding %s-specified %s state machine",
-+			ipmi_addr_src_to_str[new_smi->addr_source],
-+			si_to_str[new_smi->si_type]);
- 	mutex_lock(&smi_infos_lock);
- 	if (!is_new_interface(new_smi)) {
--		printk(KERN_WARNING "ipmi_si: duplicate interface\n");
-+		printk(KERN_CONT ": duplicate interface\n");
- 		rv = -EBUSY;
- 		goto out_err;
- 	}
- 
-+	printk(KERN_CONT "\n");
-+
- 	/* So we know not to free it unless we have allocated one. */
- 	new_smi->intf = NULL;
- 	new_smi->si_sm = NULL;
- 	new_smi->handlers = NULL;
- 
-+	list_add_tail(&new_smi->link, &smi_infos);
-+
-+out_err:
-+	mutex_unlock(&smi_infos_lock);
-+	return rv;
-+}
-+
-+static int try_smi_init(struct smi_info *new_smi)
-+{
-+	int rv = 0;
-+	int i;
-+
-+	printk(KERN_INFO "ipmi_si: Trying %s-specified %s state"
-+	       " machine at %s address 0x%lx, slave address 0x%x,"
-+	       " irq %d\n",
-+	       ipmi_addr_src_to_str[new_smi->addr_source],
-+	       si_to_str[new_smi->si_type],
-+	       addr_space_to_str[new_smi->io.addr_type],
-+	       new_smi->io.addr_data,
-+	       new_smi->slave_addr, new_smi->irq);
-+
- 	switch (new_smi->si_type) {
- 	case SI_KCS:
- 		new_smi->handlers = &kcs_smi_handlers;
-@@ -3180,8 +3203,6 @@ static int try_smi_init(struct smi_info 
- 		goto out_err_stop_timer;
- 	}
- 
--	list_add_tail(&new_smi->link, &smi_infos);
--
  	mutex_unlock(&smi_infos_lock);
  
- 	printk(KERN_INFO "IPMI %s interface initialized\n",
-@@ -3194,11 +3215,17 @@ static int try_smi_init(struct smi_info 
- 	wait_for_timer_and_thread(new_smi);
- 
-  out_err:
--	if (new_smi->intf)
-+	new_smi->interrupt_disabled = 1;
-+
-+	if (new_smi->intf) {
- 		ipmi_unregister_smi(new_smi->intf);
-+		new_smi->intf = NULL;
-+	}
- 
--	if (new_smi->irq_cleanup)
-+	if (new_smi->irq_cleanup) {
- 		new_smi->irq_cleanup(new_smi);
-+		new_smi->irq_cleanup = NULL;
-+	}
- 
- 	/*
- 	 * Wait until we know that we are out of any interrupt
-@@ -3211,16 +3238,21 @@ static int try_smi_init(struct smi_info 
- 		if (new_smi->handlers)
- 			new_smi->handlers->cleanup(new_smi->si_sm);
- 		kfree(new_smi->si_sm);
-+		new_smi->si_sm = NULL;
- 	}
--	if (new_smi->addr_source_cleanup)
-+	if (new_smi->addr_source_cleanup) {
- 		new_smi->addr_source_cleanup(new_smi);
--	if (new_smi->io_cleanup)
-+		new_smi->addr_source_cleanup = NULL;
-+	}
-+	if (new_smi->io_cleanup) {
- 		new_smi->io_cleanup(new_smi);
-+		new_smi->io_cleanup = NULL;
-+	}
- 
--	if (new_smi->dev_registered)
-+	if (new_smi->dev_registered) {
- 		platform_device_unregister(new_smi->pdev);
+-#ifdef CONFIG_DMI
+-	dmi_find_bmc();
+-#endif
 -
--	kfree(new_smi);
-+		new_smi->dev_registered = 0;
-+	}
- 
- 	mutex_unlock(&smi_infos_lock);
- 
-@@ -3232,6 +3264,7 @@ static __devinit int init_ipmi_si(void)
- 	int  i;
- 	char *str;
- 	int  rv;
-+	struct smi_info *e;
- 
- 	if (initialized)
- 		return 0;
-@@ -3289,15 +3322,21 @@ static __devinit int init_ipmi_si(void)
- 	of_register_platform_driver(&ipmi_of_platform_driver);
+-#ifdef CONFIG_ACPI
+-	spmi_find_bmc();
+-#endif
+-#ifdef CONFIG_ACPI
+-	pnp_register_driver(&ipmi_pnp_driver);
+-#endif
+-
+ #ifdef CONFIG_PCI
+ 	rv = pci_register_driver(&ipmi_pci_driver);
+ 	if (rv)
+@@ -3326,6 +3315,18 @@ static __devinit int init_ipmi_si(void)
+ 		       rv);
  #endif
  
-+	mutex_lock(&smi_infos_lock);
-+	list_for_each_entry(e, &smi_infos, link) {
-+		if (!e->si_sm)
-+			try_smi_init(e);
-+	}
-+	mutex_unlock(&smi_infos_lock);
++#ifdef CONFIG_ACPI
++	pnp_register_driver(&ipmi_pnp_driver);
++#endif
 +
- 	if (si_trydefaults) {
- 		mutex_lock(&smi_infos_lock);
- 		if (list_empty(&smi_infos)) {
- 			/* No BMC was found, try defaults. */
- 			mutex_unlock(&smi_infos_lock);
- 			default_find_bmc();
--		} else {
-+		} else
- 			mutex_unlock(&smi_infos_lock);
--		}
- 	}
- 
- 	mutex_lock(&smi_infos_lock);
-@@ -3323,7 +3362,7 @@ module_init(init_ipmi_si);
- 
- static void cleanup_one_si(struct smi_info *to_clean)
- {
--	int           rv;
-+	int           rv = 0;
- 	unsigned long flags;
- 
- 	if (!to_clean)
-@@ -3367,14 +3406,17 @@ static void cleanup_one_si(struct smi_in
- 		schedule_timeout_uninterruptible(1);
- 	}
- 
--	rv = ipmi_unregister_smi(to_clean->intf);
-+	if (to_clean->intf)
-+		rv = ipmi_unregister_smi(to_clean->intf);
++#ifdef CONFIG_DMI
++	dmi_find_bmc();
++#endif
 +
- 	if (rv) {
- 		printk(KERN_ERR
- 		       "ipmi_si: Unable to unregister device: errno=%d\n",
- 		       rv);
- 	}
- 
--	to_clean->handlers->cleanup(to_clean->si_sm);
-+	if (to_clean->handlers)
-+		to_clean->handlers->cleanup(to_clean->si_sm);
- 
- 	kfree(to_clean->si_sm);
- 
++#ifdef CONFIG_ACPI
++	spmi_find_bmc();
++#endif
++
+ #ifdef CONFIG_PPC_OF
+ 	of_register_platform_driver(&ipmi_of_platform_driver);
+ #endif
 _
 
 Patches currently in -mm which might be from mjg@redhat.com are
