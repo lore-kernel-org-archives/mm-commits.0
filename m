@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev.patch added to -mm tree
-Date: Tue, 04 May 2010 13:14:22 -0700
-Message-ID: <201005042014.o44KENPQ015989@imap1.linux-foundation.org>
+Subject: + aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 04 May 2010 13:15:55 -0700
+Message-ID: <201005042015.o44KFu6Z016059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933608Ab0EDUOm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 16:14:42 -0400
+	by vger.kernel.org with ESMTP id S1753827Ab0EDUQJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 16:16:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, mjt@tls.msk.ru, stable@kernel.org, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, jmoyer@redhat.com
 
 
 The patch titled
-     compat: factor out compat_rw_copy_check_uvector from compat_do_readv_writev
+     aio-fix-the-compat-vectored-operations-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev.patch
+     aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,211 +33,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compat: factor out compat_rw_copy_check_uvector from compat_do_readv_writev
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: aio-fix-the-compat-vectored-operations-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It was reported in http://lkml.org/lkml/2010/3/8/309 that 32 bit readv and
-writev AIO operations were not functioning properly.  It turns out that
-the code to convert the 32bit io vectors to 64 bits was never written. 
-The results of that can be pretty bad, but in my testing, it mostly ended
-up in generating EFAULT as we walked off the list of I/O vectors provided.
+ERROR: "foo *__user * bar" should be "foo *__user *bar"
+#129: FILE: fs/aio.c:1650:
++		  struct iocb __user *__user * iocbpp, bool compat)
 
-This patch set fixes the problem in my environment.  are greatly
-appreciated.
+ERROR: space prohibited after that '*' (ctx:WxW)
+#129: FILE: fs/aio.c:1650:
++		  struct iocb __user *__user * iocbpp, bool compat)
+ 		                             ^
 
+ERROR: "foo *__user * bar" should be "foo *__user *bar"
+#187: FILE: include/linux/aio.h:216:
++			 struct iocb __user *__user * iocbpp, bool compat);
 
+ERROR: space prohibited after that '*' (ctx:WxW)
+#187: FILE: include/linux/aio.h:216:
++			 struct iocb __user *__user * iocbpp, bool compat);
+ 			                            ^
 
-This patch:
+ERROR: "foo * __user * bar" should be "foo * __user *bar"
+#196: FILE: include/linux/aio.h:225:
++				struct iocb __user * __user * iocbpp,
 
-Factor out code that will be used by both compat_do_readv_writev and the
-compat aio submission code paths.
+ERROR: space prohibited after that '*' (ctx:WxW)
+#196: FILE: include/linux/aio.h:225:
++				struct iocb __user * __user * iocbpp,
+ 				                            ^
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Michael Tokarev <mjt@tls.msk.ru>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: <stable@kernel.org>
+total: 6 errors, 0 warnings, 151 lines checked
+
+./patches/aio-fix-the-compat-vectored-operations.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c            |  130 +++++++++++++++++++++++----------------
- include/linux/compat.h |    4 +
- 2 files changed, 81 insertions(+), 53 deletions(-)
+ fs/aio.c            |    2 +-
+ include/linux/aio.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/compat.c~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev fs/compat.c
---- a/fs/compat.c~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev
-+++ a/fs/compat.c
-@@ -568,6 +568,79 @@ out:
- 	return ret;
+diff -puN fs/aio.c~aio-fix-the-compat-vectored-operations-checkpatch-fixes fs/aio.c
+--- a/fs/aio.c~aio-fix-the-compat-vectored-operations-checkpatch-fixes
++++ a/fs/aio.c
+@@ -1647,7 +1647,7 @@ out_put_req:
  }
  
-+/* A write operation does a read from user space and vice versa */
-+#define vrfy_dir(type) ((type) == READ ? VERIFY_WRITE : VERIFY_READ)
-+
-+ssize_t compat_rw_copy_check_uvector(int type,
-+		const struct compat_iovec __user *uvector, unsigned long nr_segs,
-+		unsigned long fast_segs, struct iovec *fast_pointer,
-+		struct iovec **ret_pointer)
-+{
-+	compat_ssize_t tot_len;
-+	struct iovec *iov = *ret_pointer = fast_pointer;
-+	ssize_t ret = 0;
-+	int seg;
-+
-+	/*
-+	 * SuS says "The readv() function *may* fail if the iovcnt argument
-+	 * was less than or equal to 0, or greater than {IOV_MAX}.  Linux has
-+	 * traditionally returned zero for zero segments, so...
-+	 */
-+	if (nr_segs == 0)
-+		goto out;
-+
-+	ret = -EINVAL;
-+	if (nr_segs > UIO_MAXIOV || nr_segs < 0)
-+		goto out;
-+	if (nr_segs > fast_segs) {
-+		ret = -ENOMEM;
-+		iov = kmalloc(nr_segs*sizeof(struct iovec), GFP_KERNEL);
-+		if (iov == NULL) {
-+			*ret_pointer = fast_pointer;
-+			goto out;
-+		}
-+	}
-+	*ret_pointer = iov;
-+
-+	/*
-+	 * Single unix specification:
-+	 * We should -EINVAL if an element length is not >= 0 and fitting an
-+	 * ssize_t.  The total length is fitting an ssize_t
-+	 *
-+	 * Be careful here because iov_len is a size_t not an ssize_t
-+	 */
-+	tot_len = 0;
-+	ret = -EINVAL;
-+	for (seg = 0; seg < nr_segs; seg++) {
-+		compat_ssize_t tmp = tot_len;
-+		compat_uptr_t buf;
-+		compat_ssize_t len;
-+
-+		if (__get_user(len, &uvector->iov_len) ||
-+		   __get_user(buf, &uvector->iov_base)) {
-+			ret = -EFAULT;
-+			goto out;
-+		}
-+		if (len < 0)	/* size_t not fitting in compat_ssize_t .. */
-+			goto out;
-+		tot_len += len;
-+		if (tot_len < tmp) /* maths overflow on the compat_ssize_t */
-+			goto out;
-+		if (!access_ok(vrfy_dir(type), buf, len)) {
-+			ret = -EFAULT;
-+			goto out;
-+		}
-+		iov->iov_base = compat_ptr(buf);
-+		iov->iov_len = (compat_size_t) len;
-+		uvector++;
-+		iov++;
-+	}
-+	ret = tot_len;
-+
-+out:
-+	return ret;
-+}
-+
- static inline long
- copy_iocb(long nr, u32 __user *ptr32, struct iocb __user * __user *ptr64)
+ long do_io_submit(aio_context_t ctx_id, long nr,
+-		  struct iocb __user *__user * iocbpp, bool compat)
++		  struct iocb __user *__user *iocbpp, bool compat)
  {
-@@ -1077,70 +1150,21 @@ static ssize_t compat_do_readv_writev(in
- {
- 	compat_ssize_t tot_len;
- 	struct iovec iovstack[UIO_FASTIOV];
--	struct iovec *iov=iovstack, *vector;
-+	struct iovec *iov;
- 	ssize_t ret;
--	int seg;
- 	io_fn_t fn;
- 	iov_fn_t fnv;
+ 	struct kioctx *ctx;
+ 	long ret = 0;
+diff -puN include/linux/aio.h~aio-fix-the-compat-vectored-operations-checkpatch-fixes include/linux/aio.h
+--- a/include/linux/aio.h~aio-fix-the-compat-vectored-operations-checkpatch-fixes
++++ a/include/linux/aio.h
+@@ -213,7 +213,7 @@ extern int aio_complete(struct kiocb *io
+ struct mm_struct;
+ extern void exit_aio(struct mm_struct *mm);
+ extern long do_io_submit(aio_context_t ctx_id, long nr,
+-			 struct iocb __user *__user * iocbpp, bool compat);
++			 struct iocb __user *__user *iocbpp, bool compat);
+ #else
+ static inline ssize_t wait_on_sync_kiocb(struct kiocb *iocb) { return 0; }
+ static inline int aio_put_req(struct kiocb *iocb) { return 0; }
+@@ -222,7 +222,7 @@ static inline int aio_complete(struct ki
+ struct mm_struct;
+ static inline void exit_aio(struct mm_struct *mm) { }
+ static inline long do_io_submit(aio_context_t ctx_id, long nr,
+-				struct iocb __user * __user * iocbpp,
++				struct iocb __user * __user *iocbpp,
+ 				bool compat) { }
+ #endif /* CONFIG_AIO */
  
--	/*
--	 * SuS says "The readv() function *may* fail if the iovcnt argument
--	 * was less than or equal to 0, or greater than {IOV_MAX}.  Linux has
--	 * traditionally returned zero for zero segments, so...
--	 */
--	ret = 0;
--	if (nr_segs == 0)
--		goto out;
--
--	/*
--	 * First get the "struct iovec" from user memory and
--	 * verify all the pointers
--	 */
- 	ret = -EINVAL;
--	if ((nr_segs > UIO_MAXIOV) || (nr_segs <= 0))
--		goto out;
- 	if (!file->f_op)
- 		goto out;
--	if (nr_segs > UIO_FASTIOV) {
--		ret = -ENOMEM;
--		iov = kmalloc(nr_segs*sizeof(struct iovec), GFP_KERNEL);
--		if (!iov)
--			goto out;
--	}
-+
- 	ret = -EFAULT;
- 	if (!access_ok(VERIFY_READ, uvector, nr_segs*sizeof(*uvector)))
- 		goto out;
- 
--	/*
--	 * Single unix specification:
--	 * We should -EINVAL if an element length is not >= 0 and fitting an
--	 * ssize_t.  The total length is fitting an ssize_t
--	 *
--	 * Be careful here because iov_len is a size_t not an ssize_t
--	 */
--	tot_len = 0;
--	vector = iov;
--	ret = -EINVAL;
--	for (seg = 0 ; seg < nr_segs; seg++) {
--		compat_ssize_t tmp = tot_len;
--		compat_ssize_t len;
--		compat_uptr_t buf;
--
--		if (__get_user(len, &uvector->iov_len) ||
--		    __get_user(buf, &uvector->iov_base)) {
--			ret = -EFAULT;
--			goto out;
--		}
--		if (len < 0)	/* size_t not fitting an compat_ssize_t .. */
--			goto out;
--		tot_len += len;
--		if (tot_len < tmp) /* maths overflow on the compat_ssize_t */
--			goto out;
--		vector->iov_base = compat_ptr(buf);
--		vector->iov_len = (compat_size_t) len;
--		uvector++;
--		vector++;
--	}
-+	tot_len = compat_rw_copy_check_uvector(type, uvector, nr_segs,
-+					       UIO_FASTIOV, iovstack, &iov);
- 	if (tot_len == 0) {
- 		ret = 0;
- 		goto out;
-diff -puN include/linux/compat.h~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev include/linux/compat.h
---- a/include/linux/compat.h~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev
-+++ a/include/linux/compat.h
-@@ -356,5 +356,9 @@ asmlinkage long compat_sys_newfstatat(un
- asmlinkage long compat_sys_openat(unsigned int dfd, const char __user *filename,
- 				  int flags, int mode);
- 
-+extern ssize_t compat_rw_copy_check_uvector(int type,
-+		const struct compat_iovec __user *uvector, unsigned long nr_segs,
-+		unsigned long fast_segs, struct iovec *fast_pointer,
-+		struct iovec **ret_pointer);
- #endif /* CONFIG_COMPAT */
- #endif /* _LINUX_COMPAT_H */
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev.patch
-aio-fix-the-compat-vectored-operations.patch
+origin.patch
+linux-next.patch
+linux-next-fix-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+dib7000p-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
