@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-the-compat-vectored-operations.patch added to -mm tree
-Date: Tue, 04 May 2010 13:14:27 -0700
-Message-ID: <201005042014.o44KEREk015996@imap1.linux-foundation.org>
+Subject: + compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev.patch added to -mm tree
+Date: Tue, 04 May 2010 13:14:22 -0700
+Message-ID: <201005042014.o44KENPQ015989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933681Ab0EDUOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 16:14:43 -0400
+	by vger.kernel.org with ESMTP id S933608Ab0EDUOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 16:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jmoyer@redhat.com, mjt@tls.msk.ru, stable@kernel.org, zach.brown@oracle.com
 
 
 The patch titled
-     aio: fix the compat vectored operations
+     compat: factor out compat_rw_copy_check_uvector from compat_do_readv_writev
 has been added to the -mm tree.  Its filename is
-     aio-fix-the-compat-vectored-operations.patch
+     compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,21 +33,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: fix the compat vectored operations
+Subject: compat: factor out compat_rw_copy_check_uvector from compat_do_readv_writev
 From: Jeff Moyer <jmoyer@redhat.com>
 
-The aio compat code was not converting the struct iovecs from 32bit to
-64bit pointers, causing either EINVAL to be returned from io_getevents, or
-EFAULT as the result of the I/O.  This patch passes a compat flag to
-io_submit to signal that pointer conversion is necessary for a given iocb
-array.
+It was reported in http://lkml.org/lkml/2010/3/8/309 that 32 bit readv and
+writev AIO operations were not functioning properly.  It turns out that
+the code to convert the 32bit io vectors to 64 bits was never written. 
+The results of that can be pretty bad, but in my testing, it mostly ended
+up in generating EFAULT as we walked off the list of I/O vectors provided.
 
-A variant of this was tested by Michael Tokarev.  I have also updated the
-libaio test harness to exercise this code path with good success. 
-Further, I grabbed a copy of ltp and ran the
-testcases/kernel/syscall/readv and writev tests there (compiled with -m32
-on my 64bit system).  All seems happy, but extra eyes on this would be
-welcome.
+This patch set fixes the problem in my environment.  are greatly
+appreciated.
+
+
+
+This patch:
+
+Factor out code that will be used by both compat_do_readv_writev and the
+compat aio submission code paths.
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Reported-by: Michael Tokarev <mjt@tls.msk.ru>
@@ -56,184 +59,181 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |   63 ++++++++++++++++++++++++++----------------
- fs/compat.c         |    2 -
- include/linux/aio.h |    5 +++
- 3 files changed, 45 insertions(+), 25 deletions(-)
+ fs/compat.c            |  130 +++++++++++++++++++++++----------------
+ include/linux/compat.h |    4 +
+ 2 files changed, 81 insertions(+), 53 deletions(-)
 
-diff -puN fs/aio.c~aio-fix-the-compat-vectored-operations fs/aio.c
---- a/fs/aio.c~aio-fix-the-compat-vectored-operations
-+++ a/fs/aio.c
-@@ -36,6 +36,7 @@
- #include <linux/blkdev.h>
- #include <linux/mempool.h>
- #include <linux/hash.h>
-+#include <linux/compat.h>
- 
- #include <asm/kmap_types.h>
- #include <asm/uaccess.h>
-@@ -1384,13 +1385,20 @@ static ssize_t aio_fsync(struct kiocb *i
+diff -puN fs/compat.c~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev fs/compat.c
+--- a/fs/compat.c~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev
++++ a/fs/compat.c
+@@ -568,6 +568,79 @@ out:
  	return ret;
  }
  
--static ssize_t aio_setup_vectored_rw(int type, struct kiocb *kiocb)
-+static ssize_t aio_setup_vectored_rw(int type, struct kiocb *kiocb, bool compat)
- {
- 	ssize_t ret;
- 
--	ret = rw_copy_check_uvector(type, (struct iovec __user *)kiocb->ki_buf,
--				    kiocb->ki_nbytes, 1,
--				    &kiocb->ki_inline_vec, &kiocb->ki_iovec);
-+	if (compat)
-+		ret = compat_rw_copy_check_uvector(type,
-+				(struct compat_iovec __user *)kiocb->ki_buf,
-+				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
-+				&kiocb->ki_iovec);
-+	else
-+		ret = rw_copy_check_uvector(type,
-+				(struct iovec __user *)kiocb->ki_buf,
-+				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
-+				&kiocb->ki_iovec);
- 	if (ret < 0)
- 		goto out;
- 
-@@ -1420,7 +1428,7 @@ static ssize_t aio_setup_single_vector(s
-  *	Performs the initial checks and aio retry method
-  *	setup for the kiocb at the time of io submission.
-  */
--static ssize_t aio_setup_iocb(struct kiocb *kiocb)
-+static ssize_t aio_setup_iocb(struct kiocb *kiocb, bool compat)
- {
- 	struct file *file = kiocb->ki_filp;
- 	ssize_t ret = 0;
-@@ -1469,7 +1477,7 @@ static ssize_t aio_setup_iocb(struct kio
- 		ret = security_file_permission(file, MAY_READ);
- 		if (unlikely(ret))
- 			break;
--		ret = aio_setup_vectored_rw(READ, kiocb);
-+		ret = aio_setup_vectored_rw(READ, kiocb, compat);
- 		if (ret)
- 			break;
- 		ret = -EINVAL;
-@@ -1483,7 +1491,7 @@ static ssize_t aio_setup_iocb(struct kio
- 		ret = security_file_permission(file, MAY_WRITE);
- 		if (unlikely(ret))
- 			break;
--		ret = aio_setup_vectored_rw(WRITE, kiocb);
-+		ret = aio_setup_vectored_rw(WRITE, kiocb, compat);
- 		if (ret)
- 			break;
- 		ret = -EINVAL;
-@@ -1548,7 +1556,8 @@ static void aio_batch_free(struct hlist_
- }
- 
- static int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
--			 struct iocb *iocb, struct hlist_head *batch_hash)
-+			 struct iocb *iocb, struct hlist_head *batch_hash,
-+			 bool compat)
- {
- 	struct kiocb *req;
- 	struct file *file;
-@@ -1609,7 +1618,7 @@ static int io_submit_one(struct kioctx *
- 	req->ki_left = req->ki_nbytes = iocb->aio_nbytes;
- 	req->ki_opcode = iocb->aio_lio_opcode;
- 
--	ret = aio_setup_iocb(req);
-+	ret = aio_setup_iocb(req, compat);
- 
- 	if (ret)
- 		goto out_put_req;
-@@ -1637,20 +1646,8 @@ out_put_req:
- 	return ret;
- }
- 
--/* sys_io_submit:
-- *	Queue the nr iocbs pointed to by iocbpp for processing.  Returns
-- *	the number of iocbs queued.  May return -EINVAL if the aio_context
-- *	specified by ctx_id is invalid, if nr is < 0, if the iocb at
-- *	*iocbpp[0] is not properly initialized, if the operation specified
-- *	is invalid for the file descriptor in the iocb.  May fail with
-- *	-EFAULT if any of the data structures point to invalid data.  May
-- *	fail with -EBADF if the file descriptor specified in the first
-- *	iocb is invalid.  May fail with -EAGAIN if insufficient resources
-- *	are available to queue any iocbs.  Will return 0 if nr is 0.  Will
-- *	fail with -ENOSYS if not implemented.
-- */
--SYSCALL_DEFINE3(io_submit, aio_context_t, ctx_id, long, nr,
--		struct iocb __user * __user *, iocbpp)
-+long do_io_submit(aio_context_t ctx_id, long nr,
-+		  struct iocb __user *__user * iocbpp, bool compat)
- {
- 	struct kioctx *ctx;
- 	long ret = 0;
-@@ -1687,7 +1684,7 @@ SYSCALL_DEFINE3(io_submit, aio_context_t
- 			break;
- 		}
- 
--		ret = io_submit_one(ctx, user_iocb, &tmp, batch_hash);
-+		ret = io_submit_one(ctx, user_iocb, &tmp, batch_hash, compat);
- 		if (ret)
- 			break;
- 	}
-@@ -1697,6 +1694,24 @@ SYSCALL_DEFINE3(io_submit, aio_context_t
- 	return i ? i : ret;
- }
- 
-+/* sys_io_submit:
-+ *	Queue the nr iocbs pointed to by iocbpp for processing.  Returns
-+ *	the number of iocbs queued.  May return -EINVAL if the aio_context
-+ *	specified by ctx_id is invalid, if nr is < 0, if the iocb at
-+ *	*iocbpp[0] is not properly initialized, if the operation specified
-+ *	is invalid for the file descriptor in the iocb.  May fail with
-+ *	-EFAULT if any of the data structures point to invalid data.  May
-+ *	fail with -EBADF if the file descriptor specified in the first
-+ *	iocb is invalid.  May fail with -EAGAIN if insufficient resources
-+ *	are available to queue any iocbs.  Will return 0 if nr is 0.  Will
-+ *	fail with -ENOSYS if not implemented.
-+ */
-+SYSCALL_DEFINE3(io_submit, aio_context_t, ctx_id, long, nr,
-+		struct iocb __user * __user *, iocbpp)
++/* A write operation does a read from user space and vice versa */
++#define vrfy_dir(type) ((type) == READ ? VERIFY_WRITE : VERIFY_READ)
++
++ssize_t compat_rw_copy_check_uvector(int type,
++		const struct compat_iovec __user *uvector, unsigned long nr_segs,
++		unsigned long fast_segs, struct iovec *fast_pointer,
++		struct iovec **ret_pointer)
 +{
-+	return do_io_submit(ctx_id, nr, iocbpp, 0);
++	compat_ssize_t tot_len;
++	struct iovec *iov = *ret_pointer = fast_pointer;
++	ssize_t ret = 0;
++	int seg;
++
++	/*
++	 * SuS says "The readv() function *may* fail if the iovcnt argument
++	 * was less than or equal to 0, or greater than {IOV_MAX}.  Linux has
++	 * traditionally returned zero for zero segments, so...
++	 */
++	if (nr_segs == 0)
++		goto out;
++
++	ret = -EINVAL;
++	if (nr_segs > UIO_MAXIOV || nr_segs < 0)
++		goto out;
++	if (nr_segs > fast_segs) {
++		ret = -ENOMEM;
++		iov = kmalloc(nr_segs*sizeof(struct iovec), GFP_KERNEL);
++		if (iov == NULL) {
++			*ret_pointer = fast_pointer;
++			goto out;
++		}
++	}
++	*ret_pointer = iov;
++
++	/*
++	 * Single unix specification:
++	 * We should -EINVAL if an element length is not >= 0 and fitting an
++	 * ssize_t.  The total length is fitting an ssize_t
++	 *
++	 * Be careful here because iov_len is a size_t not an ssize_t
++	 */
++	tot_len = 0;
++	ret = -EINVAL;
++	for (seg = 0; seg < nr_segs; seg++) {
++		compat_ssize_t tmp = tot_len;
++		compat_uptr_t buf;
++		compat_ssize_t len;
++
++		if (__get_user(len, &uvector->iov_len) ||
++		   __get_user(buf, &uvector->iov_base)) {
++			ret = -EFAULT;
++			goto out;
++		}
++		if (len < 0)	/* size_t not fitting in compat_ssize_t .. */
++			goto out;
++		tot_len += len;
++		if (tot_len < tmp) /* maths overflow on the compat_ssize_t */
++			goto out;
++		if (!access_ok(vrfy_dir(type), buf, len)) {
++			ret = -EFAULT;
++			goto out;
++		}
++		iov->iov_base = compat_ptr(buf);
++		iov->iov_len = (compat_size_t) len;
++		uvector++;
++		iov++;
++	}
++	ret = tot_len;
++
++out:
++	return ret;
 +}
 +
- /* lookup_kiocb
-  *	Finds a given iocb for cancellation.
-  */
-diff -puN fs/compat.c~aio-fix-the-compat-vectored-operations fs/compat.c
---- a/fs/compat.c~aio-fix-the-compat-vectored-operations
-+++ a/fs/compat.c
-@@ -673,7 +673,7 @@ compat_sys_io_submit(aio_context_t ctx_i
- 	iocb64 = compat_alloc_user_space(nr * sizeof(*iocb64));
- 	ret = copy_iocb(nr, iocb, iocb64);
- 	if (!ret)
--		ret = sys_io_submit(ctx_id, nr, iocb64);
-+		ret = do_io_submit(ctx_id, nr, iocb64, 1);
- 	return ret;
- }
+ static inline long
+ copy_iocb(long nr, u32 __user *ptr32, struct iocb __user * __user *ptr64)
+ {
+@@ -1077,70 +1150,21 @@ static ssize_t compat_do_readv_writev(in
+ {
+ 	compat_ssize_t tot_len;
+ 	struct iovec iovstack[UIO_FASTIOV];
+-	struct iovec *iov=iovstack, *vector;
++	struct iovec *iov;
+ 	ssize_t ret;
+-	int seg;
+ 	io_fn_t fn;
+ 	iov_fn_t fnv;
  
-diff -puN include/linux/aio.h~aio-fix-the-compat-vectored-operations include/linux/aio.h
---- a/include/linux/aio.h~aio-fix-the-compat-vectored-operations
-+++ a/include/linux/aio.h
-@@ -212,6 +212,8 @@ extern void kick_iocb(struct kiocb *iocb
- extern int aio_complete(struct kiocb *iocb, long res, long res2);
- struct mm_struct;
- extern void exit_aio(struct mm_struct *mm);
-+extern long do_io_submit(aio_context_t ctx_id, long nr,
-+			 struct iocb __user *__user * iocbpp, bool compat);
- #else
- static inline ssize_t wait_on_sync_kiocb(struct kiocb *iocb) { return 0; }
- static inline int aio_put_req(struct kiocb *iocb) { return 0; }
-@@ -219,6 +221,9 @@ static inline void kick_iocb(struct kioc
- static inline int aio_complete(struct kiocb *iocb, long res, long res2) { return 0; }
- struct mm_struct;
- static inline void exit_aio(struct mm_struct *mm) { }
-+static inline long do_io_submit(aio_context_t ctx_id, long nr,
-+				struct iocb __user * __user * iocbpp,
-+				bool compat) { }
- #endif /* CONFIG_AIO */
+-	/*
+-	 * SuS says "The readv() function *may* fail if the iovcnt argument
+-	 * was less than or equal to 0, or greater than {IOV_MAX}.  Linux has
+-	 * traditionally returned zero for zero segments, so...
+-	 */
+-	ret = 0;
+-	if (nr_segs == 0)
+-		goto out;
+-
+-	/*
+-	 * First get the "struct iovec" from user memory and
+-	 * verify all the pointers
+-	 */
+ 	ret = -EINVAL;
+-	if ((nr_segs > UIO_MAXIOV) || (nr_segs <= 0))
+-		goto out;
+ 	if (!file->f_op)
+ 		goto out;
+-	if (nr_segs > UIO_FASTIOV) {
+-		ret = -ENOMEM;
+-		iov = kmalloc(nr_segs*sizeof(struct iovec), GFP_KERNEL);
+-		if (!iov)
+-			goto out;
+-	}
++
+ 	ret = -EFAULT;
+ 	if (!access_ok(VERIFY_READ, uvector, nr_segs*sizeof(*uvector)))
+ 		goto out;
  
- static inline struct kiocb *list_kiocb(struct list_head *h)
+-	/*
+-	 * Single unix specification:
+-	 * We should -EINVAL if an element length is not >= 0 and fitting an
+-	 * ssize_t.  The total length is fitting an ssize_t
+-	 *
+-	 * Be careful here because iov_len is a size_t not an ssize_t
+-	 */
+-	tot_len = 0;
+-	vector = iov;
+-	ret = -EINVAL;
+-	for (seg = 0 ; seg < nr_segs; seg++) {
+-		compat_ssize_t tmp = tot_len;
+-		compat_ssize_t len;
+-		compat_uptr_t buf;
+-
+-		if (__get_user(len, &uvector->iov_len) ||
+-		    __get_user(buf, &uvector->iov_base)) {
+-			ret = -EFAULT;
+-			goto out;
+-		}
+-		if (len < 0)	/* size_t not fitting an compat_ssize_t .. */
+-			goto out;
+-		tot_len += len;
+-		if (tot_len < tmp) /* maths overflow on the compat_ssize_t */
+-			goto out;
+-		vector->iov_base = compat_ptr(buf);
+-		vector->iov_len = (compat_size_t) len;
+-		uvector++;
+-		vector++;
+-	}
++	tot_len = compat_rw_copy_check_uvector(type, uvector, nr_segs,
++					       UIO_FASTIOV, iovstack, &iov);
+ 	if (tot_len == 0) {
+ 		ret = 0;
+ 		goto out;
+diff -puN include/linux/compat.h~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev include/linux/compat.h
+--- a/include/linux/compat.h~compat-factor-out-compat_rw_copy_check_uvector-from-compat_do_readv_writev
++++ a/include/linux/compat.h
+@@ -356,5 +356,9 @@ asmlinkage long compat_sys_newfstatat(un
+ asmlinkage long compat_sys_openat(unsigned int dfd, const char __user *filename,
+ 				  int flags, int mode);
+ 
++extern ssize_t compat_rw_copy_check_uvector(int type,
++		const struct compat_iovec __user *uvector, unsigned long nr_segs,
++		unsigned long fast_segs, struct iovec *fast_pointer,
++		struct iovec **ret_pointer);
+ #endif /* CONFIG_COMPAT */
+ #endif /* _LINUX_COMPAT_H */
 _
 
 Patches currently in -mm which might be from jmoyer@redhat.com are
