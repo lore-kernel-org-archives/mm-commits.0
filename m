@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-modify-initialization-of-switch-operations.patch added to -mm tree
-Date: Tue, 04 May 2010 16:25:16 -0700
-Message-ID: <201005042325.o44NPGxY025147@imap1.linux-foundation.org>
+Subject: + s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build.patch added to -mm tree
+Date: Tue, 04 May 2010 16:46:06 -0700
+Message-ID: <201005042346.o44Nk6Oi025952__5171.42358371547$1273016795$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751110Ab0EDXbE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 19:31:04 -0400
+	by vger.kernel.org with ESMTP id S1754139Ab0EDXqa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 19:46:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org, thomas.moll@sysgo.com
+Cc: mcuelenaere@gmail.com, ben-linux@fluff.org, linux-mmc@vger.kernel.org, thomas.ab@samsung.com
 
 
 The patch titled
-     rapidio: modify initialization of switch operations
+     mmc: s3c6410: add new quirk in sdhci driver and update ADMA descriptor build.
 has been added to the -mm tree.  Its filename is
-     rapidio-modify-initialization-of-switch-operations.patch
+     s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,432 +33,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: modify initialization of switch operations
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: mmc: s3c6410: add new quirk in sdhci driver and update ADMA descriptor build.
+From: Maurus Cuelenaere <mcuelenaere@gmail.com>
 
-Modify the way how RapidIO switch operations are declared.  Multiple
-assignments through the linker script replaced by single initialization
-call.
+The s3c6410 sdhci controller does not support the 'End' attribute and NOP
+attribute in the same 8-Byte ADMA descriptor.  This patch adds a new quirk
+to identify sdhci host contollers with such behaviour.  In addition to
+this, for controllers using the new quirk, the last entry in the ADMA
+descritor table is marked with the 'End' attribute (instead of using a NOP
+descriptor with 'End' attribute).
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
+Signed-off-by: Maurus Cuelenaere <mcuelenaere@gmail.com>
+Signed-off-by: Thomas Abraham <thomas.ab@samsung.com>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c        |   49 ++++++------------------
- drivers/rapidio/rio.h             |   56 +++++++---------------------
- drivers/rapidio/switches/idtcps.c |   27 ++++++++++---
- drivers/rapidio/switches/tsi500.c |   18 ++++++++-
- drivers/rapidio/switches/tsi568.c |   20 ++++++++--
- drivers/rapidio/switches/tsi57x.c |   31 ++++++++++-----
- include/asm-generic/vmlinux.lds.h |    9 +---
- include/linux/rio.h               |   35 +++--------------
- 8 files changed, 111 insertions(+), 134 deletions(-)
+ drivers/mmc/host/sdhci.c |   20 +++++++++++++++-----
+ drivers/mmc/host/sdhci.h |    2 ++
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-modify-initialization-of-switch-operations drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-modify-initialization-of-switch-operations
-+++ a/drivers/rapidio/rio-scan.c
-@@ -246,24 +246,24 @@ static int rio_is_switch(struct rio_dev 
- }
+diff -puN drivers/mmc/host/sdhci.c~s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build
++++ a/drivers/mmc/host/sdhci.c
+@@ -496,12 +496,22 @@ static int sdhci_adma_table_pre(struct s
+ 		WARN_ON((desc - host->adma_desc) > (128 * 2 + 1) * 4);
+ 	}
  
- /**
-- * rio_route_set_ops- Sets routing operations for a particular vendor switch
-+ * rio_switch_init - Sets switch operations for a particular vendor switch
-  * @rdev: RIO device
-+ * @do_enum: Enumeration/Discovery mode flag
-  *
-- * Searches the RIO route ops table for known switch types. If the vid
-- * and did match a switch table entry, then set the add_entry() and
-- * get_entry() ops to the table entry values.
-+ * Searches the RIO switch ops table for known switch types. If the vid
-+ * and did match a switch table entry, then call switch initialization
-+ * routine to setup switch-specific routines.
-  */
--static void rio_route_set_ops(struct rio_dev *rdev)
-+static void rio_switch_init(struct rio_dev *rdev, int do_enum)
- {
--	struct rio_route_ops *cur = __start_rio_route_ops;
--	struct rio_route_ops *end = __end_rio_route_ops;
-+	struct rio_switch_ops *cur = __start_rio_switch_ops;
-+	struct rio_switch_ops *end = __end_rio_switch_ops;
+-	/*
+-	 * Add a terminating entry.
+-	 */
++	if (host->quirks & SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC) {
++		/*
++		* Mark the last descriptor as the terminating descriptor
++		*/
++		if (desc != host->adma_desc) {
++			desc -= 8;
++			desc[0] |= 0x2; /* end */
++		}
++	} else {
++		/*
++		* Add a terminating entry.
++		*/
  
- 	while (cur < end) {
- 		if ((cur->vid == rdev->vid) && (cur->did == rdev->did)) {
--			pr_debug("RIO: adding routing ops for %s\n", rio_name(rdev));
--			rdev->rswitch->add_entry = cur->add_hook;
--			rdev->rswitch->get_entry = cur->get_hook;
--			rdev->rswitch->clr_table = cur->clr_hook;
-+			pr_debug("RIO: calling init routine for %s\n",
-+				 rio_name(rdev));
-+			cur->init_hook(rdev, do_enum);
- 			break;
- 		}
- 		cur++;
-@@ -283,30 +283,6 @@ static void rio_route_set_ops(struct rio
- }
+-	/* nop, end, valid */
+-	sdhci_set_adma_desc(desc, 0, 0, 0x3);
++		/* nop, end, valid */
++		sdhci_set_adma_desc(desc, 0, 0, 0x3);
++	}
  
- /**
-- * rio_em_set_ops- Sets Error Managment operations for a particular vendor switch
-- * @rdev: RIO device
-- *
-- * Searches the RIO EM ops table for known switch types. If the vid
-- * and did match a switch table entry, then set the em_init() and
-- * em_handle() ops to the table entry values.
-- */
--static void rio_em_set_ops(struct rio_dev *rdev)
--{
--	struct rio_em_ops *cur = __start_rio_em_ops;
--	struct rio_em_ops *end = __end_rio_em_ops;
--
--	while (cur < end) {
--		if ((cur->vid == rdev->vid) && (cur->did == rdev->did)) {
--			pr_debug("RIO: adding EM ops for %s\n", rio_name(rdev));
--			rdev->rswitch->em_init = cur->init_hook;
--			rdev->rswitch->em_handle = cur->handler_hook;
--			break;
--		}
--		cur++;
--	}
--}
--
--/**
-  * rio_add_device- Adds a RIO device to the device model
-  * @rdev: RIO device
-  *
-@@ -484,8 +460,7 @@ static struct rio_dev __devinit *rio_set
- 		rdev->rswitch = rswitch;
- 		dev_set_name(&rdev->dev, "%02x:s:%04x", rdev->net->id,
- 			     rdev->rswitch->switchid);
--		rio_route_set_ops(rdev);
--		rio_em_set_ops(rdev);
-+		rio_switch_init(rdev, do_enum);
+ 	/*
+ 	 * Resync align buffer as we might have changed it.
+diff -puN drivers/mmc/host/sdhci.h~s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build
++++ a/drivers/mmc/host/sdhci.h
+@@ -238,6 +238,8 @@ struct sdhci_host {
+ #define SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK		(1<<24)
+ /* Controller reports wrong base clock capability */
+ #define SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN		(1<<25)
++/* Controller cannot support End Attribute in NOP ADMA descriptor */
++#define SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC		(1<<26)
  
- 		if (do_enum && rdev->rswitch->clr_table)
- 			rdev->rswitch->clr_table(port, destid, hopcount,
-diff -puN drivers/rapidio/rio.h~rapidio-modify-initialization-of-switch-operations drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~rapidio-modify-initialization-of-switch-operations
-+++ a/drivers/rapidio/rio.h
-@@ -39,55 +39,29 @@ extern int rio_set_port_lockout(struct r
- extern struct device_attribute rio_dev_attrs[];
- extern spinlock_t rio_global_list_lock;
- 
--extern struct rio_route_ops __start_rio_route_ops[];
--extern struct rio_route_ops __end_rio_route_ops[];
-+extern struct rio_switch_ops __start_rio_switch_ops[];
-+extern struct rio_switch_ops __end_rio_switch_ops[];
- 
- /* Helpers internal to the RIO core code */
--#define DECLARE_RIO_ROUTE_SECTION(section, name, vid, did, add_hook, get_hook, clr_hook) \
--	static const struct rio_route_ops __rio_route_##name __used \
--	__section(section) = { vid, did, add_hook, get_hook, clr_hook };
-+#define DECLARE_RIO_SWITCH_SECTION(section, name, vid, did, init_hook) \
-+	static const struct rio_switch_ops __rio_switch_##name __used \
-+	__section(section) = { vid, did, init_hook };
- 
- /**
-- * DECLARE_RIO_ROUTE_OPS - Registers switch routing operations
-+ * DECLARE_RIO_SWITCH_INIT - Registers switch initialization routine
-  * @vid: RIO vendor ID
-  * @did: RIO device ID
-- * @add_hook: Callback that adds a route entry
-- * @get_hook: Callback that gets a route entry
-+ * @init_hook: Callback that performs switch-specific initialization
-  *
-- * Manipulating switch route tables in RIO is switch specific. This
-- * registers a switch by vendor and device ID with two callbacks for
-- * modifying and retrieving route entries in a switch. A &struct
-- * rio_route_ops is initialized with the ops and placed into a
-- * RIO-specific kernel section.
-+ * Manipulating switch route tables and error management in RIO
-+ * is switch specific. This registers a switch by vendor and device ID with
-+ * initialization callback for setting up switch operations and (if required)
-+ * hardware initialization. A &struct rio_switch_ops is initialized with
-+ * pointer to the init routine and placed into a RIO-specific kernel section.
-  */
--#define DECLARE_RIO_ROUTE_OPS(vid, did, add_hook, get_hook, clr_hook)	\
--	DECLARE_RIO_ROUTE_SECTION(.rio_route_ops, vid##did,		\
--			vid, did, add_hook, get_hook, clr_hook)
-+#define DECLARE_RIO_SWITCH_INIT(vid, did, init_hook)		\
-+	DECLARE_RIO_SWITCH_SECTION(.rio_switch_ops, vid##did, \
-+			vid, did, init_hook)
- 
- #define RIO_GET_DID(size, x)	(size ? (x & 0xffff) : ((x & 0x00ff0000) >> 16))
- #define RIO_SET_DID(size, x)	(size ? (x & 0xffff) : ((x & 0x000000ff) << 16))
--
--/*
-- *   RapidIO Error Management
-- */
--extern struct rio_em_ops __start_rio_em_ops[];
--extern struct rio_em_ops __end_rio_em_ops[];
--
--/* Helpers internal to the RIO core code */
--#define DECLARE_RIO_EM_SECTION(section, name, vid, did, init_hook, em_hook)  \
--	static const struct rio_em_ops __rio_em_##name __used   \
--	__section(section) = { vid, did, init_hook, em_hook };
--
--/**
-- * DECLARE_RIO_EM_OPS - Registers switch EM operations
-- * @vid: RIO vendor ID
-- * @did: RIO device ID
-- * @init_hook: Callback that initializes device specific EM
-- * @em_hook: Callback that handles device specific EM
-- *
-- * A &struct rio_em_ops is initialized with the ops and placed into a
-- * RIO-specific kernel section.
-- */
--#define DECLARE_RIO_EM_OPS(vid, did, init_hook, em_hook)	\
--	DECLARE_RIO_EM_SECTION(.rio_em_ops, vid##did,		\
--			vid, did, init_hook, em_hook)
-diff -puN drivers/rapidio/switches/idtcps.c~rapidio-modify-initialization-of-switch-operations drivers/rapidio/switches/idtcps.c
---- a/drivers/rapidio/switches/idtcps.c~rapidio-modify-initialization-of-switch-operations
-+++ a/drivers/rapidio/switches/idtcps.c
-@@ -1,7 +1,8 @@
- /*
-  * IDT CPS RapidIO switches support
-  *
-- * Copyright 2009 Integrated Device Technology, Inc.
-+ * Copyright 2009-2010 Integrated Device Technology, Inc.
-+ * Alexandre Bounine <alexandre.bounine@idt.com>
-  *
-  * This program is free software; you can redistribute  it and/or modify it
-  * under  the terms of  the GNU General  Public License as published by the
-@@ -81,9 +82,21 @@ idtcps_route_clr_table(struct rio_mport 
- 	return 0;
- }
- 
--DECLARE_RIO_ROUTE_OPS(RIO_VID_IDT, RIO_DID_IDTCPS6Q, idtcps_route_add_entry, idtcps_route_get_entry, idtcps_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_IDT, RIO_DID_IDTCPS8, idtcps_route_add_entry, idtcps_route_get_entry, idtcps_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_IDT, RIO_DID_IDTCPS10Q, idtcps_route_add_entry, idtcps_route_get_entry, idtcps_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_IDT, RIO_DID_IDTCPS12, idtcps_route_add_entry, idtcps_route_get_entry, idtcps_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_IDT, RIO_DID_IDTCPS16, idtcps_route_add_entry, idtcps_route_get_entry, idtcps_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_IDT, RIO_DID_IDT70K200, idtcps_route_add_entry, idtcps_route_get_entry, idtcps_route_clr_table);
-+static int idtcps_switch_init(struct rio_dev *rdev, int do_enum)
-+{
-+	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
-+	rdev->rswitch->add_entry = idtcps_route_add_entry;
-+	rdev->rswitch->get_entry = idtcps_route_get_entry;
-+	rdev->rswitch->clr_table = idtcps_route_clr_table;
-+	rdev->rswitch->em_init = NULL;
-+	rdev->rswitch->em_handle = NULL;
-+
-+	return 0;
-+}
-+
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS6Q, idtcps_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS8, idtcps_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS10Q, idtcps_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS12, idtcps_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS16, idtcps_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDT70K200, idtcps_switch_init);
-diff -puN drivers/rapidio/switches/tsi500.c~rapidio-modify-initialization-of-switch-operations drivers/rapidio/switches/tsi500.c
---- a/drivers/rapidio/switches/tsi500.c~rapidio-modify-initialization-of-switch-operations
-+++ a/drivers/rapidio/switches/tsi500.c
-@@ -1,6 +1,10 @@
- /*
-  * RapidIO Tsi500 switch support
-  *
-+ * Copyright 2009-2010 Integrated Device Technology, Inc.
-+ * Alexandre Bounine <alexandre.bounine@idt.com>
-+ *  - Modified switch operations initialization.
-+ *
-  * Copyright 2005 MontaVista Software, Inc.
-  * Matt Porter <mporter@kernel.crashing.org>
-  *
-@@ -57,4 +61,16 @@ tsi500_route_get_entry(struct rio_mport 
- 	return ret;
- }
- 
--DECLARE_RIO_ROUTE_OPS(RIO_VID_TUNDRA, RIO_DID_TSI500, tsi500_route_add_entry, tsi500_route_get_entry, NULL);
-+static int tsi500_switch_init(struct rio_dev *rdev, int do_enum)
-+{
-+	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
-+	rdev->rswitch->add_entry = tsi500_route_add_entry;
-+	rdev->rswitch->get_entry = tsi500_route_get_entry;
-+	rdev->rswitch->clr_table = NULL;
-+	rdev->rswitch->em_init = NULL;
-+	rdev->rswitch->em_handle = NULL;
-+
-+	return 0;
-+}
-+
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_TUNDRA, RIO_DID_TSI500, tsi500_switch_init);
-diff -puN drivers/rapidio/switches/tsi568.c~rapidio-modify-initialization-of-switch-operations drivers/rapidio/switches/tsi568.c
---- a/drivers/rapidio/switches/tsi568.c~rapidio-modify-initialization-of-switch-operations
-+++ a/drivers/rapidio/switches/tsi568.c
-@@ -2,6 +2,10 @@
-  * RapidIO Tsi568 switch support
-  *
-  * Copyright 2009-2010 Integrated Device Technology, Inc.
-+ * Alexandre Bounine <alexandre.bounine@idt.com>
-+ *  - Added EM support
-+ *  - Modified switch operations initialization.
-+ *
-  * Copyright 2005 MontaVista Software, Inc.
-  * Matt Porter <mporter@kernel.crashing.org>
-  *
-@@ -106,8 +110,6 @@ tsi568_route_clr_table(struct rio_mport 
- 	return 0;
- }
- 
--DECLARE_RIO_ROUTE_OPS(RIO_VID_TUNDRA, RIO_DID_TSI568, tsi568_route_add_entry, tsi568_route_get_entry, tsi568_route_clr_table);
--
- static int
- tsi568_em_init(struct rio_dev *rdev)
- {
-@@ -127,4 +129,16 @@ tsi568_em_init(struct rio_dev *rdev)
- 	return 0;
- }
- 
--DECLARE_RIO_EM_OPS(RIO_VID_TUNDRA, RIO_DID_TSI568, tsi568_em_init, NULL);
-+static int tsi568_switch_init(struct rio_dev *rdev, int do_enum)
-+{
-+	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
-+	rdev->rswitch->add_entry = tsi568_route_add_entry;
-+	rdev->rswitch->get_entry = tsi568_route_get_entry;
-+	rdev->rswitch->clr_table = tsi568_route_clr_table;
-+	rdev->rswitch->em_init = tsi568_em_init;
-+	rdev->rswitch->em_handle = NULL;
-+
-+	return 0;
-+}
-+
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_TUNDRA, RIO_DID_TSI568, tsi568_switch_init);
-diff -puN drivers/rapidio/switches/tsi57x.c~rapidio-modify-initialization-of-switch-operations drivers/rapidio/switches/tsi57x.c
---- a/drivers/rapidio/switches/tsi57x.c~rapidio-modify-initialization-of-switch-operations
-+++ a/drivers/rapidio/switches/tsi57x.c
-@@ -1,7 +1,11 @@
- /*
-  * RapidIO Tsi57x switch family support
-  *
-- * Copyright 2009 Integrated Device Technology, Inc.
-+ * Copyright 2009-2010 Integrated Device Technology, Inc.
-+ * Alexandre Bounine <alexandre.bounine@idt.com>
-+ *  - Added EM support
-+ *  - Modified switch operations initialization.
-+ *
-  * Copyright 2005 MontaVista Software, Inc.
-  * Matt Porter <mporter@kernel.crashing.org>
-  *
-@@ -108,11 +112,6 @@ tsi57x_route_clr_table(struct rio_mport 
- 	return 0;
- }
- 
--DECLARE_RIO_ROUTE_OPS(RIO_VID_TUNDRA, RIO_DID_TSI572, tsi57x_route_add_entry, tsi57x_route_get_entry, tsi57x_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_TUNDRA, RIO_DID_TSI574, tsi57x_route_add_entry, tsi57x_route_get_entry, tsi57x_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_TUNDRA, RIO_DID_TSI577, tsi57x_route_add_entry, tsi57x_route_get_entry, tsi57x_route_clr_table);
--DECLARE_RIO_ROUTE_OPS(RIO_VID_TUNDRA, RIO_DID_TSI578, tsi57x_route_add_entry, tsi57x_route_get_entry, tsi57x_route_clr_table);
--
- static int
- tsi57x_em_init(struct rio_dev *rdev)
- {
-@@ -253,7 +252,19 @@ exit_es:
- 	return 0;
- }
- 
--DECLARE_RIO_EM_OPS(RIO_VID_TUNDRA, RIO_DID_TSI572, tsi57x_em_init, tsi57x_em_handler);
--DECLARE_RIO_EM_OPS(RIO_VID_TUNDRA, RIO_DID_TSI574, tsi57x_em_init, tsi57x_em_handler);
--DECLARE_RIO_EM_OPS(RIO_VID_TUNDRA, RIO_DID_TSI577, tsi57x_em_init, tsi57x_em_handler);
--DECLARE_RIO_EM_OPS(RIO_VID_TUNDRA, RIO_DID_TSI578, tsi57x_em_init, tsi57x_em_handler);
-+static int tsi57x_switch_init(struct rio_dev *rdev, int do_enum)
-+{
-+	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
-+	rdev->rswitch->add_entry = tsi57x_route_add_entry;
-+	rdev->rswitch->get_entry = tsi57x_route_get_entry;
-+	rdev->rswitch->clr_table = tsi57x_route_clr_table;
-+	rdev->rswitch->em_init = tsi57x_em_init;
-+	rdev->rswitch->em_handle = tsi57x_em_handler;
-+
-+	return 0;
-+}
-+
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_TUNDRA, RIO_DID_TSI572, tsi57x_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_TUNDRA, RIO_DID_TSI574, tsi57x_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_TUNDRA, RIO_DID_TSI577, tsi57x_switch_init);
-+DECLARE_RIO_SWITCH_INIT(RIO_VID_TUNDRA, RIO_DID_TSI578, tsi57x_switch_init);
-diff -puN include/asm-generic/vmlinux.lds.h~rapidio-modify-initialization-of-switch-operations include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~rapidio-modify-initialization-of-switch-operations
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -248,12 +248,9 @@
- 									\
- 	/* RapidIO route ops */						\
- 	.rio_ops        : AT(ADDR(.rio_ops) - LOAD_OFFSET) {		\
--		VMLINUX_SYMBOL(__start_rio_route_ops) = .;		\
--		*(.rio_route_ops)					\
--		VMLINUX_SYMBOL(__end_rio_route_ops) = .;		\
--		VMLINUX_SYMBOL(__start_rio_em_ops) = .;			\
--		*(.rio_em_ops)						\
--		VMLINUX_SYMBOL(__end_rio_em_ops) = .;			\
-+		VMLINUX_SYMBOL(__start_rio_switch_ops) = .;		\
-+		*(.rio_switch_ops)					\
-+		VMLINUX_SYMBOL(__end_rio_switch_ops) = .;		\
- 	}								\
- 									\
- 	TRACEDATA							\
-diff -puN include/linux/rio.h~rapidio-modify-initialization-of-switch-operations include/linux/rio.h
---- a/include/linux/rio.h~rapidio-modify-initialization-of-switch-operations
-+++ a/include/linux/rio.h
-@@ -320,40 +320,17 @@ struct rio_device_id {
- };
- 
- /**
-- * struct rio_route_ops - Per-switch route operations
-+ * struct rio_switch_ops - Per-switch operations
-  * @vid: RIO vendor ID
-  * @did: RIO device ID
-- * @add_hook: Callback that adds a route entry
-- * @get_hook: Callback that gets a route entry
-- * @clr_hook: Callback that clears a switch route table (may be NULL)
-+ * @init_hook: Callback that performs switch device initialization
-  *
-- * Defines the operations that are necessary to manipulate the route
-- * tables for a particular RIO switch device.
-+ * Defines the operations that are necessary to initialize/control
-+ * a particular RIO switch device.
-  */
--struct rio_route_ops {
-+struct rio_switch_ops {
- 	u16 vid, did;
--	int (*add_hook) (struct rio_mport * mport, u16 destid, u8 hopcount,
--			 u16 table, u16 route_destid, u8 route_port);
--	int (*get_hook) (struct rio_mport * mport, u16 destid, u8 hopcount,
--			 u16 table, u16 route_destid, u8 * route_port);
--	int (*clr_hook) (struct rio_mport *mport, u16 destid, u8 hopcount,
--			 u16 table);
--};
--
--/**
-- * struct rio_em_ops - Per-switch error management operations
-- * @vid: RIO vendor ID
-- * @did: RIO device ID
-- * @init_hook: Switch specific error management initialization (may be NULL)
-- * @handler_hook: Switch specific error management handler (may be NULL)
-- *
-- * Defines the operations that are necessary to initialize and handle
-- * error management events for a particular RIO switch device.
-- */
--struct rio_em_ops {
--	u16 vid, did;
--	int (*init_hook) (struct rio_dev *dev);
--	int (*handler_hook) (struct rio_dev *dev, u8 swport);
-+	int (*init_hook) (struct rio_dev *rdev, int do_enum);
- };
- 
- union rio_pw_msg {
+ 	int			irq;		/* Device IRQ */
+ 	void __iomem *		ioaddr;		/* Mapped address */
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from mcuelenaere@gmail.com are
 
-rapidio-add-idt-cps-tsi-switches.patch
-rapidio-add-switch-locking-during-discovery.patch
-rapidio-add-port-write-handling-for-em.patch
-rapidio-powerpc-85xx-add-port-write-message-handler-for-srio-port.patch
-rapidio-powerpc-85xx-add-mchk-handler-for-srio-port.patch
-rapidio-fix-typos-and-minor-edits.patch
-rapidio-add-debug-configuration-option.patch
-rapidio-modify-initialization-of-switch-operations.patch
-rapidio-add-switch-domain-routines.patch
-rapidio-use-default-route-value-for-cps-switches.patch
+s3c6410-add-new-quirk-in-sdhci-driver-and-update-adma-descriptor-build.patch
+s3c6410-enable-adma-feature-in-6410-sdhci-controller.patch
+sdhci-enable-multiblock-transfers-in-sdhci-s3c.patch
+s3c-rtc-driver-add-support-for-s3c64xx.patch
 
