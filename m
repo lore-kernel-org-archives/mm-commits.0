@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-change-device-discovery-order.patch added to -mm tree
-Date: Tue, 04 May 2010 15:54:13 -0700
-Message-ID: <201005042254.o44MsDuQ023806@imap1.linux-foundation.org>
+Subject: + ipmi-reduce-polling.patch added to -mm tree
+Date: Tue, 04 May 2010 15:54:17 -0700
+Message-ID: <201005042254.o44MsHgK023812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934524Ab0EDWy3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 18:54:29 -0400
+	by vger.kernel.org with ESMTP id S934527Ab0EDWya (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 18:54:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mjg@redhat.com, cminyard@mvista.com
 
 
 The patch titled
-     ipmi: change device discovery order
+     ipmi: reduce polling
 has been added to the -mm tree.  Its filename is
-     ipmi-change-device-discovery-order.patch
+     ipmi-reduce-polling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: change device discovery order
+Subject: ipmi: reduce polling
 From: Matthew Garrett <mjg@redhat.com>
 
-The ipmi spec provides an ordering for si discovery.  Change the driver to
-match, with the exception of preferring smbios to SPMI as HPs (at least)
-contain accurate information in the former but not the latter.
+We can reasonably alter the poll rate depending on whether we're
+performing a transaction or merely waiting for an event.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-change-device-discovery-order drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-change-device-discovery-order
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-reduce-polling drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-reduce-polling
 +++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -3307,17 +3307,6 @@ static __devinit int init_ipmi_si(void)
+@@ -893,6 +893,9 @@ static void sender(void                *
+ 
+ 	mod_timer(&smi_info->si_timer, jiffies + SI_TIMEOUT_JIFFIES);
+ 
++	if (smi_info->thread)
++		wake_up_process(smi_info->thread);
++
+ 	if (smi_info->run_to_completion) {
+ 		/*
+ 		 * If we are running to completion, then throw it in
+@@ -1013,6 +1016,8 @@ static int ipmi_thread(void *data)
+ 			; /* do nothing */
+ 		else if (smi_result == SI_SM_CALL_WITH_DELAY && busy_wait)
+ 			schedule();
++		else if (smi_result == SI_SM_IDLE)
++			schedule_timeout_interruptible(100);
+ 		else
+ 			schedule_timeout_interruptible(0);
  	}
- 	mutex_unlock(&smi_infos_lock);
- 
--#ifdef CONFIG_DMI
--	dmi_find_bmc();
--#endif
--
--#ifdef CONFIG_ACPI
--	spmi_find_bmc();
--#endif
--#ifdef CONFIG_ACPI
--	pnp_register_driver(&ipmi_pnp_driver);
--#endif
--
- #ifdef CONFIG_PCI
- 	rv = pci_register_driver(&ipmi_pci_driver);
- 	if (rv)
-@@ -3326,6 +3315,18 @@ static __devinit int init_ipmi_si(void)
- 		       rv);
+@@ -1055,6 +1060,7 @@ static void smi_timeout(unsigned long da
+ 	unsigned long     flags;
+ 	unsigned long     jiffies_now;
+ 	long              time_diff;
++	long		  timeout;
+ #ifdef DEBUG_TIMING
+ 	struct timeval    t;
  #endif
+@@ -1075,9 +1081,9 @@ static void smi_timeout(unsigned long da
  
-+#ifdef CONFIG_ACPI
-+	pnp_register_driver(&ipmi_pnp_driver);
-+#endif
-+
-+#ifdef CONFIG_DMI
-+	dmi_find_bmc();
-+#endif
-+
-+#ifdef CONFIG_ACPI
-+	spmi_find_bmc();
-+#endif
-+
- #ifdef CONFIG_PPC_OF
- 	of_register_platform_driver(&ipmi_of_platform_driver);
- #endif
+ 	if ((smi_info->irq) && (!smi_info->interrupt_disabled)) {
+ 		/* Running with interrupts, only do long timeouts. */
+-		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
++		timeout = jiffies + SI_TIMEOUT_JIFFIES;
+ 		smi_inc_stat(smi_info, long_timeouts);
+-		goto do_add_timer;
++		goto do_mod_timer;
+ 	}
+ 
+ 	/*
+@@ -1086,15 +1092,15 @@ static void smi_timeout(unsigned long da
+ 	 */
+ 	if (smi_result == SI_SM_CALL_WITH_DELAY) {
+ 		smi_inc_stat(smi_info, short_timeouts);
+-		smi_info->si_timer.expires = jiffies + 1;
++		timeout = jiffies + 1;
+ 	} else {
+ 		smi_inc_stat(smi_info, long_timeouts);
+-		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
++		timeout = jiffies + SI_TIMEOUT_JIFFIES;
+ 	}
+ 
+- do_add_timer:
+-	if ((smi_result != SI_SM_IDLE) || smi_info->interrupt_disabled)
+-		add_timer(&(smi_info->si_timer));
++ do_mod_timer:
++	if (smi_result != SI_SM_IDLE)
++		mod_timer(&(smi_info->si_timer), timeout);
+ }
+ 
+ static irqreturn_t si_irq_handler(int irq, void *data)
 _
 
 Patches currently in -mm which might be from mjg@redhat.com are
