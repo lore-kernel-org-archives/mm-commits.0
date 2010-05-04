@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 04 May 2010 13:15:55 -0700
-Message-ID: <201005042015.o44KFu6Z016059@imap1.linux-foundation.org>
+Subject: + acpi-video-fix-acpi_backlight=video.patch added to -mm tree
+Date: Tue, 04 May 2010 14:37:47 -0700
+Message-ID: <201005042137.o44LblTZ020256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50767 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753827Ab0EDUQJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 16:16:09 -0400
+	by vger.kernel.org with ESMTP id S932152Ab0EDViY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 May 2010 17:38:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jmoyer@redhat.com
+Cc: kamal@canonical.com, bjorn.helgaas@hp.com, jkosina@suse.cz, lenb@kernel.org, rui.zhang@intel.com, stable@kernel.org
 
 
 The patch titled
-     aio-fix-the-compat-vectored-operations-checkpatch-fixes
+     acpi: video: fix acpi_backlight=video
 has been added to the -mm tree.  Its filename is
-     aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+     acpi-video-fix-acpi_backlight=video.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,147 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio-fix-the-compat-vectored-operations-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi: video: fix acpi_backlight=video
+From: Kamal Mostafa <kamal@canonical.com>
 
-ERROR: "foo *__user * bar" should be "foo *__user *bar"
-#129: FILE: fs/aio.c:1650:
-+		  struct iocb __user *__user * iocbpp, bool compat)
+Make "acpi_backlight=video" param enable ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO
+as intended, instead of incorrectly enabling video output switching.
 
-ERROR: space prohibited after that '*' (ctx:WxW)
-#129: FILE: fs/aio.c:1650:
-+		  struct iocb __user *__user * iocbpp, bool compat)
- 		                             ^
+Addresses http://bugs.launchpad.net/bugs/573120
 
-ERROR: "foo *__user * bar" should be "foo *__user *bar"
-#187: FILE: include/linux/aio.h:216:
-+			 struct iocb __user *__user * iocbpp, bool compat);
-
-ERROR: space prohibited after that '*' (ctx:WxW)
-#187: FILE: include/linux/aio.h:216:
-+			 struct iocb __user *__user * iocbpp, bool compat);
- 			                            ^
-
-ERROR: "foo * __user * bar" should be "foo * __user *bar"
-#196: FILE: include/linux/aio.h:225:
-+				struct iocb __user * __user * iocbpp,
-
-ERROR: space prohibited after that '*' (ctx:WxW)
-#196: FILE: include/linux/aio.h:225:
-+				struct iocb __user * __user * iocbpp,
- 				                            ^
-
-total: 6 errors, 0 warnings, 151 lines checked
-
-./patches/aio-fix-the-compat-vectored-operations.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |    2 +-
- include/linux/aio.h |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/video_detect.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-fix-the-compat-vectored-operations-checkpatch-fixes fs/aio.c
---- a/fs/aio.c~aio-fix-the-compat-vectored-operations-checkpatch-fixes
-+++ a/fs/aio.c
-@@ -1647,7 +1647,7 @@ out_put_req:
+diff -puN drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video drivers/acpi/video_detect.c
+--- a/drivers/acpi/video_detect.c~acpi-video-fix-acpi_backlight=video
++++ a/drivers/acpi/video_detect.c
+@@ -250,7 +250,7 @@ static int __init acpi_backlight(char *s
+ 				ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR;
+ 		if (!strcmp("video", str))
+ 			acpi_video_support |=
+-				ACPI_VIDEO_OUTPUT_SWITCHING_FORCE_VIDEO;
++				ACPI_VIDEO_BACKLIGHT_FORCE_VIDEO;
+ 	}
+ 	return 1;
  }
- 
- long do_io_submit(aio_context_t ctx_id, long nr,
--		  struct iocb __user *__user * iocbpp, bool compat)
-+		  struct iocb __user *__user *iocbpp, bool compat)
- {
- 	struct kioctx *ctx;
- 	long ret = 0;
-diff -puN include/linux/aio.h~aio-fix-the-compat-vectored-operations-checkpatch-fixes include/linux/aio.h
---- a/include/linux/aio.h~aio-fix-the-compat-vectored-operations-checkpatch-fixes
-+++ a/include/linux/aio.h
-@@ -213,7 +213,7 @@ extern int aio_complete(struct kiocb *io
- struct mm_struct;
- extern void exit_aio(struct mm_struct *mm);
- extern long do_io_submit(aio_context_t ctx_id, long nr,
--			 struct iocb __user *__user * iocbpp, bool compat);
-+			 struct iocb __user *__user *iocbpp, bool compat);
- #else
- static inline ssize_t wait_on_sync_kiocb(struct kiocb *iocb) { return 0; }
- static inline int aio_put_req(struct kiocb *iocb) { return 0; }
-@@ -222,7 +222,7 @@ static inline int aio_complete(struct ki
- struct mm_struct;
- static inline void exit_aio(struct mm_struct *mm) { }
- static inline long do_io_submit(aio_context_t ctx_id, long nr,
--				struct iocb __user * __user * iocbpp,
-+				struct iocb __user * __user *iocbpp,
- 				bool compat) { }
- #endif /* CONFIG_AIO */
- 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamal@canonical.com are
 
-origin.patch
-linux-next.patch
-linux-next-fix-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-jfs-free-sbi-memory-in-error-path.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-dib7000p-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-serial-timbuart-make-sure-last-byte-is-sent-when-port-is-closed.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+acpi-sleep-init_set_sci_en_on_resume-for-dell-studio-155x.patch
+acpi-video-fix-acpi_backlight=video.patch
 
