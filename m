@@ -1,74 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + mmcompaction-direct-compact-when-a-high-order-allocation-fails-fix.patch added to -mm tree
-Date: Wed, 05 May 2010 08:47:20 -0400
-Message-ID: <201005051548.o45FmpME001026@imap1.linux-foundation.org>
+Subject: [nacked] ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch removed from -mm tree
+Date: Thu, 06 May 2010 11:59:36 -0400
+Message-ID: <201005061901.o46J16w7008116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754549Ab0EEPuC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 May 2010 11:50:02 -0400
+	by vger.kernel.org with ESMTP id S1753570Ab0EFTBO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 15:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, mel@csn.ul.ie
+To: myron.stowe@hp.com, bjorn.helgaas@hp.com, lenb@kernel.org, minyard@acm.org, yakui.zhao@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix count_vm_event preempt in memory compaction direct reclaim
-has been added to the -mm tree.  Its filename is
-     mmcompaction-direct-compact-when-a-high-order-allocation-fails-fix.patch
+     ipmi: raise precedence of PNP based discovery mechanisms (ACPI, PCI)
+has been removed from the -mm tree.  Its filename was
+     ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix count_vm_event preempt in memory compaction direct reclaim
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: ipmi: raise precedence of PNP based discovery mechanisms (ACPI, PCI)
+From: Myron Stowe <myron.stowe@hp.com>
 
-Preempt is enabled so it must use count_vm_event.
+This raises the precedence of PNP discovery mechanisms, ACPI and PCI,
+above SMBIOS and SPMI as indicated by Appendix C1 of the IPMI
+specification.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Reference: IPMI - Intelligent Platform Management Interface Specification
+           v2.0, Document Revision 1.0, 05.05.2005 Markup
+
+  Appendix C1 - Locating IPMI System Interfaces via SMBIOS Tables
+      "Note that the settings that this structure reports may be over-
+      ridden by `Plug-and-Play' reassignment by the OS.  Therefore, this
+      structure should be used only when the interface cannot be
+      discovered via `Plug-and-Play' discovery mechanisms incorporated
+      in interfaces such as PCI and ACPI."
+
+Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mmcompaction-direct-compact-when-a-high-order-allocation-fails-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mmcompaction-direct-compact-when-a-high-order-allocation-fails-fix
-+++ a/mm/page_alloc.c
-@@ -1788,7 +1788,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 				alloc_flags, preferred_zone,
- 				migratetype);
- 		if (page) {
--			__count_vm_event(COMPACTSUCCESS);
-+			count_vm_event(COMPACTSUCCESS);
- 			return page;
- 		}
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -3334,14 +3334,6 @@ static __devinit int init_ipmi_si(void)
+ 	pnp_register_driver(&ipmi_pnp_driver);
+ #endif
  
+-#ifdef CONFIG_DMI
+-	dmi_find_bmc();
+-#endif
+-
+-#ifdef CONFIG_ACPI
+-	spmi_find_bmc();
+-#endif
+-
+ #ifdef CONFIG_PPC_OF
+ 	of_register_platform_driver(&ipmi_of_platform_driver);
+ #endif
+@@ -3383,6 +3375,14 @@ static __devinit int init_ipmi_si(void)
+ 	if (type)
+ 		return 0;
+ 
++#ifdef CONFIG_DMI
++	dmi_find_bmc();
++#endif
++
++#ifdef CONFIG_ACPI
++	spmi_find_bmc();
++#endif
++
+ 	if (si_trydefaults) {
+ 		mutex_lock(&smi_infos_lock);
+ 		if (list_empty(&smi_infos)) {
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from myron.stowe@hp.com are
 
-rmap-remove-anon_vma-check-in-page_address_in_vma.patch
-define-madv_hugepage.patch
-mincore-cleanups.patch
-mincore-break-do_mincore-into-logical-pieces.patch
-mincore-pass-ranges-as-startend-address-pairs.patch
-mincore-do-nested-page-table-walks.patch
-mmcompaction-memory-compaction-core.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails-fix.patch
-mm-document-follow_page.patch
+ipmi-raise-precedence-of-pnp-based-discovery-mechanisms-acpi-pci.patch
+ipmi-convert-tracking-of-the-acpi-device-pointer-to-a-pnp-device.patch
 
