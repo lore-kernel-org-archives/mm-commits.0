@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 06 May 2010 13:16:55 -0700
-Message-ID: <201005062016.o46KGtxK011319@imap1.linux-foundation.org>
+Subject: + mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction.patch added to -mm tree
+Date: Thu, 06 May 2010 13:22:17 -0700
+Message-ID: <201005062022.o46KMHxI011557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758642Ab0EFURQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 16:17:16 -0400
+	by vger.kernel.org with ESMTP id S1756035Ab0EFUXg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 16:23:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, minyard@acm.org
+Cc: mel@csn.ul.ie, aarcange@redhat.com, agl@us.ibm.com, avi@redhat.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, rientjes@google.com
 
 
 The patch titled
-     ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes
+     mm: compaction: do not schedule work on other CPUs for compaction
 has been added to the -mm tree.  Its filename is
-     ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+     mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: compaction: do not schedule work on other CPUs for compaction
+From: Mel Gorman <mel@csn.ul.ie>
 
-ERROR: space required after that ',' (ctx:VxV)
-#89: FILE: drivers/char/ipmi/ipmi_si_intf.c:707:
-+			dev_warn(smi_info->dev,"Could not enable interrupts"
- 			                      ^
+Migration normally requires a call to migrate_prep() as a preparation
+step.  This schedules work on all CPUs for pagevecs to be drained.  This
+makes sense for move_pages and memory hot-remove but is unnecessary for
+memory compaction.
 
-total: 1 errors, 0 warnings, 579 lines checked
+To avoid queueing work on multiple CPUs, this patch introduces
+migrate_prep_local() which drains just local pagevecs.
 
-./patches/ipmi-update-driver-to-use-dev_printk-and-its-constructs.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+This patch can be either merged with
+mmcompaction-memory-compaction-core.patch or placed immediately after it
+to clarify why migrate_prep_local() was introduced.
 
-Please run checkpatch prior to sending patches
-
-Cc: Corey Minyard <minyard@acm.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/migrate.h |    2 ++
+ mm/compaction.c         |    2 +-
+ mm/migrate.c            |   11 ++++++++++-
+ 3 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -704,7 +704,7 @@ static void handle_transaction_done(stru
- 		/* We got the flags from the SMI, now handle them. */
- 		smi_info->handlers->get_result(smi_info->si_sm, msg, 4);
- 		if (msg[2] != 0)
--			dev_warn(smi_info->dev,"Could not enable interrupts"
-+			dev_warn(smi_info->dev, "Could not enable interrupts"
- 				 ", failed set, using polled mode.\n");
- 		else
- 			smi_info->interrupt_disabled = 0;
+diff -puN include/linux/migrate.h~mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction include/linux/migrate.h
+--- a/include/linux/migrate.h~mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction
++++ a/include/linux/migrate.h
+@@ -19,6 +19,7 @@ extern int fail_migrate_page(struct addr
+ 			struct page *, struct page *);
+ 
+ extern int migrate_prep(void);
++extern int migrate_prep_local(void);
+ extern int migrate_vmas(struct mm_struct *mm,
+ 		const nodemask_t *from, const nodemask_t *to,
+ 		unsigned long flags);
+@@ -30,6 +31,7 @@ static inline int migrate_pages(struct l
+ 		unsigned long private, int offlining) { return -ENOSYS; }
+ 
+ static inline int migrate_prep(void) { return -ENOSYS; }
++static inline int migrate_prep_local(void) { return -ENOSYS; }
+ 
+ static inline int migrate_vmas(struct mm_struct *mm,
+ 		const nodemask_t *from, const nodemask_t *to,
+diff -puN mm/compaction.c~mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction mm/compaction.c
+--- a/mm/compaction.c~mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction
++++ a/mm/compaction.c
+@@ -358,7 +358,7 @@ static int compact_zone(struct zone *zon
+ 	cc->free_pfn = cc->migrate_pfn + zone->spanned_pages;
+ 	cc->free_pfn &= ~(pageblock_nr_pages-1);
+ 
+-	migrate_prep();
++	migrate_prep_local();
+ 
+ 	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
+ 		unsigned long nr_migrate, nr_remaining;
+diff -puN mm/migrate.c~mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction mm/migrate.c
+--- a/mm/migrate.c~mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction
++++ a/mm/migrate.c
+@@ -40,7 +40,8 @@
+ 
+ /*
+  * migrate_prep() needs to be called before we start compiling a list of pages
+- * to be migrated using isolate_lru_page().
++ * to be migrated using isolate_lru_page(). If scheduling work on other CPUs is
++ * undesirable, use migrate_prep_local()
+  */
+ int migrate_prep(void)
+ {
+@@ -55,6 +56,14 @@ int migrate_prep(void)
+ 	return 0;
+ }
+ 
++/* Do the necessary work of migrate_prep but not if it involves other CPUs */
++int migrate_prep_local(void)
++{
++	lru_add_drain();
++
++	return 0;
++}
++
+ /*
+  * Add isolated pages on the list back to the LRU under page lock
+  * to avoid leaking evictable pages back onto unevictable list.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
 linux-next.patch
-linux-next-fix-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-jfs-free-sbi-memory-in-error-path.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+hugetlbfs-kill-applications-that-use-map_noreserve-with-sigbus-instead-of-oom-killer.patch
+rmap-remove-anon_vma-check-in-page_address_in_vma.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mempolicy-remove-redundant-code.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mmmigration-allow-the-migration-of-pageswapcache-pages.patch
 mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
 mm-export-unusable-free-space-index-via-debugfs.patch
+mm-export-fragmentation-index-via-debugfs.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mmcompaction-memory-compaction-core.patch
+mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction.patch
+mmcompaction-add-proc-trigger-for-memory-compaction.patch
+mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
 mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails-fix.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
+mm-introduce-free_pages_prepare.patch
 mm-introduce-free_pages_prepare-fix.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+vmscan-fix-unmapping-behaviour-for-reclaim_swap.patch
+vmscan-remove-may_unmap-scan-control.patch
+vmscan-remove-all_unreclaimable-scan-control.patch
+vmscan-remove-isolate_pages-callback-scan-control.patch
+vmscan-remove-may_swap-scan-control.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
+numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
+numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
