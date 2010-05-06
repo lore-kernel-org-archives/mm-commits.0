@@ -1,66 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dvb-usb-gp8psk-fix-potential-null-derefernce.patch removed from -mm tree
-Date: Thu, 06 May 2010 12:09:05 -0400
-Message-ID: <201005061910.o46JAZ38008539@imap1.linux-foundation.org>
+Subject: [merged] dib7000p-reduce-large-stack-usage-fix.patch removed from -mm tree
+Date: Thu, 06 May 2010 12:09:02 -0400
+Message-ID: <201005061910.o46JAW31008536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754263Ab0EFTKz (ORCPT
+	by vger.kernel.org with ESMTP id S1754295Ab0EFTKz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 15:10:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, alannisota@gmail.com, mchehab@infradead.org, pb@linuxtv.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, obi@linuxtv.org, pboettcher@dibcom.fr, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb-usb: gp8psk, fix potential null derefernce
+     dib7000p-reduce-large-stack-usage-fix
 has been removed from the -mm tree.  Its filename was
-     dvb-usb-gp8psk-fix-potential-null-derefernce.patch
+     dib7000p-reduce-large-stack-usage-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb-usb: gp8psk, fix potential null derefernce
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: dib7000p-reduce-large-stack-usage-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Stanse found that in gp8psk_load_bcm4500fw there is missing a check for
-return value of kmalloc. Add one and bail out appropriatelly.
+s/ENODEV/ENOMEM, per Andreas
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Alan Nisota <alannisota@gmail.com>
-Cc: Patrick Boettcher <pb@linuxtv.org>
+Cc: Andreas Oberritter <obi@linuxtv.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Patrick Boettcher <pboettcher@dibcom.fr>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/gp8psk.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/dvb/frontends/dib7000p.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8psk-fix-potential-null-derefernce drivers/media/dvb/dvb-usb/gp8psk.c
---- a/drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8psk-fix-potential-null-derefernce
-+++ a/drivers/media/dvb/dvb-usb/gp8psk.c
-@@ -105,6 +105,10 @@ static int gp8psk_load_bcm4500fw(struct 
+diff -puN drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage-fix drivers/media/dvb/frontends/dib7000p.c
+--- a/drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage-fix
++++ a/drivers/media/dvb/frontends/dib7000p.c
+@@ -1330,7 +1330,7 @@ int dib7000p_i2c_enumeration(struct i2c_
  
- 	ptr = fw->data;
- 	buf = kmalloc(64, GFP_KERNEL | GFP_DMA);
-+	if (!buf) {
-+		ret = -ENOMEM;
-+		goto out_rel_fw;
-+	}
+ 	dpst = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
+ 	if (!dpst)
+-		return -ENODEV;
++		return -ENOMEM;
  
- 	while (ptr[0] != 0xff) {
- 		u16 buflen = ptr[0] + 4;
+ 	dpst->i2c_adap = i2c;
+ 
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+linux-next-fix-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-edac-add-__init-to-i7core_xeon_pci_fixup.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
