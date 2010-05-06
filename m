@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-the-x86_64-implementation-of-call_rwsem_wait.patch added to -mm tree
-Date: Thu, 06 May 2010 16:44:21 -0700
-Message-ID: <201005062344.o46NiLJW021992@imap1.linux-foundation.org>
+Subject: [merged] x86-fix-the-x86_64-implementation-of-call_rwsem_wait.patch removed from -mm tree
+Date: Thu, 06 May 2010 16:47:43 -0700
+Message-ID: <201005062347.o46Nlhht022115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751779Ab0EFXok (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 19:44:40 -0400
+	by vger.kernel.org with ESMTP id S1751317Ab0EFXs2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 19:48:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+To: dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      x86: fix the x86_64 implementation of call_rwsem_wait()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      x86-fix-the-x86_64-implementation-of-call_rwsem_wait.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
