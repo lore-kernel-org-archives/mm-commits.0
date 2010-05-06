@@ -1,81 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ati_remote-add-some-missing-devices-from-lirc_atiusb.patch removed from -mm tree
-Date: Thu, 06 May 2010 12:09:12 -0400
-Message-ID: <201005061910.o46JAgPO008545@imap1.linux-foundation.org>
+Subject: [merged] serial-two-branches-the-same-in-timbuart_set_mctrl.patch removed from -mm tree
+Date: Thu, 06 May 2010 12:09:15 -0400
+Message-ID: <201005061910.o46JAjne008548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755612Ab0EFTLB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 15:11:01 -0400
+	by vger.kernel.org with ESMTP id S1755639Ab0EFTLE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 15:11:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jarod@redhat.com, nm127@freemail.hu, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, richard.rojfors@pelagicore.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ati_remote: add some missing devices from lirc_atiusb
+     serial: two branches the same in timbuart_set_mctrl()
 has been removed from the -mm tree.  Its filename was
-     ati_remote-add-some-missing-devices-from-lirc_atiusb.patch
+     serial-two-branches-the-same-in-timbuart_set_mctrl.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ati_remote: add some missing devices from lirc_atiusb
-From: Jarod Wilson <jarod@redhat.com>
+Subject: serial: two branches the same in timbuart_set_mctrl()
+=46rom: Roel Kluin <roel.kluin@gmail.com>
 
-The (out-of-tree) lirc_atiusb driver has a much longer list of devices it
-supports.  Some of them look like they may just be guesses at possible
-device IDs, but a few are definitely confirmed devices.  This adds the
-nVidia-branded RF receiver and the X10 Lola Wireless Video Sender device
-(which contains an RF receiver) to the list of devices in ati_remote.
+CTS is a read only bit and we are to stop signal RTS if modem line
+TIOCM_RTS is not set.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-Cc: <nm127@freemail.hu>
+Thanks for suggestions by Richard R=F6jfors.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Richard R=F6jfors <richard.rojfors@pelagicore.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/ati_remote.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/serial/timbuart.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/misc/ati_remote.c~ati_remote-add-some-missing-devices-from-lirc_atiusb drivers/input/misc/ati_remote.c
---- a/drivers/input/misc/ati_remote.c~ati_remote-add-some-missing-devices-from-lirc_atiusb
-+++ a/drivers/input/misc/ati_remote.c
-@@ -98,10 +98,12 @@
-  * Module and Version Information, Module Parameters
-  */
- 
--#define ATI_REMOTE_VENDOR_ID	0x0bc7
--#define ATI_REMOTE_PRODUCT_ID	0x004
--#define LOLA_REMOTE_PRODUCT_ID	0x002
--#define MEDION_REMOTE_PRODUCT_ID 0x006
-+#define ATI_REMOTE_VENDOR_ID		0x0bc7
-+#define LOLA_REMOTE_PRODUCT_ID		0x0002
-+#define LOLA2_REMOTE_PRODUCT_ID		0x0003
-+#define ATI_REMOTE_PRODUCT_ID		0x0004
-+#define NVIDIA_REMOTE_PRODUCT_ID	0x0005
-+#define MEDION_REMOTE_PRODUCT_ID	0x0006
- 
- #define DRIVER_VERSION	        "2.2.1"
- #define DRIVER_AUTHOR           "Torrey Hoffman <thoffman@arnor.net>"
-@@ -142,8 +144,10 @@ MODULE_PARM_DESC(repeat_delay, "Delay be
- #define err(format, arg...) printk(KERN_ERR format , ## arg)
- 
- static struct usb_device_id ati_remote_table[] = {
--	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID) },
- 	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID) },
-+	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA2_REMOTE_PRODUCT_ID) },
-+	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID) },
-+	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, NVIDIA_REMOTE_PRODUCT_ID) },
- 	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, MEDION_REMOTE_PRODUCT_ID) },
- 	{}	/* Terminating entry */
- };
+diff -puN drivers/serial/timbuart.c~serial-two-branches-the-same-in-tim=
+buart_set_mctrl drivers/serial/timbuart.c
+--- a/drivers/serial/timbuart.c~serial-two-branches-the-same-in-timbuar=
+t_set_mctrl
++++ a/drivers/serial/timbuart.c
+@@ -220,7 +220,7 @@ static void timbuart_set_mctrl(struct ua
+ 	if (mctrl & TIOCM_RTS)
+ 		iowrite8(TIMBUART_CTRL_RTS, port->membase + TIMBUART_CTRL);
+ 	else
+-		iowrite8(TIMBUART_CTRL_RTS, port->membase + TIMBUART_CTRL);
++		iowrite8(0, port->membase + TIMBUART_CTRL);
+ }
+=20
+ static void timbuart_mctrl_check(struct uart_port *port, u32 isr, u32 =
+*ier)
 _
 
-Patches currently in -mm which might be from jarod@redhat.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
 linux-next.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.pat=
+ch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.p=
+atch
+lpfc-positive-error-return-into-negative.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hvsi-messed-up-error-checking-getting-state-name.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
