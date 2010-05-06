@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-driver-for-the-altera-uart-update.patch added to -mm tree
-Date: Thu, 06 May 2010 14:51:45 -0700
-Message-ID: <201005062151.o46Lpji3016774@imap1.linux-foundation.org>
+Subject: + proc-remove-obsolete-comments.patch added to -mm tree
+Date: Thu, 06 May 2010 14:54:58 -0700
+Message-ID: <201005062154.o46LswNW017279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752364Ab0EFVwc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 17:52:32 -0400
+	by vger.kernel.org with ESMTP id S1753041Ab0EFVzj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 17:55:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tklauser@distanz.ch, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: amwang@redhat.com, adobriyan@gmail.com
 
 
 The patch titled
-     serial-add-driver-for-the-altera-uart-update
+     proc: remove obsolete comments
 has been added to the -mm tree.  Its filename is
-     serial-add-driver-for-the-altera-uart-update.patch
+     proc-remove-obsolete-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-driver-for-the-altera-uart-update
-From: Tobias Klauser <tklauser@distanz.ch>
+Subject: proc: remove obsolete comments
+From: Amerigo Wang <amwang@redhat.com>
 
-Add an UART driver for the UART component available as a SOPC (System on
-Programmable Chip) component for Altera FPGAs.
+A quick test shows these comments are obsolete, so just remove them.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/generic.c |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN drivers/serial/Kconfig~serial-add-driver-for-the-altera-uart-update drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~serial-add-driver-for-the-altera-uart-update
-+++ a/drivers/serial/Kconfig
-@@ -1552,7 +1552,7 @@ config SERIAL_ALTERA_JTAGUART_CONSOLE_BY
- 	  JTAG terminal connection with the host.
- 
- config SERIAL_ALTERA_UART
--	bool "Altera UART support"
-+	tristate "Altera UART support"
- 	select SERIAL_CORE
- 	help
- 	  This driver supports the Altera softcore UART port.
-@@ -1577,7 +1577,7 @@ config SERIAL_ALTERA_UART_BAUDRATE
- 
- config SERIAL_ALTERA_UART_CONSOLE
- 	bool "Altera UART console support"
--	depends on SERIAL_ALTERA_UART
-+	depends on SERIAL_ALTERA_UART=y
- 	select SERIAL_CORE_CONSOLE
- 	help
- 	  Enable a Altera UART port to be the system console.
+diff -puN fs/proc/generic.c~proc-remove-obsolete-comments fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-remove-obsolete-comments
++++ a/fs/proc/generic.c
+@@ -343,21 +343,6 @@ static DEFINE_SPINLOCK(proc_inum_lock); 
+ /*
+  * Return an inode number between PROC_DYNAMIC_FIRST and
+  * 0xffffffff, or zero on failure.
+- *
+- * Current inode allocations in the proc-fs (hex-numbers):
+- *
+- * 00000000		reserved
+- * 00000001-00000fff	static entries	(goners)
+- *      001		root-ino
+- *
+- * 00001000-00001fff	unused
+- * 0001xxxx-7fffxxxx	pid-dir entries for pid 1-7fff
+- * 80000000-efffffff	unused
+- * f0000000-ffffffff	dynamic entries
+- *
+- * Goal:
+- *	Once we split the thing into several virtual filesystems,
+- *	we will get rid of magical ranges (and this comment, BTW).
+  */
+ static unsigned int get_inode_number(void)
+ {
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from amwang@redhat.com are
 
+kexec-fix-oops-in-crash_kernel_shrink.patch
 linux-next.patch
-serial-add-driver-for-the-altera-jtag-uart.patch
-serial-add-driver-for-the-altera-jtag-uart-update.patch
-serial-add-driver-for-the-altera-uart.patch
-serial-add-driver-for-the-altera-uart-update.patch
+proc-remove-obsolete-comments.patch
 
