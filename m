@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch removed from -mm tree
-Date: Thu, 06 May 2010 12:08:45 -0400
-Message-ID: <201005061910.o46JAFbu008510@imap1.linux-foundation.org>
+Subject: [merged] gpu-vga_switcheroo-fix-lock-imbalance.patch removed from -mm tree
+Date: Thu, 06 May 2010 12:08:39 -0400
+Message-ID: <201005061910.o46JA9DX008496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123Ab0EFTKT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 15:10:19 -0400
+	by vger.kernel.org with ESMTP id S1752123Ab0EFTKX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 15:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: error27@gmail.com, airlied@linux.ie, alexdeucher@gmail.com, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, airlied@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/radeon/radeon_atombios.c: range check issues
+     gpu: vga_switcheroo, fix lock imbalance
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues.patch
+     gpu-vga_switcheroo-fix-lock-imbalance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/radeon/radeon_atombios.c: range check issues
-From: Dan Carpenter <error27@gmail.com>
+Subject: gpu: vga_switcheroo, fix lock imbalance
+From: Jiri Slaby <jslaby@suse.cz>
 
-This change makes the array larger, "MAX_SUPPORTED_TV_TIMING_V1_2" is 3
-and the original size "MAX_SUPPORTED_TV_TIMING" is 2.
+Stanse found that one error path in vga_switcheroo_debugfs_write omits to
+unlock vgasr_mutex.  Fix that.
 
-Also there were checks that were off by one.
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
-Acked-by: Alex Deucher <alexdeucher@gmail.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/atombios.h        |    2 +-
- drivers/gpu/drm/radeon/radeon_atombios.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/gpu/vga/vga_switcheroo.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/radeon/atombios.h~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues drivers/gpu/drm/radeon/atombios.h
---- a/drivers/gpu/drm/radeon/atombios.h~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues
-+++ a/drivers/gpu/drm/radeon/atombios.h
-@@ -2912,7 +2912,7 @@ typedef struct _ATOM_ANALOG_TV_INFO_V1_2
-   UCHAR                    ucTV_BootUpDefaultStandard; 
-   UCHAR                    ucExt_TV_ASIC_ID;
-   UCHAR                    ucExt_TV_ASIC_SlaveAddr;
--  ATOM_DTD_FORMAT          aModeTimings[MAX_SUPPORTED_TV_TIMING];
-+  ATOM_DTD_FORMAT          aModeTimings[MAX_SUPPORTED_TV_TIMING_V1_2];
- }ATOM_ANALOG_TV_INFO_V1_2;
+diff -puN drivers/gpu/vga/vga_switcheroo.c~gpu-vga_switcheroo-fix-lock-imbalance drivers/gpu/vga/vga_switcheroo.c
+--- a/drivers/gpu/vga/vga_switcheroo.c~gpu-vga_switcheroo-fix-lock-imbalance
++++ a/drivers/gpu/vga/vga_switcheroo.c
+@@ -276,8 +276,10 @@ vga_switcheroo_debugfs_write(struct file
  
- typedef struct _ATOM_DPCD_INFO
-diff -puN drivers/gpu/drm/radeon/radeon_atombios.c~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues drivers/gpu/drm/radeon/radeon_atombios.c
---- a/drivers/gpu/drm/radeon/radeon_atombios.c~drivers-gpu-drm-radeon-radeon_atombiosc-range-check-issues
-+++ a/drivers/gpu/drm/radeon/radeon_atombios.c
-@@ -1264,7 +1264,7 @@ bool radeon_atom_get_tv_timings(struct r
- 	switch (crev) {
- 	case 1:
- 		tv_info = (ATOM_ANALOG_TV_INFO *)(mode_info->atom_context->bios + data_offset);
--		if (index > MAX_SUPPORTED_TV_TIMING)
-+		if (index >= MAX_SUPPORTED_TV_TIMING)
- 			return false;
+ 	mutex_lock(&vgasr_mutex);
  
- 		mode->crtc_htotal = le16_to_cpu(tv_info->aModeTimings[index].usCRTC_H_Total);
-@@ -1302,7 +1302,7 @@ bool radeon_atom_get_tv_timings(struct r
- 		break;
- 	case 2:
- 		tv_info_v1_2 = (ATOM_ANALOG_TV_INFO_V1_2 *)(mode_info->atom_context->bios + data_offset);
--		if (index > MAX_SUPPORTED_TV_TIMING_V1_2)
-+		if (index >= MAX_SUPPORTED_TV_TIMING_V1_2)
- 			return false;
+-	if (!vgasr_priv.active)
+-		return -EINVAL;
++	if (!vgasr_priv.active) {
++		cnt = -EINVAL;
++		goto out;
++	}
  
- 		dtd_timings = &tv_info_v1_2->aModeTimings[index];
+ 	/* pwr off the device not in use */
+ 	if (strncmp(usercmd, "OFF", 3) == 0) {
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 origin.patch
 linux-next.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-mm-document-follow_page.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
-fs-sysv-dereferencing-err_ptr.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+edac-add-__init-to-i7core_xeon_pci_fixup.patch
 
