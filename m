@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-be2iscsi-build.patch added to -mm tree
-Date: Thu, 06 May 2010 15:14:31 -0700
-Message-ID: <201005062214.o46MEVD6018095@imap1.linux-foundation.org>
+Subject: + scsi-fix-pmcraid-build-errors.patch added to -mm tree
+Date: Thu, 06 May 2010 15:14:29 -0700
+Message-ID: <201005062214.o46MET9k018091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58110 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753123Ab0EFWOi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 18:14:38 -0400
+	by vger.kernel.org with ESMTP id S1753290Ab0EFWOj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 May 2010 18:14:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, jayamohank@serverengines.com
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, anil_ravindranath@pmc-sierra.com
 
 
 The patch titled
-     scsi: fix be2iscsi build
+     scsi: fix pmcraid build errors
 has been added to the -mm tree.  Its filename is
-     scsi-fix-be2iscsi-build.patch
+     scsi-fix-pmcraid-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix be2iscsi build
+Subject: scsi: fix pmcraid build errors
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-be2iscsi driver should #include linux/if_ether.h since it uses
-sysfs_format_mac().
+pmcraid should depend on NET since it uses netlink interfaces.
+This fixes multiple build errors when CONFIG_NET is not enabled:
 
-It should also depend on NET since it selects SCSI_ISCSI_ATTRS,
-which depends on NET.
-
-These changes fix a build error when CONFIG_NET is not enabled:
-ERROR: "sysfs_format_mac" [drivers/scsi/be2iscsi/be2iscsi.ko] undefined!
+ERROR: "genl_register_family" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "genl_unregister_family" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "nla_put" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "init_net" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "__alloc_skb" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "netlink_broadcast" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "kfree_skb" [drivers/scsi/pmcraid.ko] undefined!
+ERROR: "skb_put" [drivers/scsi/pmcraid.ko] undefined!
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jayamohan Kallickal <jayamohank@serverengines.com>
+Cc: Anil Ravindranath <anil_ravindranath@pmc-sierra.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/be2iscsi/Kconfig   |    2 +-
- drivers/scsi/be2iscsi/be_main.h |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/scsi/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/be2iscsi/Kconfig~scsi-fix-be2iscsi-build drivers/scsi/be2iscsi/Kconfig
---- a/drivers/scsi/be2iscsi/Kconfig~scsi-fix-be2iscsi-build
-+++ a/drivers/scsi/be2iscsi/Kconfig
-@@ -1,6 +1,6 @@
- config BE2ISCSI
- 	tristate "ServerEngines' 10Gbps iSCSI - BladeEngine 2"
+diff -puN drivers/scsi/Kconfig~scsi-fix-pmcraid-build-errors drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~scsi-fix-pmcraid-build-errors
++++ a/drivers/scsi/Kconfig
+@@ -1849,7 +1849,7 @@ config ZFCP
+ 
+ config SCSI_PMCRAID
+ 	tristate "PMC SIERRA Linux MaxRAID adapter support"
 -	depends on PCI && SCSI
 +	depends on PCI && SCSI && NET
- 	select SCSI_ISCSI_ATTRS
+ 	---help---
+ 	  This driver supports the PMC SIERRA MaxRAID adapters.
  
- 	help
-diff -puN drivers/scsi/be2iscsi/be_main.h~scsi-fix-be2iscsi-build drivers/scsi/be2iscsi/be_main.h
---- a/drivers/scsi/be2iscsi/be_main.h~scsi-fix-be2iscsi-build
-+++ a/drivers/scsi/be2iscsi/be_main.h
-@@ -23,6 +23,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/pci.h>
-+#include <linux/if_ether.h>
- #include <linux/in.h>
- #include <scsi/scsi.h>
- #include <scsi/scsi_cmnd.h>
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
