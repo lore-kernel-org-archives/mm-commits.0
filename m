@@ -1,67 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-add-driver-for-the-altera-uart-update.patch removed from -mm tree
-Date: Fri, 07 May 2010 12:11:46 -0400
-Message-ID: <201005071913.o47JDG9F006603@imap1.linux-foundation.org>
+Subject: [merged] cgroup-check-task_lock-in-task_subsys_state.patch removed from -mm tree
+Date: Fri, 07 May 2010 12:11:51 -0400
+Message-ID: <201005071913.o47JDLn8006609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758070Ab0EGTN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 15:13:28 -0400
+	by vger.kernel.org with ESMTP id S1757707Ab0EGTNm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 15:13:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tklauser@distanz.ch, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-add-driver-for-the-altera-uart-update
+     cgroup: check task_lock in task_subsys_state()
 has been removed from the -mm tree.  Its filename was
-     serial-add-driver-for-the-altera-uart-update.patch
+     cgroup-check-task_lock-in-task_subsys_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-driver-for-the-altera-uart-update
-From: Tobias Klauser <tklauser@distanz.ch>
+Subject: cgroup: check task_lock in task_subsys_state()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Add an UART driver for the UART component available as a SOPC (System on
-Programmable Chip) component for Altera FPGAs.
+task_subsys_state() is safe under task_lock().  See
+Documentation/cgroups/cgroups.txt for locking rule.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+This fixes an RCU warning when resume from suspend.  The warning comes
+from freezer cgroup in cgroup_freezing_or_frozen().
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/cgroup.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/Kconfig~serial-add-driver-for-the-altera-uart-update drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~serial-add-driver-for-the-altera-uart-update
-+++ a/drivers/serial/Kconfig
-@@ -1552,7 +1552,7 @@ config SERIAL_ALTERA_JTAGUART_CONSOLE_BY
- 	  JTAG terminal connection with the host.
+diff -puN include/linux/cgroup.h~cgroup-check-task_lock-in-task_subsys_state include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-check-task_lock-in-task_subsys_state
++++ a/include/linux/cgroup.h
+@@ -530,6 +530,7 @@ static inline struct cgroup_subsys_state
+ {
+ 	return rcu_dereference_check(task->cgroups->subsys[subsys_id],
+ 				     rcu_read_lock_held() ||
++				     lockdep_is_held(&task->alloc_lock) ||
+ 				     cgroup_lock_is_held());
+ }
  
- config SERIAL_ALTERA_UART
--	bool "Altera UART support"
-+	tristate "Altera UART support"
- 	select SERIAL_CORE
- 	help
- 	  This driver supports the Altera softcore UART port.
-@@ -1577,7 +1577,7 @@ config SERIAL_ALTERA_UART_BAUDRATE
- 
- config SERIAL_ALTERA_UART_CONSOLE
- 	bool "Altera UART console support"
--	depends on SERIAL_ALTERA_UART
-+	depends on SERIAL_ALTERA_UART=y
- 	select SERIAL_CORE_CONSOLE
- 	help
- 	  Enable a Altera UART port to be the system console.
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
+origin.patch
 linux-next.patch
+memcg-make-oom-killer-a-no-op-when-no-killable-task-can-be-found.patch
 
