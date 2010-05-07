@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch added to -mm tree
-Date: Fri, 07 May 2010 13:47:33 -0700
-Message-ID: <201005072047.o47KlXTo010855@imap1.linux-foundation.org>
+Subject: + scsi-remove-private-bit-macros.patch added to -mm tree
+Date: Fri, 07 May 2010 14:05:10 -0700
+Message-ID: <201005072105.o47L5A20011723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853Ab0EGUrn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:47:43 -0400
+	by vger.kernel.org with ESMTP id S1753410Ab0EGVFO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 17:05:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, chaohong.guo@intel.com, chaohong_guo@linux.intel.com, cl@linux-foundation.org, minchan.kim@gmail.com, tj@kernel.org, y-goto@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, huangj@brocade.com, robert.w.love@intel.com
 
 
 The patch titled
-     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix
+     scsi: remove private BIT macros
 has been added to the -mm tree.  Its filename is
-     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+     scsi-remove-private-bit-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix
+Subject: scsi: remove private BIT macros
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove unneeded export
+A couple of scsi drivers define a BIT() macro, duplicating the one in
+bitops.h.  
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: minskey guo <chaohong_guo@linux.intel.com>
-Cc: minskey guo<chaohong.guo@intel.com>
+Cc: Jing Huang <huangj@brocade.com>
+Cc: Robert Love <robert.w.love@intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 --
- 1 file changed, 2 deletions(-)
+ ./drivers/scsi/bfa/include/protocol/fcp.h |    4 +---
+ ./drivers/scsi/fnic/fnic.h                |    2 +-
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix
-+++ a/mm/memory_hotplug.c
-@@ -504,8 +504,6 @@ out:
- 	unlock_system_sleep();
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(mem_online_node);
--
+diff -puN ./drivers/scsi/fnic/fnic.h~scsi-remove-private-bit-macros ./drivers/scsi/fnic/fnic.h
+--- a/./drivers/scsi/fnic/fnic.h~scsi-remove-private-bit-macros
++++ a/./drivers/scsi/fnic/fnic.h
+@@ -21,6 +21,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/netdevice.h>
+ #include <linux/workqueue.h>
++#include <linux/bitops.h>
+ #include <scsi/libfc.h>
+ #include <scsi/libfcoe.h>
+ #include "fnic_io.h"
+@@ -49,7 +50,6 @@
+ /*
+  * Tag bits used for special requests.
+  */
+-#define BIT(nr)			(1UL << (nr))
+ #define FNIC_TAG_ABORT		BIT(30)		/* tag bit indicating abort */
+ #define FNIC_TAG_DEV_RST	BIT(29)		/* indicates device reset */
+ #define FNIC_TAG_MASK		(BIT(24) - 1)	/* mask for lookup */
+diff -puN ./drivers/scsi/bfa/include/protocol/fcp.h~scsi-remove-private-bit-macros ./drivers/scsi/bfa/include/protocol/fcp.h
+--- a/./drivers/scsi/bfa/include/protocol/fcp.h~scsi-remove-private-bit-macros
++++ a/./drivers/scsi/bfa/include/protocol/fcp.h
+@@ -18,6 +18,7 @@
+ #ifndef __FCPPROTO_H__
+ #define __FCPPROTO_H__
  
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
- int __ref add_memory(int nid, u64 start, u64 size)
++#include <linux/bitops.h>
+ #include <protocol/scsi.h>
+ 
+ #pragma pack(1)
+@@ -102,9 +103,6 @@ enum {
+ /*
+  * Task management flags field - only one bit shall be set
+  */
+-#ifndef BIT
+-#define BIT(_x)	(1 << (_x))
+-#endif
+ enum fcp_tm_cmnd{
+ 	FCP_TM_ABORT_TASK_SET	= BIT(1),
+ 	FCP_TM_CLEAR_TASK_SET	= BIT(2),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +110,7 @@ led-driver-for-the-soekris-net5501-board.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 3x59x-fix-pci-resource-management.patch
 backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+scsi-remove-private-bit-macros.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
 mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
