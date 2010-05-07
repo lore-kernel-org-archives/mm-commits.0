@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch added to -mm tree
-Date: Fri, 07 May 2010 13:46:23 -0700
-Message-ID: <201005072046.o47KkN52010823@imap1.linux-foundation.org>
+Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 07 May 2010 13:46:52 -0700
+Message-ID: <201005072046.o47Kkqa4010841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853Ab0EGUqa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:46:30 -0400
+	by vger.kernel.org with ESMTP id S1752853Ab0EGUq7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:46:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chaohong_guo@linux.intel.com, andi@firstfloor.org, chaohong.guo@intel.com, cl@linux-foundation.org, minchan.kim@gmail.com, tj@kernel.org, y-goto@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, chaohong.guo@intel.com, chaohong_guo@linux.intel.com, cl@linux-foundation.org, minchan.kim@gmail.com, tj@kernel.org, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     cpu/mem hotplug: enable CPUs online before local memory online
+     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch
+     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,128 +33,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu/mem hotplug: enable CPUs online before local memory online
-From: minskey guo <chaohong_guo@linux.intel.com>
+Subject: cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Enable users to online CPUs even if the CPUs belongs to a numa node which
-doesn't have onlined local memory.
-
-The zonlists(pg_data_t.node_zonelists[]) of a numa node are created either
-in system boot/init period, or at the time of local memory online.  For a
-numa node without onlined local memory, its zonelists are not initialized
-at present.  As a result, any memory allocation operations executed by
-CPUs within this node will fail.  In fact, an out-of-memory error is
-triggered when attempt to online CPUs before memory comes to online.
-
-This patch tries to create zonelists for such numa nodes, so that the
-memory allocation for this node can be fallback'ed to other nodes.
-
-Signed-off-by: minskey guo<chaohong.guo@intel.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Tejun Heo <tj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/memory_hotplug.h |    1 +
- kernel/cpu.c                   |   26 ++++++++++++++++++++++++++
- mm/memory_hotplug.c            |   25 +++++++++++++++++++++++++
- 3 files changed, 52 insertions(+)
-
-diff -puN include/linux/memory_hotplug.h~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online
-+++ a/include/linux/memory_hotplug.h
-@@ -202,6 +202,7 @@ static inline int is_mem_section_removab
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-+extern int mem_online_node(int nid);
- extern int add_memory(int nid, u64 start, u64 size);
- extern int arch_add_memory(int nid, u64 start, u64 size);
- extern int remove_memory(u64 start, u64 size);
-diff -puN kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online kernel/cpu.c
---- a/kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online
-+++ a/kernel/cpu.c
-@@ -330,6 +330,12 @@ out_notify:
- int __cpuinit cpu_up(unsigned int cpu)
- {
- 	int err = 0;
-+
-+#ifdef	CONFIG_MEMORY_HOTPLUG
-+	int nid;
-+	pg_data_t	*pgdat;
-+#endif
-+
- 	if (!cpu_possible(cpu)) {
- 		printk(KERN_ERR "can't online cpu %d because it is not "
- 			"configured as may-hotadd at boot time\n", cpu);
-@@ -340,6 +346,26 @@ int __cpuinit cpu_up(unsigned int cpu)
- 		return -EINVAL;
- 	}
- 
-+#ifdef	CONFIG_MEMORY_HOTPLUG
-+	nid = cpu_to_node(cpu);
-+	if (!node_online(nid)) {
-+		err = mem_online_node(nid);
-+		if (err)
-+			return err;
-+	}
-+
-+	pgdat = NODE_DATA(nid);
-+	if (!pgdat) {
-+		printk(KERN_ERR
-+			"Can't online cpu %d due to NULL pgdat\n", cpu);
-+		return -ENOMEM;
-+	}
-+
+WARNING: braces {} are not necessary for single statement blocks
+#76: FILE: kernel/cpu.c:364:
 +	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
 +		build_all_zonelists();
 +	}
-+#endif
-+
+
+total: 0 errors, 1 warnings, 76 lines checked
+
+./patches/cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: minskey guo <chaohong_guo@linux.intel.com>
+Cc: minskey guo<chaohong.guo@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/cpu.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff -puN kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes kernel/cpu.c
+--- a/kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
++++ a/kernel/cpu.c
+@@ -361,9 +361,8 @@ int __cpuinit cpu_up(unsigned int cpu)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
++	if (pgdat->node_zonelists->_zonerefs->zone == NULL)
+ 		build_all_zonelists();
+-	}
+ #endif
+ 
  	cpu_maps_update_begin();
- 
- 	if (cpu_hotplug_disabled) {
-diff -puN mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online
-+++ a/mm/memory_hotplug.c
-@@ -482,6 +482,31 @@ static void rollback_node_hotadd(int nid
- }
- 
- 
-+/*
-+ * called by cpu_up() to online a node without onlined memory.
-+ */
-+int mem_online_node(int nid)
-+{
-+	pg_data_t	*pgdat;
-+	int	ret;
-+
-+	lock_system_sleep();
-+	pgdat = hotadd_new_pgdat(nid, 0);
-+	if (pgdat) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+	node_set_online(nid);
-+	ret = register_one_node(nid);
-+	BUG_ON(ret);
-+
-+out:
-+	unlock_system_sleep();
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(mem_online_node);
-+
-+
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
- int __ref add_memory(int nid, u64 start, u64 size)
- {
 _
 
-Patches currently in -mm which might be from chaohong_guo@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch
+origin.patch
+linux-next.patch
+linux-next-fix-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+sched-introduce-get_cpu_iowait_time_us.patch
+jfs-free-sbi-memory-in-error-path.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
