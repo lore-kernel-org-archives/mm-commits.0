@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 07 May 2010 13:43:33 -0700
-Message-ID: <201005072043.o47KhXNU010738@imap1.linux-foundation.org>
+Subject: - cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 07 May 2010 13:44:34 -0700
+Message-ID: <201005072044.o47KiYUS010757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752324Ab0EGUoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:44:17 -0400
+	by vger.kernel.org with ESMTP id S1752303Ab0EGUpN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:45:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, chaohong.guo@intel.com, chaohong_guo@linux.intel.com, cl@linux-foundation.org, minchan.kim@gmail.com, tj@kernel.org, y-goto@jp.fujitsu.com
+To: akpm@linux-foundation.org, andi@firstfloor.org, chaohong.guo@intel.com, chaohong_guo@linux.intel.com, cl@linux-foundation.org, minchan.kim@gmail.com, tj@kernel.org, y-goto@jp.fujitsu.
 
 
 The patch titled
      cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because bah
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -86,7 +76,7 @@ diff -puN kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-on
  	}
  
 -	if (pgdat-&gt;node_zonelists-&gt;_zonerefs-&gt;zone == NULL) {
-+	if (pgdat-&gt; node_zonelists-&gt; _zonerefs-&gt;zone == NULL)
++	if (pgdat-&gt; node_zonelists-&gt; _zonerefs-&gt; zone == NULL)
  		build_all_zonelists();
 -	}
  #endif
