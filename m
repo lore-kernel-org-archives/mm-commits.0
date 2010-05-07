@@ -1,292 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-add-optimized-popcnt-variants.patch removed from -mm tree
-Date: Fri, 07 May 2010 12:11:48 -0400
-Message-ID: <201005071913.o47JDI52006606@imap1.linux-foundation.org>
+Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch added to -mm tree
+Date: Fri, 07 May 2010 13:42:51 -0700
+Message-ID: <201005072042.o47KgrqJ010723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757713Ab0EGTN7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 15:13:59 -0400
+	by vger.kernel.org with ESMTP id S1752303Ab0EGUnl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:43:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borislav.petkov@amd.com, a.p.zijlstra@chello.nl, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: chaohong_guo@linux.intel.com, andi@firstfloor.org, chaohong.guo@intel.com, cl@linux-foundation.org, minchan.kim@gmail.com, tj@kernel.org, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     x86: add optimized popcnt variants
-has been removed from the -mm tree.  Its filename was
-     x86-add-optimized-popcnt-variants.patch
+     cpu/mem hotplug: enable CPUs online before local memory online
+has been added to the -mm tree.  Its filename is
+     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: add optimized popcnt variants
-From: Borislav Petkov <borislav.petkov@amd.com>
+Subject: cpu/mem hotplug: enable CPUs online before local memory online
+From: minskey guo <chaohong_guo@linux.intel.com>
 
-Add support for the hardware version of the Hamming weight function,
-popcnt, present in CPUs which advertize it under CPUID, Function
-0x0000_0001_ECX[23].  On CPUs which don't support it, we fallback to the
-default lib/hweight.c sw versions.
+Enable users to online CPUs even if the CPUs belongs to a numa node which
+doesn't have onlined local memory.
 
-A synthetic benchmark comparing popcnt with __sw_hweight64 showed almost a
-3x speedup on a F10h machine.
+The zonlists(pg_data_t.node_zonelists[]) of a numa node are created either
+in system boot/init period, or at the time of local memory online.  For a
+numa node without onlined local memory, its zonelists are not initialized
+at present.  As a result, any memory allocation operations executed by
+CPUs within this node will fail.  In fact, an out-of-memory error is
+triggered when attempt to online CPUs before memory comes to online.
 
-Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch tries to create zonelists for such numa nodes, so that the
+memory allocation for this node can be fallback'ed to other nodes.
+
+Signed-off-by: minskey guo<chaohong.guo@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                          |    5 +
- arch/x86/include/asm/alternative.h        |    9 ++-
- arch/x86/include/asm/arch_hweight.h       |   59 ++++++++++++++++++++
- arch/x86/include/asm/bitops.h             |    4 +
- include/asm-generic/bitops/arch_hweight.h |   22 ++++++-
- lib/Makefile                              |    3 +
- lib/hweight.c                             |   20 +++---
- scripts/Makefile.lib                      |    4 +
- 8 files changed, 108 insertions(+), 18 deletions(-)
+ include/linux/memory_hotplug.h |    1 +
+ kernel/cpu.c                   |   26 ++++++++++++++++++++++++++
+ mm/memory_hotplug.c            |   25 +++++++++++++++++++++++++
+ 3 files changed, 52 insertions(+)
 
-diff -puN arch/x86/Kconfig~x86-add-optimized-popcnt-variants arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-add-optimized-popcnt-variants
-+++ a/arch/x86/Kconfig
-@@ -243,6 +243,11 @@ config X86_32_LAZY_GS
- 	def_bool y
- 	depends on X86_32 && !CC_STACKPROTECTOR
+diff -puN include/linux/memory_hotplug.h~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online
++++ a/include/linux/memory_hotplug.h
+@@ -202,6 +202,7 @@ static inline int is_mem_section_removab
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  
-+config ARCH_HWEIGHT_CFLAGS
-+	string
-+	default "-fcall-saved-ecx -fcall-saved-edx" if X86_32
-+	default "-fcall-saved-rdi -fcall-saved-rsi -fcall-saved-rdx -fcall-saved-rcx -fcall-saved-r8 -fcall-saved-r9 -fcall-saved-r10 -fcall-saved-r11" if X86_64
++extern int mem_online_node(int nid);
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int remove_memory(u64 start, u64 size);
+diff -puN kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online kernel/cpu.c
+--- a/kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online
++++ a/kernel/cpu.c
+@@ -330,6 +330,12 @@ out_notify:
+ int __cpuinit cpu_up(unsigned int cpu)
+ {
+ 	int err = 0;
 +
- config KTIME_SCALAR
- 	def_bool X86_32
- source "init/Kconfig"
-diff -puN arch/x86/include/asm/alternative.h~x86-add-optimized-popcnt-variants arch/x86/include/asm/alternative.h
---- a/arch/x86/include/asm/alternative.h~x86-add-optimized-popcnt-variants
-+++ a/arch/x86/include/asm/alternative.h
-@@ -39,9 +39,6 @@
- #define LOCK_PREFIX ""
- #endif
- 
--/* This must be included *after* the definition of LOCK_PREFIX */
--#include <asm/cpufeature.h>
--
- struct alt_instr {
- 	u8 *instr;		/* original instruction */
- 	u8 *replacement;
-@@ -96,6 +93,12 @@ static inline int alternatives_text_rese
-       ".previous"
- 
- /*
-+ * This must be included *after* the definition of ALTERNATIVE due to
-+ * <asm/arch_hweight.h>
-+ */
-+#include <asm/cpufeature.h>
-+
-+/*
-  * Alternative instructions for different CPU types or capabilities.
-  *
-  * This allows to use optimized instructions even on generic binary
-diff -puN /dev/null arch/x86/include/asm/arch_hweight.h
---- /dev/null
-+++ a/arch/x86/include/asm/arch_hweight.h
-@@ -0,0 +1,59 @@
-+#ifndef _ASM_X86_HWEIGHT_H
-+#define _ASM_X86_HWEIGHT_H
-+
-+#ifdef CONFIG_64BIT
-+/* popcnt %rdi, %rax */
-+#define POPCNT ".byte 0xf3,0x48,0x0f,0xb8,0xc7"
-+#define REG_IN "D"
-+#define REG_OUT "a"
-+#else
-+/* popcnt %eax, %eax */
-+#define POPCNT ".byte 0xf3,0x0f,0xb8,0xc0"
-+#define REG_IN "a"
-+#define REG_OUT "a"
++#ifdef	CONFIG_MEMORY_HOTPLUG
++	int nid;
++	pg_data_t	*pgdat;
 +#endif
 +
-+/*
-+ * __sw_hweightXX are called from within the alternatives below
-+ * and callee-clobbered registers need to be taken care of. See
-+ * ARCH_HWEIGHT_CFLAGS in <arch/x86/Kconfig> for the respective
-+ * compiler switches.
-+ */
-+static inline unsigned int __arch_hweight32(unsigned int w)
-+{
-+	unsigned int res = 0;
+ 	if (!cpu_possible(cpu)) {
+ 		printk(KERN_ERR "can't online cpu %d because it is not "
+ 			"configured as may-hotadd at boot time\n", cpu);
+@@ -340,6 +346,26 @@ int __cpuinit cpu_up(unsigned int cpu)
+ 		return -EINVAL;
+ 	}
+ 
++#ifdef	CONFIG_MEMORY_HOTPLUG
++	nid = cpu_to_node(cpu);
++	if (!node_online(nid)) {
++		err = mem_online_node(nid);
++		if (err)
++			return err;
++	}
 +
-+	asm (ALTERNATIVE("call __sw_hweight32", POPCNT, X86_FEATURE_POPCNT)
-+		     : "="REG_OUT (res)
-+		     : REG_IN (w));
++	pgdat = NODE_DATA(nid);
++	if (!pgdat) {
++		printk(KERN_ERR
++			"Can't online cpu %d due to NULL pgdat\n", cpu);
++		return -ENOMEM;
++	}
 +
-+	return res;
-+}
-+
-+static inline unsigned int __arch_hweight16(unsigned int w)
-+{
-+	return __arch_hweight32(w & 0xffff);
-+}
-+
-+static inline unsigned int __arch_hweight8(unsigned int w)
-+{
-+	return __arch_hweight32(w & 0xff);
-+}
-+
-+static inline unsigned long __arch_hweight64(__u64 w)
-+{
-+	unsigned long res = 0;
-+
-+#ifdef CONFIG_X86_32
-+	return  __arch_hweight32((u32)w) +
-+		__arch_hweight32((u32)(w >> 32));
-+#else
-+	asm (ALTERNATIVE("call __sw_hweight64", POPCNT, X86_FEATURE_POPCNT)
-+		     : "="REG_OUT (res)
-+		     : REG_IN (w));
-+#endif /* CONFIG_X86_32 */
-+
-+	return res;
-+}
-+
++	if (pgdat-&gt;node_zonelists-&gt;_zonerefs-&gt;zone == NULL) {
++		build_all_zonelists();
++	}
 +#endif
-diff -puN arch/x86/include/asm/bitops.h~x86-add-optimized-popcnt-variants arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~x86-add-optimized-popcnt-variants
-+++ a/arch/x86/include/asm/bitops.h
-@@ -444,7 +444,9 @@ static inline int fls(int x)
- 
- #define ARCH_HAS_FAST_MULTIPLIER 1
- 
--#include <asm-generic/bitops/hweight.h>
-+#include <asm/arch_hweight.h>
 +
-+#include <asm-generic/bitops/const_hweight.h>
+ 	cpu_maps_update_begin();
  
- #endif /* __KERNEL__ */
- 
-diff -puN include/asm-generic/bitops/arch_hweight.h~x86-add-optimized-popcnt-variants include/asm-generic/bitops/arch_hweight.h
---- a/include/asm-generic/bitops/arch_hweight.h~x86-add-optimized-popcnt-variants
-+++ a/include/asm-generic/bitops/arch_hweight.h
-@@ -3,9 +3,23 @@
- 
- #include <asm/types.h>
- 
--extern unsigned int __arch_hweight32(unsigned int w);
--extern unsigned int __arch_hweight16(unsigned int w);
--extern unsigned int __arch_hweight8(unsigned int w);
--extern unsigned long __arch_hweight64(__u64 w);
-+inline unsigned int __arch_hweight32(unsigned int w)
-+{
-+	return __sw_hweight32(w);
-+}
- 
-+inline unsigned int __arch_hweight16(unsigned int w)
-+{
-+	return __sw_hweight16(w);
-+}
-+
-+inline unsigned int __arch_hweight8(unsigned int w)
-+{
-+	return __sw_hweight8(w);
-+}
-+
-+inline unsigned long __arch_hweight64(__u64 w)
-+{
-+	return __sw_hweight64(w);
-+}
- #endif /* _ASM_GENERIC_BITOPS_HWEIGHT_H_ */
-diff -puN lib/Makefile~x86-add-optimized-popcnt-variants lib/Makefile
---- a/lib/Makefile~x86-add-optimized-popcnt-variants
-+++ a/lib/Makefile
-@@ -39,7 +39,10 @@ lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) +=
- lib-$(CONFIG_GENERIC_FIND_FIRST_BIT) += find_next_bit.o
- lib-$(CONFIG_GENERIC_FIND_NEXT_BIT) += find_next_bit.o
- obj-$(CONFIG_GENERIC_FIND_LAST_BIT) += find_last_bit.o
-+
-+CFLAGS_hweight.o = $(subst $(quote),,$(CONFIG_ARCH_HWEIGHT_CFLAGS))
- obj-$(CONFIG_GENERIC_HWEIGHT) += hweight.o
-+
- obj-$(CONFIG_LOCK_KERNEL) += kernel_lock.o
- obj-$(CONFIG_BTREE) += btree.o
- obj-$(CONFIG_DEBUG_PREEMPT) += smp_processor_id.o
-diff -puN lib/hweight.c~x86-add-optimized-popcnt-variants lib/hweight.c
---- a/lib/hweight.c~x86-add-optimized-popcnt-variants
-+++ a/lib/hweight.c
-@@ -9,7 +9,7 @@
-  * The Hamming Weight of a number is the total number of bits set in it.
-  */
- 
--unsigned int __arch_hweight32(unsigned int w)
-+unsigned int __sw_hweight32(unsigned int w)
- {
- #ifdef ARCH_HAS_FAST_MULTIPLIER
- 	w -= (w >> 1) & 0x55555555;
-@@ -24,30 +24,30 @@ unsigned int __arch_hweight32(unsigned i
- 	return (res + (res >> 16)) & 0x000000FF;
- #endif
+ 	if (cpu_hotplug_disabled) {
+diff -puN mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online
++++ a/mm/memory_hotplug.c
+@@ -482,6 +482,31 @@ static void rollback_node_hotadd(int nid
  }
--EXPORT_SYMBOL(__arch_hweight32);
-+EXPORT_SYMBOL(__sw_hweight32);
  
--unsigned int __arch_hweight16(unsigned int w)
-+unsigned int __sw_hweight16(unsigned int w)
- {
- 	unsigned int res = w - ((w >> 1) & 0x5555);
- 	res = (res & 0x3333) + ((res >> 2) & 0x3333);
- 	res = (res + (res >> 4)) & 0x0F0F;
- 	return (res + (res >> 8)) & 0x00FF;
- }
--EXPORT_SYMBOL(__arch_hweight16);
-+EXPORT_SYMBOL(__sw_hweight16);
  
--unsigned int __arch_hweight8(unsigned int w)
-+unsigned int __sw_hweight8(unsigned int w)
- {
- 	unsigned int res = w - ((w >> 1) & 0x55);
- 	res = (res & 0x33) + ((res >> 2) & 0x33);
- 	return (res + (res >> 4)) & 0x0F;
- }
--EXPORT_SYMBOL(__arch_hweight8);
-+EXPORT_SYMBOL(__sw_hweight8);
- 
--unsigned long __arch_hweight64(__u64 w)
-+unsigned long __sw_hweight64(__u64 w)
- {
- #if BITS_PER_LONG == 32
--	return __arch_hweight32((unsigned int)(w >> 32)) +
--	       __arch_hweight32((unsigned int)w);
-+	return __sw_hweight32((unsigned int)(w >> 32)) +
-+	       __sw_hweight32((unsigned int)w);
- #elif BITS_PER_LONG == 64
- #ifdef ARCH_HAS_FAST_MULTIPLIER
- 	w -= (w >> 1) & 0x5555555555555555ul;
-@@ -64,4 +64,4 @@ unsigned long __arch_hweight64(__u64 w)
- #endif
- #endif
- }
--EXPORT_SYMBOL(__arch_hweight64);
-+EXPORT_SYMBOL(__sw_hweight64);
-diff -puN scripts/Makefile.lib~x86-add-optimized-popcnt-variants scripts/Makefile.lib
---- a/scripts/Makefile.lib~x86-add-optimized-popcnt-variants
-+++ a/scripts/Makefile.lib
-@@ -245,3 +245,7 @@ quiet_cmd_lzo = LZO     $@
- cmd_lzo = (cat $(filter-out FORCE,$^) | \
- 	lzop -9 && $(call size_append, $(filter-out FORCE,$^))) > $@ || \
- 	(rm -f $@ ; false)
++/*
++ * called by cpu_up() to online a node without onlined memory.
++ */
++int mem_online_node(int nid)
++{
++	pg_data_t	*pgdat;
++	int	ret;
 +
-+# misc stuff
-+# ---------------------------------------------------------------------------
-+quote:="
++	lock_system_sleep();
++	pgdat = hotadd_new_pgdat(nid, 0);
++	if (pgdat) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	node_set_online(nid);
++	ret = register_one_node(nid);
++	BUG_ON(ret);
++
++out:
++	unlock_system_sleep();
++	return ret;
++}
++EXPORT_SYMBOL_GPL(mem_online_node);
++
++
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+ int __ref add_memory(int nid, u64 start, u64 size)
+ {
 _
 
-Patches currently in -mm which might be from borislav.petkov@amd.com are
+Patches currently in -mm which might be from chaohong_guo@linux.intel.com are
 
-origin.patch
-linux-next.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch
 
