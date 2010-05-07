@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 07 May 2010 13:46:52 -0700
-Message-ID: <201005072046.o47Kkqa4010841@imap1.linux-foundation.org>
+Subject: + cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch added to -mm tree
+Date: Fri, 07 May 2010 13:47:33 -0700
+Message-ID: <201005072047.o47KlXTo010855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853Ab0EGUq7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:46:59 -0400
+	by vger.kernel.org with ESMTP id S1752853Ab0EGUrn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 May 2010 16:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, chaohong.guo@intel.com, chao
 
 
 The patch titled
-     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
+     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix
 has been added to the -mm tree.  Its filename is
-     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+     cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,22 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
+Subject: cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#76: FILE: kernel/cpu.c:364:
-+	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
-+		build_all_zonelists();
-+	}
-
-total: 0 errors, 1 warnings, 76 lines checked
-
-./patches/cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+remove unneeded export
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -60,23 +48,21 @@ Cc: minskey guo<chaohong.guo@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memory_hotplug.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes kernel/cpu.c
---- a/kernel/cpu.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes
-+++ a/kernel/cpu.c
-@@ -361,9 +361,8 @@ int __cpuinit cpu_up(unsigned int cpu)
- 		return -ENOMEM;
- 	}
+diff -puN mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix
++++ a/mm/memory_hotplug.c
+@@ -504,8 +504,6 @@ out:
+ 	unlock_system_sleep();
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(mem_online_node);
+-
  
--	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
-+	if (pgdat->node_zonelists->_zonerefs->zone == NULL)
- 		build_all_zonelists();
--	}
- #endif
- 
- 	cpu_maps_update_begin();
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+ int __ref add_memory(int nid, u64 start, u64 size)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +92,7 @@ mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
 buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
 wait_on_buffer-remove-the-buffer_locked-test.patch
 mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
 cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
 frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
