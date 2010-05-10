@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pids-init_struct_pidtasks-should-never-see-the-swapper-process.patch added to -mm tree
-Date: Mon, 10 May 2010 14:08:01 -0700
-Message-ID: <201005102108.o4AL81XG022762@imap1.linux-foundation.org>
+Subject: + init_sighand-use-sig_dfl-instead-of-null.patch added to -mm tree
+Date: Mon, 10 May 2010 14:08:05 -0700
+Message-ID: <201005102108.o4AL850Y022770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754845Ab0EJVIe (ORCPT
+	by vger.kernel.org with ESMTP id S1757183Ab0EJVIk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 May 2010 17:08:34 -0400
+	Mon, 10 May 2010 17:08:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, mathias.krause@secunet.com, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
+Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     pids: init_struct_pid.tasks should never see the swapper process
+     INIT_SIGHAND: use SIG_DFL instead of NULL
 has been added to the -mm tree.  Its filename is
-     pids-init_struct_pidtasks-should-never-see-the-swapper-process.patch
+     init_sighand-use-sig_dfl-instead-of-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: init_struct_pid.tasks should never see the swapper process
+Subject: INIT_SIGHAND: use SIG_DFL instead of NULL
 From: Oleg Nesterov <oleg@redhat.com>
 
-"statically initialize struct pid for swapper" commit 820e45db says:
+Cosmetic, no changes in the compiled code. Just s/NULL/SIG_DFL/ to make
+it more readable and grep-friendly.
 
-	Statically initialize a struct pid for the swapper process (pid_t == 0)
-	and attach it to init_task.  This is needed so task_pid(), task_pgrp()
-	and task_session() interfaces work on the swapper process also.
+Note: probably SIG_IGN makes more sense, we could kill ignore_signals().
+But then kernel_init() should do flush_signal_handlers() before exec().
 
-OK, but:
-
-	- it doesn't make sense to add init_task.pids[].node into
-	  init_struct_pid.tasks[], and in fact this just wrong.
-
-	  idle threads are special, they shouldn't be visible on any
-	  global list. In particular do_each_pid_task(init_struct_pid)
-	  shouldn't see swapper.
-
-	  This is the actual reason why kill(0, SIGKILL) from /sbin/init
-	  (which starts with 0,0 special pids) crashes the kernel. The
-	  signal sent to pgid/sid == 0 must never see idle threads, even
-	  if the previous patch fixed the crash itself.
-
-	- we have other idle threads running on the non-boot CPUs, see
-	  the next patch.
-
-Change INIT_STRUCT_PID/INIT_PID_LINK to create the empty/unhashed
-hlist_head/hlist_node. Like any other idle thread swapper can never exit,
-so detach_pid()->__hlist_del() is not possible, but we could change
-INIT_PID_LINK() to set pprev = &next if needed.
-
-All we need is the valid swapper->pids[].pid == &init_struct_pid.
-
-Reported-by: Mathias Krause <mathias.krause@secunet.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
@@ -80,33 +55,20 @@ Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/init_task.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/init_task.h~pids-init_struct_pidtasks-should-never-see-the-swapper-process include/linux/init_task.h
---- a/include/linux/init_task.h~pids-init_struct_pidtasks-should-never-see-the-swapper-process
+diff -puN include/linux/init_task.h~init_sighand-use-sig_dfl-instead-of-null include/linux/init_task.h
+--- a/include/linux/init_task.h~init_sighand-use-sig_dfl-instead-of-null
 +++ a/include/linux/init_task.h
-@@ -45,9 +45,9 @@ extern struct group_info init_groups;
- #define INIT_STRUCT_PID {						\
- 	.count 		= ATOMIC_INIT(1),				\
- 	.tasks		= {						\
--		{ .first = &init_task.pids[PIDTYPE_PID].node },		\
--		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
--		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
-+		{ .first = NULL },					\
-+		{ .first = NULL },					\
-+		{ .first = NULL },					\
- 	},								\
- 	.level		= 0,						\
- 	.numbers	= { {						\
-@@ -61,7 +61,7 @@ extern struct group_info init_groups;
- {								\
- 	.node = {						\
- 		.next = NULL,					\
--		.pprev = &init_struct_pid.tasks[type].first,	\
-+		.pprev = NULL,					\
- 	},							\
- 	.pid = &init_struct_pid,				\
+@@ -35,7 +35,7 @@ extern struct nsproxy init_nsproxy;
+ 
+ #define INIT_SIGHAND(sighand) {						\
+ 	.count		= ATOMIC_INIT(1), 				\
+-	.action		= { { { .sa_handler = NULL, } }, },		\
++	.action		= { { { .sa_handler = SIG_DFL, } }, },		\
+ 	.siglock	= __SPIN_LOCK_UNLOCKED(sighand.siglock),	\
+ 	.signalfd_wqh	= __WAIT_QUEUE_HEAD_INITIALIZER(sighand.signalfd_wqh),	\
  }
 _
 
