@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init_sighand-use-sig_dfl-instead-of-null.patch added to -mm tree
-Date: Mon, 10 May 2010 14:08:05 -0700
-Message-ID: <201005102108.o4AL850Y022770@imap1.linux-foundation.org>
+Subject: + init_task-should-initialize-thread_group-list.patch added to -mm tree
+Date: Mon, 10 May 2010 14:07:57 -0700
+Message-ID: <201005102107.o4AL7vGp022755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757183Ab0EJVIk (ORCPT
+	by vger.kernel.org with ESMTP id S1757173Ab0EJVIk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 May 2010 17:08:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
+Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, mathias.krause@secunet.com, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     INIT_SIGHAND: use SIG_DFL instead of NULL
+     INIT_TASK() should initialize ->thread_group list
 has been added to the -mm tree.  Its filename is
-     init_sighand-use-sig_dfl-instead-of-null.patch
+     init_task-should-initialize-thread_group-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: INIT_SIGHAND: use SIG_DFL instead of NULL
+Subject: INIT_TASK() should initialize ->thread_group list
 From: Oleg Nesterov <oleg@redhat.com>
 
-Cosmetic, no changes in the compiled code. Just s/NULL/SIG_DFL/ to make
-it more readable and grep-friendly.
+The trivial /sbin/init doing
 
-Note: probably SIG_IGN makes more sense, we could kill ignore_signals().
-But then kernel_init() should do flush_signal_handlers() before exec().
+	int main(void)
+	{
+		kill(0, SIGKILL)
+	}
 
+crashes the kernel.
+
+This happens because __kill_pgrp_info(init_struct_pid) also sends SIGKILL
+to the swapper process which runs with the uninitialized ->thread_group.
+
+Change INIT_TASK() to initialize ->thread_group properly.
+
+Note: the real problem is that the swapper process must not be visible to
+signals, see the next patch. But this change is right anyway and fixes
+the crash.
+
+Reported-and-tested-by: Mathias Krause <mathias.krause@secunet.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
@@ -55,21 +68,20 @@ Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init_task.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/init_task.h~init_sighand-use-sig_dfl-instead-of-null include/linux/init_task.h
---- a/include/linux/init_task.h~init_sighand-use-sig_dfl-instead-of-null
+diff -puN include/linux/init_task.h~init_task-should-initialize-thread_group-list include/linux/init_task.h
+--- a/include/linux/init_task.h~init_task-should-initialize-thread_group-list
 +++ a/include/linux/init_task.h
-@@ -35,7 +35,7 @@ extern struct nsproxy init_nsproxy;
- 
- #define INIT_SIGHAND(sighand) {						\
- 	.count		= ATOMIC_INIT(1), 				\
--	.action		= { { { .sa_handler = NULL, } }, },		\
-+	.action		= { { { .sa_handler = SIG_DFL, } }, },		\
- 	.siglock	= __SPIN_LOCK_UNLOCKED(sighand.siglock),	\
- 	.signalfd_wqh	= __WAIT_QUEUE_HEAD_INITIALIZER(sighand.signalfd_wqh),	\
- }
+@@ -163,6 +163,7 @@ extern struct cred init_cred;
+ 		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
+ 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
+ 	},								\
++	.thread_group	= LIST_HEAD_INIT(tsk.thread_group),		\
+ 	.dirties = INIT_PROP_LOCAL_SINGLE(dirties),			\
+ 	INIT_IDS							\
+ 	INIT_PERF_EVENTS(tsk)						\
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
