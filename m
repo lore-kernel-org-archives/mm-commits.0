@@ -1,28 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mqueue-fix-kernel-bug-caused-by-double-free-on-mq_open.patch removed from -mm tree
-Date: Mon, 10 May 2010 17:13:17 -0400
-Message-ID: <201005110014.o4B0EkpX032764@imap1.linux-foundation.org>
+Subject: + mqueue-fix-kernel-bug-caused-by-double-free-on-mq_open.patch added to -mm tree
+Date: Mon, 10 May 2010 17:14:40 -0400
+Message-ID: <201005110016.o4B0G9Ae000453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755570Ab0EKAPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751051Ab0EKAQQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 May 2010 20:15:25 -0400
+	Mon, 10 May 2010 20:16:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre.goddard@gmail.com, adobriyan@gmail.com, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: andre.goddard@gmail.com, adobriyan@gmail.com, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
      mqueue: fix kernel BUG caused by double free() on mq_open()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mqueue-fix-kernel-bug-caused-by-double-free-on-mq_open.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
@@ -146,19 +157,20 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/mqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff -puN ipc/mqueue.c~mqueue-fix-kernel-bug-caused-by-double-free-on-m=
 q_open ipc/mqueue.c
 --- a/ipc/mqueue.c~mqueue-fix-kernel-bug-caused-by-double-free-on-mq_op=
 en
 +++ a/ipc/mqueue.c
-@@ -159,6 +159,7 @@ static struct inode *mqueue_get_inode(st
+@@ -158,7 +158,7 @@ static struct inode *mqueue_get_inode(st
+ 		 	    u->mq_bytes + mq_bytes >
  			    task_rlimit(p, RLIMIT_MSGQUEUE)) {
  				spin_unlock(&mq_lock);
- 				kfree(info->messages);
-+				info->messages =3D NULL;
+-				kfree(info->messages);
++				/* mqueue_delete_inode() releases info->messages */
  				goto out_inode;
  			}
  			u->mq_bytes +=3D mq_bytes;
