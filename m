@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init_task-should-initialize-thread_group-list.patch added to -mm tree
-Date: Mon, 10 May 2010 14:07:57 -0700
-Message-ID: <201005102107.o4AL7vGp022755@imap1.linux-foundation.org>
+Subject: + memcg-fix-css_is_ancestor-rcu-locking.patch added to -mm tree
+Date: Mon, 10 May 2010 14:27:20 -0700
+Message-ID: <201005102127.o4ALRKhm023644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757173Ab0EJVIk (ORCPT
+	by vger.kernel.org with ESMTP id S1753702Ab0EJV1z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 May 2010 17:08:40 -0400
+	Mon, 10 May 2010 17:27:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, mathias.krause@secunet.com, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     INIT_TASK() should initialize ->thread_group list
+     memcg: fix css_is_ancestor() RCU locking
 has been added to the -mm tree.  Its filename is
-     init_task-should-initialize-thread_group-list.patch
+     memcg-fix-css_is_ancestor-rcu-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,169 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: INIT_TASK() should initialize ->thread_group list
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: fix css_is_ancestor() RCU locking
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The trivial /sbin/init doing
+Some callers (in memcontrol.c) calls css_is_ancestor() without
+rcu_read_lock.  Because css_is_ancestor() has to access RCU protected
+data, it should be under rcu_read_lock().
 
-	int main(void)
-	{
-		kill(0, SIGKILL)
-	}
+This makes css_is_ancestor() itself does safe access to RCU protected
+area.  (At least, "root" can have refcnt==0 if it's not an ancestor of
+"child".  So, we need rcu_read_lock().)
 
-crashes the kernel.
-
-This happens because __kill_pgrp_info(init_struct_pid) also sends SIGKILL
-to the swapper process which runs with the uninitialized ->thread_group.
-
-Change INIT_TASK() to initialize ->thread_group properly.
-
-Note: the real problem is that the swapper process must not be visible to
-signals, see the next patch. But this change is right anyway and fixes
-the crash.
-
-Reported-and-tested-by: Mathias Krause <mathias.krause@secunet.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Mathias Krause <Mathias.Krause@secunet.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/cgroup.c |   31 ++++++++++++++++++++++++++-----
+ mm/memcontrol.c |    4 ----
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/init_task.h~init_task-should-initialize-thread_group-list include/linux/init_task.h
---- a/include/linux/init_task.h~init_task-should-initialize-thread_group-list
-+++ a/include/linux/init_task.h
-@@ -163,6 +163,7 @@ extern struct cred init_cred;
- 		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
- 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
- 	},								\
-+	.thread_group	= LIST_HEAD_INIT(tsk.thread_group),		\
- 	.dirties = INIT_PROP_LOCAL_SINGLE(dirties),			\
- 	INIT_IDS							\
- 	INIT_PERF_EVENTS(tsk)						\
+diff -puN kernel/cgroup.c~memcg-fix-css_is_ancestor-rcu-locking kernel/cgroup.c
+--- a/kernel/cgroup.c~memcg-fix-css_is_ancestor-rcu-locking
++++ a/kernel/cgroup.c
+@@ -4464,15 +4464,36 @@ unsigned short css_depth(struct cgroup_s
+ }
+ EXPORT_SYMBOL_GPL(css_depth);
+ 
++/**
++ *  css_is_ancestor - test "root" css is an ancestor of "child"
++ * @child: the css to be tested.
++ * @root: the css supporsed to be an ancestor of the child.
++ *
++ * Returns true if "root" is an ancestor of "child" in its hierarchy. Because
++ * this function reads css->id, this use rcu_dereference() and rcu_read_lock().
++ * But, considering usual usage, the csses should be valid objects after test.
++ * Assuming that the caller will do some action to the child if this returns
++ * returns true, the caller must take "child";s reference count.
++ * If "child" is valid object and this returns true, "root" is valid, too.
++ */
++
+ bool css_is_ancestor(struct cgroup_subsys_state *child,
+ 		    const struct cgroup_subsys_state *root)
+ {
+-	struct css_id *child_id = rcu_dereference(child->id);
+-	struct css_id *root_id = rcu_dereference(root->id);
++	struct css_id *child_id;
++	struct css_id *root_id;
++	bool ret = true;
+ 
+-	if (!child_id || !root_id || (child_id->depth < root_id->depth))
+-		return false;
+-	return child_id->stack[root_id->depth] == root_id->id;
++	rcu_read_lock();
++	child_id  = rcu_dereference(child->id);
++	root_id = rcu_dereference(root->id);
++	if (!child_id
++	    || !root_id
++	    || (child_id->depth < root_id->depth)
++	    || (child_id->stack[root_id->depth] != root_id->id))
++		ret = false;
++	rcu_read_unlock();
++	return ret;
+ }
+ 
+ static void __free_css_id_cb(struct rcu_head *head)
+diff -puN mm/memcontrol.c~memcg-fix-css_is_ancestor-rcu-locking mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-css_is_ancestor-rcu-locking
++++ a/mm/memcontrol.c
+@@ -811,12 +811,10 @@ int task_in_mem_cgroup(struct task_struc
+ 	 * enabled in "curr" and "curr" is a child of "mem" in *cgroup*
+ 	 * hierarchy(even if use_hierarchy is disabled in "mem").
+ 	 */
+-	rcu_read_lock();
+ 	if (mem->use_hierarchy)
+ 		ret = css_is_ancestor(&curr->css, &mem->css);
+ 	else
+ 		ret = (curr == mem);
+-	rcu_read_unlock();
+ 	css_put(&curr->css);
+ 	return ret;
+ }
+@@ -1603,7 +1601,6 @@ static int __mem_cgroup_try_charge(struc
+ 			 * There is a small race that "from" or "to" can be
+ 			 * freed by rmdir, so we use css_tryget().
+ 			 */
+-			rcu_read_lock();
+ 			from = mc.from;
+ 			to = mc.to;
+ 			if (from && css_tryget(&from->css)) {
+@@ -1624,7 +1621,6 @@ static int __mem_cgroup_try_charge(struc
+ 					do_continue = (to == mem_over_limit);
+ 				css_put(&to->css);
+ 			}
+-			rcu_read_unlock();
+ 			if (do_continue) {
+ 				DEFINE_WAIT(wait);
+ 				prepare_to_wait(&mc.waitq, &wait,
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+memcg-fix-css_id-rcu-locking-for-real.patch
+memcg-fix-css_is_ancestor-rcu-locking.patch
 linux-next.patch
-cpu-timers-optimize-run_posix_cpu_timers.patch
-oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+mm-remove-return-value-of-putback_lru_pages.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-badness-heuristic-rewrite.patch
+oom-reintroduce-and-deprecate-oom_kill_allocating_task.patch
+oom-deprecate-oom_adj-tunable.patch
+oom-replace-sysctls-with-quick-mode.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
 oom-hold-tasklist_lock-when-dumping-tasks.patch
 oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
 oom-avoid-sending-exiting-tasks-a-sigkill.patch
 oom-clean-up-oom_kill_task.patch
 oom-clean-up-oom_badness.patch
-oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
-kmod-add-init-function-to-usermodehelper.patch
-exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-call_usermodehelper-no-need-to-unblock-signals.patch
-wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
-call_usermodehelper-simplify-fix-umh_no_wait-case.patch
-call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-exit-exit_notify-can-trust-signal-notify_count-0.patch
-exit-change-zap_other_threads-to-count-sub-threads.patch
-exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
-exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
-posix-cpu-timers-avoid-task-signal-=-null-checks.patch
-ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
-fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
-signals-make-task_struct-signal-immutable-refcountable.patch
-signals-clear-signal-tty-when-the-last-thread-exits.patch
-signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
-signals-kill-the-awful-task_rq_unlock_wait-hack.patch
-exit-__exit_signal-use-thread_group_leader-consistently.patch
-kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
-exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
-check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-proc-turn-signal_struct-count-into-int-nr_threads.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-proc-cleanup-remove-unused-assignments.patch
-init_task-should-initialize-thread_group-list.patch
-pids-init_struct_pidtasks-should-never-see-the-swapper-process.patch
-pids-fix-fork_idle-to-setup-pids-correctly.patch
-init_sighand-use-sig_dfl-instead-of-null.patch
+oom-avoid-divide-by-zero.patch
+mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
+mmmigration-take-a-reference-to-the-anon_vma-before-migrating.patch
+mmmigration-share-the-anon_vma-ref-counts-between-ksm-and-page-migration.patch
+mmmigration-do-not-try-to-migrate-unmapped-anonymous-pages.patch
+mmmigration-allow-the-migration-of-pageswapcache-pages.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mm-export-fragmentation-index-via-debugfs.patch
+mm-move-definition-for-lru-isolation-modes-to-a-header.patch
+mmcompaction-memory-compaction-core.patch
+mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction.patch
+mmcompaction-add-proc-trigger-for-memory-compaction.patch
+mmcompaction-add-sys-trigger-for-per-node-memory-compaction.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+mmcompaction-defer-compaction-using-an-exponential-backoff-when-compaction-fails.patch
+memcg-oom-wakeup-filter.patch
+memcg-oom-wakeup-filter-update.patch
+memcg-oom-notifier.patch
+memcg-oom-notifier-update.patch
+memcg-oom-kill-disable-and-oom-status.patch
+memcg-oom-kill-disable-and-oom-status-update.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-clean-up-move-charge.patch
+memcg-move-charge-of-file-pages.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-2.patch
+memcg-update-documentation-v8.patch
+memcg-make-oom-killer-a-no-op-when-no-killable-task-can-be-found.patch
+mm-remove-unnecessary-use-of-atomic.patch
+mm-memcontrol-uninitialised-return-value.patch
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
+numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
+numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
 
