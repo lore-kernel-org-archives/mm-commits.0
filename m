@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-css_is_ancestor-rcu-locking.patch added to -mm tree
-Date: Mon, 10 May 2010 14:27:20 -0700
-Message-ID: <201005102127.o4ALRKhm023644@imap1.linux-foundation.org>
+Subject: + memcg-fix-css_id-rcu-locking-for-real.patch added to -mm tree
+Date: Mon, 10 May 2010 14:27:15 -0700
+Message-ID: <201005102127.o4ALRFBr023641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753702Ab0EJV1z (ORCPT
+	by vger.kernel.org with ESMTP id S1753819Ab0EJV1z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 May 2010 17:27:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes
 
 
 The patch titled
-     memcg: fix css_is_ancestor() RCU locking
+     memcg: fix css_id() RCU locking for real
 has been added to the -mm tree.  Its filename is
-     memcg-fix-css_is_ancestor-rcu-locking.patch
+     memcg-fix-css_id-rcu-locking-for-real.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix css_is_ancestor() RCU locking
+Subject: memcg: fix css_id() RCU locking for real
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Some callers (in memcontrol.c) calls css_is_ancestor() without
-rcu_read_lock.  Because css_is_ancestor() has to access RCU protected
-data, it should be under rcu_read_lock().
+Commit ad4ba375373937817404fd92239ef4cadbded23b ("memcg: css_id() must be
+called under rcu_read_lock()") modifies memcontol.c for fixing RCU check
+message.  But Andrew Morton pointed out that the fix doesn't seems sane
+and it was just for hidining lockdep messages.
 
-This makes css_is_ancestor() itself does safe access to RCU protected
-area.  (At least, "root" can have refcnt==0 if it's not an ancestor of
-"child".  So, we need rcu_read_lock().)
+This is a patch for do proper things.  Checking again, all places,
+accessing without rcu_read_lock, that commit fixies was intentional.... 
+all callers of css_id() has reference count on it.  So, it's not necessary
+to be under rcu_read_lock().
+
+Considering again, we can use rcu_dereference_check for css_id().  We know
+css->id is valid if css->refcnt > 0.  (css->id never changes and freed
+after css->refcnt going to be 0.)
+
+This patch makes use of rcu_dereference_check() in css_id/depth and remove
+unnecessary rcu-read-lock added by the commit.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
@@ -52,93 +61,94 @@ Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   31 ++++++++++++++++++++++++++-----
- mm/memcontrol.c |    4 ----
- 2 files changed, 26 insertions(+), 9 deletions(-)
+ kernel/cgroup.c |   15 +++++++++++++--
+ mm/memcontrol.c |   19 +++++--------------
+ 2 files changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN kernel/cgroup.c~memcg-fix-css_is_ancestor-rcu-locking kernel/cgroup.c
---- a/kernel/cgroup.c~memcg-fix-css_is_ancestor-rcu-locking
+diff -puN kernel/cgroup.c~memcg-fix-css_id-rcu-locking-for-real kernel/cgroup.c
+--- a/kernel/cgroup.c~memcg-fix-css_id-rcu-locking-for-real
 +++ a/kernel/cgroup.c
-@@ -4464,15 +4464,36 @@ unsigned short css_depth(struct cgroup_s
- }
- EXPORT_SYMBOL_GPL(css_depth);
- 
-+/**
-+ *  css_is_ancestor - test "root" css is an ancestor of "child"
-+ * @child: the css to be tested.
-+ * @root: the css supporsed to be an ancestor of the child.
-+ *
-+ * Returns true if "root" is an ancestor of "child" in its hierarchy. Because
-+ * this function reads css->id, this use rcu_dereference() and rcu_read_lock().
-+ * But, considering usual usage, the csses should be valid objects after test.
-+ * Assuming that the caller will do some action to the child if this returns
-+ * returns true, the caller must take "child";s reference count.
-+ * If "child" is valid object and this returns true, "root" is valid, too.
-+ */
-+
- bool css_is_ancestor(struct cgroup_subsys_state *child,
- 		    const struct cgroup_subsys_state *root)
+@@ -4435,7 +4435,15 @@ __setup("cgroup_disable=", cgroup_disabl
+  */
+ unsigned short css_id(struct cgroup_subsys_state *css)
  {
--	struct css_id *child_id = rcu_dereference(child->id);
--	struct css_id *root_id = rcu_dereference(root->id);
-+	struct css_id *child_id;
-+	struct css_id *root_id;
-+	bool ret = true;
+-	struct css_id *cssid = rcu_dereference(css->id);
++	struct css_id *cssid;
++
++	/*
++	 * This css_id() can return correct value when somone has refcnt
++	 * on this or this is under rcu_read_lock(). Once css->id is allocated,
++	 * it's unchanged until freed.
++	 */
++	cssid = rcu_dereference_check(css->id,
++			rcu_read_lock_held() || atomic_read(&css->refcnt));
  
--	if (!child_id || !root_id || (child_id->depth < root_id->depth))
--		return false;
--	return child_id->stack[root_id->depth] == root_id->id;
-+	rcu_read_lock();
-+	child_id  = rcu_dereference(child->id);
-+	root_id = rcu_dereference(root->id);
-+	if (!child_id
-+	    || !root_id
-+	    || (child_id->depth < root_id->depth)
-+	    || (child_id->stack[root_id->depth] != root_id->id))
-+		ret = false;
-+	rcu_read_unlock();
-+	return ret;
- }
+ 	if (cssid)
+ 		return cssid->id;
+@@ -4445,7 +4453,10 @@ EXPORT_SYMBOL_GPL(css_id);
  
- static void __free_css_id_cb(struct rcu_head *head)
-diff -puN mm/memcontrol.c~memcg-fix-css_is_ancestor-rcu-locking mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-css_is_ancestor-rcu-locking
+ unsigned short css_depth(struct cgroup_subsys_state *css)
+ {
+-	struct css_id *cssid = rcu_dereference(css->id);
++	struct css_id *cssid;
++
++	cssid = rcu_dereference_check(css->id,
++			rcu_read_lock_held() || atomic_read(&css->refcnt));
+ 
+ 	if (cssid)
+ 		return cssid->depth;
+diff -puN mm/memcontrol.c~memcg-fix-css_id-rcu-locking-for-real mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-css_id-rcu-locking-for-real
 +++ a/mm/memcontrol.c
-@@ -811,12 +811,10 @@ int task_in_mem_cgroup(struct task_struc
- 	 * enabled in "curr" and "curr" is a child of "mem" in *cgroup*
- 	 * hierarchy(even if use_hierarchy is disabled in "mem").
- 	 */
+@@ -2314,9 +2314,7 @@ mem_cgroup_uncharge_swapcache(struct pag
+ 
+ 	/* record memcg information */
+ 	if (do_swap_account && swapout && memcg) {
+-		rcu_read_lock();
+ 		swap_cgroup_record(ent, css_id(&memcg->css));
+-		rcu_read_unlock();
+ 		mem_cgroup_get(memcg);
+ 	}
+ 	if (swapout && memcg)
+@@ -2373,10 +2371,8 @@ static int mem_cgroup_move_swap_account(
+ {
+ 	unsigned short old_id, new_id;
+ 
 -	rcu_read_lock();
- 	if (mem->use_hierarchy)
- 		ret = css_is_ancestor(&curr->css, &mem->css);
- 	else
- 		ret = (curr == mem);
+ 	old_id = css_id(&from->css);
+ 	new_id = css_id(&to->css);
 -	rcu_read_unlock();
- 	css_put(&curr->css);
+ 
+ 	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
+ 		mem_cgroup_swap_statistics(from, false);
+@@ -4044,16 +4040,11 @@ static int is_target_pte_for_mc(struct v
+ 			put_page(page);
+ 	}
+ 	/* throught */
+-	if (ent.val && do_swap_account && !ret) {
+-		unsigned short id;
+-		rcu_read_lock();
+-		id = css_id(&mc.from->css);
+-		rcu_read_unlock();
+-		if (id == lookup_swap_cgroup(ent)) {
+-			ret = MC_TARGET_SWAP;
+-			if (target)
+-				target->ent = ent;
+-		}
++	if (ent.val && do_swap_account && !ret &&
++			css_id(&mc.from->css) == lookup_swap_cgroup(ent)) {
++		ret = MC_TARGET_SWAP;
++		if (target)
++			target->ent = ent;
+ 	}
  	return ret;
  }
-@@ -1603,7 +1601,6 @@ static int __mem_cgroup_try_charge(struc
- 			 * There is a small race that "from" or "to" can be
- 			 * freed by rmdir, so we use css_tryget().
- 			 */
--			rcu_read_lock();
- 			from = mc.from;
- 			to = mc.to;
- 			if (from && css_tryget(&from->css)) {
-@@ -1624,7 +1621,6 @@ static int __mem_cgroup_try_charge(struc
- 					do_continue = (to == mem_over_limit);
- 				css_put(&to->css);
- 			}
--			rcu_read_unlock();
- 			if (do_continue) {
- 				DEFINE_WAIT(wait);
- 				prepare_to_wait(&mc.waitq, &wait,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 memcg-fix-css_id-rcu-locking-for-real.patch
-memcg-fix-css_is_ancestor-rcu-locking.patch
+a.patch
 linux-next.patch
 vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
 mm-remove-return-value-of-putback_lru_pages.patch
