@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pids-fix-fork_idle-to-setup-pids-correctly.patch added to -mm tree
-Date: Mon, 10 May 2010 14:08:03 -0700
-Message-ID: <201005102108.o4AL84rE022765@imap1.linux-foundation.org>
+Subject: + pids-init_struct_pidtasks-should-never-see-the-swapper-process.patch added to -mm tree
+Date: Mon, 10 May 2010 14:08:01 -0700
+Message-ID: <201005102108.o4AL81XG022762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754845Ab0EJVIk (ORCPT
+	by vger.kernel.org with ESMTP id S1754845Ab0EJVIe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 May 2010 17:08:40 -0400
+	Mon, 10 May 2010 17:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
+Cc: oleg@redhat.com, Mathias.Krause@secunet.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, mathias.krause@secunet.com, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     pids: fix fork_idle() to setup ->pids correctly
+     pids: init_struct_pid.tasks should never see the swapper process
 has been added to the -mm tree.  Its filename is
-     pids-fix-fork_idle-to-setup-pids-correctly.patch
+     pids-init_struct_pidtasks-should-never-see-the-swapper-process.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: fix fork_idle() to setup ->pids correctly
+Subject: pids: init_struct_pid.tasks should never see the swapper process
 From: Oleg Nesterov <oleg@redhat.com>
 
-copy_process(pid => &init_struct_pid) doesn't do attach_pid/etc.
+"statically initialize struct pid for swapper" commit 820e45db says:
 
-It shouldn't, but this means that the idle threads run with the wrong
-pids copied from the caller's task_struct. In x86 case the caller is
-either kernel_init() thread or keventd.
+	Statically initialize a struct pid for the swapper process (pid_t == 0)
+	and attach it to init_task.  This is needed so task_pid(), task_pgrp()
+	and task_session() interfaces work on the swapper process also.
 
-In particular, this means that after the series of cpu_up/cpu_down an
-idle thread (which never exits) can run with .pid pointing to nowhere.
+OK, but:
 
-Change fork_idle() to initialize idle->pids[] correctly. We only set
-.pid = &init_struct_pid but do not add .node to list, INIT_TASK() does
-the same for the boot-cpu idle thread (swapper).
+	- it doesn't make sense to add init_task.pids[].node into
+	  init_struct_pid.tasks[], and in fact this just wrong.
 
+	  idle threads are special, they shouldn't be visible on any
+	  global list. In particular do_each_pid_task(init_struct_pid)
+	  shouldn't see swapper.
+
+	  This is the actual reason why kill(0, SIGKILL) from /sbin/init
+	  (which starts with 0,0 special pids) crashes the kernel. The
+	  signal sent to pgid/sid == 0 must never see idle threads, even
+	  if the previous patch fixed the crash itself.
+
+	- we have other idle threads running on the non-boot CPUs, see
+	  the next patch.
+
+Change INIT_STRUCT_PID/INIT_PID_LINK to create the empty/unhashed
+hlist_head/hlist_node. Like any other idle thread swapper can never exit,
+so detach_pid()->__hlist_del() is not possible, but we could change
+INIT_PID_LINK() to set pprev = &next if needed.
+
+All we need is the valid swapper->pids[].pid == &init_struct_pid.
+
+Reported-by: Mathias Krause <mathias.krause@secunet.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
@@ -62,40 +80,33 @@ Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ include/linux/init_task.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/fork.c~pids-fix-fork_idle-to-setup-pids-correctly kernel/fork.c
---- a/kernel/fork.c~pids-fix-fork_idle-to-setup-pids-correctly
-+++ a/kernel/fork.c
-@@ -1340,6 +1340,16 @@ noinline struct pt_regs * __cpuinit __at
- 	return regs;
- }
- 
-+static inline void init_idle_pids(struct pid_link *links)
-+{
-+	enum pid_type type;
-+
-+	for (type = PIDTYPE_PID; type < PIDTYPE_MAX; ++type) {
-+		INIT_HLIST_NODE(&links[type].node); /* not really needed */
-+		links[type].pid = &init_struct_pid;
-+	}
-+}
-+
- struct task_struct * __cpuinit fork_idle(int cpu)
- {
- 	struct task_struct *task;
-@@ -1347,8 +1357,10 @@ struct task_struct * __cpuinit fork_idle
- 
- 	task = copy_process(CLONE_VM, 0, idle_regs(&regs), 0, NULL,
- 			    &init_struct_pid, 0);
--	if (!IS_ERR(task))
-+	if (!IS_ERR(task)) {
-+		init_idle_pids(task->pids);
- 		init_idle(task, cpu);
-+	}
- 
- 	return task;
+diff -puN include/linux/init_task.h~pids-init_struct_pidtasks-should-never-see-the-swapper-process include/linux/init_task.h
+--- a/include/linux/init_task.h~pids-init_struct_pidtasks-should-never-see-the-swapper-process
++++ a/include/linux/init_task.h
+@@ -45,9 +45,9 @@ extern struct group_info init_groups;
+ #define INIT_STRUCT_PID {						\
+ 	.count 		= ATOMIC_INIT(1),				\
+ 	.tasks		= {						\
+-		{ .first = &init_task.pids[PIDTYPE_PID].node },		\
+-		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
+-		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
++		{ .first = NULL },					\
++		{ .first = NULL },					\
++		{ .first = NULL },					\
+ 	},								\
+ 	.level		= 0,						\
+ 	.numbers	= { {						\
+@@ -61,7 +61,7 @@ extern struct group_info init_groups;
+ {								\
+ 	.node = {						\
+ 		.next = NULL,					\
+-		.pprev = &init_struct_pid.tasks[type].first,	\
++		.pprev = NULL,					\
+ 	},							\
+ 	.pid = &init_struct_pid,				\
  }
 _
 
