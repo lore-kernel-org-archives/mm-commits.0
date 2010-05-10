@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-optionally-ignore-non-maintainer-signatures.patch added to -mm tree
-Date: Mon, 10 May 2010 14:28:33 -0700
-Message-ID: <201005102128.o4ALSYdS023706@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-add-get_maintainerconf-default-options-file.patch added to -mm tree
+Date: Mon, 10 May 2010 14:28:37 -0700
+Message-ID: <201005102128.o4ALSbvl023713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753702Ab0EJV3B (ORCPT
+	by vger.kernel.org with ESMTP id S1753976Ab0EJV3D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 May 2010 17:29:01 -0400
+	Mon, 10 May 2010 17:29:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, florian@mickler.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: optionally ignore non-maintainer signatures
+     scripts/get_maintainer.pl: add .get_maintainer.conf default options file
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-optionally-ignore-non-maintainer-signatures.patch
+     scripts-get_maintainerpl-add-get_maintainerconf-default-options-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: optionally ignore non-maintainer signatures
+Subject: scripts/get_maintainer.pl: add .get_maintainer.conf default options file
 From: Joe Perches <joe@perches.com>
 
-When using --git to determine who to send a patch to, get_maintainers will
-currently include all signatures.  This can include signers that simply
-report an issue or test a patch.  Signers that use this tag are not
-necessarily good candidates to review new patches.
+Allow the use of a .get_maintainer.conf file to control the default
+options applied when scripts/get_maintainer.pl is run.
 
-This patch allows get_maintainers to optionally restrict output to only
-signatures that use Signed-off-by:, Acked-by:, or Reviewed-by:.
+.get_maintainer.conf can contain any valid command-line argument.
 
-Signed-off-by: is included because those are people who are responsible
-for the code.
+File contents are prepended to any additional command line arguments.
 
-Acked-by: is questionable, but as signers that use this tag tend to be
-active linux gatekeepers, false positives are tolerable.
+Multiple lines may be used, blank lines ignored, # is a comment.
 
-Reviewed-by: is included because signers responsible for the code thought
-that the review feedback for a changeset by that signer was valuable.
+Updated scripts/get_maintainer.pl version to 0.24
 
-This patch has been modified from Florian's original submission to change
-the supported signature types to the canonical forms and use slightly
-different spacing.  A couple of spacing issues were also corrected in the
-original source.  The command line argument was also renamed.
-
-Original-patch-by: Florian Mickler <florian@mickler.org>
-Signed-off-by: Florian Mickler <florian@mickler.org>
 Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Florian Mickler <florian@mickler.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   35 ++++++++++++++++++++++++++---------
- 1 file changed, 26 insertions(+), 9 deletions(-)
+ scripts/get_maintainer.pl |   31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-optionally-ignore-non-maintainer-signatures scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-optionally-ignore-non-maintainer-signatures
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-get_maintainerconf-default-options-file scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-get_maintainerconf-default-options-file
 +++ a/scripts/get_maintainer.pl
-@@ -25,6 +25,7 @@ my $email_list = 1;
- my $email_subscriber_list = 0;
- my $email_git_penguin_chiefs = 0;
- my $email_git = 1;
-+my $email_git_all_signature_types = 1;
- my $email_git_blame = 0;
- my $email_git_min_signatures = 1;
- my $email_git_max_maintainers = 5;
-@@ -51,9 +52,9 @@ my $help = 0;
- my $exit = 0;
+@@ -13,7 +13,7 @@
+ use strict;
  
- my @penguin_chief = ();
--push(@penguin_chief,"Linus Torvalds:torvalds\@linux-foundation.org");
-+push(@penguin_chief, "Linus Torvalds:torvalds\@linux-foundation.org");
- #Andrew wants in on most everything - 2009/01/14
--#push(@penguin_chief,"Andrew Morton:akpm\@linux-foundation.org");
-+#push(@penguin_chief, "Andrew Morton:akpm\@linux-foundation.org");
+ my $P = $0;
+-my $V = '0.23';
++my $V = '0.24';
  
- my @penguin_chief_names = ();
- foreach my $chief (@penguin_chief) {
-@@ -63,7 +64,16 @@ foreach my $chief (@penguin_chief) {
- 	push(@penguin_chief_names, $chief_name);
-     }
- }
--my $penguin_chiefs = "\(" . join("|",@penguin_chief_names) . "\)";
-+my $penguin_chiefs = "\(" . join("|", @penguin_chief_names) . "\)";
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
+@@ -107,6 +107,30 @@ my %VCS_cmds_hg = (
+     "blame_commit_pattern" => "^([0-9a-f]+):"
+ );
+ 
++if (-f "${lk_path}.get_maintainer.conf") {
++    my @conf_args;
++    open(my $conffile, '<', "${lk_path}.get_maintainer.conf")
++	or warn "$P: Can't open .get_maintainer.conf: $!\n";
++    while (<$conffile>) {
++	my $line = $_;
 +
-+# Signature types of people who are either
-+# 	a) responsible for the code in question, or
-+# 	b) familiar enough with it to give relevant feedback
-+my @signature_tags = ();
-+push(@signature_tags, "Signed-off-by:");
-+push(@signature_tags, "Reviewed-by:");
-+push(@signature_tags, "Acked-by:");
-+my $signaturePattern = "\(" . join("|", @signature_tags) . "\)";
- 
- # rfc822 email address - preloaded methods go here.
- my $rfc822_lwsp = "(?:(?:\\r\\n)?[ \\t])";
-@@ -100,6 +110,7 @@ my %VCS_cmds_hg = (
++	$line =~ s/\s*\n?$//g;
++	$line =~ s/^\s*//g;
++	$line =~ s/\s+/ /g;
++
++	next if ($line =~ m/^\s*#/);
++	next if ($line =~ m/^\s*$/);
++
++	my @words = split(" ", $line);
++	foreach my $word (@words) {
++	    last if ($word =~ m/^#/);
++	    push (@conf_args, $word);
++	}
++    }
++    close($conffile);
++    unshift(@ARGV, @conf_args) if @conf_args;
++}
++
  if (!GetOptions(
  		'email!' => \$email,
  		'git!' => \$email_git,
-+		'git-all-signature-types!' => \$email_git_all_signature_types,
- 		'git-blame!' => \$email_git_blame,
- 		'git-chief-penguins!' => \$email_git_penguin_chiefs,
- 		'git-min-signatures=i' => \$email_git_min_signatures,
-@@ -180,6 +191,10 @@ if (!top_of_kernel_tree($lk_path)) {
- 	. "a linux kernel source tree.\n";
+@@ -573,6 +597,11 @@ Notes:
+           --git-min-signatures, --git-max-maintainers, --git-min-percent, and
+           --git-blame
+       Use --hg-since not --git-since to control date selection
++  File ".get_maintainer.conf", if it exists in the linux kernel source root
++      directory, can change whatever get_maintainer defaults are desired.
++      Entries in this file can be any command line argument.
++      This file is prepended to any additional command line arguments.
++      Multiple lines and # comments are allowed.
+ EOT
  }
  
-+if ($email_git_all_signature_types) {
-+    $signaturePattern = "(.+?)[Bb][Yy]:";
-+}
-+
- ## Read MAINTAINERS for type/value pairs
- 
- my @typevalue = ();
-@@ -497,13 +512,15 @@ version: $V
- MAINTAINER field selection options:
-   --email => print email address(es) if any
-     --git => include recent git \*-by: signers
-+    --git-all-signature-types => include signers regardless of signature type
-+        or use only ${signaturePattern} signers (default: $email_git_all_signature_types)
-     --git-chief-penguins => include ${penguin_chiefs}
--    --git-min-signatures => number of signatures required (default: 1)
--    --git-max-maintainers => maximum maintainers to add (default: 5)
--    --git-min-percent => minimum percentage of commits required (default: 5)
-+    --git-min-signatures => number of signatures required (default: $email_git_min_signatures)
-+    --git-max-maintainers => maximum maintainers to add (default: $email_git_max_maintainers)
-+    --git-min-percent => minimum percentage of commits required (default: $email_git_min_percent)
-     --git-blame => use git blame to find modified commits for patch or file
--    --git-since => git history to use (default: 1-year-ago)
--    --hg-since => hg history to use (default: -365)
-+    --git-since => git history to use (default: $email_git_since)
-+    --hg-since => hg history to use (default: $email_hg_since)
-     --m => include maintainer(s) if any
-     --n => include name 'Full Name <addr\@domain.tld>'
-     --l => include list(s) if any
-@@ -964,7 +981,7 @@ sub vcs_find_signers {
- 
-     $commits = grep(/$pattern/, @lines);	# of commits
- 
--    @lines = grep(/^[-_ 	a-z]+by:.*\@.*$/i, @lines);
-+    @lines = grep(/^[ \t]*${signaturePattern}.*\@.*$/, @lines);
-     if (!$email_git_penguin_chiefs) {
- 	@lines = grep(!/${penguin_chiefs}/i, @lines);
-     }
 _
 
 Patches currently in -mm which might be from joe@perches.com are
