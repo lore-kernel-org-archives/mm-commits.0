@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch added to -mm tree
-Date: Tue, 11 May 2010 14:51:18 -0700
-Message-ID: <201005112219.o4BMJ3r1026041@imap1.linux-foundation.org>
+Subject: + fix-drm-radeon-kms-hdmi-irq-support.patch added to -mm tree
+Date: Tue, 11 May 2010 15:01:58 -0700
+Message-ID: <201005112229.o4BMThqi026476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751635Ab0EKWTM (ORCPT
+	by vger.kernel.org with ESMTP id S1753506Ab0EKWan (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 18:19:12 -0400
+	Tue, 11 May 2010 18:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, batsakis@netapp.com, bfields@citi.umich.edu, bhalevy@panasas.com
+Cc: akpm@linux-foundation.org, airlied@redhat.com, deathsimple@vodafone.de
 
 
 The patch titled
-     fix "nfsd41: sunrpc: add new xprt class for nfsv4.1 backchannel"
+     fix "drm/radeon/kms: HDMI irq support"
 has been added to the -mm tree.  Its filename is
-     fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
+     fix-drm-radeon-kms-hdmi-irq-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "nfsd41: sunrpc: add new xprt class for nfsv4.1 backchannel"
+Subject: fix "drm/radeon/kms: HDMI irq support"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/sunrpc/xprtsock.c: In function 'xs_setup_bc_tcp':                           net/sunrpc/xprtsock.c:2447: warning: ignoring return value of 'ERR_PTR', declared with attribute warn_unused_result
+drivers/gpu/drm/radeon/r600_hdmi.c: In function 'r600_hdmi_disable':
+drivers/gpu/drm/radeon/r600_hdmi.c:557: warning: comparison is always false due to limited range of data type
 
-Someone had a brainfart.
-
-Cc: Alexandros Batsakis <batsakis@netapp.com>
-Cc: Benny Halevy <bhalevy@panasas.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: Christian Koenig <deathsimple@vodafone.de>
+Cc: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtsock.c |    2 +-
+ drivers/gpu/drm/radeon/r600_hdmi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/xprtsock.c~fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel
-+++ a/net/sunrpc/xprtsock.c
-@@ -2444,7 +2444,7 @@ static struct rpc_xprt *xs_setup_bc_tcp(
- 	struct svc_sock *bc_sock;
+diff -puN drivers/gpu/drm/radeon/r600_hdmi.c~fix-drm-radeon-kms-hdmi-irq-support drivers/gpu/drm/radeon/r600_hdmi.c
+--- a/drivers/gpu/drm/radeon/r600_hdmi.c~fix-drm-radeon-kms-hdmi-irq-support
++++ a/drivers/gpu/drm/radeon/r600_hdmi.c
+@@ -539,7 +539,7 @@ void r600_hdmi_disable(struct drm_encode
+ 	struct drm_device *dev = encoder->dev;
+ 	struct radeon_device *rdev = dev->dev_private;
+ 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
+-	uint8_t offset;
++	uint32_t offset;
  
- 	if (!args->bc_xprt)
--		ERR_PTR(-EINVAL);
-+		return ERR_PTR(-EINVAL);
- 
- 	xprt = xs_setup_xprt(args, xprt_tcp_slot_table_entries);
- 	if (IS_ERR(xprt))
+ 	if (ASIC_IS_DCE4(rdev))
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +73,7 @@ i-need-old-gcc.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
 jfs-free-sbi-memory-in-error-path.patch
+fix-drm-radeon-kms-hdmi-irq-support.patch
 dib3000mc-reduce-large-stack-usage-fix.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
 include-linux-fsnotifyh-squash-warning.patch
