@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-fsnotifyh-squash-warning.patch added to -mm tree
-Date: Tue, 11 May 2010 14:33:04 -0700
-Message-ID: <201005112200.o4BM0n9i025322@imap1.linux-foundation.org>
+Subject: + memcg-move-charge-of-file-pages-fix-4.patch added to -mm tree
+Date: Tue, 11 May 2010 14:42:18 -0700
+Message-ID: <201005112210.o4BMA3EY025695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59664 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751635Ab0EKWBB (ORCPT
+	by vger.kernel.org with ESMTP id S1751635Ab0EKWKR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 18:01:01 -0400
+	Tue, 11 May 2010 18:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eparis@redhat.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     include/linux/fsnotify.h: squash warning
+     memcg-move-charge-of-file-pages-fix-4
 has been added to the -mm tree.  Its filename is
-     include-linux-fsnotifyh-squash-warning.patch
+     memcg-move-charge-of-file-pages-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/fsnotify.h: squash warning
+Subject: memcg-move-charge-of-file-pages-fix-4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-include/linux/fsnotify.h: In function 'fsnotify_perm':
-include/linux/fsnotify.h:42: warning: 'fsnotify_mask' may be used uninitialized in this function
+mm/memcontrol.c: In function 'is_target_pte_for_mc':
+mm/memcontrol.c:4248: warning: 'pgoff' may be used uninitialized in this function
 
-this is a total guess - maybe the code isn't buggy after all?
-
-Cc: Eric Paris <eparis@redhat.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fsnotify.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fsnotify.h~include-linux-fsnotifyh-squash-warning include/linux/fsnotify.h
---- a/include/linux/fsnotify.h~include-linux-fsnotifyh-squash-warning
-+++ a/include/linux/fsnotify.h
-@@ -39,16 +39,16 @@ static inline int fsnotify_perm(struct f
- {
- 	struct path *path = &file->f_path;
- 	struct inode *inode = path->dentry->d_inode;
--	__u32 fsnotify_mask;
-+	__u32 fsnotify_mask = 0;
+diff -puN mm/memcontrol.c~memcg-move-charge-of-file-pages-fix-4 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move-charge-of-file-pages-fix-4
++++ a/mm/memcontrol.c
+@@ -4256,7 +4256,7 @@ static struct page *mc_handle_file_pte(s
+ 	mapping = vma->vm_file->f_mapping;
+ 	if (pte_none(ptent))
+ 		pgoff = linear_page_index(vma, addr);
+-	if (pte_file(ptent))
++	else /* pte_file(ptent) is true */
+ 		pgoff = pte_to_pgoff(ptent);
  
- 	if (file->f_mode & FMODE_NONOTIFY)
- 		return 0;
- 	if (!(mask & (MAY_READ | MAY_OPEN)))
- 		return 0;
- 	if (mask & MAY_READ)
--		fsnotify_mask = FS_ACCESS_PERM;
-+		fsnotify_mask |= FS_ACCESS_PERM;
- 	if (mask & MAY_OPEN)
--		fsnotify_mask = FS_OPEN_PERM;
-+		fsnotify_mask |= FS_OPEN_PERM;
- 
- 	return fsnotify(inode, fsnotify_mask, path, FSNOTIFY_EVENT_PATH, NULL, 0);
- }
+ 	/* page is moved even if it's not RSS of this task(page-faulted). */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +113,7 @@ gpiolib-make-names-array-and-its-values-const-fix.patch
 s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
 memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
 memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
 proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
 fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
@@ -146,4 +136,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
+a.patch
 
