@@ -1,142 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot.patch added to -mm tree
-Date: Tue, 11 May 2010 11:07:26 -0400
-Message-ID: <201005111808.o4BI8snF014722@imap1.linux-foundation.org>
+Subject: [merged] sched-add-a-comment-to-get_cpu_idle_time_us.patch removed from -mm tree
+Date: Tue, 11 May 2010 12:16:42 -0400
+Message-ID: <201005111918.o4BJIBm8018183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50558 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756932Ab0EKSJI (ORCPT
+	by vger.kernel.org with ESMTP id S1752507Ab0EKTSO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 14:09:08 -0400
+	Tue, 11 May 2010 15:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, chris@chris-wilson.co.uk, jaswinderlinux@gmail.com
+To: arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/i915/i915_irq.c:i915_error_object_create(): use correct kmap-atomic slot
-has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot.patch
+     sched: add a comment to get_cpu_idle_time_us()
+has been removed from the -mm tree.  Its filename was
+     sched-add-a-comment-to-get_cpu_idle_time_us.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/i915_irq.c:i915_error_object_create(): use correct kmap-atomic slot
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched: add a comment to get_cpu_idle_time_us()
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-i915_error_object_create() is called from the timer interrupt and hence
-can corrupt the KM_USER0 slot.  Use KM_IRQ0 instead.
+The exported function get_cpu_idle_time_us() has no comment
+describing it; add a kerneldoc comment
 
-Reported-by: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_irq.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/time/tick-sched.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot drivers/gpu/drm/i915/i915_irq.c
---- a/drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot
-+++ a/drivers/gpu/drm/i915/i915_irq.c
-@@ -461,11 +461,15 @@ i915_error_object_create(struct drm_devi
+diff -puN kernel/time/tick-sched.c~sched-add-a-comment-to-get_cpu_idle_time_us kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~sched-add-a-comment-to-get_cpu_idle_time_us
++++ a/kernel/time/tick-sched.c
+@@ -179,6 +179,20 @@ static ktime_t tick_nohz_start_idle(stru
+ 	return now;
+ }
  
- 	for (page = 0; page < page_count; page++) {
- 		void *s, *d = kmalloc(PAGE_SIZE, GFP_ATOMIC);
-+		unsigned long flags;
-+
- 		if (d == NULL)
- 			goto unwind;
--		s = kmap_atomic(src_priv->pages[page], KM_USER0);
-+		local_irq_save(flags);
-+		s = kmap_atomic(src_priv->pages[page], KM_IRQ0);
- 		memcpy(d, s, PAGE_SIZE);
--		kunmap_atomic(s, KM_USER0);
-+		kunmap_atomic(s, KM_IRQ0);
-+		local_irq_restore(flags);
- 		dst->pages[page] = d;
- 	}
- 	dst->page_count = page_count;
++/**
++ * get_cpu_idle_time_us - get the total idle time of a cpu
++ * @cpu: CPU number to query
++ * @last_update_time: variable to store update time in
++ *
++ * Return the cummulative idle time (since boot) for a given
++ * CPU, in microseconds. The idle time returned includes
++ * the iowait time (unlike what "top" and co report).
++ *
++ * This time is measured via accounting rather than sampling,
++ * and is as accurate as ktime_get() is.
++ *
++ * This function returns -1 if NOHZ is not enabled.
++ */
+ u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
+ {
+ 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 linux-next.patch
-linux-next-fix-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-sched-introduce-get_cpu_iowait_time_us.patch
-jfs-free-sbi-memory-in-error-path.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+cpuidle-add-a-repeating-pattern-detector-to-the-menu-governor.patch
 
