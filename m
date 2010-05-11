@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-charge-of-file-pages-fix-4.patch added to -mm tree
-Date: Tue, 11 May 2010 14:42:18 -0700
-Message-ID: <201005112210.o4BMA3EY025695@imap1.linux-foundation.org>
+Subject: + fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch added to -mm tree
+Date: Tue, 11 May 2010 14:51:18 -0700
+Message-ID: <201005112219.o4BMJ3r1026041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751635Ab0EKWKR (ORCPT
+	by vger.kernel.org with ESMTP id S1751635Ab0EKWTM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 18:10:17 -0400
+	Tue, 11 May 2010 18:19:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, batsakis@netapp.com, bfields@citi.umich.edu, bhalevy@panasas.com
 
 
 The patch titled
-     memcg-move-charge-of-file-pages-fix-4
+     fix "nfsd41: sunrpc: add new xprt class for nfsv4.1 backchannel"
 has been added to the -mm tree.  Its filename is
-     memcg-move-charge-of-file-pages-fix-4.patch
+     fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-charge-of-file-pages-fix-4
+Subject: fix "nfsd41: sunrpc: add new xprt class for nfsv4.1 backchannel"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/memcontrol.c: In function 'is_target_pte_for_mc':
-mm/memcontrol.c:4248: warning: 'pgoff' may be used uninitialized in this function
+net/sunrpc/xprtsock.c: In function 'xs_setup_bc_tcp':                           net/sunrpc/xprtsock.c:2447: warning: ignoring return value of 'ERR_PTR', declared with attribute warn_unused_result
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Someone had a brainfart.
+
+Cc: Alexandros Batsakis <batsakis@netapp.com>
+Cc: Benny Halevy <bhalevy@panasas.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ net/sunrpc/xprtsock.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-move-charge-of-file-pages-fix-4 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charge-of-file-pages-fix-4
-+++ a/mm/memcontrol.c
-@@ -4256,7 +4256,7 @@ static struct page *mc_handle_file_pte(s
- 	mapping = vma->vm_file->f_mapping;
- 	if (pte_none(ptent))
- 		pgoff = linear_page_index(vma, addr);
--	if (pte_file(ptent))
-+	else /* pte_file(ptent) is true */
- 		pgoff = pte_to_pgoff(ptent);
+diff -puN net/sunrpc/xprtsock.c~fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel
++++ a/net/sunrpc/xprtsock.c
+@@ -2444,7 +2444,7 @@ static struct rpc_xprt *xs_setup_bc_tcp(
+ 	struct svc_sock *bc_sock;
  
- 	/* page is moved even if it's not RSS of this task(page-faulted). */
+ 	if (!args->bc_xprt)
+-		ERR_PTR(-EINVAL);
++		return ERR_PTR(-EINVAL);
+ 
+ 	xprt = xs_setup_xprt(args, xprt_tcp_slot_table_entries);
+ 	if (IS_ERR(xprt))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +85,7 @@ led-driver-for-the-soekris-net5501-board.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 3x59x-fix-pci-resource-management.patch
 backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
 fix-stop_machine-reimplement-using-cpu_stop.patch
 scsi-remove-private-bit-macros.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
@@ -136,5 +139,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
-a.patch
 
