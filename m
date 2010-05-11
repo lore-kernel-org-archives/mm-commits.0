@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 11 May 2010 14:02:34 -0700
-Message-ID: <201005112130.o4BLUIp4024035@imap1.linux-foundation.org>
+Subject: + fix-stop_machine-reimplement-using-cpu_stop.patch added to -mm tree
+Date: Tue, 11 May 2010 14:23:53 -0700
+Message-ID: <201005112151.o4BLpcQL024950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752776Ab0EKVaW (ORCPT
+	by vger.kernel.org with ESMTP id S1751492Ab0EKVv7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 17:30:22 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o4BLUJcI031241
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 11 May 2010 14:30:20 -0700
+	Tue, 11 May 2010 17:51:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, oleg@redhat.com, peterz@infradead.org, rusty@rustcorp.com.au, sivanich@sgi.com, tj@kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     fix "stop_machine: reimplement using cpu_stop"
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     fix-stop_machine-reimplement-using-cpu_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,136 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: fix "stop_machine: reimplement using cpu_stop"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+kernel/cpu.c: In function 'disable_nonboot_cpus':
+kernel/cpu.c:397: warning: 'error' may be used uninitialized in this function
+
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep.c |   91 -----------------------------------------
- net/ipv4/ipmr.c      |    9 +---
- 2 files changed, 3 insertions(+), 97 deletions(-)
+ kernel/cpu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/sleep.c~linux-next-git-rejects drivers/acpi/sleep.c
---- a/drivers/acpi/sleep.c~linux-next-git-rejects
-+++ a/drivers/acpi/sleep.c
-@@ -382,97 +382,6 @@ static struct dmi_system_id __initdata a
- 		},
- 	},
- 	{
--<<<<<<< HEAD
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Toshiba Satellite L300",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite L300"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Hewlett-Packard HP G7000 Notebook PC",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP G7000 Notebook PC"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Hewlett-Packard HP Pavilion dv3 Notebook PC",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv3 Notebook PC"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Hewlett-Packard Pavilion dv4",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv4"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Hewlett-Packard Pavilion dv7",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv7"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Hewlett-Packard Compaq Presario C700 Notebook PC",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "Compaq Presario C700 Notebook PC"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Hewlett-Packard Compaq Presario CQ40 Notebook PC",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "Compaq Presario CQ40 Notebook PC"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Lenovo ThinkPad T410",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T410"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Lenovo ThinkPad T510",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T510"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Lenovo ThinkPad W510",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W510"),
--		},
--	},
--	{
--	.callback = init_set_sci_en_on_resume,
--	.ident = "Lenovo ThinkPad X201[s]",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201"),
--		},
--	},
--	{
--=======
-->>>>>>> FETCH_HEAD
- 	.callback = init_old_suspend_ordering,
- 	.ident = "Panasonic CF51-2L",
- 	.matches = {
-diff -puN net/ipv4/ipmr.c~linux-next-git-rejects net/ipv4/ipmr.c
---- a/net/ipv4/ipmr.c~linux-next-git-rejects
-+++ a/net/ipv4/ipmr.c
-@@ -998,12 +998,9 @@ ipmr_cache_unresolved(struct mr_table *m
- 		atomic_inc(&mrt->cache_resolve_queue_len);
- 		list_add(&c->list, &mrt->mfc_unres_queue);
+diff -puN kernel/cpu.c~fix-stop_machine-reimplement-using-cpu_stop kernel/cpu.c
+--- a/kernel/cpu.c~fix-stop_machine-reimplement-using-cpu_stop
++++ a/kernel/cpu.c
+@@ -355,7 +355,8 @@ static cpumask_var_t frozen_cpus;
  
--<<<<<<< HEAD
--		if (atomic_read(&net->ipv4.cache_resolve_queue_len) == 1)
--			mod_timer(&ipmr_expire_timer, c->mfc_un.unres.expires);
--=======
--		mod_timer(&mrt->ipmr_expire_timer, c->mfc_un.unres.expires);
-->>>>>>> FETCH_HEAD
-+		if (atomic_read(&mrt->cache_resolve_queue_len) == 1)
-+			mod_timer(&mrt->ipmr_expire_timer,
-+				  c->mfc_un.unres.expires);
- 	}
+ int disable_nonboot_cpus(void)
+ {
+-	int cpu, first_cpu, error;
++	int cpu, first_cpu;
++	int error = 0;
  
- 	/*
+ 	cpu_maps_update_begin();
+ 	first_cpu = cpumask_first(cpu_online_mask);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -189,6 +85,7 @@ led-driver-for-the-soekris-net5501-board.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 3x59x-fix-pci-resource-management.patch
 backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
 scsi-remove-private-bit-macros.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
