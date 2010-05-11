@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch added to -mm tree
-Date: Tue, 11 May 2010 13:54:12 -0700
-Message-ID: <201005112121.o4BLLuYh023754@imap1.linux-foundation.org>
+Subject: + pids-increase-pid_max-based-on-num_possible_cpus-fix.patch added to -mm tree
+Date: Tue, 11 May 2010 13:57:20 -0700
+Message-ID: <201005112125.o4BLP504023841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50793 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752017Ab0EKVWG (ORCPT
+	by vger.kernel.org with ESMTP id S1751195Ab0EKV0A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 17:22:06 -0400
+	Tue, 11 May 2010 17:26:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chris.mason@oracle.com, jens.axboe@oracle.com, manfred@colorfullife.com, npiggin@suse.de, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, hedi@sgi.com, holt@sgi.com, john@stoffel.org, mingo@elte.hu, pavel@ucw.cz, riel@redhat.com, steiner@sgi.com, torvalds@linux-foundation.org, travis@sgi.com
 
 
 The patch titled
-     ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2
+     pids-increase-pid_max-based-on-num_possible_cpus-fix
 has been added to the -mm tree.  Its filename is
-     ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+     pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2
+Subject: pids-increase-pid_max-based-on-num_possible_cpus-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix uninitialised retval
+kernel/pid.c: In function 'pidmap_init':
+kernel/pid.c:517: warning: comparison of distinct pointer types lacks a cast
+kernel/pid.c:517: warning: comparison of distinct pointer types lacks a cast
+kernel/pid.c:517: warning: comparison of distinct pointer types lacks a cast
+kernel/pid.c:519: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Hedi Berriche <hedi@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: John Stoffel <john@stoffel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/pid.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2 ipc/sem.c
---- a/ipc/sem.c~ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2
-+++ a/ipc/sem.c
-@@ -542,7 +542,7 @@ static int update_queue(struct sem_array
- 	struct list_head *walk;
- 	struct list_head *pending_list;
- 	int offset;
--	int retval;
-+	int retval = 0;
+diff -puN kernel/pid.c~pids-increase-pid_max-based-on-num_possible_cpus-fix kernel/pid.c
+--- a/kernel/pid.c~pids-increase-pid_max-based-on-num_possible_cpus-fix
++++ a/kernel/pid.c
+@@ -514,9 +514,9 @@ void __init pidhash_init(void)
+ void __init pidmap_init(void)
+ {
+ 	/* bump default and minimum pid_max based on number of cpus */
+-	pid_max = min(pid_max_max, max(pid_max,
++	pid_max = min(pid_max_max, max_t(int, pid_max,
+ 				PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
+-	pid_max_min = max(pid_max_min,
++	pid_max_min = max_t(int, pid_max_min,
+ 				PIDS_PER_CPU_MIN * num_possible_cpus());
+ 	pr_info("pid_max: default: %u minimum: %u\n", pid_max, pid_max_min);
  
- 	/* if there are complex operations around, then knowing the semaphore
- 	 * that was modified doesn't help us. Assume that multiple semaphores
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +130,7 @@ ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
 ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
 ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
 ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
 panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
