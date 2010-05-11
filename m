@@ -1,132 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ondemand-solve-the-big-performance-issue-with-ondemand-during-disk-io.patch removed from -mm tree
-Date: Tue, 11 May 2010 12:16:56 -0400
-Message-ID: <201005111918.o4BJIO6X018204@imap1.linux-foundation.org>
+Subject: [merged] sched-introduce-get_cpu_iowait_time_us.patch removed from -mm tree
+Date: Tue, 11 May 2010 12:16:54 -0400
+Message-ID: <201005111918.o4BJIMDC018201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50726 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752507Ab0EKTS1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752507Ab0EKTSZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 15:18:27 -0400
+	Tue, 11 May 2010 15:18:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ondemand: Solve the big performance issue with ondemand during disk IO
+     sched: introduce get_cpu_iowait_time_us()
 has been removed from the -mm tree.  Its filename was
-     ondemand-solve-the-big-performance-issue-with-ondemand-during-disk-io.patch
+     sched-introduce-get_cpu_iowait_time_us.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ondemand: Solve the big performance issue with ondemand during disk IO
+Subject: sched: introduce get_cpu_iowait_time_us()
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-The ondemand cpufreq governor uses CPU busy time (e.g. not-idle time) as
-a measure for scaling the CPU frequency up or down.
-If the CPU is busy, the CPU frequency scales up, if it's idle, the CPU
-frequency scales down. Effectively, it uses the CPU busy time as proxy
-variable for the more nebulous "how critical is performance right now"
-question.
+For the ondemand cpufreq governor, it is desired that the iowait
+time is microaccounted in a similar way as idle time is.
 
-This algorithm falls flat on its face in the light of workloads where
-you're alternatingly disk and CPU bound, such as the ever popular
-"git grep", but also things like startup of programs and maildir using
-email clients... much to the chagarin of Andrew Morton.
+This patch introduces the infrastructure to account and expose
+this information via the get_cpu_iowait_time_us() function.
 
-This patch changes the ondemand algorithm to count iowait time as busy,
-not idle, time. As shown in the breakdown cases above, iowait is performance
-critical often, and by counting iowait, the proxy variable becomes a more
-accurate representation of the "how critical is performance" question.
-
-The problem and fix are both verified with the "perf timechar" tool.
-
+[akpm@linux-foundation.org: fix CONFIG_NO_HZ=n build]
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_ondemand.c |   30 +++++++++++++++++++++++++--
- 1 file changed, 28 insertions(+), 2 deletions(-)
+ include/linux/tick.h     |    4 ++++
+ kernel/time/tick-sched.c |   28 ++++++++++++++++++++++++++++
+ kernel/time/timer_list.c |    1 +
+ 3 files changed, 33 insertions(+)
 
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~ondemand-solve-the-big-performance-issue-with-ondemand-during-disk-io drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~ondemand-solve-the-big-performance-issue-with-ondemand-during-disk-io
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -73,6 +73,7 @@ enum {DBS_NORMAL_SAMPLE, DBS_SUB_SAMPLE}
- 
- struct cpu_dbs_info_s {
- 	cputime64_t prev_cpu_idle;
-+	cputime64_t prev_cpu_iowait;
- 	cputime64_t prev_cpu_wall;
- 	cputime64_t prev_cpu_nice;
- 	struct cpufreq_policy *cur_policy;
-@@ -148,6 +149,16 @@ static inline cputime64_t get_cpu_idle_t
- 	return idle_time;
+diff -puN include/linux/tick.h~sched-introduce-get_cpu_iowait_time_us include/linux/tick.h
+--- a/include/linux/tick.h~sched-introduce-get_cpu_iowait_time_us
++++ a/include/linux/tick.h
+@@ -42,6 +42,7 @@ enum tick_nohz_mode {
+  * @idle_waketime:	Time when the idle was interrupted
+  * @idle_exittime:	Time when the idle state was left
+  * @idle_sleeptime:	Sum of the time slept in idle with sched tick stopped
++ * @iowait_sleeptime:	Sum of the time slept in idle with sched tick stopped, with IO outstanding
+  * @sleep_length:	Duration of the current idle sleep
+  * @do_timer_lst:	CPU was the last one doing do_timer before going idle
+  */
+@@ -60,6 +61,7 @@ struct tick_sched {
+ 	ktime_t				idle_waketime;
+ 	ktime_t				idle_exittime;
+ 	ktime_t				idle_sleeptime;
++	ktime_t				iowait_sleeptime;
+ 	ktime_t				sleep_length;
+ 	unsigned long			last_jiffies;
+ 	unsigned long			next_jiffies;
+@@ -123,6 +125,7 @@ extern void tick_nohz_stop_sched_tick(in
+ extern void tick_nohz_restart_sched_tick(void);
+ extern ktime_t tick_nohz_get_sleep_length(void);
+ extern u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time);
++extern u64 get_cpu_iowait_time_us(int cpu, u64 *last_update_time);
+ # else
+ static inline void tick_nohz_stop_sched_tick(int inidle) { }
+ static inline void tick_nohz_restart_sched_tick(void) { }
+@@ -133,6 +136,7 @@ static inline ktime_t tick_nohz_get_slee
+ 	return len;
  }
+ static inline u64 get_cpu_idle_time_us(int cpu, u64 *unused) { return -1; }
++static inline u64 get_cpu_iowait_time_us(int cpu, u64 *unused) { return -1; }
+ # endif /* !NO_HZ */
  
-+static inline cputime64_t get_cpu_iowait_time(unsigned int cpu, cputime64_t *wall)
+ #endif
+diff -puN kernel/time/tick-sched.c~sched-introduce-get_cpu_iowait_time_us kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~sched-introduce-get_cpu_iowait_time_us
++++ a/kernel/time/tick-sched.c
+@@ -161,6 +161,8 @@ update_ts_time_stats(struct tick_sched *
+ 	if (ts->idle_active) {
+ 		delta = ktime_sub(now, ts->idle_entrytime);
+ 		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
++		if (nr_iowait_cpu() > 0)
++			ts->iowait_sleeptime = ktime_add(ts->iowait_sleeptime, delta);
+ 		ts->idle_entrytime = now;
+ 	}
+ 
+@@ -220,6 +222,32 @@ u64 get_cpu_idle_time_us(int cpu, u64 *l
+ }
+ EXPORT_SYMBOL_GPL(get_cpu_idle_time_us);
+ 
++/*
++ * get_cpu_iowait_time_us - get the total iowait time of a cpu
++ * @cpu: CPU number to query
++ * @last_update_time: variable to store update time in
++ *
++ * Return the cummulative iowait time (since boot) for a given
++ * CPU, in microseconds.
++ *
++ * This time is measured via accounting rather than sampling,
++ * and is as accurate as ktime_get() is.
++ *
++ * This function returns -1 if NOHZ is not enabled.
++ */
++u64 get_cpu_iowait_time_us(int cpu, u64 *last_update_time)
 +{
-+	u64 iowait_time = get_cpu_iowait_time_us(cpu, wall);
++	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
 +
-+	if (iowait_time == -1ULL)
-+		return 0;
++	if (!tick_nohz_enabled)
++		return -1;
 +
-+	return iowait_time;
++	update_ts_time_stats(ts, ktime_get(), last_update_time);
++
++	return ktime_to_us(ts->iowait_sleeptime);
 +}
++EXPORT_SYMBOL_GPL(get_cpu_iowait_time_us);
 +
- /*
-  * Find right freq to be set now with powersave_bias on.
-  * Returns the freq_hi to be used right now and will set freq_hi_jiffies,
-@@ -465,14 +476,15 @@ static void dbs_check_cpu(struct cpu_dbs
- 
- 	for_each_cpu(j, policy->cpus) {
- 		struct cpu_dbs_info_s *j_dbs_info;
--		cputime64_t cur_wall_time, cur_idle_time;
--		unsigned int idle_time, wall_time;
-+		cputime64_t cur_wall_time, cur_idle_time, cur_iowait_time;
-+		unsigned int idle_time, wall_time, iowait_time;
- 		unsigned int load, load_freq;
- 		int freq_avg;
- 
- 		j_dbs_info = &per_cpu(od_cpu_dbs_info, j);
- 
- 		cur_idle_time = get_cpu_idle_time(j, &cur_wall_time);
-+		cur_iowait_time = get_cpu_iowait_time(j, &cur_wall_time);
- 
- 		wall_time = (unsigned int) cputime64_sub(cur_wall_time,
- 				j_dbs_info->prev_cpu_wall);
-@@ -482,6 +494,10 @@ static void dbs_check_cpu(struct cpu_dbs
- 				j_dbs_info->prev_cpu_idle);
- 		j_dbs_info->prev_cpu_idle = cur_idle_time;
- 
-+		iowait_time = (unsigned int) cputime64_sub(cur_iowait_time,
-+				j_dbs_info->prev_cpu_iowait);
-+		j_dbs_info->prev_cpu_iowait = cur_iowait_time;
-+
- 		if (dbs_tuners_ins.ignore_nice) {
- 			cputime64_t cur_nice;
- 			unsigned long cur_nice_jiffies;
-@@ -499,6 +515,16 @@ static void dbs_check_cpu(struct cpu_dbs
- 			idle_time += jiffies_to_usecs(cur_nice_jiffies);
- 		}
- 
-+		/*
-+		 * For the purpose of ondemand, waiting for disk IO is an
-+		 * indication that you're performance critical, and not that
-+		 * the system is actually idle. So subtract the iowait time
-+		 * from the cpu idle time.
-+		 */
-+
-+		if (idle_time >= iowait_time)
-+			idle_time -= iowait_time;
-+
- 		if (unlikely(!wall_time || wall_time < idle_time))
- 			continue;
- 
+ /**
+  * tick_nohz_stop_sched_tick - stop the idle tick from the idle task
+  *
+diff -puN kernel/time/timer_list.c~sched-introduce-get_cpu_iowait_time_us kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~sched-introduce-get_cpu_iowait_time_us
++++ a/kernel/time/timer_list.c
+@@ -176,6 +176,7 @@ static void print_cpu(struct seq_file *m
+ 		P_ns(idle_waketime);
+ 		P_ns(idle_exittime);
+ 		P_ns(idle_sleeptime);
++		P_ns(iowait_sleeptime);
+ 		P(last_jiffies);
+ 		P(next_jiffies);
+ 		P_ns(idle_expires);
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
