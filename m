@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch added to -mm tree
-Date: Tue, 11 May 2010 13:48:54 -0700
-Message-ID: <201005112116.o4BLGdok023545@imap1.linux-foundation.org>
+Subject: + ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch added to -mm tree
+Date: Tue, 11 May 2010 13:54:12 -0700
+Message-ID: <201005112121.o4BLLuYh023754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751219Ab0EKVQo (ORCPT
+	by vger.kernel.org with ESMTP id S1752017Ab0EKVWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 17:16:44 -0400
+	Tue, 11 May 2010 17:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, chris.mason@oracle.com, jens.axboe@oracle.com, manfred@colorfullife.com, npiggin@suse.de, zach.brown@oracle.com
 
 
 The patch titled
-     kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix
+     ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2
 has been added to the -mm tree.  Its filename is
-     kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+     ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix
+Subject: ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+fix uninitialised retval
+
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/keyring.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/sem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/keys/keyring.c~kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix security/keys/keyring.c
---- a/security/keys/keyring.c~kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix
-+++ a/security/keys/keyring.c
-@@ -669,7 +669,7 @@ static void keyring_unlink_rcu_disposal(
- 	struct keyring_list *klist =
- 		container_of(rcu, struct keyring_list, rcu);
+diff -puN ipc/sem.c~ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2 ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2
++++ a/ipc/sem.c
+@@ -542,7 +542,7 @@ static int update_queue(struct sem_array
+ 	struct list_head *walk;
+ 	struct list_head *pending_list;
+ 	int offset;
+-	int retval;
++	int retval = 0;
  
--	if (klist->delkey != USHORT_MAX)
-+	if (klist->delkey != USHRT_MAX)
- 		key_put(klist->keys[klist->delkey]);
- 	kfree(klist);
- }
-@@ -746,7 +746,7 @@ int __key_link_begin(struct key *keyring
- 			max += klist->maxkeys;
- 
- 		ret = -ENFILE;
--		if (max > USHORT_MAX - 1)
-+		if (max > USHRT_MAX - 1)
- 			goto error_quota;
- 		size = sizeof(*klist) + sizeof(struct key *) * max;
- 		if (size > PAGE_SIZE)
-@@ -763,7 +763,7 @@ int __key_link_begin(struct key *keyring
- 			       sizeof(struct key *) * klist->nkeys);
- 			nklist->delkey = klist->nkeys;
- 			nklist->nkeys = klist->nkeys + 1;
--			klist->delkey = USHORT_MAX;
-+			klist->delkey = USHRT_MAX;
- 		} else {
- 			nklist->nkeys = 1;
- 			nklist->delkey = 0;
+ 	/* if there are complex operations around, then knowing the semaphore
+ 	 * that was modified doesn't help us. Assume that multiple semaphores
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +115,7 @@ proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
 fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
 ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
 ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
