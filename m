@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + pids-increase-pid_max-based-on-num_possible_cpus-fix.patch added to -mm tree
-Date: Tue, 11 May 2010 13:57:20 -0700
-Message-ID: <201005112125.o4BLP504023841@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 11 May 2010 14:02:34 -0700
+Message-ID: <201005112130.o4BLUIp4024035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751195Ab0EKV0A (ORCPT
+	by vger.kernel.org with ESMTP id S1752776Ab0EKVaW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 17:26:00 -0400
+	Tue, 11 May 2010 17:30:22 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o4BLUJcI031241
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 11 May 2010 14:30:20 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, hedi@sgi.com, holt@sgi.com, john@stoffel.org, mingo@elte.hu, pavel@ucw.cz, riel@redhat.com, steiner@sgi.com, torvalds@linux-foundation.org, travis@sgi.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     pids-increase-pid_max-based-on-num_possible_cpus-fix
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +38,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids-increase-pid_max-based-on-num_possible_cpus-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/pid.c: In function 'pidmap_init':
-kernel/pid.c:517: warning: comparison of distinct pointer types lacks a cast
-kernel/pid.c:517: warning: comparison of distinct pointer types lacks a cast
-kernel/pid.c:517: warning: comparison of distinct pointer types lacks a cast
-kernel/pid.c:519: warning: comparison of distinct pointer types lacks a cast
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Hedi Berriche <hedi@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: John Stoffel <john@stoffel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/sleep.c |   91 -----------------------------------------
+ net/ipv4/ipmr.c      |    9 +---
+ 2 files changed, 3 insertions(+), 97 deletions(-)
 
-diff -puN kernel/pid.c~pids-increase-pid_max-based-on-num_possible_cpus-fix kernel/pid.c
---- a/kernel/pid.c~pids-increase-pid_max-based-on-num_possible_cpus-fix
-+++ a/kernel/pid.c
-@@ -514,9 +514,9 @@ void __init pidhash_init(void)
- void __init pidmap_init(void)
- {
- 	/* bump default and minimum pid_max based on number of cpus */
--	pid_max = min(pid_max_max, max(pid_max,
-+	pid_max = min(pid_max_max, max_t(int, pid_max,
- 				PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
--	pid_max_min = max(pid_max_min,
-+	pid_max_min = max_t(int, pid_max_min,
- 				PIDS_PER_CPU_MIN * num_possible_cpus());
- 	pr_info("pid_max: default: %u minimum: %u\n", pid_max, pid_max_min);
+diff -puN drivers/acpi/sleep.c~linux-next-git-rejects drivers/acpi/sleep.c
+--- a/drivers/acpi/sleep.c~linux-next-git-rejects
++++ a/drivers/acpi/sleep.c
+@@ -382,97 +382,6 @@ static struct dmi_system_id __initdata a
+ 		},
+ 	},
+ 	{
+-<<<<<<< HEAD
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Toshiba Satellite L300",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Satellite L300"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard HP G7000 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP G7000 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard HP Pavilion dv3 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv3 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Pavilion dv4",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv4"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Pavilion dv7",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv7"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Compaq Presario C700 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Compaq Presario C700 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Hewlett-Packard Compaq Presario CQ40 Notebook PC",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Compaq Presario CQ40 Notebook PC"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad T410",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T410"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad T510",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T510"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad W510",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W510"),
+-		},
+-	},
+-	{
+-	.callback = init_set_sci_en_on_resume,
+-	.ident = "Lenovo ThinkPad X201[s]",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201"),
+-		},
+-	},
+-	{
+-=======
+->>>>>>> FETCH_HEAD
+ 	.callback = init_old_suspend_ordering,
+ 	.ident = "Panasonic CF51-2L",
+ 	.matches = {
+diff -puN net/ipv4/ipmr.c~linux-next-git-rejects net/ipv4/ipmr.c
+--- a/net/ipv4/ipmr.c~linux-next-git-rejects
++++ a/net/ipv4/ipmr.c
+@@ -998,12 +998,9 @@ ipmr_cache_unresolved(struct mr_table *m
+ 		atomic_inc(&mrt->cache_resolve_queue_len);
+ 		list_add(&c->list, &mrt->mfc_unres_queue);
  
+-<<<<<<< HEAD
+-		if (atomic_read(&net->ipv4.cache_resolve_queue_len) == 1)
+-			mod_timer(&ipmr_expire_timer, c->mfc_un.unres.expires);
+-=======
+-		mod_timer(&mrt->ipmr_expire_timer, c->mfc_un.unres.expires);
+->>>>>>> FETCH_HEAD
++		if (atomic_read(&mrt->cache_resolve_queue_len) == 1)
++			mod_timer(&mrt->ipmr_expire_timer,
++				  c->mfc_un.unres.expires);
+ 	}
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +175,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot.patch
 linux-next.patch
 linux-next-fix-rejects.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
