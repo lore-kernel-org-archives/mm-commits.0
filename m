@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-drm-radeon-kms-hdmi-irq-support.patch added to -mm tree
-Date: Tue, 11 May 2010 15:01:58 -0700
-Message-ID: <201005112229.o4BMThqi026476@imap1.linux-foundation.org>
+Subject: + include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch added to -mm tree
+Date: Tue, 11 May 2010 16:50:06 -0700
+Message-ID: <201005112350.o4BNo6Fs030102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753506Ab0EKWan (ORCPT
+	by vger.kernel.org with ESMTP id S1751242Ab0EKXuQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 18:30:43 -0400
+	Tue, 11 May 2010 19:50:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@redhat.com, deathsimple@vodafone.de
+Cc: akpm@linux-foundation.org, arnd@arndb.de
 
 
 The patch titled
-     fix "drm/radeon/kms: HDMI irq support"
+     include/asm-generic/kmap_types.h: remove KM_SYNC_ICACHE and KM_SYNC_DCACHE
 has been added to the -mm tree.  Its filename is
-     fix-drm-radeon-kms-hdmi-irq-support.patch
+     include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "drm/radeon/kms: HDMI irq support"
+Subject: include/asm-generic/kmap_types.h: remove KM_SYNC_ICACHE and KM_SYNC_DCACHE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/gpu/drm/radeon/r600_hdmi.c: In function 'r600_hdmi_disable':
-drivers/gpu/drm/radeon/r600_hdmi.c:557: warning: comparison is always false due to limited range of data type
+These were inexplicably added by
 
-Cc: Christian Koenig <deathsimple@vodafone.de>
-Cc: Dave Airlie <airlied@redhat.com>
+: commit aafe4dbed0bf6cbdb2e9f03e1d42f8a540d8541d
+: Author: Arnd Bergmann <arnd@arndb.de>
+: Date:   Wed May 13 22:56:33 2009 +0000
+:
+:    asm-generic: add generic versions of common headers
+
+but don't appear to ever have had any users.
+
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/r600_hdmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/kmap_types.h |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/gpu/drm/radeon/r600_hdmi.c~fix-drm-radeon-kms-hdmi-irq-support drivers/gpu/drm/radeon/r600_hdmi.c
---- a/drivers/gpu/drm/radeon/r600_hdmi.c~fix-drm-radeon-kms-hdmi-irq-support
-+++ a/drivers/gpu/drm/radeon/r600_hdmi.c
-@@ -539,7 +539,7 @@ void r600_hdmi_disable(struct drm_encode
- 	struct drm_device *dev = encoder->dev;
- 	struct radeon_device *rdev = dev->dev_private;
- 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
--	uint8_t offset;
-+	uint32_t offset;
+diff -puN include/asm-generic/kmap_types.h~include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache include/asm-generic/kmap_types.h
+--- a/include/asm-generic/kmap_types.h~include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache
++++ a/include/asm-generic/kmap_types.h
+@@ -21,15 +21,13 @@ KMAP_D(9)	KM_IRQ0,
+ KMAP_D(10)	KM_IRQ1,
+ KMAP_D(11)	KM_SOFTIRQ0,
+ KMAP_D(12)	KM_SOFTIRQ1,
+-KMAP_D(13)	KM_SYNC_ICACHE,
+-KMAP_D(14)	KM_SYNC_DCACHE,
+ /* UML specific, for copy_*_user - used in do_op_one_page */
+-KMAP_D(15)	KM_UML_USERCOPY,
+-KMAP_D(16)	KM_IRQ_PTE,
+-KMAP_D(17)	KM_NMI,
+-KMAP_D(18)	KM_NMI_PTE,
+-KMAP_D(19)	KM_KDB,
+-KMAP_D(20)	KM_TYPE_NR
++KMAP_D(13)	KM_UML_USERCOPY,
++KMAP_D(14)	KM_IRQ_PTE,
++KMAP_D(15)	KM_NMI,
++KMAP_D(16)	KM_NMI_PTE,
++KMAP_D(17)	KM_KDB,
++KMAP_D(18)	KM_TYPE_NR
+ };
  
- 	if (ASIC_IS_DCE4(rdev))
- 		return;
+ #undef KMAP_D
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +119,7 @@ frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
 kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
 dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
 lib-introduce-common-method-to-convert-hex-digits-fix.patch
 lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
