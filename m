@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch added to -mm tree
-Date: Wed, 12 May 2010 12:59:05 -0700
-Message-ID: <201005121959.o4CJx5O2017227@imap1.linux-foundation.org>
+Subject: + mmc-omap-hs-mmc-convert-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 12 May 2010 13:45:51 -0700
+Message-ID: <201005122045.o4CKjpRY019402__6927.73154373771$1273697175$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752194Ab0ELT7I (ORCPT
+	by vger.kernel.org with ESMTP id S1750820Ab0ELUqF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 15:59:08 -0400
+	Wed, 12 May 2010 16:46:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, steiner@sgi.com
+Cc: khilman@deeprootsystems.com, adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, tony@atomide.com
 
 
 The patch titled
-     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
+     mmc: OMAP HS-MMC: convert to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+     mmc-omap-hs-mmc-convert-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: OMAP HS-MMC: convert to dev_pm_ops
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-fix layout
+Convert PM operations to use dev_pm_ops.  This will facilitate the runtime
+PM coversion which will add to dev_pm_ops hooks.
 
-Cc: Jack Steiner <steiner@sgi.com>
+Note that dev_pm_ops version of the suspend hook no longer takes a 'state'
+argument.  However, the MMC core function mmc_suspend_host() still takes a
+'state' argument, but it is unused, so a dummy state variable was created
+to pass to the MMC core.
+
+In the future, the MMC core should be converted to drop this state
+argument and the rest of the MMC drivers could be easily converted to
+dev_pm_ops as well.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/omap_hsmmc.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
-+++ a/include/linux/nodemask.h
-@@ -66,7 +66,7 @@
-  * int num_online_nodes()		Number of online Nodes
-  * int num_possible_nodes()		Number of all possible Nodes
-  *
-- * int node_random(mask)              Random node with set bit in mask
-+ * int node_random(mask)		Random node with set bit in mask
-  *
-  * int node_online(node)		Is some node online?
-  * int node_possible(node)		Is some node possible?
+diff -puN drivers/mmc/host/omap_hsmmc.c~mmc-omap-hs-mmc-convert-to-dev_pm_ops drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~mmc-omap-hs-mmc-convert-to-dev_pm_ops
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -2267,10 +2267,12 @@ static int omap_hsmmc_remove(struct plat
+ }
+ 
+ #ifdef CONFIG_PM
+-static int omap_hsmmc_suspend(struct platform_device *pdev, pm_message_t state)
++static int omap_hsmmc_suspend(struct device *dev)
+ {
+ 	int ret = 0;
++	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
++	pm_message_t state = PMSG_SUSPEND; /* unused by MMC core */
+ 
+ 	if (host && host->suspended)
+ 		return 0;
+@@ -2316,9 +2318,10 @@ static int omap_hsmmc_suspend(struct pla
+ }
+ 
+ /* Routine to resume the MMC device */
+-static int omap_hsmmc_resume(struct platform_device *pdev)
++static int omap_hsmmc_resume(struct device *dev)
+ {
+ 	int ret = 0;
++	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
+ 
+ 	if (host && !host->suspended)
+@@ -2369,13 +2372,17 @@ clk_en_err:
+ #define omap_hsmmc_resume		NULL
+ #endif
+ 
+-static struct platform_driver omap_hsmmc_driver = {
+-	.remove		= omap_hsmmc_remove,
++static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+ 	.suspend	= omap_hsmmc_suspend,
+ 	.resume		= omap_hsmmc_resume,
++};
++
++static struct platform_driver omap_hsmmc_driver = {
++	.remove		= omap_hsmmc_remove,
+ 	.driver		= {
+ 		.name = DRIVER_NAME,
+ 		.owner = THIS_MODULE,
++		.pm = &omap_hsmmc_dev_pm_ops,
+ 	},
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khilman@deeprootsystems.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-jfs-free-sbi-memory-in-error-path.patch
-fix-drm-radeon-kms-hdmi-irq-support.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-fsnotify-initialize-mask-in-fsnotify_perm.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
-fix-stop_machine-reimplement-using-cpu_stop.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
-include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-pass-number-of-sg-segments-as-platform-data.patch
+davinci-mmc-add-a-function-to-control-reset-state-of-the-controller.patch
+davinci-mmc-updates-to-suspend-resume-implementation.patch
 davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-memcg-move-charge-of-file-pages-fix-4.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
-pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-fix.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+mmc-omap-hs-mmc-convert-to-dev_pm_ops.patch
 
