@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + numa-add-generic-percpu-var-numa_node_id-implementation-fix2.patch added to -mm tree
-Date: Wed, 12 May 2010 11:49:17 -0700
-Message-ID: <201005121849.o4CInH3I013925__13882.7448980466$1273690239$gmane$org@imap1.linux-foundation.org>
+Subject: + numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2.patch added to -mm tree
+Date: Wed, 12 May 2010 11:49:22 -0700
+Message-ID: <201005121849.o4CInMaH013934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755848Ab0ELSua (ORCPT
+	by vger.kernel.org with ESMTP id S1756035Ab0ELSue (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:50:30 -0400
+	Wed, 12 May 2010 14:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, eric.whitney@hp.com, hpa@z
 
 
 The patch titled
-     numa-add-generic-percpu-var-numa_node_id-implementation-fix2
+     numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2
 has been added to the -mm tree.  Its filename is
-     numa-add-generic-percpu-var-numa_node_id-implementation-fix2.patch
+     numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-add-generic-percpu-var-numa_node_id-implementation-fix2
+Subject: numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
 Incremental patch 2 to
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
+numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
 in 28apr10 mmotm.
 
-Define generic macro to set 'numa_node' for a specified cpu as
+Use generic function to set numa_node for a specified cpu as
 suggested by Christoph Lameter and seconded by Tejun Heo.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
@@ -61,26 +61,34 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/topology.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/x86/kernel/setup_percpu.c |    2 +-
+ arch/x86/mm/numa_64.c          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix2 include/linux/topology.h
---- a/include/linux/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix2
-+++ a/include/linux/topology.h
-@@ -232,6 +232,13 @@ static inline void set_numa_node(int nod
- }
+diff -puN arch/x86/kernel/setup_percpu.c~numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2 arch/x86/kernel/setup_percpu.c
+--- a/arch/x86/kernel/setup_percpu.c~numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2
++++ a/arch/x86/kernel/setup_percpu.c
+@@ -268,7 +268,7 @@ void __init setup_per_cpu_areas(void)
+ 	 * make sure boot cpu numa_node is right, when boot cpu is on the
+ 	 * node that doesn't have mem installed
+ 	 */
+-	per_cpu(numa_node, boot_cpu_id) = early_cpu_to_node(boot_cpu_id);
++	set_cpu_numa_node(boot_cpu_id, early_cpu_to_node(boot_cpu_id));
  #endif
  
-+#ifndef set_cpu_numa_node
-+static inline void set_cpu_numa_node(int cpu, int node)
-+{
-+	per_cpu(numa_node, cpu) = node;
-+}
-+#endif
-+
- #else	/* !CONFIG_USE_PERCPU_NUMA_NODE_ID */
+ 	/* Setup node to cpumask map */
+diff -puN arch/x86/mm/numa_64.c~numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2 arch/x86/mm/numa_64.c
+--- a/arch/x86/mm/numa_64.c~numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2
++++ a/arch/x86/mm/numa_64.c
+@@ -806,7 +806,7 @@ void __cpuinit numa_set_node(int cpu, in
+ 	per_cpu(x86_cpu_to_node_map, cpu) = node;
  
- /* Returns the number of the current Node. */
+ 	if (node != NUMA_NO_NODE)
+-		per_cpu(numa_node, cpu) = node;
++		set_cpu_numa_node(cpu, node);
+ }
+ 
+ void __cpuinit numa_clear_node(int cpu)
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
