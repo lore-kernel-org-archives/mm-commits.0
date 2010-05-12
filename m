@@ -1,103 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-permit-mounting-of-borderware-filesystems.patch added to -mm tree
-Date: Wed, 12 May 2010 13:56:14 -0700
-Message-ID: <201005122056.o4CKuE0X019869@imap1.linux-foundation.org>
+Subject: [withdrawn] mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix.patch removed from -mm tree
+Date: Wed, 12 May 2010 13:59:19 -0700
+Message-ID: <201005122059.o4CKxJ64020057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757305Ab0ELU4q (ORCPT
+	by vger.kernel.org with ESMTP id S932161Ab0ELVAJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 16:56:46 -0400
+	Wed, 12 May 2010 17:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: thomas@stewarts.org.uk, dushistov@mail.ru
+To: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, peterz@infradead.org
 
 
 The patch titled
-     ufs: permit mounting of BorderWare filesystems
-has been added to the -mm tree.  Its filename is
-     ufs-permit-mounting-of-borderware-filesystems.patch
+     mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix
+has been removed from the -mm tree.  Its filename was
+     mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: permit mounting of BorderWare filesystems
-From: Thomas Stewart <thomas@stewarts.org.uk>
+Subject: mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I recently had to recover some files from an old broken machine that was
-running BorderWare Document Gateway.  It's basically a drop in web server
-for sharing files.  From the look of the init process and using strings on
-of a few files it seems to be based on FreeBSD 3.3.
+s/BUG_ON/BUILD_BUG_ON/
 
-The process turned out to be more difficult than I imagined, but to cut a
-long story short BorderWare in their wisdom use a nonstandard magic number
-in their UFS (ufstype=44bsd) file systems.  Thus Linux refuses to mount
-the file systems in order to recover the data.  After a bit of hunting I
-was able to make a quick fix to fs/ufs/super.c in order to detect the new
-magic number.
-
-I assume that this number is the same for all installations.  It's quite
-easy to find out from ufs_fs.h.  The superblock sits 8k into the block
-device and the magic number its 1372 bytes into the superblock struct.
-
-# dd if=/dev/sda5 skip=$(( 8192 + 1372 )) bs=1 count=4 2> /dev/null | hd
-00000000  97 26 24 0f                                       |.&$.|
-#
-
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c  |    2 ++
- fs/ufs/ufs_fs.h |    1 +
- 2 files changed, 3 insertions(+)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ufs/super.c~ufs-permit-mounting-of-borderware-filesystems fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-permit-mounting-of-borderware-filesystems
-+++ a/fs/ufs/super.c
-@@ -918,6 +918,7 @@ again:	
- 	sbi->s_bytesex = BYTESEX_LE;
- 	switch ((uspi->fs_magic = fs32_to_cpu(sb, usb3->fs_magic))) {
- 		case UFS_MAGIC:
-+		case UFS_MAGIC_BW:
- 		case UFS2_MAGIC:
- 		case UFS_MAGIC_LFN:
- 	        case UFS_MAGIC_FEA:
-@@ -927,6 +928,7 @@ again:	
- 	sbi->s_bytesex = BYTESEX_BE;
- 	switch ((uspi->fs_magic = fs32_to_cpu(sb, usb3->fs_magic))) {
- 		case UFS_MAGIC:
-+		case UFS_MAGIC_BW:
- 		case UFS2_MAGIC:
- 		case UFS_MAGIC_LFN:
- 	        case UFS_MAGIC_FEA:
-diff -puN fs/ufs/ufs_fs.h~ufs-permit-mounting-of-borderware-filesystems fs/ufs/ufs_fs.h
---- a/fs/ufs/ufs_fs.h~ufs-permit-mounting-of-borderware-filesystems
-+++ a/fs/ufs/ufs_fs.h
-@@ -48,6 +48,7 @@ typedef __u16 __bitwise __fs16;
- #define UFS_SECTOR_SIZE 512
- #define UFS_SECTOR_BITS 9
- #define UFS_MAGIC  0x00011954
-+#define UFS_MAGIC_BW 0x0f242697
- #define UFS2_MAGIC 0x19540119
- #define UFS_CIGAM  0x54190100 /* byteswapped MAGIC */
- 
+diff -puN fs/exec.c~mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix fs/exec.c
+--- a/fs/exec.c~mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix
++++ a/fs/exec.c
+@@ -242,7 +242,7 @@ static int __bprm_mm_init(struct linux_b
+ 	 * use STACK_TOP because that can depend on attributes which aren't
+ 	 * configured yet.
+ 	 */
+-	BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
++	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
+ 	vma->vm_end = STACK_TOP_MAX;
+ 	vma->vm_start = vma->vm_end - PAGE_SIZE;
+ 	vma->vm_flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
 _
 
-Patches currently in -mm which might be from thomas@stewarts.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ufs-permit-mounting-of-borderware-filesystems.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+jfs-free-sbi-memory-in-error-path.patch
+fix-drm-radeon-kms-hdmi-irq-support.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+fsnotify-initialize-mask-in-fsnotify_perm.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
