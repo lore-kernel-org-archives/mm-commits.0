@@ -1,96 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-bfin-t350mcqb-fb-fix-fbmem-allocation-with-blanking-lines.patch removed from -mm tree
-Date: Wed, 12 May 2010 10:58:42 -0400
-Message-ID: <201005121800.o4CI0AYY011569@imap1.linux-foundation.org>
+Subject: [merged] rmap-remove-anon_vma-check-in-page_address_in_vma.patch removed from -mm tree
+Date: Wed, 12 May 2010 10:58:31 -0400
+Message-ID: <201005121759.o4CHxx6h011542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868Ab0ELSAX (ORCPT
+	by vger.kernel.org with ESMTP id S1753308Ab0ELSAi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:00:23 -0400
+	Wed, 12 May 2010 14:00:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.hennerich@analog.com, stable@kernel.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: bfin-t350mcqb-fb: fix fbmem allocation with blanking lines
+     rmap: remove anon_vma check in page_address_in_vma()
 has been removed from the -mm tree.  Its filename was
-     fbdev-bfin-t350mcqb-fb-fix-fbmem-allocation-with-blanking-lines.patch
+     rmap-remove-anon_vma-check-in-page_address_in_vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: bfin-t350mcqb-fb: fix fbmem allocation with blanking lines
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: rmap: remove anon_vma check in page_address_in_vma()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
-The current allocation does not include the memory required for blanking
-lines.  So avoid memory corruption when multiple devices are using the DMA
-memory near each other.
+Currently page_address_in_vma() compares vma->anon_vma and
+page_anon_vma(page) for parameter check, but in 2.6.34 a vma can have
+multiple anon_vmas with anon_vma_chain, so current check does not work. 
+(For anonymous page shared by multiple processes, some verified (page,vma)
+pairs return -EFAULT wrongly.)
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: <stable@kernel.org>
+We can go to checking all anon_vmas in the "same_vma" chain, but it needs
+to meet lock requirement.  Instead, we can remove anon_vma check safely
+because page_address_in_vma() assumes that page and vma are already
+checked to belong to the identical process.
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/bfin-t350mcqb-fb.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/rmap.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/bfin-t350mcqb-fb.c~fbdev-bfin-t350mcqb-fb-fix-fbmem-allocation-with-blanking-lines drivers/video/bfin-t350mcqb-fb.c
---- a/drivers/video/bfin-t350mcqb-fb.c~fbdev-bfin-t350mcqb-fb-fix-fbmem-allocation-with-blanking-lines
-+++ a/drivers/video/bfin-t350mcqb-fb.c
-@@ -488,9 +488,9 @@ static int __devinit bfin_t350mcqb_probe
- 	fbinfo->fbops = &bfin_t350mcqb_fb_ops;
- 	fbinfo->flags = FBINFO_FLAG_DEFAULT;
+diff -puN mm/rmap.c~rmap-remove-anon_vma-check-in-page_address_in_vma mm/rmap.c
+--- a/mm/rmap.c~rmap-remove-anon_vma-check-in-page_address_in_vma
++++ a/mm/rmap.c
+@@ -336,14 +336,13 @@ vma_address(struct page *page, struct vm
  
--	info->fb_buffer =
--	    dma_alloc_coherent(NULL, fbinfo->fix.smem_len, &info->dma_handle,
--			       GFP_KERNEL);
-+	info->fb_buffer = dma_alloc_coherent(NULL, fbinfo->fix.smem_len +
-+				ACTIVE_VIDEO_MEM_OFFSET,
-+				&info->dma_handle, GFP_KERNEL);
- 
- 	if (NULL == info->fb_buffer) {
- 		printk(KERN_ERR DRIVER_NAME
-@@ -568,8 +568,8 @@ out7:
- out6:
- 	fb_dealloc_cmap(&fbinfo->cmap);
- out4:
--	dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
--			  info->dma_handle);
-+	dma_free_coherent(NULL, fbinfo->fix.smem_len + ACTIVE_VIDEO_MEM_OFFSET,
-+			 info->fb_buffer, info->dma_handle);
- out3:
- 	framebuffer_release(fbinfo);
- out2:
-@@ -592,8 +592,9 @@ static int __devexit bfin_t350mcqb_remov
- 	free_irq(info->irq, info);
- 
- 	if (info->fb_buffer != NULL)
--		dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
--				  info->dma_handle);
-+		dma_free_coherent(NULL, fbinfo->fix.smem_len +
-+			ACTIVE_VIDEO_MEM_OFFSET, info->fb_buffer,
-+			info->dma_handle);
- 
- 	fb_dealloc_cmap(&fbinfo->cmap);
- 
+ /*
+  * At what user virtual address is page expected in vma?
+- * checking that the page matches the vma.
++ * Caller should check the page is actually part of the vma.
+  */
+ unsigned long page_address_in_vma(struct page *page, struct vm_area_struct *vma)
+ {
+-	if (PageAnon(page)) {
+-		if (vma->anon_vma != page_anon_vma(page))
+-			return -EFAULT;
+-	} else if (page->mapping && !(vma->vm_flags & VM_NONLINEAR)) {
++	if (PageAnon(page))
++		;
++	else if (page->mapping && !(vma->vm_flags & VM_NONLINEAR)) {
+ 		if (!vma->vm_file ||
+ 		    vma->vm_file->f_mapping != page->mapping)
+ 			return -EFAULT;
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-linux-next.patch
-backlight-new-driver-for-the-adp8860-backlight-parts.patch
-ad525x_dpot-simplify-duplicated-sysfs-defines.patch
-ad525x_dpot-extend-write-argument-to-16bits.patch
-ad525x_dpot-add-support-for-spi-parts.patch
-ad525x_dpot-add-support-for-ad524x-pots.patch
-ad525x_dpot-add-support-for-adn2860-and-ad528x-pots.patch
-ad525x_dpot-add-support-for-one-time-programmable-pots.patch
-fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
+mincore-cleanups.patch
+mincore-break-do_mincore-into-logical-pieces.patch
+mincore-pass-ranges-as-startend-address-pairs.patch
+mincore-do-nested-page-table-walks.patch
+pagemap-add-ifdefs-config_hugetlb_page-on-code-walking-hugetlb-vma.patch
 
