@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + numa-update-documentation-vm-numa-add-memoryless-node-info-fix1.patch added to -mm tree
-Date: Wed, 12 May 2010 11:49:32 -0700
-Message-ID: <201005121849.o4CInWmu013949@imap1.linux-foundation.org>
+Subject: + aio-fix-the-compat-vectored-operations-fix.patch added to -mm tree
+Date: Wed, 12 May 2010 11:54:48 -0700
+Message-ID: <201005121854.o4CIsmYV014179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755680Ab0ELSun (ORCPT
+	by vger.kernel.org with ESMTP id S1752577Ab0ELSzG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:50:43 -0400
+	Wed, 12 May 2010 14:55:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, eric.whitney@hp.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, linux-arch@vger.kernel.org, mel@csn.ul.ie, mingo@elte.hu, npiggin@suse.de, penberg@cs.helsinki.fi, randy.dunlap@oracle.com, rientjes@google.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, jmoyer@redhat.com, mjt@tls.msk.ru, randy.dunlap@oracle.com, stable@kernel.org, zach.brown@oracle.com
 
 
 The patch titled
-     numa-update-documentation-vm-numa-add-memoryless-node-info-fix1
+     aio-fix-the-compat-vectored-operations-fix
 has been added to the -mm tree.  Its filename is
-     numa-update-documentation-vm-numa-add-memoryless-node-info-fix1.patch
+     aio-fix-the-compat-vectored-operations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,217 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-update-documentation-vm-numa-add-memoryless-node-info-fix1
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: aio-fix-the-compat-vectored-operations-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Incremental patch to
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-in 28april'10 mmotm.
+ugh.
 
-Address Randy Dunlap's review comments plus a few other fixups.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <stable@kernel.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Zach Brown <zach.brown@oracle.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/numa |   58 ++++++++++++++++++++--------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ fs/aio.c            |    2 ++
+ include/linux/aio.h |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/vm/numa~numa-update-documentation-vm-numa-add-memoryless-node-info-fix1 Documentation/vm/numa
---- a/Documentation/vm/numa~numa-update-documentation-vm-numa-add-memoryless-node-info-fix1
-+++ a/Documentation/vm/numa
-@@ -7,7 +7,7 @@ hardware view and the Linux software vie
+diff -puN fs/aio.c~aio-fix-the-compat-vectored-operations-fix fs/aio.c
+--- a/fs/aio.c~aio-fix-the-compat-vectored-operations-fix
++++ a/fs/aio.c
+@@ -1389,12 +1389,14 @@ static ssize_t aio_setup_vectored_rw(int
+ {
+ 	ssize_t ret;
  
- From the hardware perspective, a NUMA system is a computer platform that
- comprises multiple components or assemblies each of which may contain 0
--or more cpus, local memory, and/or IO buses.  For brevity and to
-+or more CPUs, local memory, and/or IO buses.  For brevity and to
- disambiguate the hardware view of these physical components/assemblies
- from the software abstraction thereof, we'll call the components/assemblies
- 'cells' in this document.
-@@ -21,13 +21,13 @@ these types of interconnects can be aggr
- cells at multiple distances from other cells.
++#ifdef CONFIG_COMPAT
+ 	if (compat)
+ 		ret = compat_rw_copy_check_uvector(type,
+ 				(struct compat_iovec __user *)kiocb->ki_buf,
+ 				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
+ 				&kiocb->ki_iovec);
+ 	else
++#endif
+ 		ret = rw_copy_check_uvector(type,
+ 				(struct iovec __user *)kiocb->ki_buf,
+ 				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
+diff -puN include/linux/aio.h~aio-fix-the-compat-vectored-operations-fix include/linux/aio.h
+--- a/include/linux/aio.h~aio-fix-the-compat-vectored-operations-fix
++++ a/include/linux/aio.h
+@@ -223,7 +223,7 @@ struct mm_struct;
+ static inline void exit_aio(struct mm_struct *mm) { }
+ static inline long do_io_submit(aio_context_t ctx_id, long nr,
+ 				struct iocb __user * __user *iocbpp,
+-				bool compat) { }
++				bool compat) { return 0; }
+ #endif /* CONFIG_AIO */
  
- For Linux, the NUMA platforms of interest are primarily what is known as Cache
--Coherent NUMA or CCNuma systems.   With CCNUMA systems, all memory is visible
--to and accessible from any cpu attached to any cell and cache coherency
-+Coherent NUMA or ccNUMA systems.   With ccNUMA systems, all memory is visible
-+to and accessible from any CPU attached to any cell and cache coherency
- is handled in hardware by the processor caches and/or the system interconnect.
- 
- Memory access time and effective memory bandwidth varies depending on how far
--away the cell containing the cpu or io bus making the memory access is from the
--cell containing the target memory.  For example, access to memory by cpus
-+away the cell containing the CPU or IO bus making the memory access is from the
-+cell containing the target memory.  For example, access to memory by CPUs
- attached to the same cell will experience faster access times and higher
- bandwidths than accesses to memory on other, remote cells.  NUMA platforms
- can have cells at multiple remote distances from any given cell.
-@@ -45,25 +45,25 @@ Linux divides the system's hardware reso
- abstractions called "nodes".  Linux maps the nodes onto the physical cells
- of the hardware platform, abstracting away some of the details for some
- architectures.  As with physical cells, software nodes may contain 0 or more
--cpus, memory and/or IO buses.  And, again, memory access times to memory on
--"closer" nodes [nodes that map to closer cells] will generally experience
-+CPUs, memory and/or IO buses.  And, again, memory accesses to memory on
-+"closer" nodes--nodes that map to closer cells--will generally experience
- faster access times and higher effective bandwidth than accesses to more
- remote cells.
- 
- For some architectures, such as x86, Linux will "hide" any node representing a
--physical cell that has no memory attached, and reassign any cpus attached to
-+physical cell that has no memory attached, and reassign any CPUs attached to
- that cell to a node representing a cell that does have memory.  Thus, on
--these architectures, one cannot assume that all cpus that Linux associates with
-+these architectures, one cannot assume that all CPUs that Linux associates with
- a given node will see the same local memory access times and bandwidth.
- 
- In addition, for some architectures, again x86 is an example, Linux supports
- the emulation of additional nodes.  For NUMA emulation, linux will carve up
- the existing nodes--or the system memory for non-NUMA platforms--into multiple
- nodes.  Each emulated node will manage a fraction of the underlying cells'
--physical memory.  Numa emluation is useful for testing NUMA kernel and
-+physical memory.  NUMA emluation is useful for testing NUMA kernel and
- application features on non-NUMA platforms, and as a sort of memory resource
- management mechanism when used together with cpusets.
--[See Documentation/cgroups/cpusets.txt]
-+[see Documentation/cgroups/cpusets.txt]
- 
- For each node with memory, Linux constructs an independent memory management
- subsystem, complete with its own free page lists, in-use page lists, usage
-@@ -71,8 +71,8 @@ statistics and locks to mediate access. 
- each memory zone [one or more of DMA, DMA32, NORMAL, HIGH_MEMORY, MOVABLE],
- an ordered "zonelist".  A zonelist specifies the zones/nodes to visit when a
- selected zone/node cannot satisfy the allocation request.  This situation,
--when a zone's has no available memory to satisfy a request, is called
--'overflow" or "fallback".
-+when a zone has no available memory to satisfy a request, is called
-+"overflow" or "fallback".
- 
- Because some nodes contain multiple zones containing different types of
- memory, Linux must decide whether to order the zonelists such that allocations
-@@ -82,11 +82,11 @@ such as DMA or DMA32, represent relative
- a default zonelist order based on the sizes of the various zone types relative
- to the total memory of the node and the total memory of the system.  The
- default zonelist order may be overridden using the numa_zonelist_order kernel
--boot parameter or sysctl.  [See Documentation/kernel-parameters.txt and
-+boot parameter or sysctl.  [see Documentation/kernel-parameters.txt and
- Documentation/sysctl/vm.txt]
- 
- By default, Linux will attempt to satisfy memory allocation requests from the
--node to which the cpu that executes the request is assigned.  Specifically,
-+node to which the CPU that executes the request is assigned.  Specifically,
- Linux will attempt to allocate from the first node in the appropriate zonelist
- for the node where the request originates.  This is called "local allocation."
- If the "local" node cannot satisfy the request, the kernel will examine other
-@@ -98,26 +98,26 @@ Local allocation will tend to keep subse
- as long as the task on whose behalf the kernel allocated some memory does not
- later migrate away from that memory.  The Linux scheduler is aware of the
- NUMA topology of the platform--embodied in the "scheduling domains" data
--structures [See Documentation/scheduler/sched-domains.txt]--and the scheduler
-+structures [see Documentation/scheduler/sched-domains.txt]--and the scheduler
- attempts to minimize task migration to distant scheduling domains.  However,
- the scheduler does not take a task's NUMA footprint into account directly.
- Thus, under sufficient imbalance, tasks can migrate between nodes, remote
- from their initial node and kernel data structures.
- 
--System administrators and application designers can restrict a tasks migration
--to improve NUMA locality using various cpu affinity command line interfaces,
-+System administrators and application designers can restrict a task's migration
-+to improve NUMA locality using various CPU affinity command line interfaces,
- such as taskset(1) and numactl(1), and program interfaces such as
- sched_setaffinity(2).  Further, one can modify the kernel's default local
- allocation behavior using Linux NUMA memory policy.
--[See Documentation/vm/numa_memory_policy.]
-+[see Documentation/vm/numa_memory_policy.]
- 
--System administrators can restrict the cpus and nodes' memories that a non-
-+System administrators can restrict the CPUs and nodes' memories that a non-
- privileged user can specify in the scheduling or NUMA commands and functions
--using control groups and cpusets.  [See Documentation/cgroups/cpusets.txt]
-+using control groups and CPUsets.  [see Documentation/cgroups/CPUsets.txt]
- 
- On architectures that do not hide memoryless nodes, Linux will include only
- zones [nodes] with memory in the zonelists.  This means that for a memoryless
--node the "local memory node"--the node of the first zone in cpu's node's
-+node the "local memory node"--the node of the first zone in CPU's node's
- zonelist--will not be the node itself.  Rather, it will be the node that the
- kernel selected as the nearest node with memory when it built the zonelists.
- So, default, local allocations will succeed with the kernel supplying the
-@@ -128,22 +128,22 @@ does contain memory overflows.
- Some kernel allocations do not want or cannot tolerate this allocation fallback
- behavior.  Rather they want to be sure they get memory from the specified node
- or get notified that the node has no free memory.  This is usually the case when
--a subsystem allocates per cpu memory resources, for example.
-+a subsystem allocates per CPU memory resources, for example.
- 
- A typical model for making such an allocation is to obtain the node id of the
--node to which the "current cpu" is attached using one of the kernel's
--numa_node_id() or cpu_to_node() functions and then request memory from only
-+node to which the "current CPU" is attached using one of the kernel's
-+numa_node_id() or CPU_to_node() functions and then request memory from only
- the node id returned.  When such an allocation fails, the requesting subsystem
- may revert to its own fallback path.  The slab kernel memory allocator is an
--example of this.  Or, the subsystem may chose to disable or not to enable
-+example of this.  Or, the subsystem may choose to disable or not to enable
- itself on allocation failure.  The kernel profiling subsystem is an example of
- this.
- 
--If the architecture supports [does not hide] memoryless nodes, then cpus
-+If the architecture supports--does not hide--memoryless nodes, then CPUs
- attached to memoryless nodes would always incur the fallback path overhead
- or some subsystems would fail to initialize if they attempted to allocated
--memory exclusively from the a node without memory.  To support such
-+memory exclusively from a node without memory.  To support such
- architectures transparently, kernel subsystems can use the numa_mem_id()
- or cpu_to_mem() function to locate the "local memory node" for the calling or
--specified cpu.  Again, this is the same node from which default, local page
-+specified CPU.  Again, this is the same node from which default, local page
- allocations will be attempted.
+ static inline struct kiocb *list_kiocb(struct list_head *h)
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
-mempolicy-restructure-rebinding-mempolicy-functions.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+jfs-free-sbi-memory-in-error-path.patch
+fix-drm-radeon-kms-hdmi-irq-support.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+fsnotify-initialize-mask-in-fsnotify_perm.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
 cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix2.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-add-generic-percpu-var-numa_node_id-implementation-fix1.patch
-numa-add-generic-percpu-var-numa_node_id-implementation-fix2.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+x86_32-use-asm-generic-scatterlisth.patch
 numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info-fix1.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
