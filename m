@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix.patch added to -mm tree
-Date: Wed, 12 May 2010 12:54:33 -0700
-Message-ID: <201005121954.o4CJsX7i017005@imap1.linux-foundation.org>
+Subject: + cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch added to -mm tree
+Date: Wed, 12 May 2010 12:59:05 -0700
+Message-ID: <201005121959.o4CJx5O2017227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46961 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757402Ab0ELT4Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752194Ab0ELT7I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 15:56:16 -0400
+	Wed, 12 May 2010 15:59:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, peterz@infradead.org, riel@redhat.com, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, steiner@sgi.com
 
 
 The patch titled
-     mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix
+     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
 has been added to the -mm tree.  Its filename is
-     mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix.patch
+     cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix
+Subject: cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+fix layout
+
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
+ include/linux/nodemask.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix fs/exec.c
---- a/fs/exec.c~mmmigration-avoid-race-between-shift_arg_pages-and-rmap_walk-during-migration-by-not-migrating-temporary-stacks-fix
-+++ a/fs/exec.c
-@@ -242,7 +242,7 @@ static int __bprm_mm_init(struct linux_b
- 	 * use STACK_TOP because that can depend on attributes which aren't
- 	 * configured yet.
- 	 */
--	BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
-+	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
- 	vma->vm_end = STACK_TOP_MAX;
- 	vma->vm_start = vma->vm_end - PAGE_SIZE;
- 	vma->vm_flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
+diff -puN include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix include/linux/nodemask.h
+--- a/include/linux/nodemask.h~cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix
++++ a/include/linux/nodemask.h
+@@ -66,7 +66,7 @@
+  * int num_online_nodes()		Number of online Nodes
+  * int num_possible_nodes()		Number of all possible Nodes
+  *
+- * int node_random(mask)              Random node with set bit in mask
++ * int node_random(mask)		Random node with set bit in mask
+  *
+  * int node_online(node)		Is some node online?
+  * int node_possible(node)		Is some node possible?
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +116,7 @@ s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
 memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
 memcg-move-charge-of-file-pages-fix.patch
 memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
 proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
 fault-injection-add-cpu-notifier-error-injection-module-fix.patch
 ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
