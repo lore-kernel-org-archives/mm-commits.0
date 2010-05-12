@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ad525x_dpot-add-support-for-spi-parts-fix-ad525x_dpot-build.patch added to -mm tree
-Date: Wed, 12 May 2010 13:47:41 -0700
-Message-ID: <201005122047.o4CKlfRO019438@imap1.linux-foundation.org>
+Subject: + backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors.patch added to -mm tree
+Date: Wed, 12 May 2010 13:49:12 -0700
+Message-ID: <201005122049.o4CKnCDL019550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751258Ab0ELUrq (ORCPT
+	by vger.kernel.org with ESMTP id S1751712Ab0ELUt3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 16:47:46 -0400
+	Wed, 12 May 2010 16:49:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, michael.hennerich@analog.com
+Cc: randy.dunlap@oracle.com, michael.hennerich@analog.com, rpurdie@rpsys.net, vapier@gentoo.org
 
 
 The patch titled
-     misc: fix ad525X_dpot build
+     backlight: fix adp8860_bl build errors
 has been added to the -mm tree.  Its filename is
-     ad525x_dpot-add-support-for-spi-parts-fix-ad525x_dpot-build.patch
+     backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc: fix ad525X_dpot build
+Subject: backlight: fix adp8860_bl build errors
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add slab.h to fix build:
+Add slab.h to fix part of build.
+Add a parameter in backlight_device_register() call to fix part of build.
 
-drivers/misc/ad525x_dpot.c:609: error: implicit declaration of function 'kzalloc'
-drivers/misc/ad525x_dpot.c:609: warning: assignment makes pointer from integer without a cast
-drivers/misc/ad525x_dpot.c:656: error: implicit declaration of function 'kfree'
+drivers/video/backlight/adp8860_bl.c:215: error: implicit declaration of function 'kzalloc'
+drivers/video/backlight/adp8860_bl.c:215: warning: assignment makes pointer from integer without a cast
+drivers/video/backlight/adp8860_bl.c:285: error: implicit declaration of function 'kfree'
+drivers/video/backlight/adp8860_bl.c:673: warning: assignment makes pointer from integer without a cast
+drivers/video/backlight/adp8860_bl.c:689: error: too few arguments to function 'backlight_device_register'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ad525x_dpot.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/backlight/adp8860_bl.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/ad525x_dpot.c~ad525x_dpot-add-support-for-spi-parts-fix-ad525x_dpot-build drivers/misc/ad525x_dpot.c
---- a/drivers/misc/ad525x_dpot.c~ad525x_dpot-add-support-for-spi-parts-fix-ad525x_dpot-build
-+++ a/drivers/misc/ad525x_dpot.c
-@@ -55,6 +55,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/delay.h>
+diff -puN drivers/video/backlight/adp8860_bl.c~backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -16,6 +16,7 @@
+ #include <linux/fb.h>
+ #include <linux/backlight.h>
+ #include <linux/leds.h>
 +#include <linux/slab.h>
+ #include <linux/workqueue.h>
  
- #define DRIVER_VERSION			"0.2"
+ #include <linux/i2c/adp8860.h>
+@@ -647,6 +648,7 @@ static int __devinit adp8860_probe(struc
+ 	struct adp8860_bl *data;
+ 	struct adp8860_backlight_platform_data *pdata =
+ 		client->dev.platform_data;
++	struct backlight_properties props;
+ 	uint8_t reg_val;
+ 	int ret;
  
+@@ -683,10 +685,13 @@ static int __devinit adp8860_probe(struc
+ 	data->current_brightness = 0;
+ 	i2c_set_clientdata(client, data);
+ 
++	memset(&props, 0, sizeof(props));
++	props.max_brightness = ADP8860_MAX_BRIGHTNESS;
++
+ 	mutex_init(&data->lock);
+ 
+ 	bl = backlight_device_register(dev_driver_string(&client->dev),
+-			&client->dev, data, &adp8860_bl_ops);
++			&client->dev, data, &adp8860_bl_ops, &props);
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&client->dev, "failed to register backlight\n");
+ 		ret = PTR_ERR(bl);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -70,6 +98,7 @@ linux-next.patch
 dib3000mc-reduce-large-stack-usage-fix.patch
 led-driver-for-the-soekris-net5501-board.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors.patch
 scsi-fix-convert-scsi_scanc-kernel-doc.patch
 scsi-update-drivers-tools-url-references.patch
 scsi-fix-pmcraid-build-errors.patch
