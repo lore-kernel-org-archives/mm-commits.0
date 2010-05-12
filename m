@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc.patch added to -mm tree
-Date: Wed, 12 May 2010 15:55:44 -0700
-Message-ID: <201005122255.o4CMtjq6025649@imap1.linux-foundation.org>
+Subject: + sh-add-sdhi-dma-support-to-ecovec.patch added to -mm tree
+Date: Wed, 12 May 2010 15:55:51 -0700
+Message-ID: <201005122255.o4CMtpGb025656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757437Ab0ELW44 (ORCPT
+	by vger.kernel.org with ESMTP id S1752564Ab0ELXCo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 18:56:56 -0400
+	Wed, 12 May 2010 19:02:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: g.liakhovetski@gmx.de, dan.j.williams@intel.com, ian@mnementh.co.uk, lethal@
 
 
 The patch titled
-     sh: prepare the SDHI MFD driver to pass DMA configuration to tmio_mmc.c
+     sh: add SDHI DMA support to ecovec
 has been added to the -mm tree.  Its filename is
-     sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc.patch
+     sh-add-sdhi-dma-support-to-ecovec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: prepare the SDHI MFD driver to pass DMA configuration to tmio_mmc.c
+Subject: sh: add SDHI DMA support to ecovec
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Pass DMA slave IDs from platform down to the tmio_mmc driver, to be used
-for dmaengine configuration.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -50,107 +47,42 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sh_mobile_sdhi.c       |   24 ++++++++++++++++++++----
- include/linux/mfd/sh_mobile_sdhi.h |    2 ++
- include/linux/mfd/tmio.h           |    6 ++++++
- 3 files changed, 28 insertions(+), 4 deletions(-)
+ arch/sh/boards/mach-ecovec24/setup.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/sh_mobile_sdhi.c~sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc drivers/mfd/sh_mobile_sdhi.c
---- a/drivers/mfd/sh_mobile_sdhi.c~sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc
-+++ a/drivers/mfd/sh_mobile_sdhi.c
-@@ -26,11 +26,15 @@
- #include <linux/mfd/core.h>
- #include <linux/mfd/tmio.h>
- #include <linux/mfd/sh_mobile_sdhi.h>
-+#include <linux/sh_dma.h>
+diff -puN arch/sh/boards/mach-ecovec24/setup.c~sh-add-sdhi-dma-support-to-ecovec arch/sh/boards/mach-ecovec24/setup.c
+--- a/arch/sh/boards/mach-ecovec24/setup.c~sh-add-sdhi-dma-support-to-ecovec
++++ a/arch/sh/boards/mach-ecovec24/setup.c
+@@ -11,6 +11,7 @@
+ #include <linux/init.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
++#include <linux/mfd/sh_mobile_sdhi.h>
+ #include <linux/mtd/physmap.h>
+ #include <linux/gpio.h>
+ #include <linux/interrupt.h>
+@@ -442,7 +443,9 @@ static void sdhi0_set_pwr(struct platfor
+ }
  
- struct sh_mobile_sdhi {
- 	struct clk *clk;
- 	struct tmio_mmc_data mmc_data;
- 	struct mfd_cell cell_mmc;
-+	struct sh_dmae_slave param_tx;
-+	struct sh_dmae_slave param_rx;
-+	struct tmio_mmc_dma dma_priv;
+ static struct sh_mobile_sdhi_info sdhi0_info = {
+-	.set_pwr = sdhi0_set_pwr,
++	.dma_slave_tx	= SHDMA_SLAVE_SDHI0_TX,
++	.dma_slave_rx	= SHDMA_SLAVE_SDHI0_RX,
++	.set_pwr	= sdhi0_set_pwr,
  };
  
- static struct resource sh_mobile_sdhi_resources[] = {
-@@ -64,6 +68,8 @@ static void sh_mobile_sdhi_set_pwr(struc
- static int __init sh_mobile_sdhi_probe(struct platform_device *pdev)
- {
- 	struct sh_mobile_sdhi *priv;
-+	struct tmio_mmc_data *mmc_data;
-+	struct sh_mobile_sdhi_info *p = pdev->dev.platform_data;
- 	struct resource *mem;
- 	char clk_name[8];
- 	int ret, irq;
-@@ -85,6 +91,8 @@ static int __init sh_mobile_sdhi_probe(s
- 		return -ENOMEM;
- 	}
+ static struct resource sdhi0_resources[] = {
+@@ -478,7 +481,9 @@ static void sdhi1_set_pwr(struct platfor
+ }
  
-+	mmc_data = &priv->mmc_data;
-+
- 	snprintf(clk_name, sizeof(clk_name), "sdhi%d", pdev->id);
- 	priv->clk = clk_get(&pdev->dev, clk_name);
- 	if (IS_ERR(priv->clk)) {
-@@ -96,12 +104,20 @@ static int __init sh_mobile_sdhi_probe(s
- 
- 	clk_enable(priv->clk);
- 
--	priv->mmc_data.hclk = clk_get_rate(priv->clk);
--	priv->mmc_data.set_pwr = sh_mobile_sdhi_set_pwr;
--	priv->mmc_data.capabilities = MMC_CAP_MMC_HIGHSPEED;
-+	mmc_data->hclk = clk_get_rate(priv->clk);
-+	mmc_data->set_pwr = sh_mobile_sdhi_set_pwr;
-+	mmc_data->capabilities = MMC_CAP_MMC_HIGHSPEED;
-+
-+	if (p && p->dma_slave_tx >= 0 && p->dma_slave_rx >= 0) {
-+		priv->param_tx.slave_id = p->dma_slave_tx;
-+		priv->param_rx.slave_id = p->dma_slave_rx;
-+		priv->dma_priv.chan_priv_tx = &priv->param_tx;
-+		priv->dma_priv.chan_priv_rx = &priv->param_rx;
-+		mmc_data->dma = &priv->dma_priv;
-+	}
- 
- 	memcpy(&priv->cell_mmc, &sh_mobile_sdhi_cell, sizeof(priv->cell_mmc));
--	priv->cell_mmc.driver_data = &priv->mmc_data;
-+	priv->cell_mmc.driver_data = mmc_data;
- 	priv->cell_mmc.platform_data = &priv->cell_mmc;
- 	priv->cell_mmc.data_size = sizeof(priv->cell_mmc);
- 
-diff -puN include/linux/mfd/sh_mobile_sdhi.h~sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc include/linux/mfd/sh_mobile_sdhi.h
---- a/include/linux/mfd/sh_mobile_sdhi.h~sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc
-+++ a/include/linux/mfd/sh_mobile_sdhi.h
-@@ -2,6 +2,8 @@
- #define __SH_MOBILE_SDHI_H__
- 
- struct sh_mobile_sdhi_info {
-+	int dma_slave_tx;
-+	int dma_slave_rx;
- 	void (*set_pwr)(struct platform_device *pdev, int state);
+ static struct sh_mobile_sdhi_info sdhi1_info = {
+-	.set_pwr = sdhi1_set_pwr,
++	.dma_slave_tx	= SHDMA_SLAVE_SDHI1_TX,
++	.dma_slave_rx	= SHDMA_SLAVE_SDHI1_RX,
++	.set_pwr	= sdhi1_set_pwr,
  };
  
-diff -puN include/linux/mfd/tmio.h~sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc include/linux/mfd/tmio.h
---- a/include/linux/mfd/tmio.h~sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc
-+++ a/include/linux/mfd/tmio.h
-@@ -55,12 +55,18 @@ int tmio_core_mmc_resume(void __iomem *c
- void tmio_core_mmc_pwr(void __iomem *cnf, int shift, int state);
- void tmio_core_mmc_clk_div(void __iomem *cnf, int shift, int state);
- 
-+struct tmio_mmc_dma {
-+	void *chan_priv_tx;
-+	void *chan_priv_rx;
-+};
-+
- /*
-  * data for the MMC controller
-  */
- struct tmio_mmc_data {
- 	unsigned int			hclk;
- 	unsigned long			capabilities;
-+	struct tmio_mmc_dma		*dma;
- 	void (*set_pwr)(struct platform_device *host, int state);
- 	void (*set_clk_div)(struct platform_device *host, int state);
- };
+ static struct resource sdhi1_resources[] = {
 _
 
 Patches currently in -mm which might be from g.liakhovetski@gmx.de are
