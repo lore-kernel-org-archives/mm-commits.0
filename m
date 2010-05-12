@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch removed from -mm tree
-Date: Tue, 11 May 2010 23:19:01 -0400
-Message-ID: <201005120620.o4C6KUj0013363@imap1.linux-foundation.org>
+Subject: + cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch added to -mm tree
+Date: Tue, 11 May 2010 23:22:41 -0400
+Message-ID: <201005120624.o4C6O9S4013527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752764Ab0ELGVM (ORCPT
+	by vger.kernel.org with ESMTP id S1753343Ab0ELGYl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 02:21:12 -0400
+	Wed, 12 May 2010 02:24:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menag
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com, miaox@cn.fujitsu.com, npiggin@suse.de, rientjes@google.com
 
 
 The patch titled
      cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
