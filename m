@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch added to -mm tree
-Date: Tue, 11 May 2010 18:21:47 -0700
-Message-ID: <201005120149.o4C1nVVk002648@imap1.linux-foundation.org>
+Subject: [to-be-updated] cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch removed from -mm tree
+Date: Tue, 11 May 2010 23:19:01 -0400
+Message-ID: <201005120620.o4C6KUj0013363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40768 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496Ab0ELBuk (ORCPT
+	by vger.kernel.org with ESMTP id S1752764Ab0ELGVM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 May 2010 21:50:40 -0400
+	Wed, 12 May 2010 02:21:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com, miaox@cn.fujitsu.com, npiggin@suse.de, rientjes@google.com
+To: akpm@linux-foundation.org, andi@firstfloor.org, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menag
 
 
 The patch titled
      cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -53,12 +43,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  kernel/exit.c |    2 --
- vmscan.c      |    0 
- 2 files changed, 2 deletions(-)
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/cpuset.h~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix include/linux/cpuset.h
-diff -puN include/linux/sched.h~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix include/linux/sched.h
-diff -puN kernel/cpuset.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix kernel/cpuset.c
 diff -puN kernel/exit.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix kernel/exit.c
 --- a/kernel/exit.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix
 +++ a/kernel/exit.c
@@ -73,14 +59,6 @@ diff -puN kernel/exit.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpuse
  #endif
  	task_unlock(tsk);
  	mm_update_next_owner(mm);
-diff -puN kernel/fork.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix kernel/fork.c
-diff -puN mm/filemap.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/filemap.c
-diff -puN mm/hugetlb.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/hugetlb.c
-diff -puN mm/mempolicy.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/mempolicy.c
-diff -puN mm/page_alloc.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/page_alloc.c
-diff -puN mm/slab.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/slab.c
-diff -puN mm/slub.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/slub.c
-diff -puN mm/vmscan.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix mm/vmscan.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +100,7 @@ frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
 kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
 dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
 lib-introduce-common-method-to-convert-hex-digits-fix.patch
 lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
