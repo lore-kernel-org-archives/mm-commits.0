@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + numa-add-generic-percpu-var-numa_node_id-implementation-fix1.patch added to -mm tree
-Date: Wed, 12 May 2010 11:49:15 -0700
-Message-ID: <201005121849.o4CInFig013921@imap1.linux-foundation.org>
+Subject: + numa-add-generic-percpu-var-numa_node_id-implementation-fix2.patch added to -mm tree
+Date: Wed, 12 May 2010 11:49:17 -0700
+Message-ID: <201005121849.o4CInH3I013925__13882.7448980466$1273690239$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54035 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755103Ab0ELSu2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755848Ab0ELSua (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:50:28 -0400
+	Wed, 12 May 2010 14:50:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, eric.whitney@hp.com, hpa@z
 
 
 The patch titled
-     numa-add-generic-percpu-var-numa_node_id-implementation-fix1
+     numa-add-generic-percpu-var-numa_node_id-implementation-fix2
 has been added to the -mm tree.  Its filename is
-     numa-add-generic-percpu-var-numa_node_id-implementation-fix1.patch
+     numa-add-generic-percpu-var-numa_node_id-implementation-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-add-generic-percpu-var-numa_node_id-implementation-fix1
+Subject: numa-add-generic-percpu-var-numa_node_id-implementation-fix2
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Incremental patch 1 to
-numa-add-generic-percpu-var-numa_node_id-implementation.patch in 28apri10
-mmotm.
+Incremental patch 2 to
+numa-add-generic-percpu-var-numa_node_id-implementation.patch
+in 28apr10 mmotm.
 
-If any of the numa topology functions--numa_node_id() et al--have not been
-overridden by the arch, we can define them as static inline functions.
-
-Note that this means that cpu_to_node() can no longer be used as an
-lvalue.  However, the tree contains no such usage currently, and a
-subsequent patch will add a function to set the 'numa_node' for a
-specified cpu.
-
-x86 defines numa_node_id() as a static inline function when CONFIG_NUMA is
-not set.  Add #define of numa_node_id to itself to indicate this override
-of the default definition, so we can build !NUMA with this patch applied.
-
-   Maybe we should move the default definitions to
-   asm-generic/topology.h?  Or remove it altogether?
-   x86_64 !NUMA seems to build without it.
+Define generic macro to set 'numa_node' for a specified cpu as
+suggested by Christoph Lameter and seconded by Tejun Heo.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -74,67 +61,26 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/topology.h |    4 ++++
- include/linux/topology.h        |   21 ++++++++++++++++-----
- 2 files changed, 20 insertions(+), 5 deletions(-)
+ include/linux/topology.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/x86/include/asm/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix1 arch/x86/include/asm/topology.h
---- a/arch/x86/include/asm/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix1
-+++ a/arch/x86/include/asm/topology.h
-@@ -170,6 +170,10 @@ static inline int numa_node_id(void)
- {
- 	return 0;
- }
-+/*
-+ * indicate override:
-+ */
-+#define numa_node_id numa_node_id
- 
- static inline int early_cpu_to_node(int cpu)
- {
-diff -puN include/linux/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix1 include/linux/topology.h
---- a/include/linux/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix1
+diff -puN include/linux/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix2 include/linux/topology.h
+--- a/include/linux/topology.h~numa-add-generic-percpu-var-numa_node_id-implementation-fix2
 +++ a/include/linux/topology.h
-@@ -212,23 +212,34 @@ DECLARE_PER_CPU(int, numa_node);
- 
- #ifndef numa_node_id
- /* Returns the number of the current Node. */
--#define numa_node_id()		__this_cpu_read(numa_node)
-+static inline int numa_node_id(void)
-+{
-+	return __this_cpu_read(numa_node);
-+}
+@@ -232,6 +232,13 @@ static inline void set_numa_node(int nod
+ }
  #endif
  
- #ifndef cpu_to_node
--#define cpu_to_node(__cpu)	per_cpu(numa_node, (__cpu))
-+static inline int cpu_to_node(int cpu)
++#ifndef set_cpu_numa_node
++static inline void set_cpu_numa_node(int cpu, int node)
 +{
-+	return per_cpu(numa_node, cpu);
++	per_cpu(numa_node, cpu) = node;
 +}
- #endif
- 
- #ifndef set_numa_node
--#define set_numa_node(__node) percpu_write(numa_node, __node)
-+static inline void set_numa_node(int node)
-+{
-+	percpu_write(numa_node, node);
-+}
- #endif
- 
++#endif
++
  #else	/* !CONFIG_USE_PERCPU_NUMA_NODE_ID */
  
  /* Returns the number of the current Node. */
- #ifndef numa_node_id
--#define numa_node_id()		(cpu_to_node(raw_smp_processor_id()))
--
-+static inline int numa_node_id(void)
-+{
-+	return cpu_to_node(raw_smp_processor_id());
-+}
- #endif
- 
- #endif	/* [!]CONFIG_USE_PERCPU_NUMA_NODE_ID */
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
