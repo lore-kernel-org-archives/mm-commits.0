@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header.patch added to -mm tree
-Date: Wed, 12 May 2010 15:55:38 -0700
-Message-ID: <201005122255.o4CMtcYO025640@imap1.linux-foundation.org>
+Subject: + sh-add-dma-slave-definitions-to-sh7724.patch added to -mm tree
+Date: Wed, 12 May 2010 15:55:42 -0700
+Message-ID: <201005122255.o4CMtg0b025646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753270Ab0ELW4j (ORCPT
+	by vger.kernel.org with ESMTP id S1756049Ab0ELW4t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 18:56:39 -0400
+	Wed, 12 May 2010 18:56:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: g.liakhovetski@gmx.de, dan.j.williams@intel.com, ian@mnementh.co.uk, lethal@
 
 
 The patch titled
-     sh: define DMA slaves per CPU type, remove now redundant header
+     sh: add DMA slave definitions to sh7724
 has been added to the -mm tree.  Its filename is
-     sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header.patch
+     sh-add-dma-slave-definitions-to-sh7724.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: define DMA slaves per CPU type, remove now redundant header
+Subject: sh: add DMA slave definitions to sh7724
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Now that DMA slave IDs are only used used in platform specific code and
-have become opaque cookies for the rest of the code, we can make the, CPU
-specific too.
+Add a list of SCIF and SDHI DMA slave definitions to sh7724.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -51,218 +49,112 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/dmaengine.h        |   34 -----------------------
- arch/sh/include/asm/siu.h              |    2 -
- arch/sh/include/cpu-sh4/cpu/sh7722.h   |   15 ++++++++++
- arch/sh/include/cpu-sh4/cpu/sh7724.h   |   19 ++++++++++++
- arch/sh/kernel/cpu/sh4a/setup-sh7722.c |    1 
- arch/sh/kernel/cpu/sh4a/setup-sh7724.c |    2 -
- arch/sh/kernel/cpu/sh4a/setup-sh7780.c |    3 --
- arch/sh/kernel/cpu/sh4a/setup-sh7785.c |    2 -
- sound/soc/sh/siu.h                     |    3 --
- sound/soc/sh/siu_pcm.c                 |    9 ++----
- 10 files changed, 42 insertions(+), 48 deletions(-)
+ arch/sh/kernel/cpu/sh4a/setup-sh7724.c |   86 +++++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
 
-diff -puN arch/sh/include/asm/dmaengine.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header /dev/null
---- a/arch/sh/include/asm/dmaengine.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/*
-- * Header for the new SH dmaengine driver
-- *
-- * Copyright (C) 2010 Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#ifndef ASM_DMAENGINE_H
--#define ASM_DMAENGINE_H
--
--#include <linux/sh_dma.h>
--
--enum {
--	SHDMA_SLAVE_SCIF0_TX,
--	SHDMA_SLAVE_SCIF0_RX,
--	SHDMA_SLAVE_SCIF1_TX,
--	SHDMA_SLAVE_SCIF1_RX,
--	SHDMA_SLAVE_SCIF2_TX,
--	SHDMA_SLAVE_SCIF2_RX,
--	SHDMA_SLAVE_SCIF3_TX,
--	SHDMA_SLAVE_SCIF3_RX,
--	SHDMA_SLAVE_SCIF4_TX,
--	SHDMA_SLAVE_SCIF4_RX,
--	SHDMA_SLAVE_SCIF5_TX,
--	SHDMA_SLAVE_SCIF5_RX,
--	SHDMA_SLAVE_SIUA_TX,
--	SHDMA_SLAVE_SIUA_RX,
--	SHDMA_SLAVE_SIUB_TX,
--	SHDMA_SLAVE_SIUB_RX,
--};
--
--#endif
-diff -puN arch/sh/include/asm/siu.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/include/asm/siu.h
---- a/arch/sh/include/asm/siu.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/arch/sh/include/asm/siu.h
-@@ -11,8 +11,6 @@
- #ifndef ASM_SIU_H
- #define ASM_SIU_H
- 
--#include <asm/dmaengine.h>
--
- struct device;
- 
- struct siu_platform {
-diff -puN arch/sh/include/cpu-sh4/cpu/sh7722.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/include/cpu-sh4/cpu/sh7722.h
---- a/arch/sh/include/cpu-sh4/cpu/sh7722.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/arch/sh/include/cpu-sh4/cpu/sh7722.h
-@@ -235,4 +235,19 @@ enum {
- 	HWBLK_NR,
- };
- 
-+enum {
-+	SHDMA_SLAVE_SCIF0_TX,
-+	SHDMA_SLAVE_SCIF0_RX,
-+	SHDMA_SLAVE_SCIF1_TX,
-+	SHDMA_SLAVE_SCIF1_RX,
-+	SHDMA_SLAVE_SCIF2_TX,
-+	SHDMA_SLAVE_SCIF2_RX,
-+	SHDMA_SLAVE_SIUA_TX,
-+	SHDMA_SLAVE_SIUA_RX,
-+	SHDMA_SLAVE_SIUB_TX,
-+	SHDMA_SLAVE_SIUB_RX,
-+	SHDMA_SLAVE_SDHI0_TX,
-+	SHDMA_SLAVE_SDHI0_RX,
-+};
-+
- #endif /* __ASM_SH7722_H__ */
-diff -puN arch/sh/include/cpu-sh4/cpu/sh7724.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/include/cpu-sh4/cpu/sh7724.h
---- a/arch/sh/include/cpu-sh4/cpu/sh7724.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/arch/sh/include/cpu-sh4/cpu/sh7724.h
-@@ -283,4 +283,23 @@ enum {
- 	HWBLK_NR,
- };
- 
-+enum {
-+	SHDMA_SLAVE_SCIF0_TX,
-+	SHDMA_SLAVE_SCIF0_RX,
-+	SHDMA_SLAVE_SCIF1_TX,
-+	SHDMA_SLAVE_SCIF1_RX,
-+	SHDMA_SLAVE_SCIF2_TX,
-+	SHDMA_SLAVE_SCIF2_RX,
-+	SHDMA_SLAVE_SCIF3_TX,
-+	SHDMA_SLAVE_SCIF3_RX,
-+	SHDMA_SLAVE_SCIF4_TX,
-+	SHDMA_SLAVE_SCIF4_RX,
-+	SHDMA_SLAVE_SCIF5_TX,
-+	SHDMA_SLAVE_SCIF5_RX,
-+	SHDMA_SLAVE_SDHI0_TX,
-+	SHDMA_SLAVE_SDHI0_RX,
-+	SHDMA_SLAVE_SDHI1_TX,
-+	SHDMA_SLAVE_SDHI1_RX,
-+};
-+
- #endif /* __ASM_SH7724_H__ */
-diff -puN arch/sh/kernel/cpu/sh4a/setup-sh7722.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/kernel/cpu/sh4a/setup-sh7722.c
---- a/arch/sh/kernel/cpu/sh4a/setup-sh7722.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/arch/sh/kernel/cpu/sh4a/setup-sh7722.c
-@@ -17,7 +17,6 @@
- #include <linux/usb/m66592.h>
- 
- #include <asm/clock.h>
--#include <asm/dmaengine.h>
- #include <asm/mmzone.h>
- #include <asm/siu.h>
- 
-diff -puN arch/sh/kernel/cpu/sh4a/setup-sh7724.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/kernel/cpu/sh4a/setup-sh7724.c
---- a/arch/sh/kernel/cpu/sh4a/setup-sh7724.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
+diff -puN arch/sh/kernel/cpu/sh4a/setup-sh7724.c~sh-add-dma-slave-definitions-to-sh7724 arch/sh/kernel/cpu/sh4a/setup-sh7724.c
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7724.c~sh-add-dma-slave-definitions-to-sh7724
 +++ a/arch/sh/kernel/cpu/sh4a/setup-sh7724.c
-@@ -18,13 +18,13 @@
- #include <linux/mm.h>
- #include <linux/serial_sci.h>
- #include <linux/uio_driver.h>
-+#include <linux/sh_dma.h>
- #include <linux/sh_timer.h>
- #include <linux/io.h>
- #include <linux/notifier.h>
+@@ -31,6 +31,90 @@
+ #include <cpu/sh7724.h>
  
- #include <asm/suspend.h>
- #include <asm/clock.h>
--#include <asm/dmaengine.h>
- #include <asm/mmzone.h>
+ /* DMA */
++static const struct sh_dmae_slave_config sh7724_dmae_slaves[] = {
++	{
++		.slave_id	= SHDMA_SLAVE_SCIF0_TX,
++		.addr		= 0xffe0000c,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x21,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF0_RX,
++		.addr		= 0xffe00014,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x22,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF1_TX,
++		.addr		= 0xffe1000c,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x25,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF1_RX,
++		.addr		= 0xffe10014,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x26,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF2_TX,
++		.addr		= 0xffe2000c,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x29,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF2_RX,
++		.addr		= 0xffe20014,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x2a,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF3_TX,
++		.addr		= 0xa4e30020,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x2d,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF3_RX,
++		.addr		= 0xa4e30024,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x2e,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF4_TX,
++		.addr		= 0xa4e40020,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x31,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF4_RX,
++		.addr		= 0xa4e40024,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x32,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF5_TX,
++		.addr		= 0xa4e50020,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x35,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SCIF5_RX,
++		.addr		= 0xa4e50024,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_8BIT),
++		.mid_rid	= 0x36,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SDHI0_TX,
++		.addr		= 0x04ce0030,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_16BIT),
++		.mid_rid	= 0xc1,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SDHI0_RX,
++		.addr		= 0x04ce0030,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_16BIT),
++		.mid_rid	= 0xc2,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SDHI1_TX,
++		.addr		= 0x04cf0030,
++		.chcr		= DM_FIX | SM_INC | 0x800 | TS_INDEX2VAL(XMIT_SZ_16BIT),
++		.mid_rid	= 0xc9,
++	}, {
++		.slave_id	= SHDMA_SLAVE_SDHI1_RX,
++		.addr		= 0x04cf0030,
++		.chcr		= DM_INC | SM_FIX | 0x800 | TS_INDEX2VAL(XMIT_SZ_16BIT),
++		.mid_rid	= 0xca,
++	},
++};
++
+ static const struct sh_dmae_channel sh7724_dmae_channels[] = {
+ 	{
+ 		.offset = 0,
+@@ -62,6 +146,8 @@ static const struct sh_dmae_channel sh77
+ static const unsigned int ts_shift[] = TS_SHIFT;
  
- #include <cpu/dma-register.h>
-diff -puN arch/sh/kernel/cpu/sh4a/setup-sh7780.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/kernel/cpu/sh4a/setup-sh7780.c
---- a/arch/sh/kernel/cpu/sh4a/setup-sh7780.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/arch/sh/kernel/cpu/sh4a/setup-sh7780.c
-@@ -12,10 +12,9 @@
- #include <linux/serial.h>
- #include <linux/io.h>
- #include <linux/serial_sci.h>
-+#include <linux/sh_dma.h>
- #include <linux/sh_timer.h>
- 
--#include <asm/dmaengine.h>
--
- #include <cpu/dma-register.h>
- 
- static struct plat_sci_port scif0_platform_data = {
-diff -puN arch/sh/kernel/cpu/sh4a/setup-sh7785.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header arch/sh/kernel/cpu/sh4a/setup-sh7785.c
---- a/arch/sh/kernel/cpu/sh4a/setup-sh7785.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/arch/sh/kernel/cpu/sh4a/setup-sh7785.c
-@@ -13,9 +13,9 @@
- #include <linux/serial_sci.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-+#include <linux/sh_dma.h>
- #include <linux/sh_timer.h>
- 
--#include <asm/dmaengine.h>
- #include <asm/mmzone.h>
- 
- #include <cpu/dma-register.h>
-diff -puN sound/soc/sh/siu.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header sound/soc/sh/siu.h
---- a/sound/soc/sh/siu.h~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/sound/soc/sh/siu.h
-@@ -71,8 +71,7 @@ struct siu_firmware {
- #include <linux/dmaengine.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
--
--#include <asm/dmaengine.h>
-+#include <linux/sh_dma.h>
- 
- #include <sound/core.h>
- #include <sound/pcm.h>
-diff -puN sound/soc/sh/siu_pcm.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header sound/soc/sh/siu_pcm.c
---- a/sound/soc/sh/siu_pcm.c~sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header
-+++ a/sound/soc/sh/siu_pcm.c
-@@ -31,7 +31,6 @@
- #include <sound/pcm_params.h>
- #include <sound/soc-dai.h>
- 
--#include <asm/dmaengine.h>
- #include <asm/siu.h>
- 
- #include "siu.h"
-@@ -358,13 +357,13 @@ static int siu_pcm_open(struct snd_pcm_s
- 	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK) {
- 		siu_stream = &port_info->playback;
- 		param = &siu_stream->param;
--		param->slave_id = port ? SHDMA_SLAVE_SIUB_TX :
--			SHDMA_SLAVE_SIUA_TX;
-+		param->slave_id = port ? pdata->dma_slave_tx_b :
-+			pdata->dma_slave_tx_a;
- 	} else {
- 		siu_stream = &port_info->capture;
- 		param = &siu_stream->param;
--		param->slave_id = port ? SHDMA_SLAVE_SIUB_RX :
--			SHDMA_SLAVE_SIUA_RX;
-+		param->slave_id = port ? pdata->dma_slave_rx_b :
-+			pdata->dma_slave_rx_a;
- 	}
- 
- 	param->dma_dev = pdata->dma_dev;
+ static struct sh_dmae_pdata dma_platform_data = {
++	.slave		= sh7724_dmae_slaves,
++	.slave_num	= ARRAY_SIZE(sh7724_dmae_slaves),
+ 	.channel	= sh7724_dmae_channels,
+ 	.channel_num	= ARRAY_SIZE(sh7724_dmae_channels),
+ 	.ts_low_shift	= CHCR_TS_LOW_SHIFT,
 _
 
 Patches currently in -mm which might be from g.liakhovetski@gmx.de are
