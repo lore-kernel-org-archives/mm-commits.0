@@ -1,70 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-atmel-mci-fix-two-parameters-swapped.patch removed from -mm tree
-Date: Wed, 12 May 2010 10:58:09 -0400
-Message-ID: <201005121759.o4CHxbUp011521__2967.90876095674$1273687432$gmane$org@imap1.linux-foundation.org>
+Subject: + fsnotify-initialize-mask-in-fsnotify_perm.patch added to -mm tree
+Date: Wed, 12 May 2010 11:42:41 -0700
+Message-ID: <201005121842.o4CIgfdl013411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751294Ab0ELSDo (ORCPT
+	by vger.kernel.org with ESMTP id S1755032Ab0ELSmx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:03:44 -0400
+	Wed, 12 May 2010 14:42:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, anders.grahn@hd-wireless.se, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: eparis@redhat.com, akpm@linux-foundation.org
 
 
 The patch titled
-     mmc: atmel-mci: fix two parameters swapped
-has been removed from the -mm tree.  Its filename was
-     mmc-atmel-mci-fix-two-parameters-swapped.patch
+     fsnotify: initialize mask in fsnotify_perm
+has been added to the -mm tree.  Its filename is
+     fsnotify-initialize-mask-in-fsnotify_perm.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: atmel-mci: fix two parameters swapped
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: fsnotify: initialize mask in fsnotify_perm
+From: Eric Paris <eparis@redhat.com>
 
-Two parameters were swapped in the calls to atmci_init_slot().
+akpm got a warning the fsnotify_mask could be used uninitialized in
+fsnotify_perm().  It's not actually possible but his compiler complained
+about it.  This patch just initializes it to 0 to shut up the compiler.
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Reported-by: Anders Grahn <anders.grahn@hd-wireless.se>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: <linux-mmc@vger.kernel.org>
-Cc: <stable@kernel.org>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/atmel-mci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/fsnotify.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-fix-two-parameters-swapped drivers/mmc/host/atmel-mci.c
---- a/drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-fix-two-parameters-swapped
-+++ a/drivers/mmc/host/atmel-mci.c
-@@ -1751,13 +1751,13 @@ static int __init atmci_probe(struct pla
- 	ret = -ENODEV;
- 	if (pdata->slot[0].bus_width) {
- 		ret = atmci_init_slot(host, &pdata->slot[0],
--				MCI_SDCSEL_SLOT_A, 0);
-+				0, MCI_SDCSEL_SLOT_A);
- 		if (!ret)
- 			nr_slots++;
- 	}
- 	if (pdata->slot[1].bus_width) {
- 		ret = atmci_init_slot(host, &pdata->slot[1],
--				MCI_SDCSEL_SLOT_B, 1);
-+				1, MCI_SDCSEL_SLOT_B);
- 		if (!ret)
- 			nr_slots++;
- 	}
+diff -puN include/linux/fsnotify.h~fsnotify-initialize-mask-in-fsnotify_perm include/linux/fsnotify.h
+--- a/include/linux/fsnotify.h~fsnotify-initialize-mask-in-fsnotify_perm
++++ a/include/linux/fsnotify.h
+@@ -39,16 +39,18 @@ static inline int fsnotify_perm(struct f
+ {
+ 	struct path *path = &file->f_path;
+ 	struct inode *inode = path->dentry->d_inode;
+-	__u32 fsnotify_mask;
++	__u32 fsnotify_mask = 0;
+ 
+ 	if (file->f_mode & FMODE_NONOTIFY)
+ 		return 0;
+ 	if (!(mask & (MAY_READ | MAY_OPEN)))
+ 		return 0;
+-	if (mask & MAY_READ)
+-		fsnotify_mask = FS_ACCESS_PERM;
+ 	if (mask & MAY_OPEN)
+ 		fsnotify_mask = FS_OPEN_PERM;
++	else if (mask & MAY_READ)
++		fsnotify_mask = FS_ACCESS_PERM;
++	else
++		BUG();
+ 
+ 	return fsnotify(inode, fsnotify_mask, path, FSNOTIFY_EVENT_PATH, NULL, 0);
+ }
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from eparis@redhat.com are
 
-origin.patch
 linux-next.patch
-mmc-atmel-mci-enable-sd-high-speed-support.patch
-mmc-atmel-mci-add-support-for-sdio-interrupts.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+fsnotify-initialize-mask-in-fsnotify_perm.patch
+include-linux-fsnotifyh-squash-warning.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+ext3-fixup-rb_root-initializations-to-use-rb_root.patch
 
