@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-default-to-not-include-unspecified-tags.patch added to -mm tree
-Date: Wed, 12 May 2010 16:18:48 -0700
-Message-ID: <201005122318.o4CNInV4026801@imap1.linux-foundation.org>
+Subject: + cgroups-make-cftypeunregister_event-void-returning.patch added to -mm tree
+Date: Wed, 12 May 2010 16:21:24 -0700
+Message-ID: <201005122321.o4CNLO1R027015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755803Ab0ELXTV (ORCPT
+	by vger.kernel.org with ESMTP id S1758527Ab0ELXVo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 19:19:21 -0400
+	Wed, 12 May 2010 19:21:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian@mickler.org, joe@perches.com, stefanr@s5r6.in-berlin.de, w.sang@pengutronix.de
+Cc: kirill@shutemov.name, balbir@linux.vnet.ibm.com, ext-phil.2.carmody@nokia.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     scripts/get_maintainer.pl: default to not include unspecified tags
+     cgroups: make cftype.unregister_event() void-returning
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-default-to-not-include-unspecified-tags.patch
+     cgroups-make-cftypeunregister_event-void-returning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,187 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: default to not include unspecified tags
-From: Florian Mickler <florian@mickler.org>
+Subject: cgroups: make cftype.unregister_event() void-returning
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 
-This changes the default of the option --git-all-signature-types to be
-disabled by default.
+Since we are unable to handle an error returned by
+cftype.unregister_event() properly, let's make the callback
+void-returning.
 
-The effect being, that only certain (currently Signed-Off-By:, Acked-by:
-and Reviewed-By:) tags are used to get adresses of potential maintainers.
+mem_cgroup_unregister_event() has been rewritten to be a "never fail"
+function.  On mem_cgroup_usage_register_event() we save old buffer for
+thresholds array and reuse it in mem_cgroup_usage_unregister_event() to
+avoid allocation.
 
-Motivated is this change by the desire to not 'spam' people unnecessary: A
-Tested-By or a Reported-By is not ment as a hint that those people want
-to/are able to review patches to the code in question.
-
-In a quest to find resilient statistics for this i came up with this:
-
-I produced a list of all the tag-signers not already covered with a
-signed-off/acked/reviewed tag somewhere in the last year of git history.
-
-Those were 650 addresses of "assumed non-developers".
-
-And to check if those "assumed non-developers" are professional
-testers/reporters worth cc'ing, i then counted their total appearences
-in the git log:
-
-469 were mentioned only once.
-123 were mentioned twice.
-38 three times
-8 four times
-5 six times
-5 five times
-1 eight times
-1 fourteen times
-
-I believe this supports my thesis, that the ''non-maintainer-tags'' are
-not actively useful for patch-review.  (except probably the guy mentioned
-fourteen times...)
-
-But of course one could also find arguments to poke holes in this
-statistics, for example does this statistic not include code-locality: A
-tested-by on a patch that touches some specific piece of code can be more
-worth than a signed-off in another part of the tree.
-
-But...  let's play it safe and let's err on the "safe" side meaning to not
-spam those people when in doubt.  We already have the signed-off's and
-Maintainers file.  So this should be ok.  And if need be, the maintainers
-can always forward the patch.
-
-[i probably could make a diploma thesis out of this changelog :)]
-
-Signed-off-by: Florian Mickler <florian@mickler.org>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Joe Perches <joe@perches.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cgroup.h |    2 -
+ kernel/cgroup.c        |    1 
+ mm/memcontrol.c        |   65 ++++++++++++++++++++++++---------------
+ 3 files changed, 42 insertions(+), 26 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-default-to-not-include-unspecified-tags scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-default-to-not-include-unspecified-tags
-+++ a/scripts/get_maintainer.pl
-@@ -25,7 +25,7 @@ my $email_list = 1;
- my $email_subscriber_list = 0;
- my $email_git_penguin_chiefs = 0;
- my $email_git = 1;
--my $email_git_all_signature_types = 1;
-+my $email_git_all_signature_types = 0;
- my $email_git_blame = 0;
- my $email_git_min_signatures = 1;
- my $email_git_max_maintainers = 5;
-_
-
-Patches currently in -mm which might be from florian@mickler.org are
-
-linux-next.patch
-scripts-get_maintainerpl-optionally-ignore-non-maintainer-signatures.patch
-scripts-get_maintainerpl-add-get_maintainerconf-default-options-file.patch
-scripts-get_maintainerpl-default-to-not-include-unspecified-tags.patch
-
+diff -puN include/linux/cgroup.h~cgroups-make-cftypeunregister_event-void-returning include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-make-cftypeunregister_event-void-returning
++++ a/include/linux/cgroup.h
+@@ -397,7 +397,7 @@ struct cftype {
+ 	 * This callback must be implemented, if you want provide
+ 	 * notification functionality.
+ 	 */
+-	int (*unregister_event)(struct cgroup *cgrp, struct cftype *cft,
++	void (*unregister_event)(struct cgroup *cgrp, struct cftype *cft,
+ 			struct eventfd_ctx *eventfd);
+ };
+ 
+diff -puN kernel/cgroup.c~cgroups-make-cftypeunregister_event-void-returning kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-make-cftypeunregister_event-void-returning
++++ a/kernel/cgroup.c
+@@ -2994,7 +2994,6 @@ static void cgroup_event_remove(struct w
+ 			remove);
+ 	struct cgroup *cgrp = event->cgrp;
+ 
+-	/* TODO: check return code */
+ 	event->cft->unregister_event(cgrp, event->cft, event->eventfd);
+ 
+ 	eventfd_ctx_put(event->eventfd);
+diff -puN mm/memcontrol.c~cgroups-make-cftypeunregister_event-void-returning mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroups-make-cftypeunregister_event-void-returning
++++ a/mm/memcontrol.c
+@@ -226,9 +226,19 @@ struct mem_cgroup {
+ 	/* thresholds for memory usage. RCU-protected */
+ 	struct mem_cgroup_threshold_ary *thresholds;
+ 
++	/*
++	 * Preallocated buffer to be used in mem_cgroup_unregister_event()
++	 * to make it "never fail".
++	 * It must be able to store at least thresholds->size - 1 entries.
++	 */
++	struct mem_cgroup_threshold_ary *__thresholds;
++
+ 	/* thresholds for mem+swap usage. RCU-protected */
+ 	struct mem_cgroup_threshold_ary *memsw_thresholds;
+ 
++	/* the same as __thresholds, but for memsw_thresholds */
++	struct mem_cgroup_threshold_ary *__memsw_thresholds;
++
+ 	/* For oom notifier event fd */
+ 	struct list_head oom_notify;
+ 
+@@ -3568,17 +3578,27 @@ static int mem_cgroup_usage_register_eve
+ 	else
+ 		rcu_assign_pointer(memcg->memsw_thresholds, thresholds_new);
+ 
+-	/* To be sure that nobody uses thresholds before freeing it */
++	/* To be sure that nobody uses thresholds */
+ 	synchronize_rcu();
+ 
+-	kfree(thresholds);
++	/*
++	 * Free old preallocated buffer and use thresholds as new
++	 * preallocated buffer.
++	 */
++	if (type == _MEM) {
++		kfree(memcg->__thresholds);
++		memcg->__thresholds = thresholds;
++	} else {
++		kfree(memcg->__memsw_thresholds);
++		memcg->__memsw_thresholds = thresholds;
++	}
+ unlock:
+ 	mutex_unlock(&memcg->thresholds_lock);
+ 
+ 	return ret;
+ }
+ 
+-static int mem_cgroup_usage_unregister_event(struct cgroup *cgrp,
++static void mem_cgroup_usage_unregister_event(struct cgroup *cgrp,
+ 	struct cftype *cft, struct eventfd_ctx *eventfd)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgrp);
+@@ -3586,7 +3606,7 @@ static int mem_cgroup_usage_unregister_e
+ 	int type = MEMFILE_TYPE(cft->private);
+ 	u64 usage;
+ 	int size = 0;
+-	int i, j, ret = 0;
++	int i, j;
+ 
+ 	mutex_lock(&memcg->thresholds_lock);
+ 	if (type == _MEM)
+@@ -3613,20 +3633,19 @@ static int mem_cgroup_usage_unregister_e
+ 			size++;
+ 	}
+ 
++	/* Use preallocated buffer for new array of thresholds */
++	if (type == _MEM)
++		thresholds_new = memcg->__thresholds;
++	else
++		thresholds_new = memcg->__memsw_thresholds;
++
+ 	/* Set thresholds array to NULL if we don't have thresholds */
+ 	if (!size) {
++		kfree(thresholds_new);
+ 		thresholds_new = NULL;
+-		goto assign;
++		goto swap_buffers;
+ 	}
+ 
+-	/* Allocate memory for new array of thresholds */
+-	thresholds_new = kmalloc(sizeof(*thresholds_new) +
+-			size * sizeof(struct mem_cgroup_threshold),
+-			GFP_KERNEL);
+-	if (!thresholds_new) {
+-		ret = -ENOMEM;
+-		goto unlock;
+-	}
+ 	thresholds_new->size = size;
+ 
+ 	/* Copy thresholds and find current threshold */
+@@ -3647,20 +3666,20 @@ static int mem_cgroup_usage_unregister_e
+ 		j++;
+ 	}
+ 
+-assign:
+-	if (type == _MEM)
++swap_buffers:
++	/* Swap thresholds array and preallocated buffer */
++	if (type == _MEM) {
++		memcg->__thresholds = thresholds;
+ 		rcu_assign_pointer(memcg->thresholds, thresholds_new);
+-	else
++	} else {
++		memcg->__memsw_thresholds = thresholds;
+ 		rcu_assign_pointer(memcg->memsw_thresholds, thresholds_new);
++	}
+ 
+-	/* To be sure that nobody uses thresholds before freeing it */
++	/* To be sure that nobody uses thresholds */
+ 	synchronize_rcu();
+ 
+-	kfree(thresholds);
+-unlock:
+ 	mutex_unlock(&memcg->thresholds_lock);
+-
+-	return ret;
+ }
+ 
+ static int mem_cgroup_oom_register_event(struct cgroup *cgrp,
+@@ -3688,7 +3707,7 @@ static int mem_cgroup_oom_register_event
+ 	return 0;
+ }
+ 
+-static int mem_cgroup_oom_unregister_event(struct cgroup *cgrp,
++static void mem_cgroup_oom_unregister_event(struct cgroup *cgrp,
+ 	struct cftype *cft, struct eventfd_ctx *eventfd)
+ {
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
+@@ -3707,8 +3726,6 @@ static int mem_cgroup_oom_unregister_eve
+ 	}
+ 
+ 	mutex_unlock(&memcg_oom_mutex);
