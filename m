@@ -1,143 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot.patch removed from -mm tree
-Date: Wed, 12 May 2010 10:58:52 -0400
-Message-ID: <201005121800.o4CI0K5S011595@imap1.linux-foundation.org>
+Subject: [merged] cpu-timers-optimize-run_posix_cpu_timers.patch removed from -mm tree
+Date: Wed, 12 May 2010 10:58:55 -0400
+Message-ID: <201005121800.o4CI0NhS011598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754506Ab0ELSAz (ORCPT
+	by vger.kernel.org with ESMTP id S1754506Ab0ELSBE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:00:55 -0400
+	Wed, 12 May 2010 14:01:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, chris@chris-wilson.co.uk, jaswinderlinux@gmail.com, mm-commits@vger.kernel.org
+To: sgruszka@redhat.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, mingo@elte.hu, oleg@redhat.com, seto.hidetoshi@jp.fujitsu.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/i915/i915_irq.c:i915_error_object_create(): use correct kmap-atomic slot
+     cpu-timers: optimize run_posix_cpu_timers()
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot.patch
+     cpu-timers-optimize-run_posix_cpu_timers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/i915_irq.c:i915_error_object_create(): use correct kmap-atomic slot
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpu-timers: optimize run_posix_cpu_timers()
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-i915_error_object_create() is called from the timer interrupt and hence
-can corrupt the KM_USER0 slot.  Use KM_IRQ0 instead.
+We can optimize and simplify things taking into account signal->cputimer
+is always running when we have configured any process wide cpu timer.
 
-Reported-by: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-Tested-by: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-Acked-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Dave Airlie <airlied@linux.ie>
+In check_process_timers(), we don't have to check if new updated value of
+signal->cputime_expires is smaller, since we maintain new first expiration
+time ({prof,virt,sched}_expires) in code flow and all other writes to
+expiration cache are protected by sighand->siglock .
+
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_irq.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/posix-cpu-timers.c |   80 +++++++++++++-----------------------
+ 1 file changed, 29 insertions(+), 51 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot drivers/gpu/drm/i915/i915_irq.c
---- a/drivers/gpu/drm/i915/i915_irq.c~drivers-gpu-drm-i915-i915_irqc-i915_error_object_create-use-correct-kmap-atomic-slot
-+++ a/drivers/gpu/drm/i915/i915_irq.c
-@@ -456,11 +456,15 @@ i915_error_object_create(struct drm_devi
+diff -puN kernel/posix-cpu-timers.c~cpu-timers-optimize-run_posix_cpu_timers kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~cpu-timers-optimize-run_posix_cpu_timers
++++ a/kernel/posix-cpu-timers.c
+@@ -1002,16 +1002,9 @@ static void stop_process_timers(struct s
+ 	struct thread_group_cputimer *cputimer = &sig->cputimer;
+ 	unsigned long flags;
  
- 	for (page = 0; page < page_count; page++) {
- 		void *s, *d = kmalloc(PAGE_SIZE, GFP_ATOMIC);
-+		unsigned long flags;
-+
- 		if (d == NULL)
- 			goto unwind;
--		s = kmap_atomic(src_priv->pages[page], KM_USER0);
-+		local_irq_save(flags);
-+		s = kmap_atomic(src_priv->pages[page], KM_IRQ0);
- 		memcpy(d, s, PAGE_SIZE);
--		kunmap_atomic(s, KM_USER0);
-+		kunmap_atomic(s, KM_IRQ0);
-+		local_irq_restore(flags);
- 		dst->pages[page] = d;
+-	if (!cputimer->running)
+-		return;
+-
+ 	spin_lock_irqsave(&cputimer->lock, flags);
+ 	cputimer->running = 0;
+ 	spin_unlock_irqrestore(&cputimer->lock, flags);
+-
+-	sig->cputime_expires.prof_exp = cputime_zero;
+-	sig->cputime_expires.virt_exp = cputime_zero;
+-	sig->cputime_expires.sched_exp = 0;
+ }
+ 
+ static u32 onecputick;
+@@ -1048,6 +1041,23 @@ static void check_cpu_itimer(struct task
  	}
- 	dst->page_count = page_count;
+ }
+ 
++/**
++ * task_cputime_zero - Check a task_cputime struct for all zero fields.
++ *
++ * @cputime:	The struct to compare.
++ *
++ * Checks @cputime to see if all fields are zero.  Returns true if all fields
++ * are zero, false if any field is nonzero.
++ */
++static inline int task_cputime_zero(const struct task_cputime *cputime)
++{
++	if (cputime_eq(cputime->utime, cputime_zero) &&
++	    cputime_eq(cputime->stime, cputime_zero) &&
++	    cputime->sum_exec_runtime == 0)
++		return 1;
++	return 0;
++}
++
+ /*
+  * Check for any per-thread CPU timers that have fired and move them
+  * off the tsk->*_timers list onto the firing list.  Per-thread timers
+@@ -1065,19 +1075,6 @@ static void check_process_timers(struct 
+ 	unsigned long soft;
+ 
+ 	/*
+-	 * Don't sample the current process CPU clocks if there are no timers.
+-	 */
+-	if (list_empty(&timers[CPUCLOCK_PROF]) &&
+-	    cputime_eq(sig->it[CPUCLOCK_PROF].expires, cputime_zero) &&
+-	    sig->rlim[RLIMIT_CPU].rlim_cur == RLIM_INFINITY &&
+-	    list_empty(&timers[CPUCLOCK_VIRT]) &&
+-	    cputime_eq(sig->it[CPUCLOCK_VIRT].expires, cputime_zero) &&
+-	    list_empty(&timers[CPUCLOCK_SCHED])) {
+-		stop_process_timers(sig);
+-		return;
+-	}
+-
+-	/*
+ 	 * Collect the current process totals.
+ 	 */
+ 	thread_group_cputimer(tsk, &cputime);
+@@ -1166,18 +1163,11 @@ static void check_process_timers(struct 
+ 		}
+ 	}
+ 
+-	if (!cputime_eq(prof_expires, cputime_zero) &&
+-	    (cputime_eq(sig->cputime_expires.prof_exp, cputime_zero) ||
+-	     cputime_gt(sig->cputime_expires.prof_exp, prof_expires)))
+-		sig->cputime_expires.prof_exp = prof_expires;
+-	if (!cputime_eq(virt_expires, cputime_zero) &&
+-	    (cputime_eq(sig->cputime_expires.virt_exp, cputime_zero) ||
+-	     cputime_gt(sig->cputime_expires.virt_exp, virt_expires)))
+-		sig->cputime_expires.virt_exp = virt_expires;
+-	if (sched_expires != 0 &&
+-	    (sig->cputime_expires.sched_exp == 0 ||
+-	     sig->cputime_expires.sched_exp > sched_expires))
+-		sig->cputime_expires.sched_exp = sched_expires;
++	sig->cputime_expires.prof_exp = prof_expires;
++	sig->cputime_expires.virt_exp = virt_expires;
++	sig->cputime_expires.sched_exp = sched_expires;
++	if (task_cputime_zero(&sig->cputime_expires))
++		stop_process_timers(sig);
+ }
+ 
+ /*
+@@ -1250,23 +1240,6 @@ out:
+ }
+ 
+ /**
+- * task_cputime_zero - Check a task_cputime struct for all zero fields.
+- *
+- * @cputime:	The struct to compare.
+- *
+- * Checks @cputime to see if all fields are zero.  Returns true if all fields
+- * are zero, false if any field is nonzero.
+- */
+-static inline int task_cputime_zero(const struct task_cputime *cputime)
+-{
+-	if (cputime_eq(cputime->utime, cputime_zero) &&
+-	    cputime_eq(cputime->stime, cputime_zero) &&
+-	    cputime->sum_exec_runtime == 0)
+-		return 1;
+-	return 0;
+-}
+-
+-/**
+  * task_cputime_expired - Compare two task_cputime entities.
+  *
+  * @sample:	The task_cputime structure to be checked for expiration.
+@@ -1322,7 +1295,7 @@ static inline int fastpath_timer_check(s
+ 	}
+ 
+ 	sig = tsk->signal;
+-	if (!task_cputime_zero(&sig->cputime_expires)) {
++	if (sig->cputimer.running) {
+ 		struct task_cputime group_sample;
+ 
+ 		thread_group_cputimer(tsk, &group_sample);
+@@ -1359,7 +1332,12 @@ void run_posix_cpu_timers(struct task_st
+ 	 * put them on the firing list.
+ 	 */
+ 	check_thread_timers(tsk, &firing);
+-	check_process_timers(tsk, &firing);
++	/*
++	 * If there are any active process wide timers (POSIX 1.b, itimers,
++	 * RLIMIT_CPU) cputimer must be running.
++	 */
++	if (tsk->signal->cputimer.running)
++		check_process_timers(tsk, &firing);
+ 
+ 	/*
+ 	 * We must release these locks before taking any timer's lock.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-jfs-free-sbi-memory-in-error-path.patch
-fix-drm-radeon-kms-hdmi-irq-support.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-include-linux-fsnotifyh-squash-warning.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-fix-nfsd41-sunrpc-add-new-xprt-class-for-nfsv41-backchannel.patch
-fix-stop_machine-reimplement-using-cpu_stop.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
-include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-memcg-move-charge-of-file-pages-fix-4.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
-pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
 
