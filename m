@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-scatterlist-struct-description-in-dma-api-howto.patch added to -mm tree
-Date: Wed, 12 May 2010 16:23:34 -0700
-Message-ID: <201005122323.o4CNNYBG027161@imap1.linux-foundation.org>
+Subject: + documentation-move-the-error-handling-to-the-better-place-in-dma-api-howto.patch added to -mm tree
+Date: Wed, 12 May 2010 16:23:36 -0700
+Message-ID: <201005122323.o4CNNawW027164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758532Ab0ELXYH (ORCPT
+	by vger.kernel.org with ESMTP id S1756166Ab0ELXYK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 19:24:07 -0400
+	Wed, 12 May 2010 19:24:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     Documentation: update scatterlist struct description in DMA-API-HOWTO
+     Documentation: move the error handling to the better place in DMA-API-HOWTO
 has been added to the -mm tree.  Its filename is
-     documentation-update-scatterlist-struct-description-in-dma-api-howto.patch
+     documentation-move-the-error-handling-to-the-better-place-in-dma-api-howto.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: update scatterlist struct description in DMA-API-HOWTO
+Subject: Documentation: move the error handling to the better place in DMA-API-HOWTO
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Now we have <asm-generic/scatterlist.h>.  Architectures should use it
-instead of inventing the own scatterlist struct.  Let's update the
-description.
+Handing DMA mapping errors is essential.  Let's put it in the more
+appropriate place rather than the end of the doc.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API-HOWTO.txt |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ Documentation/DMA-API-HOWTO.txt |   60 +++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/DMA-API-HOWTO.txt~documentation-update-scatterlist-struct-description-in-dma-api-howto Documentation/DMA-API-HOWTO.txt
---- a/Documentation/DMA-API-HOWTO.txt~documentation-update-scatterlist-struct-description-in-dma-api-howto
+diff -puN Documentation/DMA-API-HOWTO.txt~documentation-move-the-error-handling-to-the-better-place-in-dma-api-howto Documentation/DMA-API-HOWTO.txt
+--- a/Documentation/DMA-API-HOWTO.txt~documentation-move-the-error-handling-to-the-better-place-in-dma-api-howto
 +++ a/Documentation/DMA-API-HOWTO.txt
-@@ -703,19 +703,10 @@ to "Closing".
+@@ -639,6 +639,36 @@ is planned to completely remove virt_to_
+ they are entirely deprecated.  Some ports already do not provide these
+ as it is impossible to correctly support them.
  
- 1) Struct scatterlist requirements.
++			Handling Errors
++
++DMA address space is limited on some architectures and an allocation
++failure can be determined by:
++
++- checking if dma_alloc_coherent returns NULL or dma_map_sg returns 0
++
++- checking the returned dma_addr_t of dma_map_single and dma_map_page
++  by using dma_mapping_error():
++
++	dma_addr_t dma_handle;
++
++	dma_handle = dma_map_single(dev, addr, size, direction);
++	if (dma_mapping_error(dev, dma_handle)) {
++		/*
++		 * reduce current DMA mapping usage,
++		 * delay and try again later or
++		 * reset driver.
++		 */
++	}
++
++Networking drivers must call dev_kfree_skb to free the socket buffer
++and return NETDEV_TX_OK if the DMA mapping fails on the transmit hook
++(ndo_start_xmit). This means that the socket buffer is just dropped in
++the failure case.
++
++SCSI drivers must return SCSI_MLQUEUE_HOST_BUSY if the DMA mapping
++fails in the queuecommand hook. This means that the SCSI subsystem
++passes the command to the driver again later.
++
+ 		Optimizing Unmap State Space Consumption
  
--   Struct scatterlist must contain, at a minimum, the following
--   members:
--
--	struct page *page;
--	unsigned int offset;
--	unsigned int length;
--
--   The base address is specified by a "page+offset" pair.
--
--   Previous versions of struct scatterlist contained a "void *address"
--   field that was sometimes used instead of page+offset.  As of Linux
--   2.5., page+offset is always used, and the "address" field has been
--   deleted.
-+   Don't invent the architecture specific struct scatterlist; just use
-+   <asm-generic/scatterlist.h>. You need to enable
-+   CONFIG_NEED_SG_DMA_LENGTH if the architecture supports IOMMUs
-+   (including software IOMMU).
+ On many platforms, dma_unmap_{single,page}() is simply a nop.
+@@ -710,36 +740,6 @@ to "Closing".
  
  2) More to come...
  
+-			Handling Errors
+-
+-DMA address space is limited on some architectures and an allocation
+-failure can be determined by:
+-
+-- checking if dma_alloc_coherent returns NULL or dma_map_sg returns 0
+-
+-- checking the returned dma_addr_t of dma_map_single and dma_map_page
+-  by using dma_mapping_error():
+-
+-	dma_addr_t dma_handle;
+-
+-	dma_handle = dma_map_single(dev, addr, size, direction);
+-	if (dma_mapping_error(dev, dma_handle)) {
+-		/*
+-		 * reduce current DMA mapping usage,
+-		 * delay and try again later or
+-		 * reset driver.
+-		 */
+-	}
+-
+-Networking drivers must call dev_kfree_skb to free the socket buffer
+-and return NETDEV_TX_OK if the DMA mapping fails on the transmit hook
+-(ndo_start_xmit). This means that the socket buffer is just dropped in
+-the failure case.
+-
+-SCSI drivers must return SCSI_MLQUEUE_HOST_BUSY if the DMA mapping
+-fails in the queuecommand hook. This means that the SCSI subsystem
+-passes the command to the driver again later.
+-
+ 			   Closing
+ 
+ This document, and the API itself, would not be in its current
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
