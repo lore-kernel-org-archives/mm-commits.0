@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3.patch added to -mm tree
-Date: Wed, 12 May 2010 11:49:29 -0700
-Message-ID: <201005121849.o4CInTV2013944__17991.7038804435$1273690229$gmane$org@imap1.linux-foundation.org>
+Subject: + numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2.patch added to -mm tree
+Date: Wed, 12 May 2010 11:49:26 -0700
+Message-ID: <201005121849.o4CInRKD013938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755103Ab0ELSuU (ORCPT
+	by vger.kernel.org with ESMTP id S1755078Ab0ELSu0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 14:50:20 -0400
+	Wed, 12 May 2010 14:50:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, cl@linux-foundation.org, eric.whitney@hp.com, hpa@z
 
 
 The patch titled
-     numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3
+     numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2
 has been added to the -mm tree.  Its filename is
-     numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3.patch
+     numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3
+Subject: numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Incremental patch 2 to
-numa-introduce-numa_mem_id-effective-local-memory-node-id
-in 28april10 mmotm.
+Incremental patch 1 to
+numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
+in mmotm 100428-1638.  Atop Andrew's build fix to that patch.
 
-Remove the "#define numa_mem numa_node" when !HAVE_MEMORYLESS_NODES
-from topology.h per Tejun Heo.  Because 'numa_mem' is [was] a percpu
-variable, we cannot make it a macro with arguments or a static inline
-function.  I considered making it a variable alias for numa_node, but
-since both are percpu variables whose actual definitions and declarations
-are buried deep in the DECLARE_PER_CPU() macros, I proposed a
-DECLARE_PER_CPU_ALIAS(variable, alias).  Tejun agreed that if this
-were a common occurrence, that would be a good idea, but since we
-currently have only this instance, we agreed to just eliminate
-the numa_mem variable when !HAVE_MEMORYLESS_NODES.
+If any of the numa topology functions--numa_mem_id() et al--have not
+been overridden by the arch, we can define them as static inline
+functions.
 
-This patch renames the variable to _numa_mem_ and adds warnings
-in both linux/topology.h and mm/page_alloc.c against referencing
-the variable directly.  The accessor functions numa_mem_id() and
-cpu_to_mem() will return the appropriate value when
-!HAVE_MEMORYLESS_NODES.
+Now, since we can no longer use cpu_to_mem() as an lvalue, also
+define set_cpu_numa_mem(cpu, node) and use this to initialize the
+per cpu numa_mem variable in __build_all_zonelists().
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -75,107 +66,70 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/topology.h |   35 +++++++++++++++++++++++++++--------
- mm/page_alloc.c          |   10 ++++++++--
- 2 files changed, 35 insertions(+), 10 deletions(-)
+ include/linux/topology.h |   24 +++++++++++++++++++++---
+ mm/page_alloc.c          |    2 +-
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/topology.h~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3 include/linux/topology.h
---- a/include/linux/topology.h~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3
+diff -puN include/linux/topology.h~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2 include/linux/topology.h
+--- a/include/linux/topology.h~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2
 +++ a/include/linux/topology.h
-@@ -253,46 +253,65 @@ static inline int numa_node_id(void)
- 
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
- 
--DECLARE_PER_CPU(int, numa_mem);
-+/*
-+ * N.B., Do NOT reference the '_numa_mem_' per cpu variable directly.
-+ * It will not be defined when CONFIG_HAVE_MEMORYLESS_NODES is not defined.
-+ * Use the accessor functions set_numa_mem(), numa_mem_id() and cpu_to_mem().
-+ */
-+DECLARE_PER_CPU(int, _numa_mem_);
+@@ -256,7 +256,17 @@ static inline int numa_node_id(void)
+ DECLARE_PER_CPU(int, numa_mem);
  
  #ifndef set_numa_mem
- static inline void set_numa_mem(int node)
- {
--	percpu_write(numa_mem, node);
-+	percpu_write(_numa_mem_, node);
+-#define set_numa_mem(__node) percpu_write(numa_mem, __node)
++static inline void set_numa_mem(int node)
++{
++	percpu_write(numa_mem, node);
 +}
 +#endif
 +
-+#ifndef numa_mem_id
-+/* Returns the number of the nearest Node with memory */
-+static inline int numa_mem_id(void)
++#ifndef set_cpu_numa_mem
++static inline void set_cpu_numa_mem(int cpu, int node)
 +{
-+	return __this_cpu_read(_numa_mem_);
++	per_cpu(numa_mem, cpu) = node;
 +}
-+#endif
-+
-+#ifndef cpu_to_mem
-+static inline int cpu_to_mem(int cpu)
-+{
-+	return per_cpu(_numa_mem_, cpu);
- }
- #endif
- 
- #ifndef set_cpu_numa_mem
- static inline void set_cpu_numa_mem(int cpu, int node)
- {
--	per_cpu(numa_mem, cpu) = node;
-+	per_cpu(_numa_mem_, cpu) = node;
- }
  #endif
  
  #else	/* !CONFIG_HAVE_MEMORYLESS_NODES */
- 
--#define numa_mem numa_node
+@@ -264,15 +274,23 @@ DECLARE_PER_CPU(int, numa_mem);
+ #define numa_mem numa_node
  static inline void set_numa_mem(int node) {}
  
- static inline void set_cpu_numa_mem(int cpu, int node) {}
++static inline void set_cpu_numa_mem(int cpu, int node) {}
++
+ #endif	/* [!]CONFIG_HAVE_MEMORYLESS_NODES */
  
--#endif	/* [!]CONFIG_HAVE_MEMORYLESS_NODES */
--
  #ifndef numa_mem_id
  /* Returns the number of the nearest Node with memory */
- static inline int numa_mem_id(void)
- {
--	return __this_cpu_read(numa_mem);
-+	return numa_node_id();
- }
+-#define numa_mem_id()		__this_cpu_read(numa_mem)
++static inline int numa_mem_id(void)
++{
++	return __this_cpu_read(numa_mem);
++}
  #endif
  
  #ifndef cpu_to_mem
- static inline int cpu_to_mem(int cpu)
- {
--	return per_cpu(numa_mem, cpu);
-+	return cpu_to_node(cpu);
- }
+-#define cpu_to_mem(__cpu)	per_cpu(numa_mem, (__cpu))
++static inline int cpu_to_mem(int cpu)
++{
++	return per_cpu(numa_mem, cpu);
++}
  #endif
  
-+#endif	/* [!]CONFIG_HAVE_MEMORYLESS_NODES */
-+
  #ifndef topology_physical_package_id
- #define topology_physical_package_id(cpu)	((void)(cpu), -1)
- #endif
-diff -puN mm/page_alloc.c~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3 mm/page_alloc.c
---- a/mm/page_alloc.c~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3
+diff -puN mm/page_alloc.c~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2 mm/page_alloc.c
+--- a/mm/page_alloc.c~numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2
 +++ a/mm/page_alloc.c
-@@ -63,8 +63,14 @@ EXPORT_PER_CPU_SYMBOL(numa_node);
+@@ -3004,7 +3004,7 @@ static int __build_all_zonelists(void *d
+ 		 * node/memory hotplug, we'll fixup all on-line cpus.
+ 		 */
+ 		if (cpu_online(cpu))
+-			cpu_to_mem(cpu) = local_memory_node(cpu_to_node(cpu));
++			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
  #endif
+ 	}
  
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
--DEFINE_PER_CPU(int, numa_mem);		/* Kernel "local memory" node */
--EXPORT_PER_CPU_SYMBOL(numa_mem);
-+/*
-+ * N.B., Do NOT reference the '_numa_mem_' per cpu variable directly.
-+ * It will not be defined when CONFIG_HAVE_MEMORYLESS_NODES is not defined.
-+ * Use the accessor functions set_numa_mem(), numa_mem_id() and cpu_to_mem()
-+ * defined in <linux/topology.h>.
-+ */
-+DEFINE_PER_CPU(int, _numa_mem_);		/* Kernel "local memory" node */
-+EXPORT_PER_CPU_SYMBOL(_numa_mem_);
- #endif
- 
- /*
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
