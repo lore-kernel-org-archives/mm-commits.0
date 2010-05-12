@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch added to -mm tree
-Date: Tue, 11 May 2010 23:22:41 -0400
-Message-ID: <201005120624.o4C6O9S4013527@imap1.linux-foundation.org>
+Subject: + cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch added to -mm tree
+Date: Wed, 12 May 2010 00:27:59 -0400
+Message-ID: <201005120729.o4C7TRxD016177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753343Ab0ELGYl (ORCPT
+	by vger.kernel.org with ESMTP id S1751698Ab0ELH3b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 May 2010 02:24:41 -0400
+	Wed, 12 May 2010 03:29:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kiran@scalex86.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, menage@google.com, miaox@cn.fujitsu.com, npiggin@suse.de, rientjes@google.com
+Cc: akpm@linux-foundation.org, miaox@cn.fujitsu.com
 
 
 The patch titled
-     cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix
+     cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling
 has been added to the -mm tree.  Its filename is
-     cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+     cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix
+Subject: cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling
 From: Andrew Morton <akpm@linux-foundation.org>
 
-don't try to take task_lock() twice
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Paul Menage <menage@google.com>
-Cc: Ravikiran Thirumalai <kiran@scalex86.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/cpuset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix kernel/exit.c
---- a/kernel/exit.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix
-+++ a/kernel/exit.c
-@@ -698,10 +698,8 @@ static void exit_mm(struct task_struct *
- 	/* We don't want this task to be frozen prematurely */
- 	clear_freeze_flag(tsk);
- #ifdef CONFIG_NUMA
--	task_lock(tsk);
- 	mpol_put(tsk->mempolicy);
- 	tsk->mempolicy = NULL;
--	task_unlock(tsk);
- #endif
- 	task_unlock(tsk);
- 	mm_update_next_owner(mm);
+diff -puN kernel/cpuset.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling
++++ a/kernel/cpuset.c
+@@ -980,7 +980,7 @@ repeat:
+ 	smp_mb();
+ 
+ 	/*
+-	 * Allocating of memory is very fast, we needn't sleep when waitting
++	 * Allocation of memory is very fast, we needn't sleep when waiting
+ 	 * for the read-side.
+ 	 */
+ 	while (ACCESS_ONCE(tsk->mems_allowed_change_disable)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +85,7 @@ scsi-remove-private-bit-macros.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
 cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
 mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
 mm-export-unusable-free-space-index-via-debugfs.patch
 mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
