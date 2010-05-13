@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 13 May 2010 14:36:43 -0700
-Message-ID: <201005132136.o4DLahOo021692@imap1.linux-foundation.org>
+Subject: + mmc-drop-the-state-argument-to-mmc_suspend_host.patch added to -mm tree
+Date: Thu, 13 May 2010 14:45:22 -0700
+Message-ID: <201005132145.o4DLjMeP022106__46825.6837608807$1273787175$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758821Ab0EMVhO (ORCPT
+	by vger.kernel.org with ESMTP id S1754485Ab0EMVqA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 May 2010 17:37:14 -0400
+	Thu, 13 May 2010 17:46:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, stefani@seibold.net
+Cc: matt@console-pimps.org, cbouatmailru@gmail.com, linux-mmc@vger.kernel.org, mirq-linux@rere.qmqm.pl
 
 
 The patch titled
-     kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes
+     mmc: remove the "state" argument to mmc_suspend_host()
 has been added to the -mm tree.  Its filename is
-     kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+     mmc-drop-the-state-argument-to-mmc_suspend_host.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,139 +34,344 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: remove the "state" argument to mmc_suspend_host()
+From: Matt Fleming <matt@console-pimps.org>
 
-WARNING: printk() should include KERN_ facility level
-#144: FILE: samples/kfifo/bytestream-example.c:84:
-+		printk("%d ", i);
+Even though many mmc host drivers pass a pm_message_t argument to
+mmc_suspend_host() that argument isn't used the by MMC core.  As host
+drivers are converted to dev_pm_ops they'll have to construct
+pm_message_t's (as they won't be passed by the PM subsystem any more) just
+to appease the mmc suspend interface.
 
-WARNING: please, no space before tabs
-#252: FILE: samples/kfifo/dma-example.c:25:
-+^Iint ^I^I^Ii;$
+We might as well just delete the unused paramter.
 
-WARNING: please, no space before tabs
-#253: FILE: samples/kfifo/dma-example.c:26:
-+^Iunsigned int ^I^Iret;$
-
-WARNING: printk() should include KERN_ facility level
-#426: FILE: samples/kfifo/inttype-example.c:80:
-+		printk("%d ", i);
-
-WARNING: do not add new typedefs
-#560: FILE: samples/kfifo/record-example.c:53:
-+typedef STRUCT_KFIFO_REC_1(FIFO_SIZE) mytest;
-
-total: 0 errors, 5 warnings, 622 lines checked
-
-./patches/kfifo-add-example-files-to-the-kernel-sample-directory.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Matt Fleming <matt@console-pimps.org>
+Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
+Acked-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>ZZ
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kfifo/dma-example.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mmc/core/core.c          |    3 +--
+ drivers/mmc/host/at91_mci.c      |    2 +-
+ drivers/mmc/host/au1xmmc.c       |    2 +-
+ drivers/mmc/host/bfin_sdh.c      |    2 +-
+ drivers/mmc/host/cb710-mmc.c     |    2 +-
+ drivers/mmc/host/davinci_mmc.c   |    3 +--
+ drivers/mmc/host/imxmmc.c        |    2 +-
+ drivers/mmc/host/mmci.c          |    2 +-
+ drivers/mmc/host/msm_sdcc.c      |    2 +-
+ drivers/mmc/host/mvsdio.c        |    2 +-
+ drivers/mmc/host/mxcmmc.c        |    2 +-
+ drivers/mmc/host/omap.c          |    2 +-
+ drivers/mmc/host/omap_hsmmc.c    |    2 +-
+ drivers/mmc/host/pxamci.c        |    2 +-
+ drivers/mmc/host/s3cmci.c        |    3 +--
+ drivers/mmc/host/sdhci-of-core.c |    2 +-
+ drivers/mmc/host/sdhci.c         |    2 +-
+ drivers/mmc/host/sdricoh_cs.c    |    2 +-
+ drivers/mmc/host/tifm_sd.c       |    2 +-
+ drivers/mmc/host/tmio_mmc.c      |    2 +-
+ drivers/mmc/host/via-sdmmc.c     |    2 +-
+ drivers/mmc/host/wbsd.c          |    2 +-
+ include/linux/mmc/host.h         |    2 +-
+ 23 files changed, 23 insertions(+), 26 deletions(-)
 
-diff -puN samples/kfifo/dma-example.c~kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes samples/kfifo/dma-example.c
---- a/samples/kfifo/dma-example.c~kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes
-+++ a/samples/kfifo/dma-example.c
-@@ -22,8 +22,8 @@ static struct kfifo fifo;
- 
- static int __init example_init(void)
+diff -puN drivers/mmc/core/core.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/core/core.c
+@@ -1252,9 +1252,8 @@ EXPORT_SYMBOL(mmc_card_can_sleep);
+ /**
+  *	mmc_suspend_host - suspend a host
+  *	@host: mmc host
+- *	@state: suspend mode (PM_SUSPEND_xxx)
+  */
+-int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
++int mmc_suspend_host(struct mmc_host *host)
  {
--	int 			i;
--	unsigned int 		ret;
-+	int			i;
-+	unsigned int		ret;
- 	struct scatterlist	sg[10];
+ 	int err = 0;
  
- 	printk(KERN_INFO "DMA fifo test start\n");
+diff -puN drivers/mmc/host/at91_mci.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/at91_mci.c
+@@ -1157,7 +1157,7 @@ static int at91_mci_suspend(struct platf
+ 		enable_irq_wake(host->board->det_pin);
+ 
+ 	if (mmc)
+-		ret = mmc_suspend_host(mmc, state);
++		ret = mmc_suspend_host(mmc);
+ 
+ 	return ret;
+ }
+diff -puN drivers/mmc/host/au1xmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/au1xmmc.c
+--- a/drivers/mmc/host/au1xmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/au1xmmc.c
+@@ -1142,7 +1142,7 @@ static int au1xmmc_suspend(struct platfo
+ 	struct au1xmmc_host *host = platform_get_drvdata(pdev);
+ 	int ret;
+ 
+-	ret = mmc_suspend_host(host->mmc, state);
++	ret = mmc_suspend_host(host->mmc);
+ 	if (ret)
+ 		return ret;
+ 
+diff -puN drivers/mmc/host/bfin_sdh.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/bfin_sdh.c
+--- a/drivers/mmc/host/bfin_sdh.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/bfin_sdh.c
+@@ -576,7 +576,7 @@ static int sdh_suspend(struct platform_d
+ 	int ret = 0;
+ 
+ 	if (mmc)
+-		ret = mmc_suspend_host(mmc, state);
++		ret = mmc_suspend_host(mmc);
+ 
+ 	bfin_write_SDH_PWR_CTL(bfin_read_SDH_PWR_CTL() & ~PWR_ON);
+ 	peripheral_free_list(drv_data->pin_req);
+diff -puN drivers/mmc/host/cb710-mmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/cb710-mmc.c
+--- a/drivers/mmc/host/cb710-mmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/cb710-mmc.c
+@@ -675,7 +675,7 @@ static int cb710_mmc_suspend(struct plat
+ 	struct mmc_host *mmc = cb710_slot_to_mmc(slot);
+ 	int err;
+ 
+-	err = mmc_suspend_host(mmc, state);
++	err = mmc_suspend_host(mmc);
+ 	if (err)
+ 		return err;
+ 
+diff -puN drivers/mmc/host/davinci_mmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/davinci_mmc.c
+--- a/drivers/mmc/host/davinci_mmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/davinci_mmc.c
+@@ -1337,11 +1337,10 @@ static int davinci_mmcsd_suspend(struct 
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct mmc_davinci_host *host = platform_get_drvdata(pdev);
+-	struct pm_message msg = { PM_EVENT_SUSPEND };
+ 	int ret;
+ 
+ 	mmc_host_enable(host->mmc);
+-	ret = mmc_suspend_host(host->mmc, msg);
++	ret = mmc_suspend_host(host->mmc);
+ 	if (!ret) {
+ 		writel(0, host->base + DAVINCI_MMCIM);
+ 		mmc_davinci_reset_ctrl(host, 1);
+diff -puN drivers/mmc/host/imxmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/imxmmc.c
+--- a/drivers/mmc/host/imxmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/imxmmc.c
+@@ -1115,7 +1115,7 @@ static int imxmci_suspend(struct platfor
+ 	int ret = 0;
+ 
+ 	if (mmc)
+-		ret = mmc_suspend_host(mmc, state);
++		ret = mmc_suspend_host(mmc);
+ 
+ 	return ret;
+ }
+diff -puN drivers/mmc/host/mmci.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/mmci.c
+--- a/drivers/mmc/host/mmci.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/mmci.c
+@@ -824,7 +824,7 @@ static int mmci_suspend(struct amba_devi
+ 	if (mmc) {
+ 		struct mmci_host *host = mmc_priv(mmc);
+ 
+-		ret = mmc_suspend_host(mmc, state);
++		ret = mmc_suspend_host(mmc);
+ 		if (ret == 0)
+ 			writel(0, host->base + MMCIMASK0);
+ 	}
+diff -puN drivers/mmc/host/msm_sdcc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/msm_sdcc.c
+--- a/drivers/mmc/host/msm_sdcc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/msm_sdcc.c
+@@ -1327,7 +1327,7 @@ msmsdcc_suspend(struct platform_device *
+ 			disable_irq(host->stat_irq);
+ 
+ 		if (mmc->card && mmc->card->type != MMC_TYPE_SDIO)
+-			rc = mmc_suspend_host(mmc, state);
++			rc = mmc_suspend_host(mmc);
+ 		if (!rc)
+ 			msmsdcc_writel(host, 0, MMCIMASK0);
+ 		if (host->clks_on)
+diff -puN drivers/mmc/host/mvsdio.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/mvsdio.c
+--- a/drivers/mmc/host/mvsdio.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/mvsdio.c
+@@ -865,7 +865,7 @@ static int mvsd_suspend(struct platform_
+ 	int ret = 0;
+ 
+ 	if (mmc)
+-		ret = mmc_suspend_host(mmc, state);
++		ret = mmc_suspend_host(mmc);
+ 
+ 	return ret;
+ }
+diff -puN drivers/mmc/host/mxcmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/mxcmmc.c
+--- a/drivers/mmc/host/mxcmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/mxcmmc.c
+@@ -921,7 +921,7 @@ static int mxcmci_suspend(struct platfor
+ 	int ret = 0;
+ 
+ 	if (mmc)
+-		ret = mmc_suspend_host(mmc, state);
++		ret = mmc_suspend_host(mmc);
+ 
+ 	return ret;
+ }
+diff -puN drivers/mmc/host/omap.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/omap.c
+--- a/drivers/mmc/host/omap.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/omap.c
+@@ -1561,7 +1561,7 @@ static int mmc_omap_suspend(struct platf
+ 		struct mmc_omap_slot *slot;
+ 
+ 		slot = host->slots[i];
+-		ret = mmc_suspend_host(slot->mmc, mesg);
++		ret = mmc_suspend_host(slot->mmc);
+ 		if (ret < 0) {
+ 			while (--i >= 0) {
+ 				slot = host->slots[i];
+diff -puN drivers/mmc/host/omap_hsmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -2292,7 +2292,7 @@ static int omap_hsmmc_suspend(struct dev
+ 		}
+ 		cancel_work_sync(&host->mmc_carddetect_work);
+ 		mmc_host_enable(host->mmc);
+-		ret = mmc_suspend_host(host->mmc, state);
++		ret = mmc_suspend_host(host->mmc);
+ 		if (ret == 0) {
+ 			omap_hsmmc_disable_irq(host);
+ 			OMAP_HSMMC_WRITE(host->base, HCTL,
+diff -puN drivers/mmc/host/pxamci.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/pxamci.c
+--- a/drivers/mmc/host/pxamci.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/pxamci.c
+@@ -813,7 +813,7 @@ static int pxamci_suspend(struct device 
+ 	int ret = 0;
+ 
+ 	if (mmc)
+-		ret = mmc_suspend_host(mmc, PMSG_SUSPEND);
++		ret = mmc_suspend_host(mmc);
+ 
+ 	return ret;
+ }
+diff -puN drivers/mmc/host/s3cmci.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/s3cmci.c
+@@ -1881,9 +1881,8 @@ MODULE_DEVICE_TABLE(platform, s3cmci_dri
+ static int s3cmci_suspend(struct device *dev)
+ {
+ 	struct mmc_host *mmc = platform_get_drvdata(to_platform_device(dev));
+-	struct pm_message event = { PM_EVENT_SUSPEND };
+ 
+-	return mmc_suspend_host(mmc, event);
++	return mmc_suspend_host(mmc);
+ }
+ 
+ static int s3cmci_resume(struct device *dev)
+diff -puN drivers/mmc/host/sdhci-of-core.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/sdhci-of-core.c
+--- a/drivers/mmc/host/sdhci-of-core.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/sdhci-of-core.c
+@@ -89,7 +89,7 @@ static int sdhci_of_suspend(struct of_de
+ {
+ 	struct sdhci_host *host = dev_get_drvdata(&ofdev->dev);
+ 
+-	return mmc_suspend_host(host->mmc, state);
++	return mmc_suspend_host(host->mmc);
+ }
+ 
+ static int sdhci_of_resume(struct of_device *ofdev)
+diff -puN drivers/mmc/host/sdhci.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/sdhci.c
+@@ -1597,7 +1597,7 @@ int sdhci_suspend_host(struct sdhci_host
+ 
+ 	sdhci_disable_card_detection(host);
+ 
+-	ret = mmc_suspend_host(host->mmc, state);
++	ret = mmc_suspend_host(host->mmc);
+ 	if (ret)
+ 		return ret;
+ 
+diff -puN drivers/mmc/host/sdricoh_cs.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/sdricoh_cs.c
+--- a/drivers/mmc/host/sdricoh_cs.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/sdricoh_cs.c
+@@ -519,7 +519,7 @@ static int sdricoh_pcmcia_suspend(struct
+ {
+ 	struct mmc_host *mmc = link->priv;
+ 	dev_dbg(&link->dev, "suspend\n");
+-	mmc_suspend_host(mmc, PMSG_SUSPEND);
++	mmc_suspend_host(mmc);
+ 	return 0;
+ }
+ 
+diff -puN drivers/mmc/host/tifm_sd.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/tifm_sd.c
+--- a/drivers/mmc/host/tifm_sd.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/tifm_sd.c
+@@ -1032,7 +1032,7 @@ static void tifm_sd_remove(struct tifm_d
+ 
+ static int tifm_sd_suspend(struct tifm_dev *sock, pm_message_t state)
+ {
+-	return mmc_suspend_host(tifm_get_drvdata(sock), state);
++	return mmc_suspend_host(tifm_get_drvdata(sock));
+ }
+ 
+ static int tifm_sd_resume(struct tifm_dev *sock)
+diff -puN drivers/mmc/host/tmio_mmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -657,7 +657,7 @@ static int tmio_mmc_suspend(struct platf
+ 	struct mmc_host *mmc = platform_get_drvdata(dev);
+ 	int ret;
+ 
+-	ret = mmc_suspend_host(mmc, state);
++	ret = mmc_suspend_host(mmc);
+ 
+ 	/* Tell MFD core it can disable us now.*/
+ 	if (!ret && cell->disable)
+diff -puN drivers/mmc/host/via-sdmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/via-sdmmc.c
+--- a/drivers/mmc/host/via-sdmmc.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/via-sdmmc.c
+@@ -1280,7 +1280,7 @@ static int via_sd_suspend(struct pci_dev
+ 	via_save_pcictrlreg(host);
+ 	via_save_sdcreg(host);
+ 
+-	ret = mmc_suspend_host(host->mmc, state);
++	ret = mmc_suspend_host(host->mmc);
+ 
+ 	pci_save_state(pcidev);
+ 	pci_enable_wake(pcidev, pci_choose_state(pcidev, state), 0);
+diff -puN drivers/mmc/host/wbsd.c~mmc-drop-the-state-argument-to-mmc_suspend_host drivers/mmc/host/wbsd.c
+--- a/drivers/mmc/host/wbsd.c~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/drivers/mmc/host/wbsd.c
+@@ -1819,7 +1819,7 @@ static int wbsd_suspend(struct wbsd_host
+ {
+ 	BUG_ON(host == NULL);
+ 
+-	return mmc_suspend_host(host->mmc, state);
++	return mmc_suspend_host(host->mmc);
+ }
+ 
+ static int wbsd_resume(struct wbsd_host *host)
+diff -puN include/linux/mmc/host.h~mmc-drop-the-state-argument-to-mmc_suspend_host include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-drop-the-state-argument-to-mmc_suspend_host
++++ a/include/linux/mmc/host.h
+@@ -230,7 +230,7 @@ static inline void *mmc_priv(struct mmc_
+ #define mmc_classdev(x)	(&(x)->class_dev)
+ #define mmc_hostname(x)	(dev_name(&(x)->class_dev))
+ 
+-extern int mmc_suspend_host(struct mmc_host *, pm_message_t);
++extern int mmc_suspend_host(struct mmc_host *);
+ extern int mmc_resume_host(struct mmc_host *);
+ 
+ extern void mmc_power_save_host(struct mmc_host *host);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matt@console-pimps.org are
 
-origin.patch
-mmc-at91_mci-modify-cache-flush-routines-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-cpufreq-fix-race-condition-in-store_scaling_governor-fix.patch
-jfs-free-sbi-memory-in-error-path.patch
-fix-drm-radeon-kms-hdmi-irq-support.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-fix-stop_machine-reimplement-using-cpu_stop.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
-highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
-include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-memcg-move-charge-of-file-pages-fix-4.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
-pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-fix.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+mmc-sdhci_int_data_mask-typo-error.patch
+sdhci-rename-sdhci-i-o-accessor-functions.patch
+mmc-omap-hs-mmc-convert-to-dev_pm_ops.patch
+mmc-drop-the-state-argument-to-mmc_suspend_host.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn.patch
+panic-add-taint-flag-taint_firmware_workaround-i.patch
+pci-dmar-combine-the-bios-dmar-table-warning-messages.patch
+pci-dmar-tone-down-warnings-about-invalid-bios-dmar-tables.patch
 
