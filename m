@@ -1,92 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cachefiles-fix-error-handling-in-cachefiles_determine_cache_security.patch removed from -mm tree
-Date: Thu, 13 May 2010 11:30:09 -0400
-Message-ID: <201005131831.o4DIVbqp012774@imap1.linux-foundation.org>
+Subject: [merged] fsnotify-initialize-mask-in-fsnotify_perm.patch removed from -mm tree
+Date: Thu, 13 May 2010 11:30:12 -0400
+Message-ID: <201005131831.o4DIVdSE012781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756226Ab0EMSbt (ORCPT
+	by vger.kernel.org with ESMTP id S1759189Ab0EMSbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 May 2010 14:31:49 -0400
+	Thu, 13 May 2010 14:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: eparis@redhat.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cachefiles: fix error handling in cachefiles_determine_cache_security()
+     fsnotify: initialize mask in fsnotify_perm
 has been removed from the -mm tree.  Its filename was
-     cachefiles-fix-error-handling-in-cachefiles_determine_cache_security.patch
+     fsnotify-initialize-mask-in-fsnotify_perm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cachefiles: fix error handling in cachefiles_determine_cache_security()
-From: David Howells <dhowells@redhat.com>
+Subject: fsnotify: initialize mask in fsnotify_perm
+From: Eric Paris <eparis@redhat.com>
 
-cachefiles_determine_cache_security() is expected to return with a
-security override in place.  However, if set_create_files_as() fails, we
-fail to do this.  In this case, we should just reinstate the security
-override that was set by the caller.
+akpm got a warning the fsnotify_mask could be used uninitialized in
+fsnotify_perm().  It's not actually possible but his compiler complained
+about it.  This patch just initializes it to 0 to shut up the compiler.
 
-Furthermore, if set_create_files_as() fails, we should dispose of the new
-credentials we were in the process of creating.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cachefiles/security.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/fsnotify.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/cachefiles/security.c~cachefiles-fix-error-handling-in-cachefiles_determine_cache_security fs/cachefiles/security.c
---- a/fs/cachefiles/security.c~cachefiles-fix-error-handling-in-cachefiles_determine_cache_security
-+++ a/fs/cachefiles/security.c
-@@ -77,6 +77,8 @@ static int cachefiles_check_cache_dir(st
- /*
-  * check the security details of the on-disk cache
-  * - must be called with security override in force
-+ * - must return with a security override in force - even in the case of an
-+ *   error
-  */
- int cachefiles_determine_cache_security(struct cachefiles_cache *cache,
- 					struct dentry *root,
-@@ -99,6 +101,8 @@ int cachefiles_determine_cache_security(
- 	 * which create files */
- 	ret = set_create_files_as(new, root->d_inode);
- 	if (ret < 0) {
-+		abort_creds(new);
-+		cachefiles_begin_secure(cache, _saved_cred);
- 		_leave(" = %d [cfa]", ret);
- 		return ret;
- 	}
+diff -puN include/linux/fsnotify.h~fsnotify-initialize-mask-in-fsnotify_perm include/linux/fsnotify.h
+--- a/include/linux/fsnotify.h~fsnotify-initialize-mask-in-fsnotify_perm
++++ a/include/linux/fsnotify.h
+@@ -39,16 +39,18 @@ static inline int fsnotify_perm(struct f
+ {
+ 	struct path *path = &file->f_path;
+ 	struct inode *inode = path->dentry->d_inode;
+-	__u32 fsnotify_mask;
++	__u32 fsnotify_mask = 0;
+ 
+ 	if (file->f_mode & FMODE_NONOTIFY)
+ 		return 0;
+ 	if (!(mask & (MAY_READ | MAY_OPEN)))
+ 		return 0;
+-	if (mask & MAY_READ)
+-		fsnotify_mask = FS_ACCESS_PERM;
+ 	if (mask & MAY_OPEN)
+ 		fsnotify_mask = FS_OPEN_PERM;
++	else if (mask & MAY_READ)
++		fsnotify_mask = FS_ACCESS_PERM;
++	else
++		BUG();
+ 
+ 	return fsnotify(inode, fsnotify_mask, path, FSNOTIFY_EVENT_PATH, NULL, 0);
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from eparis@redhat.com are
 
-origin.patch
 linux-next.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-mn10300-use-generic-atomich.patch
-umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
-umh-creds-kill-subprocess_info-cred-logic.patch
-coredump-factor-out-the-not-ispipe-file-checks.patch
-coredump-cleanup-ispipe-code.patch
-coredump-factor-out-put_cred-calls.patch
-coredump-shift-down_writemmap_sem-into-coredump_wait.patch
-proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
-proc_sched_show_task-use-get_nr_threads.patch
-keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
-frv-use-asm-generic-scatterlisth.patch
-mn10300-use-asm-generic-scatterlisth.patch
-frv-remove-struct-file-argument-from-sysctl-proc_handler.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+ext3-fixup-rb_root-initializations-to-use-rb_root.patch
 
