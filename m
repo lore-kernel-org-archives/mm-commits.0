@@ -1,128 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] vmscan-remove-may_unmap-scan-control.patch removed from -mm tree
-Date: Thu, 13 May 2010 12:40:27 -0700
-Message-ID: <201005131940.o4DJeR0V016066@imap1.linux-foundation.org>
+Subject: + fb_defio-fix-for-non-dirty-ptes.patch added to -mm tree
+Date: Thu, 13 May 2010 12:42:52 -0700
+Message-ID: <201005131942.o4DJgqmA016236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50033 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752780Ab0EMTlS (ORCPT
+	by vger.kernel.org with ESMTP id S932535Ab0EMTmz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 May 2010 15:41:18 -0400
+	Thu, 13 May 2010 15:42:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: albert_herranz@yahoo.es, jayakumar.lkml@gmail.com
 
 
 The patch titled
-     vmscan: remove may_unmap scan control
-has been removed from the -mm tree.  Its filename was
-     vmscan-remove-may_unmap-scan-control.patch
+     fb_defio: fix for non-dirty ptes
+has been added to the -mm tree.  Its filename is
+     fb_defio-fix-for-non-dirty-ptes.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: remove may_unmap scan control
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: fb_defio: fix for non-dirty ptes
+From: Albert Herranz <albert_herranz@yahoo.es>
 
-Every reclaim entry function sets this to the same value.
+Fix a problem observed while using fb_defio with a short delay on a
+PowerPC platform.
 
-Make it default behaviour and remove the knob.
+It is possible that page_mkclean() is invoked in the deferred io work
+function _before_ a PTE has been marked dirty.  In this case, the page is
+removed from the defio pagelist but page_mkclean() does not write-protect
+the page again.  The end result is that defio ignores all subsequent
+writes to the page and the corresponding portions of the framebuffer never
+get updated.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
+The fix consists in keeping track of the pages with non-dirty PTEs,
+re-checking them again on the next deferred io work iteration.  Note that
+those pages are not passed to the defio callback as they are not written
+by userspace yet.
+
+Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
+Acked-by: Jaya Kumar <jayakumar.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/video/fb_defio.c |   40 +++++++++++++++++++++++++++++--------
+ 1 file changed, 32 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-remove-may_unmap-scan-control mm/vmscan.c
---- a/mm/vmscan.c~vmscan-remove-may_unmap-scan-control
-+++ a/mm/vmscan.c
-@@ -65,9 +65,6 @@ struct scan_control {
- 
- 	int may_writepage;
- 
--	/* Can mapped pages be reclaimed? */
--	int may_unmap;
--
- 	/* Can pages be swapped as part of reclaim? */
- 	int may_swap;
- 
-@@ -655,9 +652,6 @@ static unsigned long shrink_page_list(st
- 		if (unlikely(!page_evictable(page, NULL)))
- 			goto cull_mlocked;
- 
--		if (!sc->may_unmap && page_mapped(page))
--			goto keep_locked;
--
- 		/* Double the slab pressure for mapped and swapcache pages */
- 		if (page_mapped(page) || PageSwapCache(page))
- 			sc->nr_scanned++;
-@@ -1870,7 +1864,6 @@ unsigned long try_to_free_pages(struct z
- 		.gfp_mask = gfp_mask,
- 		.may_writepage = !laptop_mode,
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
--		.may_unmap = 1,
- 		.may_swap = 1,
- 		.swappiness = vm_swappiness,
- 		.order = order,
-@@ -1891,7 +1884,6 @@ unsigned long mem_cgroup_shrink_node_zon
+diff -puN drivers/video/fb_defio.c~fb_defio-fix-for-non-dirty-ptes drivers/video/fb_defio.c
+--- a/drivers/video/fb_defio.c~fb_defio-fix-for-non-dirty-ptes
++++ a/drivers/video/fb_defio.c
+@@ -155,25 +155,41 @@ static void fb_deferred_io_work(struct w
  {
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
--		.may_unmap = 1,
- 		.may_swap = !noswap,
- 		.swappiness = swappiness,
- 		.order = 0,
-@@ -1924,7 +1916,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct zonelist *zonelist;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
--		.may_unmap = 1,
- 		.may_swap = !noswap,
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
- 		.swappiness = swappiness,
-@@ -1998,7 +1989,6 @@ static unsigned long balance_pgdat(pg_da
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
--		.may_unmap = 1,
- 		.may_swap = 1,
- 		/*
- 		 * kswapd doesn't want to be bailed out while reclaim. because
-@@ -2381,7 +2371,6 @@ unsigned long shrink_all_memory(unsigned
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_HIGHUSER_MOVABLE,
- 		.may_swap = 1,
--		.may_unmap = 1,
- 		.may_writepage = 1,
- 		.nr_to_reclaim = nr_to_reclaim,
- 		.hibernation_mode = 1,
-@@ -2565,7 +2554,6 @@ static int __zone_reclaim(struct zone *z
- 	int priority;
- 	struct scan_control sc = {
- 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
--		.may_unmap = 1,
- 		.may_swap = !!(zone_reclaim_mode & RECLAIM_SWAP),
- 		.nr_to_reclaim = max_t(unsigned long, nr_pages,
- 				       SWAP_CLUSTER_MAX),
+ 	struct fb_info *info = container_of(work, struct fb_info,
+ 						deferred_work.work);
+-	struct list_head *node, *next;
+-	struct page *cur;
+ 	struct fb_deferred_io *fbdefio = info->fbdefio;
++	struct page *page, *tmp_page;
++	struct list_head *node, *tmp_node;
++	struct list_head non_dirty;
++
++	INIT_LIST_HEAD(&non_dirty);
+ 
+ 	/* here we mkclean the pages, then do all deferred IO */
+ 	mutex_lock(&fbdefio->lock);
+-	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
+-		lock_page(cur);
+-		page_mkclean(cur);
+-		unlock_page(cur);
++	list_for_each_entry_safe(page, tmp_page, &fbdefio->pagelist, lru) {
++		lock_page(page);
++		/*
++		 * The workqueue callback can be triggered after a
++		 * ->page_mkwrite() call but before the PTE has been marked
++		 * dirty. In this case page_mkclean() won't "rearm" the page.
++		 *
++		 * To avoid this, remove those "non-dirty" pages from the
++		 * pagelist before calling the driver's callback, then add
++		 * them back to get processed on the next work iteration.
++		 * At that time, their PTEs will hopefully be dirty for real.
++		 */
++		if (!page_mkclean(page))
++			list_move_tail(&page->lru, &non_dirty);
++		unlock_page(page);
+ 	}
+ 
+ 	/* driver's callback with pagelist */
+ 	fbdefio->deferred_io(info, &fbdefio->pagelist);
+ 
+-	/* clear the list */
+-	list_for_each_safe(node, next, &fbdefio->pagelist) {
++	/* clear the list... */
++	list_for_each_safe(node, tmp_node, &fbdefio->pagelist) {
+ 		list_del(node);
+ 	}
++	/* ... and add back the "non-dirty" pages to the list */
++	list_splice_tail(&non_dirty, &fbdefio->pagelist);
+ 	mutex_unlock(&fbdefio->lock);
+ }
+ 
+@@ -202,6 +218,7 @@ EXPORT_SYMBOL_GPL(fb_deferred_io_open);
+ void fb_deferred_io_cleanup(struct fb_info *info)
+ {
+ 	struct fb_deferred_io *fbdefio = info->fbdefio;
++	struct list_head *node, *tmp_node;
+ 	struct page *page;
+ 	int i;
+ 
+@@ -209,6 +226,13 @@ void fb_deferred_io_cleanup(struct fb_in
+ 	cancel_delayed_work(&info->deferred_work);
+ 	flush_scheduled_work();
+ 
++	/*  the list may have still some non-dirty pages at this point */
++	mutex_lock(&fbdefio->lock);
++	list_for_each_safe(node, tmp_node, &fbdefio->pagelist) {
++		list_del(node);
++	}
++	mutex_unlock(&fbdefio->lock);
++
+ 	/* clear out the mapping that we setup */
+ 	for (i = 0 ; i < info->fix.smem_len; i += PAGE_SIZE) {
+ 		page = fb_deferred_io_page(info, i);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from albert_herranz@yahoo.es are
 
-sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
-mincore-cleanups.patch
-mincore-break-do_mincore-into-logical-pieces.patch
-mincore-pass-ranges-as-startend-address-pairs.patch
-mincore-do-nested-page-table-walks.patch
-mm-document-follow_page.patch
-vmscan-remove-may_unmap-scan-control.patch
-vmscan-remove-all_unreclaimable-scan-control.patch
-vmscan-remove-isolate_pages-callback-scan-control.patch
+fb_defio-fix-for-non-dirty-ptes.patch
 
