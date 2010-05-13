@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + idr-fix-backtrack-logic-in-idr_remove_all.patch added to -mm tree
-Date: Thu, 13 May 2010 14:17:38 -0700
-Message-ID: <201005132117.o4DLHcSw020780@imap1.linux-foundation.org>
+Subject: + kfifo-fix-kfifo-miss-use-of-nozamic.patch added to -mm tree
+Date: Thu, 13 May 2010 14:35:09 -0700
+Message-ID: <201005132135.o4DLZ9WI021613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751875Ab0EMVSS (ORCPT
+	by vger.kernel.org with ESMTP id S1758837Ab0EMVfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 May 2010 17:18:18 -0400
+	Thu, 13 May 2010 17:35:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: imre.deak@nokia.com, eparis@redhat.com, paulmck@linux.vnet.ibm.com, stable@kernel.org, tj@kernel.org
+Cc: stefani@seibold.net, greg@kroah.com
 
 
 The patch titled
-     idr: fix backtrack logic in idr_remove_all
+     kfifo: fix kfifo miss use of nozami.c
 has been added to the -mm tree.  Its filename is
-     idr-fix-backtrack-logic-in-idr_remove_all.patch
+     kfifo-fix-kfifo-miss-use-of-nozamic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: fix backtrack logic in idr_remove_all
-From: Imre Deak <imre.deak@nokia.com>
+Subject: kfifo: fix kfifo miss use of nozami.c
+From: Stefani Seibold <stefani@seibold.net>
 
-Currently idr_remove_all will fail with a use after free error if
-idr::layers is bigger than 2, which on 32 bit systems corresponds to items
-more than 1024.  This is due to stepping back too many levels during
-backtracking.  For simplicity let's assume that IDR_SIZE=1 -> we have 2
-nodes at each level below the root node and each leaf node stores two IDs.
- (In reality for 32 bit systems IDR_SIZE=5, with 32 nodes at each sub-root
-level and 32 IDs in each leaf node).  The sequence of freeing the nodes at
-the moment is as follows:
+There are different types of a fifo which can not handled in C without a
+lot of overhead.  So i decided to write the API as a set of macros, which
+is the only way to do a kind of template meta programming without C++. 
+This macros handles the different types of fifos in a transparent way.
 
-layer
-1 ->                       a(7)
-2 ->            b(3)                  c(5)
-3 ->        d(1)   e(2)           f(4)    g(6)
+There are a lot of benefits:
 
-Until step 4 things go fine, but then node c is freed, whereas node g
-should be freed first.  Since node c contains the pointer to node g we'll
-have a use after free error at step 6.
+- Compile time handling of the different fifo types
+- Better performance (a save put or get of an integer does only generate 
+  9 assembly instructions on a x86) 
+- Type save
+- Cleaner interface, the additional kfifo_..._rec() functions are gone
+- Easier to use
+- Less error prone
+- Different types of fifos: it is now possible to define a int fifo or
+  any other type. See below for an example.
+- Smaller footprint for none byte type fifos
+- No need of creating a second hidden variable, like in the old DEFINE_KFIFO
 
-How many levels we step back after visiting the leaf nodes is currently
-determined by the msb of the id we are currently visiting:
+The API was not changed.
 
-Step
-1.          node d with IDs 0,1 is freed, current ID is advanced to 2.
-            msb of the current ID bit 1. This means we need to step back
-            1 level to node b and take the next sibling, node e.
-2-3.        node e with IDs 2,3 is freed, current ID is 4, msb is bit 2.
-            This means we need to step back 2 levels to node a, freeing
-            node b on the way.
-4-5.        node f with IDs 4,5 is freed, current ID is 6, msb is still
-            bit 2. This means we again need to step back 2 levels to node
-            a and free c on the way.
-6.          We should visit node g, but its pointer is not available as
-            node c was freed.
+There are now real in place fifos where the data space is a part of the
+structure.  The fifo needs now 20 byte plus the fifo space.  Dynamic
+assigned or allocated create a little bit more code.
 
-The fix changes how we determine the number of levels to step back. 
-Instead of deducting this merely from the msb of the current ID, we should
-really check if advancing the ID causes an overflow to a bit position
-corresponding to a given layer.  In the above example overflow from bit 0
-to bit 1 should mean stepping back 1 level.  Overflow from bit 1 to bit 2
-should mean stepping back 2 level and so on.
+Most of the macros code will be optimized away and simple generate a
+function call.  Only the really small one generates inline code.
 
-The fix was tested with elements up to 1 << 20, which corresponds to
-4 layers on 32 bit systems.
+Additionally you can now create fifos for any data type, not only the
+"unsigned char" byte streamed fifos.
 
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: <stable@kernel.org>		[2.6.34.1]
+There is also a new kfifo_put and kfifo_get function, to handle a single
+element in a fifo.  This macros generates inline code, which is lit bit
+larger but faster.
+
+I know that this kind of macros are very sophisticated and not easy to
+maintain.  But i have all tested and it works as expected.  I analyzed the
+output of the compiler and for the x86 the code is as good as hand written
+assembler code.  For the byte stream fifo the generate code is exact the
+same as with the current kfifo implementation.  For all other types of
+fifos the code is smaller before, because the interface is easier to use. 
+
+
+The main goal was to provide an API which is very intuitive, save and easy
+to use.  So linux will get now a powerful fifo API which provides all what
+a developer needs.  This will save in the future a lot of kernel space,
+since there is no need to write an own implementation.  Most of the device
+driver developers need a fifo, and also deep kernel development will gain
+benefit from this API.
+
+
+Here are the results of the text section usage:
+
+Example 1:
+                        kfifo_put/_get  kfifo_in/out    current kfifo
+dynamic allocated       0x000002a8      0x00000291      0x00000299
+in place                0x00000291      0x0000026e      0x00000273
+
+kfifo.c                 new             old
+text section size       0x00000be5      0x000008b2
+
+As you can see, kfifo_put/kfifo_get creates a little bit more code than
+kfifo_in/kfifo_out, but it is much faster (the code is inline).
+
+The code is complete hand crafted and optimized.  The text section size is
+as small as possible.  You get all the fifo handling in only 3 kb.  This
+includes type safe fix size records, dynamic records and DMA handling.
+
+This should be the final version. All requested features are implemented.
+
+Note: Most features of this API doesn't have any users.  All functions
+which are not used in the next 9 months will be removed.  So, please adapt
+your drivers and other sources as soon as possible to the new API and post
+it.  
+
+This are the features which are currently not used in the kernel:
+
+kfifo_to_user()
+kfifo_from_user()
+kfifo_dma_....() macros
+kfifo_esize()
+kfifo_recsize()
+kfifo_put()
+kfifo_get()
+
+The fixed size record elements, exclude "unsigned char" fifo's and the
+variable size records fifo's
+
+
+This patch:
+
+User of the kernel fifo should never bypass the API and directly access
+the fifo structure.  Otherwise it will be very hard to maintain the API.
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/char/nozomi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-backtrack-logic-in-idr_remove_all lib/idr.c
---- a/lib/idr.c~idr-fix-backtrack-logic-in-idr_remove_all
-+++ a/lib/idr.c
-@@ -445,6 +445,7 @@ EXPORT_SYMBOL(idr_remove);
- void idr_remove_all(struct idr *idp)
- {
- 	int n, id, max;
-+	int bt_mask;
- 	struct idr_layer *p;
- 	struct idr_layer *pa[MAX_LEVEL];
- 	struct idr_layer **paa = &pa[0];
-@@ -462,8 +463,9 @@ void idr_remove_all(struct idr *idp)
- 			p = p->ary[(id >> n) & IDR_MASK];
- 		}
- 
-+		bt_mask = id;
- 		id += 1 << n;
--		while (n < fls(id)) {
-+		while (n < fls(id & ~bt_mask)) {
- 			if (p)
- 				free_layer(p);
- 			n += IDR_BITS;
+diff -puN drivers/char/nozomi.c~kfifo-fix-kfifo-miss-use-of-nozamic drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~kfifo-fix-kfifo-miss-use-of-nozamic
++++ a/drivers/char/nozomi.c
+@@ -1741,8 +1741,7 @@ static int ntty_write_room(struct tty_st
+ 	if (dc) {
+ 		mutex_lock(&port->tty_sem);
+ 		if (port->port.count)
+-			room = port->fifo_ul.size -
+-					kfifo_len(&port->fifo_ul);
++			room = kfifo_avail(&port->fifo_ul);
+ 		mutex_unlock(&port->tty_sem);
+ 	}
+ 	return room;
 _
 
-Patches currently in -mm which might be from imre.deak@nokia.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-idr-fix-backtrack-logic-in-idr_remove_all.patch
+origin.patch
+linux-next.patch
+kfifo-kfifo_is_fullempty-should-return-bools-not-ints.patch
+kfifo-fix-kfifo-miss-use-of-nozamic.patch
+kfifo-add-the-new-generic-kfifo-api.patch
+kfifo-replace-the-old-non-generic-api.patch
+kfifo-add-example-files-to-the-kernel-sample-directory.patch
 
