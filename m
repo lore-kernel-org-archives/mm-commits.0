@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch added to -mm tree
-Date: Thu, 13 May 2010 14:15:49 -0700
-Message-ID: <201005132115.o4DLFnm6020741@imap1.linux-foundation.org>
+Subject: + idr-fix-backtrack-logic-in-idr_remove_all.patch added to -mm tree
+Date: Thu, 13 May 2010 14:17:38 -0700
+Message-ID: <201005132117.o4DLHcSw020780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752760Ab0EMVQV (ORCPT
+	by vger.kernel.org with ESMTP id S1751875Ab0EMVSS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 May 2010 17:16:21 -0400
+	Thu, 13 May 2010 17:18:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, akpm@linux-foundation.org
+Cc: imre.deak@nokia.com, eparis@redhat.com, paulmck@linux.vnet.ibm.com, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     highmem: remove unneeded #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT for debug_kmap_atomic()
+     idr: fix backtrack logic in idr_remove_all
 has been added to the -mm tree.  Its filename is
-     highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+     idr-fix-backtrack-logic-in-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: highmem: remove unneeded #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT for debug_kmap_atomic()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: idr: fix backtrack logic in idr_remove_all
+From: Imre Deak <imre.deak@nokia.com>
 
-In f4112de6b679d84bd9b9681c7504be7bdfb7c7d5 ("mm: introduce
-debug_kmap_atomic") I said that debug_kmap_atomic() needs
-CONFIG_TRACE_IRQFLAGS_SUPPORT.
+Currently idr_remove_all will fail with a use after free error if
+idr::layers is bigger than 2, which on 32 bit systems corresponds to items
+more than 1024.  This is due to stepping back too many levels during
+backtracking.  For simplicity let's assume that IDR_SIZE=1 -> we have 2
+nodes at each level below the root node and each leaf node stores two IDs.
+ (In reality for 32 bit systems IDR_SIZE=5, with 32 nodes at each sub-root
+level and 32 IDs in each leaf node).  The sequence of freeing the nodes at
+the moment is as follows:
 
-It was wrong.  (I thought irqs_disabled() is only available when the
-architecture has CONFIG_TRACE_IRQFLAGS_SUPPORT)
+layer
+1 ->                       a(7)
+2 ->            b(3)                  c(5)
+3 ->        d(1)   e(2)           f(4)    g(6)
 
-Remove the #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT check to enable
-kmap_atomic() debugging for the architectures which do not have
-CONFIG_TRACE_IRQFLAGS_SUPPORT.
+Until step 4 things go fine, but then node c is freed, whereas node g
+should be freed first.  Since node c contains the pointer to node g we'll
+have a use after free error at step 6.
 
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+How many levels we step back after visiting the leaf nodes is currently
+determined by the msb of the id we are currently visiting:
+
+Step
+1.          node d with IDs 0,1 is freed, current ID is advanced to 2.
+            msb of the current ID bit 1. This means we need to step back
+            1 level to node b and take the next sibling, node e.
+2-3.        node e with IDs 2,3 is freed, current ID is 4, msb is bit 2.
+            This means we need to step back 2 levels to node a, freeing
+            node b on the way.
+4-5.        node f with IDs 4,5 is freed, current ID is 6, msb is still
+            bit 2. This means we again need to step back 2 levels to node
+            a and free c on the way.
+6.          We should visit node g, but its pointer is not available as
+            node c was freed.
+
+The fix changes how we determine the number of levels to step back. 
+Instead of deducting this merely from the msb of the current ID, we should
+really check if advancing the ID causes an overflow to a bit position
+corresponding to a given layer.  In the above example overflow from bit 0
+to bit 1 should mean stepping back 1 level.  Overflow from bit 1 to bit 2
+should mean stepping back 2 level and so on.
+
+The fix was tested with elements up to 1 << 20, which corresponds to
+4 layers on 32 bit systems.
+
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>		[2.6.34.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    2 +-
- mm/highmem.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ lib/idr.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/highmem.h~highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic include/linux/highmem.h
---- a/include/linux/highmem.h~highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic
-+++ a/include/linux/highmem.h
-@@ -27,7 +27,7 @@ static inline void invalidate_kernel_vma
- 
- #include <asm/kmap_types.h>
- 
--#if defined(CONFIG_DEBUG_HIGHMEM) && defined(CONFIG_TRACE_IRQFLAGS_SUPPORT)
-+#ifdef CONFIG_DEBUG_HIGHMEM
- 
- void debug_kmap_atomic(enum km_type type);
- 
-diff -puN mm/highmem.c~highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic mm/highmem.c
---- a/mm/highmem.c~highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic
-+++ a/mm/highmem.c
-@@ -422,7 +422,7 @@ void __init page_address_init(void)
- 
- #endif	/* defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL) */
- 
--#if defined(CONFIG_DEBUG_HIGHMEM) && defined(CONFIG_TRACE_IRQFLAGS_SUPPORT)
-+#ifdef CONFIG_DEBUG_HIGHMEM
- 
- void debug_kmap_atomic(enum km_type type)
+diff -puN lib/idr.c~idr-fix-backtrack-logic-in-idr_remove_all lib/idr.c
+--- a/lib/idr.c~idr-fix-backtrack-logic-in-idr_remove_all
++++ a/lib/idr.c
+@@ -445,6 +445,7 @@ EXPORT_SYMBOL(idr_remove);
+ void idr_remove_all(struct idr *idp)
  {
+ 	int n, id, max;
++	int bt_mask;
+ 	struct idr_layer *p;
+ 	struct idr_layer *pa[MAX_LEVEL];
+ 	struct idr_layer **paa = &pa[0];
+@@ -462,8 +463,9 @@ void idr_remove_all(struct idr *idp)
+ 			p = p->ary[(id >> n) & IDR_MASK];
+ 		}
+ 
++		bt_mask = id;
+ 		id += 1 << n;
+-		while (n < fls(id)) {
++		while (n < fls(id & ~bt_mask)) {
+ 			if (p)
+ 				free_layer(p);
+ 			n += IDR_BITS;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from imre.deak@nokia.com are
 
-linux-next.patch
-highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
-cpu-hotplug-introduce-cpu_notify-__cpu_notify-cpu_notify_nofail.patch
-cpu-hotplug-return-better-errno-on-cpu-hotplug-failure.patch
-notifier-change-notifier_from_errno0-to-return-notify_ok.patch
-x86-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-topology-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-kernel-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-slab-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-iucv-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-ehca-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-s390-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-md-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-fault-injection-add-cpu-notifier-error-injection-module.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+idr-fix-backtrack-logic-in-idr_remove_all.patch
 
