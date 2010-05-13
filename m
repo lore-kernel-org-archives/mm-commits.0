@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh.patch removed from -mm tree
-Date: Thu, 13 May 2010 15:03:04 -0700
-Message-ID: <201005132203.o4DM34Ut023104@imap1.linux-foundation.org>
+Subject: + mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh.patch added to -mm tree
+Date: Thu, 13 May 2010 15:04:35 -0700
+Message-ID: <201005132204.o4DM4Z8L023167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752882Ab0EMWEH (ORCPT
+	by vger.kernel.org with ESMTP id S1752882Ab0EMWFc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 May 2010 18:04:07 -0400
+	Thu, 13 May 2010 18:05:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@gmx.de, dan.j.williams@intel.com, ian@mnementh.co.uk, lethal@linux-sh.org, magnus.damm@gmail.com, rmk@arm.linux.org.uk, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, dan.j.williams@intel.com, ian@mnementh.co.uk, lethal@linux-sh.org, magnus.damm@gmail.com, rmk@arm.linux.org.uk, sameo@linux.intel.com
 
 
 The patch titled
      mmc: add DMA support to tmio_mmc driver, when used on SuperH
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -41,14 +51,39 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/tmio_mmc.c |  341 ++++++++++++++++++++++++++++++----
- drivers/mmc/host/tmio_mmc.h |   11 +
- 2 files changed, 320 insertions(+), 32 deletions(-)
+ drivers/mfd/Kconfig         |    7 
+ drivers/mmc/host/tmio_mmc.c |  361 ++++++++++++++++++++++++++++++----
+ drivers/mmc/host/tmio_mmc.h |   13 +
+ 3 files changed, 349 insertions(+), 32 deletions(-)
 
+diff -puN drivers/mfd/Kconfig~mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh
++++ a/drivers/mfd/Kconfig
+@@ -55,6 +55,7 @@ config MFD_SH_MOBILE_SDHI
+ 	bool "Support for SuperH Mobile SDHI"
+ 	depends on SUPERH || ARCH_SHMOBILE
+ 	select MFD_CORE
++	select MFD_TMIO_DMA
+ 	 ---help---
+ 	  This driver supports the SDHI hardware block found in many
+ 	  SuperH Mobile SoCs.
+@@ -191,6 +192,12 @@ config MFD_TMIO
+ 	bool
+ 	default n
+ 
++config MFD_TMIO_DMA
++	bool
++	select MFD_CORE
++	select DMA_ENGINE
++	select DMADEVICES
++
+ config MFD_T7L66XB
+ 	bool "Support Toshiba T7L66XB"
+ 	depends on ARM && HAVE_CLK
 diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh drivers/mmc/host/tmio_mmc.c
 --- a/drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh
 +++ a/drivers/mmc/host/tmio_mmc.c
-@@ -29,12 +29,21 @@
+@@ -29,6 +29,7 @@
  #include <linux/irq.h>
  #include <linux/device.h>
  #include <linux/delay.h>
@@ -56,21 +91,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  #include <linux/mmc/host.h>
  #include <linux/mfd/core.h>
  #include <linux/mfd/tmio.h>
- 
- #include "tmio_mmc.h"
- 
-+static void tmio_mmc_enable_dma(struct tmio_mmc_host *host, bool enable)
-+{
-+#if defined(CONFIG_SUPERH) || defined(CONFIG_ARCH_SHMOBILE)
-+	/* Switch DMA mode on or off - SuperH specific? */
-+	sd_ctrl_write16(host, 0xd8, enable ? 2 : 0);
-+#endif
-+}
-+
- static void tmio_mmc_set_clock(struct tmio_mmc_host *host, int new_clock)
- {
- 	u32 clk = 0, clock;
-@@ -131,8 +140,8 @@ tmio_mmc_start_command(struct tmio_mmc_h
+@@ -131,8 +132,8 @@ tmio_mmc_start_command(struct tmio_mmc_h
  
  	host->cmd = cmd;
  
@@ -81,7 +102,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
   *	if(cmd->flags & MMC_FLAG_ACMD)
   *		c |= APP_CMD;
   */
-@@ -155,12 +164,12 @@ tmio_mmc_start_command(struct tmio_mmc_h
+@@ -155,12 +156,12 @@ tmio_mmc_start_command(struct tmio_mmc_h
  	return 0;
  }
  
@@ -97,7 +118,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  {
  	struct mmc_data *data = host->data;
  	unsigned short *buf;
-@@ -180,7 +189,7 @@ static inline void tmio_mmc_pio_irq(stru
+@@ -180,7 +181,7 @@ static inline void tmio_mmc_pio_irq(stru
  		count = data->blksz;
  
  	pr_debug("count: %08x offset: %08x flags %08x\n",
@@ -106,12 +127,12 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  
  	/* Transfer the data */
  	if (data->flags & MMC_DATA_READ)
-@@ -198,15 +207,13 @@ static inline void tmio_mmc_pio_irq(stru
+@@ -198,15 +199,13 @@ static inline void tmio_mmc_pio_irq(stru
  	return;
  }
  
 -static inline void tmio_mmc_data_irq(struct tmio_mmc_host *host)
-+static void tmio_mmc_data_irq(struct tmio_mmc_host *host)
++static void tmio_mmc_do_data_irq(struct tmio_mmc_host *host)
  {
  	struct mmc_data *data = host->data;
  	struct mmc_command *stop;
@@ -124,7 +145,17 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  		return;
  	}
  	stop = data->stop;
-@@ -227,10 +234,17 @@ static inline void tmio_mmc_data_irq(str
+@@ -219,7 +218,8 @@ static inline void tmio_mmc_data_irq(str
+ 
+ 	pr_debug("Completed data request\n");
+ 
+-	/*FIXME - other drivers allow an optional stop command of any given type
++	/*
++	 * FIXME: other drivers allow an optional stop command of any given type
+ 	 *        which we dont do, as the chip can auto generate them.
+ 	 *        Perhaps we can be smarter about when to use auto CMD12 and
+ 	 *        only issue the auto request when we know this is the desired
+@@ -227,10 +227,17 @@ static inline void tmio_mmc_data_irq(str
  	 *        upper layers expect. For now, we do what works.
  	 */
  
@@ -135,30 +166,30 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +	if (data->flags & MMC_DATA_READ) {
 +		if (!host->chan_rx)
 +			disable_mmc_irqs(host, TMIO_MASK_READOP);
-+		dev_dbg(&host->pdev->dev, "Complete Rx cookie %d, request %p\n",
-+			host->cookie, host->mrq);
++		dev_dbg(&host->pdev->dev, "Complete Rx request %p\n",
++			host->mrq);
 +	} else {
 +		if (!host->chan_tx)
 +			disable_mmc_irqs(host, TMIO_MASK_WRITEOP);
-+		dev_dbg(&host->pdev->dev, "Complete Tx cookie %d, request %p\n",
-+			host->cookie, host->mrq);
++		dev_dbg(&host->pdev->dev, "Complete Tx request %p\n",
++			host->mrq);
 +	}
  
  	if (stop) {
  		if (stop->opcode == 12 && !stop->arg)
-@@ -242,7 +256,35 @@ static inline void tmio_mmc_data_irq(str
+@@ -242,7 +249,35 @@ static inline void tmio_mmc_data_irq(str
  	tmio_mmc_finish_request(host);
  }
  
 -static inline void tmio_mmc_cmd_irq(struct tmio_mmc_host *host,
-+static void tmio_mmc_isr_data_irq(struct tmio_mmc_host *host)
++static void tmio_mmc_data_irq(struct tmio_mmc_host *host)
 +{
 +	struct mmc_data *data = host->data;
 +
 +	if (!data)
 +		return;
 +
-+	if ((data->flags & MMC_DATA_WRITE) && host->chan_tx) {
++	if (host->chan_tx && (data->flags & MMC_DATA_WRITE)) {
 +		/*
 +		 * Has all data been written out yet? Testing on SuperH showed,
 +		 * that in most cases the first interrupt comes already with the
@@ -171,11 +202,11 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +			disable_mmc_irqs(host, TMIO_STAT_DATAEND);
 +			tasklet_schedule(&host->dma_complete);
 +		}
-+	} else if ((data->flags & MMC_DATA_READ) && host->chan_rx) {
++	} else if (host->chan_rx && (data->flags & MMC_DATA_READ)) {
 +		disable_mmc_irqs(host, TMIO_STAT_DATAEND);
 +		tasklet_schedule(&host->dma_complete);
 +	} else {
-+		tmio_mmc_data_irq(host);
++		tmio_mmc_do_data_irq(host);
 +	}
 +}
 +
@@ -183,7 +214,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  	unsigned int stat)
  {
  	struct mmc_command *cmd = host->cmd;
-@@ -282,10 +324,16 @@ static inline void tmio_mmc_cmd_irq(stru
+@@ -282,10 +317,16 @@ static inline void tmio_mmc_cmd_irq(stru
  	 * If theres no data or we encountered an error, finish now.
  	 */
  	if (host->data && !cmd->error) {
@@ -204,7 +235,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  	} else {
  		tmio_mmc_finish_request(host);
  	}
-@@ -293,7 +341,6 @@ static inline void tmio_mmc_cmd_irq(stru
+@@ -293,7 +334,6 @@ static inline void tmio_mmc_cmd_irq(stru
  	return;
  }
  
@@ -212,7 +243,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  static irqreturn_t tmio_mmc_irq(int irq, void *devid)
  {
  	struct tmio_mmc_host *host = devid;
-@@ -311,7 +358,7 @@ static irqreturn_t tmio_mmc_irq(int irq,
+@@ -311,7 +351,7 @@ static irqreturn_t tmio_mmc_irq(int irq,
  	if (!ireg) {
  		disable_mmc_irqs(host, status & ~irq_mask);
  
@@ -221,19 +252,19 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  			"0x%08x 0x%08x 0x%08x\n", status, irq_mask, ireg);
  		pr_debug_status(status);
  
-@@ -346,7 +393,7 @@ static irqreturn_t tmio_mmc_irq(int irq,
- 		/* Data transfer completion */
- 		if (ireg & TMIO_STAT_DATAEND) {
- 			ack_mmc_irqs(host, TMIO_STAT_DATAEND);
--			tmio_mmc_data_irq(host);
-+			tmio_mmc_isr_data_irq(host);
- 		}
- 
- 		/* Check status - keep going until we've handled it all */
-@@ -363,16 +410,152 @@ out:
+@@ -363,16 +403,265 @@ out:
  	return IRQ_HANDLED;
  }
  
++#ifdef CONFIG_MFD_TMIO_DMA
++static void tmio_mmc_enable_dma(struct tmio_mmc_host *host, bool enable)
++{
++#if defined(CONFIG_SUPERH) || defined(CONFIG_ARCH_SHMOBILE)
++	/* Switch DMA mode on or off - SuperH specific? */
++	sd_ctrl_write16(host, 0xd8, enable ? 2 : 0);
++#endif
++}
++
 +static void tmio_dma_complete(void *arg)
 +{
 +	struct tmio_mmc_host *host = arg;
@@ -370,56 +401,6 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +	return 0;
 +}
 +
- static int tmio_mmc_start_data(struct tmio_mmc_host *host,
- 	struct mmc_data *data)
- {
- 	pr_debug("setup data transfer: blocksize %08x  nr_blocks %d\n",
--	    data->blksz, data->blocks);
-+		 data->blksz, data->blocks);
- 
- 	/* Hardware cannot perform 1 and 2 byte requests in 4 bit mode */
- 	if (data->blksz < 4 && host->mmc->ios.bus_width == MMC_BUS_WIDTH_4) {
--		printk(KERN_ERR "%s: %d byte block unsupported in 4 bit mode\n",
--			mmc_hostname(host->mmc), data->blksz);
-+		pr_err("%s: %d byte block unsupported in 4 bit mode\n",
-+		       mmc_hostname(host->mmc), data->blksz);
- 		return -EINVAL;
- 	}
- 
-@@ -383,7 +566,7 @@ static int tmio_mmc_start_data(struct tm
- 	sd_ctrl_write16(host, CTL_SD_XFER_LEN, data->blksz);
- 	sd_ctrl_write16(host, CTL_XFER_BLK_COUNT, data->blocks);
- 
--	return 0;
-+	return tmio_mmc_start_dma(host, data);
- }
- 
- /* Process requests from the MMC layer */
-@@ -404,7 +587,6 @@ static void tmio_mmc_request(struct mmc_
- 	}
- 
- 	ret = tmio_mmc_start_command(host, mrq->cmd);
--
- 	if (!ret)
- 		return;
- 
-@@ -459,10 +641,10 @@ static int tmio_mmc_get_ro(struct mmc_ho
- {
- 	struct tmio_mmc_host *host = mmc_priv(mmc);
- 
--	return (sd_ctrl_read16(host, CTL_STATUS) & TMIO_STAT_WRPROTECT) ? 0 : 1;
-+	return (sd_ctrl_read32(host, CTL_STATUS) & TMIO_STAT_WRPROTECT) ? 0 : 1;
- }
- 
--static struct mmc_host_ops tmio_mmc_ops = {
-+static const struct mmc_host_ops tmio_mmc_ops = {
- 	.request	= tmio_mmc_request,
- 	.set_ios	= tmio_mmc_set_ios,
- 	.get_ro         = tmio_mmc_get_ro,
-@@ -507,6 +689,92 @@ out:
- #define tmio_mmc_resume NULL
- #endif
- 
 +static void tmio_issue_tasklet_fn(unsigned long priv)
 +{
 +	struct tmio_mmc_host *host = (struct tmio_mmc_host *)priv;
@@ -439,11 +420,11 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +		dma_unmap_sg(&host->pdev->dev, host->sg_ptr, host->dma_sglen,
 +			     DMA_TO_DEVICE);
 +
-+	tmio_mmc_data_irq(host);
++	tmio_mmc_do_data_irq(host);
 +}
 +
 +/* It might be necessary to make filter MFD specific */
-+static bool filter(struct dma_chan *chan, void *arg)
++static bool tmio_mmc_filter(struct dma_chan *chan, void *arg)
 +{
 +	dev_dbg(chan->device->dev, "%s: slave data %p\n", __func__, arg);
 +	chan->private = arg;
@@ -463,7 +444,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +		dma_cap_zero(mask);
 +		dma_cap_set(DMA_SLAVE, mask);
 +
-+		host->chan_tx = dma_request_channel(mask, filter,
++		host->chan_tx = dma_request_channel(mask, tmio_mmc_filter,
 +						    pdata->dma->chan_priv_tx);
 +		dev_dbg(&host->pdev->dev, "%s: TX: got channel %p\n", __func__,
 +			host->chan_tx);
@@ -471,7 +452,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +		if (!host->chan_tx)
 +			return;
 +
-+		host->chan_rx = dma_request_channel(mask, filter,
++		host->chan_rx = dma_request_channel(mask, tmio_mmc_filter,
 +						    pdata->dma->chan_priv_rx);
 +		dev_dbg(&host->pdev->dev, "%s: RX: got channel %p\n", __func__,
 +			host->chan_rx);
@@ -505,11 +486,72 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +	host->cookie = -EINVAL;
 +	host->desc = NULL;
 +}
++#else
++static int tmio_mmc_start_dma(struct tmio_mmc_host *host,
++			       struct mmc_data *data)
++{
++	return 0;
++}
 +
- static int __devinit tmio_mmc_probe(struct platform_device *dev)
++static void tmio_mmc_request_dma(struct tmio_mmc_host *host,
++				 struct tmio_mmc_data *pdata)
++{
++	host->chan_tx = NULL;
++	host->chan_rx = NULL;
++}
++
++static void tmio_mmc_release_dma(struct tmio_mmc_host *host)
++{
++}
++#endif
++
+ static int tmio_mmc_start_data(struct tmio_mmc_host *host,
+ 	struct mmc_data *data)
  {
- 	struct mfd_cell	*cell = (struct mfd_cell *)dev->dev.platform_data;
-@@ -515,6 +783,7 @@ static int __devinit tmio_mmc_probe(stru
+ 	pr_debug("setup data transfer: blocksize %08x  nr_blocks %d\n",
+-	    data->blksz, data->blocks);
++		 data->blksz, data->blocks);
+ 
+ 	/* Hardware cannot perform 1 and 2 byte requests in 4 bit mode */
+ 	if (data->blksz < 4 && host->mmc->ios.bus_width == MMC_BUS_WIDTH_4) {
+-		printk(KERN_ERR "%s: %d byte block unsupported in 4 bit mode\n",
+-			mmc_hostname(host->mmc), data->blksz);
++		pr_err("%s: %d byte block unsupported in 4 bit mode\n",
++		       mmc_hostname(host->mmc), data->blksz);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -383,7 +672,7 @@ static int tmio_mmc_start_data(struct tm
+ 	sd_ctrl_write16(host, CTL_SD_XFER_LEN, data->blksz);
+ 	sd_ctrl_write16(host, CTL_XFER_BLK_COUNT, data->blocks);
+ 
+-	return 0;
++	return tmio_mmc_start_dma(host, data);
+ }
+ 
+ /* Process requests from the MMC layer */
+@@ -404,7 +693,6 @@ static void tmio_mmc_request(struct mmc_
+ 	}
+ 
+ 	ret = tmio_mmc_start_command(host, mrq->cmd);
+-
+ 	if (!ret)
+ 		return;
+ 
+@@ -459,10 +747,10 @@ static int tmio_mmc_get_ro(struct mmc_ho
+ {
+ 	struct tmio_mmc_host *host = mmc_priv(mmc);
+ 
+-	return (sd_ctrl_read16(host, CTL_STATUS) & TMIO_STAT_WRPROTECT) ? 0 : 1;
++	return (sd_ctrl_read32(host, CTL_STATUS) & TMIO_STAT_WRPROTECT) ? 0 : 1;
+ }
+ 
+-static struct mmc_host_ops tmio_mmc_ops = {
++static const struct mmc_host_ops tmio_mmc_ops = {
+ 	.request	= tmio_mmc_request,
+ 	.set_ios	= tmio_mmc_set_ios,
+ 	.get_ro         = tmio_mmc_get_ro,
+@@ -515,6 +803,7 @@ static int __devinit tmio_mmc_probe(stru
  	struct tmio_mmc_host *host;
  	struct mmc_host *mmc;
  	int ret = -EINVAL;
@@ -517,7 +559,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  
  	if (dev->num_resources != 2)
  		goto out;
-@@ -578,13 +847,20 @@ static int __devinit tmio_mmc_probe(stru
+@@ -578,13 +867,20 @@ static int __devinit tmio_mmc_probe(stru
  	if (ret)
  		goto cell_disable;
  
@@ -541,7 +583,7 @@ diff -puN drivers/mmc/host/tmio_mmc.c~mmc-add-dma-support-to-tmio_mmc-driver-whe
  
  	return 0;
  
-@@ -609,6 +885,7 @@ static int __devexit tmio_mmc_remove(str
+@@ -609,6 +905,7 @@ static int __devexit tmio_mmc_remove(str
  	if (mmc) {
  		struct tmio_mmc_host *host = mmc_priv(mmc);
  		mmc_remove_host(mmc);
@@ -561,7 +603,7 @@ diff -puN drivers/mmc/host/tmio_mmc.h~mmc-add-dma-support-to-tmio_mmc-driver-whe
  
  #define CTL_SD_CMD 0x00
  #define CTL_ARG_REG 0x04
-@@ -106,6 +108,15 @@ struct tmio_mmc_host {
+@@ -106,6 +108,17 @@ struct tmio_mmc_host {
  	unsigned int            sg_off;
  
  	struct platform_device *pdev;
@@ -569,11 +611,13 @@ diff -puN drivers/mmc/host/tmio_mmc.h~mmc-add-dma-support-to-tmio_mmc-driver-whe
 +	/* DMA support */
 +	struct dma_chan		*chan_rx;
 +	struct dma_chan		*chan_tx;
-+	struct dma_async_tx_descriptor *desc;
-+	unsigned int            dma_sglen;
 +	struct tasklet_struct	dma_complete;
 +	struct tasklet_struct	dma_issue;
++#ifdef CONFIG_MFD_TMIO_DMA
++	struct dma_async_tx_descriptor *desc;
++	unsigned int            dma_sglen;
 +	dma_cookie_t		cookie;
++#endif
  };
  
  #include <linux/io.h>
@@ -586,11 +630,11 @@ sh-define-dma-slaves-per-cpu-type-remove-now-redundant-header.patch
 sh-add-dma-slaves-for-two-sdhi-controllers-to-sh7722.patch
 sh-add-dma-slave-definitions-to-sh7724.patch
 mmc-prepare-tmio_mmc-for-passing-of-dma-configuration-from-the-mfd-cell.patch
+sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc.patch
 mmc-add-dma-support-to-tmio_mmc-driver-when-used-on-superh.patch
 sh-add-sdhi-dma-support-to-ecovec.patch
 sh-add-sdhi-dma-support-to-ms7724se.patch
 sh-add-sdhi-dma-support-to-kfr2r09.patch
 sh-add-sdhi-dma-support-to-migor.patch
 arm-add-dma-support-to-sh7372-enable-dma-for-sdhi.patch
-sh-prepare-the-sdhi-mfd-driver-to-pass-dma-configuration-to-tmio_mmcc.patch
 
