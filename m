@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-mutexc-fix-unused-var-warning.patch added to -mm tree
-Date: Fri, 14 May 2010 11:13:48 -0700
-Message-ID: <201005141841.o4EIfcl0015387@imap1.linux-foundation.org>
+Subject: + drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch added to -mm tree
+Date: Fri, 14 May 2010 11:33:58 -0700
+Message-ID: <201005141901.o4EJ1l4O016351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755295Ab0ENSmE (ORCPT
+	by vger.kernel.org with ESMTP id S1751608Ab0ENTDO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 May 2010 14:42:04 -0400
+	Fri, 14 May 2010 15:03:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, mingo@elte.hu, stable@kernel.org
+Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, dwmw2@infradead.org, fenghua.yu@intel.com, jbarnes@virtuousgeek.org, joerg.roedel@amd.com, pugs@cisco.com
 
 
 The patch titled
-     kernel/mutex.c: fix unused var warning
+     drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix
 has been added to the -mm tree.  Its filename is
-     kernel-mutexc-fix-unused-var-warning.patch
+     drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/mutex.c: fix unused var warning
+Subject: drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/mutex.c: In function '__mutex_lock_common':
-kernel/mutex.c:148: warning: unused variable 'timeout'
+Restore vm_domain_min_agaw() - it has a caller.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <stable@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Tom Lyon" <pugs@cisco.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Tom Lyon <pugs@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/mutex.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/intel-iommu.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN kernel/mutex.c~kernel-mutexc-fix-unused-var-warning kernel/mutex.c
---- a/kernel/mutex.c~kernel-mutexc-fix-unused-var-warning
-+++ a/kernel/mutex.c
-@@ -145,7 +145,7 @@ __mutex_lock_common(struct mutex *lock, 
- 	struct task_struct *task = current;
- 	struct mutex_waiter waiter;
- 	unsigned long flags;
--	unsigned long timeout;
-+	unsigned long timeout __maybe_unused;
+diff -puN drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix
++++ a/drivers/pci/intel-iommu.c
+@@ -3433,6 +3433,19 @@ static void vm_domain_remove_all_dev_inf
+ /* domain id for virtual machine, it won't be set in context */
+ static unsigned long vm_domid;
  
- 	preempt_disable();
- 	mutex_acquire(&lock->dep_map, subclass, 0, ip);
++static int vm_domain_min_agaw(struct dmar_domain *domain)
++{
++	int i;
++	int min_agaw = domain->agaw;
++
++	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
++		if (min_agaw > g_iommus[i]->agaw)
++			min_agaw = g_iommus[i]->agaw;
++	}
++
++	return min_agaw;
++}
++
+ static struct dmar_domain *iommu_alloc_vm_domain(void)
+ {
+ 	struct dmar_domain *domain;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +86,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
 cpufreq-fix-race-condition-in-store_scaling_governor-fix.patch
 jfs-free-sbi-memory-in-error-path.patch
@@ -145,4 +159,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
+a.patch
 
