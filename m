@@ -1,104 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] x86-pci-do-not-expect-pci-devices-to-return-zeroes-in-pcie-space.patch removed from -mm tree
-Date: Fri, 14 May 2010 16:02:25 -0700
-Message-ID: <201005142302.o4EN2PiU027721@imap1.linux-foundation.org>
+Subject: + include-asm-generic-kmap_typesh-add-helpful-reminder.patch added to -mm tree
+Date: Fri, 14 May 2010 16:04:31 -0700
+Message-ID: <201005142304.o4EN4Vbx027868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865Ab0ENXCt (ORCPT
+	by vger.kernel.org with ESMTP id S1752780Ab0ENXEd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 May 2010 19:02:49 -0400
+	Fri, 14 May 2010 19:04:33 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o4EN4VrD001130
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 14 May 2010 16:04:32 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: petr@vandrovec.name, hpa@zytor.com, jacob.jun.pan@intel.com, jbarnes@virtuousgeek.org, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86/pci: do not expect PCI devices to return zeroes in PCIe space
-has been removed from the -mm tree.  Its filename was
-     x86-pci-do-not-expect-pci-devices-to-return-zeroes-in-pcie-space.patch
+     include/asm-generic/kmap_types.h: add helpful reminder
+has been added to the -mm tree.  Its filename is
+     include-asm-generic-kmap_typesh-add-helpful-reminder.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/pci: do not expect PCI devices to return zeroes in PCIe space
-From: Petr Vandrovec <petr@vandrovec.name>
+Subject: include/asm-generic/kmap_types.h: add helpful reminder
+From: Andrew Morton <akpm@linux-foundation.org>
 
-openSUSE11.3 32bit kernels hang when installed to the VMware's VMs because
-Moorestown fixed capabilities detection code enters endless loop on
-Intel's AGP bridges (with device ID=7191).
-
-There is no reason why old pre-PCIe/PCI-X devices should return zeroes
-when configuration space above 0x100 is accessed.  If these devices decode
-just low 8 bits of register number, conventional space repeats 15 times in
-PCIe config space.  And Moorestown parser for fixed bars then can enter
-endless loop when finding Intel AGP bridge device 0x7191 with secondary
-latency timer programmed to 0x40 - when such device is encountered, code
-will enter endless loop of reading registers 0x718 (reading 0x40010100)
-and 0x400 (reading 0x71918086).
-
-This change adds additional condition to the test: if device id/vendor
-match first PCIe capability, then device is not really PCIe.  It should
-not cause any problems: fixed_bar_cap is invoked only on Intel's devices,
-so only time there is possibilty to have false match would be if first
-PCIe capability would have ID 0x8086, and even then that address of next
-capability pointer and capability version will match device ID seems
-highly unlikely.
-
-This fix unbreaks 32bit 2.6.33+ kernels configured with Moorestown support
-to boot on AMD rev 10h+ processors under VMware in VMs which lack PCIe
-support.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=15888
-
-Signed-off-by: Petr Vandrovec <petr@vandrovec.name>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Jacob Pan <jacob.jun.pan@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/mrst.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/asm-generic/kmap_types.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/pci/mrst.c~x86-pci-do-not-expect-pci-devices-to-return-zeroes-in-pcie-space arch/x86/pci/mrst.c
---- a/arch/x86/pci/mrst.c~x86-pci-do-not-expect-pci-devices-to-return-zeroes-in-pcie-space
-+++ a/arch/x86/pci/mrst.c
-@@ -55,12 +55,16 @@ static int fixed_bar_cap(struct pci_bus 
- {
- 	int pos;
- 	u32 pcie_cap = 0, cap_data;
-+	u32 devid;
+diff -puN include/asm-generic/kmap_types.h~include-asm-generic-kmap_typesh-add-helpful-reminder include/asm-generic/kmap_types.h
+--- a/include/asm-generic/kmap_types.h~include-asm-generic-kmap_typesh-add-helpful-reminder
++++ a/include/asm-generic/kmap_types.h
+@@ -27,6 +27,9 @@ KMAP_D(14)	KM_IRQ_PTE,
+ KMAP_D(15)	KM_NMI,
+ KMAP_D(16)	KM_NMI_PTE,
+ KMAP_D(17)	KM_KDB,
++/*
++ * Remember to update debug_kmap_atomic() when adding new kmap types!
++ */
+ KMAP_D(18)	KM_TYPE_NR
+ };
  
- 	pos = PCIE_CAP_OFFSET;
- 
- 	if (!raw_pci_ext_ops)
- 		return 0;
- 
-+	if (raw_pci_ops->read(pci_domain_nr(bus), bus->number, devfn, 0, 4, &devid))
-+		return 0;
-+
- 	while (pos) {
- 		if (raw_pci_ext_ops->read(pci_domain_nr(bus), bus->number,
- 					  devfn, pos, 4, &pcie_cap))
-@@ -69,6 +73,9 @@ static int fixed_bar_cap(struct pci_bus 
- 		if (pcie_cap == 0xffffffff)
- 			return 0;
- 
-+		if (pcie_cap == devid && pos == PCIE_CAP_OFFSET)
-+			return 0;
-+
- 		if (PCI_EXT_CAP_ID(pcie_cap) == PCI_EXT_CAP_ID_VNDR) {
- 			raw_pci_ext_ops->read(pci_domain_nr(bus), bus->number,
- 					      devfn, pos + 4, 4, &cap_data);
 _
 
-Patches currently in -mm which might be from petr@vandrovec.name are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-pci-do-not-expect-pci-devices-to-return-zeroes-in-pcie-space.patch
+origin.patch
+mmc-at91_mci-modify-cache-flush-routines-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+jfs-free-sbi-memory-in-error-path.patch
+fix-drm-radeon-kms-hdmi-irq-support.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+kernel-mutexc-fix-unused-var-warning.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
+include-asm-generic-kmap_typesh-add-helpful-reminder.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+kfifo-samples-dont-compile.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
