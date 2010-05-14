@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch added to -mm tree
-Date: Fri, 14 May 2010 11:33:58 -0700
-Message-ID: <201005141901.o4EJ1l4O016351@imap1.linux-foundation.org>
+Subject: + kfifo-samples-dont-compile.patch added to -mm tree
+Date: Fri, 14 May 2010 13:19:48 -0700
+Message-ID: <201005142047.o4EKlc1X021742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608Ab0ENTDO (ORCPT
+	by vger.kernel.org with ESMTP id S1759812Ab0ENUrx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 May 2010 15:03:14 -0400
+	Fri, 14 May 2010 16:47:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, dwmw2@infradead.org, fenghua.yu@intel.com, jbarnes@virtuousgeek.org, joerg.roedel@amd.com, pugs@cisco.com
+Cc: akpm@linux-foundation.org, stefani@seibold.net
 
 
 The patch titled
-     drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix
+     kfifo samples don't compile
 has been added to the -mm tree.  Its filename is
-     drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+     kfifo-samples-dont-compile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix
+Subject: kfifo samples don't compile
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Restore vm_domain_min_agaw() - it has a caller.
+hide them
 
-Cc: "Tom Lyon" <pugs@cisco.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Tom Lyon <pugs@cisco.com>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ samples/kfifo/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix
-+++ a/drivers/pci/intel-iommu.c
-@@ -3433,6 +3433,19 @@ static void vm_domain_remove_all_dev_inf
- /* domain id for virtual machine, it won't be set in context */
- static unsigned long vm_domid;
- 
-+static int vm_domain_min_agaw(struct dmar_domain *domain)
-+{
-+	int i;
-+	int min_agaw = domain->agaw;
+diff -puN samples/kfifo/Makefile~kfifo-samples-dont-compile samples/kfifo/Makefile
+--- a/samples/kfifo/Makefile~kfifo-samples-dont-compile
++++ a/samples/kfifo/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_SAMPLE_KFIFO) += bytestream-example.o dma-example.o inttype-example.o record-example.o
 +
-+	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
-+		if (min_agaw > g_iommus[i]->agaw)
-+			min_agaw = g_iommus[i]->agaw;
-+	}
-+
-+	return min_agaw;
-+}
-+
- static struct dmar_domain *iommu_alloc_vm_domain(void)
- {
- 	struct dmar_domain *domain;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +125,7 @@ panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fix
 aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
 aio-fix-the-compat-vectored-operations-fix.patch
 kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+kfifo-samples-dont-compile.patch
 x86_32-use-asm-generic-scatterlisth.patch
 numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
@@ -159,5 +137,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
-a.patch
 
