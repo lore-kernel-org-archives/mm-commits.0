@@ -1,132 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 14 May 2010 16:12:44 -0700
-Message-ID: <201005142312.o4ENCi8w028170@imap1.linux-foundation.org>
+Subject: [folded] mmc-at91_mci-modify-cache-flush-routines-fix.patch removed from -mm tree
+Date: Sat, 15 May 2010 12:31:30 -0400
+Message-ID: <201005151932.o4FJWvlc009928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752593Ab0ENXMr (ORCPT
+	by vger.kernel.org with ESMTP id S1752170Ab0EOTdH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 May 2010 19:12:47 -0400
+	Sat, 15 May 2010 15:33:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jbarnes@virtuousgeek.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
+     mmc-at91_mci-modify-cache-flush-routines-fix
+has been removed from the -mm tree.  Its filename was
+     mmc-at91_mci-modify-cache-flush-routines-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mmc-at91_mci-modify-cache-flush-routines.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes
+Subject: mmc-at91_mci-modify-cache-flush-routines-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: please, no space before tabs
-#277: FILE: drivers/platform/x86/intel_ips.c:214:
-+#define   STS_PP_SHIFT  ^I10$
-
-WARNING: please, no space before tabs
-#284: FILE: drivers/platform/x86/intel_ips.c:221:
-+#define   STS_PTL_MASK  ^I(0x000000fe)$
-
-WARNING: please, no space before tabs
-#285: FILE: drivers/platform/x86/intel_ips.c:222:
-+#define   STS_PTL_SHIFT ^I1$
-
-WARNING: line over 80 characters
-#362: FILE: drivers/platform/x86/intel_ips.c:299:
-+	/* Average CPU core temps (all averages in .01 degrees C for precision) */
-
-WARNING: line over 80 characters
-#830: FILE: drivers/platform/x86/intel_ips.c:767:
-+		schedule_timeout_interruptible(msecs_to_jiffies(IPS_ADJUST_PERIOD));
-
-WARNING: line over 80 characters
-#1037: FILE: drivers/platform/x86/intel_ips.c:974:
-+		schedule_timeout_interruptible(msecs_to_jiffies(IPS_SAMPLE_PERIOD));
-
-WARNING: line over 80 characters
-#1115: FILE: drivers/platform/x86/intel_ips.c:1052:
-+			dev_warn(&ips->dev->dev, "ME failed to update for more than 1s, likely hung\n");
-
-WARNING: line over 80 characters
-#1411: FILE: drivers/platform/x86/intel_ips.c:1348:
-+		dev_warn(&ips->dev->dev, "Warning: CPU TDP doesn't match expected value (found %d, expected %d)\n",
-
-WARNING: line over 80 characters
-#1521: FILE: drivers/platform/x86/intel_ips.c:1458:
-+		dev_err(&dev->dev, "thermal device not enabled (0x%02x), aborting\n", tse);
-
-WARNING: line over 80 characters
-#1529: FILE: drivers/platform/x86/intel_ips.c:1466:
-+		dev_err(&dev->dev, "thermal reporting for required devices not enabled, aborting\n");
-
-WARNING: line over 80 characters
-#1538: FILE: drivers/platform/x86/intel_ips.c:1475:
-+		dev_err(&dev->dev, "failed to get i915 symbols, graphics turbo disabled\n");
-
-WARNING: line over 80 characters
-#1560: FILE: drivers/platform/x86/intel_ips.c:1497:
-+		dev_err(&dev->dev, "platform indicates TDP override unavailable, aborting\n");
-
-total: 0 errors, 12 warnings, 1688 lines checked
-
-./patches/x86-platform-driver-intelligent-power-sharing-driver.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/intel_ips.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/at91_mci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/intel_ips.c~x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes drivers/platform/x86/intel_ips.c
---- a/drivers/platform/x86/intel_ips.c~x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes
-+++ a/drivers/platform/x86/intel_ips.c
-@@ -211,15 +211,15 @@
- #define   STS_GPL_MASK		(0x001ff000)
- #define   STS_GPL_SHIFT		12
- #define   STS_PP_MASK		(0x00000c00)
--#define   STS_PP_SHIFT  	10
-+#define   STS_PP_SHIFT		10
- #define   STS_PP_DEF		0
- #define   STS_PP_PROC		1
- #define   STS_PP_BAL		2
- #define   STS_PP_GFX		3
- #define   STS_PCTD_DIS		(1<<9)
- #define   STS_GTD_DIS		(1<<8)
--#define   STS_PTL_MASK  	(0x000000fe)
--#define   STS_PTL_SHIFT 	1
-+#define   STS_PTL_MASK		(0x000000fe)
-+#define   STS_PTL_SHIFT		1
- #define   STS_NVV		(1<<0)
- #define THM_SEC		0x9c
- #define   SEC_ACK	(1<<0)
+diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-modify-cache-flush-routines-fix drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-modify-cache-flush-routines-fix
++++ a/drivers/mmc/host/at91_mci.c
+@@ -314,8 +314,8 @@ static void at91_mci_post_dma_read(struc
+ 			dmabuf = (unsigned *)tmpv;
+ 		}
+ 
+-		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
+ 		flush_kernel_dcache_page(sg_page(sg));
++		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
+ 		data->bytes_xfered += amount;
+ 		if (size == 0)
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mmc-at91_mci-modify-cache-flush-routines.patch
 mmc-at91_mci-modify-cache-flush-routines-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
