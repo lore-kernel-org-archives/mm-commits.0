@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-consider-the-entire-user-address-space-during-node-migration.patch added to -mm tree
-Date: Wed, 19 May 2010 12:38:09 -0700
-Message-ID: <201005191938.o4JJc9Wp031821@imap1.linux-foundation.org>
+Subject: + sdio-add-new-function-for-raw-read-after-write-operation.patch added to -mm tree
+Date: Wed, 19 May 2010 12:52:09 -0700
+Message-ID: <201005191952.o4JJq9Pb002357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55397 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752110Ab0ESTjT (ORCPT
+	by vger.kernel.org with ESMTP id S1754736Ab0ESTw1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 15:39:19 -0400
+	Wed, 19 May 2010 15:52:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gthelen@google.com, balbir@in.ibm.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nishimura@mxp.nes.nec.co.jp
+Cc: notasas@gmail.com, dimitrysh@google.com, kalle.valo@iki.fi
 
 
 The patch titled
-     mm: consider the entire user address space during node migration
+     sdio: add new function for RAW (Read after Write) operation
 has been added to the -mm tree.  Its filename is
-     mm-consider-the-entire-user-address-space-during-node-migration.patch
+     sdio-add-new-function-for-raw-read-after-write-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: consider the entire user address space during node migration
-From: Greg Thelen <gthelen@google.com>
+Subject: sdio: add new function for RAW (Read after Write) operation
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-Use mm->task_size instead of TASK_SIZE to ensure that the entire user
-address space is migrated.  mm->task_size is independent of the calling
-task context.  TASK SIZE may be dependant on the address space size of the
-calling process.  Usage of TASK_SIZE can lead to partial address space
-migration if the calling process was 32 bit and the migrating process was
-64 bit.
+SDIO specification allows RAW (Read after Write) operation using
+IO_RW_DIRECT command (CMD52) by setting the RAW bit.  This operation is
+similar to ordinary read/write commands, except that both write and read
+are performed using single command/response pair.  The Linux SDIO layer
+already supports this internaly, only external function is missing for
+drivers to make use, which is added by this patch.
 
-Here is the test script used on 64 system with a 32 bit echo process:
+This type of command is required to implement proper power save mode
+support in wl1251 wifi driver.
 
-  mount -t cgroup none /cgroup -o cpuset
-  cd /cgroup
+Android has similar patch for G1 in it's tree for the same reason:
 
-  mkdir 0
-  echo 1 > 0/cpuset.cpus
-  echo 0 > 0/cpuset.mems
-  echo 1 > 0/cpuset.memory_migrate
+http://android.git.kernel.org/?p=kernel/common.git;a=commitdiff;h=74a47786f6ecbe6c1cf9fb15efe6a968451deb52
 
-  mkdir 1
-  echo 1 > 1/cpuset.cpus
-  echo 1 > 1/cpuset.mems
-  echo 1 > 1/cpuset.memory_migrate
-
-  echo $$ > 0/tasks
-  64_bit_process &
-  pid=$!
-
-  echo $pid > 1/tasks   # This does not migrate all process pages without
-                        # this patch.  If 64 bit echo is used or this patch is
-                        # applied, then the full address space of $pid is
-                        # migrated.
-
-To check memory migration, I watched:
-  grep MemUsed /sys/devices/system/node/node*/meminfo
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Acked-by: Kalle Valo <kalle.valo@iki.fi>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/core/sdio_io.c    |   31 +++++++++++++++++++++++++++++++
+ include/linux/mmc/sdio_func.h |    3 +++
+ 2 files changed, 34 insertions(+)
 
-diff -puN mm/mempolicy.c~mm-consider-the-entire-user-address-space-during-node-migration mm/mempolicy.c
---- a/mm/mempolicy.c~mm-consider-the-entire-user-address-space-during-node-migration
-+++ a/mm/mempolicy.c
-@@ -928,7 +928,7 @@ static int migrate_to_node(struct mm_str
- 	nodes_clear(nmask);
- 	node_set(source, nmask);
+diff -puN drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation drivers/mmc/core/sdio_io.c
+--- a/drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation
++++ a/drivers/mmc/core/sdio_io.c
+@@ -406,6 +406,37 @@ void sdio_writeb(struct sdio_func *func,
+ EXPORT_SYMBOL_GPL(sdio_writeb);
  
--	check_range(mm, mm->mmap->vm_start, TASK_SIZE, &nmask,
-+	check_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
- 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
+ /**
++ *	sdio_writeb_readb - write and read a byte from SDIO function
++ *	@func: SDIO function to access
++ *	@b: byte to write
++ *	@addr: address to write to
++ *	@err_ret: optional status value from transfer
++ *
++ *	Performs a RAW (Read after Write) operation as defined by SDIO spec -
++ *	single byte is written to address space of a given SDIO function and
++ *	response is read back from the same address, both using single request.
++ *	If there is a problem with the operation, 0xff is returned and
++ *	@err_ret will contain the error code.
++ */
++u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
++	unsigned int addr, int *err_ret)
++{
++	int ret;
++	u8 val;
++
++	BUG_ON(!func);
++
++	ret = mmc_io_rw_direct(func->card, 1, func->num, addr, b, &val);
++	if (err_ret)
++		*err_ret = ret;
++	if (ret)
++		val = 0xff;
++
++	return val;
++}
++EXPORT_SYMBOL_GPL(sdio_writeb_readb);
++
++/**
+  *	sdio_memcpy_fromio - read a chunk of memory from a SDIO function
+  *	@func: SDIO function to access
+  *	@dst: buffer to store the data
+diff -puN include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation include/linux/mmc/sdio_func.h
+--- a/include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation
++++ a/include/linux/mmc/sdio_func.h
+@@ -145,6 +145,9 @@ extern void sdio_writew(struct sdio_func
+ extern void sdio_writel(struct sdio_func *func, u32 b,
+ 	unsigned int addr, int *err_ret);
  
- 	if (!list_empty(&pagelist))
++extern u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
++	unsigned int addr, int *err_ret);
++
+ extern int sdio_memcpy_toio(struct sdio_func *func, unsigned int addr,
+ 	void *src, int count);
+ extern int sdio_writesb(struct sdio_func *func, unsigned int addr,
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from notasas@gmail.com are
 
 linux-next.patch
-sparsemem-on-no-vmemmap-path-put-mem_map-on-node-high-too.patch
-mm-consider-the-entire-user-address-space-during-node-migration.patch
+sdio-add-new-function-for-raw-read-after-write-operation.patch
+fbdev-move-fbio_waitforvsync-to-linux-fbh.patch
+fbdev-move-fbio_waitforvsync-to-linux-fbh-update.patch
 
