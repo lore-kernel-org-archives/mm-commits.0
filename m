@@ -1,82 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-sbus-char-flashc-flash_read-should-update-ppos-instead-of-file-f_pos.patch removed from -mm tree
-Date: Wed, 19 May 2010 10:32:04 -0400
-Message-ID: <201005191733.o4JHXUDD025827@imap1.linux-foundation.org>
+Subject: [merged] hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:31:49 -0400
+Message-ID: <201005191733.o4JHXFKS025802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754289Ab0ESRdf (ORCPT
+	by vger.kernel.org with ESMTP id S1754343Ab0ESRdk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 13:33:35 -0400
+	Wed, 19 May 2010 13:33:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, davem@davemloft.net, fweisbec@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khali@linux-fr.org, sfking@fdwdc.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/sbus/char/flash.c: flash_read should update ppos instead of file->f_pos
+     hwmon-driver-for-ti-tmp102-temperature-sensor-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-sbus-char-flashc-flash_read-should-update-ppos-instead-of-file-f_pos.patch
+     hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/sbus/char/flash.c: flash_read should update ppos instead of file->f_pos
-From: jan Blunck <jblunck@suse.de>
+Subject: hwmon-driver-for-ti-tmp102-temperature-sensor-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-flash_read() updates file->f_pos directly instead of the ppos given.  The
-VFS later updates the file->f_pos and overwrites it with the unchanged
-value of ppos.
-
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Steven King <sfking@fdwdc.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sbus/char/flash.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/tmp102.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/sbus/char/flash.c~drivers-sbus-char-flashc-flash_read-should-update-ppos-instead-of-file-f_pos drivers/sbus/char/flash.c
---- a/drivers/sbus/char/flash.c~drivers-sbus-char-flashc-flash_read-should-update-ppos-instead-of-file-f_pos
-+++ a/drivers/sbus/char/flash.c
-@@ -105,9 +105,9 @@ static ssize_t
- flash_read(struct file * file, char __user * buf,
- 	   size_t count, loff_t *ppos)
- {
--	unsigned long p = file->f_pos;
-+	loff_t p = *ppos;
- 	int i;
--	
-+
- 	if (count > flash.read_size - p)
- 		count = flash.read_size - p;
+diff -puN drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix drivers/hwmon/tmp102.c
+--- a/drivers/hwmon/tmp102.c~hwmon-driver-for-ti-tmp102-temperature-sensor-fix
++++ a/drivers/hwmon/tmp102.c
+@@ -21,6 +21,7 @@
  
-@@ -118,7 +118,7 @@ flash_read(struct file * file, char __us
- 		buf++;
- 	}
- 
--	file->f_pos += count;
-+	*ppos += count;
- 	return count;
- }
- 
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-osst-update-ppos-instead-of-using-file-f_pos.patch
-arch-cris-arch-v10-drivers-eepromc-eeprom_read-eeprom_write-should-update-ppos-instead-of-file-f_pos.patch
-frv-remove-struct-file-argument-from-sysctl-proc_handler.patch
-misdn-remove-unnecessary-test-on-f_pos.patch
-rtc-m41t80-use-nonseekable_open.patch
-vfs-introduce-noop_llseek.patch
-osst-use-noop_llseek-instead-of-default_llseek.patch
-st-use-noop_llseek-instead-of-default_llseek.patch
-fs-do-not-fallback-to-default_llseek-when-readdir-uses-bkl.patch
-documentation-filesystems-locking-update-documentation-on-llseek-wrt-bkl.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
+include-asm-generic-kmap_typesh-add-helpful-reminder.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+kfifo-samples-dont-compile.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
