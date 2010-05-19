@@ -1,62 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-at91_mci-modify-cache-flush-routines.patch removed from -mm tree
-Date: Wed, 19 May 2010 10:30:36 -0400
-Message-ID: <201005191732.o4JHW2Se025707@imap1.linux-foundation.org>
+Subject: [merged] inotify-dont-leak-user-struct-on-inotify-release.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:30:43 -0400
+Message-ID: <201005191732.o4JHW9Pr025719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59088 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753807Ab0ESRcJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753807Ab0ESRcS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 13:32:09 -0400
+	Wed, 19 May 2010 13:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, eparis@parisplace.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: at91_mci: modify cache flush routines
+     inotify: don't leak user struct on inotify release
 has been removed from the -mm tree.  Its filename was
-     mmc-at91_mci-modify-cache-flush-routines.patch
+     inotify-dont-leak-user-struct-on-inotify-release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: modify cache flush routines
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: inotify: don't leak user struct on inotify release
+From: Pavel Emelyanov <xemul@openvz.org>
 
-As we were using an internal dma flushing routine, this patch changes to
-the DMA API flush_kernel_dcache_page().  Driver is able to compile now.
+inotify_new_group() receives a get_uid-ed user_struct and saves the
+reference on group->inotify_data.user.  The problem is that free_uid() is
+never called on it.
 
-[akpm@linux-foundation.org: flush_kernel_dcache_page() comes before kunmap_atomic()]
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Issue seem to be introduced by 63c882a0 (inotify: reimplement inotify
+using fsnotify) after 2.6.30.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Eric Paris <eparis@parisplace.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/inotify/inotify_fsnotify.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-modify-cache-flush-routines drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-modify-cache-flush-routines
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -314,8 +314,8 @@ static void at91_mci_post_dma_read(struc
- 			dmabuf = (unsigned *)tmpv;
- 		}
+diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -28,6 +28,7 @@
+ #include <linux/path.h> /* struct path */
+ #include <linux/slab.h> /* kmem_* */
+ #include <linux/types.h>
++#include <linux/sched.h>
  
-+		flush_kernel_dcache_page(sg_page(sg));
- 		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
--		dmac_flush_range((void *)sgbuffer, ((void *)sgbuffer) + amount);
- 		data->bytes_xfered += amount;
- 		if (size == 0)
- 			break;
+ #include "inotify.h"
+ 
+@@ -200,6 +201,7 @@ static void inotify_free_group_priv(stru
+ 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
+ 	idr_remove_all(&group->inotify_data.idr);
+ 	idr_destroy(&group->inotify_data.idr);
++	free_uid(group->inotify_data.user);
+ }
+ 
+ void inotify_free_event_priv(struct fsnotify_event_private_data *fsn_event_priv)
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 linux-next.patch
-mmc-atmel-mci-enable-sd-high-speed-support.patch
-mmc-atmel-mci-add-support-for-sdio-interrupts.patch
+reiser4.patch
 
