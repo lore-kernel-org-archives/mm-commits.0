@@ -1,111 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-fix-convert-scsi_scanc-kernel-doc.patch removed from -mm tree
-Date: Wed, 19 May 2010 10:31:10 -0400
-Message-ID: <201005191732.o4JHWauI025748@imap1.linux-foundation.org>
+Subject: [merged] backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:30:58 -0400
+Message-ID: <201005191732.o4JHWOau025736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753807Ab0ESRcl (ORCPT
+	by vger.kernel.org with ESMTP id S1753807Ab0ESRcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 13:32:41 -0400
+	Wed, 19 May 2010 13:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, michael.hennerich@analog.com, rpurdie@rpsys.net, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix/convert scsi_scan.c kernel-doc
+     backlight: fix adp8860_bl build errors
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-convert-scsi_scanc-kernel-doc.patch
+     backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix/convert scsi_scan.c kernel-doc
+Subject: backlight: fix adp8860_bl build errors
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-scsi_scan.c: fix incorrectly formatted kernel-doc notation & convert
-documentation of 2 functions into kernel-doc.
+Add slab.h to fix part of build.
+Add a parameter in backlight_device_register() call to fix part of build.
+
+drivers/video/backlight/adp8860_bl.c:215: error: implicit declaration of function 'kzalloc'
+drivers/video/backlight/adp8860_bl.c:215: warning: assignment makes pointer from integer without a cast
+drivers/video/backlight/adp8860_bl.c:285: error: implicit declaration of function 'kfree'
+drivers/video/backlight/adp8860_bl.c:673: warning: assignment makes pointer from integer without a cast
+drivers/video/backlight/adp8860_bl.c:689: error: too few arguments to function 'backlight_device_register'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_scan.c |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ drivers/video/backlight/adp8860_bl.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_scan.c~scsi-fix-convert-scsi_scanc-kernel-doc drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~scsi-fix-convert-scsi_scanc-kernel-doc
-+++ a/drivers/scsi/scsi_scan.c
-@@ -1220,7 +1220,7 @@ static void scsi_sequential_lun_scan(str
- }
+diff -puN drivers/video/backlight/adp8860_bl.c~backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~backlight-new-driver-for-the-adp8860-backlight-parts-fix-adp8860_bl-build-errors
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -16,6 +16,7 @@
+ #include <linux/fb.h>
+ #include <linux/backlight.h>
+ #include <linux/leds.h>
++#include <linux/slab.h>
+ #include <linux/workqueue.h>
  
- /**
-- * scsilun_to_int: convert a scsi_lun to an int
-+ * scsilun_to_int - convert a scsi_lun to an int
-  * @scsilun:	struct scsi_lun to be converted.
-  *
-  * Description:
-@@ -1252,7 +1252,7 @@ int scsilun_to_int(struct scsi_lun *scsi
- EXPORT_SYMBOL(scsilun_to_int);
+ #include <linux/i2c/adp8860.h>
+@@ -647,6 +648,7 @@ static int __devinit adp8860_probe(struc
+ 	struct adp8860_bl *data;
+ 	struct adp8860_backlight_platform_data *pdata =
+ 		client->dev.platform_data;
++	struct backlight_properties props;
+ 	uint8_t reg_val;
+ 	int ret;
  
- /**
-- * int_to_scsilun: reverts an int into a scsi_lun
-+ * int_to_scsilun - reverts an int into a scsi_lun
-  * @lun:        integer to be reverted
-  * @scsilun:	struct scsi_lun to be set.
-  *
-@@ -1876,12 +1876,9 @@ void scsi_forget_host(struct Scsi_Host *
- 	spin_unlock_irqrestore(shost->host_lock, flags);
- }
+@@ -683,10 +685,13 @@ static int __devinit adp8860_probe(struc
+ 	data->current_brightness = 0;
+ 	i2c_set_clientdata(client, data);
  
--/*
-- * Function:    scsi_get_host_dev()
-- *
-- * Purpose:     Create a scsi_device that points to the host adapter itself.
-- *
-- * Arguments:   SHpnt   - Host that needs a scsi_device
-+/**
-+ * scsi_get_host_dev - Create a scsi_device that points to the host adapter itself
-+ * @shost: Host that needs a scsi_device
-  *
-  * Lock status: None assumed.
-  *
-@@ -1894,7 +1891,7 @@ void scsi_forget_host(struct Scsi_Host *
-  *
-  *	Note - this device is not accessible from any high-level
-  *	drivers (including generics), which is probably not
-- *	optimal.  We can add hooks later to attach 
-+ *	optimal.  We can add hooks later to attach.
-  */
- struct scsi_device *scsi_get_host_dev(struct Scsi_Host *shost)
- {
-@@ -1920,18 +1917,13 @@ struct scsi_device *scsi_get_host_dev(st
- }
- EXPORT_SYMBOL(scsi_get_host_dev);
++	memset(&props, 0, sizeof(props));
++	props.max_brightness = ADP8860_MAX_BRIGHTNESS;
++
+ 	mutex_init(&data->lock);
  
--/*
-- * Function:    scsi_free_host_dev()
-- *
-- * Purpose:     Free a scsi_device that points to the host adapter itself.
-- *
-- * Arguments:   SHpnt   - Host that needs a scsi_device
-+/**
-+ * scsi_free_host_dev - Free a scsi_device that points to the host adapter itself
-+ * @sdev: Host device to be freed
-  *
-  * Lock status: None assumed.
-  *
-  * Returns:     Nothing
-- *
-- * Notes:
-  */
- void scsi_free_host_dev(struct scsi_device *sdev)
- {
+ 	bl = backlight_device_register(dev_driver_string(&client->dev),
+-			&client->dev, data, &adp8860_bl_ops);
++			&client->dev, data, &adp8860_bl_ops, &props);
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&client->dev, "failed to register backlight\n");
+ 		ret = PTR_ERR(bl);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
