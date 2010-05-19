@@ -1,56 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] oom-avoid-oom-killer-for-lowmem-allocations.patch removed from -mm tree
-Date: Wed, 19 May 2010 11:47:59 -0700
-Message-ID: <201005191847.o4JIlxTZ029449@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch removed from -mm tree
+Date: Wed, 19 May 2010 11:48:08 -0700
+Message-ID: <201005191848.o4JIm8Tu029469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754000Ab0ESSsv (ORCPT
+	by vger.kernel.org with ESMTP id S1754197Ab0ESSsx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 14:48:51 -0400
+	Wed, 19 May 2010 14:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vge
 
 
 The patch titled
-     oom: avoid oom killer for lowmem allocations
+     oom: avoid race for oom killed tasks detaching mm prior to exit
 has been removed from the -mm tree.  Its filename was
-     oom-avoid-oom-killer-for-lowmem-allocations.patch
+     oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: avoid oom killer for lowmem allocations
+Subject: oom: avoid race for oom killed tasks detaching mm prior to exit
 From: David Rientjes <rientjes@google.com>
 
-If memory has been depleted in lowmem zones even with the protection
-afforded to it by /proc/sys/vm/lowmem_reserve_ratio, it is unlikely that
-killing current users will help.  The memory is either reclaimable (or
-migratable) already, in which case we should not invoke the oom killer at
-all, or it is pinned by an application for I/O.  Killing such an
-application may leave the hardware in an unspecified state and there is no
-guarantee that it will be able to make a timely exit.
+Tasks detach its ->mm prior to exiting so it's possible that in progress
+oom kills or already exiting tasks may be missed during the oom killer's
+tasklist scan.  When an eligible task is found with either TIF_MEMDIE or
+PF_EXITING set, the oom killer is supposed to be a no-op to avoid
+needlessly killing additional tasks.  This closes the race between a task
+detaching its ->mm and being removed from the tasklist.
 
-Lowmem allocations are now failed in oom conditions when __GFP_NOFAIL is
-not used so that the task can perhaps recover or try again later.
-
-Previously, the heuristic provided some protection for those tasks with
-CAP_SYS_RAWIO, but this is no longer necessary since we will not be
-killing tasks for the purposes of ISA allocations.
-
-high_zoneidx is gfp_zone(gfp_flags), meaning that ZONE_NORMAL will be the
-default for all allocations that are not __GFP_DMA, __GFP_DMA32,
-__GFP_HIGHMEM, and __GFP_MOVABLE on kernels configured to support those
-flags.  Testing for high_zoneidx being less than ZONE_NORMAL will only
-return true for allocations that have either __GFP_DMA or __GFP_DMA32.
+Out of memory conditions as the result of memory controllers will
+automatically filter tasks that have detached their ->mm (since
+task_in_mem_cgroup() will return 0).  This is acceptable, however, since
+memcg constrained ooms aren't the result of a lack of memory resources but
+rather a limit imposed by userspace that requires a task be killed
+regardless.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
@@ -58,55 +51,38 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+ mm/oom_kill.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~oom-avoid-oom-killer-for-lowmem-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~oom-avoid-oom-killer-for-lowmem-allocations
-+++ a/mm/page_alloc.c
-@@ -1695,6 +1695,9 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		/* The OOM killer will not help higher order allocs */
- 		if (order > PAGE_ALLOC_COSTLY_ORDER)
- 			goto out;
-+		/* The OOM killer does not needlessly kill tasks for lowmem */
-+		if (high_zoneidx < ZONE_NORMAL)
-+			goto out;
- 		/*
- 		 * GFP_THISNODE contains __GFP_NORETRY and we never hit this.
- 		 * Sanity check for bare calls of __GFP_THISNODE, not real OOM.
-@@ -1923,15 +1926,23 @@ rebalance:
- 			if (page)
- 				goto got_pg;
+diff -puN mm/oom_kill.c~oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit
++++ a/mm/oom_kill.c
+@@ -305,12 +305,6 @@ static struct task_struct *select_bad_pr
+ 	for_each_process(p) {
+ 		unsigned int points;
  
--			/*
--			 * The OOM killer does not trigger for high-order
--			 * ~__GFP_NOFAIL allocations so if no progress is being
--			 * made, there are no other options and retrying is
--			 * unlikely to help.
--			 */
--			if (order > PAGE_ALLOC_COSTLY_ORDER &&
--						!(gfp_mask & __GFP_NOFAIL))
--				goto nopage;
-+			if (!(gfp_mask & __GFP_NOFAIL)) {
-+				/*
-+				 * The oom killer is not called for high-order
-+				 * allocations that may fail, so if no progress
-+				 * is being made, there are no other options and
-+				 * retrying is unlikely to help.
-+				 */
-+				if (order > PAGE_ALLOC_COSTLY_ORDER)
-+					goto nopage;
-+				/*
-+				 * The oom killer is not called for lowmem
-+				 * allocations to prevent needlessly killing
-+				 * innocent tasks.
-+				 */
-+				if (high_zoneidx < ZONE_NORMAL)
-+					goto nopage;
-+			}
- 
- 			goto restart;
+-		/*
+-		 * skip kernel threads and tasks which have already released
+-		 * their mm.
+-		 */
+-		if (!p->mm)
+-			continue;
+ 		/* skip the init task */
+ 		if (is_global_init(p))
+ 			continue;
+@@ -351,6 +345,12 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = 1000;
  		}
+ 
++		/*
++		 * skip kernel threads and tasks which have already released
++		 * their mm.
++		 */
++		if (!p->mm)
++			continue;
+ 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -114,9 +90,6 @@ Patches currently in -mm which might be from rientjes@google.com are
 origin.patch
 linux-next.patch
 mempolicy-remove-redundant-code.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
 oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
 oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
 oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
