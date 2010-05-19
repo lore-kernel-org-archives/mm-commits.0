@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-inodec-use-atomic_inc_return-in-__iget.patch added to -mm tree
-Date: Wed, 19 May 2010 12:33:58 -0700
-Message-ID: <201005191933.o4JJXwYp031624@imap1.linux-foundation.org>
+Subject: [merged] fs-inodec-use-atomic_inc_return-in-__iget.patch removed from -mm tree
+Date: Wed, 19 May 2010 12:35:15 -0700
+Message-ID: <201005191935.o4JJZF6s031669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751400Ab0ESTew (ORCPT
+	by vger.kernel.org with ESMTP id S1750859Ab0ESTgK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 15:34:52 -0400
+	Wed, 19 May 2010 15:36:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, viro@zeniv.linux.org.uk
+To: richard@rsk.demon.co.uk, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      fs: inode.c use atomic_inc_return in __iget
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fs-inodec-use-atomic_inc_return-in-__iget.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -73,9 +63,9 @@ _
 Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 linux-next.patch
+fs-inodec-use-atomic_inc_return-in-__iget.patch
 buffer_head-remove-redundant-test-from-wait_on_buffer.patch
 buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
 wait_on_buffer-remove-the-buffer_locked-test.patch
 fs-writeback-check-sync-bit-earlier-in-inode_wait_for_writeback.patch
-fs-inodec-use-atomic_inc_return-in-__iget.patch
 
