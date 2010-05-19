@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + sdio-add-new-function-for-raw-read-after-write-operation.patch added to -mm tree
-Date: Wed, 19 May 2010 12:52:09 -0700
-Message-ID: <201005191952.o4JJq9Pb002357@imap1.linux-foundation.org>
+Date: Wed, 19 May 2010 12:52:31 -0700
+Message-ID: <201005191952.o4JJqVtq002369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754736Ab0ESTw1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754710Ab0ESTwv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 15:52:27 -0400
+	Wed, 19 May 2010 15:52:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: notasas@gmail.com, dimitrysh@google.com, kalle.valo@iki.fi
+Cc: notasas@gmail.com, dimitrysh@google.com, kalle.valo@iki.fi, linux-mmc@vger.kernel.org
 
 
 The patch titled
@@ -54,6 +54,7 @@ http://android.git.kernel.org/?p=kernel/common.git;a=commitdiff;h=74a47786f6ecbe
 Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 Acked-by: Kalle Valo <kalle.valo@iki.fi>
 Cc: Dmitry Shmidt <dimitrysh@google.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
