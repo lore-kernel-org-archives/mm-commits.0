@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-add-new-function-for-raw-read-after-write-operation.patch added to -mm tree
-Date: Wed, 19 May 2010 12:52:31 -0700
-Message-ID: <201005191952.o4JJqVtq002369@imap1.linux-foundation.org>
+Subject: + drivers-scsi-aacraid-eliminate-use-after-free.patch added to -mm tree
+Date: Wed, 19 May 2010 12:54:35 -0700
+Message-ID: <201005191954.o4JJsZKr002450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754710Ab0ESTwv (ORCPT
+	by vger.kernel.org with ESMTP id S1753772Ab0ESTym (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 15:52:51 -0400
+	Wed, 19 May 2010 15:54:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: notasas@gmail.com, dimitrysh@google.com, kalle.valo@iki.fi, linux-mmc@vger.kernel.org
+Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     sdio: add new function for RAW (Read after Write) operation
+     drivers/scsi/aacraid: aliminate use after free
 has been added to the -mm tree.  Its filename is
-     sdio-add-new-function-for-raw-read-after-write-operation.patch
+     drivers-scsi-aacraid-eliminate-use-after-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: add new function for RAW (Read after Write) operation
-From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: drivers/scsi/aacraid: aliminate use after free
+From: Julia Lawall <julia@diku.dk>
 
-SDIO specification allows RAW (Read after Write) operation using
-IO_RW_DIRECT command (CMD52) by setting the RAW bit.  This operation is
-similar to ordinary read/write commands, except that both write and read
-are performed using single command/response pair.  The Linux SDIO layer
-already supports this internaly, only external function is missing for
-drivers to make use, which is added by this patch.
+The debugging code using the freed structure is moved before the kfree.
 
-This type of command is required to implement proper power save mode
-support in wl1251 wifi driver.
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Android has similar patch for G1 in it's tree for the same reason:
+// <smpl>
+@free@
+expression E;
+position p;
+@@
+kfree@p(E)
 
-http://android.git.kernel.org/?p=kernel/common.git;a=commitdiff;h=74a47786f6ecbe6c1cf9fb15efe6a968451deb52
+@@
+expression free.E, subE<=free.E, E1;
+position free.p;
+@@
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-Acked-by: Kalle Valo <kalle.valo@iki.fi>
-Cc: Dmitry Shmidt <dimitrysh@google.com>
-Cc: <linux-mmc@vger.kernel.org>
+  kfree@p(E)
+  ...
+(
+  subE = E1
+|
+* E
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_io.c    |   31 +++++++++++++++++++++++++++++++
- include/linux/mmc/sdio_func.h |    3 +++
- 2 files changed, 34 insertions(+)
+ drivers/scsi/aacraid/commctrl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation drivers/mmc/core/sdio_io.c
---- a/drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation
-+++ a/drivers/mmc/core/sdio_io.c
-@@ -406,6 +406,37 @@ void sdio_writeb(struct sdio_func *func,
- EXPORT_SYMBOL_GPL(sdio_writeb);
- 
- /**
-+ *	sdio_writeb_readb - write and read a byte from SDIO function
-+ *	@func: SDIO function to access
-+ *	@b: byte to write
-+ *	@addr: address to write to
-+ *	@err_ret: optional status value from transfer
-+ *
-+ *	Performs a RAW (Read after Write) operation as defined by SDIO spec -
-+ *	single byte is written to address space of a given SDIO function and
-+ *	response is read back from the same address, both using single request.
-+ *	If there is a problem with the operation, 0xff is returned and
-+ *	@err_ret will contain the error code.
-+ */
-+u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
-+	unsigned int addr, int *err_ret)
-+{
-+	int ret;
-+	u8 val;
-+
-+	BUG_ON(!func);
-+
-+	ret = mmc_io_rw_direct(func->card, 1, func->num, addr, b, &val);
-+	if (err_ret)
-+		*err_ret = ret;
-+	if (ret)
-+		val = 0xff;
-+
-+	return val;
-+}
-+EXPORT_SYMBOL_GPL(sdio_writeb_readb);
-+
-+/**
-  *	sdio_memcpy_fromio - read a chunk of memory from a SDIO function
-  *	@func: SDIO function to access
-  *	@dst: buffer to store the data
-diff -puN include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation include/linux/mmc/sdio_func.h
---- a/include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation
-+++ a/include/linux/mmc/sdio_func.h
-@@ -145,6 +145,9 @@ extern void sdio_writew(struct sdio_func
- extern void sdio_writel(struct sdio_func *func, u32 b,
- 	unsigned int addr, int *err_ret);
- 
-+extern u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
-+	unsigned int addr, int *err_ret);
-+
- extern int sdio_memcpy_toio(struct sdio_func *func, unsigned int addr,
- 	void *src, int count);
- extern int sdio_writesb(struct sdio_func *func, unsigned int addr,
+diff -puN drivers/scsi/aacraid/commctrl.c~drivers-scsi-aacraid-eliminate-use-after-free drivers/scsi/aacraid/commctrl.c
+--- a/drivers/scsi/aacraid/commctrl.c~drivers-scsi-aacraid-eliminate-use-after-free
++++ a/drivers/scsi/aacraid/commctrl.c
+@@ -655,9 +655,9 @@ static int aac_send_raw_srb(struct aac_d
+ 				/* Does this really need to be GFP_DMA? */
+ 				p = kmalloc(usg->sg[i].count,GFP_KERNEL|__GFP_DMA);
+ 				if(!p) {
+-					kfree (usg);
+-					dprintk((KERN_DEBUG"aacraid: Could not allocate SG buffer - size = %d buffer number %d of %d\n",
++					dprintk((KERN_DEBUG "aacraid: Could not allocate SG buffer - size = %d buffer number %d of %d\n",
+ 					  usg->sg[i].count,i,usg->count));
++					kfree(usg);
+ 					rcode = -ENOMEM;
+ 					goto cleanup;
+ 				}
 _
 
-Patches currently in -mm which might be from notasas@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
-sdio-add-new-function-for-raw-read-after-write-operation.patch
-fbdev-move-fbio_waitforvsync-to-linux-fbh.patch
-fbdev-move-fbio_waitforvsync-to-linux-fbh-update.patch
+drivers-scsi-aacraid-eliminate-use-after-free.patch
+arch-x86-pci-use-kasprintf.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-char-ppdevc-use-kasprintf.patch
 
