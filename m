@@ -1,139 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mmc-at91_mci-modify-cache-flush-routines-fix.patch removed from -mm tree
-Date: Sat, 15 May 2010 12:31:30 -0400
-Message-ID: <201005151932.o4FJWvlc009928@imap1.linux-foundation.org>
+Subject: [alternative-merged] serial-apbuartc-fix-two-problems-related-to-grlib_apbuart_configure.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:16:20 -0400
+Message-ID: <201005191717.o4JHHjxZ024947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752170Ab0EOTdH (ORCPT
+	by vger.kernel.org with ESMTP id S1753035Ab0ESRSo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 May 2010 15:33:07 -0400
+	Wed, 19 May 2010 13:18:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: miguel.ojeda.sandonis@gmail.com, davem@davemloft.net, greg@kroah.com, kristoffer@gaisler.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc-at91_mci-modify-cache-flush-routines-fix
+     serial: apbuart.c: fix two problems related to grlib_apbuart_configure()
 has been removed from the -mm tree.  Its filename was
-     mmc-at91_mci-modify-cache-flush-routines-fix.patch
+     serial-apbuartc-fix-two-problems-related-to-grlib_apbuart_configure.patch
 
-This patch was dropped because it was folded into mmc-at91_mci-modify-cache-flush-routines.patch
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc-at91_mci-modify-cache-flush-routines-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial: apbuart.c: fix two problems related to grlib_apbuart_configure()
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+I found two problems using the Simics' sunfire target, so maybe the
+following does not occur in real machines.
+
+1. At grlib_apbuart_configure() in apbuart.c, prop can be NULL if
+   "clock-frequency" doesn't exist in the OF tree:
+
+        /* Get bus frequency */
+        rp = of_find_node_by_path("/");
+        rp = of_get_next_child(rp, NULL);
+        prop = of_get_property(rp, "clock-frequency", NULL);
+        freq_khz = *prop;
+
+2. In addition, apbuart.c does not check if there aren't any ports
+   configured after calls to grlib_apbuart_configure(), so other oops will
+   occur if no port was configured (e.g.  uart_set_options() because of
+   port->ops).
+
+In order to solve that, I added a check after both of the calls to
+grlib_apbuart_configure().
+
+The patch that I provide below prevents both problems in the Simics'
+sunfire target.
+
+Signed-off-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: Kristoffer Glembo <kristoffer@gaisler.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/apbuart.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-modify-cache-flush-routines-fix drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-modify-cache-flush-routines-fix
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -314,8 +314,8 @@ static void at91_mci_post_dma_read(struc
- 			dmabuf = (unsigned *)tmpv;
- 		}
+diff -puN drivers/serial/apbuart.c~serial-apbuartc-fix-two-problems-related-to-grlib_apbuart_configure drivers/serial/apbuart.c
+--- a/drivers/serial/apbuart.c~serial-apbuartc-fix-two-problems-related-to-grlib_apbuart_configure
++++ a/drivers/serial/apbuart.c
+@@ -525,6 +525,9 @@ static void grlib_apbuart_configure(void
+ static int __init apbuart_console_init(void)
+ {
+ 	grlib_apbuart_configure();
++	if (grlib_apbuart_port_nr == 0)
++		return 0;
++
+ 	register_console(&grlib_apbuart_console);
+ 	return 0;
+ }
+@@ -612,6 +615,10 @@ static void grlib_apbuart_configure(void
+ 	rp = of_find_node_by_path("/");
+ 	rp = of_get_next_child(rp, NULL);
+ 	prop = of_get_property(rp, "clock-frequency", NULL);
++	if (prop == NULL) {
++		grlib_apbuart_port_nr = 0;
++		return;
++	}
+ 	freq_khz = *prop;
  
--		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
- 		flush_kernel_dcache_page(sg_page(sg));
-+		kunmap_atomic(sgbuffer, KM_BIO_SRC_IRQ);
- 		data->bytes_xfered += amount;
- 		if (size == 0)
- 			break;
+ 	line = 0;
+@@ -666,6 +673,10 @@ static int __init grlib_apbuart_init(voi
+ 
+ 	/* Find all APBUARTS in device the tree and initialize their ports */
+ 	grlib_apbuart_configure();
++	if (grlib_apbuart_port_nr == 0) {
++		printk(KERN_INFO "Serial: GRLIB APBUART: No ports found.\n");
++		return -ENODEV;
++	}
+ 
+ 	printk(KERN_INFO "Serial: GRLIB APBUART driver\n");
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from miguel.ojeda.sandonis@gmail.com are
 
-origin.patch
-mmc-at91_mci-modify-cache-flush-routines.patch
-mmc-at91_mci-modify-cache-flush-routines-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
-x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-jfs-free-sbi-memory-in-error-path.patch
-fix-drm-radeon-kms-hdmi-irq-support.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-kernel-mutexc-fix-unused-var-warning.patch
-fix-stop_machine-reimplement-using-cpu_stop.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
-highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
-include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
-include-asm-generic-kmap_typesh-add-helpful-reminder.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor.patch
-hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-memcg-move-charge-of-file-pages-fix-4.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
-pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-fix.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-kfifo-samples-dont-compile.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+serial-apbuartc-fix-two-problems-related-to-grlib_apbuart_configure.patch
+auxdisplay-section-cleanup-in-cfag12864bfb-driver.patch
 
