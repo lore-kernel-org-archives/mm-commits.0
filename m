@@ -1,83 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] oom-deprecate-oom_adj-tunable.patch removed from -mm tree
-Date: Wed, 19 May 2010 11:47:54 -0700
-Message-ID: <201005191847.o4JIlsLx029438@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-reintroduce-and-deprecate-oom_kill_allocating_task.patch removed from -mm tree
+Date: Wed, 19 May 2010 11:47:50 -0700
+Message-ID: <201005191847.o4JIloEE029431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753979Ab0ESS5D (ORCPT
+	by vger.kernel.org with ESMTP id S1751919Ab0ESS5d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 14:57:03 -0400
+	Wed, 19 May 2010 14:57:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vge
 
 
 The patch titled
-     oom: deprecate oom_adj tunable
+     oom: reintroduce and deprecate oom_kill_allocating_task
 has been removed from the -mm tree.  Its filename was
-     oom-deprecate-oom_adj-tunable.patch
+     oom-reintroduce-and-deprecate-oom_kill_allocating_task.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: deprecate oom_adj tunable
+Subject: oom: reintroduce and deprecate oom_kill_allocating_task
 From: David Rientjes <rientjes@google.com>
 
-/proc/pid/oom_adj is now deprecated so that that it may eventually be
-removed.  The target date for removal is December 2011.
+There's a concern that removing /proc/sys/vm/oom_kill_allocating_task will
+unnecessarily break the userspace API as the result of the oom killer
+rewrite.
 
-A warning will be printed to the kernel log if a task attempts to use this
-interface.  Future warning will be suppressed until the kernel is rebooted
-to prevent spamming the kernel log.
+This patch reintroduces the sysctl and deprecates it by adding an entry to
+Documentation/feature-removal-schedule.txt with a suggested removal date
+of December 2011 and emitting a warning the first time it is written
+including the writing task's name and pid.
+
+/proc/sys/vm/oom_kill_allocating task mirrors the value of
+/proc/sys/vm/oom_kill_quick.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Nick Piggin <npiggin@suse.de>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   30 +++++++++++++++++++
- Documentation/filesystems/proc.txt         |    3 +
- fs/proc/base.c                             |    8 +++++
- include/linux/oom.h                        |    3 +
- 4 files changed, 44 insertions(+)
+ Documentation/feature-removal-schedule.txt |   19 +++++++++++++++++++
+ include/linux/oom.h                        |    2 ++
+ kernel/sysctl.c                            |    7 +++++++
+ mm/oom_kill.c                              |   14 ++++++++++++++
+ 4 files changed, 42 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~oom-deprecate-oom_adj-tunable Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~oom-deprecate-oom_adj-tunable
+diff -puN Documentation/feature-removal-schedule.txt~oom-reintroduce-and-deprecate-oom_kill_allocating_task Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~oom-reintroduce-and-deprecate-oom_kill_allocating_task
 +++ a/Documentation/feature-removal-schedule.txt
-@@ -193,6 +193,36 @@ Who:	David Rientjes <rientjes@google.com
+@@ -174,6 +174,25 @@ Who:	Eric Biederman <ebiederm@xmission.c
  
  ---------------------------
  
-+What:	/proc/<pid>/oom_adj
++What:	/proc/sys/vm/oom_kill_allocating_task
 +When:	December 2011
-+Why:	/proc/<pid>/oom_adj allows userspace to influence the oom killer's
-+	badness heuristic used to determine which task to kill when the kernel
-+	is out of memory.
++Why:	/proc/sys/vm/oom_kill_allocating_task is equivalent to
++	/proc/sys/vm/oom_kill_quick.  The two sysctls will mirror each other's
++	value when set.
 +
-+	The badness heuristic has since been rewritten since the introduction of
-+	this tunable such that its meaning is deprecated.  The value was
-+	implemented as a bitshift on a score generated by the badness()
-+	function that did not have any precise units of measure.  With the
-+	rewrite, the score is given as a proportion of available memory to the
-+	task allocating pages, so using a bitshift which grows the score
-+	exponentially is, thus, impossible to tune with fine granularity.
-+
-+	A much more powerful interface, /proc/<pid>/oom_score_adj, was
-+	introduced with the oom killer rewrite that allows users to increase or
-+	decrease the badness() score linearly.  This interface will replace
-+	/proc/<pid>/oom_adj.
-+
-+	See Documentation/filesystems/proc.txt for information on how to use the
-+	new tunable.
++	Existing users of /proc/sys/vm/oom_kill_allocating_task should simply
++	write a non-zero value to /proc/sys/vm/oom_kill_quick.  This will also
++	suppress a costly tasklist scan when dumping VM information for all
++	oom kill candidates.
 +
 +	A warning will be emitted to the kernel log if an application uses this
 +	deprecated interface.  After it is printed once, future warning will be
@@ -90,50 +84,59 @@ diff -puN Documentation/feature-removal-schedule.txt~oom-deprecate-oom_adj-tunab
  What:	remove EXPORT_SYMBOL(kernel_thread)
  When:	August 2006
  Files:	arch/*/kernel/*_ksyms.c
-diff -puN Documentation/filesystems/proc.txt~oom-deprecate-oom_adj-tunable Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~oom-deprecate-oom_adj-tunable
-+++ a/Documentation/filesystems/proc.txt
-@@ -1288,6 +1288,9 @@ scaled linearly with /proc/<pid>/oom_sco
- Writing to /proc/<pid>/oom_score_adj or /proc/<pid>/oom_adj will change the
- other with its scaled value.
- 
-+NOTICE: /proc/<pid>/oom_adj is deprecated and will be removed, please see
-+Documentation/feature-removal-schedule.txt.
-+
- Caveat: when a parent task is selected, the oom killer will sacrifice any first
- generation children with seperate address spaces instead, if possible.  This
- avoids servers and important system daemons from being killed and loses the
-diff -puN fs/proc/base.c~oom-deprecate-oom_adj-tunable fs/proc/base.c
---- a/fs/proc/base.c~oom-deprecate-oom_adj-tunable
-+++ a/fs/proc/base.c
-@@ -1059,6 +1059,14 @@ static ssize_t oom_adjust_write(struct f
- 		return -EACCES;
- 	}
- 
-+	/*
-+	 * Warn that /proc/pid/oom_adj is deprecated, see
-+	 * Documentation/feature-removal-schedule.txt.
-+	 */
-+	printk_once(KERN_WARNING "%s (%d): /proc/%d/oom_adj is deprecated, "
-+			"please use /proc/%d/oom_score_adj instead.\n",
-+			current->comm, task_pid_nr(current),
-+			task_pid_nr(task), task_pid_nr(task));
- 	task->signal->oom_adj = oom_adjust;
- 	/*
- 	 * Scale /proc/pid/oom_score_adj appropriately ensuring that a maximum
-diff -puN include/linux/oom.h~oom-deprecate-oom_adj-tunable include/linux/oom.h
---- a/include/linux/oom.h~oom-deprecate-oom_adj-tunable
+diff -puN include/linux/oom.h~oom-reintroduce-and-deprecate-oom_kill_allocating_task include/linux/oom.h
+--- a/include/linux/oom.h~oom-reintroduce-and-deprecate-oom_kill_allocating_task
 +++ a/include/linux/oom.h
-@@ -2,6 +2,9 @@
- #define __INCLUDE_LINUX_OOM_H
+@@ -46,6 +46,8 @@ extern void out_of_memory(struct zonelis
+ 		int order, nodemask_t *mask);
+ extern int register_oom_notifier(struct notifier_block *nb);
+ extern int unregister_oom_notifier(struct notifier_block *nb);
++extern int oom_kill_allocating_task_handler(struct ctl_table *table, int write,
++			void __user *buffer, size_t *lenp, loff_t *ppos);
  
+ extern bool oom_killer_disabled;
+ 
+diff -puN kernel/sysctl.c~oom-reintroduce-and-deprecate-oom_kill_allocating_task kernel/sysctl.c
+--- a/kernel/sysctl.c~oom-reintroduce-and-deprecate-oom_kill_allocating_task
++++ a/kernel/sysctl.c
+@@ -997,6 +997,13 @@ static struct ctl_table vm_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ 	{
++		.procname	= "oom_kill_allocating_task",
++		.data		= &sysctl_oom_kill_quick,
++		.maxlen		= sizeof(sysctl_oom_kill_quick),
++		.mode		= 0644,
++		.proc_handler	= oom_kill_allocating_task_handler,
++	},
++	{
+ 		.procname	= "oom_forkbomb_thres",
+ 		.data		= &sysctl_oom_forkbomb_thres,
+ 		.maxlen		= sizeof(sysctl_oom_forkbomb_thres),
+diff -puN mm/oom_kill.c~oom-reintroduce-and-deprecate-oom_kill_allocating_task mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-reintroduce-and-deprecate-oom_kill_allocating_task
++++ a/mm/oom_kill.c
+@@ -38,6 +38,20 @@ int sysctl_oom_dump_tasks;
+ int sysctl_oom_forkbomb_thres = DEFAULT_OOM_FORKBOMB_THRES;
+ static DEFINE_SPINLOCK(zone_scan_lock);
+ 
++int oom_kill_allocating_task_handler(struct ctl_table *table, int write,
++			void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	if (!ret && write)
++		printk_once(KERN_WARNING "%s (%d): "
++			"/proc/sys/vm/oom_kill_allocating_task is deprecated, "
++			"please use /proc/sys/vm/oom_kill_quick instead.\n",
++			current->comm, task_pid_nr(current));
++	return ret;
++}
++
  /*
-+ * /proc/<pid>/oom_adj is deprecated, see
-+ * Documentation/feature-removal-schedule.txt.
-+ *
-  * /proc/<pid>/oom_adj set to -17 protects from the oom-killer
-  */
- #define OOM_DISABLE (-17)
+  * Do all threads of the target process overlap our allowed nodes?
+  * @tsk: task struct of which task to consider
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -141,6 +144,8 @@ Patches currently in -mm which might be from rientjes@google.com are
 origin.patch
 linux-next.patch
 mempolicy-remove-redundant-code.patch
+oom-reintroduce-and-deprecate-oom_kill_allocating_task.patch
+oom-move-sysctl-declarations-to-oomh.patch
 oom-deprecate-oom_adj-tunable.patch
 oom-replace-sysctls-with-quick-mode.patch
 oom-avoid-oom-killer-for-lowmem-allocations.patch
