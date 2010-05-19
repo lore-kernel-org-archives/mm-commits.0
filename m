@@ -1,147 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] oom-clean-up-oom_badness.patch removed from -mm tree
-Date: Wed, 19 May 2010 11:48:29 -0700
-Message-ID: <201005191848.o4JImTAf029511@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-default-to-killing-current-for-pagefault-ooms.patch removed from -mm tree
+Date: Wed, 19 May 2010 11:48:05 -0700
+Message-ID: <201005191848.o4JIm520029461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751238Ab0ESS4A (ORCPT
+	by vger.kernel.org with ESMTP id S1753870Ab0ESS4f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 14:56:00 -0400
+	Wed, 19 May 2010 14:56:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vge
 
 
 The patch titled
-     oom: clean up oom_badness()
+     oom: default to killing current for pagefault ooms
 has been removed from the -mm tree.  Its filename was
-     oom-clean-up-oom_badness.patch
+     oom-default-to-killing-current-for-pagefault-ooms.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: clean up oom_badness()
+Subject: oom: default to killing current for pagefault ooms
 From: David Rientjes <rientjes@google.com>
 
-oom_badness() no longer uses its uptime formal, so it can be removed.
+The pagefault oom handler does not know the context (gfp_mask, order, etc)
+in which memory was not found when a VM_FAULT_OOM is generated.  The only
+information known is that current is trying to allocate in that context,
+so killing it is a legitimate response (and is the default for
+architectures that do not even use the pagefault oom handler such as ia64
+and powerpc).
+
+When a VM_FAULT_OOM occurs, the pagefault oom handler will now attempt to
+kill current by default.  If it is unkillable, the oom killer is called to
+find a memory-hogging task to kill instead that will lead to future memory
+freeing.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c      |    5 +----
- include/linux/oom.h |    3 +--
- mm/oom_kill.c       |   12 +++---------
- 3 files changed, 5 insertions(+), 15 deletions(-)
+ mm/oom_kill.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/base.c~oom-clean-up-oom_badness fs/proc/base.c
---- a/fs/proc/base.c~oom-clean-up-oom_badness
-+++ a/fs/proc/base.c
-@@ -444,9 +444,7 @@ static const struct file_operations proc
- static int proc_oom_score(struct task_struct *task, char *buffer)
- {
- 	unsigned long points = 0;
--	struct timespec uptime;
- 
--	do_posix_clock_monotonic_gettime(&uptime);
- 	read_lock(&tasklist_lock);
- 	if (pid_alive(task))
- 		points = oom_badness(task->group_leader,
-@@ -454,8 +452,7 @@ static int proc_oom_score(struct task_st
- 					global_page_state(NR_ACTIVE_ANON) +
- 					global_page_state(NR_INACTIVE_FILE) +
- 					global_page_state(NR_ACTIVE_FILE) +
--					total_swap_pages,
--					uptime.tv_sec);
-+					total_swap_pages);
- 	read_unlock(&tasklist_lock);
- 	return sprintf(buffer, "%lu\n", points);
- }
-diff -puN include/linux/oom.h~oom-clean-up-oom_badness include/linux/oom.h
---- a/include/linux/oom.h~oom-clean-up-oom_badness
-+++ a/include/linux/oom.h
-@@ -40,8 +40,7 @@ enum oom_constraint {
- 	CONSTRAINT_MEMORY_POLICY,
- };
- 
--extern int oom_badness(struct task_struct *p,
--			unsigned long totalpages, unsigned long uptime);
-+extern int oom_badness(struct task_struct *p, unsigned long totalpages);
- extern int try_set_zone_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- 
-diff -puN mm/oom_kill.c~oom-clean-up-oom_badness mm/oom_kill.c
---- a/mm/oom_kill.c~oom-clean-up-oom_badness
+diff -puN mm/oom_kill.c~oom-default-to-killing-current-for-pagefault-ooms mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-default-to-killing-current-for-pagefault-ooms
 +++ a/mm/oom_kill.c
-@@ -163,14 +163,12 @@ static unsigned long oom_forkbomb_penalt
-  * oom_badness - heuristic function to determine which candidate task to kill
-  * @p: task struct of which task we should calculate
-  * @totalpages: total present RAM allowed for page allocation
-- * @uptime: current uptime in seconds
-  *
-  * The heuristic for determining which task to kill is made to be as simple and
-  * predictable as possible.  The goal is to return the highest value for the
-  * task consuming the most memory to avoid subsequent oom conditions.
+@@ -726,15 +726,23 @@ void out_of_memory(struct zonelist *zone
+ }
+ 
+ /*
+- * The pagefault handler calls here because it is out of memory, so kill a
+- * memory-hogging task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel
+- * oom killing is already in progress so do nothing.  If a task is found with
+- * TIF_MEMDIE set, it has been killed so do nothing and allow it to exit.
++ * The pagefault handler calls here because it is out of memory, so kill current
++ * by default.  If it's unkillable, then fallback to killing a memory-hogging
++ * task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel oom killing is
++ * already in progress so do nothing.  If a task is found with TIF_MEMDIE set,
++ * it has been killed so do nothing and allow it to exit.
   */
--int oom_badness(struct task_struct *p, unsigned long totalpages,
--							unsigned long uptime)
-+int oom_badness(struct task_struct *p, unsigned long totalpages)
+ void pagefault_out_of_memory(void)
  {
- 	int points;
- 
-@@ -308,10 +306,8 @@ static struct task_struct *select_bad_pr
- {
- 	struct task_struct *p;
- 	struct task_struct *chosen = NULL;
--	struct timespec uptime;
- 	*ppoints = 0;
- 
--	do_posix_clock_monotonic_gettime(&uptime);
- 	for_each_process(p) {
- 		int points;
- 
-@@ -358,7 +354,7 @@ static struct task_struct *select_bad_pr
- 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 			continue;
- 
--		points = oom_badness(p, totalpages, uptime.tv_sec);
-+		points = oom_badness(p, totalpages);
- 		if (points >= 0 && (points > *ppoints || !chosen)) {
- 			chosen = p;
- 			*ppoints = points;
-@@ -462,7 +458,6 @@ static int oom_kill_process(struct task_
- 	struct task_struct *victim = p;
- 	struct task_struct *c;
- 	unsigned int victim_points = 0;
--	struct timespec uptime;
- 
- 	if (printk_ratelimit())
- 		dump_header(p, gfp_mask, order, mem);
-@@ -479,7 +474,6 @@ static int oom_kill_process(struct task_
- 	pr_err("%s: Kill process %d (%s) with score %d or sacrifice child\n",
- 		message, task_pid_nr(p), p->comm, points);
- 
--	do_posix_clock_monotonic_gettime(&uptime);
- 	/* Try to sacrifice the worst child first */
- 	list_for_each_entry(c, &p->children, sibling) {
- 		unsigned int cpoints;
-@@ -490,7 +484,7 @@ static int oom_kill_process(struct task_
- 			continue;
- 
- 		/* oom_badness() returns 0 if the thread is unkillable */
--		cpoints = oom_badness(c, totalpages, uptime.tv_sec);
-+		cpoints = oom_badness(c, totalpages);
- 		if (cpoints > victim_points) {
- 			victim = c;
- 			victim_points = cpoints;
++	unsigned long totalpages;
++	int err;
++
+ 	if (try_set_system_oom()) {
+-		out_of_memory(NULL, 0, 0, NULL);
++		constrained_alloc(NULL, 0, NULL, &totalpages);
++		err = oom_kill_process(current, 0, 0, 0, totalpages, NULL,
++					"Out of memory (pagefault)");
++		if (err)
++			out_of_memory(NULL, 0, 0, NULL);
+ 		clear_system_oom();
+ 	}
+ 	if (!test_thread_flag(TIF_MEMDIE))
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -149,6 +91,16 @@ Patches currently in -mm which might be from rientjes@google.com are
 origin.patch
 linux-next.patch
 mempolicy-remove-redundant-code.patch
+oom-default-to-killing-current-for-pagefault-ooms.patch
+oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
+oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
+oom-hold-tasklist_lock-when-dumping-tasks.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
 oom-clean-up-oom_badness.patch
 oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
 oom-avoid-divide-by-zero.patch
