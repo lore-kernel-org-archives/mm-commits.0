@@ -1,68 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] oom-avoid-divide-by-zero.patch removed from -mm tree
-Date: Wed, 19 May 2010 11:48:34 -0700
-Message-ID: <201005191848.o4JImYxK029518@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch removed from -mm tree
+Date: Wed, 19 May 2010 11:48:22 -0700
+Message-ID: <201005191848.o4JImMe1029499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754628Ab0ESStA (ORCPT
+	by vger.kernel.org with ESMTP id S1754197Ab0ESSs7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 14:49:00 -0400
+	Wed, 19 May 2010 14:48:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, gthelen@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: avoid divide by zero
+     oom: give current access to memory reserves if it has been killed
 has been removed from the -mm tree.  Its filename was
-     oom-avoid-divide-by-zero.patch
+     oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: avoid divide by zero
+Subject: oom: give current access to memory reserves if it has been killed
 From: David Rientjes <rientjes@google.com>
 
-It's evidently possible for a memory controller to have a limit of 0
-bytes, so it's possible for the oom killer to have a divide by zero error
-in such circumstances.
+It's possible to livelock the page allocator if a thread has mm->mmap_sem
+and fails to make forward progress because the oom killer selects another
+thread sharing the same ->mm to kill that cannot exit until the semaphore
+is dropped.
 
-When this is the case, each candidate task's rss and swap is divided by
-one so they are essentially ranked according to whichever task attached to
-the cgroup has the most resident RAM and swap.
+The oom killer will not kill multiple tasks at the same time; each oom
+killed task must exit before another task may be killed.  Thus, if one
+thread is holding mm->mmap_sem and cannot allocate memory, all threads
+sharing the same ->mm are blocked from exiting as well.  In the oom kill
+case, that means the thread holding mm->mmap_sem will never free
+additional memory since it cannot get access to memory reserves and the
+thread that depends on it with access to memory reserves cannot exit
+because it cannot acquire the semaphore.  Thus, the page allocators
+livelocks.
+
+When the oom killer is called and current happens to have a pending
+SIGKILL, this patch automatically gives it access to memory reserves and
+returns.  Upon returning to the page allocator, its allocation will
+hopefully succeed so it can quickly exit and free its memory.  If not, the
+page allocator will fail the allocation if it is not __GFP_NOFAIL.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Greg Thelen <gthelen@google.com>
-Tested-by: Greg Thelen <gthelen@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/oom_kill.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-avoid-divide-by-zero mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-divide-by-zero
+diff -puN mm/oom_kill.c~oom-give-current-access-to-memory-reserves-if-it-has-been-killed mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-give-current-access-to-memory-reserves-if-it-has-been-killed
 +++ a/mm/oom_kill.c
-@@ -189,6 +189,14 @@ unsigned int oom_badness(struct task_str
- 	p = find_lock_task_mm(p);
- 	if (!p)
- 		return 0;
+@@ -698,6 +698,16 @@ void out_of_memory(struct zonelist *zone
+ 		return;
+ 
+ 	/*
++	 * If current has a pending SIGKILL, then automatically select it.  The
++	 * goal is to allow it to allocate so that it may quickly exit and free
++	 * its memory.
++	 */
++	if (fatal_signal_pending(current)) {
++		set_tsk_thread_flag(current, TIF_MEMDIE);
++		return;
++	}
 +
 +	/*
-+	 * The memory controller can have a limit of 0 bytes, so avoid a divide
-+	 * by zero if necessary.
-+	 */
-+	if (!totalpages)
-+		totalpages = 1;
-+
- 	/*
- 	 * The baseline for the badness score is the proportion of RAM that each
- 	 * task's rss and swap space use.
+ 	 * Check if there were limitations on the allocation (only relevant for
+ 	 * NUMA) that may require different handling.
+ 	 */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -70,6 +86,11 @@ Patches currently in -mm which might be from rientjes@google.com are
 origin.patch
 linux-next.patch
 mempolicy-remove-redundant-code.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-clean-up-oom_kill_task.patch
+oom-clean-up-oom_badness.patch
+oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
 oom-avoid-divide-by-zero.patch
 mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
 mempolicy-remove-redundant-check.patch
