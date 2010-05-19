@@ -1,193 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] oom-remove-special-handling-for-pagefault-ooms.patch removed from -mm tree
-Date: Wed, 19 May 2010 11:47:43 -0700
-Message-ID: <201005191847.o4JIlhKQ029405@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-filter-tasks-not-sharing-the-same-cpuset.patch removed from -mm tree
+Date: Wed, 19 May 2010 11:47:31 -0700
+Message-ID: <201005191847.o4JIlW1r029393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624Ab0ESSsh (ORCPT
+	by vger.kernel.org with ESMTP id S1754295Ab0ESSsf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 14:48:37 -0400
+	Wed, 19 May 2010 14:48:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vge
 
 
 The patch titled
-     oom: remove special handling for pagefault ooms
+     oom: filter tasks not sharing the same cpuset
 has been removed from the -mm tree.  Its filename was
-     oom-remove-special-handling-for-pagefault-ooms.patch
+     oom-filter-tasks-not-sharing-the-same-cpuset.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: remove special handling for pagefault ooms
+Subject: oom: filter tasks not sharing the same cpuset
 From: David Rientjes <rientjes@google.com>
 
-It is possible to remove the special pagefault oom handler by simply oom
-locking all system zones and then calling directly into out_of_memory().
+Tasks that do not share the same set of allowed nodes with the task that
+triggered the oom should not be considered as candidates for oom kill.
 
-All populated zones must have ZONE_OOM_LOCKED set, otherwise there is a
-parallel oom killing in progress that will lead to eventual memory freeing
-so it's not necessary to needlessly kill another task.  The context in
-which the pagefault is allocating memory is unknown to the oom killer, so
-this is done on a system-wide level.
+Tasks in other cpusets with a disjoint set of mems would be unfairly
+penalized otherwise because of oom conditions elsewhere; an extreme
+example could unfairly kill all other applications on the system if a
+single task in a user's cpuset sets itself to OOM_DISABLE and then uses
+more memory than allowed.
 
-If a task has already been oom killed and hasn't fully exited yet, this
-will be a no-op since select_bad_process() recognizes tasks across the
-system with TIF_MEMDIE set.
+Killing tasks outside of current's cpuset rarely would free memory for
+current anyway.  To use a sane heuristic, we must ensure that killing a
+task would likely free memory for current and avoid needlessly killing
+others at all costs just because their potential memory freeing is
+unknown.  It is better to kill current than another task needlessly.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Acked-by: Nick Piggin <npiggin@suse.de>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   91 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 59 insertions(+), 32 deletions(-)
+ mm/oom_kill.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-remove-special-handling-for-pagefault-ooms mm/oom_kill.c
---- a/mm/oom_kill.c~oom-remove-special-handling-for-pagefault-ooms
+diff -puN mm/oom_kill.c~oom-filter-tasks-not-sharing-the-same-cpuset mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-filter-tasks-not-sharing-the-same-cpuset
 +++ a/mm/oom_kill.c
-@@ -583,6 +583,44 @@ void clear_zonelist_oom(struct zonelist 
- }
+@@ -36,7 +36,7 @@ static DEFINE_SPINLOCK(zone_scan_lock);
+ /* #define DEBUG */
  
  /*
-+ * Try to acquire the oom killer lock for all system zones.  Returns zero if a
-+ * parallel oom killing is taking place, otherwise locks all zones and returns
-+ * non-zero.
-+ */
-+static int try_set_system_oom(void)
-+{
-+	struct zone *zone;
-+	int ret = 1;
-+
-+	spin_lock(&zone_scan_lock);
-+	for_each_populated_zone(zone)
-+		if (zone_is_oom_locked(zone)) {
-+			ret = 0;
-+			goto out;
-+		}
-+	for_each_populated_zone(zone)
-+		zone_set_flag(zone, ZONE_OOM_LOCKED);
-+out:
-+	spin_unlock(&zone_scan_lock);
-+	return ret;
-+}
-+
-+/*
-+ * Clears ZONE_OOM_LOCKED for all system zones so that failed allocation
-+ * attempts or page faults may now recall the oom killer, if necessary.
-+ */
-+static void clear_system_oom(void)
-+{
-+	struct zone *zone;
-+
-+	spin_lock(&zone_scan_lock);
-+	for_each_populated_zone(zone)
-+		zone_clear_flag(zone, ZONE_OOM_LOCKED);
-+	spin_unlock(&zone_scan_lock);
-+}
-+
-+
-+/*
-  * Must be called with tasklist_lock held for read.
+- * Is all threads of the target process nodes overlap ours?
++ * Do all threads of the target process overlap our allowed nodes?
   */
- static void __out_of_memory(gfp_t gfp_mask, int order,
-@@ -617,38 +655,9 @@ retry:
- 		goto retry;
- }
+ static int has_intersects_mems_allowed(struct task_struct *tsk)
+ {
+@@ -168,14 +168,6 @@ unsigned long badness(struct task_struct
+ 		points /= 4;
  
--/*
-- * pagefault handler calls into here because it is out of memory but
-- * doesn't know exactly how or why.
-- */
--void pagefault_out_of_memory(void)
--{
--	unsigned long freed = 0;
--
--	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
--	if (freed > 0)
--		/* Got some memory back in the last second. */
--		return;
--
--	if (sysctl_panic_on_oom)
--		panic("out of memory from page fault. panic_on_oom is selected.\n");
--
--	read_lock(&tasklist_lock);
--	/* unknown gfp_mask and order */
--	__out_of_memory(0, 0, CONSTRAINT_NONE, NULL);
--	read_unlock(&tasklist_lock);
+ 	/*
+-	 * If p's nodes don't overlap ours, it may still help to kill p
+-	 * because p may have allocated or otherwise mapped memory on
+-	 * this node before. However it will be less likely.
+-	 */
+-	if (!has_intersects_mems_allowed(p))
+-		points /= 8;
 -
 -	/*
--	 * Give "p" a good chance of killing itself before we
--	 * retry to allocate memory.
--	 */
--	if (!test_thread_flag(TIF_MEMDIE))
--		schedule_timeout_uninterruptible(1);
--}
--
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-- * @zonelist: zonelist pointer
-+ * @zonelist: zonelist pointer passed to page allocator
-  * @gfp_mask: memory allocation flags
-  * @order: amount of memory being requested as a power of 2
-  * @nodemask: nodemask passed to page allocator
-@@ -662,7 +671,7 @@ void out_of_memory(struct zonelist *zone
- 		int order, nodemask_t *nodemask)
- {
- 	unsigned long freed = 0;
--	enum oom_constraint constraint;
-+	enum oom_constraint constraint = CONSTRAINT_NONE;
- 
- 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
- 	if (freed > 0)
-@@ -678,7 +687,8 @@ void out_of_memory(struct zonelist *zone
- 	 * Check if there were limitations on the allocation (only relevant for
- 	 * NUMA) that may require different handling.
+ 	 * Adjust the score by oom_adj.
  	 */
--	constraint = constrained_alloc(zonelist, gfp_mask, nodemask);
-+	if (zonelist)
-+		constraint = constrained_alloc(zonelist, gfp_mask, nodemask);
- 	read_lock(&tasklist_lock);
- 	if (unlikely(sysctl_panic_on_oom)) {
+ 	if (oom_adj) {
+@@ -267,6 +259,8 @@ static struct task_struct *select_bad_pr
+ 			continue;
+ 		if (mem && !task_in_mem_cgroup(p, mem))
+ 			continue;
++		if (!has_intersects_mems_allowed(p))
++			continue;
+ 
  		/*
-@@ -688,6 +698,7 @@ void out_of_memory(struct zonelist *zone
- 		 */
- 		if (constraint == CONSTRAINT_NONE) {
- 			dump_header(NULL, gfp_mask, order, NULL);
-+			read_unlock(&tasklist_lock);
- 			panic("Out of memory: panic_on_oom is enabled\n");
- 		}
- 	}
-@@ -701,3 +712,19 @@ void out_of_memory(struct zonelist *zone
- 	if (!test_thread_flag(TIF_MEMDIE))
- 		schedule_timeout_uninterruptible(1);
- }
-+
-+/*
-+ * The pagefault handler calls here because it is out of memory, so kill a
-+ * memory-hogging task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel
-+ * oom killing is already in progress so do nothing.  If a task is found with
-+ * TIF_MEMDIE set, it has been killed so do nothing and allow it to exit.
-+ */
-+void pagefault_out_of_memory(void)
-+{
-+	if (try_set_system_oom()) {
-+		out_of_memory(NULL, 0, 0, NULL);
-+		clear_system_oom();
-+	}
-+	if (!test_thread_flag(TIF_MEMDIE))
-+		schedule_timeout_uninterruptible(1);
-+}
+ 		 * This task already has access to memory reserves and is
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -195,6 +98,9 @@ Patches currently in -mm which might be from rientjes@google.com are
 origin.patch
 linux-next.patch
 mempolicy-remove-redundant-code.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 oom-remove-special-handling-for-pagefault-ooms.patch
 oom-badness-heuristic-rewrite.patch
 oom-reintroduce-and-deprecate-oom_kill_allocating_task.patch
