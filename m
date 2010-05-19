@@ -1,66 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: + mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch added to -mm tree
-Date: Wed, 19 May 2010 15:54:59 -0700
-Message-ID: <201005192322.o4JNMu5v012158@imap1.linux-foundation.org>
+Subject: [obsolete] kfifo-samples-dont-compile.patch removed from -mm tree
+Date: Wed, 19 May 2010 16:12:33 -0700
+Message-ID: <201005192340.o4JNeT63012852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35165 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760Ab0ESXXz (ORCPT
+	by vger.kernel.org with ESMTP id S1751518Ab0ESXlN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 19:23:55 -0400
+	Wed, 19 May 2010 19:41:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi.kleen@intel.com, cl@linux-foundation.org, fengguang.wu@intel.com, haicheng.li@linux.intel.com, mel@csn.ul.ie, tj@kernel.org
+To: akpm@linux-foundation.org, stefani@seibold.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix
-has been added to the -mm tree.  Its filename is
-     mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
+     kfifo samples don't compile
+has been removed from the -mm tree.  Its filename was
+     kfifo-samples-dont-compile.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix
+Subject: kfifo samples don't compile
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Haicheng Li <haicheng.li@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+hide them
+
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 +-
+ samples/kfifo/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpu.c~mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix kernel/cpu.c
---- a/kernel/cpu.c~mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix
-+++ a/kernel/cpu.c
-@@ -358,7 +358,7 @@ int __cpuinit cpu_up(unsigned int cpu)
- 	}
- 
- 	if (pgdat->node_zonelists->_zonerefs->zone == NULL)
--		build_all_zonelists();
-+		build_all_zonelists(NULL);
- #endif
- 
- 	cpu_maps_update_begin();
+diff -puN samples/kfifo/Makefile~kfifo-samples-dont-compile samples/kfifo/Makefile
+--- a/samples/kfifo/Makefile~kfifo-samples-dont-compile
++++ a/samples/kfifo/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_SAMPLE_KFIFO) += bytestream-example.o dma-example.o inttype-example.o record-example.o
++
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
