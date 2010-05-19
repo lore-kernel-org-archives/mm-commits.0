@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hwmon-coretempc-get-tjmax-value-from-msr.patch added to -mm tree
-Date: Wed, 19 May 2010 14:57:16 -0700
-Message-ID: <201005192157.o4JLvHSe008459@imap1.linux-foundation.org>
+Subject: + mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch added to -mm tree
+Date: Wed, 19 May 2010 15:54:59 -0700
+Message-ID: <201005192322.o4JNMu5v012158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069Ab0ESV5p (ORCPT
+	by vger.kernel.org with ESMTP id S1751760Ab0ESXXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 17:57:45 -0400
+	Wed, 19 May 2010 19:23:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: C.Emde@osadl.org, hmh@hmh.eng.br, huaxu.wan@linux.intel.com, khali@linux-fr.org, r.marek@assembler.cz, valdis.kletnieks@vt.edu, yong.y.wang@linux.intel.com
+Cc: akpm@linux-foundation.org, andi.kleen@intel.com, cl@linux-foundation.org, fengguang.wu@intel.com, haicheng.li@linux.intel.com, mel@csn.ul.ie, tj@kernel.org
 
 
 The patch titled
-     drivers/hwmon/coretemp.c: get TjMax value from MSR
+     mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix
 has been added to the -mm tree.  Its filename is
-     drivers-hwmon-coretempc-get-tjmax-value-from-msr.patch
+     mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/coretemp.c: get TjMax value from MSR
-From: Carsten Emde <C.Emde@osadl.org>
+Subject: mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
-Intel processors.
-
-Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
-Signed-off-by: Carsten Emde <C.Emde@osadl.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Yong Wang <yong.y.wang@linux.intel.com>
-Cc: Rudolf Marek <r.marek@assembler.cz>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Haicheng Li <haicheng.li@linux.intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/msr-index.h |    2 
- drivers/hwmon/coretemp.c         |   61 +++++++++++++++++++++++++++--
- 2 files changed, 59 insertions(+), 4 deletions(-)
+ kernel/cpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/msr-index.h~drivers-hwmon-coretempc-get-tjmax-value-from-msr arch/x86/include/asm/msr-index.h
---- a/arch/x86/include/asm/msr-index.h~drivers-hwmon-coretempc-get-tjmax-value-from-msr
-+++ a/arch/x86/include/asm/msr-index.h
-@@ -236,6 +236,8 @@
- 
- #define MSR_IA32_MISC_ENABLE		0x000001a0
- 
-+#define MSR_IA32_TEMPERATURE_TARGET	0x000001a2
-+
- /* MISC_ENABLE bits: architectural */
- #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
- #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
-diff -puN drivers/hwmon/coretemp.c~drivers-hwmon-coretempc-get-tjmax-value-from-msr drivers/hwmon/coretemp.c
---- a/drivers/hwmon/coretemp.c~drivers-hwmon-coretempc-get-tjmax-value-from-msr
-+++ a/drivers/hwmon/coretemp.c
-@@ -241,6 +241,55 @@ static int __devinit adjust_tjmax(struct
- 	return tjmax;
- }
- 
-+static int __devinit get_tjmax(struct cpuinfo_x86 *c, u32 id,
-+			       struct device *dev)
-+{
-+	/* The 100C is default for both mobile and non mobile CPUs */
-+	int err;
-+	u32 eax, edx;
-+	u32 val;
-+
-+	/* A new feature of current Intel(R) processors, the
-+	   IA32_TEMPERATURE_TARGET contains the TjMax value */
-+	err = rdmsr_safe_on_cpu(id, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
-+	if (err) {
-+		dev_warn(dev, "Unable to read TjMax from CPU.\n");
-+	} else {
-+		val = (eax >> 16) & 0xff;
-+		/*
-+		 * If the TjMax is not plausible, an assumption
-+		 * will be used
-+		 */
-+		if ((val > 80) && (val < 120)) {
-+			dev_info(dev, "TjMax is %d C.\n", val);
-+			return val * 1000;
-+		}
-+	}
-+
-+	/*
-+	 * An assumption is made for early CPUs and unreadable MSR.
-+	 * NOTE: the given value may not be correct.
-+	 */
-+
-+	switch (c->x86_model) {
-+	case 0xe:
-+	case 0xf:
-+	case 0x16:
-+	case 0x1a:
-+		dev_warn(dev, "TjMax is assumed as 100 C!\n");
-+		return 100000;
-+		break;
-+	case 0x17:
-+	case 0x1c:		/* Atom CPUs */
-+		return adjust_tjmax(c, id, dev);
-+		break;
-+	default:
-+		dev_warn(dev, "CPU (model=0x%x) is not supported yet,"
-+			" using default TjMax of 100C.\n", c->x86_model);
-+		return 100000;
-+	}
-+}
-+
- static int __devinit coretemp_probe(struct platform_device *pdev)
- {
- 	struct coretemp_data *data;
-@@ -283,14 +332,18 @@ static int __devinit coretemp_probe(stru
- 		}
+diff -puN kernel/cpu.c~mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix kernel/cpu.c
+--- a/kernel/cpu.c~mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix
++++ a/kernel/cpu.c
+@@ -358,7 +358,7 @@ int __cpuinit cpu_up(unsigned int cpu)
  	}
  
--	data->tjmax = adjust_tjmax(c, data->id, &pdev->dev);
-+	data->tjmax = get_tjmax(c, data->id, &pdev->dev);
- 	platform_set_drvdata(pdev, data);
+ 	if (pgdat->node_zonelists->_zonerefs->zone == NULL)
+-		build_all_zonelists();
++		build_all_zonelists(NULL);
+ #endif
  
--	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
--	   on older CPUs but not in this register, Atoms don't have it either */
-+	/*
-+	 * read the still undocumented IA32_TEMPERATURE_TARGET. It exists
-+	 * on older CPUs but not in this register,
-+	 * Atoms don't have it either.
-+	 */
- 
- 	if ((c->x86_model > 0xe) && (c->x86_model != 0x1c)) {
--		err = rdmsr_safe_on_cpu(data->id, 0x1a2, &eax, &edx);
-+		err = rdmsr_safe_on_cpu(data->id, MSR_IA32_TEMPERATURE_TARGET,
-+		    &eax, &edx);
- 		if (err) {
- 			dev_warn(&pdev->dev, "Unable to read"
- 					" IA32_TEMPERATURE_TARGET MSR\n");
+ 	cpu_maps_update_begin();
 _
 
-Patches currently in -mm which might be from C.Emde@osadl.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-drivers-hwmon-coretempc-detect-the-thermal-sensors-by-cpuid.patch
-drivers-hwmon-coretempc-get-tjmax-value-from-msr.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-add-helpful-reminder.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+kfifo-samples-dont-compile.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
