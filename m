@@ -1,98 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] oom-move-sysctl-declarations-to-oomh.patch removed from -mm tree
-Date: Wed, 19 May 2010 11:47:52 -0700
-Message-ID: <201005191847.o4JIlqrC029434@imap1.linux-foundation.org>
+Subject: [to-be-updated] oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch removed from -mm tree
+Date: Wed, 19 May 2010 11:48:18 -0700
+Message-ID: <201005191848.o4JImI39029493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753454Ab0ESSwL (ORCPT
+	by vger.kernel.org with ESMTP id S1753410Ab0ESSxJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 14:52:11 -0400
+	Wed, 19 May 2010 14:53:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: move sysctl declarations to oom.h
+     oom: oom_forkbomb_penalty: move thread_group_cputime() out of task_lock()
 has been removed from the -mm tree.  Its filename was
-     oom-move-sysctl-declarations-to-oomh.patch
+     oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: move sysctl declarations to oom.h
-From: David Rientjes <rientjes@google.com>
+Subject: oom: oom_forkbomb_penalty: move thread_group_cputime() out of task_lock()
+From: Oleg Nesterov <oleg@redhat.com>
 
-The three oom killer sysctl variables (sysctl_panic_on_oom,
-sysctl_oom_forkbomb_thres, and sysctl_oom_kill_quick) are better declared
-in include/linux/oom.h rather than kernel/sysctl.c.
+It doesn't make sense to call thread_group_cputime() under task_lock(), we
+can drop this lock right after we read get_mm_rss() and save the value in
+the local variable.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Note: probably it makes more sense to use sum_exec_runtime instead
+of utime + stime, it is much more precise. A task can eat a lot of
+CPU time, but its Xtime can be zero.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    6 ++++++
- kernel/sysctl.c     |    3 +--
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/oom.h~oom-move-sysctl-declarations-to-oomh include/linux/oom.h
---- a/include/linux/oom.h~oom-move-sysctl-declarations-to-oomh
-+++ a/include/linux/oom.h
-@@ -60,5 +60,11 @@ static inline void oom_killer_enable(voi
- {
- 	oom_killer_disabled = false;
- }
-+
-+/* sysctls */
-+extern int sysctl_panic_on_oom;
-+extern int sysctl_oom_forkbomb_thres;
-+extern int sysctl_oom_kill_quick;
-+
- #endif /* __KERNEL__*/
- #endif /* _INCLUDE_LINUX_OOM_H */
-diff -puN kernel/sysctl.c~oom-move-sysctl-declarations-to-oomh kernel/sysctl.c
---- a/kernel/sysctl.c~oom-move-sysctl-declarations-to-oomh
-+++ a/kernel/sysctl.c
-@@ -53,6 +53,7 @@
- #include <linux/slow-work.h>
- #include <linux/perf_event.h>
- #include <linux/kprobes.h>
-+#include <linux/oom.h>
+diff -puN mm/oom_kill.c~oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock
++++ a/mm/oom_kill.c
+@@ -125,13 +125,16 @@ static unsigned long oom_forkbomb_penalt
+ 		return 0;
+ 	list_for_each_entry(child, &tsk->children, sibling) {
+ 		struct task_cputime task_time;
+-		unsigned long runtime;
++		unsigned long runtime, rss;
  
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -85,10 +86,8 @@
- /* External variables not in a header file. */
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
--extern int sysctl_panic_on_oom;
- extern int sysctl_oom_kill_allocating_task;
- extern int sysctl_oom_dump_tasks;
--extern int sysctl_oom_forkbomb_thres;
- extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
+ 		task_lock(child);
+ 		if (!child->mm || child->mm == tsk->mm) {
+ 			task_unlock(child);
+ 			continue;
+ 		}
++		rss = get_mm_rss(child->mm);
++		task_unlock(child);
++
+ 		thread_group_cputime(child, &task_time);
+ 		runtime = cputime_to_jiffies(task_time.utime) +
+ 			  cputime_to_jiffies(task_time.stime);
+@@ -141,10 +144,9 @@ static unsigned long oom_forkbomb_penalt
+ 		 * get to execute at all in such cases anyway.
+ 		 */
+ 		if (runtime < HZ) {
+-			child_rss += get_mm_rss(child->mm);
++			child_rss += rss;
+ 			forkcount++;
+ 		}
+-		task_unlock(child);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-mempolicy-remove-redundant-code.patch
-oom-move-sysctl-declarations-to-oomh.patch
-oom-deprecate-oom_adj-tunable.patch
-oom-replace-sysctls-with-quick-mode.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-default-to-killing-current-for-pagefault-ooms.patch
-oom-avoid-race-for-oom-killed-tasks-detaching-mm-prior-to-exit.patch
-oom-select_bad_process-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-select_bad_process-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
 oom-oom_forkbomb_penalty-move-thread_group_cputime-out-of-task_lock.patch
 oom-hold-tasklist_lock-when-dumping-tasks.patch
 oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
@@ -100,39 +90,41 @@ oom-avoid-sending-exiting-tasks-a-sigkill.patch
 oom-clean-up-oom_kill_task.patch
 oom-clean-up-oom_badness.patch
 oom-select_bad_process-never-choose-tasks-with-badness-==-0.patch
-oom-avoid-divide-by-zero.patch
-mempolicy-remove-case-mpol_interleave-from-policy_zonelist.patch
-mempolicy-remove-redundant-check.patch
-mempolicy-dont-call-mpol_set_nodemask-when-no_context.patch
-mempolicy-lose-unnecessary-loop-variable-in-mpol_parse_str.patch
-mempolicy-rename-policy_types-and-cleanup-initialization.patch
-mempolicy-factor-mpol_shared_policy_init-return-paths.patch
-mempolicy-document-cpuset-interaction-with-tmpfs-mpol-mount-option.patch
-mempolicy-restructure-rebinding-mempolicy-functions.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix2.patch
-mm-default-to-node-zonelist-ordering-when-nodes-have-only-lowmem.patch
-mmcompaction-memory-compaction-core-do-not-schedule-work-on-other-cpus-for-compaction.patch
-memcg-oom-wakeup-filter.patch
-memcg-oom-wakeup-filter-update.patch
-memcg-oom-notifier.patch
-memcg-oom-notifier-update.patch
-memcg-oom-kill-disable-and-oom-status.patch
-memcg-oom-kill-disable-and-oom-status-update.patch
-memcg-make-oom-killer-a-no-op-when-no-killable-task-can-be-found.patch
-numa-add-generic-percpu-var-numa_node_id-implementation.patch
-numa-add-generic-percpu-var-numa_node_id-implementation-fix1.patch
-numa-add-generic-percpu-var-numa_node_id-implementation-fix2.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix2.patch
-numa-ia64-use-generic-percpu-var-numa_node_id-implementation.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix2.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix3.patch
-numa-ia64-support-numa_mem_id-for-memoryless-nodes.patch
-numa-slab-use-numa_mem_id-for-slab-local-memory-node.patch
-numa-in-kernel-profiling-use-cpu_to_mem-for-per-cpu-allocations.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info.patch
-numa-update-documentation-vm-numa-add-memoryless-node-info-fix1.patch
+kmod-add-init-function-to-usermodehelper.patch
+exec-replace-call_usermodehelper_pipe-with-use-of-umh-init-function-and-resolve-limit.patch
+umh-creds-convert-call_usermodehelper_keys-to-use-subprocess_info-init.patch
+umh-creds-kill-subprocess_info-cred-logic.patch
+call_usermodehelper-no-need-to-unblock-signals.patch
+wait_for_helper-sigchld-from-user-space-can-lead-to-use-after-free.patch
+call_usermodehelper-simplify-fix-umh_no_wait-case.patch
+call_usermodehelper-umh_wait_exec-ignores-kernel_thread-failure.patch
+coredump-factor-out-the-not-ispipe-file-checks.patch
+coredump-cleanup-ispipe-code.patch
+coredump-factor-out-put_cred-calls.patch
+coredump-shift-down_writemmap_sem-into-coredump_wait.patch
+exit-exit_notify-can-trust-signal-notify_count-0.patch
+exit-change-zap_other_threads-to-count-sub-threads.patch
+exit-avoid-sig-count-in-de_thread-__exit_signal-synchronization.patch
+exit-avoid-sig-count-in-__exit_signal-to-detect-the-group-dead-case.patch
+posix-cpu-timers-avoid-task-signal-=-null-checks.patch
+ia64-ptrace_attach_sync_user_rbs-avoid-task-signal-=-null-checks.patch
+fork-exit-move-tty_kref_put-outside-of-__cleanup_signal.patch
+signals-make-task_struct-signal-immutable-refcountable.patch
+signals-clear-signal-tty-when-the-last-thread-exits.patch
+signals-clear-signal-tty-when-the-last-thread-exits-fix.patch
+signals-kill-the-awful-task_rq_unlock_wait-hack.patch
+exit-__exit_signal-use-thread_group_leader-consistently.patch
+kill-the-obsolete-thread_group_cputime_free-and-taskstats_tgid_init-helpers.patch
+exit-move-taskstats_tgid_free-from-__exit_signal-to-free_signal_struct.patch
+check_unshare_flags-kill-the-bogus-clone_sighand-sig-count-check.patch
+proc-get_nr_threads-doesnt-need-siglock-any-longer.patch
+proc_sched_show_task-use-get_nr_threads.patch
+keyctl_session_to_parent-use-thread_group_empty-to-check-singlethreadness.patch
+proc-turn-signal_struct-count-into-int-nr_threads.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+proc-cleanup-remove-unused-assignments.patch
+init_task-should-initialize-thread_group-list.patch
+pids-init_struct_pidtasks-should-never-see-the-swapper-process.patch
+pids-fix-fork_idle-to-setup-pids-correctly.patch
+init_sighand-use-sig_dfl-instead-of-null.patch
 
