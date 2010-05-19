@@ -1,102 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jfs-free-sbi-memory-in-error-path.patch removed from -mm tree
-Date: Wed, 19 May 2010 10:30:46 -0400
-Message-ID: <201005191732.o4JHWCTi025723@imap1.linux-foundation.org>
+Subject: [merged] fix-drm-radeon-kms-hdmi-irq-support.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:30:50 -0400
+Message-ID: <201005191732.o4JHWGbk025727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754268Ab0ESRcY (ORCPT
+	by vger.kernel.org with ESMTP id S1754281Ab0ESRc2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 13:32:24 -0400
+	Wed, 19 May 2010 13:32:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@redhat.com, deathsimple@vodafone.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jfs: free sbi memory in error path
+     fix "drm/radeon/kms: HDMI irq support"
 has been removed from the -mm tree.  Its filename was
-     jfs-free-sbi-memory-in-error-path.patch
+     fix-drm-radeon-kms-hdmi-irq-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jfs: free sbi memory in error path
-From: Jan Blunck <jblunck@suse.de>
+Subject: fix "drm/radeon/kms: HDMI irq support"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I spotted the missing kfree() while removing the BKL.
+drivers/gpu/drm/radeon/r600_hdmi.c: In function 'r600_hdmi_disable':
+drivers/gpu/drm/radeon/r600_hdmi.c:557: warning: comparison is always false due to limited range of data type
 
-[akpm@linux-foundation.org: avoid multiple returns so it doesn't happen again]
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Christian Koenig <deathsimple@vodafone.de>
+Cc: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/super.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/gpu/drm/radeon/r600_hdmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jfs/super.c~jfs-free-sbi-memory-in-error-path fs/jfs/super.c
---- a/fs/jfs/super.c~jfs-free-sbi-memory-in-error-path
-+++ a/fs/jfs/super.c
-@@ -446,10 +446,8 @@ static int jfs_fill_super(struct super_b
- 	/* initialize the mount flag and determine the default error handler */
- 	flag = JFS_ERR_REMOUNT_RO;
+diff -puN drivers/gpu/drm/radeon/r600_hdmi.c~fix-drm-radeon-kms-hdmi-irq-support drivers/gpu/drm/radeon/r600_hdmi.c
+--- a/drivers/gpu/drm/radeon/r600_hdmi.c~fix-drm-radeon-kms-hdmi-irq-support
++++ a/drivers/gpu/drm/radeon/r600_hdmi.c
+@@ -539,7 +539,7 @@ void r600_hdmi_disable(struct drm_encode
+ 	struct drm_device *dev = encoder->dev;
+ 	struct radeon_device *rdev = dev->dev_private;
+ 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
+-	uint8_t offset;
++	uint32_t offset;
  
--	if (!parse_options((char *) data, sb, &newLVSize, &flag)) {
--		kfree(sbi);
--		return -EINVAL;
--	}
-+	if (!parse_options((char *) data, sb, &newLVSize, &flag))
-+		goto out_kfree;
- 	sbi->flag = flag;
- 
- #ifdef CONFIG_JFS_POSIX_ACL
-@@ -458,7 +456,7 @@ static int jfs_fill_super(struct super_b
- 
- 	if (newLVSize) {
- 		printk(KERN_ERR "resize option for remount only\n");
--		return -EINVAL;
-+		goto out_kfree;
- 	}
- 
- 	/*
-@@ -478,7 +476,7 @@ static int jfs_fill_super(struct super_b
- 	inode = new_inode(sb);
- 	if (inode == NULL) {
- 		ret = -ENOMEM;
--		goto out_kfree;
-+		goto out_unload;
- 	}
- 	inode->i_ino = 0;
- 	inode->i_nlink = 1;
-@@ -550,9 +548,10 @@ out_mount_failed:
- 	make_bad_inode(sbi->direct_inode);
- 	iput(sbi->direct_inode);
- 	sbi->direct_inode = NULL;
--out_kfree:
-+out_unload:
- 	if (sbi->nls_tab)
- 		unload_nls(sbi->nls_tab);
-+out_kfree:
- 	kfree(sbi);
- 	return ret;
- }
+ 	if (ASIC_IS_DCE4(rdev))
+ 		return;
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-osst-update-ppos-instead-of-using-file-f_pos.patch
-arch-cris-arch-v10-drivers-eepromc-eeprom_read-eeprom_write-should-update-ppos-instead-of-file-f_pos.patch
-frv-remove-struct-file-argument-from-sysctl-proc_handler.patch
-misdn-remove-unnecessary-test-on-f_pos.patch
-rtc-m41t80-use-nonseekable_open.patch
-vfs-introduce-noop_llseek.patch
-osst-use-noop_llseek-instead-of-default_llseek.patch
-st-use-noop_llseek-instead-of-default_llseek.patch
-fs-do-not-fallback-to-default_llseek-when-readdir-uses-bkl.patch
-documentation-filesystems-locking-update-documentation-on-llseek-wrt-bkl.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
+include-asm-generic-kmap_typesh-add-helpful-reminder.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+kfifo-samples-dont-compile.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
