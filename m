@@ -1,234 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch removed from -mm tree
-Date: Wed, 19 May 2010 10:16:55 -0400
-Message-ID: <201005191718.o4JHILjY024988@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:14:27 -0400
+Message-ID: <201005191715.o4JHFrjW024892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753568Ab0ESRTd (ORCPT
+	by vger.kernel.org with ESMTP id S1753573Ab0ESRTi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 13:19:33 -0400
+	Wed, 19 May 2010 13:19:38 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o4JHJaBX000848
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 19 May 2010 10:19:37 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu: remove INIT_RCU_HEAD, RCU_HEAD_INIT, RCU_HEAD
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     rcu-remove-init_rcu_head-rcu_head_init-rcu_head.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: remove INIT_RCU_HEAD, RCU_HEAD_INIT, RCU_HEAD
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-call_rcu() will unconditionally reinitialize RCU head anyway.  New users
-of these macros constantly appear, so remove them.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl   |    8 --------
- arch/powerpc/mm/pgtable.c                   |    1 -
- block/cfq-iosched.c                         |    1 -
- block/genhd.c                               |    1 -
- drivers/staging/batman-adv/hard-interface.c |    1 -
- fs/file.c                                   |    3 ---
- fs/fs-writeback.c                           |    1 -
- fs/partitions/check.c                       |    1 -
- include/linux/init_task.h                   |    1 -
- include/linux/rcupdate.h                    |    6 ------
- mm/backing-dev.c                            |    1 -
- mm/slob.c                                   |    1 -
- security/selinux/avc.c                      |    1 -
- security/selinux/netnode.c                  |    2 --
- 14 files changed, 29 deletions(-)
+ arch/microblaze/kernel/microblaze_ksyms.c |    4 ----
+ drivers/mfd/wm831x-core.c                 |   19 -------------------
+ 2 files changed, 23 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~rcu-remove-init_rcu_head-rcu_head_init-rcu_head Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -1725,14 +1725,6 @@ the amount of locking which needs to be 
-          if (++cache_num > MAX_CACHE_SIZE) {
-                  struct object *i, *outcast = NULL;
-                  list_for_each_entry(i, &amp;cache, list) {
--@@ -85,6 +94,7 @@
--         obj-&gt;popularity = 0;
--         atomic_set(&amp;obj-&gt;refcnt, 1); /* The cache holds a reference */
--         spin_lock_init(&amp;obj-&gt;lock);
--+        INIT_RCU_HEAD(&amp;obj-&gt;rcu);
--
--         spin_lock_irqsave(&amp;cache_lock, flags);
--         __cache_add(obj);
- @@ -104,12 +114,11 @@
-  struct object *cache_find(int id)
-  {
-diff -puN arch/powerpc/mm/pgtable.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head arch/powerpc/mm/pgtable.c
---- a/arch/powerpc/mm/pgtable.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -92,7 +92,6 @@ static void pte_free_rcu_callback(struct
+diff -puN arch/microblaze/kernel/microblaze_ksyms.c~linux-next-git-rejects arch/microblaze/kernel/microblaze_ksyms.c
+--- a/arch/microblaze/kernel/microblaze_ksyms.c~linux-next-git-rejects
++++ a/arch/microblaze/kernel/microblaze_ksyms.c
+@@ -57,10 +57,6 @@ EXPORT_SYMBOL(_mcount);
+  * Assembly functions that may be used (directly or indirectly) by modules
+  */
+ EXPORT_SYMBOL(__copy_tofrom_user);
+-<<<<<<< HEAD
+-EXPORT_SYMBOL(__strncpy_user);
+-=======
+->>>>>>> FETCH_HEAD
  
- static void pte_free_submit(struct pte_freelist_batch *batch)
- {
--	INIT_RCU_HEAD(&batch->rcu);
- 	call_rcu(&batch->rcu, pte_free_rcu_callback);
- }
- 
-diff -puN block/cfq-iosched.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head block/cfq-iosched.c
---- a/block/cfq-iosched.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/block/cfq-iosched.c
-@@ -3788,7 +3788,6 @@ static void *cfq_init_queue(struct reque
- 	 * second, in order to have larger depth for async operations.
- 	 */
- 	cfqd->last_delayed_sync = jiffies - HZ;
--	INIT_RCU_HEAD(&cfqd->rcu);
- 	return cfqd;
- }
- 
-diff -puN block/genhd.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head block/genhd.c
---- a/block/genhd.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/block/genhd.c
-@@ -988,7 +988,6 @@ int disk_expand_part_tbl(struct gendisk 
- 	if (!new_ptbl)
- 		return -ENOMEM;
- 
--	INIT_RCU_HEAD(&new_ptbl->rcu_head);
- 	new_ptbl->len = target;
- 
- 	for (i = 0; i < len; i++)
-diff -puN drivers/staging/batman-adv/hard-interface.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head drivers/staging/batman-adv/hard-interface.c
---- a/drivers/staging/batman-adv/hard-interface.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/drivers/staging/batman-adv/hard-interface.c
-@@ -340,7 +340,6 @@ static struct batman_if *hardif_add_inte
- 	batman_if->if_num = -1;
- 	batman_if->net_dev = net_dev;
- 	batman_if->if_status = IF_NOT_IN_USE;
--	INIT_RCU_HEAD(&batman_if->rcu);
- 	INIT_LIST_HEAD(&batman_if->list);
- 
- 	check_known_mac_addr(batman_if->net_dev->dev_addr);
-diff -puN fs/file.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/file.c
---- a/fs/file.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/fs/file.c
-@@ -178,7 +178,6 @@ static struct fdtable * alloc_fdtable(un
- 	fdt->open_fds = (fd_set *)data;
- 	data += nr / BITS_PER_BYTE;
- 	fdt->close_on_exec = (fd_set *)data;
--	INIT_RCU_HEAD(&fdt->rcu);
- 	fdt->next = NULL;
- 
- 	return fdt;
-@@ -312,7 +311,6 @@ struct files_struct *dup_fd(struct files
- 	new_fdt->close_on_exec = (fd_set *)&newf->close_on_exec_init;
- 	new_fdt->open_fds = (fd_set *)&newf->open_fds_init;
- 	new_fdt->fd = &newf->fd_array[0];
--	INIT_RCU_HEAD(&new_fdt->rcu);
- 	new_fdt->next = NULL;
- 
- 	spin_lock(&oldf->file_lock);
-@@ -430,7 +428,6 @@ struct files_struct init_files = {
- 		.fd		= &init_files.fd_array[0],
- 		.close_on_exec	= (fd_set *)&init_files.close_on_exec_init,
- 		.open_fds	= (fd_set *)&init_files.open_fds_init,
--		.rcu		= RCU_HEAD_INIT,
- 	},
- 	.file_lock	= __SPIN_LOCK_UNLOCKED(init_task.file_lock),
- };
-diff -puN fs/fs-writeback.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/fs-writeback.c
---- a/fs/fs-writeback.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/fs/fs-writeback.c
-@@ -78,7 +78,6 @@ static inline bool bdi_work_on_stack(str
- static inline void bdi_work_init(struct bdi_work *work,
- 				 struct wb_writeback_args *args)
- {
--	INIT_RCU_HEAD(&work->rcu_head);
- 	work->args = *args;
- 	work->state = WS_USED;
- }
-diff -puN fs/partitions/check.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head fs/partitions/check.c
---- a/fs/partitions/check.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/fs/partitions/check.c
-@@ -456,7 +456,6 @@ struct hd_struct *add_partition(struct g
+ #ifdef CONFIG_OPT_LIB_ASM
+ EXPORT_SYMBOL(memcpy);
+diff -puN drivers/mfd/wm831x-core.c~linux-next-git-rejects drivers/mfd/wm831x-core.c
+--- a/drivers/mfd/wm831x-core.c~linux-next-git-rejects
++++ a/drivers/mfd/wm831x-core.c
+@@ -356,24 +356,6 @@ int wm831x_auxadc_read(struct wm831x *wm
+ 		goto disable;
  	}
  
- 	/* everything is up and running, commence */
--	INIT_RCU_HEAD(&p->rcu_head);
- 	rcu_assign_pointer(ptbl->part[partno], p);
- 
- 	/* suppress uevent if the disk supresses it */
-diff -puN include/linux/init_task.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head include/linux/init_task.h
---- a/include/linux/init_task.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/include/linux/init_task.h
-@@ -49,7 +49,6 @@ extern struct group_info init_groups;
- 		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
- 		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
- 	},								\
--	.rcu		= RCU_HEAD_INIT,				\
- 	.level		= 0,						\
- 	.numbers	= { {						\
- 		.nr		= 0,					\
-diff -puN include/linux/rcupdate.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/include/linux/rcupdate.h
-@@ -77,12 +77,6 @@ extern void rcu_scheduler_starting(void)
- #error "Unknown RCU implementation specified to kernel configuration"
- #endif
- 
--#define RCU_HEAD_INIT	{ .next = NULL, .func = NULL }
--#define RCU_HEAD(head) struct rcu_head head = RCU_HEAD_INIT
--#define INIT_RCU_HEAD(ptr) do { \
--       (ptr)->next = NULL; (ptr)->func = NULL; \
--} while (0)
+-<<<<<<< HEAD
+-	/* If an interrupt arrived late clean up after it */
+-	try_wait_for_completion(&wm831x->auxadc_done);
 -
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- 
- extern struct lockdep_map rcu_lock_map;
-diff -puN mm/backing-dev.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head mm/backing-dev.c
---- a/mm/backing-dev.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/mm/backing-dev.c
-@@ -663,7 +663,6 @@ int bdi_init(struct backing_dev_info *bd
- 	bdi->max_ratio = 100;
- 	bdi->max_prop_frac = PROP_FRAC_BASE;
- 	spin_lock_init(&bdi->wb_lock);
--	INIT_RCU_HEAD(&bdi->rcu_head);
- 	INIT_LIST_HEAD(&bdi->bdi_list);
- 	INIT_LIST_HEAD(&bdi->wb_list);
- 	INIT_LIST_HEAD(&bdi->work_list);
-diff -puN mm/slob.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head mm/slob.c
---- a/mm/slob.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/mm/slob.c
-@@ -647,7 +647,6 @@ void kmem_cache_free(struct kmem_cache *
- 	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
- 		struct slob_rcu *slob_rcu;
- 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
--		INIT_RCU_HEAD(&slob_rcu->head);
- 		slob_rcu->size = c->size;
- 		call_rcu(&slob_rcu->head, kmem_rcu_free);
- 	} else {
-diff -puN security/selinux/avc.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head security/selinux/avc.c
---- a/security/selinux/avc.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/security/selinux/avc.c
-@@ -288,7 +288,6 @@ static struct avc_node *avc_alloc_node(v
- 	if (!node)
- 		goto out;
- 
--	INIT_RCU_HEAD(&node->rhead);
- 	INIT_HLIST_NODE(&node->list);
- 	avc_cache_stats_incr(allocations);
- 
-diff -puN security/selinux/netnode.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head security/selinux/netnode.c
---- a/security/selinux/netnode.c~rcu-remove-init_rcu_head-rcu_head_init-rcu_head
-+++ a/security/selinux/netnode.c
-@@ -183,8 +183,6 @@ static void sel_netnode_insert(struct se
- 		BUG();
+-	/* Ignore the result to allow us to soldier on without IRQ hookup */
+-	wait_for_completion_timeout(&wm831x->auxadc_done, msecs_to_jiffies(5));
+-
+-	ret = wm831x_reg_read(wm831x, WM831X_AUXADC_CONTROL);
+-	if (ret < 0) {
+-		dev_err(wm831x->dev, "AUXADC status read failed: %d\n", ret);
+-		goto disable;
+-	}
+-
+-	if (ret & WM831X_AUX_CVT_ENA) {
+-		dev_err(wm831x->dev, "Timed out reading AUXADC\n");
+-		ret = -EBUSY;
+-		goto disable;
+-=======
+ 	if (irq_masked) {
+ 		/* If we're not using interrupts then poll the
+ 		 * interrupt status register */
+@@ -414,7 +396,6 @@ int wm831x_auxadc_read(struct wm831x *wm
+ 			ret = -EBUSY;
+ 			goto disable;
+ 		}
+->>>>>>> FETCH_HEAD
  	}
  
--	INIT_RCU_HEAD(&node->rcu);
+ 	ret = wm831x_reg_read(wm831x, WM831X_AUXADC_DATA);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+jfs-free-sbi-memory-in-error-path.patch
+fix-drm-radeon-kms-hdmi-irq-support.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+kernel-mutexc-fix-unused-var-warning.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
+include-asm-generic-kmap_typesh-add-helpful-reminder.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor.patch
+hwmon-driver-for-ti-tmp102-temperature-sensor-fix.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+kfifo-samples-dont-compile.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+
