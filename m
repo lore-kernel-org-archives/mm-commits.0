@@ -1,71 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] inotify-dont-leak-user-struct-on-inotify-release.patch removed from -mm tree
-Date: Wed, 19 May 2010 10:30:43 -0400
-Message-ID: <201005191732.o4JHW9Pr025719@imap1.linux-foundation.org>
+Subject: [merged] jfs-free-sbi-memory-in-error-path.patch removed from -mm tree
+Date: Wed, 19 May 2010 10:30:46 -0400
+Message-ID: <201005191732.o4JHWCTi025723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59088 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41094 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753807Ab0ESRcS (ORCPT
+	by vger.kernel.org with ESMTP id S1754268Ab0ESRcY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 May 2010 13:32:18 -0400
+	Wed, 19 May 2010 13:32:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, eparis@parisplace.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: jblunck@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify: don't leak user struct on inotify release
+     jfs: free sbi memory in error path
 has been removed from the -mm tree.  Its filename was
-     inotify-dont-leak-user-struct-on-inotify-release.patch
+     jfs-free-sbi-memory-in-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: don't leak user struct on inotify release
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: jfs: free sbi memory in error path
+From: Jan Blunck <jblunck@suse.de>
 
-inotify_new_group() receives a get_uid-ed user_struct and saves the
-reference on group->inotify_data.user.  The problem is that free_uid() is
-never called on it.
+I spotted the missing kfree() while removing the BKL.
 
-Issue seem to be introduced by 63c882a0 (inotify: reimplement inotify
-using fsnotify) after 2.6.30.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Eric Paris <eparis@parisplace.org>
-Cc: <stable@kernel.org>
+[akpm@linux-foundation.org: avoid multiple returns so it doesn't happen again]
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_fsnotify.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/jfs/super.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release fs/notify/inotify/inotify_fsnotify.c
---- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-leak-user-struct-on-inotify-release
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -28,6 +28,7 @@
- #include <linux/path.h> /* struct path */
- #include <linux/slab.h> /* kmem_* */
- #include <linux/types.h>
-+#include <linux/sched.h>
+diff -puN fs/jfs/super.c~jfs-free-sbi-memory-in-error-path fs/jfs/super.c
+--- a/fs/jfs/super.c~jfs-free-sbi-memory-in-error-path
++++ a/fs/jfs/super.c
+@@ -446,10 +446,8 @@ static int jfs_fill_super(struct super_b
+ 	/* initialize the mount flag and determine the default error handler */
+ 	flag = JFS_ERR_REMOUNT_RO;
  
- #include "inotify.h"
+-	if (!parse_options((char *) data, sb, &newLVSize, &flag)) {
+-		kfree(sbi);
+-		return -EINVAL;
+-	}
++	if (!parse_options((char *) data, sb, &newLVSize, &flag))
++		goto out_kfree;
+ 	sbi->flag = flag;
  
-@@ -200,6 +201,7 @@ static void inotify_free_group_priv(stru
- 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
- 	idr_remove_all(&group->inotify_data.idr);
- 	idr_destroy(&group->inotify_data.idr);
-+	free_uid(group->inotify_data.user);
+ #ifdef CONFIG_JFS_POSIX_ACL
+@@ -458,7 +456,7 @@ static int jfs_fill_super(struct super_b
+ 
+ 	if (newLVSize) {
+ 		printk(KERN_ERR "resize option for remount only\n");
+-		return -EINVAL;
++		goto out_kfree;
+ 	}
+ 
+ 	/*
+@@ -478,7 +476,7 @@ static int jfs_fill_super(struct super_b
+ 	inode = new_inode(sb);
+ 	if (inode == NULL) {
+ 		ret = -ENOMEM;
+-		goto out_kfree;
++		goto out_unload;
+ 	}
+ 	inode->i_ino = 0;
+ 	inode->i_nlink = 1;
+@@ -550,9 +548,10 @@ out_mount_failed:
+ 	make_bad_inode(sbi->direct_inode);
+ 	iput(sbi->direct_inode);
+ 	sbi->direct_inode = NULL;
+-out_kfree:
++out_unload:
+ 	if (sbi->nls_tab)
+ 		unload_nls(sbi->nls_tab);
++out_kfree:
+ 	kfree(sbi);
+ 	return ret;
  }
- 
- void inotify_free_event_priv(struct fsnotify_event_private_data *fsn_event_priv)
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from jblunck@suse.de are
 
 linux-next.patch
-reiser4.patch
+osst-update-ppos-instead-of-using-file-f_pos.patch
+arch-cris-arch-v10-drivers-eepromc-eeprom_read-eeprom_write-should-update-ppos-instead-of-file-f_pos.patch
+frv-remove-struct-file-argument-from-sysctl-proc_handler.patch
+misdn-remove-unnecessary-test-on-f_pos.patch
+rtc-m41t80-use-nonseekable_open.patch
+vfs-introduce-noop_llseek.patch
+osst-use-noop_llseek-instead-of-default_llseek.patch
+st-use-noop_llseek-instead-of-default_llseek.patch
+fs-do-not-fallback-to-default_llseek-when-readdir-uses-bkl.patch
+documentation-filesystems-locking-update-documentation-on-llseek-wrt-bkl.patch
 
