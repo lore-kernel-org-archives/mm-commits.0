@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-fix-s6e63m0-kconfig.patch added to -mm tree
-Date: Thu, 20 May 2010 14:13:37 -0700
-Message-ID: <201005202113.o4KLDb6q005608@imap1.linux-foundation.org>
+Subject: + backlight-fix-s6e63m0-device-attr-function-return-types.patch added to -mm tree
+Date: Thu, 20 May 2010 14:13:48 -0700
+Message-ID: <201005202113.o4KLDmjZ005613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753938Ab0ETVOV (ORCPT
+	by vger.kernel.org with ESMTP id S1753938Ab0ETVOc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 17:14:21 -0400
+	Thu, 20 May 2010 17:14:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, inki.dae@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     backlight: fix s6e63m0 kconfig
+     backlight: fix s6e63m0 device attr function return types
 has been added to the -mm tree.  Its filename is
-     backlight-fix-s6e63m0-kconfig.patch
+     backlight-fix-s6e63m0-device-attr-function-return-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: fix s6e63m0 kconfig
+Subject: backlight: fix s6e63m0 device attr function return types
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix kconfig file dependency and help text.
-Move the driver's Kconfig symbol inside the LCD_CLASS_DEVICE block.
+Fix device attribute functions return types.
 
-When CONFIG_BACKLIGHT_CLASS_DEVICE is not enabled:
-ERROR: "backlight_device_register" [drivers/video/backlight/s6e63m0.ko] undefined!
+drivers/video/backlight/s6e63m0.c:718: warning: initialization from incompatible pointer type
+drivers/video/backlight/s6e63m0.c:718: warning: initialization from incompatible pointer type
+drivers/video/backlight/s6e63m0.c:732: warning: initialization from incompatible pointer type
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: InKi Dae  <inki.dae@samsung.com>
@@ -49,33 +49,39 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/video/backlight/s6e63m0.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-fix-s6e63m0-kconfig drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-fix-s6e63m0-kconfig
-+++ a/drivers/video/backlight/Kconfig
-@@ -101,14 +101,16 @@ config LCD_HP700
- 	  If you have an HP Jornada 700 series handheld (710/720/728)
- 	  say Y to enable LCD control driver.
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-fix-s6e63m0-device-attr-function-return-types drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-fix-s6e63m0-device-attr-function-return-types
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -654,7 +654,7 @@ static const struct backlight_ops s6e63m
+ 	.update_status = s6e63m0_set_brightness,
+ };
  
--endif # LCD_CLASS_DEVICE
--
- config LCD_S6E63M0
- 	tristate "S6E63M0 AMOLED LCD Driver"
--	depends on LCD_CLASS_DEVICE && SPI
-+	depends on SPI && BACKLIGHT_CLASS_DEVICE
- 	default n
- 	help
--	  If you have an S6E63M0 LCD Panel say Y to enable LCD control driver
-+	  If you have an S6E63M0 LCD Panel, say Y to enable its
-+	  LCD control driver.
-+
-+endif # LCD_CLASS_DEVICE
-+
- #
- # Backlight
- #
+-static int s6e63m0_sysfs_show_gamma_mode(struct device *dev,
++static ssize_t s6e63m0_sysfs_show_gamma_mode(struct device *dev,
+ 				      struct device_attribute *attr, char *buf)
+ {
+ 	struct s6e63m0 *lcd = dev_get_drvdata(dev);
+@@ -681,7 +681,7 @@ static int s6e63m0_sysfs_show_gamma_mode
+ 	return strlen(buf);
+ }
+ 
+-static int s6e63m0_sysfs_store_gamma_mode(struct device *dev,
++static ssize_t s6e63m0_sysfs_store_gamma_mode(struct device *dev,
+ 				       struct device_attribute *attr,
+ 				       const char *buf, size_t len)
+ {
+@@ -718,7 +718,7 @@ static int s6e63m0_sysfs_store_gamma_mod
+ static DEVICE_ATTR(gamma_mode, 0644,
+ 		s6e63m0_sysfs_show_gamma_mode, s6e63m0_sysfs_store_gamma_mode);
+ 
+-static int s6e63m0_sysfs_show_gamma_table(struct device *dev,
++static ssize_t s6e63m0_sysfs_show_gamma_table(struct device *dev,
+ 				      struct device_attribute *attr, char *buf)
+ {
+ 	struct s6e63m0 *lcd = dev_get_drvdata(dev);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
