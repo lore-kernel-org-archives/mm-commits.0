@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch added to -mm tree
-Date: Thu, 20 May 2010 13:44:56 -0700
-Message-ID: <201005202044.o4KKiup1004227@imap1.linux-foundation.org>
+Subject: + rapidio-fix-maintenance-access-to-higher-memory-areas.patch added to -mm tree
+Date: Thu, 20 May 2010 14:09:13 -0700
+Message-ID: <201005202109.o4KL9DMd005394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753307Ab0ETUpt (ORCPT
+	by vger.kernel.org with ESMTP id S1757827Ab0ETVKR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 16:45:49 -0400
+	Thu, 20 May 2010 17:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chaohong.guo@intel.com, andi@firstfloor.org, prarit@redhat.com, stable@kernel.org, tj@kernel.org
+Cc: thomas.moll@sysgo.com, alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     percpu: online CPU before memory failed in pcpu_alloc_pages()
+     rapidio: fix maintenance access to higher memory areas
 has been added to the -mm tree.  Its filename is
-     percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
+     rapidio-fix-maintenance-access-to-higher-memory-areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: online CPU before memory failed in pcpu_alloc_pages()
-From: minskey guo <chaohong.guo@intel.com>
+Subject: rapidio: fix maintenance access to higher memory areas
+From: Thomas Moll <thomas.moll@sysgo.com>
 
-The operation of "enable CPU to online before memory within a node"
-fails in some case according to Prarit. The warnings as follows:
+Fix the maintenance access functions to farend RapidIO devices.
+1. Fixed shift of the given offset, to open the maintenance window
+2. Mask offset to limit access to the opened maintenance window
+3. Added extended destid part to rowtear register, required for 16bit mode
 
-Pid: 7440, comm: bash Not tainted 2.6.32 #2
-Call Trace:
- [<ffffffff81155985>] pcpu_alloc+0xa05/0xa70
- [<ffffffff81155a20>] __alloc_percpu+0x10/0x20
- [<ffffffff81089605>] __create_workqueue_key+0x75/0x280
- [<ffffffff8110e050>] ? __build_all_zonelists+0x0/0x5d0
- [<ffffffff810c1eba>] stop_machine_create+0x3a/0xb0
- [<ffffffff810c1f57>] stop_machine+0x27/0x60
- [<ffffffff8110f1a0>] build_all_zonelists+0xd0/0x2b0
- [<ffffffff814c1d12>] cpu_up+0xb3/0xe3
- [<ffffffff814b3c40>] store_online+0x70/0xa0
- [<ffffffff81326100>] sysdev_store+0x20/0x30
- [<ffffffff811d29a5>] sysfs_write_file+0xe5/0x170
- [<ffffffff81163d28>] vfs_write+0xb8/0x1a0
- [<ffffffff810cfd22>] ? audit_syscall_entry+0x252/0x280
- [<ffffffff81164761>] sys_write+0x51/0x90
- [<ffffffff81013132>] system_call_fastpath+0x16/0x1b
-Built 4 zonelists in Zone order, mobility grouping on.  Total pages: 12331603
-PERCPU: allocation failed, size=128 align=64, failed to populate
+This method is matching maintenance transactions generation described
+by Freescale in the appnote AN2932. With this modification full access
+to a 16MB maintenance window is possible, this patch is required for
+IDT cps switches. For easier handling of the access routines, the
+access was limited to aligned memory regions. This should be no problem
+because all registers are 32bit wide.
 
-With "enable CPU to online before memory" patch, when the 1st CPU of
-an offlined node is being onlined, we build zonelists for that node.
-If per-cpu area needs to be extended during zonelists building period,
-alloc_pages_node() will be called. The routine alloc_pages_node() fails
-on the node in-onlining because the node doesn't have zonelists created
-yet.
-
-To fix this issue,  we try to alloc memory from current node.
-
-Signed-off-by: minskey guo <chaohong.guo@intel.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@kernel.org>		[same patch, to mm/percpu.c]
+Signed-off-by: Thomas Moll <thomas.moll@sysgo.com>
+Tested-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-vm.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ arch/powerpc/sysdev/fsl_rio.c |   37 +++++++++++++++++++++++++-------
+ 1 file changed, 30 insertions(+), 7 deletions(-)
 
-diff -puN mm/percpu-vm.c~percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages mm/percpu-vm.c
---- a/mm/percpu-vm.c~percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages
-+++ a/mm/percpu-vm.c
-@@ -110,13 +110,29 @@ static int pcpu_alloc_pages(struct pcpu_
- {
- 	const gfp_t gfp = GFP_KERNEL | __GFP_HIGHMEM | __GFP_COLD;
- 	unsigned int cpu;
-+	int nid;
- 	int i;
- 
- 	for_each_possible_cpu(cpu) {
- 		for (i = page_start; i < page_end; i++) {
- 			struct page **pagep = &pages[pcpu_page_idx(cpu, i)];
- 
--			*pagep = alloc_pages_node(cpu_to_node(cpu), gfp, 0);
-+			nid = cpu_to_node(cpu);
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-fix-maintenance-access-to-higher-memory-areas arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-fix-maintenance-access-to-higher-memory-areas
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -1,6 +1,10 @@
+ /*
+  * Freescale MPC85xx/MPC86xx RapidIO support
+  *
++ * Copyright 2009 Sysgo AG
++ * Thomas Moll <thomas.moll@sysgo.com>
++ * - fixed maintenance access routines, check for aligned access
++ *
+  * Copyright 2009 Integrated Device Technology, Inc.
+  * Alex Bounine <alexandre.bounine@idt.com>
+  * - Added Port-Write message handling
+@@ -371,10 +375,17 @@ fsl_rio_config_read(struct rio_mport *mp
+ 	pr_debug
+ 	    ("fsl_rio_config_read: index %d destid %d hopcount %d offset %8.8x len %d\n",
+ 	     index, destid, hopcount, offset, len);
 +
-+			/*
-+			 * It is allowable to online a CPU within a NUMA
-+			 * node which doesn't have onlined local memory.
-+			 * In this case, we need to create zonelists for
-+			 * that node when cpu is being onlined. If per-cpu
-+			 * area needs to be extended at the exact time when
-+			 * zonelists of that node is being created, we alloc
-+			 * memory from current node.
-+			 */
-+			if ((nid == -1) ||
-+			    !(node_zonelist(nid, GFP_KERNEL)->_zonerefs->zone))
-+				nid = numa_node_id();
++	/* 16MB maintenance window possible */
++	/* allow only aligned access to maintenance registers */
++	if (offset > (0x1000000 - len) || !IS_ALIGNED(offset, len))
++		return -EINVAL;
 +
-+			*pagep = alloc_pages_node(nid, gfp, 0);
- 			if (!*pagep) {
- 				pcpu_free_pages(chunk, pages, populated,
- 						page_start, page_end);
+ 	out_be32(&priv->maint_atmu_regs->rowtar,
+-		 (destid << 22) | (hopcount << 12) | ((offset & ~0x3) >> 9));
++		 (destid << 22) | (hopcount << 12) | (offset >> 12));
++	out_be32(&priv->maint_atmu_regs->rowtear,  (destid >> 10));
+ 
+-	data = (u8 *) priv->maint_win + offset;
++	data = (u8 *) priv->maint_win + (offset & (RIO_MAINT_WIN_SIZE - 1));
+ 	switch (len) {
+ 	case 1:
+ 		__fsl_read_rio_config(rval, data, err, "lbz");
+@@ -382,9 +393,11 @@ fsl_rio_config_read(struct rio_mport *mp
+ 	case 2:
+ 		__fsl_read_rio_config(rval, data, err, "lhz");
+ 		break;
+-	default:
++	case 4:
+ 		__fsl_read_rio_config(rval, data, err, "lwz");
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	if (err) {
+@@ -419,10 +432,17 @@ fsl_rio_config_write(struct rio_mport *m
+ 	pr_debug
+ 	    ("fsl_rio_config_write: index %d destid %d hopcount %d offset %8.8x len %d val %8.8x\n",
+ 	     index, destid, hopcount, offset, len, val);
++
++	/* 16MB maintenance windows possible */
++	/* allow only aligned access to maintenance registers */
++	if (offset > (0x1000000 - len) || !IS_ALIGNED(offset, len))
++		return -EINVAL;
++
+ 	out_be32(&priv->maint_atmu_regs->rowtar,
+-		 (destid << 22) | (hopcount << 12) | ((offset & ~0x3) >> 9));
++		 (destid << 22) | (hopcount << 12) | (offset >> 12));
++	out_be32(&priv->maint_atmu_regs->rowtear,  (destid >> 10));
+ 
+-	data = (u8 *) priv->maint_win + offset;
++	data = (u8 *) priv->maint_win + (offset & (RIO_MAINT_WIN_SIZE - 1));
+ 	switch (len) {
+ 	case 1:
+ 		out_8((u8 *) data, val);
+@@ -430,9 +450,11 @@ fsl_rio_config_write(struct rio_mport *m
+ 	case 2:
+ 		out_be16((u16 *) data, val);
+ 		break;
+-	default:
++	case 4:
+ 		out_be32((u32 *) data, val);
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+@@ -1483,7 +1505,8 @@ int fsl_rio_setup(struct of_device *dev)
+ 
+ 	/* Configure maintenance transaction window */
+ 	out_be32(&priv->maint_atmu_regs->rowbar, law_start >> 12);
+-	out_be32(&priv->maint_atmu_regs->rowar, 0x80077015);	/* 4M */
++	out_be32(&priv->maint_atmu_regs->rowar,
++		 0x80077000 | (ilog2(RIO_MAINT_WIN_SIZE) - 1));
+ 
+ 	priv->maint_win = ioremap(law_start, RIO_MAINT_WIN_SIZE);
+ 
 _
 
-Patches currently in -mm which might be from chaohong.guo@intel.com are
+Patches currently in -mm which might be from thomas.moll@sysgo.com are
 
-percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+rapidio-add-idt-cps-tsi-switches.patch
+rapidio-add-switch-locking-during-discovery.patch
+rapidio-add-port-write-handling-for-em.patch
+rapidio-powerpc-85xx-add-port-write-message-handler-for-srio-port.patch
+rapidio-powerpc-85xx-add-mchk-handler-for-srio-port.patch
+rapidio-add-enabling-srio-port-rx-and-tx.patch
+rapidio-fix-typos-and-minor-edits.patch
+rapidio-add-debug-configuration-option.patch
+rapidio-modify-initialization-of-switch-operations.patch
+rapidio-add-switch-domain-routines.patch
+rapidio-use-default-route-value-for-cps-switches.patch
+rapidio-fix-maintenance-access-to-higher-memory-areas.patch
 
