@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 20 May 2010 10:18:25 -0400
-Message-ID: <201005201719.o4KHJoGr026974@imap1.linux-foundation.org>
+Subject: + gpiolib-introduce-set_debounce-method.patch added to -mm tree
+Date: Thu, 20 May 2010 11:11:58 -0700
+Message-ID: <201005201811.o4KIBwee029220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752712Ab0ETRTx (ORCPT
+	by vger.kernel.org with ESMTP id S1757087Ab0ETSMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 13:19:53 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o4KHJp21022294
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 20 May 2010 10:19:52 -0700
+	Thu, 20 May 2010 14:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: felipe.balbi@nokia.com, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, tony@atomide.com
 
 
 The patch titled
-     linux-next-git-rejects
+     gpiolib: introduce set_debounce method
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     gpiolib-introduce-set_debounce-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,128 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpiolib: introduce set_debounce method
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
+A few architectures, like OMAP, allow you to set a debouncing time for the
+gpio before generating the IRQ.  Teach gpiolib about that.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/gpio/gpiolib.c     |   43 +++++++++++++++++++++++++++++++++++
+ include/asm-generic/gpio.h |    5 ++++
+ include/linux/gpio.h       |    5 ++++
+ 3 files changed, 53 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~linux-next-git-rejects Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~linux-next-git-rejects
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -569,8 +569,6 @@ Who:	Len Brown <len.brown@intel.com>
+diff -puN drivers/gpio/gpiolib.c~gpiolib-introduce-set_debounce-method drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-introduce-set_debounce-method
++++ a/drivers/gpio/gpiolib.c
+@@ -1466,6 +1466,49 @@ fail:
+ }
+ EXPORT_SYMBOL_GPL(gpio_direction_output);
  
- ----------------------------
++/**
++ * gpio_set_debounce - sets @debounce time for a @gpio
++ * @gpio: the gpio to set debounce time
++ * @debounce: debounce time is microseconds
++ */
++int gpio_set_debounce(unsigned gpio, unsigned debounce)
++{
++	unsigned long		flags;
++	struct gpio_chip	*chip;
++	struct gpio_desc	*desc = &gpio_desc[gpio];
++	int			status = -EINVAL;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	if (!gpio_is_valid(gpio))
++		goto fail;
++	chip = desc->chip;
++	if (!chip || !chip->set || !chip->set_debounce)
++		goto fail;
++	gpio -= chip->base;
++	if (gpio >= chip->ngpio)
++		goto fail;
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
++
++	/* now we know the gpio is valid and chip won't vanish */
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++
++	might_sleep_if(extra_checks && chip->can_sleep);
++
++	return chip->set_debounce(chip, gpio, debounce);
++
++fail:
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	if (status)
++		pr_debug("%s: gpio-%d status %d\n",
++			__func__, gpio, status);
++
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_set_debounce);
  
--<<<<<<< HEAD
--=======
- What:	iwlwifi 50XX module parameters
- When:	2.6.40
- Why:	The "..50" modules parameters were used to configure 5000 series and
-@@ -607,7 +605,6 @@ Who:	Thomas Gleixner <tglx@linutronix.de
+ /* I/O calls are only valid after configuration completed; the relevant
+  * "is this a valid GPIO" error checks should already have been done.
+diff -puN include/asm-generic/gpio.h~gpiolib-introduce-set_debounce-method include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-introduce-set_debounce-method
++++ a/include/asm-generic/gpio.h
+@@ -91,6 +91,9 @@ struct gpio_chip {
+ 						unsigned offset);
+ 	int			(*direction_output)(struct gpio_chip *chip,
+ 						unsigned offset, int value);
++	int			(*set_debounce)(struct gpio_chip *chip,
++						unsigned offset, unsigned debounce);
++
+ 	void			(*set)(struct gpio_chip *chip,
+ 						unsigned offset, int value);
  
- ----------------------------
+@@ -124,6 +127,8 @@ extern void gpio_free(unsigned gpio);
+ extern int gpio_direction_input(unsigned gpio);
+ extern int gpio_direction_output(unsigned gpio, int value);
  
-->>>>>>> FETCH_HEAD
- What:	video4linux /dev/vtx teletext API support
- When:	2.6.35
- Files:	drivers/media/video/saa5246a.c drivers/media/video/saa5249.c
-@@ -628,7 +625,6 @@ Why:	The vtx device nodes have been supe
- 	provided by the vtx API, then that functionality should be build
- 	around the sliced VBI API instead.
- Who:	Hans Verkuil <hverkuil@xs4all.nl>
--<<<<<<< HEAD
++extern int gpio_set_debounce(unsigned gpio, unsigned debounce);
++
+ extern int gpio_get_value_cansleep(unsigned gpio);
+ extern void gpio_set_value_cansleep(unsigned gpio, int value);
  
- ----------------------------
+diff -puN include/linux/gpio.h~gpiolib-introduce-set_debounce-method include/linux/gpio.h
+--- a/include/linux/gpio.h~gpiolib-introduce-set_debounce-method
++++ a/include/linux/gpio.h
+@@ -51,6 +51,11 @@ static inline int gpio_direction_output(
+ 	return -ENOSYS;
+ }
  
-@@ -639,5 +635,3 @@ Who:	Thomas Gleixner <tglx@linutronix.de
- 
- ----------------------------
- 
--=======
-->>>>>>> FETCH_HEAD
++static inline int gpio_set_debounce(unsigned gpio, unsigned debounce)
++{
++	return -ENOSYS;
++}
++
+ static inline int gpio_get_value(unsigned gpio)
+ {
+ 	/* GPIO can never have been requested or set as {in,out}put */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from felipe.balbi@nokia.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
-x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-fs-fscache-object-listc-fix-warning-on-32-bit.patch
-of-gpio-implement-gpiolib-notifier-hooks.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
-fix-stop_machine-reimplement-using-cpu_stop.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-fix.patch
-cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
-mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
-mm-export-unusable-free-space-index-via-debugfs.patch
-mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-mm-introduce-free_pages_prepare-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
-cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
-highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
-frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
-kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
-include-asm-generic-kmap_typesh-remove-km_sync_icache-and-km_sync_dcache.patch
-include-asm-generic-kmap_typesh-add-helpful-reminder.patch
-dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
-lib-introduce-common-method-to-convert-hex-digits-fix.patch
-lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
-davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
-checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
-crc32-major-optimization-checkpatch-fixes.patch
-hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
-rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
-gpiolib-make-names-array-and-its-values-const-fix.patch
-s3c-fb-add-s5pv210-support-and-some-features-checkpatch-fixes.patch
-memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
-memcg-move-charge-of-file-pages-fix.patch
-memcg-move-charge-of-file-pages-fix-4.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
-proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
-fault-injection-add-cpu-notifier-error-injection-module-fix.patch
-ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
-ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
-ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
-pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
-panic-allow-taint-flag-for-warnings-to-be-changed-from-taint_warn-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
-aio-fix-the-compat-vectored-operations-fix.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-kfifo-samples-dont-compile.patch
-x86_32-use-asm-generic-scatterlisth.patch
-numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
+gpiolib-introduce-set_debounce-method.patch
+arm-omap-gpio-implement-set_debounce-method.patch
+arm-omap-switch-over-to-gpio_set_debounce.patch
+arm-omap-remove-the-unused-omap_gpio_set_debounce-methods.patch
 
