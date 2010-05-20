@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i915-fix-lock-imbalance-on-error-path.patch added to -mm tree
-Date: Thu, 20 May 2010 11:15:45 -0700
-Message-ID: <201005201815.o4KIFjEw029431@imap1.linux-foundation.org>
+Subject: + posix_timer-fix-error-path-in-timer_create.patch added to -mm tree
+Date: Thu, 20 May 2010 12:32:06 -0700
+Message-ID: <201005201932.o4KJW6lT000387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754855Ab0ETSQW (ORCPT
+	by vger.kernel.org with ESMTP id S1752830Ab0ETTcy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 14:16:22 -0400
+	Thu, 20 May 2010 15:32:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel.blueman@gmail.com, airlied@linux.ie, bgamari.foss@gmail.com, jbarnes@virtuousgeek.org, oga@openbsd.org, stable@kernel.org
+Cc: avagin@openvz.org, oleg@tv-sign.ru, sgruszka@redhat.com, stable@kernel.org, tglx@linutronix.de, xemul@openvz.org
 
 
 The patch titled
-     i915: fix lock imbalance on error path
+     posix_timer: fix error path in timer_create
 has been added to the -mm tree.  Its filename is
-     i915-fix-lock-imbalance-on-error-path.patch
+     posix_timer-fix-error-path-in-timer_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i915: fix lock imbalance on error path
-From: Daniel J Blueman <daniel.blueman@gmail.com>
+Subject: posix_timer: fix error path in timer_create
+From: Andrey Vagin <avagin@openvz.org>
 
-While investigating Intel i5 Arrandale GPU lockups with -rc4, I noticed a
-lock imbalance.
+Move CLOCK_DISPATCH(which_clock, timer_create, (new_timer)) after all
+posible EFAULT erros.
 
-Signed-off-by: Daniel J Blueman <daniel.blueman@gmail.com>
-Cc: Owain G. Ainsworth <oga@openbsd.org>
-Cc: Ben Gamari <bgamari.foss@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dave Airlie <airlied@linux.ie>
+*_timer_create may allocate/get resources.
+(for example posix_cpu_timer_create does get_task_struct)
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Reviewed-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_drv.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/posix-timers.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_drv.c~i915-fix-lock-imbalance-on-error-path drivers/gpu/drm/i915/i915_drv.c
---- a/drivers/gpu/drm/i915/i915_drv.c~i915-fix-lock-imbalance-on-error-path
-+++ a/drivers/gpu/drm/i915/i915_drv.c
-@@ -370,6 +370,7 @@ int i965_reset(struct drm_device *dev, u
- 		}
- 	} else {
- 		DRM_ERROR("Error occurred. Don't know how to reset this chip.\n");
-+		mutex_unlock(&dev->struct_mutex);
- 		return -ENODEV;
- 	}
+diff -puN kernel/posix-timers.c~posix_timer-fix-error-path-in-timer_create kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix_timer-fix-error-path-in-timer_create
++++ a/kernel/posix-timers.c
+@@ -559,9 +559,6 @@ SYSCALL_DEFINE3(timer_create, const cloc
+ 	new_timer->it_id = (timer_t) new_timer_id;
+ 	new_timer->it_clock = which_clock;
+ 	new_timer->it_overrun = -1;
+-	error = CLOCK_DISPATCH(which_clock, timer_create, (new_timer));
+-	if (error)
+-		goto out;
  
+ 	if (copy_to_user(created_timer_id,
+ 			 &new_timer_id, sizeof (new_timer_id))) {
+@@ -593,6 +590,10 @@ SYSCALL_DEFINE3(timer_create, const cloc
+ 	new_timer->sigq->info.si_tid   = new_timer->it_id;
+ 	new_timer->sigq->info.si_code  = SI_TIMER;
+ 
++	error = CLOCK_DISPATCH(which_clock, timer_create, (new_timer));
++	if (error)
++		goto out;
++
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	new_timer->it_signal = current->signal;
+ 	list_add(&new_timer->list, &current->signal->posix_timers);
 _
 
-Patches currently in -mm which might be from daniel.blueman@gmail.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-i915-fix-lock-imbalance-on-error-path.patch
+posix_timer-remove-wrong-comment.patch
+posix_timer-fix-error-path-in-timer_create.patch
+posix_timer-move-copy_to_usercreated_timer_id-down-in-timer_create.patch
 
