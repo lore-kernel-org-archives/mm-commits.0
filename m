@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + module-remove-duplicate-declaration-of-__ksymtab_gpl_future.patch added to -mm tree
-Date: Thu, 20 May 2010 14:32:46 -0700
-Message-ID: <201005202132.o4KLWkNn006362@imap1.linux-foundation.org>
+Subject: + idr-fix-backtrack-logic-in-idr_remove_all-update.patch added to -mm tree
+Date: Thu, 20 May 2010 14:41:25 -0700
+Message-ID: <201005202141.o4KLfPme006711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754665Ab0ETVcu (ORCPT
+	by vger.kernel.org with ESMTP id S1753119Ab0ETVls (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 17:32:50 -0400
+	Thu, 20 May 2010 17:41:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wenji.huang@oracle.com
+Cc: imre.deak@nokia.com, eparis@redhat.com, paulmck@linux.vnet.ibm.com, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     module: remove duplicate declaration of __ksymtab_gpl_future
+     idr-fix-backtrack-logic-in-idr_remove_all-update
 has been added to the -mm tree.  Its filename is
-     module-remove-duplicate-declaration-of-__ksymtab_gpl_future.patch
+     idr-fix-backtrack-logic-in-idr_remove_all-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: module: remove duplicate declaration of __ksymtab_gpl_future
-From: Wenji Huang <wenji.huang@oracle.com>
+Subject: idr-fix-backtrack-logic-in-idr_remove_all-update
+From: Imre Deak <imre.deak@nokia.com>
 
-Minor cleanup on duplicate __{start/stop}__ksymtab_gpl_future.
+Changes since v1:
+- changed nand to xor to save an instruction
+- add note on how we calculate the backtrack level
 
-Signed-off-by: Wenji Huang <wenji.huang@oracle.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>		[2.6.34.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/idr.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/module.c~module-remove-duplicate-declaration-of-__ksymtab_gpl_future kernel/module.c
---- a/kernel/module.c~module-remove-duplicate-declaration-of-__ksymtab_gpl_future
-+++ a/kernel/module.c
-@@ -180,8 +180,6 @@ extern const struct kernel_symbol __star
- extern const struct kernel_symbol __stop___ksymtab_gpl[];
- extern const struct kernel_symbol __start___ksymtab_gpl_future[];
- extern const struct kernel_symbol __stop___ksymtab_gpl_future[];
--extern const struct kernel_symbol __start___ksymtab_gpl_future[];
--extern const struct kernel_symbol __stop___ksymtab_gpl_future[];
- extern const unsigned long __start___kcrctab[];
- extern const unsigned long __start___kcrctab_gpl[];
- extern const unsigned long __start___kcrctab_gpl_future[];
+diff -puN lib/idr.c~idr-fix-backtrack-logic-in-idr_remove_all-update lib/idr.c
+--- a/lib/idr.c~idr-fix-backtrack-logic-in-idr_remove_all-update
++++ a/lib/idr.c
+@@ -465,7 +465,8 @@ void idr_remove_all(struct idr *idp)
+ 
+ 		bt_mask = id;
+ 		id += 1 << n;
+-		while (n < fls(id & ~bt_mask)) {
++		/* Get the highest bit that the above add changed from 0->1. */
++		while (n < fls(id ^ bt_mask)) {
+ 			if (p)
+ 				free_layer(p);
+ 			n += IDR_BITS;
 _
 
-Patches currently in -mm which might be from wenji.huang@oracle.com are
+Patches currently in -mm which might be from imre.deak@nokia.com are
 
-module-remove-duplicate-declaration-of-__ksymtab_gpl_future.patch
+idr-fix-backtrack-logic-in-idr_remove_all.patch
+idr-fix-backtrack-logic-in-idr_remove_all-update.patch
 
