@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arm-omap-gpio-implement-set_debounce-method.patch added to -mm tree
-Date: Thu, 20 May 2010 11:12:00 -0700
-Message-ID: <201005201812.o4KIC01G029223@imap1.linux-foundation.org>
+Subject: + arm-omap-switch-over-to-gpio_set_debounce.patch added to -mm tree
+Date: Thu, 20 May 2010 11:12:02 -0700
+Message-ID: <201005201812.o4KIC2qA029231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757088Ab0ETSMK (ORCPT
+	by vger.kernel.org with ESMTP id S1757093Ab0ETSMQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 14:12:10 -0400
+	Thu, 20 May 2010 14:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: felipe.balbi@nokia.com, broonie@opensource.wolfsonmicro.com, david-b@pacbell
 
 
 The patch titled
-     arm: omap: gpio: implement set_debounce method
+     arm: omap: switch over to gpio_set_debounce
 has been added to the -mm tree.  Its filename is
-     arm-omap-gpio-implement-set_debounce-method.patch
+     arm-omap-switch-over-to-gpio_set_debounce.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: omap: gpio: implement set_debounce method
+Subject: arm: omap: switch over to gpio_set_debounce
 From: Felipe Balbi <felipe.balbi@nokia.com>
 
-OMAP supports debouncing of gpio lines, implement the method using
-gpiolib.
+Stop using the omap-specific implementations for gpio debouncing now that
+gpiolib provides its own support.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -47,101 +47,81 @@ Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-omap/gpio.c |   68 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
+ arch/arm/mach-omap2/board-3430sdp.c        |    4 +---
+ arch/arm/mach-omap2/board-ldp.c            |    3 +--
+ arch/arm/mach-omap2/board-omap3evm.c       |    4 +---
+ arch/arm/mach-omap2/board-omap3pandora.c   |    4 ++--
+ arch/arm/mach-omap2/board-omap3touchbook.c |    3 +--
+ 5 files changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/plat-omap/gpio.c~arm-omap-gpio-implement-set_debounce-method arch/arm/plat-omap/gpio.c
---- a/arch/arm/plat-omap/gpio.c~arm-omap-gpio-implement-set_debounce-method
-+++ a/arch/arm/plat-omap/gpio.c
-@@ -624,6 +624,59 @@ do {	\
- 	__raw_writel(l, base + reg); \
- } while(0)
+diff -puN arch/arm/mach-omap2/board-3430sdp.c~arm-omap-switch-over-to-gpio_set_debounce arch/arm/mach-omap2/board-3430sdp.c
+--- a/arch/arm/mach-omap2/board-3430sdp.c~arm-omap-switch-over-to-gpio_set_debounce
++++ a/arch/arm/mach-omap2/board-3430sdp.c
+@@ -137,9 +137,7 @@ static void ads7846_dev_init(void)
+ 	}
  
-+/**
-+ * _set_gpio_debounce - low level gpio debounce time
-+ * @bank: the gpio bank we're acting upon
-+ * @gpio: the gpio number on this @gpio
-+ * @debounce: debounce time to use
-+ *
-+ * OMAP's debounce time is in 31us steps so we need
-+ * to convert and round up to the closest unit.
-+ */
-+static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
-+		unsigned debounce)
-+{
-+	void __iomem		*reg = bank->base;
-+	u32			val;
-+	u32			l;
-+
-+	if (debounce < 32)
-+		debounce = 0x01;
-+	else if (debounce > 7936)
-+		debounce = 0xff;
-+	else
-+		debounce = (debounce / 0x1f) - 1;
-+
-+	l = 1 << get_gpio_index(gpio);
-+
-+	if (cpu_is_omap44xx())
-+		reg += OMAP4_GPIO_DEBOUNCINGTIME;
-+	else
-+		reg += OMAP24XX_GPIO_DEBOUNCE_VAL;
-+
-+	__raw_writel(debounce, reg);
-+
-+	reg = bank->base;
-+	if (cpu_is_omap44xx())
-+		reg += OMAP4_GPIO_DEBOUNCENABLE;
-+	else
-+		reg += OMAP24XX_GPIO_DEBOUNCE_EN;
-+
-+	val = __raw_readl(reg);
-+
-+	if (debounce) {
-+		val |= l;
-+		if (cpu_is_omap34xx() || cpu_is_omap44xx())
-+			clk_enable(bank->dbck);
-+	} else {
-+		val &= ~l;
-+		if (cpu_is_omap34xx() || cpu_is_omap44xx())
-+			clk_disable(bank->dbck);
-+	}
-+
-+	__raw_writel(val, reg);
-+}
-+
- void omap_set_gpio_debounce(int gpio, int enable)
- {
- 	struct gpio_bank *bank;
-@@ -1656,6 +1709,20 @@ static int gpio_output(struct gpio_chip 
- 	return 0;
+ 	gpio_direction_input(ts_gpio);
+-
+-	omap_set_gpio_debounce(ts_gpio, 1);
+-	omap_set_gpio_debounce_time(ts_gpio, 0xa);
++	gpio_set_debounce(ts_gpio, 310);
  }
  
-+static int gpio_debounce(struct gpio_chip *chip, unsigned offset,
-+		unsigned debounce)
-+{
-+	struct gpio_bank *bank;
-+	unsigned long flags;
-+
-+	bank = container_of(chip, struct gpio_bank, chip);
-+	spin_lock_irqsave(&bank->lock, flags);
-+	_set_gpio_debounce(bank, offset, debounce);
-+	spin_unlock_irqrestore(&bank->lock, flags);
-+
-+	return 0;
-+}
-+
- static void gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+ static int ads7846_get_pendown_state(void)
+diff -puN arch/arm/mach-omap2/board-ldp.c~arm-omap-switch-over-to-gpio_set_debounce arch/arm/mach-omap2/board-ldp.c
+--- a/arch/arm/mach-omap2/board-ldp.c~arm-omap-switch-over-to-gpio_set_debounce
++++ a/arch/arm/mach-omap2/board-ldp.c
+@@ -209,8 +209,7 @@ static void ads7846_dev_init(void)
+ 	}
+ 
+ 	gpio_direction_input(ts_gpio);
+-	omap_set_gpio_debounce(ts_gpio, 1);
+-	omap_set_gpio_debounce_time(ts_gpio, 0xa);
++	gpio_set_debounce(ts_gpio, 310);
+ }
+ 
+ static int ads7846_get_pendown_state(void)
+diff -puN arch/arm/mach-omap2/board-omap3evm.c~arm-omap-switch-over-to-gpio_set_debounce arch/arm/mach-omap2/board-omap3evm.c
+--- a/arch/arm/mach-omap2/board-omap3evm.c~arm-omap-switch-over-to-gpio_set_debounce
++++ a/arch/arm/mach-omap2/board-omap3evm.c
+@@ -579,9 +579,7 @@ static void ads7846_dev_init(void)
+ 		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
+ 
+ 	gpio_direction_input(OMAP3_EVM_TS_GPIO);
+-
+-	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
+-	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
++	gpio_set_debounce(OMAP3_EVM_TS_GPIO, 310);
+ }
+ 
+ static int ads7846_get_pendown_state(void)
+diff -puN arch/arm/mach-omap2/board-omap3pandora.c~arm-omap-switch-over-to-gpio_set_debounce arch/arm/mach-omap2/board-omap3pandora.c
+--- a/arch/arm/mach-omap2/board-omap3pandora.c~arm-omap-switch-over-to-gpio_set_debounce
++++ a/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -130,8 +130,8 @@ static struct platform_device pandora_ke
+ static void __init pandora_keys_gpio_init(void)
  {
- 	struct gpio_bank *bank;
-@@ -1909,6 +1976,7 @@ static int __init _omap_gpio_init(void)
- 		bank->chip.direction_input = gpio_input;
- 		bank->chip.get = gpio_get;
- 		bank->chip.direction_output = gpio_output;
-+		bank->chip.set_debounce = gpio_debounce;
- 		bank->chip.set = gpio_set;
- 		bank->chip.to_irq = gpio_2irq;
- 		if (bank_is_mpuio(bank)) {
+ 	/* set debounce time for GPIO banks 4 and 6 */
+-	omap_set_gpio_debounce_time(32 * 3, GPIO_DEBOUNCE_TIME);
+-	omap_set_gpio_debounce_time(32 * 5, GPIO_DEBOUNCE_TIME);
++	gpio_set_debounce(32 * 3, GPIO_DEBOUNCE_TIME);
++	gpio_set_debounce(32 * 5, GPIO_DEBOUNCE_TIME);
+ }
+ 
+ static int board_keymap[] = {
+diff -puN arch/arm/mach-omap2/board-omap3touchbook.c~arm-omap-switch-over-to-gpio_set_debounce arch/arm/mach-omap2/board-omap3touchbook.c
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c~arm-omap-switch-over-to-gpio_set_debounce
++++ a/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -328,8 +328,7 @@ static void __init omap3_ads7846_init(vo
+ 	}
+ 
+ 	gpio_direction_input(OMAP3_TS_GPIO);
+-	omap_set_gpio_debounce(OMAP3_TS_GPIO, 1);
+-	omap_set_gpio_debounce_time(OMAP3_TS_GPIO, 0xa);
++	gpio_set_debounce(OMAP3_TS_GPIO, 310);
+ }
+ 
+ static struct ads7846_platform_data ads7846_config = {
 _
 
 Patches currently in -mm which might be from felipe.balbi@nokia.com are
