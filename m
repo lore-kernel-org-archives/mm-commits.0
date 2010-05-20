@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-add-_text-to-kcore_text.patch added to -mm tree
-Date: Thu, 20 May 2010 13:34:54 -0700
-Message-ID: <201005202034.o4KKYsJR003491@imap1.linux-foundation.org>
+Subject: + percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch added to -mm tree
+Date: Thu, 20 May 2010 13:44:56 -0700
+Message-ID: <201005202044.o4KKiup1004227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932133Ab0ETUfz (ORCPT
+	by vger.kernel.org with ESMTP id S1753307Ab0ETUpt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 16:35:55 -0400
+	Thu, 20 May 2010 16:45:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: chaohong.guo@intel.com, andi@firstfloor.org, prarit@redhat.com, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     kcore: add _text to KCORE_TEXT
+     percpu: online CPU before memory failed in pcpu_alloc_pages()
 has been added to the -mm tree.  Its filename is
-     kcore-add-_text-to-kcore_text.patch
+     percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: add _text to KCORE_TEXT
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: percpu: online CPU before memory failed in pcpu_alloc_pages()
+From: minskey guo <chaohong.guo@intel.com>
 
-Extend KCORE_TEXT to cover the pages between _text and _stext, to allow
-examining some important page table pages.
+The operation of "enable CPU to online before memory within a node"
+fails in some case according to Prarit. The warnings as follows:
 
-`readelf -a` output on x86_64 before and after patch:
-	  Type           Offset             VirtAddr           PhysAddr
-before    LOAD           0x00007fff8100c000 0xffffffff81009000 0x0000000000000000
-after     LOAD           0x00007fff81003000 0xffffffff81000000 0x0000000000000000
+Pid: 7440, comm: bash Not tainted 2.6.32 #2
+Call Trace:
+ [<ffffffff81155985>] pcpu_alloc+0xa05/0xa70
+ [<ffffffff81155a20>] __alloc_percpu+0x10/0x20
+ [<ffffffff81089605>] __create_workqueue_key+0x75/0x280
+ [<ffffffff8110e050>] ? __build_all_zonelists+0x0/0x5d0
+ [<ffffffff810c1eba>] stop_machine_create+0x3a/0xb0
+ [<ffffffff810c1f57>] stop_machine+0x27/0x60
+ [<ffffffff8110f1a0>] build_all_zonelists+0xd0/0x2b0
+ [<ffffffff814c1d12>] cpu_up+0xb3/0xe3
+ [<ffffffff814b3c40>] store_online+0x70/0xa0
+ [<ffffffff81326100>] sysdev_store+0x20/0x30
+ [<ffffffff811d29a5>] sysfs_write_file+0xe5/0x170
+ [<ffffffff81163d28>] vfs_write+0xb8/0x1a0
+ [<ffffffff810cfd22>] ? audit_syscall_entry+0x252/0x280
+ [<ffffffff81164761>] sys_write+0x51/0x90
+ [<ffffffff81013132>] system_call_fastpath+0x16/0x1b
+Built 4 zonelists in Zone order, mobility grouping on.  Total pages: 12331603
+PERCPU: allocation failed, size=128 align=64, failed to populate
 
-The newly covered pages are:
+With "enable CPU to online before memory" patch, when the 1st CPU of
+an offlined node is being onlined, we build zonelists for that node.
+If per-cpu area needs to be extended during zonelists building period,
+alloc_pages_node() will be called. The routine alloc_pages_node() fails
+on the node in-onlining because the node doesn't have zonelists created
+yet.
 
-	0xffffffff81000000 <startup_64> etc.
-	0xffffffff81001000 <init_level4_pgt>
-	0xffffffff81002000 <level3_ident_pgt>
-	0xffffffff81003000 <level3_kernel_pgt>
-	0xffffffff81004000 <level2_fixmap_pgt>
-	0xffffffff81005000 <level1_fixmap_pgt>
-	0xffffffff81006000 <level2_ident_pgt>
-	0xffffffff81007000 <level2_kernel_pgt>
-	0xffffffff81008000 <level2_spare_pgt>
+To fix this issue,  we try to alloc memory from current node.
 
-Before patch, /proc/kcore shows outdated contents for the above page
-table pages, for example:
-
-	(gdb) p level3_ident_pgt
-	$1 = {<text variable, no debug info>} 0xffffffff81002000 <level3_ident_pgt>
-	(gdb) p/x *((pud_t *)&level3_ident_pgt)@512
-	$2 = {{pud = 0x1006063}, {pud = 0x0} <repeats 511 times>}
-
-while the real content is:
-
-	root@hp /home/wfg# hexdump -s 0x1002000 -n 4096 /dev/mem
-	1002000 6063 0100 0000 0000 8067 0000 0000 0000
-	1002010 0000 0000 0000 0000 0000 0000 0000 0000
-	*
-	1003000
-
-That is, on a x86_64 box with 2GB memory, we can see first-1GB / full-2GB
-identity mapping before/after patch:
-
-	(gdb) p/x *((pud_t *)&level3_ident_pgt)@512
-before  $1 = {{pud = 0x1006063}, {pud = 0x0} <repeats 511 times>}
-after   $1 = {{pud = 0x1006063}, {pud = 0x8067}, {pud = 0x0} <repeats 510 times>}
-
-Obviously the content before patch is wrong.
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: minskey guo <chaohong.guo@intel.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>		[same patch, to mm/percpu.c]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/percpu-vm.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/kcore.c~kcore-add-_text-to-kcore_text fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-add-_text-to-kcore_text
-+++ a/fs/proc/kcore.c
-@@ -588,7 +588,7 @@ static struct kcore_list kcore_text;
-  */
- static void __init proc_kcore_text_init(void)
+diff -puN mm/percpu-vm.c~percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages mm/percpu-vm.c
+--- a/mm/percpu-vm.c~percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages
++++ a/mm/percpu-vm.c
+@@ -110,13 +110,29 @@ static int pcpu_alloc_pages(struct pcpu_
  {
--	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
-+	kclist_add(&kcore_text, _text, _end - _text, KCORE_TEXT);
- }
- #else
- static void __init proc_kcore_text_init(void)
+ 	const gfp_t gfp = GFP_KERNEL | __GFP_HIGHMEM | __GFP_COLD;
+ 	unsigned int cpu;
++	int nid;
+ 	int i;
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		for (i = page_start; i < page_end; i++) {
+ 			struct page **pagep = &pages[pcpu_page_idx(cpu, i)];
+ 
+-			*pagep = alloc_pages_node(cpu_to_node(cpu), gfp, 0);
++			nid = cpu_to_node(cpu);
++
++			/*
++			 * It is allowable to online a CPU within a NUMA
++			 * node which doesn't have onlined local memory.
++			 * In this case, we need to create zonelists for
++			 * that node when cpu is being onlined. If per-cpu
++			 * area needs to be extended at the exact time when
++			 * zonelists of that node is being created, we alloc
++			 * memory from current node.
++			 */
++			if ((nid == -1) ||
++			    !(node_zonelist(nid, GFP_KERNEL)->_zonerefs->zone))
++				nid = numa_node_id();
++
++			*pagep = alloc_pages_node(nid, gfp, 0);
+ 			if (!*pagep) {
+ 				pcpu_free_pages(chunk, pages, populated,
+ 						page_start, page_end);
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from chaohong.guo@intel.com are
 
-linux-next.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vmscan-prevent-get_scan_ratio-rounding-errors.patch
-readaheadc-fix-comment.patch
-fs-writeback-check-sync-bit-earlier-in-inode_wait_for_writeback.patch
-mem-hotplug-separate-setup_per_cpu_pageset-into-separate-functions.patch
-mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset.patch
-mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
-mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone.patch
-kcore-add-_text-to-kcore_text.patch
-radix-tree-fix-radix_tree_prev_hole-underflow-case.patch
-vfs-add-super-operation-writeback_inodes.patch
+percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
 
