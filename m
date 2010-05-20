@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-maintenance-access-to-higher-memory-areas.patch added to -mm tree
-Date: Thu, 20 May 2010 14:09:13 -0700
-Message-ID: <201005202109.o4KL9DMd005394@imap1.linux-foundation.org>
+Subject: + media-ak881x-needs-slabh.patch added to -mm tree
+Date: Thu, 20 May 2010 14:12:47 -0700
+Message-ID: <201005202112.o4KLClie005593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757827Ab0ETVKR (ORCPT
+	by vger.kernel.org with ESMTP id S1757005Ab0ETVNd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 17:10:17 -0400
+	Thu, 20 May 2010 17:13:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.moll@sysgo.com, alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org
+Cc: randy.dunlap@oracle.com, g.liakhovetski@gmx.de, mchehab@infradead.org
 
 
 The patch titled
-     rapidio: fix maintenance access to higher memory areas
+     media: ak881x needs slab.h
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-maintenance-access-to-higher-memory-areas.patch
+     media-ak881x-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: fix maintenance access to higher memory areas
-From: Thomas Moll <thomas.moll@sysgo.com>
+Subject: media: ak881x needs slab.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix the maintenance access functions to farend RapidIO devices.
-1. Fixed shift of the given offset, to open the maintenance window
-2. Mask offset to limit access to the opened maintenance window
-3. Added extended destid part to rowtear register, required for 16bit mode
+Add slab.h to fix ak881x build:
 
-This method is matching maintenance transactions generation described
-by Freescale in the appnote AN2932. With this modification full access
-to a 16MB maintenance window is possible, this patch is required for
-IDT cps switches. For easier handling of the access routines, the
-access was limited to aligned memory regions. This should be no problem
-because all registers are 32bit wide.
+drivers/media/video/ak881x.c:265:error: implicit declaration of function 'kzalloc'
+drivers/media/video/ak881x.c:265:warning: assignment makes pointer from integer without a cast
+drivers/media/video/ak881x.c:283:error: implicit declaration of function 'kfree'
 
-Signed-off-by: Thomas Moll <thomas.moll@sysgo.com>
-Tested-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   37 +++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ drivers/media/video/ak881x.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-fix-maintenance-access-to-higher-memory-areas arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-fix-maintenance-access-to-higher-memory-areas
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1,6 +1,10 @@
- /*
-  * Freescale MPC85xx/MPC86xx RapidIO support
-  *
-+ * Copyright 2009 Sysgo AG
-+ * Thomas Moll <thomas.moll@sysgo.com>
-+ * - fixed maintenance access routines, check for aligned access
-+ *
-  * Copyright 2009 Integrated Device Technology, Inc.
-  * Alex Bounine <alexandre.bounine@idt.com>
-  * - Added Port-Write message handling
-@@ -371,10 +375,17 @@ fsl_rio_config_read(struct rio_mport *mp
- 	pr_debug
- 	    ("fsl_rio_config_read: index %d destid %d hopcount %d offset %8.8x len %d\n",
- 	     index, destid, hopcount, offset, len);
-+
-+	/* 16MB maintenance window possible */
-+	/* allow only aligned access to maintenance registers */
-+	if (offset > (0x1000000 - len) || !IS_ALIGNED(offset, len))
-+		return -EINVAL;
-+
- 	out_be32(&priv->maint_atmu_regs->rowtar,
--		 (destid << 22) | (hopcount << 12) | ((offset & ~0x3) >> 9));
-+		 (destid << 22) | (hopcount << 12) | (offset >> 12));
-+	out_be32(&priv->maint_atmu_regs->rowtear,  (destid >> 10));
+diff -puN drivers/media/video/ak881x.c~media-ak881x-needs-slabh drivers/media/video/ak881x.c
+--- a/drivers/media/video/ak881x.c~media-ak881x-needs-slabh
++++ a/drivers/media/video/ak881x.c
+@@ -11,6 +11,7 @@
+ #include <linux/i2c.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/slab.h>
+ #include <linux/videodev2.h>
  
--	data = (u8 *) priv->maint_win + offset;
-+	data = (u8 *) priv->maint_win + (offset & (RIO_MAINT_WIN_SIZE - 1));
- 	switch (len) {
- 	case 1:
- 		__fsl_read_rio_config(rval, data, err, "lbz");
-@@ -382,9 +393,11 @@ fsl_rio_config_read(struct rio_mport *mp
- 	case 2:
- 		__fsl_read_rio_config(rval, data, err, "lhz");
- 		break;
--	default:
-+	case 4:
- 		__fsl_read_rio_config(rval, data, err, "lwz");
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	if (err) {
-@@ -419,10 +432,17 @@ fsl_rio_config_write(struct rio_mport *m
- 	pr_debug
- 	    ("fsl_rio_config_write: index %d destid %d hopcount %d offset %8.8x len %d val %8.8x\n",
- 	     index, destid, hopcount, offset, len, val);
-+
-+	/* 16MB maintenance windows possible */
-+	/* allow only aligned access to maintenance registers */
-+	if (offset > (0x1000000 - len) || !IS_ALIGNED(offset, len))
-+		return -EINVAL;
-+
- 	out_be32(&priv->maint_atmu_regs->rowtar,
--		 (destid << 22) | (hopcount << 12) | ((offset & ~0x3) >> 9));
-+		 (destid << 22) | (hopcount << 12) | (offset >> 12));
-+	out_be32(&priv->maint_atmu_regs->rowtear,  (destid >> 10));
- 
--	data = (u8 *) priv->maint_win + offset;
-+	data = (u8 *) priv->maint_win + (offset & (RIO_MAINT_WIN_SIZE - 1));
- 	switch (len) {
- 	case 1:
- 		out_8((u8 *) data, val);
-@@ -430,9 +450,11 @@ fsl_rio_config_write(struct rio_mport *m
- 	case 2:
- 		out_be16((u16 *) data, val);
- 		break;
--	default:
-+	case 4:
- 		out_be32((u32 *) data, val);
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	return 0;
-@@ -1483,7 +1505,8 @@ int fsl_rio_setup(struct of_device *dev)
- 
- 	/* Configure maintenance transaction window */
- 	out_be32(&priv->maint_atmu_regs->rowbar, law_start >> 12);
--	out_be32(&priv->maint_atmu_regs->rowar, 0x80077015);	/* 4M */
-+	out_be32(&priv->maint_atmu_regs->rowar,
-+		 0x80077000 | (ilog2(RIO_MAINT_WIN_SIZE) - 1));
- 
- 	priv->maint_win = ioremap(law_start, RIO_MAINT_WIN_SIZE);
- 
+ #include <media/ak881x.h>
 _
 
-Patches currently in -mm which might be from thomas.moll@sysgo.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-rapidio-add-idt-cps-tsi-switches.patch
-rapidio-add-switch-locking-during-discovery.patch
-rapidio-add-port-write-handling-for-em.patch
-rapidio-powerpc-85xx-add-port-write-message-handler-for-srio-port.patch
-rapidio-powerpc-85xx-add-mchk-handler-for-srio-port.patch
-rapidio-add-enabling-srio-port-rx-and-tx.patch
-rapidio-fix-typos-and-minor-edits.patch
-rapidio-add-debug-configuration-option.patch
-rapidio-modify-initialization-of-switch-operations.patch
-rapidio-add-switch-domain-routines.patch
-rapidio-use-default-route-value-for-cps-switches.patch
-rapidio-fix-maintenance-access-to-higher-memory-areas.patch
+origin.patch
+linux-next.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+media-ak881x-needs-slabh.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+scsi-fix-pmcraid-build-errors.patch
+scsi-fix-be2iscsi-build.patch
+scsi-fix-bnx2i-build-errors.patch
+virtio_9ph-include-linux-typesh.patch
+mmcompaction-add-a-tunable-that-decides-when-memory-should-be-compacted-and-when-it-should-be-reclaimed.patch
+ad525x_dpot-add-support-for-spi-parts-fix-ad525x_dpot-build.patch
+lib-hexdumpc-reduce-stack-variable-size-and-cleanups.patch
+xen-fix-build-when-sysrq-is-disabled.patch
+rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization.patch
+documentation-submittingdrivers-resources.patch
+memcg-move-charge-of-file-pages-fix-2.patch
+memcg-update-documentation-v8.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info-fix1.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+backlight-fix-s6e63m0-kconfig.patch
+backlight-fix-s6e63m0-device-attr-function-return-types.patch
 
