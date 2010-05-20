@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization.patch added to -mm tree
-Date: Thu, 20 May 2010 13:23:54 -0700
-Message-ID: <201005202023.o4KKNstG002772@imap1.linux-foundation.org>
+Subject: + kcore-add-_text-to-kcore_text.patch added to -mm tree
+Date: Thu, 20 May 2010 13:34:54 -0700
+Message-ID: <201005202034.o4KKYsJR003491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757236Ab0ETUZQ (ORCPT
+	by vger.kernel.org with ESMTP id S932133Ab0ETUfz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 May 2010 16:25:16 -0400
+	Thu, 20 May 2010 16:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, a.zummo@towertech.it, herton@mandriva.com.br, maltesch@gmx.de, p_gortmaker@yahoo.com, ralf@linux-mips.org, randy.dunlap@oracle.com, stable@kernel.org
+Cc: fengguang.wu@intel.com, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     rtc-cmos: do dev_set_drvdata() earlier in the initialization
+     kcore: add _text to KCORE_TEXT
 has been added to the -mm tree.  Its filename is
-     rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization.patch
+     kcore-add-_text-to-kcore_text.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: do dev_set_drvdata() earlier in the initialization
-From: Dan Carpenter <error27@gmail.com>
+Subject: kcore: add _text to KCORE_TEXT
+From: Wu Fengguang <fengguang.wu@intel.com>
 
+Extend KCORE_TEXT to cover the pages between _text and _stext, to allow
+examining some important page table pages.
 
-The bug is an oops when dev_get_drvdata() returned null in
-cmos_update_irq_enable().  The call tree looks like this:
-  rtc_dev_ioctl()
-    => rtc_update_irq_enable()
-      => cmos_update_irq_enable()
+`readelf -a` output on x86_64 before and after patch:
+	  Type           Offset             VirtAddr           PhysAddr
+before    LOAD           0x00007fff8100c000 0xffffffff81009000 0x0000000000000000
+after     LOAD           0x00007fff81003000 0xffffffff81000000 0x0000000000000000
 
-It's caused by a race condition in the module initialization.  It is
-rtc_device_register() which makes the ioctl operations live so I moved
-the call to dev_set_drvdata() before the call to rtc_device_register().
+The newly covered pages are:
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=15963
+	0xffffffff81000000 <startup_64> etc.
+	0xffffffff81001000 <init_level4_pgt>
+	0xffffffff81002000 <level3_ident_pgt>
+	0xffffffff81003000 <level3_kernel_pgt>
+	0xffffffff81004000 <level2_fixmap_pgt>
+	0xffffffff81005000 <level1_fixmap_pgt>
+	0xffffffff81006000 <level2_ident_pgt>
+	0xffffffff81007000 <level2_kernel_pgt>
+	0xffffffff81008000 <level2_spare_pgt>
 
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Tested-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Malte Schroder <maltesch@gmx.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: <stable@kernel.org>
+Before patch, /proc/kcore shows outdated contents for the above page
+table pages, for example:
+
+	(gdb) p level3_ident_pgt
+	$1 = {<text variable, no debug info>} 0xffffffff81002000 <level3_ident_pgt>
+	(gdb) p/x *((pud_t *)&level3_ident_pgt)@512
+	$2 = {{pud = 0x1006063}, {pud = 0x0} <repeats 511 times>}
+
+while the real content is:
+
+	root@hp /home/wfg# hexdump -s 0x1002000 -n 4096 /dev/mem
+	1002000 6063 0100 0000 0000 8067 0000 0000 0000
+	1002010 0000 0000 0000 0000 0000 0000 0000 0000
+	*
+	1003000
+
+That is, on a x86_64 box with 2GB memory, we can see first-1GB / full-2GB
+identity mapping before/after patch:
+
+	(gdb) p/x *((pud_t *)&level3_ident_pgt)@512
+before  $1 = {{pud = 0x1006063}, {pud = 0x0} <repeats 511 times>}
+after   $1 = {{pud = 0x1006063}, {pud = 0x8067}, {pud = 0x0} <repeats 510 times>}
+
+Obviously the content before patch is wrong.
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -717,6 +717,9 @@ cmos_do_probe(struct device *dev, struct
- 		}
- 	}
- 
-+	cmos_rtc.dev = dev;
-+	dev_set_drvdata(dev, &cmos_rtc);
-+
- 	cmos_rtc.rtc = rtc_device_register(driver_name, dev,
- 				&cmos_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(cmos_rtc.rtc)) {
-@@ -724,8 +727,6 @@ cmos_do_probe(struct device *dev, struct
- 		goto cleanup0;
- 	}
- 
--	cmos_rtc.dev = dev;
--	dev_set_drvdata(dev, &cmos_rtc);
- 	rename_region(ports, dev_name(&cmos_rtc.rtc->dev));
- 
- 	spin_lock_irq(&rtc_lock);
+diff -puN fs/proc/kcore.c~kcore-add-_text-to-kcore_text fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-add-_text-to-kcore_text
++++ a/fs/proc/kcore.c
+@@ -588,7 +588,7 @@ static struct kcore_list kcore_text;
+  */
+ static void __init proc_kcore_text_init(void)
+ {
+-	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
++	kclist_add(&kcore_text, _text, _end - _text, KCORE_TEXT);
+ }
+ #else
+ static void __init proc_kcore_text_init(void)
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-origin.patch
 linux-next.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-mm-document-follow_page.patch
-include-linux-gfph-spelling-fixes.patch
-include-linux-gfph-fix-coding-style.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization.patch
-sis-strcpy-=-strlcpy.patch
-proc-cleanup-remove-unused-assignments.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+vmscan-prevent-get_scan_ratio-rounding-errors.patch
+readaheadc-fix-comment.patch
+fs-writeback-check-sync-bit-earlier-in-inode_wait_for_writeback.patch
+mem-hotplug-separate-setup_per_cpu_pageset-into-separate-functions.patch
+mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset.patch
+mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
+mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone.patch
+kcore-add-_text-to-kcore_text.patch
+radix-tree-fix-radix_tree_prev_hole-underflow-case.patch
+vfs-add-super-operation-writeback_inodes.patch
 
