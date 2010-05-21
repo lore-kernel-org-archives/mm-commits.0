@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-lowmem_page_address-use-pfn_phys-for-improved-portability.patch added to -mm tree
-Date: Fri, 21 May 2010 14:30:38 -0700
-Message-ID: <201005212130.o4LLUcAp002572@imap1.linux-foundation.org>
+Subject: + ptrace-unify-fdpic-implementations.patch added to -mm tree
+Date: Fri, 21 May 2010 14:37:35 -0700
+Message-ID: <201005212137.o4LLbZKf002827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752986Ab0EUVaq (ORCPT
+	by vger.kernel.org with ESMTP id S1752881Ab0EUVht (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 17:30:46 -0400
+	Fri, 21 May 2010 17:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmetcalf@tilera.com, 21cnbao@gmail.com
+Cc: vapier@gentoo.org, dhowells@redhat.com, lethal@linux-sh.org, oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     mm: make lowmem_page_address() use PFN_PHYS() for improved portability
+     ptrace: unify FDPIC implementations
 has been added to the -mm tree.  Its filename is
-     mm-make-lowmem_page_address-use-pfn_phys-for-improved-portability.patch
+     ptrace-unify-fdpic-implementations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make lowmem_page_address() use PFN_PHYS() for improved portability
-From: Chris Metcalf <cmetcalf@tilera.com>
+Subject: ptrace: unify FDPIC implementations
+From: Mike Frysinger <vapier@gentoo.org>
 
-This ensures that platforms with lowmem PAs above 32 bits work correctly
-by avoiding truncating the PA during a left shift.
+The Blackfin/FRV/SuperH guys all have the same exact FDPIC ptrace code in
+their arch handlers (since they were probably copied & pasted).  Since
+these ptrace interfaces are an arch independent aspect of the FDPIC code,
+unify them in the common ptrace code so new FDPIC ports don't need to copy
+and paste this fundamental stuff yet again.
 
-Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Barry Song <21cnbao@gmail.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Roland McGrath <roland@redhat.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/blackfin/kernel/ptrace.c |   33 ++++++++------------------------
+ arch/frv/kernel/ptrace.c      |   20 -------------------
+ arch/sh/kernel/ptrace_32.c    |   23 ----------------------
+ kernel/ptrace.c               |   20 +++++++++++++++++++
+ 4 files changed, 29 insertions(+), 67 deletions(-)
 
-diff -puN include/linux/mm.h~mm-make-lowmem_page_address-use-pfn_phys-for-improved-portability include/linux/mm.h
---- a/include/linux/mm.h~mm-make-lowmem_page_address-use-pfn_phys-for-improved-portability
-+++ a/include/linux/mm.h
-@@ -13,6 +13,7 @@
- #include <linux/debug_locks.h>
- #include <linux/mm_types.h>
- #include <linux/range.h>
-+#include <linux/pfn.h>
+diff -puN arch/blackfin/kernel/ptrace.c~ptrace-unify-fdpic-implementations arch/blackfin/kernel/ptrace.c
+--- a/arch/blackfin/kernel/ptrace.c~ptrace-unify-fdpic-implementations
++++ a/arch/blackfin/kernel/ptrace.c
+@@ -292,28 +292,6 @@ long arch_ptrace(struct task_struct *chi
+ 			break;
+ 		}
  
- struct mempolicy;
- struct anon_vma;
-@@ -595,7 +596,7 @@ static inline void set_page_links(struct
+-#ifdef CONFIG_BINFMT_ELF_FDPIC
+-	case PTRACE_GETFDPIC: {
+-		unsigned long tmp = 0;
+-
+-		switch (addr) {
+-		case_PTRACE_GETFDPIC_EXEC:
+-		case PTRACE_GETFDPIC_EXEC:
+-			tmp = child->mm->context.exec_fdpic_loadmap;
+-			break;
+-		case_PTRACE_GETFDPIC_INTERP:
+-		case PTRACE_GETFDPIC_INTERP:
+-			tmp = child->mm->context.interp_fdpic_loadmap;
+-			break;
+-		default:
+-			break;
+-		}
+-
+-		ret = put_user(tmp, datap);
+-		break;
+-	}
+-#endif
+-
+ 		/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKEDATA:
+ 		pr_debug("ptrace: PTRACE_PEEKDATA\n");
+@@ -357,8 +335,14 @@ long arch_ptrace(struct task_struct *chi
+ 	case PTRACE_PEEKUSR:
+ 		switch (addr) {
+ #ifdef CONFIG_BINFMT_ELF_FDPIC	/* backwards compat */
+-		case PT_FDPIC_EXEC:   goto case_PTRACE_GETFDPIC_EXEC;
+-		case PT_FDPIC_INTERP: goto case_PTRACE_GETFDPIC_INTERP;
++		case PT_FDPIC_EXEC:
++			request = PTRACE_GETFDPIC;
++			addr = PTRACE_GETFDPIC_EXEC;
++			goto case_default;
++		case PT_FDPIC_INTERP:
++			request = PTRACE_GETFDPIC;
++			addr = PTRACE_GETFDPIC_INTERP;
++			goto case_default;
+ #endif
+ 		default:
+ 			ret = get_reg(child, addr, datap);
+@@ -385,6 +369,7 @@ long arch_ptrace(struct task_struct *chi
+ 					     0, sizeof(struct pt_regs),
+ 					     (const void __user *)data);
  
- static __always_inline void *lowmem_page_address(struct page *page)
- {
--	return __va(page_to_pfn(page) << PAGE_SHIFT);
-+	return __va(PFN_PHYS(page_to_pfn(page)));
- }
++	case_default:
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		break;
+diff -puN arch/frv/kernel/ptrace.c~ptrace-unify-fdpic-implementations arch/frv/kernel/ptrace.c
+--- a/arch/frv/kernel/ptrace.c~ptrace-unify-fdpic-implementations
++++ a/arch/frv/kernel/ptrace.c
+@@ -344,26 +344,6 @@ long arch_ptrace(struct task_struct *chi
+ 					     0, sizeof(child->thread.user->f),
+ 					     (const void __user *)data);
  
- #if defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL)
+-	case PTRACE_GETFDPIC:
+-		tmp = 0;
+-		switch (addr) {
+-		case PTRACE_GETFDPIC_EXEC:
+-			tmp = child->mm->context.exec_fdpic_loadmap;
+-			break;
+-		case PTRACE_GETFDPIC_INTERP:
+-			tmp = child->mm->context.interp_fdpic_loadmap;
+-			break;
+-		default:
+-			break;
+-		}
+-
+-		ret = 0;
+-		if (put_user(tmp, (unsigned long *) data)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-		break;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		break;
+diff -puN arch/sh/kernel/ptrace_32.c~ptrace-unify-fdpic-implementations arch/sh/kernel/ptrace_32.c
+--- a/arch/sh/kernel/ptrace_32.c~ptrace-unify-fdpic-implementations
++++ a/arch/sh/kernel/ptrace_32.c
+@@ -436,29 +436,6 @@ long arch_ptrace(struct task_struct *chi
+ 					     0, sizeof(struct pt_dspregs),
+ 					     (const void __user *)data);
+ #endif
+-#ifdef CONFIG_BINFMT_ELF_FDPIC
+-	case PTRACE_GETFDPIC: {
+-		unsigned long tmp = 0;
+-
+-		switch (addr) {
+-		case PTRACE_GETFDPIC_EXEC:
+-			tmp = child->mm->context.exec_fdpic_loadmap;
+-			break;
+-		case PTRACE_GETFDPIC_INTERP:
+-			tmp = child->mm->context.interp_fdpic_loadmap;
+-			break;
+-		default:
+-			break;
+-		}
+-
+-		ret = 0;
+-		if (put_user(tmp, datap)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-		break;
+-	}
+-#endif
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		break;
+diff -puN kernel/ptrace.c~ptrace-unify-fdpic-implementations kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-unify-fdpic-implementations
++++ a/kernel/ptrace.c
+@@ -594,6 +594,26 @@ int ptrace_request(struct task_struct *c
+ 		ret = ptrace_detach(child, data);
+ 		break;
+ 
++#ifdef CONFIG_BINFMT_ELF_FDPIC
++	case PTRACE_GETFDPIC: {
++		unsigned long tmp = 0;
++
++		switch (addr) {
++		case PTRACE_GETFDPIC_EXEC:
++			tmp = child->mm->context.exec_fdpic_loadmap;
++			break;
++		case PTRACE_GETFDPIC_INTERP:
++			tmp = child->mm->context.interp_fdpic_loadmap;
++			break;
++		default:
++			break;
++		}
++
++		ret = put_user(tmp, (unsigned long __user *) data);
++		break;
++	}
++#endif
++
+ #ifdef PTRACE_SINGLESTEP
+ 	case PTRACE_SINGLESTEP:
+ #endif
 _
 
-Patches currently in -mm which might be from cmetcalf@tilera.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-mm-make-lowmem_page_address-use-pfn_phys-for-improved-portability.patch
+origin.patch
+linux-next.patch
+nommu-allow-private-mappings-of-read-only-devices.patch
+ad525x_dpot-simplify-duplicated-sysfs-defines.patch
+ad525x_dpot-extend-write-argument-to-16bits.patch
+ad525x_dpot-add-support-for-spi-parts.patch
+ad525x_dpot-add-support-for-ad524x-pots.patch
+ad525x_dpot-add-support-for-adn2860-and-ad528x-pots.patch
+ad525x_dpot-add-support-for-one-time-programmable-pots.patch
+fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
+ptrace-unify-fdpic-implementations.patch
+blackfin-use-use-asm-generic-scatterlisth.patch
 
