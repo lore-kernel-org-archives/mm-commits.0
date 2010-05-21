@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc.patch added to -mm tree
-Date: Fri, 21 May 2010 12:39:17 -0700
-Message-ID: <201005211939.o4LJdH8V030314__34355.480844579$1274470771$gmane$org@imap1.linux-foundation.org>
+Subject: + tmio-add-a-platform-flag-to-disable-card-write-protection-detection.patch added to -mm tree
+Date: Fri, 21 May 2010 12:39:11 -0700
+Message-ID: <201005211939.o4LJdCIe030293__36916.2332769067$1274470771$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934042Ab0EUTjX (ORCPT
+	by vger.kernel.org with ESMTP id S1758489Ab0EUTjS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:39:23 -0400
+	Fri, 21 May 2010 15:39:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: g.liakhovetski@gmx.de, ian@mnementh.co.uk, lethal@linux-sh.org, linux-mmc@vg
 
 
 The patch titled
-     mmc: let MFD's provide supported Vdd card voltages to tmio_mmc
+     tmio: add a platform flag to disable card write-protection detection
 has been added to the -mm tree.  Its filename is
-     mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc.patch
+     tmio-add-a-platform-flag-to-disable-card-write-protection-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: let MFD's provide supported Vdd card voltages to tmio_mmc
+Subject: tmio: add a platform flag to disable card write-protection detection
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Write-protection status is not always available, e.g., micro-SD cards do
+not have a write-protection switch at all.  This patch adds a flag to let
+platforms force tmio_mmc to consider the card writable.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Acked-by: Ian Molton <ian@mnementh.co.uk>
@@ -47,32 +51,43 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/mmc/host/tmio_mmc.c |    5 ++++-
- include/linux/mfd/tmio.h    |    1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ include/linux/mfd/tmio.h    |    4 ++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/tmio_mmc.c~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc drivers/mmc/host/tmio_mmc.c
---- a/drivers/mmc/host/tmio_mmc.c~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc
+diff -puN drivers/mmc/host/tmio_mmc.c~tmio-add-a-platform-flag-to-disable-card-write-protection-detection drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~tmio-add-a-platform-flag-to-disable-card-write-protection-detection
 +++ a/drivers/mmc/host/tmio_mmc.c
-@@ -845,7 +845,10 @@ static int __devinit tmio_mmc_probe(stru
- 	mmc->caps |= pdata->capabilities;
- 	mmc->f_max = pdata->hclk;
- 	mmc->f_min = mmc->f_max / 512;
--	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
-+	if (pdata->ocr_mask)
-+		mmc->ocr_avail = pdata->ocr_mask;
-+	else
-+		mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
+@@ -746,8 +746,11 @@ static void tmio_mmc_set_ios(struct mmc_
+ static int tmio_mmc_get_ro(struct mmc_host *mmc)
+ {
+ 	struct tmio_mmc_host *host = mmc_priv(mmc);
++	struct mfd_cell	*cell = host->pdev->dev.platform_data;
++	struct tmio_mmc_data *pdata = cell->driver_data;
  
- 	/* Tell the MFD core we are ready to be enabled */
- 	if (cell->enable) {
-diff -puN include/linux/mfd/tmio.h~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc include/linux/mfd/tmio.h
---- a/include/linux/mfd/tmio.h~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc
+-	return (sd_ctrl_read32(host, CTL_STATUS) & TMIO_STAT_WRPROTECT) ? 0 : 1;
++	return ((pdata->flags & TMIO_MMC_WRPROTECT_DISABLE) ||
++		(sd_ctrl_read32(host, CTL_STATUS) & TMIO_STAT_WRPROTECT)) ? 0 : 1;
+ }
+ 
+ static const struct mmc_host_ops tmio_mmc_ops = {
+diff -puN include/linux/mfd/tmio.h~tmio-add-a-platform-flag-to-disable-card-write-protection-detection include/linux/mfd/tmio.h
+--- a/include/linux/mfd/tmio.h~tmio-add-a-platform-flag-to-disable-card-write-protection-detection
 +++ a/include/linux/mfd/tmio.h
-@@ -70,6 +70,7 @@ struct tmio_mmc_data {
+@@ -50,6 +50,9 @@
+ 		tmio_iowrite16((val) >> 16, (base) + ((reg + 2) << (shift))); \
+ 	} while (0)
+ 
++/* tmio MMC platform flags */
++#define TMIO_MMC_WRPROTECT_DISABLE	(1 << 0)
++
+ int tmio_core_mmc_enable(void __iomem *cnf, int shift, unsigned long base);
+ int tmio_core_mmc_resume(void __iomem *cnf, int shift, unsigned long base);
+ void tmio_core_mmc_pwr(void __iomem *cnf, int shift, int state);
+@@ -66,6 +69,7 @@ struct tmio_mmc_dma {
+ struct tmio_mmc_data {
  	unsigned int			hclk;
  	unsigned long			capabilities;
- 	unsigned long			flags;
-+	u32				ocr_mask;	/* available voltages */
++	unsigned long			flags;
  	struct tmio_mmc_dma		*dma;
  	void (*set_pwr)(struct platform_device *host, int state);
  	void (*set_clk_div)(struct platform_device *host, int state);
