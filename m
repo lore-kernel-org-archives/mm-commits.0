@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix.patch added to -mm tree
-Date: Fri, 21 May 2010 13:08:14 -0700
-Message-ID: <201005212008.o4LK8EEg031554@imap1.linux-foundation.org>
+Subject: + sdio-add-new-function-for-raw-read-after-write-operation-update.patch added to -mm tree
+Date: Fri, 21 May 2010 13:36:30 -0700
+Message-ID: <201005212036.o4LKaUjE032720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751085Ab0EUUIo (ORCPT
+	by vger.kernel.org with ESMTP id S1754626Ab0EUUg4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 16:08:44 -0400
+	Fri, 21 May 2010 16:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haicheng.li@linux.intel.com, andi.kleen@intel.com, cl@linux-foundation.org, fengguang.wu@intel.com, mel@csn.ul.ie, tj@kernel.org
+Cc: notasas@gmail.com, dimitrysh@google.com, kalle.valo@iki.fi, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     cpu_up: hold zonelists_mutex when build_all_zonelists
+     sdio-add-new-function-for-raw-read-after-write-operation update
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix.patch
+     sdio-add-new-function-for-raw-read-after-write-operation-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu_up: hold zonelists_mutex when build_all_zonelists
-From: Haicheng Li <haicheng.li@linux.intel.com>
+Subject: sdio-add-new-function-for-raw-read-after-write-operation update
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-We should always hold zonelists_mutex when calling build_all_zonelists
-unless system_state == SYSTEM_BOOTING.
+Here is updated version that addresses your comments (removes BUG()
+and improves argument name).
 
-Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Kalle Valo <kalle.valo@iki.fi>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/mmc/core/sdio_io.c    |    9 ++++-----
+ include/linux/mmc/sdio_func.h |    2 +-
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN kernel/cpu.c~mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix kernel/cpu.c
---- a/kernel/cpu.c~mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix
-+++ a/kernel/cpu.c
-@@ -357,8 +357,11 @@ int __cpuinit cpu_up(unsigned int cpu)
- 		return -ENOMEM;
- 	}
+diff -puN drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation-update drivers/mmc/core/sdio_io.c
+--- a/drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation-update
++++ a/drivers/mmc/core/sdio_io.c
+@@ -408,7 +408,7 @@ EXPORT_SYMBOL_GPL(sdio_writeb);
+ /**
+  *	sdio_writeb_readb - write and read a byte from SDIO function
+  *	@func: SDIO function to access
+- *	@b: byte to write
++ *	@write_byte: byte to write
+  *	@addr: address to write to
+  *	@err_ret: optional status value from transfer
+  *
+@@ -418,15 +418,14 @@ EXPORT_SYMBOL_GPL(sdio_writeb);
+  *	If there is a problem with the operation, 0xff is returned and
+  *	@err_ret will contain the error code.
+  */
+-u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
++u8 sdio_writeb_readb(struct sdio_func *func, u8 write_byte,
+ 	unsigned int addr, int *err_ret)
+ {
+ 	int ret;
+ 	u8 val;
  
--	if (pgdat->node_zonelists->_zonerefs->zone == NULL)
-+	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
-+		mutex_lock(&zonelists_mutex);
- 		build_all_zonelists(NULL);
-+		mutex_unlock(&zonelists_mutex);
-+	}
- #endif
+-	BUG_ON(!func);
+-
+-	ret = mmc_io_rw_direct(func->card, 1, func->num, addr, b, &val);
++	ret = mmc_io_rw_direct(func->card, 1, func->num, addr,
++			write_byte, &val);
+ 	if (err_ret)
+ 		*err_ret = ret;
+ 	if (ret)
+diff -puN include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation-update include/linux/mmc/sdio_func.h
+--- a/include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation-update
++++ a/include/linux/mmc/sdio_func.h
+@@ -145,7 +145,7 @@ extern void sdio_writew(struct sdio_func
+ extern void sdio_writel(struct sdio_func *func, u32 b,
+ 	unsigned int addr, int *err_ret);
  
- 	cpu_maps_update_begin();
+-extern u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
++extern u8 sdio_writeb_readb(struct sdio_func *func, u8 write_byte,
+ 	unsigned int addr, int *err_ret);
+ 
+ extern int sdio_memcpy_toio(struct sdio_func *func, unsigned int addr,
 _
 
-Patches currently in -mm which might be from haicheng.li@linux.intel.com are
+Patches currently in -mm which might be from notasas@gmail.com are
 
-mem-hotplug-separate-setup_per_cpu_pageset-into-separate-functions.patch
-mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset.patch
-mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
-mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone.patch
-mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix.patch
+origin.patch
+linux-next.patch
+sdio-add-new-function-for-raw-read-after-write-operation.patch
+sdio-add-new-function-for-raw-read-after-write-operation-update.patch
+fbdev-move-fbio_waitforvsync-to-linux-fbh.patch
+fbdev-move-fbio_waitforvsync-to-linux-fbh-update.patch
 
