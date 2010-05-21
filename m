@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-set-arch_kmalloc_minalign.patch added to -mm tree
-Date: Fri, 21 May 2010 12:57:52 -0700
-Message-ID: <201005211957.o4LJvqJ9031130@imap1.linux-foundation.org>
+Subject: + mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix.patch added to -mm tree
+Date: Fri, 21 May 2010 13:08:14 -0700
+Message-ID: <201005212008.o4LK8EEg031554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751568Ab0EUT6S (ORCPT
+	by vger.kernel.org with ESMTP id S1751085Ab0EUUIo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:58:18 -0400
+	Fri, 21 May 2010 16:08:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com, penberg@cs.helsinki.fi, stable@kernel.org, yasutake.koichi@jp.panasonic.com
+Cc: haicheng.li@linux.intel.com, andi.kleen@intel.com, cl@linux-foundation.org, fengguang.wu@intel.com, mel@csn.ul.ie, tj@kernel.org
 
 
 The patch titled
-     mn10300: set ARCH_KMALLOC_MINALIGN
+     cpu_up: hold zonelists_mutex when build_all_zonelists
 has been added to the -mm tree.  Its filename is
-     mn10300-set-arch_kmalloc_minalign.patch
+     mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: set ARCH_KMALLOC_MINALIGN
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: cpu_up: hold zonelists_mutex when build_all_zonelists
+From: Haicheng Li <haicheng.li@linux.intel.com>
 
-Architectures that handle DMA-non-coherent memory need to set
-ARCH_KMALLOC_MINALIGN to make sure that kmalloc'ed buffer is DMA-safe: the
-buffer doesn't share a cache with the others.
+We should always hold zonelists_mutex when calling build_all_zonelists
+unless system_state == SYSTEM_BOOTING.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <stable@kernel.org>
+Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/cache.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/cpu.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/mn10300/include/asm/cache.h~mn10300-set-arch_kmalloc_minalign arch/mn10300/include/asm/cache.h
---- a/arch/mn10300/include/asm/cache.h~mn10300-set-arch_kmalloc_minalign
-+++ a/arch/mn10300/include/asm/cache.h
-@@ -21,6 +21,8 @@
- #define L1_CACHE_DISPARITY	L1_CACHE_NENTRIES * L1_CACHE_BYTES
+diff -puN kernel/cpu.c~mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix kernel/cpu.c
+--- a/kernel/cpu.c~mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix
++++ a/kernel/cpu.c
+@@ -357,8 +357,11 @@ int __cpuinit cpu_up(unsigned int cpu)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (pgdat->node_zonelists->_zonerefs->zone == NULL)
++	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
++		mutex_lock(&zonelists_mutex);
+ 		build_all_zonelists(NULL);
++		mutex_unlock(&zonelists_mutex);
++	}
  #endif
  
-+#define ARCH_KMALLOC_MINALIGN	L1_CACHE_BYTES
-+
- /* data cache purge registers
-  * - read from the register to unconditionally purge that cache line
-  * - write address & 0xffffff00 to conditionally purge that cache line
+ 	cpu_maps_update_begin();
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from haicheng.li@linux.intel.com are
 
-origin.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
-swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
-dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch
-documentation-add-networking-drivers-mapping-error-handling-to-dma-api-howto.patch
-staging-saa7134-go7007-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
-dma-mapping-remove-deprecated-dma_sync_single-and-dma_sync_sg-api.patch
-documentation-add-scsi-drivers-mapping-error-handling-to-dma-api-howto.patch
-documentation-update-scatterlist-struct-description-in-dma-api-howto.patch
-documentation-move-the-error-handling-to-the-better-place-in-dma-api-howto.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
-asm-generic-remove-isa_dma_threshold-in-scatterlisth.patch
-asm-generic-add-need_sg_dma_length-to-define-sg_dma_len.patch
-x86_32-use-asm-generic-scatterlisth.patch
-powerpc-use-asm-generic-scatterlisth.patch
-alpha-use-asm-generic-scatterlisth.patch
-asm-generic-remove-arch_has_sg_chain-in-scatterlisth.patch
-avr32-use-asm-generic-scatterlisth.patch
-cris-use-asm-generic-scatterlisth.patch
-h8300-use-asm-generic-scatterlisth.patch
-m32r-use-use-asm-generic-scatterlisth.patch
-m68k-use-asm-generic-scatterlisth.patch
-mips-use-use-asm-generic-scatterlisth.patch
-xtensa-use-use-asm-generic-scatterlisth.patch
-blackfin-use-use-asm-generic-scatterlisth.patch
-frv-use-asm-generic-scatterlisth.patch
-mn10300-use-asm-generic-scatterlisth.patch
-parisc-use-asm-generic-scatterlisth.patch
-frv-set-arch_kmalloc_minalign.patch
-m68k-set-arch_kmalloc_minalign.patch
-mn10300-set-arch_kmalloc_minalign.patch
-xtensa-set-arch_kmalloc_minalign.patch
+mem-hotplug-separate-setup_per_cpu_pageset-into-separate-functions.patch
+mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset.patch
+mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
+mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone.patch
+mem-hotplug-fix-potential-race-while-building-zonelist-for-new-populated-zone-fix.patch
 
