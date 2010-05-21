@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nuc900fb-release-correct-mem-region.patch added to -mm tree
-Date: Fri, 21 May 2010 12:55:53 -0700
-Message-ID: <201005211955.o4LJtrjd030998@imap1.linux-foundation.org>
+Subject: + xtensa-set-arch_kmalloc_minalign.patch added to -mm tree
+Date: Fri, 21 May 2010 12:57:55 -0700
+Message-ID: <201005211957.o4LJvtYi031133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756077Ab0EUT4A (ORCPT
+	by vger.kernel.org with ESMTP id S1751069Ab0EUT6I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:56:00 -0400
+	Fri, 21 May 2010 15:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, mcuos.com@gmail.com, rmk@arm.linux.org.uk, rurality.linux@gmail.com
+Cc: fujita.tomonori@lab.ntt.co.jp, chris@zankel.net, penberg@cs.helsinki.fi, stable@kernel.org
 
 
 The patch titled
-     nuc900fb: release correct mem region
+     xtensa: set ARCH_KMALLOC_MINALIGN
 has been added to the -mm tree.  Its filename is
-     nuc900fb-release-correct-mem-region.patch
+     xtensa-set-arch_kmalloc_minalign.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nuc900fb: release correct mem region
-From: Dan Carpenter <error27@gmail.com>
+Subject: xtensa: set ARCH_KMALLOC_MINALIGN
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-We should be releasing "res->start" here.
+Architectures that handle DMA-non-coherent memory need to set
+ARCH_KMALLOC_MINALIGN to make sure that kmalloc'ed buffer is DMA-safe: the
+buffer doesn't share a cache with the others.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Wang Qiang <rurality.linux@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Chris Zankel <chris@zankel.net>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nuc900fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/include/asm/cache.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/nuc900fb.c~nuc900fb-release-correct-mem-region drivers/video/nuc900fb.c
---- a/drivers/video/nuc900fb.c~nuc900fb-release-correct-mem-region
-+++ a/drivers/video/nuc900fb.c
-@@ -667,7 +667,7 @@ release_irq:
- release_regs:
- 	iounmap(fbi->io);
- release_mem_region:
--	release_mem_region((unsigned long)fbi->mem, size);
-+	release_mem_region(res->start, size);
- free_fb:
- 	framebuffer_release(fbinfo);
- 	return ret;
+diff -puN arch/xtensa/include/asm/cache.h~xtensa-set-arch_kmalloc_minalign arch/xtensa/include/asm/cache.h
+--- a/arch/xtensa/include/asm/cache.h~xtensa-set-arch_kmalloc_minalign
++++ a/arch/xtensa/include/asm/cache.h
+@@ -29,5 +29,6 @@
+ # define CACHE_WAY_SIZE ICACHE_WAY_SIZE
+ #endif
+ 
++#define ARCH_KMALLOC_MINALIGN	L1_CACHE_BYTES
+ 
+ #endif	/* _XTENSA_CACHE_H */
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 origin.patch
-linux-next.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-mm-document-follow_page.patch
-include-linux-gfph-spelling-fixes.patch
-include-linux-gfph-fix-coding-style.patch
-dynamic_debug-small-cleanup-in-ddebug_proc_write.patch
-rtc-cmos-do-dev_set_drvdata-earlier-in-the-initialization.patch
-sis-strcpy-=-strlcpy.patch
-nuc900fb-release-correct-mem-region.patch
-proc-cleanup-remove-unused-assignments.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+ia64-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+x86-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+powerpc-remove-unnecessary-sync_single_range_-in-swiotlb_dma_ops.patch
+swiotlb-remove-unnecessary-swiotlb_sync_single_range_.patch
+dma-mapping-remove-unnecessary-sync_single_range_-in-dma_map_ops.patch
+documentation-add-networking-drivers-mapping-error-handling-to-dma-api-howto.patch
+staging-saa7134-go7007-replace-dma_sync_single-with-dma_sync_single_for_cpu.patch
+dma-mapping-remove-deprecated-dma_sync_single-and-dma_sync_sg-api.patch
+documentation-add-scsi-drivers-mapping-error-handling-to-dma-api-howto.patch
+documentation-update-scatterlist-struct-description-in-dma-api-howto.patch
+documentation-move-the-error-handling-to-the-better-place-in-dma-api-howto.patch
+ssb-add-dma_dev-to-ssb_device-structure.patch
+b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
+ssb-remove-the-ssb-dma-api.patch
+asm-generic-remove-isa_dma_threshold-in-scatterlisth.patch
+asm-generic-add-need_sg_dma_length-to-define-sg_dma_len.patch
+x86_32-use-asm-generic-scatterlisth.patch
+powerpc-use-asm-generic-scatterlisth.patch
+alpha-use-asm-generic-scatterlisth.patch
+asm-generic-remove-arch_has_sg_chain-in-scatterlisth.patch
+avr32-use-asm-generic-scatterlisth.patch
+cris-use-asm-generic-scatterlisth.patch
+h8300-use-asm-generic-scatterlisth.patch
+m32r-use-use-asm-generic-scatterlisth.patch
+m68k-use-asm-generic-scatterlisth.patch
+mips-use-use-asm-generic-scatterlisth.patch
+xtensa-use-use-asm-generic-scatterlisth.patch
+blackfin-use-use-asm-generic-scatterlisth.patch
+frv-use-asm-generic-scatterlisth.patch
+mn10300-use-asm-generic-scatterlisth.patch
+parisc-use-asm-generic-scatterlisth.patch
+frv-set-arch_kmalloc_minalign.patch
+m68k-set-arch_kmalloc_minalign.patch
+mn10300-set-arch_kmalloc_minalign.patch
+xtensa-set-arch_kmalloc_minalign.patch
 
