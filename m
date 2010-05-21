@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch added to -mm tree
-Date: Fri, 21 May 2010 14:47:44 -0700
-Message-ID: <201005212147.o4LLli4G003392@imap1.linux-foundation.org>
+Subject: + lib-kobject_ueventc-fix-conig_net=n-warning.patch added to -mm tree
+Date: Fri, 21 May 2010 15:05:21 -0700
+Message-ID: <201005212233.o4LMXLMu005540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758551Ab0EUVsL (ORCPT
+	by vger.kernel.org with ESMTP id S1758635Ab0EUWda (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 17:48:11 -0400
+	Fri, 21 May 2010 18:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: temerkhanov@yandex.ru, bcrl@kvack.org, jmoyer@redhat.com, temerkhanov@cifronik.ru, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, gregkh@suse.de
 
 
 The patch titled
-     aio: always reinitialize iocb->ki_run_list at the end of aio_run_iocb()
+     lib/kobject_uevent.c: fix CONIG_NET=n warning
 has been added to the -mm tree.  Its filename is
-     aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch
+     lib-kobject_ueventc-fix-conig_net=n-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: always reinitialize iocb->ki_run_list at the end of aio_run_iocb()
-From: Sergey Temerkhanov <temerkhanov@yandex.ru>
+Subject: lib/kobject_uevent.c: fix CONIG_NET=n warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make aio_run_iocb() to always reinitialize iocb->ki_run_list (not only
-when iocb->ki_retry() function returns -EIOCBRETRY) so that subsequent
-call of kick_iocb() will succeed.
+lib/kobject_uevent.c:87: warning: 'kobj_bcast_filter' defined but not used
 
-I've written the driver code which implements a zero-copy DMA char device.
- It has aio_read() and aio_write() methods which return -EIOCBQUEUED after
-the successful preparation of the buffers described by kiocb and posting
-it to the descriptor chain.  When the descriptors are processed, the DMA
-engine raises the interrupt and the cleanup work is done in the handler,
-including aio_complete() for the completed kiocbs.
+Repairs "hotplug: netns aware uevent_helper"
 
-This works fine, however, there is a problem with canceling the queued
-requests, espesially on io_destroy() syscall.  Since there is no simple
-way to remove single kiocb from the descriptor chain, I'm removing all of
-them from the queue using aio_complete() or aio_put_req() in the
-ki_cancel() callback routine of my driver.  The main problem is the
-reference counting in aio_cancel_all():
-
-		if (cancel) {
-			iocb->ki_users++;
-			spin_unlock_irq(&ctx->ctx_lock);
-			cancel(iocb, &res);
-			spin_lock_irq(&ctx->ctx_lock);
-		}
-
-Here the iocb->ki_users gets incremented which already has the value 1 at
-this point (after the io_submit_one() completion) and it's never released
-().  So I have to call aio_put_req() twice for the given kiocb (this seems
-to be the hack to me) or I'll end up with the unkillable process stuck in
-wait_for_all_aios() at the io_schedule().  I've posted the patches where
-I've added aio_put_req() but I think it needs more testing.  So, I've
-tried another approach (hack) - requeue the kiocb with kick_iocb() before
-calling aio_put_req() in the ki_cancel() callback (that's because
-aio_run_iocb() takes some special actions for the canceled kiocbs).  And
-I've found out that kick_iocb() fails because aio_run_iocb() does this:
-
-	iocb->ki_run_list.next = iocb->ki_run_list.prev = NULL;
-
-and only reinitializes iocb->ki_run_list when iocb->ki_retry() returns
--EIOCBRETRY but kick_iocb() is exported and looks like intended for usage
-(though not recommended).
-
-The only place where I've found the similar approach to AIO in the device 
-driver is drivers/usb/gadget/inode.c.
-
-Signed-off-by: Sergey Temerkhanov <temerkhanov@cifronik.ru>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/kobject_uevent.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/aio.c~aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb fs/aio.c
---- a/fs/aio.c~aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb
-+++ a/fs/aio.c
-@@ -717,6 +717,9 @@ static ssize_t aio_run_iocb(struct kiocb
- out:
- 	spin_lock_irq(&ctx->ctx_lock);
+diff -puN lib/kobject_uevent.c~lib-kobject_ueventc-fix-conig_net=n-warning lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~lib-kobject_ueventc-fix-conig_net=n-warning
++++ a/lib/kobject_uevent.c
+@@ -83,6 +83,7 @@ out:
+ 	return ret;
+ }
  
-+	/* will make __queue_kicked_iocb succeed from here on */
-+	INIT_LIST_HEAD(&iocb->ki_run_list);
-+
- 	if (-EIOCBRETRY == ret) {
- 		/*
- 		 * OK, now that we are done with this iteration
-@@ -725,8 +728,6 @@ out:
- 		 * "kick" can start the next iteration
- 		 */
++#ifdef CONFIG_NET
+ static int kobj_bcast_filter(struct sock *dsk, struct sk_buff *skb, void *data)
+ {
+ 	struct kobject *kobj = data;
+@@ -98,6 +99,7 @@ static int kobj_bcast_filter(struct sock
  
--		/* will make __queue_kicked_iocb succeed from here on */
--		INIT_LIST_HEAD(&iocb->ki_run_list);
- 		/* we must queue the next iteration ourselves, if it
- 		 * has already been kicked */
- 		if (kiocbIsKicked(iocb)) {
+ 	return 0;
+ }
++#endif
+ 
+ static int kobj_usermode_filter(struct kobject *kobj)
+ {
 _
 
-Patches currently in -mm which might be from temerkhanov@yandex.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+drivers-pci-intel-iommuc-errors-with-smaller-iommu-widths-fix.patch
+x86-platform-driver-intelligent-power-sharing-driver-checkpatch-fixes.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+lib-kobject_ueventc-fix-conig_net=n-warning.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+fs-fscache-object-listc-fix-warning-on-32-bit.patch
+of-gpio-implement-gpiolib-notifier-hooks.patch
+hpet-factor-timer-allocate-from-open.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+backlight-add-s6e63m0-amoled-lcd-panel-driver-checkpatch-fixes.patch
+fix-stop_machine-reimplement-using-cpu_stop.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible-fix-2.patch
+cpusetmm-fix-no-node-to-alloc-memory-when-changing-cpusets-mems-spelling.patch
+mm-allow-config_migration-to-be-set-without-config_numa-or-memory-hot-remove.patch
+mm-export-unusable-free-space-index-via-debugfs.patch
+mmcompaction-direct-compact-when-a-high-order-allocation-fails.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+mm-introduce-free_pages_prepare-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-fix.patch
+cpu-mem-hotplug-enable-cpus-online-before-local-memory-online-checkpatch-fixes.patch
+highmem-remove-unneeded-ifdef-config_trace_irqflags_support-for-debug_kmap_atomic.patch
+mem-hotplug-avoid-multiple-zones-sharing-same-boot-strapping-boot_pageset-fix.patch
+frv-extend-gdbstub-to-support-more-features-of-gdb-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix.patch
+kernel-wide-replace-ushort_max-short_max-and-short_min-with-ushrt_max-shrt_max-and-shrt_min-fix-fix.patch
+include-asm-generic-kmap_typesh-add-helpful-reminder.patch
+dynamic_debug-fix-documentation-errors-checkpatch-fixes.patch
+lib-introduce-common-method-to-convert-hex-digits-fix.patch
+lib-introduce-common-method-to-convert-hex-digits-fix-fix.patch
+davinci-mmc-updates-to-suspend-resume-implementation-checkpatch-fixes.patch
+checkpatch-add-check-for-too-short-kconfig-descriptions-checkpatch-fixes.patch
+crc32-major-optimization-checkpatch-fixes.patch
+hwmon-add-ti-ads7871-a-d-converter-driver-checkpatch-fixes.patch
+rtc-mxc-remove-unnecessary-clock-source-for-rtc-subsystem.patch
+gpiolib-make-names-array-and-its-values-const-fix.patch
+memcg-oom-kill-disable-and-oom-status-update-checkpatch-fixes.patch
+memcg-move-charge-of-file-pages-fix.patch
+memcg-move-charge-of-file-pages-fix-4.patch
+memcg-clean-up-memory-thresholds-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix.patch
+proc-turn-signal_struct-count-into-int-nr_threads-checkpatch-fixes.patch
+fault-injection-add-cpu-notifier-error-injection-module-fix.patch
+ipc-semc-optimize-update_queue-for-bulk-wakeup-calls-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix.patch
+ipc-semc-move-wake_up_process-out-of-the-spinlock-section-fix-2.patch
+ipmi-update-driver-to-use-dev_printk-and-its-constructs-checkpatch-fixes.patch
+pids-increase-pid_max-based-on-num_possible_cpus-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+drivers-edac-convert-logging-messages-direct-uses-of-__file__-to-%s-__file-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
+aio-fix-the-compat-vectored-operations-fix.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+x86_32-use-asm-generic-scatterlisth.patch
+numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
 
