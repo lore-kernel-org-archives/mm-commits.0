@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-mount-bind.patch added to -mm tree
-Date: Thu, 20 May 2010 21:03:06 -0400
-Message-ID: <201005210404.o4L44WZE021862@imap1.linux-foundation.org>
+Subject: + percpu-fix-list_head-init-bug-in-__percpu_counter_init.patch added to -mm tree
+Date: Fri, 21 May 2010 11:48:06 -0700
+Message-ID: <201005211848.o4LIm7nS028102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750739Ab0EUEFW (ORCPT
+	by vger.kernel.org with ESMTP id S1753905Ab0EUSsn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 00:05:22 -0400
+	Fri, 21 May 2010 14:48:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ZenIV.linux.org.uk, maciej.rutecki@gmail.com, rjw@sisk.pl, stable@kernel.org, torvalds@linux-foundation.orgviro@ZenIV.linux.org.uk, vonsch@gmail.com
+Cc: itoumsn@nttdata.co.jp, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     vfs: fix `mount --bind'
+     percpu: fix list_head init bug in __percpu_counter_init()
 has been added to the -mm tree.  Its filename is
-     vfs-fix-mount-bind.patch
+     percpu-fix-list_head-init-bug-in-__percpu_counter_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix `mount --bind'
-From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: percpu: fix list_head init bug in __percpu_counter_init()
+From: Masanori ITOH <itoumsn@nttdata.co.jp>
 
-We set the "it's dead, don't mount on it" flag _and_ do not remove it if
-we turn the damn thing negative and leave it around.  And if it goes
-positive afterwards, well...
+WARNING: at lib/list_debug.c:26 __list_add+0x3f/0x81()
+Hardware name: Express5800/B120a [N8400-085]
+list_add corruption. next->prev should be prev (ffffffff81a7ea00), but was dead000000200200. (next=ffff88080b872d58).
+Modules linked in: aoe ipt_MASQUERADE iptable_nat nf_nat autofs4 sunrpc bridge 8021q garp stp llc ipv6 cpufreq_ondemand acpi_cpufreq freq_table dm_round_robin dm_multipath kvm_intel kvm uinput lpfc scsi_transport_fc igb ioatdma scsi_tgt i2c_i801 i2c_core dca iTCO_wdt iTCO_vendor_support pcspkr shpchp megaraid_sas [last unloaded: aoe]
+Pid: 54, comm: events/3 Tainted: G        W  2.6.34-vanilla1 #1
+Call Trace:
+[<ffffffff8104bd77>] warn_slowpath_common+0x7c/0x94
+[<ffffffff8104bde6>] warn_slowpath_fmt+0x41/0x43
+[<ffffffff8120fd2e>] __list_add+0x3f/0x81
+[<ffffffff81212a12>] __percpu_counter_init+0x59/0x6b
+[<ffffffff810d8499>] bdi_init+0x118/0x17e
+[<ffffffff811f2c50>] blk_alloc_queue_node+0x79/0x143
+[<ffffffff811f2d2b>] blk_alloc_queue+0x11/0x13
+[<ffffffffa02a931d>] aoeblk_gdalloc+0x8e/0x1c9 [aoe]
+[<ffffffffa02aa655>] aoecmd_sleepwork+0x25/0xa8 [aoe]
+[<ffffffff8106186c>] worker_thread+0x1a9/0x237
+[<ffffffffa02aa630>] ? aoecmd_sleepwork+0x0/0xa8 [aoe]
+[<ffffffff81065827>] ? autoremove_wake_function+0x0/0x39
+[<ffffffff810616c3>] ? worker_thread+0x0/0x237
+[<ffffffff810653ad>] kthread+0x7f/0x87
+[<ffffffff8100aa24>] kernel_thread_helper+0x4/0x10
+[<ffffffff8106532e>] ? kthread+0x0/0x87
+[<ffffffff8100aa20>] ? kernel_thread_helper+0x0/0x10
 
-Fortunately, there's only one place where that can needs to be caught:
-only d_delete() can turn the sucker negative without immediately freeing
-it; all other places that can lead to ->d_iput() call are followed by
-unconditionally freeing struct dentry in question.  So the fix is obvious:
+It's because there is no initialization code for a list_head contained in
+the struct backing_dev_info under CONFIG_HOTPLUG_CPU, and the bug comes up
+when block device drivers calling blk_alloc_queue() are used.  In case of
+me, I got them by using aoe.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16014
-
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Reported-by: Adam Tkac <vonsch@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <stable@kernel.org>		[2.6.34.x]
+Signed-off-by: Masanori Itoh <itoumsn@nttdata.co.jp>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    1 +
+ lib/percpu_counter.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/dcache.c~vfs-fix-mount-bind fs/dcache.c
---- a/fs/dcache.c~vfs-fix-mount-bind
-+++ a/fs/dcache.c
-@@ -1526,6 +1526,7 @@ void d_delete(struct dentry * dentry)
- 	spin_lock(&dentry->d_lock);
- 	isdir = S_ISDIR(dentry->d_inode->i_mode);
- 	if (atomic_read(&dentry->d_count) == 1) {
-+		dentry->d_flags &= ~DCACHE_CANT_MOUNT;
- 		dentry_iput(dentry);
- 		fsnotify_nameremove(dentry, isdir);
- 		return;
+diff -puN lib/percpu_counter.c~percpu-fix-list_head-init-bug-in-__percpu_counter_init lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu-fix-list_head-init-bug-in-__percpu_counter_init
++++ a/lib/percpu_counter.c
+@@ -76,6 +76,7 @@ int __percpu_counter_init(struct percpu_
+ 	if (!fbc->counters)
+ 		return -ENOMEM;
+ #ifdef CONFIG_HOTPLUG_CPU
++	INIT_LIST_HEAD(&fbc->list);
+ 	mutex_lock(&percpu_counters_lock);
+ 	list_add(&fbc->list, &percpu_counters);
+ 	mutex_unlock(&percpu_counters_lock);
 _
 
-Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
+Patches currently in -mm which might be from itoumsn@nttdata.co.jp are
 
-origin.patch
-vfs-fix-mount-bind.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+percpu-fix-list_head-init-bug-in-__percpu_counter_init.patch
 
