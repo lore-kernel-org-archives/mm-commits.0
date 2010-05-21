@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-kobject_ueventc-fix-conig_net=n-warning.patch added to -mm tree
-Date: Fri, 21 May 2010 15:05:21 -0700
-Message-ID: <201005212233.o4LMXLMu005540@imap1.linux-foundation.org>
+Subject: + revert-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1.patch added to -mm tree
+Date: Fri, 21 May 2010 15:36:48 -0700
+Message-ID: <201005212304.o4LN4kXN006930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758635Ab0EUWda (ORCPT
+	by vger.kernel.org with ESMTP id S1754616Ab0EUXFH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 18:33:30 -0400
+	Fri, 21 May 2010 19:05:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, gregkh@suse.de
+Cc: akpm@linux-foundation.org, lee.schermerhorn@hp.com
 
 
 The patch titled
-     lib/kobject_uevent.c: fix CONIG_NET=n warning
+     revert numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1
 has been added to the -mm tree.  Its filename is
-     lib-kobject_ueventc-fix-conig_net=n-warning.patch
+     revert-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/kobject_uevent.c: fix CONIG_NET=n warning
+Subject: revert numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/kobject_uevent.c:87: warning: 'kobj_bcast_filter' defined but not used
+try to get a compiling kernel
 
-Repairs "hotplug: netns aware uevent_helper"
-
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/kobject_uevent.c~lib-kobject_ueventc-fix-conig_net=n-warning lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~lib-kobject_ueventc-fix-conig_net=n-warning
-+++ a/lib/kobject_uevent.c
-@@ -83,6 +83,7 @@ out:
- 	return ret;
- }
+diff -puN arch/x86/Kconfig~revert-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~revert-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1
++++ a/arch/x86/Kconfig
+@@ -1705,7 +1705,7 @@ config HAVE_ARCH_EARLY_PFN_TO_NID
+ 	depends on NUMA
  
-+#ifdef CONFIG_NET
- static int kobj_bcast_filter(struct sock *dsk, struct sk_buff *skb, void *data)
- {
- 	struct kobject *kobj = data;
-@@ -98,6 +99,7 @@ static int kobj_bcast_filter(struct sock
+ config USE_PERCPU_NUMA_NODE_ID
+-	def_bool X86_64
++	def_bool y
+ 	depends on NUMA
  
- 	return 0;
- }
-+#endif
- 
- static int kobj_usermode_filter(struct kobject *kobj)
- {
+ menu "Power management and ACPI options"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,6 +126,7 @@ aio-fix-the-compat-vectored-operations-checkpatch-fixes.patch
 aio-fix-the-compat-vectored-operations-fix.patch
 kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
 x86_32-use-asm-generic-scatterlisth.patch
+revert-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix1.patch
 numa-introduce-numa_mem_id-effective-local-memory-node-id-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
