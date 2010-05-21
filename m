@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-set-arch_kmalloc_minalign.patch added to -mm tree
-Date: Fri, 21 May 2010 12:57:55 -0700
-Message-ID: <201005211957.o4LJvtYi031133@imap1.linux-foundation.org>
+Subject: + frv-set-arch_kmalloc_minalign.patch added to -mm tree
+Date: Fri, 21 May 2010 12:57:47 -0700
+Message-ID: <201005211957.o4LJvlJ0031124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36978 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069Ab0EUT6I (ORCPT
+	by vger.kernel.org with ESMTP id S1751069Ab0EUT6M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:58:08 -0400
+	Fri, 21 May 2010 15:58:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, chris@zankel.net, penberg@cs.helsinki.fi, stable@kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com, penberg@cs.helsinki.fi, stable@kernel.org
 
 
 The patch titled
-     xtensa: set ARCH_KMALLOC_MINALIGN
+     frv: set ARCH_KMALLOC_MINALIGN
 has been added to the -mm tree.  Its filename is
-     xtensa-set-arch_kmalloc_minalign.patch
+     frv-set-arch_kmalloc_minalign.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: set ARCH_KMALLOC_MINALIGN
+Subject: frv: set ARCH_KMALLOC_MINALIGN
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Architectures that handle DMA-non-coherent memory need to set
@@ -42,25 +42,27 @@ ARCH_KMALLOC_MINALIGN to make sure that kmalloc'ed buffer is DMA-safe: the
 buffer doesn't share a cache with the others.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: David Howells <dhowells@redhat.com>
 Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/cache.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/frv/include/asm/cache.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/xtensa/include/asm/cache.h~xtensa-set-arch_kmalloc_minalign arch/xtensa/include/asm/cache.h
---- a/arch/xtensa/include/asm/cache.h~xtensa-set-arch_kmalloc_minalign
-+++ a/arch/xtensa/include/asm/cache.h
-@@ -29,5 +29,6 @@
- # define CACHE_WAY_SIZE ICACHE_WAY_SIZE
- #endif
+diff -puN arch/frv/include/asm/cache.h~frv-set-arch_kmalloc_minalign arch/frv/include/asm/cache.h
+--- a/arch/frv/include/asm/cache.h~frv-set-arch_kmalloc_minalign
++++ a/arch/frv/include/asm/cache.h
+@@ -17,6 +17,8 @@
+ #define L1_CACHE_SHIFT		(CONFIG_FRV_L1_CACHE_SHIFT)
+ #define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)
  
 +#define ARCH_KMALLOC_MINALIGN	L1_CACHE_BYTES
++
+ #define __cacheline_aligned	__attribute__((aligned(L1_CACHE_BYTES)))
+ #define ____cacheline_aligned	__attribute__((aligned(L1_CACHE_BYTES)))
  
- #endif	/* _XTENSA_CACHE_H */
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
