@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-set-arch_kmalloc_minalign.patch added to -mm tree
-Date: Fri, 21 May 2010 12:57:50 -0700
-Message-ID: <201005211957.o4LJvoRc031127@imap1.linux-foundation.org>
+Subject: + mn10300-set-arch_kmalloc_minalign.patch added to -mm tree
+Date: Fri, 21 May 2010 12:57:52 -0700
+Message-ID: <201005211957.o4LJvqJ9031130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751074Ab0EUT6Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751568Ab0EUT6S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:58:16 -0400
+	Fri, 21 May 2010 15:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, geert@linux-m68k.org, penberg@cs.helsinki.fi, stable@kernel.org, zippel@linux-m68k.org
+Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com, penberg@cs.helsinki.fi, stable@kernel.org, yasutake.koichi@jp.panasonic.com
 
 
 The patch titled
-     m68k: set ARCH_KMALLOC_MINALIGN
+     mn10300: set ARCH_KMALLOC_MINALIGN
 has been added to the -mm tree.  Its filename is
-     m68k-set-arch_kmalloc_minalign.patch
+     mn10300-set-arch_kmalloc_minalign.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: set ARCH_KMALLOC_MINALIGN
+Subject: mn10300: set ARCH_KMALLOC_MINALIGN
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Architectures that handle DMA-non-coherent memory need to set
@@ -42,26 +42,28 @@ ARCH_KMALLOC_MINALIGN to make sure that kmalloc'ed buffer is DMA-safe: the
 buffer doesn't share a cache with the others.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
 Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/cache.h |    2 ++
+ arch/mn10300/include/asm/cache.h |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN arch/m68k/include/asm/cache.h~m68k-set-arch_kmalloc_minalign arch/m68k/include/asm/cache.h
---- a/arch/m68k/include/asm/cache.h~m68k-set-arch_kmalloc_minalign
-+++ a/arch/m68k/include/asm/cache.h
-@@ -8,4 +8,6 @@
- #define        L1_CACHE_SHIFT  4
- #define        L1_CACHE_BYTES  (1<< L1_CACHE_SHIFT)
+diff -puN arch/mn10300/include/asm/cache.h~mn10300-set-arch_kmalloc_minalign arch/mn10300/include/asm/cache.h
+--- a/arch/mn10300/include/asm/cache.h~mn10300-set-arch_kmalloc_minalign
++++ a/arch/mn10300/include/asm/cache.h
+@@ -21,6 +21,8 @@
+ #define L1_CACHE_DISPARITY	L1_CACHE_NENTRIES * L1_CACHE_BYTES
+ #endif
  
 +#define ARCH_KMALLOC_MINALIGN	L1_CACHE_BYTES
 +
- #endif
+ /* data cache purge registers
+  * - read from the register to unconditionally purge that cache line
+  * - write address & 0xffffff00 to conditionally purge that cache line
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
