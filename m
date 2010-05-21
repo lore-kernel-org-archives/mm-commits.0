@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-penwell-gpio-support-update.patch added to -mm tree
-Date: Thu, 20 May 2010 20:58:49 -0400
-Message-ID: <201005210400.o4L40FNt021641@imap1.linux-foundation.org>
+Subject: + vfs-fix-mount-bind.patch added to -mm tree
+Date: Thu, 20 May 2010 21:03:06 -0400
+Message-ID: <201005210404.o4L44WZE021862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750739Ab0EUEAZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750739Ab0EUEFW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 00:00:25 -0400
+	Fri, 21 May 2010 00:05:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alek.du@intel.com, david-b@pacbell.net
+Cc: viro@ZenIV.linux.org.uk, maciej.rutecki@gmail.com, rjw@sisk.pl, stable@kernel.org, torvalds@linux-foundation.orgviro@ZenIV.linux.org.uk, vonsch@gmail.com
 
 
 The patch titled
-     gpio-add-penwell-gpio-support-update
+     vfs: fix `mount --bind'
 has been added to the -mm tree.  Its filename is
-     gpio-add-penwell-gpio-support-update.patch
+     vfs-fix-mount-bind.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-penwell-gpio-support-update
-From: "Du, Alek" <alek.du@intel.com>
+Subject: vfs: fix `mount --bind'
+From: Al Viro <viro@ZenIV.linux.org.uk>
 
-* remove gpio_reg inline, due to the fact the func is too big to inline
-* use standard DEFINE_PCI_DEVICE_TABLE
+We set the "it's dead, don't mount on it" flag _and_ do not remove it if
+we turn the damn thing negative and leave it around.  And if it goes
+positive afterwards, well...
 
-Signed-off-by: Alek Du <alek.du@intel.com>
-Cc: David Brownell <david-b@pacbell.net>
+Fortunately, there's only one place where that can needs to be caught:
+only d_delete() can turn the sucker negative without immediately freeing
+it; all other places that can lead to ->d_iput() call are followed by
+unconditionally freeing struct dentry in question.  So the fix is obvious:
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16014
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Reported-by: Adam Tkac <vonsch@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: <stable@kernel.org>		[2.6.34.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/langwell_gpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/dcache.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/langwell_gpio.c~gpio-add-penwell-gpio-support-update drivers/gpio/langwell_gpio.c
---- a/drivers/gpio/langwell_gpio.c~gpio-add-penwell-gpio-support-update
-+++ a/drivers/gpio/langwell_gpio.c
-@@ -63,7 +63,7 @@ struct lnw_gpio {
- 	unsigned			irq_base;
- };
- 
--static inline void __iomem *gpio_reg(struct gpio_chip *chip, unsigned offset,
-+static void __iomem *gpio_reg(struct gpio_chip *chip, unsigned offset,
- 			enum GPIO_REG reg_type)
- {
- 	struct lnw_gpio *lnw = container_of(chip, struct lnw_gpio, chip);
-@@ -175,7 +175,7 @@ static struct irq_chip lnw_irqchip = {
- 	.set_type	= lnw_irq_type,
- };
- 
--static struct pci_device_id lnw_gpio_ids[] = {      /* pin number */
-+static DEFINE_PCI_DEVICE_TABLE(lnw_gpio_ids) = {   /* pin number */
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x080f), .driver_data = 64 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x081f), .driver_data = 96 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x081a), .driver_data = 96 },
+diff -puN fs/dcache.c~vfs-fix-mount-bind fs/dcache.c
+--- a/fs/dcache.c~vfs-fix-mount-bind
++++ a/fs/dcache.c
+@@ -1526,6 +1526,7 @@ void d_delete(struct dentry * dentry)
+ 	spin_lock(&dentry->d_lock);
+ 	isdir = S_ISDIR(dentry->d_inode->i_mode);
+ 	if (atomic_read(&dentry->d_count) == 1) {
++		dentry->d_flags &= ~DCACHE_CANT_MOUNT;
+ 		dentry_iput(dentry);
+ 		fsnotify_nameremove(dentry, isdir);
+ 		return;
 _
 
-Patches currently in -mm which might be from alek.du@intel.com are
+Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
 
-linux-next.patch
-gpio-add-penwell-gpio-support.patch
-gpio-add-penwell-gpio-support-update.patch
+origin.patch
+vfs-fix-mount-bind.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
 
