@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-unify-fdpic-implementations.patch added to -mm tree
-Date: Fri, 21 May 2010 14:37:35 -0700
-Message-ID: <201005212137.o4LLbZKf002827@imap1.linux-foundation.org>
+Subject: + aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch added to -mm tree
+Date: Fri, 21 May 2010 14:47:44 -0700
+Message-ID: <201005212147.o4LLli4G003392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752881Ab0EUVht (ORCPT
+	by vger.kernel.org with ESMTP id S1758551Ab0EUVsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 17:37:49 -0400
+	Fri, 21 May 2010 17:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, dhowells@redhat.com, lethal@linux-sh.org, oleg@redhat.com, roland@redhat.com
+Cc: temerkhanov@yandex.ru, bcrl@kvack.org, jmoyer@redhat.com, temerkhanov@cifronik.ru, zach.brown@oracle.com
 
 
 The patch titled
-     ptrace: unify FDPIC implementations
+     aio: always reinitialize iocb->ki_run_list at the end of aio_run_iocb()
 has been added to the -mm tree.  Its filename is
-     ptrace-unify-fdpic-implementations.patch
+     aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,193 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: unify FDPIC implementations
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: aio: always reinitialize iocb->ki_run_list at the end of aio_run_iocb()
+From: Sergey Temerkhanov <temerkhanov@yandex.ru>
 
-The Blackfin/FRV/SuperH guys all have the same exact FDPIC ptrace code in
-their arch handlers (since they were probably copied & pasted).  Since
-these ptrace interfaces are an arch independent aspect of the FDPIC code,
-unify them in the common ptrace code so new FDPIC ports don't need to copy
-and paste this fundamental stuff yet again.
+Make aio_run_iocb() to always reinitialize iocb->ki_run_list (not only
+when iocb->ki_retry() function returns -EIOCBRETRY) so that subsequent
+call of kick_iocb() will succeed.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Roland McGrath <roland@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+I've written the driver code which implements a zero-copy DMA char device.
+ It has aio_read() and aio_write() methods which return -EIOCBQUEUED after
+the successful preparation of the buffers described by kiocb and posting
+it to the descriptor chain.  When the descriptors are processed, the DMA
+engine raises the interrupt and the cleanup work is done in the handler,
+including aio_complete() for the completed kiocbs.
+
+This works fine, however, there is a problem with canceling the queued
+requests, espesially on io_destroy() syscall.  Since there is no simple
+way to remove single kiocb from the descriptor chain, I'm removing all of
+them from the queue using aio_complete() or aio_put_req() in the
+ki_cancel() callback routine of my driver.  The main problem is the
+reference counting in aio_cancel_all():
+
+		if (cancel) {
+			iocb->ki_users++;
+			spin_unlock_irq(&ctx->ctx_lock);
+			cancel(iocb, &res);
+			spin_lock_irq(&ctx->ctx_lock);
+		}
+
+Here the iocb->ki_users gets incremented which already has the value 1 at
+this point (after the io_submit_one() completion) and it's never released
+().  So I have to call aio_put_req() twice for the given kiocb (this seems
+to be the hack to me) or I'll end up with the unkillable process stuck in
+wait_for_all_aios() at the io_schedule().  I've posted the patches where
+I've added aio_put_req() but I think it needs more testing.  So, I've
+tried another approach (hack) - requeue the kiocb with kick_iocb() before
+calling aio_put_req() in the ki_cancel() callback (that's because
+aio_run_iocb() takes some special actions for the canceled kiocbs).  And
+I've found out that kick_iocb() fails because aio_run_iocb() does this:
+
+	iocb->ki_run_list.next = iocb->ki_run_list.prev = NULL;
+
+and only reinitializes iocb->ki_run_list when iocb->ki_retry() returns
+-EIOCBRETRY but kick_iocb() is exported and looks like intended for usage
+(though not recommended).
+
+The only place where I've found the similar approach to AIO in the device 
+driver is drivers/usb/gadget/inode.c.
+
+Signed-off-by: Sergey Temerkhanov <temerkhanov@cifronik.ru>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/ptrace.c |   33 ++++++++------------------------
- arch/frv/kernel/ptrace.c      |   20 -------------------
- arch/sh/kernel/ptrace_32.c    |   23 ----------------------
- kernel/ptrace.c               |   20 +++++++++++++++++++
- 4 files changed, 29 insertions(+), 67 deletions(-)
+ fs/aio.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/kernel/ptrace.c~ptrace-unify-fdpic-implementations arch/blackfin/kernel/ptrace.c
---- a/arch/blackfin/kernel/ptrace.c~ptrace-unify-fdpic-implementations
-+++ a/arch/blackfin/kernel/ptrace.c
-@@ -292,28 +292,6 @@ long arch_ptrace(struct task_struct *chi
- 			break;
- 		}
+diff -puN fs/aio.c~aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb fs/aio.c
+--- a/fs/aio.c~aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb
++++ a/fs/aio.c
+@@ -717,6 +717,9 @@ static ssize_t aio_run_iocb(struct kiocb
+ out:
+ 	spin_lock_irq(&ctx->ctx_lock);
  
--#ifdef CONFIG_BINFMT_ELF_FDPIC
--	case PTRACE_GETFDPIC: {
--		unsigned long tmp = 0;
--
--		switch (addr) {
--		case_PTRACE_GETFDPIC_EXEC:
--		case PTRACE_GETFDPIC_EXEC:
--			tmp = child->mm->context.exec_fdpic_loadmap;
--			break;
--		case_PTRACE_GETFDPIC_INTERP:
--		case PTRACE_GETFDPIC_INTERP:
--			tmp = child->mm->context.interp_fdpic_loadmap;
--			break;
--		default:
--			break;
--		}
--
--		ret = put_user(tmp, datap);
--		break;
--	}
--#endif
--
- 		/* when I and D space are separate, this will have to be fixed. */
- 	case PTRACE_POKEDATA:
- 		pr_debug("ptrace: PTRACE_PEEKDATA\n");
-@@ -357,8 +335,14 @@ long arch_ptrace(struct task_struct *chi
- 	case PTRACE_PEEKUSR:
- 		switch (addr) {
- #ifdef CONFIG_BINFMT_ELF_FDPIC	/* backwards compat */
--		case PT_FDPIC_EXEC:   goto case_PTRACE_GETFDPIC_EXEC;
--		case PT_FDPIC_INTERP: goto case_PTRACE_GETFDPIC_INTERP;
-+		case PT_FDPIC_EXEC:
-+			request = PTRACE_GETFDPIC;
-+			addr = PTRACE_GETFDPIC_EXEC;
-+			goto case_default;
-+		case PT_FDPIC_INTERP:
-+			request = PTRACE_GETFDPIC;
-+			addr = PTRACE_GETFDPIC_INTERP;
-+			goto case_default;
- #endif
- 		default:
- 			ret = get_reg(child, addr, datap);
-@@ -385,6 +369,7 @@ long arch_ptrace(struct task_struct *chi
- 					     0, sizeof(struct pt_regs),
- 					     (const void __user *)data);
- 
-+	case_default:
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		break;
-diff -puN arch/frv/kernel/ptrace.c~ptrace-unify-fdpic-implementations arch/frv/kernel/ptrace.c
---- a/arch/frv/kernel/ptrace.c~ptrace-unify-fdpic-implementations
-+++ a/arch/frv/kernel/ptrace.c
-@@ -344,26 +344,6 @@ long arch_ptrace(struct task_struct *chi
- 					     0, sizeof(child->thread.user->f),
- 					     (const void __user *)data);
- 
--	case PTRACE_GETFDPIC:
--		tmp = 0;
--		switch (addr) {
--		case PTRACE_GETFDPIC_EXEC:
--			tmp = child->mm->context.exec_fdpic_loadmap;
--			break;
--		case PTRACE_GETFDPIC_INTERP:
--			tmp = child->mm->context.interp_fdpic_loadmap;
--			break;
--		default:
--			break;
--		}
--
--		ret = 0;
--		if (put_user(tmp, (unsigned long *) data)) {
--			ret = -EFAULT;
--			break;
--		}
--		break;
--
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		break;
-diff -puN arch/sh/kernel/ptrace_32.c~ptrace-unify-fdpic-implementations arch/sh/kernel/ptrace_32.c
---- a/arch/sh/kernel/ptrace_32.c~ptrace-unify-fdpic-implementations
-+++ a/arch/sh/kernel/ptrace_32.c
-@@ -436,29 +436,6 @@ long arch_ptrace(struct task_struct *chi
- 					     0, sizeof(struct pt_dspregs),
- 					     (const void __user *)data);
- #endif
--#ifdef CONFIG_BINFMT_ELF_FDPIC
--	case PTRACE_GETFDPIC: {
--		unsigned long tmp = 0;
--
--		switch (addr) {
--		case PTRACE_GETFDPIC_EXEC:
--			tmp = child->mm->context.exec_fdpic_loadmap;
--			break;
--		case PTRACE_GETFDPIC_INTERP:
--			tmp = child->mm->context.interp_fdpic_loadmap;
--			break;
--		default:
--			break;
--		}
--
--		ret = 0;
--		if (put_user(tmp, datap)) {
--			ret = -EFAULT;
--			break;
--		}
--		break;
--	}
--#endif
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		break;
-diff -puN kernel/ptrace.c~ptrace-unify-fdpic-implementations kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-unify-fdpic-implementations
-+++ a/kernel/ptrace.c
-@@ -594,6 +594,26 @@ int ptrace_request(struct task_struct *c
- 		ret = ptrace_detach(child, data);
- 		break;
- 
-+#ifdef CONFIG_BINFMT_ELF_FDPIC
-+	case PTRACE_GETFDPIC: {
-+		unsigned long tmp = 0;
++	/* will make __queue_kicked_iocb succeed from here on */
++	INIT_LIST_HEAD(&iocb->ki_run_list);
 +
-+		switch (addr) {
-+		case PTRACE_GETFDPIC_EXEC:
-+			tmp = child->mm->context.exec_fdpic_loadmap;
-+			break;
-+		case PTRACE_GETFDPIC_INTERP:
-+			tmp = child->mm->context.interp_fdpic_loadmap;
-+			break;
-+		default:
-+			break;
-+		}
-+
-+		ret = put_user(tmp, (unsigned long __user *) data);
-+		break;
-+	}
-+#endif
-+
- #ifdef PTRACE_SINGLESTEP
- 	case PTRACE_SINGLESTEP:
- #endif
+ 	if (-EIOCBRETRY == ret) {
+ 		/*
+ 		 * OK, now that we are done with this iteration
+@@ -725,8 +728,6 @@ out:
+ 		 * "kick" can start the next iteration
+ 		 */
+ 
+-		/* will make __queue_kicked_iocb succeed from here on */
+-		INIT_LIST_HEAD(&iocb->ki_run_list);
+ 		/* we must queue the next iteration ourselves, if it
+ 		 * has already been kicked */
+ 		if (kiocbIsKicked(iocb)) {
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from temerkhanov@yandex.ru are
 
-origin.patch
-linux-next.patch
-nommu-allow-private-mappings-of-read-only-devices.patch
-ad525x_dpot-simplify-duplicated-sysfs-defines.patch
-ad525x_dpot-extend-write-argument-to-16bits.patch
-ad525x_dpot-add-support-for-spi-parts.patch
-ad525x_dpot-add-support-for-ad524x-pots.patch
-ad525x_dpot-add-support-for-adn2860-and-ad528x-pots.patch
-ad525x_dpot-add-support-for-one-time-programmable-pots.patch
-fbdev-bfin-lq035q1-fb-respect-new-ppi-mode-platform-field.patch
-ptrace-unify-fdpic-implementations.patch
-blackfin-use-use-asm-generic-scatterlisth.patch
+aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch
 
