@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-add-new-function-for-raw-read-after-write-operation-update.patch added to -mm tree
-Date: Fri, 21 May 2010 13:36:30 -0700
-Message-ID: <201005212036.o4LKaUjE032720@imap1.linux-foundation.org>
+Subject: + checkpatch-warn-on-declaration-with-storage-class-not-at-the-beginning.patch added to -mm tree
+Date: Fri, 21 May 2010 13:49:05 -0700
+Message-ID: <201005212049.o4LKn5MA000816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754626Ab0EUUg4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751069Ab0EUUta (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 16:36:56 -0400
+	Fri, 21 May 2010 16:49:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: notasas@gmail.com, dimitrysh@google.com, kalle.valo@iki.fi, linux-mmc@vger.kernel.org
+Cc: tklauser@distanz.ch, apw@shadowen.org, khali@linux-fr.org
 
 
 The patch titled
-     sdio-add-new-function-for-raw-read-after-write-operation update
+     checkpatch: warn on declaration with storage class not at the beginning
 has been added to the -mm tree.  Its filename is
-     sdio-add-new-function-for-raw-read-after-write-operation-update.patch
+     checkpatch-warn-on-declaration-with-storage-class-not-at-the-beginning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio-add-new-function-for-raw-read-after-write-operation update
-From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: checkpatch: warn on declaration with storage class not at the beginning
+From: Tobias Klauser <tklauser@distanz.ch>
 
-Here is updated version that addresses your comments (removes BUG()
-and improves argument name).
+The C99 specification states in section 6.11.5:
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Kalle Valo <kalle.valo@iki.fi>
-Cc: Dmitry Shmidt <dimitrysh@google.com>
-Cc: <linux-mmc@vger.kernel.org>
+The placement of a storage-class specifier other than at the beginning
+of the declaration specifiers in a declaration is an obsolescent
+feature.
+
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_io.c    |    9 ++++-----
- include/linux/mmc/sdio_func.h |    2 +-
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation-update drivers/mmc/core/sdio_io.c
---- a/drivers/mmc/core/sdio_io.c~sdio-add-new-function-for-raw-read-after-write-operation-update
-+++ a/drivers/mmc/core/sdio_io.c
-@@ -408,7 +408,7 @@ EXPORT_SYMBOL_GPL(sdio_writeb);
- /**
-  *	sdio_writeb_readb - write and read a byte from SDIO function
-  *	@func: SDIO function to access
-- *	@b: byte to write
-+ *	@write_byte: byte to write
-  *	@addr: address to write to
-  *	@err_ret: optional status value from transfer
-  *
-@@ -418,15 +418,14 @@ EXPORT_SYMBOL_GPL(sdio_writeb);
-  *	If there is a problem with the operation, 0xff is returned and
-  *	@err_ret will contain the error code.
-  */
--u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
-+u8 sdio_writeb_readb(struct sdio_func *func, u8 write_byte,
- 	unsigned int addr, int *err_ret)
- {
- 	int ret;
- 	u8 val;
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-declaration-with-storage-class-not-at-the-beginning scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-declaration-with-storage-class-not-at-the-beginning
++++ a/scripts/checkpatch.pl
+@@ -2601,6 +2601,11 @@ sub process {
+ 			CHK("architecture specific defines should be avoided\n" .  $herecurr);
+ 		}
  
--	BUG_ON(!func);
--
--	ret = mmc_io_rw_direct(func->card, 1, func->num, addr, b, &val);
-+	ret = mmc_io_rw_direct(func->card, 1, func->num, addr,
-+			write_byte, &val);
- 	if (err_ret)
- 		*err_ret = ret;
- 	if (ret)
-diff -puN include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation-update include/linux/mmc/sdio_func.h
---- a/include/linux/mmc/sdio_func.h~sdio-add-new-function-for-raw-read-after-write-operation-update
-+++ a/include/linux/mmc/sdio_func.h
-@@ -145,7 +145,7 @@ extern void sdio_writew(struct sdio_func
- extern void sdio_writel(struct sdio_func *func, u32 b,
- 	unsigned int addr, int *err_ret);
- 
--extern u8 sdio_writeb_readb(struct sdio_func *func, u8 b,
-+extern u8 sdio_writeb_readb(struct sdio_func *func, u8 write_byte,
- 	unsigned int addr, int *err_ret);
- 
- extern int sdio_memcpy_toio(struct sdio_func *func, unsigned int addr,
++# Check that the storage class is at the beginning of a declaration
++		if ($line =~ /\b$Storage\b/ && $line !~ /^.\s*$Storage\b/) {
++			WARN("storage class should be at the beginning of the declaration\n" . $herecurr)
++		}
++
+ # check the location of the inline attribute, that it is between
+ # storage class and type.
+ 		if ($line =~ /\b$Type\s+$Inline\b/ ||
 _
 
-Patches currently in -mm which might be from notasas@gmail.com are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
 origin.patch
 linux-next.patch
-sdio-add-new-function-for-raw-read-after-write-operation.patch
-sdio-add-new-function-for-raw-read-after-write-operation-update.patch
-fbdev-move-fbio_waitforvsync-to-linux-fbh.patch
-fbdev-move-fbio_waitforvsync-to-linux-fbh-update.patch
+checkpatch-warn-on-declaration-with-storage-class-not-at-the-beginning.patch
 
