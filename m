@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-set-arch_kmalloc_minalign.patch added to -mm tree
-Date: Fri, 21 May 2010 12:57:47 -0700
-Message-ID: <201005211957.o4LJvlJ0031124@imap1.linux-foundation.org>
+Subject: + m68k-set-arch_kmalloc_minalign.patch added to -mm tree
+Date: Fri, 21 May 2010 12:57:50 -0700
+Message-ID: <201005211957.o4LJvoRc031127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069Ab0EUT6M (ORCPT
+	by vger.kernel.org with ESMTP id S1751074Ab0EUT6Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:58:12 -0400
+	Fri, 21 May 2010 15:58:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, dhowells@redhat.com, penberg@cs.helsinki.fi, stable@kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, geert@linux-m68k.org, penberg@cs.helsinki.fi, stable@kernel.org, zippel@linux-m68k.org
 
 
 The patch titled
-     frv: set ARCH_KMALLOC_MINALIGN
+     m68k: set ARCH_KMALLOC_MINALIGN
 has been added to the -mm tree.  Its filename is
-     frv-set-arch_kmalloc_minalign.patch
+     m68k-set-arch_kmalloc_minalign.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: set ARCH_KMALLOC_MINALIGN
+Subject: m68k: set ARCH_KMALLOC_MINALIGN
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Architectures that handle DMA-non-coherent memory need to set
@@ -42,27 +42,26 @@ ARCH_KMALLOC_MINALIGN to make sure that kmalloc'ed buffer is DMA-safe: the
 buffer doesn't share a cache with the others.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/cache.h |    2 ++
+ arch/m68k/include/asm/cache.h |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN arch/frv/include/asm/cache.h~frv-set-arch_kmalloc_minalign arch/frv/include/asm/cache.h
---- a/arch/frv/include/asm/cache.h~frv-set-arch_kmalloc_minalign
-+++ a/arch/frv/include/asm/cache.h
-@@ -17,6 +17,8 @@
- #define L1_CACHE_SHIFT		(CONFIG_FRV_L1_CACHE_SHIFT)
- #define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)
+diff -puN arch/m68k/include/asm/cache.h~m68k-set-arch_kmalloc_minalign arch/m68k/include/asm/cache.h
+--- a/arch/m68k/include/asm/cache.h~m68k-set-arch_kmalloc_minalign
++++ a/arch/m68k/include/asm/cache.h
+@@ -8,4 +8,6 @@
+ #define        L1_CACHE_SHIFT  4
+ #define        L1_CACHE_BYTES  (1<< L1_CACHE_SHIFT)
  
 +#define ARCH_KMALLOC_MINALIGN	L1_CACHE_BYTES
 +
- #define __cacheline_aligned	__attribute__((aligned(L1_CACHE_BYTES)))
- #define ____cacheline_aligned	__attribute__((aligned(L1_CACHE_BYTES)))
- 
+ #endif
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
