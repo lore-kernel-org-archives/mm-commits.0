@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sh-disable-sd-card-write-protection-detection-on-kfr2r09.patch added to -mm tree
-Date: Fri, 21 May 2010 12:39:15 -0700
-Message-ID: <201005211939.o4LJdFGG030302@imap1.linux-foundation.org>
+Subject: + mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc.patch added to -mm tree
+Date: Fri, 21 May 2010 12:39:17 -0700
+Message-ID: <201005211939.o4LJdH8V030314__34355.480844579$1274470771$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934015Ab0EUTjW (ORCPT
+	by vger.kernel.org with ESMTP id S934042Ab0EUTjX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 May 2010 15:39:22 -0400
+	Fri, 21 May 2010 15:39:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: g.liakhovetski@gmx.de, ian@mnementh.co.uk, lethal@linux-sh.org, linux-mmc@vg
 
 
 The patch titled
-     sh: disable SD-card write-protection detection on kfr2r09
+     mmc: let MFD's provide supported Vdd card voltages to tmio_mmc
 has been added to the -mm tree.  Its filename is
-     sh-disable-sd-card-write-protection-detection-on-kfr2r09.patch
+     mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: disable SD-card write-protection detection on kfr2r09
+Subject: mmc: let MFD's provide supported Vdd card voltages to tmio_mmc
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-kfr2r09 board has a micro-SD card slot, therefore card write-protection
-detection cannot work there, disable it.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Acked-by: Ian Molton <ian@mnementh.co.uk>
@@ -49,32 +46,36 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/mach-kfr2r09/setup.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mmc/host/tmio_mmc.c |    5 ++++-
+ include/linux/mfd/tmio.h    |    1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/boards/mach-kfr2r09/setup.c~sh-disable-sd-card-write-protection-detection-on-kfr2r09 arch/sh/boards/mach-kfr2r09/setup.c
---- a/arch/sh/boards/mach-kfr2r09/setup.c~sh-disable-sd-card-write-protection-detection-on-kfr2r09
-+++ a/arch/sh/boards/mach-kfr2r09/setup.c
-@@ -11,6 +11,7 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/mfd/sh_mobile_sdhi.h>
-+#include <linux/mfd/tmio.h>
- #include <linux/mtd/physmap.h>
- #include <linux/mtd/onenand.h>
- #include <linux/delay.h>
-@@ -358,8 +359,9 @@ static struct resource kfr2r09_sh_sdhi0_
- };
+diff -puN drivers/mmc/host/tmio_mmc.c~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -845,7 +845,10 @@ static int __devinit tmio_mmc_probe(stru
+ 	mmc->caps |= pdata->capabilities;
+ 	mmc->f_max = pdata->hclk;
+ 	mmc->f_min = mmc->f_max / 512;
+-	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
++	if (pdata->ocr_mask)
++		mmc->ocr_avail = pdata->ocr_mask;
++	else
++		mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
  
- static struct sh_mobile_sdhi_info sh7724_sdhi0_data = {
--	.dma_slave_tx = SHDMA_SLAVE_SDHI0_TX,
--	.dma_slave_rx = SHDMA_SLAVE_SDHI0_RX,
-+	.dma_slave_tx	= SHDMA_SLAVE_SDHI0_TX,
-+	.dma_slave_rx	= SHDMA_SLAVE_SDHI0_RX,
-+	.tmio_flags	= TMIO_MMC_WRPROTECT_DISABLE,
- };
- 
- static struct platform_device kfr2r09_sh_sdhi0_device = {
+ 	/* Tell the MFD core we are ready to be enabled */
+ 	if (cell->enable) {
+diff -puN include/linux/mfd/tmio.h~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc include/linux/mfd/tmio.h
+--- a/include/linux/mfd/tmio.h~mmc-let-mfds-provide-supported-vdd-card-voltages-to-tmio_mmc
++++ a/include/linux/mfd/tmio.h
+@@ -70,6 +70,7 @@ struct tmio_mmc_data {
+ 	unsigned int			hclk;
+ 	unsigned long			capabilities;
+ 	unsigned long			flags;
++	u32				ocr_mask;	/* available voltages */
+ 	struct tmio_mmc_dma		*dma;
+ 	void (*set_pwr)(struct platform_device *host, int state);
+ 	void (*set_clk_div)(struct platform_device *host, int state);
 _
 
 Patches currently in -mm which might be from g.liakhovetski@gmx.de are
