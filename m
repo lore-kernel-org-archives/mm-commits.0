@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-via-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:31 -0700
-Message-ID: <201005252236.o4PMaVBC019048@imap1.linux-foundation.org>
+Subject: + drivers-ide-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:37:08 -0700
+Message-ID: <201005252237.o4PMb8Ig019114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758860Ab0EYWhK (ORCPT
+	by vger.kernel.org with ESMTP id S1758860Ab0EYWhL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:10 -0400
+	Tue, 25 May 2010 18:37:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
+Cc: julia@diku.dk, davem@davemloft.net
 
 
 The patch titled
-     drivers/video/via: use memdup_user
+     drivers/ide: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-video-via-use-memdup_user.patch
+     drivers-ide-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/via: use memdup_user
+Subject: drivers/ide: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,36 +69,33 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/ide/ide-taskfile.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~drivers-video-via-use-memdup_user drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~drivers-video-via-use-memdup_user
-+++ a/drivers/video/via/viafbdev.c
-@@ -578,14 +578,9 @@ static int viafb_ioctl(struct fb_info *i
- 		break;
+diff -puN drivers/ide/ide-taskfile.c~drivers-ide-use-memdup_user drivers/ide/ide-taskfile.c
+--- a/drivers/ide/ide-taskfile.c~drivers-ide-use-memdup_user
++++ a/drivers/ide/ide-taskfile.c
+@@ -480,13 +480,9 @@ int ide_taskfile_ioctl(ide_drive_t *driv
+ 	u16 nsect		= 0;
+ 	char __user *buf = (char __user *)arg;
  
- 	case VIAFB_SET_GAMMA_LUT:
--		viafb_gamma_table = kmalloc(256 * sizeof(u32), GFP_KERNEL);
--		if (!viafb_gamma_table)
--			return -ENOMEM;
--		if (copy_from_user(viafb_gamma_table, argp,
--				256 * sizeof(u32))) {
--			kfree(viafb_gamma_table);
--			return -EFAULT;
--		}
-+		viafb_gamma_table = memdup_user(argp, 256 * sizeof(u32));
-+		if (IS_ERR(viafb_gamma_table))
-+			return PTR_ERR(viafb_gamma_table);
- 		viafb_set_gamma_table(viafb_bpp, viafb_gamma_table);
- 		kfree(viafb_gamma_table);
- 		break;
+-	req_task = kzalloc(tasksize, GFP_KERNEL);
+-	if (req_task == NULL)
+-		return -ENOMEM;
+-	if (copy_from_user(req_task, buf, tasksize)) {
+-		kfree(req_task);
+-		return -EFAULT;
+-	}
++	req_task = memdup_user(buf, tasksize);
++	if (IS_ERR(req_task))
++		return PTR_ERR(req_task);
+ 
+ 	taskout = req_task->out_size;
+ 	taskin  = req_task->in_size;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
