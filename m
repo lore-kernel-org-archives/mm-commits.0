@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:55 -0700
-Message-ID: <201005252236.o4PMatLx019087@imap1.linux-foundation.org>
+Subject: + drivers-staging-dream-camera-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:37:26 -0700
+Message-ID: <201005252237.o4PMbQLo019137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759021Ab0EYWhc (ORCPT
+	by vger.kernel.org with ESMTP id S1758888Ab0EYWha (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:32 -0400
+	Tue, 25 May 2010 18:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com, dgilbert@interlog.com
+Cc: julia@diku.dk, greg@kroah.com
 
 
 The patch titled
-     drivers/scsi: use memdup_user
+     drivers/staging/dream/camera: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-use-memdup_user.patch
+     drivers-staging-dream-camera-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi: use memdup_user
+Subject: drivers/staging/dream/camera: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,36 +69,82 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/staging/dream/camera/msm_vfe8x.c |   45 +++++----------------
+ 1 file changed, 12 insertions(+), 33 deletions(-)
 
-diff -puN drivers/scsi/sg.c~drivers-scsi-use-memdup_user drivers/scsi/sg.c
---- a/drivers/scsi/sg.c~drivers-scsi-use-memdup_user
-+++ a/drivers/scsi/sg.c
-@@ -1676,14 +1676,9 @@ static int sg_start_req(Sg_request *srp,
- 		int len, size = sizeof(struct sg_iovec) * iov_count;
- 		struct iovec *iov;
+diff -puN drivers/staging/dream/camera/msm_vfe8x.c~drivers-staging-dream-camera-use-memdup_user drivers/staging/dream/camera/msm_vfe8x.c
+--- a/drivers/staging/dream/camera/msm_vfe8x.c~drivers-staging-dream-camera-use-memdup_user
++++ a/drivers/staging/dream/camera/msm_vfe8x.c
+@@ -644,17 +644,10 @@ static int vfe_config(struct msm_vfe_cfg
+ 		if (!axid)
+ 			return -EFAULT;
  
--		iov = kmalloc(size, GFP_ATOMIC);
--		if (!iov)
+-		axio =
+-			kmalloc(sizeof(struct vfe_cmd_axi_output_config),
+-				GFP_ATOMIC);
+-		if (!axio)
 -			return -ENOMEM;
 -
--		if (copy_from_user(iov, hp->dxferp, size)) {
--			kfree(iov);
+-		if (copy_from_user(axio, (void __user *)(vfecmd.value),
+-			sizeof(struct vfe_cmd_axi_output_config))) {
+-			kfree(axio);
 -			return -EFAULT;
 -		}
-+		iov = memdup_user(hp->dxferp, size);
-+		if (IS_ERR(iov))
-+			return PTR_ERR(iov);
++		axio = memdup_user((void __user *)(vfecmd.value),
++				   sizeof(struct vfe_cmd_axi_output_config));
++		if (IS_ERR(axio))
++			return PTR_ERR(axio);
  
- 		len = iov_length(iov, iov_count);
- 		if (hp->dxfer_len < len) {
+ 		vfe_config_axi(OUTPUT_1, axid, axio);
+ 		vfe_axi_output_config(axio);
+@@ -669,17 +662,10 @@ static int vfe_config(struct msm_vfe_cfg
+ 		if (!axid)
+ 			return -EFAULT;
+ 
+-		axio =
+-			kmalloc(sizeof(struct vfe_cmd_axi_output_config),
+-				GFP_ATOMIC);
+-		if (!axio)
+-			return -ENOMEM;
+-
+-		if (copy_from_user(axio, (void __user *)(vfecmd.value),
+-				sizeof(struct vfe_cmd_axi_output_config))) {
+-			kfree(axio);
+-			return -EFAULT;
+-		}
++		axio = memdup_user((void __user *)(vfecmd.value),
++				   sizeof(struct vfe_cmd_axi_output_config));
++		if (IS_ERR(axio))
++			return PTR_ERR(axio);
+ 
+ 		vfe_config_axi(OUTPUT_2, axid, axio);
+ 
+@@ -694,17 +680,10 @@ static int vfe_config(struct msm_vfe_cfg
+ 		if (!axid)
+ 			return -EFAULT;
+ 
+-		axio =
+-			kmalloc(sizeof(struct vfe_cmd_axi_output_config),
+-				GFP_ATOMIC);
+-		if (!axio)
+-			return -ENOMEM;
+-
+-		if (copy_from_user(axio, (void __user *)(vfecmd.value),
+-			sizeof(struct vfe_cmd_axi_output_config))) {
+-			kfree(axio);
+-			return -EFAULT;
+-		}
++		axio = memdup_user((void __user *)(vfecmd.value),
++				   sizeof(struct vfe_cmd_axi_output_config));
++		if (IS_ERR(axio))
++			return PTR_ERR(axio);
+ 
+ 		vfe_config_axi(OUTPUT_1_AND_2,
+ 			axid, axio);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
