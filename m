@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-btrfs-use-err_cast.patch added to -mm tree
-Date: Tue, 25 May 2010 15:56:30 -0700
-Message-ID: <201005252256.o4PMuU8V019925@imap1.linux-foundation.org>
+Subject: + fs-affs-use-err_cast.patch added to -mm tree
+Date: Tue, 25 May 2010 15:56:36 -0700
+Message-ID: <201005252256.o4PMuarT019939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756600Ab0EYW4g (ORCPT
+	by vger.kernel.org with ESMTP id S1756659Ab0EYW4j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:56:36 -0400
+	Tue, 25 May 2010 18:56:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, chris.mason@oracle.com
+Cc: julia@diku.dk
 
 
 The patch titled
-     fs/btrfs: use ERR_CAST
+     fs/affs: use ERR_CAST
 has been added to the -mm tree.  Its filename is
-     fs-btrfs-use-err_cast.patch
+     fs-affs-use-err_cast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/btrfs: use ERR_CAST
+Subject: fs/affs: use ERR_CAST
 From: Julia Lawall <julia@diku.dk>
 
 Use ERR_CAST(x) rather than ERR_PTR(PTR_ERR(x)).  The former makes more
@@ -65,47 +65,24 @@ expression x;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/extent_map.c |    4 ++--
- fs/btrfs/super.c      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/affs/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/btrfs/extent_map.c~fs-btrfs-use-err_cast fs/btrfs/extent_map.c
---- a/fs/btrfs/extent_map.c~fs-btrfs-use-err_cast
-+++ a/fs/btrfs/extent_map.c
-@@ -335,7 +335,7 @@ struct extent_map *lookup_extent_mapping
- 		goto out;
+diff -puN fs/affs/namei.c~fs-affs-use-err_cast fs/affs/namei.c
+--- a/fs/affs/namei.c~fs-affs-use-err_cast
++++ a/fs/affs/namei.c
+@@ -224,7 +224,7 @@ affs_lookup(struct inode *dir, struct de
+ 		affs_brelse(bh);
+ 		inode = affs_iget(sb, ino);
+ 		if (IS_ERR(inode))
+-			return ERR_PTR(PTR_ERR(inode));
++			return ERR_CAST(inode);
  	}
- 	if (IS_ERR(rb_node)) {
--		em = ERR_PTR(PTR_ERR(rb_node));
-+		em = ERR_CAST(rb_node);
- 		goto out;
- 	}
- 	em = rb_entry(rb_node, struct extent_map, rb_node);
-@@ -384,7 +384,7 @@ struct extent_map *search_extent_mapping
- 		goto out;
- 	}
- 	if (IS_ERR(rb_node)) {
--		em = ERR_PTR(PTR_ERR(rb_node));
-+		em = ERR_CAST(rb_node);
- 		goto out;
- 	}
- 	em = rb_entry(rb_node, struct extent_map, rb_node);
-diff -puN fs/btrfs/super.c~fs-btrfs-use-err_cast fs/btrfs/super.c
---- a/fs/btrfs/super.c~fs-btrfs-use-err_cast
-+++ a/fs/btrfs/super.c
-@@ -378,7 +378,7 @@ static struct dentry *get_default_root(s
- find_root:
- 	new_root = btrfs_read_fs_root_no_name(root->fs_info, &location);
- 	if (IS_ERR(new_root))
--		return ERR_PTR(PTR_ERR(new_root));
-+		return ERR_CAST(new_root);
- 
- 	if (btrfs_root_refs(&new_root->root_item) == 0)
- 		return ERR_PTR(-ENOENT);
+ 	dentry->d_op = AFFS_SB(sb)->s_flags & SF_INTL ? &affs_intl_dentry_operations : &affs_dentry_operations;
+ 	d_add(dentry, inode);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
