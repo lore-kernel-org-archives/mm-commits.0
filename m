@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-autofs4-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:53 -0700
-Message-ID: <201005252236.o4PMaslI019084@imap1.linux-foundation.org>
+Subject: + drivers-net-cxgb3-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:37 -0700
+Message-ID: <201005252236.o4PMabZP019058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758535Ab0EYWjr (ORCPT
+	by vger.kernel.org with ESMTP id S1758535Ab0EYWjt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:39:47 -0400
+	Tue, 25 May 2010 18:39:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, raven@themaw.net
+Cc: julia@diku.dk, davem@davemloft.net, divy@chelsio.com
 
 
 The patch titled
-     fs/autofs4: use memdup_user
+     drivers/net/cxgb3: use memdup_user
 has been added to the -mm tree.  Its filename is
-     fs-autofs4-use-memdup_user.patch
+     drivers-net-cxgb3-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/autofs4: use memdup_user
+Subject: drivers/net/cxgb3: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
-Use memdup_user when user data is immediately copied into the allocated
-region.  Elimination of the variable ads, which is no longer useful.
+Use memdup_user when user data is immediately copied into the
+allocated region.
 
 The semantic patch that makes this change is as follows:
 (http://coccinelle.lip6.fr/)
@@ -69,43 +69,36 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Ian Kent <raven@themaw.net>
+Cc: Divy Le Ray <divy@chelsio.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/net/cxgb3/cxgb3_main.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~fs-autofs4-use-memdup_user fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~fs-autofs4-use-memdup_user
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -95,7 +95,7 @@ static int check_dev_ioctl_version(int c
-  */
- static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
- {
--	struct autofs_dev_ioctl tmp, *ads;
-+	struct autofs_dev_ioctl tmp;
- 
- 	if (copy_from_user(&tmp, in, sizeof(tmp)))
- 		return ERR_PTR(-EFAULT);
-@@ -103,16 +103,7 @@ static struct autofs_dev_ioctl *copy_dev
- 	if (tmp.size < sizeof(tmp))
- 		return ERR_PTR(-EINVAL);
- 
--	ads = kmalloc(tmp.size, GFP_KERNEL);
--	if (!ads)
--		return ERR_PTR(-ENOMEM);
+diff -puN drivers/net/cxgb3/cxgb3_main.c~drivers-net-cxgb3-use-memdup_user drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~drivers-net-cxgb3-use-memdup_user
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -2311,15 +2311,9 @@ static int cxgb_extension_ioctl(struct n
+ 		if (copy_from_user(&t, useraddr, sizeof(t)))
+ 			return -EFAULT;
+ 		/* Check t.len sanity ? */
+-		fw_data = kmalloc(t.len, GFP_KERNEL);
+-		if (!fw_data)
+-			return -ENOMEM;
 -
--	if (copy_from_user(ads, in, tmp.size)) {
--		kfree(ads);
--		return ERR_PTR(-EFAULT);
--	}
--
--	return ads;
-+	return memdup_user(in, tmp.size);
- }
+-		if (copy_from_user
+-			(fw_data, useraddr + sizeof(t), t.len)) {
+-			kfree(fw_data);
+-			return -EFAULT;
+-		}
++		fw_data = memdup_user(useraddr + sizeof(t), t.len);
++		if (IS_ERR(fw_data))
++			return PTR_ERR(fw_data);
  
- static inline void free_dev_ioctl(struct autofs_dev_ioctl *param)
+ 		ret = t3_load_fw(adapter, fw_data, t.len);
+ 		kfree(fw_data);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
