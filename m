@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-isdn-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:37:23 -0700
-Message-ID: <201005252237.o4PMbNpN019134@imap1.linux-foundation.org>
+Subject: + fs-autofs4-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:53 -0700
+Message-ID: <201005252236.o4PMaslI019084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48515 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759043Ab0EYWhd (ORCPT
+	by vger.kernel.org with ESMTP id S1758535Ab0EYWjr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:33 -0400
+	Tue, 25 May 2010 18:39:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, isdn@linux-pingi.de
+Cc: julia@diku.dk, raven@themaw.net
 
 
 The patch titled
-     drivers/isdn: use memdup_user
+     fs/autofs4: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-isdn-use-memdup_user.patch
+     fs-autofs4-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/isdn: use memdup_user
+Subject: fs/autofs4: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
-Use memdup_user when user data is immediately copied into the
-allocated region.
+Use memdup_user when user data is immediately copied into the allocated
+region.  Elimination of the variable ads, which is no longer useful.
 
 The semantic patch that makes this change is as follows:
 (http://coccinelle.lip6.fr/)
@@ -69,105 +69,43 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_ppp.c |   11 +++--------
- drivers/isdn/pcbit/drv.c    |   10 +++-------
- drivers/isdn/sc/ioctl.c     |   23 ++++++-----------------
- 3 files changed, 12 insertions(+), 32 deletions(-)
+ fs/autofs4/dev-ioctl.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_ppp.c~drivers-isdn-use-memdup_user drivers/isdn/i4l/isdn_ppp.c
---- a/drivers/isdn/i4l/isdn_ppp.c~drivers-isdn-use-memdup_user
-+++ a/drivers/isdn/i4l/isdn_ppp.c
-@@ -449,14 +449,9 @@ static int get_filter(void __user *arg, 
+diff -puN fs/autofs4/dev-ioctl.c~fs-autofs4-use-memdup_user fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~fs-autofs4-use-memdup_user
++++ a/fs/autofs4/dev-ioctl.c
+@@ -95,7 +95,7 @@ static int check_dev_ioctl_version(int c
+  */
+ static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
+ {
+-	struct autofs_dev_ioctl tmp, *ads;
++	struct autofs_dev_ioctl tmp;
  
- 	/* uprog.len is unsigned short, so no overflow here */
- 	len = uprog.len * sizeof(struct sock_filter);
--	code = kmalloc(len, GFP_KERNEL);
--	if (code == NULL)
--		return -ENOMEM;
+ 	if (copy_from_user(&tmp, in, sizeof(tmp)))
+ 		return ERR_PTR(-EFAULT);
+@@ -103,16 +103,7 @@ static struct autofs_dev_ioctl *copy_dev
+ 	if (tmp.size < sizeof(tmp))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	ads = kmalloc(tmp.size, GFP_KERNEL);
+-	if (!ads)
+-		return ERR_PTR(-ENOMEM);
 -
--	if (copy_from_user(code, uprog.filter, len)) {
--		kfree(code);
--		return -EFAULT;
+-	if (copy_from_user(ads, in, tmp.size)) {
+-		kfree(ads);
+-		return ERR_PTR(-EFAULT);
 -	}
-+	code = memdup_user(uprog.filter, len);
-+	if (IS_ERR(code))
-+		return PTR_ERR(code);
- 
- 	err = sk_chk_filter(code, uprog.len);
- 	if (err) {
-diff -puN drivers/isdn/pcbit/drv.c~drivers-isdn-use-memdup_user drivers/isdn/pcbit/drv.c
---- a/drivers/isdn/pcbit/drv.c~drivers-isdn-use-memdup_user
-+++ a/drivers/isdn/pcbit/drv.c
-@@ -411,14 +411,10 @@ static int pcbit_writecmd(const u_char _
- 			return -EINVAL;
- 		}
- 
--		cbuf = kmalloc(len, GFP_KERNEL);
--		if (!cbuf)
--			return -ENOMEM;
-+		cbuf = memdup_user(buf, len);
-+		if (IS_ERR(cbuf))
-+			return PTR_ERR(cbuf);
- 
--		if (copy_from_user(cbuf, buf, len)) {
--			kfree(cbuf);
--			return -EFAULT;
--		}
- 		memcpy_toio(dev->sh_mem, cbuf, len);
- 		kfree(cbuf);
- 		return len;
-diff -puN drivers/isdn/sc/ioctl.c~drivers-isdn-use-memdup_user drivers/isdn/sc/ioctl.c
---- a/drivers/isdn/sc/ioctl.c~drivers-isdn-use-memdup_user
-+++ a/drivers/isdn/sc/ioctl.c
-@@ -215,19 +215,13 @@ int sc_ioctl(int card, scs_ioctl *data)
- 		pr_debug("%s: DCBIOSETSPID: ioctl received\n",
- 				sc_adapter[card]->devicename);
- 
--		spid = kmalloc(SCIOC_SPIDSIZE, GFP_KERNEL);
--		if(!spid) {
--			kfree(rcvmsg);
--			return -ENOMEM;
--		}
 -
- 		/*
- 		 * Get the spid from user space
- 		 */
--		if (copy_from_user(spid, data->dataptr, SCIOC_SPIDSIZE)) {
-+		spid = memdup_user(data->dataptr, SCIOC_SPIDSIZE);
-+		if (IS_ERR(spid)) {
- 			kfree(rcvmsg);
--			kfree(spid);
--			return -EFAULT;
-+			return PTR_ERR(spid);
- 		}
+-	return ads;
++	return memdup_user(in, tmp.size);
+ }
  
- 		pr_debug("%s: SCIOCSETSPID: setting channel %d spid to %s\n", 
-@@ -296,18 +290,13 @@ int sc_ioctl(int card, scs_ioctl *data)
- 		pr_debug("%s: SCIOSETDN: ioctl received\n",
- 				sc_adapter[card]->devicename);
- 
--		dn = kmalloc(SCIOC_DNSIZE, GFP_KERNEL);
--		if (!dn) {
--			kfree(rcvmsg);
--			return -ENOMEM;
--		}
- 		/*
- 		 * Get the spid from user space
- 		 */
--		if (copy_from_user(dn, data->dataptr, SCIOC_DNSIZE)) {
-+		dn = memdup_user(data->dataptr, SCIOC_DNSIZE);
-+		if (IS_ERR(dn)) {
- 			kfree(rcvmsg);
--			kfree(dn);
--			return -EFAULT;
-+			return PTR_ERR(dn);
- 		}
- 
- 		pr_debug("%s: SCIOCSETDN: setting channel %d dn to %s\n", 
+ static inline void free_dev_ioctl(struct autofs_dev_ioctl *param)
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
