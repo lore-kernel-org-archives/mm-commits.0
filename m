@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-btrfs-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:29 -0700
-Message-ID: <201005252236.o4PMaT0T019036@imap1.linux-foundation.org>
+Subject: + drivers-char-applicomc-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:57 -0700
+Message-ID: <201005252236.o4PMavgs019090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50407 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758698Ab0EYWhC (ORCPT
+	by vger.kernel.org with ESMTP id S1758608Ab0EYWhA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:02 -0400
+	Tue, 25 May 2010 18:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, chris.mason@oracle.com
+Cc: julia@diku.dk
 
 
 The patch titled
-     fs/btrfs: use memdup_user
+     drivers/char/applicom.c: use memdup_user
 has been added to the -mm tree.  Its filename is
-     fs-btrfs-use-memdup_user.patch
+     drivers-char-applicomc-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/btrfs: use memdup_user
+Subject: drivers/char/applicom.c: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,52 +69,33 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/ioctl.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ drivers/char/applicom.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user fs/btrfs/ioctl.c
---- a/fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user
-+++ a/fs/btrfs/ioctl.c
-@@ -1096,14 +1096,10 @@ static noinline int btrfs_ioctl_tree_sea
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+diff -puN drivers/char/applicom.c~drivers-char-applicomc-use-memdup_user drivers/char/applicom.c
+--- a/drivers/char/applicom.c~drivers-char-applicomc-use-memdup_user
++++ a/drivers/char/applicom.c
+@@ -703,14 +703,9 @@ static long ac_ioctl(struct file *file, 
+ 	/* In general, the device is only openable by root anyway, so we're not
+ 	   particularly concerned that bogus ioctls can flood the console. */
  
--	args = kmalloc(sizeof(*args), GFP_KERNEL);
--	if (!args)
+-	adgl = kmalloc(sizeof(struct st_ram_io), GFP_KERNEL);
+-	if (!adgl)
 -		return -ENOMEM;
-+	args = memdup_user(argp, sizeof(*args));
-+	if (IS_ERR(args))
-+		return PTR_ERR(args);
- 
--	if (copy_from_user(args, argp, sizeof(*args))) {
--		kfree(args);
+-
+-	if (copy_from_user(adgl, argp, sizeof(struct st_ram_io))) {
+-		kfree(adgl);
 -		return -EFAULT;
 -	}
- 	inode = fdentry(file)->d_inode;
- 	ret = search_ioctl(inode, args);
- 	if (ret == 0 && copy_to_user(argp, args, sizeof(*args)))
-@@ -1211,14 +1207,10 @@ static noinline int btrfs_ioctl_ino_look
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
++	adgl = memdup_user(argp, sizeof(struct st_ram_io));
++	if (IS_ERR(adgl))
++		return PTR_ERR(adgl);
  
--	args = kmalloc(sizeof(*args), GFP_KERNEL);
--	if (!args)
--		return -ENOMEM;
-+	args = memdup_user(argp, sizeof(*args));
-+	if (IS_ERR(args))
-+		return PTR_ERR(args);
- 
--	if (copy_from_user(args, argp, sizeof(*args))) {
--		kfree(args);
--		return -EFAULT;
--	}
- 	inode = fdentry(file)->d_inode;
- 
- 	if (args->treeid == 0)
+ 	lock_kernel();	
+ 	IndexCard = adgl->num_card-1;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
