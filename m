@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-s390-net-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:37:05 -0700
-Message-ID: <201005252237.o4PMb5SR019106@imap1.linux-foundation.org>
+Subject: + drivers-media-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:43 -0700
+Message-ID: <201005252236.o4PMah0m019069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758863Ab0EYWhO (ORCPT
+	by vger.kernel.org with ESMTP id S1758860Ab0EYWhV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:14 -0400
+	Tue, 25 May 2010 18:37:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, blaschka@linux.vnet.ibm.com, davem@davemloft.net, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, ursula.braun@de.ibm.com
+Cc: julia@diku.dk, mchehab@infradead.org
 
 
 The patch titled
-     drivers/s390/net: use memdup_user
+     drivers/media: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-s390-net-use-memdup_user.patch
+     drivers-media-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/s390/net: use memdup_user
+Subject: drivers/media: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,39 +69,58 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Ursula Braun <ursula.braun@de.ibm.com>
-Cc: Frank Blaschka <blaschka@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/qeth_core_main.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_demux.c |   10 +++-------
+ drivers/media/video/dabusb.c           |   13 ++++---------
+ 2 files changed, 7 insertions(+), 16 deletions(-)
 
-diff -puN drivers/s390/net/qeth_core_main.c~drivers-s390-net-use-memdup_user drivers/s390/net/qeth_core_main.c
---- a/drivers/s390/net/qeth_core_main.c~drivers-s390-net-use-memdup_user
-+++ a/drivers/s390/net/qeth_core_main.c
-@@ -3764,15 +3764,10 @@ int qeth_snmp_command(struct qeth_card *
- 	/* skip 4 bytes (data_len struct member) to get req_len */
- 	if (copy_from_user(&req_len, udata + sizeof(int), sizeof(int)))
- 		return -EFAULT;
--	ureq = kmalloc(req_len+sizeof(struct qeth_snmp_ureq_hdr), GFP_KERNEL);
--	if (!ureq) {
-+	ureq = memdup_user(udata, req_len + sizeof(struct qeth_snmp_ureq_hdr));
-+	if (IS_ERR(ureq)) {
- 		QETH_DBF_TEXT(TRACE, 2, "snmpnome");
+diff -puN drivers/media/dvb/dvb-core/dvb_demux.c~drivers-media-use-memdup_user drivers/media/dvb/dvb-core/dvb_demux.c
+--- a/drivers/media/dvb/dvb-core/dvb_demux.c~drivers-media-use-memdup_user
++++ a/drivers/media/dvb/dvb-core/dvb_demux.c
+@@ -1130,13 +1130,9 @@ static int dvbdmx_write(struct dmx_demux
+ 	if ((!demux->frontend) || (demux->frontend->source != DMX_MEMORY_FE))
+ 		return -EINVAL;
+ 
+-	p = kmalloc(count, GFP_USER);
+-	if (!p)
 -		return -ENOMEM;
--	}
--	if (copy_from_user(ureq, udata,
--			req_len + sizeof(struct qeth_snmp_ureq_hdr))) {
--		kfree(ureq);
+-	if (copy_from_user(p, buf, count)) {
+-		kfree(p);
 -		return -EFAULT;
-+		return PTR_ERR(ureq);
- 	}
- 	qinfo.udata_len = ureq->hdr.data_len;
- 	qinfo.udata = kzalloc(qinfo.udata_len, GFP_KERNEL);
+-	}
++	p = memdup_user(buf, count);
++	if (IS_ERR(p))
++		return PTR_ERR(p);
+ 	if (mutex_lock_interruptible(&dvbdemux->mutex)) {
+ 		kfree(p);
+ 		return -ERESTARTSYS;
+diff -puN drivers/media/video/dabusb.c~drivers-media-use-memdup_user drivers/media/video/dabusb.c
+--- a/drivers/media/video/dabusb.c~drivers-media-use-memdup_user
++++ a/drivers/media/video/dabusb.c
+@@ -706,16 +706,11 @@ static long dabusb_ioctl (struct file *f
+ 	switch (cmd) {
+ 
+ 	case IOCTL_DAB_BULK:
+-		pbulk = kmalloc(sizeof (bulk_transfer_t), GFP_KERNEL);
++		pbulk = memdup_user((void __user *)arg,
++				    sizeof(bulk_transfer_t));
+ 
+-		if (!pbulk) {
+-			ret = -ENOMEM;
+-			break;
+-		}
+-
+-		if (copy_from_user (pbulk, (void __user *) arg, sizeof (bulk_transfer_t))) {
+-			ret = -EFAULT;
+-			kfree (pbulk);
++		if (IS_ERR(pbulk)) {
++			ret = PTR_ERR(pbulk);
+ 			break;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
