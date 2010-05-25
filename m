@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ubifs-use-err_cast.patch added to -mm tree
-Date: Tue, 25 May 2010 15:56:28 -0700
-Message-ID: <201005252256.o4PMuSP0019922@imap1.linux-foundation.org>
+Subject: + mm-use-err_cast.patch added to -mm tree
+Date: Tue, 25 May 2010 15:56:32 -0700
+Message-ID: <201005252256.o4PMuWRa019932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752272Ab0EYW4c (ORCPT
+	by vger.kernel.org with ESMTP id S1756282Ab0EYW4g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:56:32 -0400
+	Tue, 25 May 2010 18:56:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dedekind1@gmail.com
+Cc: julia@diku.dk, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     fs/ubifs: use ERR_CAST
+     mm: use ERR_CAST
 has been added to the -mm tree.  Its filename is
-     fs-ubifs-use-err_cast.patch
+     mm-use-err_cast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ubifs: use ERR_CAST
+Subject: mm: use ERR_CAST
 From: Julia Lawall <julia@diku.dk>
 
 Use ERR_CAST(x) rather than ERR_PTR(PTR_ERR(x)).  The former makes more
@@ -65,78 +65,25 @@ expression x;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/lpt.c        |   14 +++++++-------
- fs/ubifs/lpt_commit.c |    2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ubifs/lpt.c~fs-ubifs-use-err_cast fs/ubifs/lpt.c
---- a/fs/ubifs/lpt.c~fs-ubifs-use-err_cast
-+++ a/fs/ubifs/lpt.c
-@@ -1457,13 +1457,13 @@ struct ubifs_lprops *ubifs_lpt_lookup(st
- 		shft -= UBIFS_LPT_FANOUT_SHIFT;
- 		nnode = ubifs_get_nnode(c, nnode, iip);
- 		if (IS_ERR(nnode))
--			return ERR_PTR(PTR_ERR(nnode));
-+			return ERR_CAST(nnode);
+diff -puN mm/vmalloc.c~mm-use-err_cast mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-use-err_cast
++++ a/mm/vmalloc.c
+@@ -732,7 +732,7 @@ static struct vmap_block *new_vmap_block
+ 					node, gfp_mask);
+ 	if (unlikely(IS_ERR(va))) {
+ 		kfree(vb);
+-		return ERR_PTR(PTR_ERR(va));
++		return ERR_CAST(va);
  	}
- 	iip = ((i >> shft) & (UBIFS_LPT_FANOUT - 1));
- 	shft -= UBIFS_LPT_FANOUT_SHIFT;
- 	pnode = ubifs_get_pnode(c, nnode, iip);
- 	if (IS_ERR(pnode))
--		return ERR_PTR(PTR_ERR(pnode));
-+		return ERR_CAST(pnode);
- 	iip = (i & (UBIFS_LPT_FANOUT - 1));
- 	dbg_lp("LEB %d, free %d, dirty %d, flags %d", lnum,
- 	       pnode->lprops[iip].free, pnode->lprops[iip].dirty,
-@@ -1586,7 +1586,7 @@ struct ubifs_lprops *ubifs_lpt_lookup_di
- 	nnode = c->nroot;
- 	nnode = dirty_cow_nnode(c, nnode);
- 	if (IS_ERR(nnode))
--		return ERR_PTR(PTR_ERR(nnode));
-+		return ERR_CAST(nnode);
- 	i = lnum - c->main_first;
- 	shft = c->lpt_hght * UBIFS_LPT_FANOUT_SHIFT;
- 	for (h = 1; h < c->lpt_hght; h++) {
-@@ -1594,19 +1594,19 @@ struct ubifs_lprops *ubifs_lpt_lookup_di
- 		shft -= UBIFS_LPT_FANOUT_SHIFT;
- 		nnode = ubifs_get_nnode(c, nnode, iip);
- 		if (IS_ERR(nnode))
--			return ERR_PTR(PTR_ERR(nnode));
-+			return ERR_CAST(nnode);
- 		nnode = dirty_cow_nnode(c, nnode);
- 		if (IS_ERR(nnode))
--			return ERR_PTR(PTR_ERR(nnode));
-+			return ERR_CAST(nnode);
- 	}
- 	iip = ((i >> shft) & (UBIFS_LPT_FANOUT - 1));
- 	shft -= UBIFS_LPT_FANOUT_SHIFT;
- 	pnode = ubifs_get_pnode(c, nnode, iip);
- 	if (IS_ERR(pnode))
--		return ERR_PTR(PTR_ERR(pnode));
-+		return ERR_CAST(pnode);
- 	pnode = dirty_cow_pnode(c, pnode);
- 	if (IS_ERR(pnode))
--		return ERR_PTR(PTR_ERR(pnode));
-+		return ERR_CAST(pnode);
- 	iip = (i & (UBIFS_LPT_FANOUT - 1));
- 	dbg_lp("LEB %d, free %d, dirty %d, flags %d", lnum,
- 	       pnode->lprops[iip].free, pnode->lprops[iip].dirty,
-diff -puN fs/ubifs/lpt_commit.c~fs-ubifs-use-err_cast fs/ubifs/lpt_commit.c
---- a/fs/ubifs/lpt_commit.c~fs-ubifs-use-err_cast
-+++ a/fs/ubifs/lpt_commit.c
-@@ -646,7 +646,7 @@ static struct ubifs_pnode *pnode_lookup(
- 		shft -= UBIFS_LPT_FANOUT_SHIFT;
- 		nnode = ubifs_get_nnode(c, nnode, iip);
- 		if (IS_ERR(nnode))
--			return ERR_PTR(PTR_ERR(nnode));
-+			return ERR_CAST(nnode);
- 	}
- 	iip = ((i >> shft) & (UBIFS_LPT_FANOUT - 1));
- 	return ubifs_get_pnode(c, nnode, iip);
+ 
+ 	err = radix_tree_preload(gfp_mask);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
