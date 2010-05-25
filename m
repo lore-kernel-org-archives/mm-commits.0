@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-err_ptr-dereference-in-mpol_shared_policy_init.patch added to -mm tree
-Date: Tue, 25 May 2010 15:01:29 -0700
-Message-ID: <201005252201.o4PM1T4E017435@imap1.linux-foundation.org>
+Subject: + fs-btrfs-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:29 -0700
+Message-ID: <201005252236.o4PMaT0T019036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58966 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933004Ab0EYWCE (ORCPT
+	by vger.kernel.org with ESMTP id S1758698Ab0EYWhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:02:04 -0400
+	Tue, 25 May 2010 18:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com
+Cc: julia@diku.dk, chris.mason@oracle.com
 
 
 The patch titled
-     mempolicy: ERR_PTR dereference in mpol_shared_policy_init()
+     fs/btrfs: use memdup_user
 has been added to the -mm tree.  Its filename is
-     mempolicy-err_ptr-dereference-in-mpol_shared_policy_init.patch
+     fs-btrfs-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: ERR_PTR dereference in mpol_shared_policy_init()
-From: Dan Carpenter <error27@gmail.com>
+Subject: fs/btrfs: use memdup_user
+From: Julia Lawall <julia@diku.dk>
 
-The original code called mpol_put(new) while "new" was an ERR_PTR.
+Use memdup_user when user data is immediately copied into the
+allocated region.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression from,to,size,flag;
+position p;
+identifier l1,l2;
+@@
+
+-  to = \(kmalloc@p\|kzalloc@p\)(size,flag);
++  to = memdup_user(from,size);
+   if (
+-      to==NULL
++      IS_ERR(to)
+                 || ...) {
+   <+... when != goto l1;
+-  -ENOMEM
++  PTR_ERR(to)
+   ...+>
+   }
+-  if (copy_from_user(to, from, size) != 0) {
+-    <+... when != goto l2;
+-    -EFAULT
+-    ...+>
+-  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/btrfs/ioctl.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-err_ptr-dereference-in-mpol_shared_policy_init mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-err_ptr-dereference-in-mpol_shared_policy_init
-+++ a/mm/mempolicy.c
-@@ -2098,7 +2098,7 @@ void mpol_shared_policy_init(struct shar
- 		/* contextualize the tmpfs mount point mempolicy */
- 		new = mpol_new(mpol->mode, mpol->flags, &mpol->w.user_nodemask);
- 		if (IS_ERR(new))
--			goto put_free; /* no valid nodemask intersection */
-+			goto free_scratch; /* no valid nodemask intersection */
+diff -puN fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user fs/btrfs/ioctl.c
+--- a/fs/btrfs/ioctl.c~fs-btrfs-use-memdup_user
++++ a/fs/btrfs/ioctl.c
+@@ -1096,14 +1096,10 @@ static noinline int btrfs_ioctl_tree_sea
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
  
- 		task_lock(current);
- 		ret = mpol_set_nodemask(new, &mpol->w.user_nodemask, scratch);
-@@ -2114,6 +2114,7 @@ void mpol_shared_policy_init(struct shar
+-	args = kmalloc(sizeof(*args), GFP_KERNEL);
+-	if (!args)
+-		return -ENOMEM;
++	args = memdup_user(argp, sizeof(*args));
++	if (IS_ERR(args))
++		return PTR_ERR(args);
  
- put_free:
- 		mpol_put(new);			/* drop initial ref */
-+free_scratch:
- 		NODEMASK_SCRATCH_FREE(scratch);
- 	}
- }
+-	if (copy_from_user(args, argp, sizeof(*args))) {
+-		kfree(args);
+-		return -EFAULT;
+-	}
+ 	inode = fdentry(file)->d_inode;
+ 	ret = search_ioctl(inode, args);
+ 	if (ret == 0 && copy_to_user(argp, args, sizeof(*args)))
+@@ -1211,14 +1207,10 @@ static noinline int btrfs_ioctl_ino_look
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	args = kmalloc(sizeof(*args), GFP_KERNEL);
+-	if (!args)
+-		return -ENOMEM;
++	args = memdup_user(argp, sizeof(*args));
++	if (IS_ERR(args))
++		return PTR_ERR(args);
+ 
+-	if (copy_from_user(args, argp, sizeof(*args))) {
+-		kfree(args);
+-		return -EFAULT;
+-	}
+ 	inode = fdentry(file)->d_inode;
+ 
+ 	if (args->treeid == 0)
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-mempolicy-err_ptr-dereference-in-mpol_shared_policy_init.patch
 linux-next.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-proc-cleanup-remove-unused-assignments.patch
+drivers-scsi-aacraid-eliminate-use-after-free.patch
+arch-x86-pci-use-kasprintf.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-char-ppdevc-use-kasprintf.patch
+net-can-use-memdup_user.patch
+drivers-net-use-memdup_user.patch
+fs-btrfs-use-memdup_user.patch
+drivers-video-via-use-memdup_user.patch
+mm-use-memdup_user.patch
+drivers-net-cxgb3-use-memdup_user.patch
+drivers-net-wan-use-memdup_user.patch
+drivers-block-use-memdup_user.patch
+drivers-media-use-memdup_user.patch
+drivers-infiniband-core-use-memdup_user.patch
+drivers-i2c-use-memdup_user.patch
+drivers-ieee1394-use-memdup_user.patch
+fs-autofs4-use-memdup_user.patch
+drivers-scsi-use-memdup_user.patch
+drivers-char-applicomc-use-memdup_user.patch
+drivers-char-vtc-use-memdup_user.patch
+drivers-message-i2o-i2o_configc-use-memdup_user.patch
+drivers-telephony-ixjc-use-memdup_user.patch
+drivers-s390-net-use-memdup_user.patch
+drivers-ide-use-memdup_user.patch
+net-dccp-use-memdup_user.patch
+drivers-net-wireless-prism54-use-memdup_user.patch
+drivers-usb-gadget-use-memdup_user.patch
+drivers-isdn-use-memdup_user.patch
+drivers-staging-dream-camera-use-memdup_user.patch
 
