@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3.patch added to -mm tree
-Date: Mon, 24 May 2010 11:36:23 -0700
-Message-ID: <201005241836.o4OIaNZh009068@imap1.linux-foundation.org>
+Subject: + ipmi-handle-run_to_completion-properly-in-deliver_recv_msg.patch added to -mm tree
+Date: Tue, 25 May 2010 11:00:54 -0700
+Message-ID: <201005251800.o4PI0svW006188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751050Ab0EXShH (ORCPT
+	by vger.kernel.org with ESMTP id S1754053Ab0EYSBD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 May 2010 14:37:07 -0400
+	Tue, 25 May 2010 14:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, rdunlap@xenotime.net
+Cc: jkosina@suse.cz, minyard@acm.org
 
 
 The patch titled
-     numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3
+     ipmi: handle run_to_completion properly in deliver_recv_msg()
 has been added to the -mm tree.  Its filename is
-     numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3.patch
+     ipmi-handle-run_to_completion-properly-in-deliver_recv_msg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: ipmi: handle run_to_completion properly in deliver_recv_msg()
+From: Jiri Kosina <jkosina@suse.cz>
 
-On Sun, 2010-05-16 at 16:37 -0700, Randy Dunlap wrote:
-> include/linux/topology.h:248: error: implicit declaration of function 'cpu_to_node'
->
->
-> config attached.
+If run_to_completion flag is set, it means that we are running in a
+single-threaded mode, and thus no locks are held.
 
-Hmmm, i386 NUMA.
+This fixes a deadlock when IPMI notifier is being called during panic.
 
-With the following patch, your config builds correctly.  !NUMA i386
-still builds, as well.
-
-Lee
-
-Fix i386 numa build:  define cpu_to_node() stub same as
-early_cpu_to_node() for i386 numa builds.  Just return node
-from cpu_to_node_map[].
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/topology.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/topology.h~numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3 arch/x86/include/asm/topology.h
---- a/arch/x86/include/asm/topology.h~numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3
-+++ a/arch/x86/include/asm/topology.h
-@@ -53,10 +53,12 @@
- extern int cpu_to_node_map[];
- 
- /* Returns the number of the node containing CPU 'cpu' */
--static inline int early_cpu_to_node(int cpu)
-+static inline int __cpu_to_node(int cpu)
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-handle-run_to_completion-properly-in-deliver_recv_msg drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-handle-run_to_completion-properly-in-deliver_recv_msg
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -323,9 +323,14 @@ static void deliver_recv_msg(struct smi_
  {
- 	return cpu_to_node_map[cpu];
+ 	/* Deliver the message to the upper layer with the lock
+ 	   released. */
+-	spin_unlock(&(smi_info->si_lock));
+-	ipmi_smi_msg_received(smi_info->intf, msg);
+-	spin_lock(&(smi_info->si_lock));
++
++	if (smi_info->run_to_completion) {
++		ipmi_smi_msg_received(smi_info->intf, msg);
++	} else {
++		spin_unlock(&(smi_info->si_lock));
++		ipmi_smi_msg_received(smi_info->intf, msg);
++		spin_lock(&(smi_info->si_lock));
++	}
  }
-+#define early_cpu_to_node __cpu_to_node
-+#define cpu_to_node __cpu_to_node
  
- #else /* CONFIG_X86_64 */
- 
+ static void return_hosed_msg(struct smi_info *smi_info, int cCode)
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-vmscan-page_check_references-check-low-order-lumpy-reclaim-properly.patch
-vmscan-page_check_references-check-low-order-lumpy-reclaim-properly-update.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-numa-x86_64-use-generic-percpu-var-numa_node_id-implementation-fix3.patch
+origin.patch
+linux-next.patch
+acpi-video-fix-acpi_backlight=video.patch
+ipmi-handle-run_to_completion-properly-in-deliver_recv_msg.patch
 
