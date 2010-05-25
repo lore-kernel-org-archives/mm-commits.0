@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-err_cast.patch added to -mm tree
-Date: Tue, 25 May 2010 15:56:32 -0700
-Message-ID: <201005252256.o4PMuWRa019932@imap1.linux-foundation.org>
+Subject: + fs-btrfs-use-err_cast.patch added to -mm tree
+Date: Tue, 25 May 2010 15:56:30 -0700
+Message-ID: <201005252256.o4PMuU8V019925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756282Ab0EYW4g (ORCPT
+	by vger.kernel.org with ESMTP id S1756600Ab0EYW4g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 25 May 2010 18:56:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, nickpiggin@yahoo.com.au
+Cc: julia@diku.dk, chris.mason@oracle.com
 
 
 The patch titled
-     mm: use ERR_CAST
+     fs/btrfs: use ERR_CAST
 has been added to the -mm tree.  Its filename is
-     mm-use-err_cast.patch
+     fs-btrfs-use-err_cast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use ERR_CAST
+Subject: fs/btrfs: use ERR_CAST
 From: Julia Lawall <julia@diku.dk>
 
 Use ERR_CAST(x) rather than ERR_PTR(PTR_ERR(x)).  The former makes more
@@ -65,25 +65,47 @@ expression x;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/btrfs/extent_map.c |    4 ++--
+ fs/btrfs/super.c      |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-use-err_cast mm/vmalloc.c
---- a/mm/vmalloc.c~mm-use-err_cast
-+++ a/mm/vmalloc.c
-@@ -732,7 +732,7 @@ static struct vmap_block *new_vmap_block
- 					node, gfp_mask);
- 	if (unlikely(IS_ERR(va))) {
- 		kfree(vb);
--		return ERR_PTR(PTR_ERR(va));
-+		return ERR_CAST(va);
+diff -puN fs/btrfs/extent_map.c~fs-btrfs-use-err_cast fs/btrfs/extent_map.c
+--- a/fs/btrfs/extent_map.c~fs-btrfs-use-err_cast
++++ a/fs/btrfs/extent_map.c
+@@ -335,7 +335,7 @@ struct extent_map *lookup_extent_mapping
+ 		goto out;
  	}
+ 	if (IS_ERR(rb_node)) {
+-		em = ERR_PTR(PTR_ERR(rb_node));
++		em = ERR_CAST(rb_node);
+ 		goto out;
+ 	}
+ 	em = rb_entry(rb_node, struct extent_map, rb_node);
+@@ -384,7 +384,7 @@ struct extent_map *search_extent_mapping
+ 		goto out;
+ 	}
+ 	if (IS_ERR(rb_node)) {
+-		em = ERR_PTR(PTR_ERR(rb_node));
++		em = ERR_CAST(rb_node);
+ 		goto out;
+ 	}
+ 	em = rb_entry(rb_node, struct extent_map, rb_node);
+diff -puN fs/btrfs/super.c~fs-btrfs-use-err_cast fs/btrfs/super.c
+--- a/fs/btrfs/super.c~fs-btrfs-use-err_cast
++++ a/fs/btrfs/super.c
+@@ -378,7 +378,7 @@ static struct dentry *get_default_root(s
+ find_root:
+ 	new_root = btrfs_read_fs_root_no_name(root->fs_info, &location);
+ 	if (IS_ERR(new_root))
+-		return ERR_PTR(PTR_ERR(new_root));
++		return ERR_CAST(new_root);
  
- 	err = radix_tree_preload(gfp_mask);
+ 	if (btrfs_root_refs(&new_root->root_item) == 0)
+ 		return ERR_PTR(-ENOENT);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
