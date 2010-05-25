@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-i2c-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:48 -0700
-Message-ID: <201005252236.o4PManTH019078@imap1.linux-foundation.org>
+Subject: + drivers-infiniband-core-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:45 -0700
+Message-ID: <201005252236.o4PMajL1019072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33070 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756588Ab0EYWj5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756228Ab0EYWkE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:39:57 -0400
+	Tue, 25 May 2010 18:40:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, khali@linux-fr.org
+Cc: julia@diku.dk, rdreier@cisco.com, wharms@bfs.de
 
 
 The patch titled
-     drivers/i2c: use memdup_user
+     drivers/infiniband/core: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-i2c-use-memdup_user.patch
+     drivers-infiniband-core-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/i2c: use memdup_user
+Subject: drivers/infiniband/core: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
-Use memdup_user when user data is immediately copied into the allocated
-region.  Note that in the second case, the ++i is no longer necessary, as
-the last value is already freed if needed by the call to memdup_user.
+Use memdup_user when user data is immediately copied into the
+allocated region.
 
 The semantic patch that makes this change is as follows:
 (http://coccinelle.lip6.fr/)
@@ -70,52 +69,35 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: walter harms <wharms@bfs.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-dev.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/ucm.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/i2c/i2c-dev.c~drivers-i2c-use-memdup_user drivers/i2c/i2c-dev.c
---- a/drivers/i2c/i2c-dev.c~drivers-i2c-use-memdup_user
-+++ a/drivers/i2c/i2c-dev.c
-@@ -167,13 +167,9 @@ static ssize_t i2cdev_write(struct file 
- 	if (count > 8192)
- 		count = 8192;
+diff -puN drivers/infiniband/core/ucm.c~drivers-infiniband-core-use-memdup_user drivers/infiniband/core/ucm.c
+--- a/drivers/infiniband/core/ucm.c~drivers-infiniband-core-use-memdup_user
++++ a/drivers/infiniband/core/ucm.c
+@@ -706,14 +706,9 @@ static int ib_ucm_alloc_data(const void 
+ 	if (!len)
+ 		return 0;
  
--	tmp = kmalloc(count, GFP_KERNEL);
--	if (tmp == NULL)
+-	data = kmalloc(len, GFP_KERNEL);
+-	if (!data)
 -		return -ENOMEM;
--	if (copy_from_user(tmp, buf, count)) {
--		kfree(tmp);
+-
+-	if (copy_from_user(data, (void __user *)(unsigned long)src, len)) {
+-		kfree(data);
 -		return -EFAULT;
 -	}
-+	tmp = memdup_user(buf, count);
-+	if (IS_ERR(tmp))
-+		return PTR_ERR(tmp);
++	data = memdup_user((void __user *)(unsigned long)src, len);
++	if (IS_ERR(data))
++		return PTR_ERR(data);
  
- 	pr_debug("i2c-dev: i2c-%d writing %zu bytes.\n",
- 		iminor(file->f_path.dentry->d_inode), count);
-@@ -247,15 +243,9 @@ static noinline int i2cdev_ioctl_rdrw(st
- 			break;
- 		}
- 		data_ptrs[i] = (u8 __user *)rdwr_pa[i].buf;
--		rdwr_pa[i].buf = kmalloc(rdwr_pa[i].len, GFP_KERNEL);
--		if (rdwr_pa[i].buf == NULL) {
--			res = -ENOMEM;
--			break;
--		}
--		if (copy_from_user(rdwr_pa[i].buf, data_ptrs[i],
--				   rdwr_pa[i].len)) {
--				++i; /* Needs to be kfreed too */
--				res = -EFAULT;
-+		rdwr_pa[i].buf = memdup_user(data_ptrs[i], rdwr_pa[i].len);
-+		if (IS_ERR(rdwr_pa[i].buf)) {
-+			res = PTR_ERR(rdwr_pa[i].buf);
- 			break;
- 		}
- 	}
+ 	*dest = data;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
