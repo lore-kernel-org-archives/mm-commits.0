@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-message-i2o-i2o_configc-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:37:01 -0700
-Message-ID: <201005252237.o4PMb1BQ019097@imap1.linux-foundation.org>
+Subject: + drivers-telephony-ixjc-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:37:03 -0700
+Message-ID: <201005252237.o4PMb3L8019103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758778Ab0EYWhE (ORCPT
+	by vger.kernel.org with ESMTP id S1758608Ab0EYWhH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:04 -0400
+	Tue, 25 May 2010 18:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: julia@diku.dk
 
 
 The patch titled
-     drivers/message/i2o/i2o_config.c: use memdup_user
+     drivers/telephony/ixj.c: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-message-i2o-i2o_configc-use-memdup_user.patch
+     drivers-telephony-ixjc-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/message/i2o/i2o_config.c: use memdup_user
+Subject: drivers/telephony/ixj.c: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -72,30 +72,37 @@ Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_config.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/telephony/ixj.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/message/i2o/i2o_config.c~drivers-message-i2o-i2o_configc-use-memdup_user drivers/message/i2o/i2o_config.c
---- a/drivers/message/i2o/i2o_config.c~drivers-message-i2o-i2o_configc-use-memdup_user
-+++ a/drivers/message/i2o/i2o_config.c
-@@ -186,14 +186,9 @@ static int i2o_cfg_parms(unsigned long a
- 	if (!dev)
- 		return -ENXIO;
- 
--	ops = kmalloc(kcmd.oplen, GFP_KERNEL);
--	if (!ops)
+diff -puN drivers/telephony/ixj.c~drivers-telephony-ixjc-use-memdup_user drivers/telephony/ixj.c
+--- a/drivers/telephony/ixj.c~drivers-telephony-ixjc-use-memdup_user
++++ a/drivers/telephony/ixj.c
+@@ -5879,20 +5879,13 @@ out:
+ static int ixj_build_filter_cadence(IXJ *j, IXJ_FILTER_CADENCE __user * cp)
+ {
+ 	IXJ_FILTER_CADENCE *lcp;
+-	lcp = kmalloc(sizeof(IXJ_FILTER_CADENCE), GFP_KERNEL);
+-	if (lcp == NULL) {
++	lcp = memdup_user(cp, sizeof(IXJ_FILTER_CADENCE));
++	if (IS_ERR(lcp)) {
+ 		if(ixjdebug & 0x0001) {
+-			printk(KERN_INFO "Could not allocate memory for cadence\n");
++			printk(KERN_INFO "Could not allocate memory for cadence or could not copy cadence to kernel\n");
+ 		}
 -		return -ENOMEM;
--
--	if (copy_from_user(ops, kcmd.opbuf, kcmd.oplen)) {
--		kfree(ops);
++		return PTR_ERR(lcp);
+         }
+-	if (copy_from_user(lcp, cp, sizeof(IXJ_FILTER_CADENCE))) {
+-		if(ixjdebug & 0x0001) {
+-			printk(KERN_INFO "Could not copy cadence to kernel\n");
+-		}
+-		kfree(lcp);
 -		return -EFAULT;
 -	}
-+	ops = memdup_user(kcmd.opbuf, kcmd.oplen);
-+	if (IS_ERR(ops))
-+		return PTR_ERR(ops);
- 
- 	/*
- 	 * It's possible to have a _very_ large table
+ 	if (lcp->filter > 5) {
+ 		if(ixjdebug & 0x0001) {
+ 			printk(KERN_INFO "Cadence out of range\n");
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
