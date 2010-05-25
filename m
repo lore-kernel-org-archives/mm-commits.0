@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:27 -0700
-Message-ID: <201005252236.o4PMaRL8019033@imap1.linux-foundation.org>
+Subject: + net-can-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:24 -0700
+Message-ID: <201005252236.o4PMaPRR019029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758608Ab0EYWhD (ORCPT
+	by vger.kernel.org with ESMTP id S1758766Ab0EYWhE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:03 -0400
+	Tue, 25 May 2010 18:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, davem@davemloft.net, paulus@samba.org
+Cc: julia@diku.dk, davem@davemloft.net, socketcan@hartkopp.net, urs.thuermann@volkswagen.de
 
 
 The patch titled
-     drivers/net: use memdup_user
+     net/can: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-net-use-memdup_user.patch
+     net-can-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net: use memdup_user
+Subject: net/can: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,35 +69,36 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Oliver Hartkopp <socketcan@hartkopp.net>
+Cc: Urs Thuermann <urs.thuermann@volkswagen.de>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ppp_generic.c |   11 +++--------
+ net/can/raw.c |   11 +++--------
  1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/ppp_generic.c~drivers-net-use-memdup_user drivers/net/ppp_generic.c
---- a/drivers/net/ppp_generic.c~drivers-net-use-memdup_user
-+++ a/drivers/net/ppp_generic.c
-@@ -539,14 +539,9 @@ static int get_filter(void __user *arg, 
- 	}
+diff -puN net/can/raw.c~net-can-use-memdup_user net/can/raw.c
+--- a/net/can/raw.c~net-can-use-memdup_user
++++ a/net/can/raw.c
+@@ -436,14 +436,9 @@ static int raw_setsockopt(struct socket 
  
- 	len = uprog.len * sizeof(struct sock_filter);
--	code = kmalloc(len, GFP_KERNEL);
--	if (code == NULL)
--		return -ENOMEM;
+ 		if (count > 1) {
+ 			/* filter does not fit into dfilter => alloc space */
+-			filter = kmalloc(optlen, GFP_KERNEL);
+-			if (!filter)
+-				return -ENOMEM;
 -
--	if (copy_from_user(code, uprog.filter, len)) {
--		kfree(code);
--		return -EFAULT;
--	}
-+	code = memdup_user(uprog.filter, len);
-+	if (IS_ERR(code))
-+		return PTR_ERR(code);
- 
- 	err = sk_chk_filter(code, uprog.len);
- 	if (err) {
+-			if (copy_from_user(filter, optval, optlen)) {
+-				kfree(filter);
+-				return -EFAULT;
+-			}
++			filter = memdup_user(optval, optlen);
++			if (IS_ERR(filter))
++				return PTR_ERR(filter);
+ 		} else if (count == 1) {
+ 			if (copy_from_user(&sfilter, optval, sizeof(sfilter)))
+ 				return -EFAULT;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
