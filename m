@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:41 -0700
-Message-ID: <201005252236.o4PMafNA019064@imap1.linux-foundation.org>
+Subject: + drivers-i2c-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:48 -0700
+Message-ID: <201005252236.o4PManTH019078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38784 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757217Ab0EYWj6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756588Ab0EYWj5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:39:58 -0400
+	Tue, 25 May 2010 18:39:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, chirag.kantharia@hp.com, jens.axboe@oracle.com
+Cc: julia@diku.dk, khali@linux-fr.org
 
 
 The patch titled
-     drivers/block: use memdup_user
+     drivers/i2c: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-block-use-memdup_user.patch
+     drivers-i2c-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block: use memdup_user
+Subject: drivers/i2c: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
-Use memdup_user when user data is immediately copied into the
-allocated region.  Some checkpatch cleanups in nearby code.
+Use memdup_user when user data is immediately copied into the allocated
+region.  Note that in the second case, the ++i is no longer necessary, as
+the last value is already freed if needed by the call to memdup_user.
 
 The semantic patch that makes this change is as follows:
 (http://coccinelle.lip6.fr/)
@@ -69,64 +70,52 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Chirag Kantharia <chirag.kantharia@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cpqarray.c |   32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ drivers/i2c/i2c-dev.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN drivers/block/cpqarray.c~drivers-block-use-memdup_user drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~drivers-block-use-memdup_user
-+++ a/drivers/block/cpqarray.c
-@@ -1225,17 +1225,11 @@ static int ida_ctlr_ioctl(ctlr_info_t *h
- 	/* Pre submit processing */
- 	switch(io->cmd) {
- 	case PASSTHRU_A:
--		p = kmalloc(io->sg[0].size, GFP_KERNEL);
--		if (!p) 
--		{ 
--			error = -ENOMEM; 
--			cmd_free(h, c, 0); 
--			return(error);
--		}
--		if (copy_from_user(p, io->sg[0].addr, io->sg[0].size)) {
--			kfree(p);
--			cmd_free(h, c, 0); 
--			return -EFAULT;
-+		p = memdup_user(io->sg[0].addr, io->sg[0].size);
-+		if (IS_ERR(p)) {
-+			error = PTR_ERR(p);
-+			cmd_free(h, c, 0);
-+			return error;
+diff -puN drivers/i2c/i2c-dev.c~drivers-i2c-use-memdup_user drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c~drivers-i2c-use-memdup_user
++++ a/drivers/i2c/i2c-dev.c
+@@ -167,13 +167,9 @@ static ssize_t i2cdev_write(struct file 
+ 	if (count > 8192)
+ 		count = 8192;
+ 
+-	tmp = kmalloc(count, GFP_KERNEL);
+-	if (tmp == NULL)
+-		return -ENOMEM;
+-	if (copy_from_user(tmp, buf, count)) {
+-		kfree(tmp);
+-		return -EFAULT;
+-	}
++	tmp = memdup_user(buf, count);
++	if (IS_ERR(tmp))
++		return PTR_ERR(tmp);
+ 
+ 	pr_debug("i2c-dev: i2c-%d writing %zu bytes.\n",
+ 		iminor(file->f_path.dentry->d_inode), count);
+@@ -247,15 +243,9 @@ static noinline int i2cdev_ioctl_rdrw(st
+ 			break;
  		}
- 		c->req.hdr.blk = pci_map_single(h->pci_dev, &(io->c), 
- 				sizeof(ida_ioctl_t), 
-@@ -1266,18 +1260,12 @@ static int ida_ctlr_ioctl(ctlr_info_t *h
- 	case DIAG_PASS_THRU:
- 	case COLLECT_BUFFER:
- 	case WRITE_FLASH_ROM:
--		p = kmalloc(io->sg[0].size, GFP_KERNEL);
--		if (!p) 
-- 		{ 
--                        error = -ENOMEM; 
--                        cmd_free(h, c, 0);
--                        return(error);
-+		p = memdup_user(io->sg[0].addr, io->sg[0].size);
-+		if (IS_ERR(p)) {
-+			error = PTR_ERR(p);
-+			cmd_free(h, c, 0);
-+			return error;
-                 }
--		if (copy_from_user(p, io->sg[0].addr, io->sg[0].size)) {
--			kfree(p);
--                        cmd_free(h, c, 0);
--			return -EFAULT;
+ 		data_ptrs[i] = (u8 __user *)rdwr_pa[i].buf;
+-		rdwr_pa[i].buf = kmalloc(rdwr_pa[i].len, GFP_KERNEL);
+-		if (rdwr_pa[i].buf == NULL) {
+-			res = -ENOMEM;
+-			break;
 -		}
- 		c->req.sg[0].size = io->sg[0].size;
- 		c->req.sg[0].addr = pci_map_single(h->pci_dev, p, 
- 			c->req.sg[0].size, PCI_DMA_BIDIRECTIONAL); 
+-		if (copy_from_user(rdwr_pa[i].buf, data_ptrs[i],
+-				   rdwr_pa[i].len)) {
+-				++i; /* Needs to be kfreed too */
+-				res = -EFAULT;
++		rdwr_pa[i].buf = memdup_user(data_ptrs[i], rdwr_pa[i].len);
++		if (IS_ERR(rdwr_pa[i].buf)) {
++			res = PTR_ERR(rdwr_pa[i].buf);
+ 			break;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
