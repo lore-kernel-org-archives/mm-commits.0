@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-use-err_cast.patch added to -mm tree
-Date: Tue, 25 May 2010 15:56:22 -0700
-Message-ID: <201005252256.o4PMuMdm019913@imap1.linux-foundation.org>
+Subject: + drivers-mmc-host-use-err_cast.patch added to -mm tree
+Date: Tue, 25 May 2010 15:56:26 -0700
+Message-ID: <201005252256.o4PMuQcu019919__36819.1085909077$1274828197$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751024Ab0EYW41 (ORCPT
+	by vger.kernel.org with ESMTP id S1751024Ab0EYW43 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:56:27 -0400
+	Tue, 25 May 2010 18:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, manfred@colorfullife.com
+Cc: julia@diku.dk, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: use ERR_CAST
+     drivers/mmc/host: use ERR_CAST
 has been added to the -mm tree.  Its filename is
-     ipc-semc-use-err_cast.patch
+     drivers-mmc-host-use-err_cast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: use ERR_CAST
+Subject: drivers/mmc/host: use ERR_CAST
 From: Julia Lawall <julia@diku.dk>
 
 Use ERR_CAST(x) rather than ERR_PTR(PTR_ERR(x)).  The former makes more
@@ -65,25 +65,25 @@ expression x;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    2 +-
+ drivers/mmc/host/sdhci-pci.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-semc-use-err_cast ipc/sem.c
---- a/ipc/sem.c~ipc-semc-use-err_cast
-+++ a/ipc/sem.c
-@@ -1208,7 +1208,7 @@ static struct sem_undo *find_alloc_undo(
- 	/* step 1: figure out the size of the semaphore array */
- 	sma = sem_lock_check(ns, semid);
- 	if (IS_ERR(sma))
--		return ERR_PTR(PTR_ERR(sma));
-+		return ERR_CAST(sma);
+diff -puN drivers/mmc/host/sdhci-pci.c~drivers-mmc-host-use-err_cast drivers/mmc/host/sdhci-pci.c
+--- a/drivers/mmc/host/sdhci-pci.c~drivers-mmc-host-use-err_cast
++++ a/drivers/mmc/host/sdhci-pci.c
+@@ -628,7 +628,7 @@ static struct sdhci_pci_slot * __devinit
+ 	host = sdhci_alloc_host(&pdev->dev, sizeof(struct sdhci_pci_slot));
+ 	if (IS_ERR(host)) {
+ 		dev_err(&pdev->dev, "cannot allocate host\n");
+-		return ERR_PTR(PTR_ERR(host));
++		return ERR_CAST(host);
+ 	}
  
- 	nsems = sma->sem_nsems;
- 	sem_getref_and_unlock(sma);
+ 	slot = sdhci_priv(host);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
