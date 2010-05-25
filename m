@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:43 -0700
-Message-ID: <201005252236.o4PMah0m019069@imap1.linux-foundation.org>
+Subject: + drivers-usb-gadget-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:37:20 -0700
+Message-ID: <201005252237.o4PMbKT2019129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758860Ab0EYWhV (ORCPT
+	by vger.kernel.org with ESMTP id S1758683Ab0EYWh0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:21 -0400
+	Tue, 25 May 2010 18:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, mchehab@infradead.org
+Cc: julia@diku.dk, david-b@pacbell.net, greg@kroah.com
 
 
 The patch titled
-     drivers/media: use memdup_user
+     drivers/usb/gadget: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-media-use-memdup_user.patch
+     drivers-usb-gadget-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media: use memdup_user
+Subject: drivers/usb/gadget: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,58 +69,34 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_demux.c |   10 +++-------
- drivers/media/video/dabusb.c           |   13 ++++---------
- 2 files changed, 7 insertions(+), 16 deletions(-)
+ drivers/usb/gadget/inode.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_demux.c~drivers-media-use-memdup_user drivers/media/dvb/dvb-core/dvb_demux.c
---- a/drivers/media/dvb/dvb-core/dvb_demux.c~drivers-media-use-memdup_user
-+++ a/drivers/media/dvb/dvb-core/dvb_demux.c
-@@ -1130,13 +1130,9 @@ static int dvbdmx_write(struct dmx_demux
- 	if ((!demux->frontend) || (demux->frontend->source != DMX_MEMORY_FE))
- 		return -EINVAL;
+diff -puN drivers/usb/gadget/inode.c~drivers-usb-gadget-use-memdup_user drivers/usb/gadget/inode.c
+--- a/drivers/usb/gadget/inode.c~drivers-usb-gadget-use-memdup_user
++++ a/drivers/usb/gadget/inode.c
+@@ -1867,13 +1867,9 @@ dev_config (struct file *fd, const char 
+ 	buf += 4;
+ 	length -= 4;
  
--	p = kmalloc(count, GFP_USER);
--	if (!p)
+-	kbuf = kmalloc (length, GFP_KERNEL);
+-	if (!kbuf)
 -		return -ENOMEM;
--	if (copy_from_user(p, buf, count)) {
--		kfree(p);
+-	if (copy_from_user (kbuf, buf, length)) {
+-		kfree (kbuf);
 -		return -EFAULT;
 -	}
-+	p = memdup_user(buf, count);
-+	if (IS_ERR(p))
-+		return PTR_ERR(p);
- 	if (mutex_lock_interruptible(&dvbdemux->mutex)) {
- 		kfree(p);
- 		return -ERESTARTSYS;
-diff -puN drivers/media/video/dabusb.c~drivers-media-use-memdup_user drivers/media/video/dabusb.c
---- a/drivers/media/video/dabusb.c~drivers-media-use-memdup_user
-+++ a/drivers/media/video/dabusb.c
-@@ -706,16 +706,11 @@ static long dabusb_ioctl (struct file *f
- 	switch (cmd) {
++	kbuf = memdup_user(buf, length);
++	if (IS_ERR(kbuf))
++		return PTR_ERR(kbuf);
  
- 	case IOCTL_DAB_BULK:
--		pbulk = kmalloc(sizeof (bulk_transfer_t), GFP_KERNEL);
-+		pbulk = memdup_user((void __user *)arg,
-+				    sizeof(bulk_transfer_t));
- 
--		if (!pbulk) {
--			ret = -ENOMEM;
--			break;
--		}
--
--		if (copy_from_user (pbulk, (void __user *) arg, sizeof (bulk_transfer_t))) {
--			ret = -EFAULT;
--			kfree (pbulk);
-+		if (IS_ERR(pbulk)) {
-+			ret = PTR_ERR(pbulk);
- 			break;
- 		}
- 
+ 	spin_lock_irq (&dev->lock);
+ 	value = -EINVAL;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
