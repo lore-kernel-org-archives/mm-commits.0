@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-applicomc-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:57 -0700
-Message-ID: <201005252236.o4PMavgs019090@imap1.linux-foundation.org>
+Subject: + drivers-char-vtc-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:59 -0700
+Message-ID: <201005252236.o4PMaxwV019094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54564 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758608Ab0EYWhA (ORCPT
+	by vger.kernel.org with ESMTP id S1758731Ab0EYWhD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:00 -0400
+	Tue, 25 May 2010 18:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: julia@diku.dk
 
 
 The patch titled
-     drivers/char/applicom.c: use memdup_user
+     drivers/char/vt.c: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-char-applicomc-use-memdup_user.patch
+     drivers-char-vtc-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/applicom.c: use memdup_user
+Subject: drivers/char/vt.c: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -72,30 +72,29 @@ Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/applicom.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/char/vt.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/applicom.c~drivers-char-applicomc-use-memdup_user drivers/char/applicom.c
---- a/drivers/char/applicom.c~drivers-char-applicomc-use-memdup_user
-+++ a/drivers/char/applicom.c
-@@ -703,14 +703,9 @@ static long ac_ioctl(struct file *file, 
- 	/* In general, the device is only openable by root anyway, so we're not
- 	   particularly concerned that bogus ioctls can flood the console. */
- 
--	adgl = kmalloc(sizeof(struct st_ram_io), GFP_KERNEL);
--	if (!adgl)
+diff -puN drivers/char/vt.c~drivers-char-vtc-use-memdup_user drivers/char/vt.c
+--- a/drivers/char/vt.c~drivers-char-vtc-use-memdup_user
++++ a/drivers/char/vt.c
+@@ -3967,13 +3967,9 @@ static int con_font_set(struct vc_data *
+ 	font.charcount = op->charcount;
+ 	font.height = op->height;
+ 	font.width = op->width;
+-	font.data = kmalloc(size, GFP_KERNEL);
+-	if (!font.data)
 -		return -ENOMEM;
--
--	if (copy_from_user(adgl, argp, sizeof(struct st_ram_io))) {
--		kfree(adgl);
+-	if (copy_from_user(font.data, op->data, size)) {
+-		kfree(font.data);
 -		return -EFAULT;
 -	}
-+	adgl = memdup_user(argp, sizeof(struct st_ram_io));
-+	if (IS_ERR(adgl))
-+		return PTR_ERR(adgl);
- 
- 	lock_kernel();	
- 	IndexCard = adgl->num_card-1;
++	font.data = memdup_user(op->data, size);
++	if (IS_ERR(font.data))
++		return PTR_ERR(font.data);
+ 	acquire_console_sem();
+ 	if (vc->vc_sw->con_font_set)
+ 		rc = vc->vc_sw->con_font_set(vc, &font, op->flags);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
