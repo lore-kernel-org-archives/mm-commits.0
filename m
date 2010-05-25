@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-gadget-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:37:20 -0700
-Message-ID: <201005252237.o4PMbKT2019129@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-prism54-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:37:11 -0700
+Message-ID: <201005252237.o4PMbBvX019120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758683Ab0EYWh0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758683Ab0EYWh2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:26 -0400
+	Tue, 25 May 2010 18:37:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, david-b@pacbell.net, greg@kroah.com
+Cc: julia@diku.dk, linville@tuxdriver.com, mcgrof@gmail.com
 
 
 The patch titled
-     drivers/usb/gadget: use memdup_user
+     drivers/net/wireless/prism54: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-usb-gadget-use-memdup_user.patch
+     drivers-net-wireless-prism54-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/gadget: use memdup_user
+Subject: drivers/net/wireless/prism54: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,34 +69,35 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: "Luis R. Rodriguez" <mcgrof@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/inode.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/net/wireless/prism54/isl_ioctl.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/gadget/inode.c~drivers-usb-gadget-use-memdup_user drivers/usb/gadget/inode.c
---- a/drivers/usb/gadget/inode.c~drivers-usb-gadget-use-memdup_user
-+++ a/drivers/usb/gadget/inode.c
-@@ -1867,13 +1867,9 @@ dev_config (struct file *fd, const char 
- 	buf += 4;
- 	length -= 4;
+diff -puN drivers/net/wireless/prism54/isl_ioctl.c~drivers-net-wireless-prism54-use-memdup_user drivers/net/wireless/prism54/isl_ioctl.c
+--- a/drivers/net/wireless/prism54/isl_ioctl.c~drivers-net-wireless-prism54-use-memdup_user
++++ a/drivers/net/wireless/prism54/isl_ioctl.c
+@@ -2751,14 +2751,9 @@ prism54_hostapd(struct net_device *ndev,
+            p->length > PRISM2_HOSTAPD_MAX_BUF_SIZE || !p->pointer)
+                return -EINVAL;
  
--	kbuf = kmalloc (length, GFP_KERNEL);
--	if (!kbuf)
--		return -ENOMEM;
--	if (copy_from_user (kbuf, buf, length)) {
--		kfree (kbuf);
--		return -EFAULT;
--	}
-+	kbuf = memdup_user(buf, length);
-+	if (IS_ERR(kbuf))
-+		return PTR_ERR(kbuf);
+-       param = kmalloc(p->length, GFP_KERNEL);
+-       if (param == NULL)
+-               return -ENOMEM;
+-
+-       if (copy_from_user(param, p->pointer, p->length)) {
+-               kfree(param);
+-               return -EFAULT;
+-       }
++	param = memdup_user(p->pointer, p->length);
++	if (IS_ERR(param))
++		return PTR_ERR(param);
  
- 	spin_lock_irq (&dev->lock);
- 	value = -EINVAL;
+        switch (param->cmd) {
+        case PRISM2_SET_ENCRYPTION:
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
