@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ide-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:37:08 -0700
-Message-ID: <201005252237.o4PMb8Ig019114@imap1.linux-foundation.org>
+Subject: + net-dccp-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:37:09 -0700
+Message-ID: <201005252237.o4PMb9XS019117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758860Ab0EYWhL (ORCPT
+	by vger.kernel.org with ESMTP id S1758860Ab0EYWhP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:37:11 -0400
+	Tue, 25 May 2010 18:37:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, davem@davemloft.net
+Cc: julia@diku.dk, acme@ghostprotocols.net, davem@davemloft.net
 
 
 The patch titled
-     drivers/ide: use memdup_user
+     net/dccp: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-ide-use-memdup_user.patch
+     net-dccp-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ide: use memdup_user
+Subject: net/dccp: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,33 +69,35 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-taskfile.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ net/dccp/proto.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ide/ide-taskfile.c~drivers-ide-use-memdup_user drivers/ide/ide-taskfile.c
---- a/drivers/ide/ide-taskfile.c~drivers-ide-use-memdup_user
-+++ a/drivers/ide/ide-taskfile.c
-@@ -480,13 +480,9 @@ int ide_taskfile_ioctl(ide_drive_t *driv
- 	u16 nsect		= 0;
- 	char __user *buf = (char __user *)arg;
+diff -puN net/dccp/proto.c~net-dccp-use-memdup_user net/dccp/proto.c
+--- a/net/dccp/proto.c~net-dccp-use-memdup_user
++++ a/net/dccp/proto.c
+@@ -473,14 +473,9 @@ static int dccp_setsockopt_ccid(struct s
+ 	if (optlen < 1 || optlen > DCCP_FEAT_MAX_SP_VALS)
+ 		return -EINVAL;
  
--	req_task = kzalloc(tasksize, GFP_KERNEL);
--	if (req_task == NULL)
+-	val = kmalloc(optlen, GFP_KERNEL);
+-	if (val == NULL)
 -		return -ENOMEM;
--	if (copy_from_user(req_task, buf, tasksize)) {
--		kfree(req_task);
+-
+-	if (copy_from_user(val, optval, optlen)) {
+-		kfree(val);
 -		return -EFAULT;
 -	}
-+	req_task = memdup_user(buf, tasksize);
-+	if (IS_ERR(req_task))
-+		return PTR_ERR(req_task);
++	val = memdup_user(optval, optlen);
++	if (IS_ERR(val))
++		return PTR_ERR(val);
  
- 	taskout = req_task->out_size;
- 	taskin  = req_task->in_size;
+ 	lock_sock(sk);
+ 	if (type == DCCP_SOCKOPT_TX_CCID || type == DCCP_SOCKOPT_CCID)
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
