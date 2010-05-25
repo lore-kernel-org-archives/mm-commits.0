@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-cxgb3-use-memdup_user.patch added to -mm tree
-Date: Tue, 25 May 2010 15:36:37 -0700
-Message-ID: <201005252236.o4PMabZP019058@imap1.linux-foundation.org>
+Subject: + drivers-ieee1394-use-memdup_user.patch added to -mm tree
+Date: Tue, 25 May 2010 15:36:51 -0700
+Message-ID: <201005252236.o4PMapi7019081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758535Ab0EYWjt (ORCPT
+	by vger.kernel.org with ESMTP id S1758535Ab0EYWjv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 18:39:49 -0400
+	Tue, 25 May 2010 18:39:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, davem@davemloft.net, divy@chelsio.com
+Cc: julia@diku.dk, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     drivers/net/cxgb3: use memdup_user
+     drivers/ieee1394: use memdup_user
 has been added to the -mm tree.  Its filename is
-     drivers-net-cxgb3-use-memdup_user.patch
+     drivers-ieee1394-use-memdup_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/cxgb3: use memdup_user
+Subject: drivers/ieee1394: use memdup_user
 From: Julia Lawall <julia@diku.dk>
 
 Use memdup_user when user data is immediately copied into the
@@ -69,36 +69,34 @@ identifier l1,l2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Divy Le Ray <divy@chelsio.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/ieee1394/video1394.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~drivers-net-cxgb3-use-memdup_user drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~drivers-net-cxgb3-use-memdup_user
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -2311,15 +2311,9 @@ static int cxgb_extension_ioctl(struct n
- 		if (copy_from_user(&t, useraddr, sizeof(t)))
- 			return -EFAULT;
- 		/* Check t.len sanity ? */
--		fw_data = kmalloc(t.len, GFP_KERNEL);
--		if (!fw_data)
--			return -ENOMEM;
--
--		if (copy_from_user
--			(fw_data, useraddr + sizeof(t), t.len)) {
--			kfree(fw_data);
--			return -EFAULT;
--		}
-+		fw_data = memdup_user(useraddr + sizeof(t), t.len);
-+		if (IS_ERR(fw_data))
-+			return PTR_ERR(fw_data);
+diff -puN drivers/ieee1394/video1394.c~drivers-ieee1394-use-memdup_user drivers/ieee1394/video1394.c
+--- a/drivers/ieee1394/video1394.c~drivers-ieee1394-use-memdup_user
++++ a/drivers/ieee1394/video1394.c
+@@ -1045,14 +1045,9 @@ static long video1394_ioctl(struct file 
+ 			if (get_user(qv, &p->packet_sizes))
+ 				return -EFAULT;
  
- 		ret = t3_load_fw(adapter, fw_data, t.len);
- 		kfree(fw_data);
+-			psizes = kmalloc(buf_size, GFP_KERNEL);
+-			if (!psizes)
+-				return -ENOMEM;
+-
+-			if (copy_from_user(psizes, qv, buf_size)) {
+-				kfree(psizes);
+-				return -EFAULT;
+-			}
++			psizes = memdup_user(qv, buf_size);
++			if (IS_ERR(psizes))
++				return PTR_ERR(psizes);
+ 		}
+ 
+ 		spin_lock_irqsave(&d->lock,flags);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
