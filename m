@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-crc32c-need-byteorderh.patch added to -mm tree
-Date: Tue, 25 May 2010 18:21:24 -0700
-Message-ID: <201005260121.o4Q1LOGF025913@imap1.linux-foundation.org>
+Subject: + revert-crc32-use-__byte_order-macro-for-endian-detection.patch added to -mm tree
+Date: Tue, 25 May 2010 23:40:41 -0700
+Message-ID: <201005260640.o4Q6eerf006096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932977Ab0EZBVi (ORCPT
+	by vger.kernel.org with ESMTP id S1752711Ab0EZGl2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 May 2010 21:21:38 -0400
+	Wed, 26 May 2010 02:41:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Joakim.Tjernlund@transmode.se, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, joakim.tjernlund@transmode.se, sfr@canb.auug.org.au
 
 
 The patch titled
-     lib/crc32.c need byteorder.h
+     revert "crc32: use __BYTE_ORDER macro for endian detection"
 has been added to the -mm tree.  Its filename is
-     lib-crc32c-need-byteorderh.patch
+     revert-crc32-use-__byte_order-macro-for-endian-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/crc32.c need byteorder.h
+Subject: revert "crc32: use __BYTE_ORDER macro for endian detection"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/crc32.c:53:22: warning: "__LITTLE_ENDIAN" is not defined
-lib/crc32.c:53:22: warning: "__LITTLE_ENDIAN" is not defined
+It doesn't work on big-endian - those architectures don't define
+__LITTLE_ENDIAN.
 
+Cc: Joakim Tjernlund <joakim.tjernlund@transmode.se>
 Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/crc32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/crc32.c~lib-crc32c-need-byteorderh lib/crc32.c
---- a/lib/crc32.c~lib-crc32c-need-byteorderh
+diff -puN lib/crc32.c~revert-crc32-use-__byte_order-macro-for-endian-detection lib/crc32.c
+--- a/lib/crc32.c~revert-crc32-use-__byte_order-macro-for-endian-detection
 +++ a/lib/crc32.c
-@@ -26,6 +26,7 @@
- #include <linux/compiler.h>
- #include <linux/types.h>
- #include <linux/init.h>
-+#include <asm/byteorder.h>
- #include <asm/atomic.h>
- #include "crc32defs.h"
- #if CRC_LE_BITS == 8
+@@ -50,7 +50,7 @@ MODULE_LICENSE("GPL");
+ static inline u32
+ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
+ {
+-# if __BYTE_ORDER == __LITTLE_ENDIAN
++# ifdef __LITTLE_ENDIAN
+ #  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255] ^ (crc >> 8)
+ #  define DO_CRC4 crc = tab[3][(crc) & 255] ^ \
+ 		tab[2][(crc >> 8) & 255] ^ \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 fs-fscache-object-listc-fix-warning-on-32-bit.patch
-lib-crc32c-need-byteorderh.patch
+revert-crc32-use-__byte_order-macro-for-endian-detection.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
