@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-decompress_bunzip2c-fix-checkstack-warning.patch added to -mm tree
-Date: Wed, 26 May 2010 16:55:20 -0700
-Message-ID: <201005262355.o4QNtKF6022312@imap1.linux-foundation.org>
+Subject: + fs-super-fix-kernel-doc-warning.patch added to -mm tree
+Date: Thu, 27 May 2010 13:05:03 -0700
+Message-ID: <201005272005.o4RK53RL011374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934747Ab0EZX4E (ORCPT
+	by vger.kernel.org with ESMTP id S1751777Ab0E0UFJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 May 2010 19:56:04 -0400
+	Thu, 27 May 2010 16:05:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: prarit@redhat.com, hpa@zytor.com, phillip@lougher.demon.co.uk
+Cc: randy.dunlap@oracle.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     lib/decompress_bunzip2.c: fix checkstack warning
+     fs/super: fix kernel-doc warning
 has been added to the -mm tree.  Its filename is
-     lib-decompress_bunzip2c-fix-checkstack-warning.patch
+     fs-super-fix-kernel-doc-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/decompress_bunzip2.c: fix checkstack warning
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: fs/super: fix kernel-doc warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix checkstack error:
+Fix fs/super.c kernel-doc warning and function notation:
+Warning(fs/super.c:957): No description found for parameter 'sb'
 
-lib/decompress_bunzip2.c: In function `get_next_block':
-lib/decompress_bunzip2.c:511: warning: the frame size of 1932 bytes is larger than 1024 bytes
-
-byteCount, symToByte, and mtfSymbol cannot be declared static or allocated
-dynamically so place them in the bunzip_data struct.
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_bunzip2.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ fs/super.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/decompress_bunzip2.c~lib-decompress_bunzip2c-fix-checkstack-warning lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2c-fix-checkstack-warning
-+++ a/lib/decompress_bunzip2.c
-@@ -107,6 +107,8 @@ struct bunzip_data {
- 	unsigned char selectors[32768];		/* nSelectors = 15 bits */
- 	struct group_data groups[MAX_GROUPS];	/* Huffman coding tables */
- 	int io_error;			/* non-zero if we have IO error */
-+	int byteCount[256];
-+	unsigned char symToByte[256], mtfSymbol[256];
- };
+diff -puN fs/super.c~fs-super-fix-kernel-doc-warning fs/super.c
+--- a/fs/super.c~fs-super-fix-kernel-doc-warning
++++ a/fs/super.c
+@@ -946,8 +946,8 @@ out:
+ EXPORT_SYMBOL_GPL(vfs_kern_mount);
  
- 
-@@ -158,14 +160,16 @@ static int INIT get_next_block(struct bu
- 	int *base = NULL;
- 	int *limit = NULL;
- 	int dbufCount, nextSym, dbufSize, groupCount, selector,
--		i, j, k, t, runPos, symCount, symTotal, nSelectors,
--		byteCount[256];
--	unsigned char uc, symToByte[256], mtfSymbol[256], *selectors;
-+		i, j, k, t, runPos, symCount, symTotal, nSelectors, *byteCount;
-+	unsigned char uc, *symToByte, *mtfSymbol, *selectors;
- 	unsigned int *dbuf, origPtr;
- 
- 	dbuf = bd->dbuf;
- 	dbufSize = bd->dbufSize;
- 	selectors = bd->selectors;
-+	byteCount = bd->byteCount;
-+	symToByte = bd->symToByte;
-+	mtfSymbol = bd->mtfSymbol;
- 
- 	/* Read in header signature and CRC, then validate signature.
- 	   (last block signature means CRC is for whole file, return now) */
+ /**
+- * freeze_super -- lock the filesystem and force it into a consistent state
+- * @super: the super to lock
++ * freeze_super - lock the filesystem and force it into a consistent state
++ * @sb: the super to lock
+  *
+  * Syncs the super to make sure the filesystem is consistent and calls the fs's
+  * freeze_fs.  Subsequent calls to this without first thawing the fs will return
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+documentation-submittingdrivers-resources.patch
+memcg-update-documentation-v8.patch
+numa-update-documentation-vm-numa-add-memoryless-node-info.patch
 linux-next.patch
-percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
-lib-decompress_bunzip2c-fix-checkstack-warning.patch
+compal-laptop-uses-hwmon-interfaces-depends-on-hwmon.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+media-ak881x-needs-slabh.patch
+led-driver-for-the-soekris-net5501-board.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+scsi-fix-pmcraid-build-errors.patch
+scsi-fix-be2iscsi-build.patch
+scsi-fix-bnx2i-build-errors.patch
+virtio_9ph-include-linux-typesh.patch
+fusion-fix-kernel-doc-warnings.patch
+fs-super-fix-kernel-doc-warning.patch
+timerc-fix-kernel-doc-warning.patch
+mtd-nand_base-fix-kernel-doc-warnings-typos.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
