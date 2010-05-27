@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand_base-fix-kernel-doc-warnings-typos.patch added to -mm tree
-Date: Thu, 27 May 2010 13:05:07 -0700
-Message-ID: <201005272005.o4RK58eU011380@imap1.linux-foundation.org>
+Subject: + fusion-fix-kernel-doc-warnings.patch added to -mm tree
+Date: Thu, 27 May 2010 13:05:01 -0700
+Message-ID: <201005272005.o4RK51qB011369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754897Ab0E0UFR (ORCPT
+	by vger.kernel.org with ESMTP id S1754897Ab0E0UFT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 May 2010 16:05:17 -0400
+	Thu, 27 May 2010 16:05:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dwmw2@infradead.org
+Cc: randy.dunlap@oracle.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     mtd/nand_base: fix kernel-doc warnings & typos
+     fusion: fix kernel-doc warnings
 has been added to the -mm tree.  Its filename is
-     mtd-nand_base-fix-kernel-doc-warnings-typos.patch
+     fusion-fix-kernel-doc-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/nand_base: fix kernel-doc warnings & typos
+Subject: fusion: fix kernel-doc warnings
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix mtd/nand_base.c kernel-doc warnings and typos.
-
-Warning(drivers/mtd/nand/nand_base.c:893): No description found for parameter 'mtd'
-Warning(drivers/mtd/nand/nand_base.c:893): No description found for parameter 'ofs'
-Warning(drivers/mtd/nand/nand_base.c:893): No description found for parameter 'len'
-Warning(drivers/mtd/nand/nand_base.c:893): No description found for parameter 'invert'
-Warning(drivers/mtd/nand/nand_base.c:930): No description found for parameter 'mtd'
-Warning(drivers/mtd/nand/nand_base.c:930): No description found for parameter 'ofs'
-Warning(drivers/mtd/nand/nand_base.c:930): No description found for parameter 'len'
-Warning(drivers/mtd/nand/nand_base.c:987): No description found for parameter 'mtd'
-Warning(drivers/mtd/nand/nand_base.c:987): No description found for parameter 'ofs'
-Warning(drivers/mtd/nand/nand_base.c:987): No description found for parameter 'len'
-Warning(drivers/mtd/nand/nand_base.c:2087): No description found for parameter 'len'
+Fix (delete) empty kernel-doc lines/warnings:
+Warning(drivers/message/fusion/mptbase.c:6916): bad line:
+Warning(drivers/message/fusion/mptbase.c:7060): bad line:
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Eric Moore <Eric.Moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_base.c |   39 ++++++++++++++++-----------------
- scripts/kernel-doc           |    2 +
- 2 files changed, 22 insertions(+), 19 deletions(-)
+ drivers/message/fusion/mptbase.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/mtd/nand/nand_base.c~mtd-nand_base-fix-kernel-doc-warnings-typos drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~mtd-nand_base-fix-kernel-doc-warnings-typos
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -876,17 +876,17 @@ static int nand_wait(struct mtd_info *mt
- }
- 
- /**
-- * __nand_unlock - [REPLACABLE] unlocks specified locked blockes
-+ * __nand_unlock - [REPLACEABLE] unlocks specified locked blocks
+diff -puN drivers/message/fusion/mptbase.c~fusion-fix-kernel-doc-warnings drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~fusion-fix-kernel-doc-warnings
++++ a/drivers/message/fusion/mptbase.c
+@@ -6914,7 +6914,6 @@ EXPORT_SYMBOL(mpt_halt_firmware);
+  *	mpt_SoftResetHandler - Issues a less expensive reset
+  *	@ioc: Pointer to MPT_ADAPTER structure
+  *	@sleepFlag: Indicates if sleep or schedule must be called.
+-
   *
-- * @param mtd - mtd info
-- * @param ofs - offset to start unlock from
-- * @param len - length to unlock
-- * @invert -  when = 0, unlock the range of blocks within the lower and
-+ * @mtd: mtd info
-+ * @ofs: offset to start unlock from
-+ * @len: length to unlock
-+ * @invert:   when = 0, unlock the range of blocks within the lower and
-  *                      upper boundary address
-- *            whne = 1, unlock the range of blocks outside the boundaries
-+ *            when = 1, unlock the range of blocks outside the boundaries
-  *                      of the lower and upper boundary address
+  *	Returns 0 for SUCCESS or -1 if FAILED.
   *
-- * @return - unlock status
-+ * return - unlock status
-  */
- static int __nand_unlock(struct mtd_info *mtd, loff_t ofs,
- 					uint64_t len, int invert)
-@@ -918,13 +918,13 @@ static int __nand_unlock(struct mtd_info
- }
- 
- /**
-- * nand_unlock - [REPLACABLE] unlocks specified locked blockes
-+ * nand_unlock - [REPLACEABLE] unlocks specified locked blocks
+@@ -7058,7 +7057,6 @@ mpt_SoftResetHandler(MPT_ADAPTER *ioc, i
+  *	mpt_Soft_Hard_ResetHandler - Try less expensive reset
+  *	@ioc: Pointer to MPT_ADAPTER structure
+  *	@sleepFlag: Indicates if sleep or schedule must be called.
+-
   *
-- * @param mtd - mtd info
-- * @param ofs - offset to start unlock from
-- * @param len - length to unlock
-+ * @mtd: mtd info
-+ * @ofs: offset to start unlock from
-+ * @len: length to unlock
-  *
-- * @return - unlock status
-+ * return - unlock status
-  */
- int nand_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
- {
-@@ -969,16 +969,16 @@ out:
- }
- 
- /**
-- * nand_lock - [REPLACABLE] locks all blockes present in the device
-+ * nand_lock - [REPLACEABLE] locks all blocks present in the device
-  *
-- * @param mtd - mtd info
-- * @param ofs - offset to start unlock from
-- * @param len - length to unlock
-+ * @mtd: mtd info
-+ * @ofs: offset to start unlock from
-+ * @len: length to unlock
-  *
-- * @return - lock status
-+ * return - lock status
-  *
-- * This feature is not support in many NAND parts. 'Micron' NAND parts
-- * do have this feature, but it allows only to lock all blocks not for
-+ * This feature is not supported in many NAND parts. 'Micron' NAND parts
-+ * do have this feature, but it allows only to lock all blocks, not for
-  * specified range for block.
-  *
-  * Implementing 'lock' feature by making use of 'unlock', for now.
-@@ -2080,6 +2080,7 @@ static int nand_write_page(struct mtd_in
-  * nand_fill_oob - [Internal] Transfer client buffer to oob
-  * @chip:	nand chip structure
-  * @oob:	oob data buffer
-+ * @len:	oob data write length
-  * @ops:	oob ops structure
-  */
- static uint8_t *nand_fill_oob(struct nand_chip *chip, uint8_t *oob, size_t len,
-diff -puN scripts/kernel-doc~mtd-nand_base-fix-kernel-doc-warnings-typos scripts/kernel-doc
---- a/scripts/kernel-doc~mtd-nand_base-fix-kernel-doc-warnings-typos
-+++ a/scripts/kernel-doc
-@@ -1454,6 +1454,8 @@ sub dump_enum($$) {
-     my $file = shift;
- 
-     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
-+    $x =~ s/^#\s*define\s+.*$//; # strip #define macros inside enums
-+
-     if ($x =~ /enum\s+(\w+)\s*{(.*)}/) {
- 	$declaration_name = $1;
- 	my $members = $2;
+  *	Returns 0 for SUCCESS or -1 if FAILED.
+  *	Try for softreset first, only if it fails go for expensive
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
