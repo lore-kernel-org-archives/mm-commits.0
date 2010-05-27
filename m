@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fusion-fix-kernel-doc-warnings.patch added to -mm tree
-Date: Thu, 27 May 2010 13:05:01 -0700
-Message-ID: <201005272005.o4RK51qB011369@imap1.linux-foundation.org>
+Subject: + timerc-fix-kernel-doc-warning.patch added to -mm tree
+Date: Thu, 27 May 2010 13:05:05 -0700
+Message-ID: <201005272005.o4RK550s011377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754897Ab0E0UFT (ORCPT
+	by vger.kernel.org with ESMTP id S1756348Ab0E0UFU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 May 2010 16:05:19 -0400
+	Thu, 27 May 2010 16:05:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com
+Cc: randy.dunlap@oracle.com, tglx@linutronix.de
 
 
 The patch titled
-     fusion: fix kernel-doc warnings
+     timer.c: fix kernel-doc warning
 has been added to the -mm tree.  Its filename is
-     fusion-fix-kernel-doc-warnings.patch
+     timerc-fix-kernel-doc-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fusion: fix kernel-doc warnings
+Subject: timer.c: fix kernel-doc warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix (delete) empty kernel-doc lines/warnings:
-Warning(drivers/message/fusion/mptbase.c:6916): bad line:
-Warning(drivers/message/fusion/mptbase.c:7060): bad line:
+Fix kernel-doc warning, add @timer description:
+Warning(kernel/timer.c:335): No description found for parameter 'timer'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Moore <Eric.Moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/timer.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/message/fusion/mptbase.c~fusion-fix-kernel-doc-warnings drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~fusion-fix-kernel-doc-warnings
-+++ a/drivers/message/fusion/mptbase.c
-@@ -6914,7 +6914,6 @@ EXPORT_SYMBOL(mpt_halt_firmware);
-  *	mpt_SoftResetHandler - Issues a less expensive reset
-  *	@ioc: Pointer to MPT_ADAPTER structure
-  *	@sleepFlag: Indicates if sleep or schedule must be called.
--
+diff -puN kernel/timer.c~timerc-fix-kernel-doc-warning kernel/timer.c
+--- a/kernel/timer.c~timerc-fix-kernel-doc-warning
++++ a/kernel/timer.c
+@@ -321,6 +321,7 @@ EXPORT_SYMBOL_GPL(round_jiffies_up_relat
+ 
+ /**
+  * set_timer_slack - set the allowed slack for a timer
++ * @timer: the timer to be modified
+  * @slack_hz: the amount of time (in jiffies) allowed for rounding
   *
-  *	Returns 0 for SUCCESS or -1 if FAILED.
-  *
-@@ -7058,7 +7057,6 @@ mpt_SoftResetHandler(MPT_ADAPTER *ioc, i
-  *	mpt_Soft_Hard_ResetHandler - Try less expensive reset
-  *	@ioc: Pointer to MPT_ADAPTER structure
-  *	@sleepFlag: Indicates if sleep or schedule must be called.
--
-  *
-  *	Returns 0 for SUCCESS or -1 if FAILED.
-  *	Try for softreset first, only if it fails go for expensive
+  * Set the amount of time, in jiffies, that a certain timer has
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
