@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-invoke-oom-killer-from-page-fault.patch added to -mm tree
-Date: Fri, 28 May 2010 16:19:01 -0700
-Message-ID: <201005282319.o4SNJ14Y020071@imap1.linux-foundation.org>
+Subject: + frv-invoke-oom-killer-from-page-fault.patch added to -mm tree
+Date: Fri, 28 May 2010 16:19:03 -0700
+Message-ID: <201005282319.o4SNJ3H3020075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752837Ab0E1XTN (ORCPT
+	by vger.kernel.org with ESMTP id S1753253Ab0E1XTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 19:19:13 -0400
+	Fri, 28 May 2010 19:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hskinnemoen@atmel.com, rientjes@google.com
+Cc: npiggin@suse.de, dhowells@redhat.com, rientjes@google.com
 
 
 The patch titled
-     avr32: invoke oom-killer from page fault
+     frv: invoke oom-killer from page fault
 has been added to the -mm tree.  Its filename is
-     avr32-invoke-oom-killer-from-page-fault.patch
+     frv-invoke-oom-killer-from-page-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avr32: invoke oom-killer from page fault
+Subject: frv: invoke oom-killer from page fault
 From: Nick Piggin <npiggin@suse.de>
 
 As explained in commit 1c0fe6e3bd ("mm: invoke oom-killer from page
@@ -43,44 +43,31 @@ getting an unexplained OOM from handle_mm_fault, rather than simply
 killing current.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/mm/fault.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ arch/frv/mm/fault.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/avr32/mm/fault.c~avr32-invoke-oom-killer-from-page-fault arch/avr32/mm/fault.c
---- a/arch/avr32/mm/fault.c~avr32-invoke-oom-killer-from-page-fault
-+++ a/arch/avr32/mm/fault.c
-@@ -132,7 +132,6 @@ good_area:
- 	 * sure we exit gracefully rather than endlessly redo the
- 	 * fault.
- 	 */
--survive:
- 	fault = handle_mm_fault(mm, vma, address, writeaccess ? FAULT_FLAG_WRITE : 0);
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
-@@ -211,15 +210,10 @@ no_context:
- 	 */
- out_of_memory:
+diff -puN arch/frv/mm/fault.c~frv-invoke-oom-killer-from-page-fault arch/frv/mm/fault.c
+--- a/arch/frv/mm/fault.c~frv-invoke-oom-killer-from-page-fault
++++ a/arch/frv/mm/fault.c
+@@ -257,10 +257,10 @@ asmlinkage void do_page_fault(int datamm
+  */
+  out_of_memory:
  	up_read(&mm->mmap_sem);
--	if (is_global_init(current)) {
--		yield();
--		down_read(&mm->mmap_sem);
--		goto survive;
--	}
--	printk("VM: Killing process %s\n", tsk->comm);
--	if (user_mode(regs))
+-	printk("VM: killing process %s\n", current->comm);
+-	if (user_mode(__frame))
 -		do_group_exit(SIGKILL);
 -	goto no_context;
-+	pagefault_out_of_memory();
-+	if (!user_mode(regs))
++	if (!user_mode(__frame))
 +		goto no_context;
++	pagefault_out_of_memory();
 +	return;
  
- do_sigbus:
+  do_sigbus:
  	up_read(&mm->mmap_sem);
 _
 
