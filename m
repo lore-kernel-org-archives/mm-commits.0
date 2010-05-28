@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-fix-region-clearing.patch added to -mm tree
-Date: Fri, 28 May 2010 16:10:20 -0700
-Message-ID: <201005282310.o4SNAKjT019783@imap1.linux-foundation.org>
+Subject: + avr32-invoke-oom-killer-from-page-fault.patch added to -mm tree
+Date: Fri, 28 May 2010 16:19:01 -0700
+Message-ID: <201005282319.o4SNJ14Y020071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752188Ab0E1XKt (ORCPT
+	by vger.kernel.org with ESMTP id S1752837Ab0E1XTN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 19:10:49 -0400
+	Fri, 28 May 2010 19:19:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: frankpzh@gmail.com, alan@linux.intel.com, catalin.marinas@arm.com, daniel@caiaq.de, gregkh@suse.de
+Cc: npiggin@suse.de, hskinnemoen@atmel.com, rientjes@google.com
 
 
 The patch titled
-     vt: fix region clearing
+     avr32: invoke oom-killer from page fault
 has been added to the -mm tree.  Its filename is
-     vt-fix-region-clearing.patch
+     avr32-invoke-oom-killer-from-page-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: fix region clearing
-From: Frank Pan <frankpzh@gmail.com>
+Subject: avr32: invoke oom-killer from page fault
+From: Nick Piggin <npiggin@suse.de>
 
-The code uses vc->vc_cols instead of vc->vc_size_row by mistake, it will
-cause half of the region which is going to clear remain uncleared.  The
-issue happens in background consoles, so it's hard to observe.
+As explained in commit 1c0fe6e3bd ("mm: invoke oom-killer from page
+fault") , we want to call the architecture independent oom killer when
+getting an unexplained OOM from handle_mm_fault, rather than simply
+killing current.
 
-Signed-off-by: Frank Pan <frankpzh@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Daniel Mack <daniel@caiaq.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/avr32/mm/fault.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/vt.c~vt-fix-region-clearing drivers/char/vt.c
---- a/drivers/char/vt.c~vt-fix-region-clearing
-+++ a/drivers/char/vt.c
-@@ -304,7 +304,7 @@ static void scrup(struct vc_data *vc, un
- 	d = (unsigned short *)(vc->vc_origin + vc->vc_size_row * t);
- 	s = (unsigned short *)(vc->vc_origin + vc->vc_size_row * (t + nr));
- 	scr_memmovew(d, s, (b - t - nr) * vc->vc_size_row);
--	scr_memsetw(d + (b - t - nr) * vc->vc_cols, vc->vc_video_erase_char,
-+	scr_memsetw(d + (b - t - nr) * vc->vc_size_row, vc->vc_video_erase_char,
- 		    vc->vc_size_row * nr);
- }
+diff -puN arch/avr32/mm/fault.c~avr32-invoke-oom-killer-from-page-fault arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~avr32-invoke-oom-killer-from-page-fault
++++ a/arch/avr32/mm/fault.c
+@@ -132,7 +132,6 @@ good_area:
+ 	 * sure we exit gracefully rather than endlessly redo the
+ 	 * fault.
+ 	 */
+-survive:
+ 	fault = handle_mm_fault(mm, vma, address, writeaccess ? FAULT_FLAG_WRITE : 0);
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+@@ -211,15 +210,10 @@ no_context:
+ 	 */
+ out_of_memory:
+ 	up_read(&mm->mmap_sem);
+-	if (is_global_init(current)) {
+-		yield();
+-		down_read(&mm->mmap_sem);
+-		goto survive;
+-	}
+-	printk("VM: Killing process %s\n", tsk->comm);
+-	if (user_mode(regs))
+-		do_group_exit(SIGKILL);
+-	goto no_context;
++	pagefault_out_of_memory();
++	if (!user_mode(regs))
++		goto no_context;
++	return;
  
+ do_sigbus:
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from frankpzh@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-vt-fix-region-clearing.patch
+origin.patch
+fb_defio-redo-fix-for-non-dirty-ptes.patch
+block-bd_start_claiming-fix-module-refcount.patch
+block-bd_start_claiming-cleanup.patch
+fs-splicec-fix-mapping_gfp_mask-usage.patch
+reiser4.patch
+avr32-invoke-oom-killer-from-page-fault.patch
+frv-invoke-oom-killer-from-page-fault.patch
+m32r-invoke-oom-killer-from-page-fault.patch
+mn10300-invoke-oom-killer-from-page-fault.patch
+xtensa-invoke-oom-killer-from-page-fault.patch
 
