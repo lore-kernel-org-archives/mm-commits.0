@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 28 May 2010 11:48:29 -0700
-Message-ID: <201005281848.o4SImRqX006383@imap1.linux-foundation.org>
+Subject: + x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch added to -mm tree
+Date: Fri, 28 May 2010 13:17:46 -0700
+Message-ID: <201005282017.o4SKHkdW011204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36829 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751121Ab0E1Ssa (ORCPT
+	by vger.kernel.org with ESMTP id S1757881Ab0E1USw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 14:48:30 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o4SImSLs001361
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 28 May 2010 11:48:29 -0700
+	Fri, 28 May 2010 16:18:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: trenn@suse.de, arjan@infradead.org, davej@codemonkey.org.uk, mingo@elte.hu, robert.schoene@tu-dresden.de
 
 
 The patch titled
-     linux-next-git-rejects
+     x86 cpufreq: Make trace_power_frequency cpufreq driver independent
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,83 +34,247 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86 cpufreq: Make trace_power_frequency cpufreq driver independent
+From: Thomas Renninger <trenn@suse.de>
 
+and fix the broken case if a core's frequency depends on others.
+
+trace_power_frequency was only implemented in a rather ungeneric way
+in acpi-cpufreq driver's target() function only.
+-> Move the call to trace_power_frequency to
+   cpufreq.c:cpufreq_notify_transition() where CPUFREQ_POSTCHANGE
+   notifier is triggered.
+   This will support power frequency tracing by all cpufreq drivers
+
+trace_power_frequency did not trace frequency changes correctly when
+the userspace governor was used or when CPU cores' frequency depend
+on each other.
+-> Moving this into the CPUFREQ_POSTCHANGE notifier and pass the cpu
+   which gets switched automatically fixes this.
+
+Robert Schoene provided some important fixes on top of my initial
+quick shot version which are integrated in this patch:
+- Forgot some changes in power_end trace (TP_printk/variable names)
+- Variable dummy in power_end must now be cpu_id
+- Use static 64 bit variable instead of unsigned int for cpu_id
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robert Schoene <robert.schoene@tu-dresden.de>
+Tested-by: Robert Schoene <robert.schoene@tu-dresden.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/logfs.h |    6 ------
- fs/ufs/file.c    |    5 -----
- 2 files changed, 11 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    3 --
+ arch/x86/kernel/process.c                  |    8 ++---
+ drivers/cpufreq/cpufreq.c                  |    3 ++
+ drivers/cpuidle/cpuidle.c                  |    2 -
+ include/trace/events/power.h               |   27 ++++++++++---------
+ tools/perf/builtin-timechart.c             |   11 ++++---
+ 6 files changed, 29 insertions(+), 25 deletions(-)
 
-diff -puN fs/logfs/logfs.h~linux-next-git-rejects fs/logfs/logfs.h
---- a/fs/logfs/logfs.h~linux-next-git-rejects
-+++ a/fs/logfs/logfs.h
-@@ -504,15 +504,9 @@ extern const struct inode_operations log
- extern const struct file_operations logfs_reg_fops;
- extern const struct address_space_operations logfs_reg_aops;
- int logfs_readpage(struct file *file, struct page *page);
--<<<<<<< HEAD
--int logfs_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		unsigned long arg);
--int logfs_fsync(struct file *file, int datasync);
--=======
- long logfs_ioctl(struct file *file, unsigned int cmd,
- 		 unsigned long arg);
- int logfs_fsync(struct file *file, struct dentry *dentry, int datasync);
-->>>>>>> FETCH_HEAD
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -34,7 +34,6 @@
+ #include <linux/compiler.h>
+ #include <linux/dmi.h>
+ #include <linux/slab.h>
+-#include <trace/events/power.h>
  
- /* gc.c */
- u32 get_best_cand(struct super_block *sb, struct candidate_list *list, u32 *ec);
-diff -puN fs/ufs/file.c~linux-next-git-rejects fs/ufs/file.c
---- a/fs/ufs/file.c~linux-next-git-rejects
-+++ a/fs/ufs/file.c
-@@ -40,12 +40,7 @@ const struct file_operations ufs_file_op
- 	.write		= do_sync_write,
- 	.aio_write	= generic_file_aio_write,
- 	.mmap		= generic_file_mmap,
--<<<<<<< HEAD
- 	.open           = dquot_file_open,
--	.fsync		= generic_file_fsync,
--=======
--	.open           = generic_file_open,
- 	.fsync		= simple_fsync,
-->>>>>>> FETCH_HEAD
- 	.splice_read	= generic_file_splice_read,
+ #include <linux/acpi.h>
+ #include <linux/io.h>
+@@ -324,8 +323,6 @@ static int acpi_cpufreq_target(struct cp
+ 		}
+ 	}
+ 
+-	trace_power_frequency(POWER_PSTATE, data->freq_table[next_state].frequency);
+-
+ 	switch (data->cpu_feature) {
+ 	case SYSTEM_INTEL_MSR_CAPABLE:
+ 		cmd.type = SYSTEM_INTEL_MSR_CAPABLE;
+diff -puN arch/x86/kernel/process.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
++++ a/arch/x86/kernel/process.c
+@@ -370,7 +370,7 @@ static inline int hlt_use_halt(void)
+ void default_idle(void)
+ {
+ 	if (hlt_use_halt()) {
+-		trace_power_start(POWER_CSTATE, 1);
++		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+ 		current_thread_info()->status &= ~TS_POLLING;
+ 		/*
+ 		 * TS_POLLING-cleared state must be visible before we
+@@ -440,7 +440,7 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
+  */
+ void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
+ {
+-	trace_power_start(POWER_CSTATE, (ax>>4)+1);
++	trace_power_start(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
+ 	if (!need_resched()) {
+ 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
+ 			clflush((void *)&current_thread_info()->flags);
+@@ -456,7 +456,7 @@ void mwait_idle_with_hints(unsigned long
+ static void mwait_idle(void)
+ {
+ 	if (!need_resched()) {
+-		trace_power_start(POWER_CSTATE, 1);
++		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+ 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
+ 			clflush((void *)&current_thread_info()->flags);
+ 
+@@ -477,7 +477,7 @@ static void mwait_idle(void)
+  */
+ static void poll_idle(void)
+ {
+-	trace_power_start(POWER_CSTATE, 0);
++	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
+ 	local_irq_enable();
+ 	while (!need_resched())
+ 		cpu_relax();
+diff -puN drivers/cpufreq/cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
++++ a/drivers/cpufreq/cpufreq.c
+@@ -29,6 +29,8 @@
+ #include <linux/completion.h>
+ #include <linux/mutex.h>
+ 
++#include <trace/events/power.h>
++
+ #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, \
+ 						"cpufreq-core", msg)
+ 
+@@ -350,6 +352,7 @@ void cpufreq_notify_transition(struct cp
+ 
+ 	case CPUFREQ_POSTCHANGE:
+ 		adjust_jiffies(CPUFREQ_POSTCHANGE, freqs);
++                trace_power_frequency(POWER_PSTATE, freqs->new, freqs->cpu);
+ 		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
+ 				CPUFREQ_POSTCHANGE, freqs);
+ 		if (likely(policy) && likely(policy->cpu == freqs->cpu))
+diff -puN drivers/cpuidle/cpuidle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
++++ a/drivers/cpuidle/cpuidle.c
+@@ -95,7 +95,7 @@ static void cpuidle_idle_call(void)
+ 	/* give the governor an opportunity to reflect on the outcome */
+ 	if (cpuidle_curr_governor->reflect)
+ 		cpuidle_curr_governor->reflect(dev);
+-	trace_power_end(0);
++	trace_power_end(smp_processor_id());
+ }
+ 
+ /**
+diff -puN include/trace/events/power.h~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent include/trace/events/power.h
+--- a/include/trace/events/power.h~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
++++ a/include/trace/events/power.h
+@@ -18,52 +18,55 @@ enum {
+ 
+ DECLARE_EVENT_CLASS(power,
+ 
+-	TP_PROTO(unsigned int type, unsigned int state),
++	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
+ 
+-	TP_ARGS(type, state),
++	TP_ARGS(type, state, cpu_id),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(	u64,		type		)
+ 		__field(	u64,		state		)
++		__field(	u64,		cpu_id		)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->type = type;
+ 		__entry->state = state;
++		__entry->cpu_id = cpu_id;
+ 	),
+ 
+-	TP_printk("type=%lu state=%lu", (unsigned long)__entry->type, (unsigned long)__entry->state)
++	TP_printk("type=%lu state=%lu cpu_id=%lu", (unsigned long)__entry->type,
++		(unsigned long)__entry->state, (unsigned long)__entry->cpu_id)
+ );
+ 
+ DEFINE_EVENT(power, power_start,
+ 
+-	TP_PROTO(unsigned int type, unsigned int state),
++	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
+ 
+-	TP_ARGS(type, state)
++	TP_ARGS(type, state, cpu_id)
+ );
+ 
+ DEFINE_EVENT(power, power_frequency,
+ 
+-	TP_PROTO(unsigned int type, unsigned int state),
++	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
+ 
+-	TP_ARGS(type, state)
++	TP_ARGS(type, state, cpu_id)
+ );
+ 
+ TRACE_EVENT(power_end,
+ 
+-	TP_PROTO(int dummy),
++	TP_PROTO(unsigned int cpu_id),
+ 
+-	TP_ARGS(dummy),
++	TP_ARGS(cpu_id),
+ 
+ 	TP_STRUCT__entry(
+-		__field(	u64,		dummy		)
++		__field(	u64,		cpu_id		)
+ 	),
+ 
+ 	TP_fast_assign(
+-		__entry->dummy = 0xffff;
++		__entry->cpu_id = cpu_id;
+ 	),
+ 
+-	TP_printk("dummy=%lu", (unsigned long)__entry->dummy)
++	TP_printk("cpu_id=%lu", (unsigned long)__entry->cpu_id)
+ 
+ );
+ 
+diff -puN tools/perf/builtin-timechart.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent tools/perf/builtin-timechart.c
+--- a/tools/perf/builtin-timechart.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
++++ a/tools/perf/builtin-timechart.c
+@@ -300,8 +300,9 @@ struct trace_entry {
+ 
+ struct power_entry {
+ 	struct trace_entry te;
+-	s64	type;
+-	s64	value;
++	u64	type;
++	u64	value;
++	u64	cpu_id;
  };
+ 
+ #define TASK_COMM_LEN 16
+@@ -498,13 +499,13 @@ static int process_sample_event(event_t 
+ 			return 0;
+ 
+ 		if (strcmp(event_str, "power:power_start") == 0)
+-			c_state_start(data.cpu, data.time, pe->value);
++			c_state_start(pe->cpu_id, data.time, pe->value);
+ 
+ 		if (strcmp(event_str, "power:power_end") == 0)
+-			c_state_end(data.cpu, data.time);
++			c_state_end(pe->cpu_id, data.time);
+ 
+ 		if (strcmp(event_str, "power:power_frequency") == 0)
+-			p_state_change(data.cpu, data.time, pe->value);
++			p_state_change(pe->cpu_id, data.time, pe->value);
+ 
+ 		if (strcmp(event_str, "sched:sched_wakeup") == 0)
+ 			sched_wakeup(data.cpu, data.time, data.pid, te);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from trenn@suse.de are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-lib-kobject_ueventc-fix-conig_net=n-warning.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-led-driver-for-the-soekris-net5501-board.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-fix-stop_machine-reimplement-using-cpu_stop.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
 
