@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb_defio-redo-fix-for-non-dirty-ptes.patch added to -mm tree
-Date: Fri, 28 May 2010 15:44:18 -0700
-Message-ID: <201005282244.o4SMiI6W018731@imap1.linux-foundation.org>
+Subject: + vt-fix-region-clearing.patch added to -mm tree
+Date: Fri, 28 May 2010 16:10:20 -0700
+Message-ID: <201005282310.o4SNAKjT019783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751771Ab0E1WoX (ORCPT
+	by vger.kernel.org with ESMTP id S1752188Ab0E1XKt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 18:44:23 -0400
+	Fri, 28 May 2010 19:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: albert_herranz@yahoo.es, jayakumar.lkml@gmail.com, npiggin@suse.de
+Cc: frankpzh@gmail.com, alan@linux.intel.com, catalin.marinas@arm.com, daniel@caiaq.de, gregkh@suse.de
 
 
 The patch titled
-     fb_defio: redo fix for non-dirty ptes
+     vt: fix region clearing
 has been added to the -mm tree.  Its filename is
-     fb_defio-redo-fix-for-non-dirty-ptes.patch
+     vt-fix-region-clearing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb_defio: redo fix for non-dirty ptes
-From: Albert Herranz <albert_herranz@yahoo.es>
+Subject: vt: fix region clearing
+From: Frank Pan <frankpzh@gmail.com>
 
-As pointed by Nick Piggin, ->page_mkwrite provides a way to keep a page
-locked until the associated PTE is marked dirty.
+The code uses vc->vc_cols instead of vc->vc_size_row by mistake, it will
+cause half of the region which is going to clear remain uncleared.  The
+issue happens in background consoles, so it's hard to observe.
 
-Re-implement the fix by using this mechanism.
-
-Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
-Acked-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Frank Pan <frankpzh@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Daniel Mack <daniel@caiaq.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/char/vt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fb_defio.c~fb_defio-redo-fix-for-non-dirty-ptes drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fb_defio-redo-fix-for-non-dirty-ptes
-+++ a/drivers/video/fb_defio.c
-@@ -100,6 +100,16 @@ static int fb_deferred_io_mkwrite(struct
- 	/* protect against the workqueue changing the page list */
- 	mutex_lock(&fbdefio->lock);
- 
-+	/*
-+	 * We want the page to remain locked from ->page_mkwrite until
-+	 * the PTE is marked dirty to avoid page_mkclean() being called
-+	 * before the PTE is updated, which would leave the page ignored
-+	 * by defio.
-+	 * Do this by locking the page here and informing the caller
-+	 * about it with VM_FAULT_LOCKED.
-+	 */
-+	lock_page(page);
-+
- 	/* we loop through the pagelist before adding in order
- 	to keep the pagelist sorted */
- 	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
-@@ -121,7 +131,7 @@ page_already_added:
- 
- 	/* come back after delay to process the deferred IO */
- 	schedule_delayed_work(&info->deferred_work, fbdefio->delay);
--	return 0;
-+	return VM_FAULT_LOCKED;
+diff -puN drivers/char/vt.c~vt-fix-region-clearing drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-fix-region-clearing
++++ a/drivers/char/vt.c
+@@ -304,7 +304,7 @@ static void scrup(struct vc_data *vc, un
+ 	d = (unsigned short *)(vc->vc_origin + vc->vc_size_row * t);
+ 	s = (unsigned short *)(vc->vc_origin + vc->vc_size_row * (t + nr));
+ 	scr_memmovew(d, s, (b - t - nr) * vc->vc_size_row);
+-	scr_memsetw(d + (b - t - nr) * vc->vc_cols, vc->vc_video_erase_char,
++	scr_memsetw(d + (b - t - nr) * vc->vc_size_row, vc->vc_video_erase_char,
+ 		    vc->vc_size_row * nr);
  }
  
- static const struct vm_operations_struct fb_deferred_io_vm_ops = {
 _
 
-Patches currently in -mm which might be from albert_herranz@yahoo.es are
+Patches currently in -mm which might be from frankpzh@gmail.com are
 
-origin.patch
-revert-fb_defio-fix-for-non-dirty-ptes.patch
-fb_defio-redo-fix-for-non-dirty-ptes.patch
+vt-fix-region-clearing.patch
 
