@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-invoke-oom-killer-from-page-fault.patch added to -mm tree
-Date: Fri, 28 May 2010 16:19:05 -0700
-Message-ID: <201005282319.o4SNJ5no020078@imap1.linux-foundation.org>
+Subject: + flat-fix-unmap-len-in-load-error-path.patch added to -mm tree
+Date: Fri, 28 May 2010 16:26:54 -0700
+Message-ID: <201005282326.o4SNQsnS020455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754097Ab0E1XW5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752631Ab0E1Xb0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 19:22:57 -0400
+	Fri, 28 May 2010 19:31:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, rientjes@google.com, takata@linux-m32r.org
+Cc: vapier@gentoo.org, davidm@snapgear.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, lethal@linux-sh.org, monstr@monstr.eu, takata@linux-m32r.org
 
 
 The patch titled
-     m32r: invoke oom-killer from page fault
+     flat: fix unmap len in load error path
 has been added to the -mm tree.  Its filename is
-     m32r-invoke-oom-killer-from-page-fault.patch
+     flat-fix-unmap-len-in-load-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: invoke oom-killer from page fault
-From: Nick Piggin <npiggin@suse.de>
+Subject: flat: fix unmap len in load error path
+From: Mike Frysinger <vapier@gentoo.org>
 
-As explained in commit 1c0fe6e3bd ("mm: invoke oom-killer from page
-fault") , we want to call the architecture independent oom killer when
-getting an unexplained OOM from handle_mm_fault, rather than simply
-killing current.
+The data chunk is mmaped with 'len' which remains unchanged, so use that
+when unmapping in the error path rather than trying to recalculate (and
+incorrectly so) the value used originally.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: David McCullough <davidm@snapgear.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Michal Simek <monstr@monstr.eu>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/mm/fault.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ fs/binfmt_flat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/mm/fault.c~m32r-invoke-oom-killer-from-page-fault arch/m32r/mm/fault.c
---- a/arch/m32r/mm/fault.c~m32r-invoke-oom-killer-from-page-fault
-+++ a/arch/m32r/mm/fault.c
-@@ -188,7 +188,6 @@ good_area:
- 	if ((error_code & ACE_INSTRUCTION) && !(vma->vm_flags & VM_EXEC))
- 	  goto bad_area;
- 
--survive:
- 	/*
- 	 * If for any reason at all we couldn't handle the fault,
- 	 * make sure we exit gracefully rather than endlessly redo
-@@ -271,15 +270,10 @@ no_context:
-  */
- out_of_memory:
- 	up_read(&mm->mmap_sem);
--	if (is_global_init(tsk)) {
--		yield();
--		down_read(&mm->mmap_sem);
--		goto survive;
--	}
--	printk("VM: killing process %s\n", tsk->comm);
--	if (error_code & ACE_USERMODE)
--		do_group_exit(SIGKILL);
--	goto no_context;
-+	if (!(error_code & ACE_USERMODE))
-+		goto no_context;
-+	pagefault_out_of_memory();
-+	return;
- 
- do_sigbus:
- 	up_read(&mm->mmap_sem);
+diff -puN fs/binfmt_flat.c~flat-fix-unmap-len-in-load-error-path fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~flat-fix-unmap-len-in-load-error-path
++++ a/fs/binfmt_flat.c
+@@ -596,7 +596,7 @@ static int load_flat_file(struct linux_b
+ 		if (IS_ERR_VALUE(result)) {
+ 			printk("Unable to read data+bss, errno %d\n", (int)-result);
+ 			do_munmap(current->mm, textpos, text_len);
+-			do_munmap(current->mm, realdatastart, data_len + extra);
++			do_munmap(current->mm, realdatastart, len);
+ 			ret = result;
+ 			goto err;
+ 		}
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-fb_defio-redo-fix-for-non-dirty-ptes.patch
-block-bd_start_claiming-fix-module-refcount.patch
-block-bd_start_claiming-cleanup.patch
-fs-splicec-fix-mapping_gfp_mask-usage.patch
-reiser4.patch
-avr32-invoke-oom-killer-from-page-fault.patch
-frv-invoke-oom-killer-from-page-fault.patch
-m32r-invoke-oom-killer-from-page-fault.patch
-mn10300-invoke-oom-killer-from-page-fault.patch
-xtensa-invoke-oom-killer-from-page-fault.patch
+linux-next.patch
+flat-split-the-stack-data-alignments.patch
+flat-tweak-default-stack-alignment.patch
+flat-fix-unmap-len-in-load-error-path.patch
 
