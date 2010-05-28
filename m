@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-compat_rw_copy_check_uvector-add-missing-compat_ptr-call.patch added to -mm tree
-Date: Fri, 28 May 2010 09:50:48 -0700
-Message-ID: <201005281650.o4SGolVs000932@imap1.linux-foundation.org>
+Subject: + ramoops-add-has_iomem-dependency.patch added to -mm tree
+Date: Fri, 28 May 2010 09:58:09 -0700
+Message-ID: <201005281658.o4SGw7qc001192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33553 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751361Ab0E1QvF (ORCPT
+	by vger.kernel.org with ESMTP id S1754712Ab0E1Q6c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 12:51:05 -0400
+	Fri, 28 May 2010 12:58:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, jmoyer@redhat.com, stable@kernel.org
+Cc: heiko.carstens@de.ibm.com, marco.stornelli@gmail.com
 
 
 The patch titled
-     fs/compat_rw_copy_check_uvector: add missing compat_ptr call
+     ramoops: add HAS_IOMEM dependency
 has been added to the -mm tree.  Its filename is
-     fs-compat_rw_copy_check_uvector-add-missing-compat_ptr-call.patch
+     ramoops-add-has_iomem-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/compat_rw_copy_check_uvector: add missing compat_ptr call
+Subject: ramoops: add HAS_IOMEM dependency
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-A call to access_ok is missing a compat_ptr conversion.  Introduced with
-b83733639a494d5f42fa00a2506563fbd2d3015d "compat: factor out
-compat_rw_copy_check_uvector from compat_do_readv_writev"
+The driver fails to compile on s390:
 
-fs/compat.c: In function 'compat_rw_copy_check_uvector':
-fs/compat.c:629: warning: passing argument 1 of '__access_ok' makes pointer from integer without a cast
+drivers/char/ramoops.c: In function 'ramoops_init':
+drivers/char/ramoops.c:122: error: implicit declaration of function 'ioremap'
+
+Since we won't make use of the driver anyway on s390 just let it depend on
+HAS_IOMEM.
 
 Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: <stable@kernel.org>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/compat.c~fs-compat_rw_copy_check_uvector-add-missing-compat_ptr-call fs/compat.c
---- a/fs/compat.c~fs-compat_rw_copy_check_uvector-add-missing-compat_ptr-call
-+++ a/fs/compat.c
-@@ -626,7 +626,7 @@ ssize_t compat_rw_copy_check_uvector(int
- 		tot_len += len;
- 		if (tot_len < tmp) /* maths overflow on the compat_ssize_t */
- 			goto out;
--		if (!access_ok(vrfy_dir(type), buf, len)) {
-+		if (!access_ok(vrfy_dir(type), compat_ptr(buf), len)) {
- 			ret = -EFAULT;
- 			goto out;
- 		}
+diff -puN drivers/char/Kconfig~ramoops-add-has_iomem-dependency drivers/char/Kconfig
+--- a/drivers/char/Kconfig~ramoops-add-has_iomem-dependency
++++ a/drivers/char/Kconfig
+@@ -1123,6 +1123,7 @@ source "drivers/s390/char/Kconfig"
+ 
+ config RAMOOPS
+ 	tristate "Log panic/oops to a RAM buffer"
++	depends on HAS_IOMEM
+ 	default n
+ 	help
+ 	  This enables panic and oops messages to be logged to a circular
 _
 
 Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
@@ -72,6 +71,7 @@ Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 origin.patch
 s390-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
 fs-compat_rw_copy_check_uvector-add-missing-compat_ptr-call.patch
+ramoops-add-has_iomem-dependency.patch
 linux-next.patch
 drivers-s390-net-use-memdup_user.patch
 vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
