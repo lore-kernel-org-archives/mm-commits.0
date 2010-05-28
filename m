@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch added to -mm tree
-Date: Fri, 28 May 2010 13:17:46 -0700
-Message-ID: <201005282017.o4SKHkdW011204@imap1.linux-foundation.org>
+Subject: + altera_uart-dont-take-spinlock-in-already-protected-functions.patch added to -mm tree
+Date: Fri, 28 May 2010 13:39:36 -0700
+Message-ID: <201005282039.o4SKdaMo012225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757881Ab0E1USw (ORCPT
+	by vger.kernel.org with ESMTP id S1756766Ab0E1Uj4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 16:18:52 -0400
+	Fri, 28 May 2010 16:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trenn@suse.de, arjan@infradead.org, davej@codemonkey.org.uk, mingo@elte.hu, robert.schoene@tu-dresden.de
+Cc: tklauser@distanz.ch, abbotti@mev.co.uk, alan@lxorguk.ukuu.org.uk, greg@kroah.com, stable@kernel.org, thomas@wytron.com.tw
 
 
 The patch titled
-     x86 cpufreq: Make trace_power_frequency cpufreq driver independent
+     altera_uart: don't take spinlock in already protected functions
 has been added to the -mm tree.  Its filename is
-     x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
+     altera_uart-dont-take-spinlock-in-already-protected-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,247 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 cpufreq: Make trace_power_frequency cpufreq driver independent
-From: Thomas Renninger <trenn@suse.de>
+Subject: altera_uart: don't take spinlock in already protected functions
+From: Tobias Klauser <tklauser@distanz.ch>
 
-and fix the broken case if a core's frequency depends on others.
+Don't take the port spinlock in uart functions where the serial core
+already takes care of locking/unlocking them.
 
-trace_power_frequency was only implemented in a rather ungeneric way
-in acpi-cpufreq driver's target() function only.
--> Move the call to trace_power_frequency to
-   cpufreq.c:cpufreq_notify_transition() where CPUFREQ_POSTCHANGE
-   notifier is triggered.
-   This will support power frequency tracing by all cpufreq drivers
+The code would actually lock up on architectures where spinlocks are
+implemented (not the case on nios2 where this driver is primarily used
+for now, thus this bug didn't trigger).
 
-trace_power_frequency did not trace frequency changes correctly when
-the userspace governor was used or when CPU cores' frequency depend
-on each other.
--> Moving this into the CPUFREQ_POSTCHANGE notifier and pass the cpu
-   which gets switched automatically fixes this.
+Also protect calling altera_uart_rx_chars/altera_uart_tx_chars in the
+interrupt handler by the port spinlock.
 
-Robert Schoene provided some important fixes on top of my initial
-quick shot version which are integrated in this patch:
-- Forgot some changes in power_end trace (TP_printk/variable names)
-- Variable dummy in power_end must now be cpu_id
-- Use static 64 bit variable instead of unsigned int for cpu_id
+Thanks to Ian Abbott for pointing these issues out.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Robert Schoene <robert.schoene@tu-dresden.de>
-Tested-by: Robert Schoene <robert.schoene@tu-dresden.de>
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Thomas Chou <thomas@wytron.com.tw>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    3 --
- arch/x86/kernel/process.c                  |    8 ++---
- drivers/cpufreq/cpufreq.c                  |    3 ++
- drivers/cpuidle/cpuidle.c                  |    2 -
- include/trace/events/power.h               |   27 ++++++++++---------
- tools/perf/builtin-timechart.c             |   11 ++++---
- 6 files changed, 29 insertions(+), 25 deletions(-)
+ drivers/serial/altera_uart.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -34,7 +34,6 @@
- #include <linux/compiler.h>
- #include <linux/dmi.h>
- #include <linux/slab.h>
--#include <trace/events/power.h>
- 
- #include <linux/acpi.h>
- #include <linux/io.h>
-@@ -324,8 +323,6 @@ static int acpi_cpufreq_target(struct cp
- 		}
- 	}
- 
--	trace_power_frequency(POWER_PSTATE, data->freq_table[next_state].frequency);
--
- 	switch (data->cpu_feature) {
- 	case SYSTEM_INTEL_MSR_CAPABLE:
- 		cmd.type = SYSTEM_INTEL_MSR_CAPABLE;
-diff -puN arch/x86/kernel/process.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent arch/x86/kernel/process.c
---- a/arch/x86/kernel/process.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
-+++ a/arch/x86/kernel/process.c
-@@ -370,7 +370,7 @@ static inline int hlt_use_halt(void)
- void default_idle(void)
+diff -puN drivers/serial/altera_uart.c~altera_uart-dont-take-spinlock-in-already-protected-functions drivers/serial/altera_uart.c
+--- a/drivers/serial/altera_uart.c~altera_uart-dont-take-spinlock-in-already-protected-functions
++++ a/drivers/serial/altera_uart.c
+@@ -89,15 +89,12 @@ static unsigned int altera_uart_tx_empty
+ static unsigned int altera_uart_get_mctrl(struct uart_port *port)
  {
- 	if (hlt_use_halt()) {
--		trace_power_start(POWER_CSTATE, 1);
-+		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
- 		current_thread_info()->status &= ~TS_POLLING;
- 		/*
- 		 * TS_POLLING-cleared state must be visible before we
-@@ -440,7 +440,7 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
-  */
- void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
+ 	struct altera_uart *pp = container_of(port, struct altera_uart, port);
+-	unsigned long flags;
+ 	unsigned int sigs;
+ 
+-	spin_lock_irqsave(&port->lock, flags);
+ 	sigs =
+ 	    (readl(port->membase + ALTERA_UART_STATUS_REG) &
+ 	     ALTERA_UART_STATUS_CTS_MSK) ? TIOCM_CTS : 0;
+ 	sigs |= (pp->sigs & TIOCM_RTS);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ 
+ 	return sigs;
+ }
+@@ -105,49 +102,37 @@ static unsigned int altera_uart_get_mctr
+ static void altera_uart_set_mctrl(struct uart_port *port, unsigned int sigs)
  {
--	trace_power_start(POWER_CSTATE, (ax>>4)+1);
-+	trace_power_start(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
- 	if (!need_resched()) {
- 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
- 			clflush((void *)&current_thread_info()->flags);
-@@ -456,7 +456,7 @@ void mwait_idle_with_hints(unsigned long
- static void mwait_idle(void)
- {
- 	if (!need_resched()) {
--		trace_power_start(POWER_CSTATE, 1);
-+		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
- 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
- 			clflush((void *)&current_thread_info()->flags);
+ 	struct altera_uart *pp = container_of(port, struct altera_uart, port);
+-	unsigned long flags;
  
-@@ -477,7 +477,7 @@ static void mwait_idle(void)
-  */
- static void poll_idle(void)
- {
--	trace_power_start(POWER_CSTATE, 0);
-+	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
- 	local_irq_enable();
- 	while (!need_resched())
- 		cpu_relax();
-diff -puN drivers/cpufreq/cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -29,6 +29,8 @@
- #include <linux/completion.h>
- #include <linux/mutex.h>
- 
-+#include <trace/events/power.h>
-+
- #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, \
- 						"cpufreq-core", msg)
- 
-@@ -350,6 +352,7 @@ void cpufreq_notify_transition(struct cp
- 
- 	case CPUFREQ_POSTCHANGE:
- 		adjust_jiffies(CPUFREQ_POSTCHANGE, freqs);
-+                trace_power_frequency(POWER_PSTATE, freqs->new, freqs->cpu);
- 		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
- 				CPUFREQ_POSTCHANGE, freqs);
- 		if (likely(policy) && likely(policy->cpu == freqs->cpu))
-diff -puN drivers/cpuidle/cpuidle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -95,7 +95,7 @@ static void cpuidle_idle_call(void)
- 	/* give the governor an opportunity to reflect on the outcome */
- 	if (cpuidle_curr_governor->reflect)
- 		cpuidle_curr_governor->reflect(dev);
--	trace_power_end(0);
-+	trace_power_end(smp_processor_id());
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->sigs = sigs;
+ 	if (sigs & TIOCM_RTS)
+ 		pp->imr |= ALTERA_UART_CONTROL_RTS_MSK;
+ 	else
+ 		pp->imr &= ~ALTERA_UART_CONTROL_RTS_MSK;
+ 	writel(pp->imr, port->membase + ALTERA_UART_CONTROL_REG);
+-	spin_unlock_irqrestore(&port->lock, flags);
  }
  
- /**
-diff -puN include/trace/events/power.h~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent include/trace/events/power.h
---- a/include/trace/events/power.h~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
-+++ a/include/trace/events/power.h
-@@ -18,52 +18,55 @@ enum {
+ static void altera_uart_start_tx(struct uart_port *port)
+ {
+ 	struct altera_uart *pp = container_of(port, struct altera_uart, port);
+-	unsigned long flags;
  
- DECLARE_EVENT_CLASS(power,
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->imr |= ALTERA_UART_CONTROL_TRDY_MSK;
+ 	writel(pp->imr, port->membase + ALTERA_UART_CONTROL_REG);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
  
--	TP_PROTO(unsigned int type, unsigned int state),
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
+ static void altera_uart_stop_tx(struct uart_port *port)
+ {
+ 	struct altera_uart *pp = container_of(port, struct altera_uart, port);
+-	unsigned long flags;
  
--	TP_ARGS(type, state),
-+	TP_ARGS(type, state, cpu_id),
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->imr &= ~ALTERA_UART_CONTROL_TRDY_MSK;
+ 	writel(pp->imr, port->membase + ALTERA_UART_CONTROL_REG);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
  
- 	TP_STRUCT__entry(
- 		__field(	u64,		type		)
- 		__field(	u64,		state		)
-+		__field(	u64,		cpu_id		)
- 	),
+ static void altera_uart_stop_rx(struct uart_port *port)
+ {
+ 	struct altera_uart *pp = container_of(port, struct altera_uart, port);
+-	unsigned long flags;
  
- 	TP_fast_assign(
- 		__entry->type = type;
- 		__entry->state = state;
-+		__entry->cpu_id = cpu_id;
- 	),
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->imr &= ~ALTERA_UART_CONTROL_RRDY_MSK;
+ 	writel(pp->imr, port->membase + ALTERA_UART_CONTROL_REG);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
  
--	TP_printk("type=%lu state=%lu", (unsigned long)__entry->type, (unsigned long)__entry->state)
-+	TP_printk("type=%lu state=%lu cpu_id=%lu", (unsigned long)__entry->type,
-+		(unsigned long)__entry->state, (unsigned long)__entry->cpu_id)
- );
+ static void altera_uart_break_ctl(struct uart_port *port, int break_state)
+@@ -272,10 +257,14 @@ static irqreturn_t altera_uart_interrupt
+ 	unsigned int isr;
  
- DEFINE_EVENT(power, power_start,
+ 	isr = readl(port->membase + ALTERA_UART_STATUS_REG) & pp->imr;
++
++	spin_lock(&port->lock);
+ 	if (isr & ALTERA_UART_STATUS_RRDY_MSK)
+ 		altera_uart_rx_chars(pp);
+ 	if (isr & ALTERA_UART_STATUS_TRDY_MSK)
+ 		altera_uart_tx_chars(pp);
++	spin_unlock(&port->lock);
++
+ 	return IRQ_RETVAL(isr);
+ }
  
--	TP_PROTO(unsigned int type, unsigned int state),
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
- 
--	TP_ARGS(type, state)
-+	TP_ARGS(type, state, cpu_id)
- );
- 
- DEFINE_EVENT(power, power_frequency,
- 
--	TP_PROTO(unsigned int type, unsigned int state),
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
- 
--	TP_ARGS(type, state)
-+	TP_ARGS(type, state, cpu_id)
- );
- 
- TRACE_EVENT(power_end,
- 
--	TP_PROTO(int dummy),
-+	TP_PROTO(unsigned int cpu_id),
- 
--	TP_ARGS(dummy),
-+	TP_ARGS(cpu_id),
- 
- 	TP_STRUCT__entry(
--		__field(	u64,		dummy		)
-+		__field(	u64,		cpu_id		)
- 	),
- 
- 	TP_fast_assign(
--		__entry->dummy = 0xffff;
-+		__entry->cpu_id = cpu_id;
- 	),
- 
--	TP_printk("dummy=%lu", (unsigned long)__entry->dummy)
-+	TP_printk("cpu_id=%lu", (unsigned long)__entry->cpu_id)
- 
- );
- 
-diff -puN tools/perf/builtin-timechart.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent tools/perf/builtin-timechart.c
---- a/tools/perf/builtin-timechart.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent
-+++ a/tools/perf/builtin-timechart.c
-@@ -300,8 +300,9 @@ struct trace_entry {
- 
- struct power_entry {
- 	struct trace_entry te;
--	s64	type;
--	s64	value;
-+	u64	type;
-+	u64	value;
-+	u64	cpu_id;
- };
- 
- #define TASK_COMM_LEN 16
-@@ -498,13 +499,13 @@ static int process_sample_event(event_t 
- 			return 0;
- 
- 		if (strcmp(event_str, "power:power_start") == 0)
--			c_state_start(data.cpu, data.time, pe->value);
-+			c_state_start(pe->cpu_id, data.time, pe->value);
- 
- 		if (strcmp(event_str, "power:power_end") == 0)
--			c_state_end(data.cpu, data.time);
-+			c_state_end(pe->cpu_id, data.time);
- 
- 		if (strcmp(event_str, "power:power_frequency") == 0)
--			p_state_change(data.cpu, data.time, pe->value);
-+			p_state_change(pe->cpu_id, data.time, pe->value);
- 
- 		if (strcmp(event_str, "sched:sched_wakeup") == 0)
- 			sched_wakeup(data.cpu, data.time, data.pid, te);
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
 origin.patch
 linux-next.patch
-x86-apic-ack-all-pending-irqs-when-crashed-on-kexec-v5.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
+altera_uart-dont-take-spinlock-in-already-protected-functions.patch
+altera_uart-simplify-altera_uart_console_putc.patch
 
