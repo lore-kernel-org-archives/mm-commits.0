@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-invoke-oom-killer-from-page-fault.patch added to -mm tree
-Date: Fri, 28 May 2010 16:19:07 -0700
-Message-ID: <201005282319.o4SNJ7oC020087@imap1.linux-foundation.org>
+Subject: + xtensa-invoke-oom-killer-from-page-fault.patch added to -mm tree
+Date: Fri, 28 May 2010 16:19:09 -0700
+Message-ID: <201005282319.o4SNJ9BD020090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39020 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753253Ab0E1XT1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753253Ab0E1XTR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 May 2010 19:19:27 -0400
+	Fri, 28 May 2010 19:19:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, dhowells@redhat.com, rientjes@google.com
+Cc: npiggin@suse.de, chris@zankel.net, rientjes@google.com
 
 
 The patch titled
-     mn10300: invoke oom-killer from page fault
+     xtensa: invoke oom-killer from page fault
 has been added to the -mm tree.  Its filename is
-     mn10300-invoke-oom-killer-from-page-fault.patch
+     xtensa-invoke-oom-killer-from-page-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: invoke oom-killer from page fault
+Subject: xtensa: invoke oom-killer from page fault
 From: Nick Piggin <npiggin@suse.de>
 
 As explained in commit 1c0fe6e3bd ("mm: invoke oom-killer from page
@@ -44,32 +44,44 @@ killing current.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/mm/fault.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/xtensa/mm/fault.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN arch/mn10300/mm/fault.c~mn10300-invoke-oom-killer-from-page-fault arch/mn10300/mm/fault.c
---- a/arch/mn10300/mm/fault.c~mn10300-invoke-oom-killer-from-page-fault
-+++ a/arch/mn10300/mm/fault.c
-@@ -338,11 +338,10 @@ no_context:
-  */
+diff -puN arch/xtensa/mm/fault.c~xtensa-invoke-oom-killer-from-page-fault arch/xtensa/mm/fault.c
+--- a/arch/xtensa/mm/fault.c~xtensa-invoke-oom-killer-from-page-fault
++++ a/arch/xtensa/mm/fault.c
+@@ -105,7 +105,6 @@ good_area:
+ 	 * make sure we exit gracefully rather than endlessly redo
+ 	 * the fault.
+ 	 */
+-survive:
+ 	fault = handle_mm_fault(mm, vma, address, is_write ? FAULT_FLAG_WRITE : 0);
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+@@ -146,15 +145,10 @@ bad_area:
+ 	 */
  out_of_memory:
  	up_read(&mm->mmap_sem);
--	monitor_signal(regs);
--	printk(KERN_ALERT "VM: killing process %s\n", tsk->comm);
--	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR)
--		do_exit(SIGKILL);
--	goto no_context;
-+	if ((fault_code & MMUFCR_xFC_ACCESS) != MMUFCR_xFC_ACCESS_USR)
-+		goto no_context;
-+	pagefault_out_of_memory();
-+	return;
+-	if (is_global_init(current)) {
+-		yield();
+-		down_read(&mm->mmap_sem);
+-		goto survive;
+-	}
+-	printk("VM: killing process %s\n", current->comm);
+-	if (user_mode(regs))
+-		do_group_exit(SIGKILL);
+-	bad_page_fault(regs, address, SIGKILL);
++	if (!user_mode(regs))
++		bad_page_fault(regs, address, SIGKILL);
++	else
++		pagefault_out_of_memory();
+ 	return;
  
  do_sigbus:
- 	up_read(&mm->mmap_sem);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
