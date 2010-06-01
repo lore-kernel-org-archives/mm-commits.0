@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch added to -mm tree
-Date: Tue, 01 Jun 2010 14:19:03 -0700
-Message-ID: <201006012119.o51LJ304019291@imap1.linux-foundation.org>
+Subject: + arch-ia64-kvm-add-missing-spin_unlock.patch added to -mm tree
+Date: Tue, 01 Jun 2010 14:18:59 -0700
+Message-ID: <201006012118.o51LIx3C019284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757422Ab0FAVTG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:06 -0400
+	by vger.kernel.org with ESMTP id S1756605Ab0FAVTL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: julia@diku.dk, avi@redhat.com, mtosatti@redhat.com, xiantao.zhang@intel.com
 
 
 The patch titled
-     drivers/message/i2o/exec-osm.c: add missing mutex_unlock
+     arch/ia64/kvm: add missing spin_unlock
 has been added to the -mm tree.  Its filename is
-     drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
+     arch-ia64-kvm-add-missing-spin_unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/message/i2o/exec-osm.c: add missing mutex_unlock
+Subject: arch/ia64/kvm: add missing spin_unlock
 From: Julia Lawall <julia@diku.dk>
 
-Add a mutex_unlock missing on the error path.
+Add a spin_unlock missing on the error path.
 
 The semantic match that finds this problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -46,45 +46,37 @@ The semantic match that finds this problem is as follows:
 expression E1;
 @@
 
-* mutex_lock(E1,...);
+* spin_lock(E1,...);
   <+... when != E1
   if (...) {
     ... when != E1
 *   return ...;
   }
   ...+>
-* mutex_unlock(E1,...);
+* spin_unlock(E1,...);
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Xiantao Zhang <xiantao.zhang@intel.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/exec-osm.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/ia64/kvm/kvm-ia64.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/message/i2o/exec-osm.c~drivers-message-i2o-exec-osmc-add-missing-mutex_unlock drivers/message/i2o/exec-osm.c
---- a/drivers/message/i2o/exec-osm.c~drivers-message-i2o-exec-osmc-add-missing-mutex_unlock
-+++ a/drivers/message/i2o/exec-osm.c
-@@ -389,12 +389,16 @@ static int i2o_exec_lct_notify(struct i2
- 	dev = &c->pdev->dev;
- 
- 	if (i2o_dma_realloc(dev, &c->dlct,
--					le32_to_cpu(sb->expected_lct_size)))
-+					le32_to_cpu(sb->expected_lct_size))) {
-+		mutex_unlock(&c->lct_lock);
- 		return -ENOMEM;
-+	}
- 
- 	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
--	if (IS_ERR(msg))
-+	if (IS_ERR(msg)) {
-+		mutex_unlock(&c->lct_lock);
- 		return PTR_ERR(msg);
-+	}
- 
- 	msg->u.head[0] = cpu_to_le32(EIGHT_WORD_MSG_SIZE | SGL_OFFSET_6);
- 	msg->u.head[1] = cpu_to_le32(I2O_CMD_LCT_NOTIFY << 24 | HOST_TID << 12 |
+diff -puN arch/ia64/kvm/kvm-ia64.c~arch-ia64-kvm-add-missing-spin_unlock arch/ia64/kvm/kvm-ia64.c
+--- a/arch/ia64/kvm/kvm-ia64.c~arch-ia64-kvm-add-missing-spin_unlock
++++ a/arch/ia64/kvm/kvm-ia64.c
+@@ -144,6 +144,7 @@ int kvm_arch_hardware_enable(void *garba
+ 				VP_INIT_ENV : VP_INIT_ENV_INITALIZE,
+ 			__pa(kvm_vm_buffer), KVM_VM_BUFFER_BASE, &tmp_base);
+ 	if (status != 0) {
++		spin_unlock(&vp_lock);
+ 		printk(KERN_WARNING"kvm: Failed to Enable VT Support!!!!\n");
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
