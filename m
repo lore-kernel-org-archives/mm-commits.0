@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-add-missing-spin_unlock-fix.patch added to -mm tree
-Date: Tue, 01 Jun 2010 14:14:47 -0700
-Message-ID: <201006012114.o51LElRl019016@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-add-missing-spin_unlock.patch added to -mm tree
+Date: Tue, 01 Jun 2010 14:14:46 -0700
+Message-ID: <201006012114.o51LEkoX019013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757238Ab0FAVPi (ORCPT
+	by vger.kernel.org with ESMTP id S1756258Ab0FAVPi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, joerg.roedel@amd.com, julia@diku.dk, mingo@redhat.com, tglx@linutronix.de
+Cc: julia@diku.dk, hpa@zytor.com, joerg.roedel@amd.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     arch-x86-kernel-add-missing-spin_unlock-fix
+     arch/x86/kernel: add missing spin_unlock
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-add-missing-spin_unlock-fix.patch
+     arch-x86-kernel-add-missing-spin_unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-x86-kernel-add-missing-spin_unlock-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/x86/kernel: add missing spin_unlock
+From: Julia Lawall <julia@diku.dk>
 
-avoid multiple `return' statements
+Add a spin_unlock missing on the error path.  The locks and unlocks are
+balanced in other functions, so it seems that the same should be the case
+here.
 
-Cc: Julia Lawall <julia@diku.dk>
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression E1;
+@@
+
+* spin_lock(E1,...);
+  <+... when != E1
+  if (...) {
+    ... when != E1
+*   return ...;
+  }
+  ...+>
+* spin_unlock(E1,...);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Joerg Roedel <joerg.roedel@amd.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -46,88 +66,62 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/amd_iommu.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/kernel/amd_iommu.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/amd_iommu.c~arch-x86-kernel-add-missing-spin_unlock-fix arch/x86/kernel/amd_iommu.c
---- a/arch/x86/kernel/amd_iommu.c~arch-x86-kernel-add-missing-spin_unlock-fix
+diff -puN arch/x86/kernel/amd_iommu.c~arch-x86-kernel-add-missing-spin_unlock arch/x86/kernel/amd_iommu.c
+--- a/arch/x86/kernel/amd_iommu.c~arch-x86-kernel-add-missing-spin_unlock
 +++ a/arch/x86/kernel/amd_iommu.c
-@@ -1487,6 +1487,7 @@ static int __attach_device(struct device
- 			   struct protection_domain *domain)
- {
- 	struct iommu_dev_data *dev_data, *alias_data;
-+	int ret;
+@@ -1499,12 +1499,16 @@ static int __attach_device(struct device
  
- 	dev_data   = get_dev_data(dev);
- 	alias_data = get_dev_data(dev_data->alias);
-@@ -1497,18 +1498,17 @@ static int __attach_device(struct device
- 	/* lock domain */
- 	spin_lock(&domain->lock);
- 
-+	ret = -EBUSY;
  	/* Some sanity checks */
  	if (alias_data->domain != NULL &&
--	    alias_data->domain != domain) {
--		spin_unlock(&domain->lock);
--		return -EBUSY;
--	}
-+	    alias_data->domain != domain)
-+		goto out;
+-	    alias_data->domain != domain)
++	    alias_data->domain != domain) {
++		spin_unlock(&domain->lock);
+ 		return -EBUSY;
++	}
  
  	if (dev_data->domain != NULL &&
--	    dev_data->domain != domain) {
--		spin_unlock(&domain->lock);
--		return -EBUSY;
--	}
-+	    dev_data->domain != domain)
-+		goto out;
-+
-+	ret = 0;
+-	    dev_data->domain != domain)
++	    dev_data->domain != domain) {
++		spin_unlock(&domain->lock);
+ 		return -EBUSY;
++	}
  
  	/* Do real assignment */
  	if (dev_data->alias != dev) {
-@@ -1526,8 +1526,8 @@ static int __attach_device(struct device
- 
- 	/* ready */
- 	spin_unlock(&domain->lock);
--
--	return 0;
-+out:
-+	return ret;
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-lib-kobject_ueventc-fix-conig_net=n-warning.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+fs-btrfs-use-memdup_user.patch
+fs-btrfs-use-err_cast.patch
+drivers-media-use-memdup_user.patch
+drivers-i2c-use-memdup_user.patch
+drivers-ide-use-memdup_user.patch
+fs-ubifs-use-err_cast.patch
+drivers-net-wireless-prism54-use-memdup_user.patch
+drivers-s390-net-use-memdup_user.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-use-memdup_user.patch
+drivers-block-use-memdup_user.patch
+drivers-staging-dream-camera-use-memdup_user.patch
+drivers-usb-gadget-use-memdup_user.patch
+mm-use-memdup_user.patch
+mm-use-err_cast.patch
+drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
+arch-x86-kernel-add-missing-spin_unlock.patch
 arch-x86-kernel-add-missing-spin_unlock-fix.patch
+arch-ia64-kvm-add-missing-spin_unlock.patch
+drivers-video-omap2-displays-add-missing-mutex_unlock.patch
+drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
+drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
+fs-ocfs2-dlm-add-missing-spin_unlock.patch
+drivers-staging-vme-bridges-add-missing-unlocks.patch
 
