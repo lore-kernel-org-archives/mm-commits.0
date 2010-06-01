@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nuc900-rtc-change-the-waiting-for-device-ready-implement.patch added to -mm tree
-Date: Tue, 01 Jun 2010 15:43:41 -0700
-Message-ID: <201006012243.o51MhfqL023248@imap1.linux-foundation.org>
+Subject: + gconfig-fix-build-failure-on-fedora-13.patch added to -mm tree
+Date: Tue, 01 Jun 2010 15:54:54 -0700
+Message-ID: <201006012254.o51MssTC023693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757307Ab0FAWn6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 18:43:58 -0400
+	by vger.kernel.org with ESMTP id S1753254Ab0FAWzW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 18:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mcuos.com@gmail.com, a.zummo@towertech.it
+Cc: richard@rsk.demon.co.uk, mmarek@suse.cz, stable@kernel.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     NUC900/rtc: change the waiting for device ready implement
+     gconfig: fix build failure on fedora 13
 has been added to the -mm tree.  Its filename is
-     nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
+     gconfig-fix-build-failure-on-fedora-13.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NUC900/rtc: change the waiting for device ready implement
-From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: gconfig: fix build failure on fedora 13
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
--ENOCHANGELOG
+Making gconfig fails on fedora 13 as the linker cannot resolve dlsym.
 
-Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Adding libdl to the link command fixes this.
+
+make shows this error :-
+    /usr/bin/ld: scripts/kconfig/kconfig_load.o: undefined reference to symbol 'dlsym@@GLIBC_2.2.5'
+    /usr/bin/ld: note: 'dlsym@@GLIBC_2.2.5' is defined in DSO /lib64/libdl.so.2 so try adding it to the linker command line
+    /lib64/libdl.so.2: could not read symbols: Invalid operation
+
+tested on x86_64 fedora 13.
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ scripts/kconfig/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~nuc900-rtc-change-the-waiting-for-device-ready-implement drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~nuc900-rtc-change-the-waiting-for-device-ready-implement
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -85,22 +85,21 @@ static irqreturn_t nuc900_rtc_interrupt(
+diff -puN scripts/kconfig/Makefile~gconfig-fix-build-failure-on-fedora-13 scripts/kconfig/Makefile
+--- a/scripts/kconfig/Makefile~gconfig-fix-build-failure-on-fedora-13
++++ a/scripts/kconfig/Makefile
+@@ -219,7 +219,7 @@ HOSTCFLAGS_zconf.tab.o	:= -I$(src)
+ HOSTLOADLIBES_qconf	= $(KC_QT_LIBS) -ldl
+ HOSTCXXFLAGS_qconf.o	= $(KC_QT_CFLAGS) -D LKC_DIRECT_LINK
  
- static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
- {
--	unsigned int i;
-+	unsigned int i, timeout = 0x1000;
- 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
+-HOSTLOADLIBES_gconf	= `pkg-config --libs gtk+-2.0 gmodule-2.0 libglade-2.0`
++HOSTLOADLIBES_gconf	= `pkg-config --libs gtk+-2.0 gmodule-2.0 libglade-2.0` -ldl
+ HOSTCFLAGS_gconf.o	= `pkg-config --cflags gtk+-2.0 gmodule-2.0 libglade-2.0` \
+                           -D LKC_DIRECT_LINK
  
- 	mdelay(10);
- 
- 	__raw_writel(AERPOWERON, nuc900_rtc->rtc_reg + REG_RTC_AER);
- 
--	for (i = 0; i < 1000; i++) {
--		if (__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
--			return 0;
--	}
-+	while (!(__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
-+								&& timeout--)
-+		mdelay(1);
- 
--	if ((__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB) == 0x0)
--		return ERR_PTR(-ENODEV);
-+	if (!timeout)
-+		return ERR_PTR(-EPERM);
- 
--	return ERR_PTR(-EPERM);
-+	return 0;
- }
- 
- static void nuc900_rtc_bcd2bin(unsigned int timereg,
 _
 
-Patches currently in -mm which might be from mcuos.com@gmail.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
+gconfig-fix-build-failure-on-fedora-13.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
 
