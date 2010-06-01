@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-dlm-add-missing-spin_unlock.patch added to -mm tree
-Date: Tue, 01 Jun 2010 14:19:08 -0700
-Message-ID: <201006012119.o51LJ8Fn019311@imap1.linux-foundation.org>
+Subject: + drivers-staging-vme-bridges-add-missing-unlocks.patch added to -mm tree
+Date: Tue, 01 Jun 2010 14:19:10 -0700
+Message-ID: <201006012119.o51LJADH019319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757141Ab0FAVTQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:16 -0400
+	by vger.kernel.org with ESMTP id S1757422Ab0FAVTS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, joel.becker@oracle.com, mfasheh@suse.com
+Cc: julia@diku.dk, gregkh@suse.de, martyn.welch@ge.com
 
 
 The patch titled
-     fs/ocfs2/dlm: add missing spin_unlock
+     drivers/staging/vme/bridges: add missing unlocks
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-dlm-add-missing-spin_unlock.patch
+     drivers-staging-vme-bridges-add-missing-unlocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ocfs2/dlm: add missing spin_unlock
+Subject: drivers/staging/vme/bridges: add missing unlocks
 From: Julia Lawall <julia@diku.dk>
 
-Add a spin_unlock missing on the error path.  Unlock as in the other code
-that leads to the leave label.
+Add a spin_unlock and mutex_unlock missing on the error path.
 
 The semantic match that finds this problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -58,25 +57,35 @@ expression E1;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <joel.becker@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Martyn Welch <martyn.welch@ge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/staging/vme/bridges/vme_ca91cx42.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-add-missing-spin_unlock fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-add-missing-spin_unlock
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -1709,6 +1709,7 @@ retry:
- 		}
+diff -puN drivers/staging/vme/bridges/vme_ca91cx42.c~drivers-staging-vme-bridges-add-missing-unlocks drivers/staging/vme/bridges/vme_ca91cx42.c
+--- a/drivers/staging/vme/bridges/vme_ca91cx42.c~drivers-staging-vme-bridges-add-missing-unlocks
++++ a/drivers/staging/vme/bridges/vme_ca91cx42.c
+@@ -900,7 +900,8 @@ unsigned int ca91cx42_master_rmw(struct 
+ 	/* Address must be 4-byte aligned */
+ 	if (pci_addr & 0x3) {
+ 		dev_err(dev, "RMW Address not 4-byte aligned\n");
+-		return -EINVAL;
++		result = -EINVAL;
++		goto out;
+ 	}
  
- 		if (dlm_protocol_compare(&dlm->fs_locking_proto, fs_proto)) {
-+			spin_unlock(&dlm_domain_lock);
- 			mlog(ML_ERROR,
- 			     "Requested locking protocol version is not "
- 			     "compatible with already registered domain "
+ 	/* Ensure RMW Disabled whilst configuring */
+@@ -921,6 +922,7 @@ unsigned int ca91cx42_master_rmw(struct 
+ 	/* Disable RMW */
+ 	iowrite32(0, bridge->base + SCYC_CTL);
+ 
++out:
+ 	spin_unlock(&(image->lock));
+ 
+ 	mutex_unlock(&(bridge->vme_rmw));
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
