@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + mm-provide-init_mm-mm_context-initializer.patch added to -mm tree
-Date: Tue, 01 Jun 2010 14:25:05 -0700
-Message-ID: <201006012125.o51LP5Pf019685@imap1.linux-foundation.org>
+Date: Tue, 01 Jun 2010 14:25:20 -0700
+Message-ID: <201006012125.o51LPKrC019702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40416 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753192Ab0FAVZS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:25:18 -0400
+	by vger.kernel.org with ESMTP id S1756676Ab0FAV0B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:26:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,7 +15,7 @@ Cc: heiko.carstens@de.ibm.com, adobriyan@gmail.com, schwidefsky@de.ibm.com, suzu
 
 
 The patch titled
-     From: Heiko Carstens <heiko.carstens@de.ibm.com>
+     mm: provide init_mm mm_context initializer
 has been added to the -mm tree.  Its filename is
      mm-provide-init_mm-mm_context-initializer.patch
 
@@ -33,14 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm: provide init_mm mm_context initializer
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-
 Provide an INIT_MM_CONTEXT intializer macro which can be used to
-statically initialize mm_struct:mm_context of init_mm.  This way we
-can get rid of code which will do the initialization at run time (on
-s390).
+statically initialize mm_struct:mm_context of init_mm.  This way we can
+get rid of code which will do the initialization at run time (on s390).
+
 In addition the current code can be found at a place where it is not
 expected.  So let's have a common initializer which architectures
 can use if needed.
@@ -51,8 +50,6 @@ Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Suzuki Poulose <suzuki@in.ibm.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
----
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
