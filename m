@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch added to -mm tree
-Date: Tue, 01 Jun 2010 14:19:05 -0700
-Message-ID: <201006012119.o51LJ5sX019295@imap1.linux-foundation.org>
+Subject: + fs-ocfs2-dlm-add-missing-spin_unlock.patch added to -mm tree
+Date: Tue, 01 Jun 2010 14:19:08 -0700
+Message-ID: <201006012119.o51LJ8Fn019311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754634Ab0FAVTM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:12 -0400
+	by vger.kernel.org with ESMTP id S1757141Ab0FAVTQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, alan@linux.intel.com, gregkh@suse.de
+Cc: julia@diku.dk, joel.becker@oracle.com, mfasheh@suse.com
 
 
 The patch titled
-     drivers/char/n_gsm.c: add missing spin_unlock_irqrestore
+     fs/ocfs2/dlm: add missing spin_unlock
 has been added to the -mm tree.  Its filename is
-     drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
+     fs-ocfs2-dlm-add-missing-spin_unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/n_gsm.c: add missing spin_unlock_irqrestore
+Subject: fs/ocfs2/dlm: add missing spin_unlock
 From: Julia Lawall <julia@diku.dk>
 
-Add a spin_unlock_irqrestore missing on the error path.  Converting the
-return to break leads to the spin_unlock_irqrestore at the end of the
-function.
+Add a spin_unlock missing on the error path.  Unlock as in the other code
+that leads to the leave label.
 
 The semantic match that finds this problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -48,37 +47,36 @@ The semantic match that finds this problem is as follows:
 expression E1;
 @@
 
-* spin_lock_irqsave(E1,...);
+* spin_lock(E1,...);
   <+... when != E1
   if (...) {
     ... when != E1
 *   return ...;
   }
   ...+>
-* spin_unlock_irqrestore(E1,...);
+* spin_unlock(E1,...);
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Alan Cox <alan@linux.intel.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <joel.becker@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_gsm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmdomain.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/n_gsm.c~drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore drivers/char/n_gsm.c
---- a/drivers/char/n_gsm.c~drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore
-+++ a/drivers/char/n_gsm.c
-@@ -920,7 +920,7 @@ static void gsm_dlci_data_sweep(struct g
- 		else
- 			len = gsm_dlci_data_output_framed(gsm, dlci);
- 		if (len < 0)
--			return;
-+			break;
- 		/* DLCI empty - try the next */
- 		if (len == 0)
- 			i++;
+diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-add-missing-spin_unlock fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-add-missing-spin_unlock
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1709,6 +1709,7 @@ retry:
+ 		}
+ 
+ 		if (dlm_protocol_compare(&dlm->fs_locking_proto, fs_proto)) {
++			spin_unlock(&dlm_domain_lock);
+ 			mlog(ML_ERROR,
+ 			     "Requested locking protocol version is not "
+ 			     "compatible with already registered domain "
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
