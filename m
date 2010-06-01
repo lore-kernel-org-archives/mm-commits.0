@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-ia64-kvm-add-missing-spin_unlock.patch added to -mm tree
-Date: Tue, 01 Jun 2010 14:18:59 -0700
-Message-ID: <201006012118.o51LIx3C019284@imap1.linux-foundation.org>
+Subject: + drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch added to -mm tree
+Date: Tue, 01 Jun 2010 14:19:05 -0700
+Message-ID: <201006012119.o51LJ5sX019295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756605Ab0FAVTL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:11 -0400
+	by vger.kernel.org with ESMTP id S1754634Ab0FAVTM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 17:19:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, avi@redhat.com, mtosatti@redhat.com, xiantao.zhang@intel.com
+Cc: julia@diku.dk, alan@linux.intel.com, gregkh@suse.de
 
 
 The patch titled
-     arch/ia64/kvm: add missing spin_unlock
+     drivers/char/n_gsm.c: add missing spin_unlock_irqrestore
 has been added to the -mm tree.  Its filename is
-     arch-ia64-kvm-add-missing-spin_unlock.patch
+     drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/ia64/kvm: add missing spin_unlock
+Subject: drivers/char/n_gsm.c: add missing spin_unlock_irqrestore
 From: Julia Lawall <julia@diku.dk>
 
-Add a spin_unlock missing on the error path.
+Add a spin_unlock_irqrestore missing on the error path.  Converting the
+return to break leads to the spin_unlock_irqrestore at the end of the
+function.
 
 The semantic match that finds this problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -46,37 +48,37 @@ The semantic match that finds this problem is as follows:
 expression E1;
 @@
 
-* spin_lock(E1,...);
+* spin_lock_irqsave(E1,...);
   <+... when != E1
   if (...) {
     ... when != E1
 *   return ...;
   }
   ...+>
-* spin_unlock(E1,...);
+* spin_unlock_irqrestore(E1,...);
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Xiantao Zhang <xiantao.zhang@intel.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/kvm-ia64.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/n_gsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kvm/kvm-ia64.c~arch-ia64-kvm-add-missing-spin_unlock arch/ia64/kvm/kvm-ia64.c
---- a/arch/ia64/kvm/kvm-ia64.c~arch-ia64-kvm-add-missing-spin_unlock
-+++ a/arch/ia64/kvm/kvm-ia64.c
-@@ -144,6 +144,7 @@ int kvm_arch_hardware_enable(void *garba
- 				VP_INIT_ENV : VP_INIT_ENV_INITALIZE,
- 			__pa(kvm_vm_buffer), KVM_VM_BUFFER_BASE, &tmp_base);
- 	if (status != 0) {
-+		spin_unlock(&vp_lock);
- 		printk(KERN_WARNING"kvm: Failed to Enable VT Support!!!!\n");
- 		return -EINVAL;
- 	}
+diff -puN drivers/char/n_gsm.c~drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore drivers/char/n_gsm.c
+--- a/drivers/char/n_gsm.c~drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore
++++ a/drivers/char/n_gsm.c
+@@ -920,7 +920,7 @@ static void gsm_dlci_data_sweep(struct g
+ 		else
+ 			len = gsm_dlci_data_output_framed(gsm, dlci);
+ 		if (len < 0)
+-			return;
++			break;
+ 		/* DLCI empty - try the next */
+ 		if (len == 0)
+ 			i++;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
