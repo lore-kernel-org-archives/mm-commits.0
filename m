@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632.patch added to -mm tree
-Date: Tue, 01 Jun 2010 15:35:04 -0700
-Message-ID: <201006012235.o51MZ4a5022872@imap1.linux-foundation.org>
+Subject: + nuc900-rtc-change-the-waiting-for-device-ready-implement.patch added to -mm tree
+Date: Tue, 01 Jun 2010 15:43:41 -0700
+Message-ID: <201006012243.o51MhfqL023248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756528Ab0FAWfK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 18:35:10 -0400
+	by vger.kernel.org with ESMTP id S1757307Ab0FAWn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jun 2010 18:43:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, arnd@arndb.de
+Cc: mcuos.com@gmail.com, a.zummo@towertech.it
 
 
 The patch titled
-     asm-generic/io.h: add big endian versions of io{read,write}{16,32}
+     NUC900/rtc: change the waiting for device ready implement
 has been added to the -mm tree.  Its filename is
-     asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632.patch
+     nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/io.h: add big endian versions of io{read,write}{16,32}
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: NUC900/rtc: change the waiting for device ready implement
+From: Wan ZongShun <mcuos.com@gmail.com>
 
-The asm-generic/iomap.h provides these functions already, but the
-non-generic fallback defines do not.
+-ENOCHANGELOG
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/io.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/rtc/rtc-nuc900.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-generic/io.h~asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632 include/asm-generic/io.h
---- a/include/asm-generic/io.h~asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632
-+++ a/include/asm-generic/io.h
-@@ -188,11 +188,15 @@ static inline void outsl(unsigned long a
- #ifndef CONFIG_GENERIC_IOMAP
- #define ioread8(addr)		readb(addr)
- #define ioread16(addr)		readw(addr)
-+#define ioread16be(addr)	be16_to_cpu(ioread16(addr))
- #define ioread32(addr)		readl(addr)
-+#define ioread32be(addr)	be32_to_cpu(ioread32(addr))
+diff -puN drivers/rtc/rtc-nuc900.c~nuc900-rtc-change-the-waiting-for-device-ready-implement drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~nuc900-rtc-change-the-waiting-for-device-ready-implement
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -85,22 +85,21 @@ static irqreturn_t nuc900_rtc_interrupt(
  
- #define iowrite8(v, addr)	writeb((v), (addr))
- #define iowrite16(v, addr)	writew((v), (addr))
-+#define iowrite16be(v, addr)	iowrite16(be16_to_cpu(v), (addr))
- #define iowrite32(v, addr)	writel((v), (addr))
-+#define iowrite32be(v, addr)	iowrite32(be32_to_cpu(v), (addr))
+ static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
+ {
+-	unsigned int i;
++	unsigned int i, timeout = 0x1000;
+ 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
  
- #define ioread8_rep(p, dst, count) \
- 	insb((unsigned long) (p), (dst), (count))
+ 	mdelay(10);
+ 
+ 	__raw_writel(AERPOWERON, nuc900_rtc->rtc_reg + REG_RTC_AER);
+ 
+-	for (i = 0; i < 1000; i++) {
+-		if (__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
+-			return 0;
+-	}
++	while (!(__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
++								&& timeout--)
++		mdelay(1);
+ 
+-	if ((__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB) == 0x0)
+-		return ERR_PTR(-ENODEV);
++	if (!timeout)
++		return ERR_PTR(-EPERM);
+ 
+-	return ERR_PTR(-EPERM);
++	return 0;
+ }
+ 
+ static void nuc900_rtc_bcd2bin(unsigned int timereg,
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from mcuos.com@gmail.com are
 
-origin.patch
-linux-next.patch
-flat-split-the-stack-data-alignments.patch
-flat-fix-unmap-len-in-load-error-path.patch
-asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632.patch
+nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
 
