@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-kzalloc-doesnt-return-err_ptr.patch added to -mm tree
-Date: Wed, 02 Jun 2010 13:08:04 -0700
-Message-ID: <201006022008.o52K847i014210@imap1.linux-foundation.org>
+Subject: + kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call.patch added to -mm tree
+Date: Wed, 02 Jun 2010 13:09:31 -0700
+Message-ID: <201006022009.o52K9Vl0014332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44165 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756853Ab0FBUI1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 16:08:27 -0400
+	by vger.kernel.org with ESMTP id S933084Ab0FBUJd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 16:09:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, sameo@linux.intel.com
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     drivers/mfd: kzalloc doesn't return ERR_PTR
+     kernel/: fix BUG_ON checks for cpu notifier callbacks direct call
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-kzalloc-doesnt-return-err_ptr.patch
+     kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd: kzalloc doesn't return ERR_PTR
-From: Julia Lawall <julia@diku.dk>
+Subject: kernel/: fix BUG_ON checks for cpu notifier callbacks direct call
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use !x rather than IS_ERR(x) to test the result of kzalloc.
+The commit 80b5184cc537718122e036afe7e62d202b70d077 ("kernel/: convert cpu
+notifier to return encapsulate errno value") changed the return value of
+cpu notifier callbacks.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+Those callbacks don't return NOTIFY_BAD on failures anymore.  But there
+are a few callbacks which are called directly at init time and checking
+the return value.
 
-// <smpl>
-@@
-expression x,E;
-@@
+I forgot to change BUG_ON checking by the direct callers in the commit.
 
-x = \(kmalloc\|kzalloc\|kcalloc\)(...)
-... when != x = E
-- IS_ERR(x)
-+ !x
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/abx500-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/softirq.c |    2 +-
+ kernel/timer.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/abx500-core.c~drivers-mfd-kzalloc-doesnt-return-err_ptr drivers/mfd/abx500-core.c
---- a/drivers/mfd/abx500-core.c~drivers-mfd-kzalloc-doesnt-return-err_ptr
-+++ a/drivers/mfd/abx500-core.c
-@@ -36,7 +36,7 @@ int abx500_register_ops(struct device *d
- 	struct abx500_device_entry *dev_entry;
+diff -puN kernel/softirq.c~kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call kernel/softirq.c
+--- a/kernel/softirq.c~kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call
++++ a/kernel/softirq.c
+@@ -850,7 +850,7 @@ static __init int spawn_ksoftirqd(void)
+ 	void *cpu = (void *)(long)smp_processor_id();
+ 	int err = cpu_callback(&cpu_nfb, CPU_UP_PREPARE, cpu);
  
- 	dev_entry = kzalloc(sizeof(struct abx500_device_entry), GFP_KERNEL);
--	if (IS_ERR(dev_entry)) {
-+	if (!dev_entry) {
- 		dev_err(dev, "register_ops kzalloc failed");
- 		return -ENOMEM;
- 	}
+-	BUG_ON(err == NOTIFY_BAD);
++	BUG_ON(err != NOTIFY_OK);
+ 	cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);
+ 	register_cpu_notifier(&cpu_nfb);
+ 	return 0;
+diff -puN kernel/timer.c~kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call kernel/timer.c
+--- a/kernel/timer.c~kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call
++++ a/kernel/timer.c
+@@ -1716,7 +1716,7 @@ void __init init_timers(void)
+ 
+ 	init_timer_stats();
+ 
+-	BUG_ON(err == NOTIFY_BAD);
++	BUG_ON(err != NOTIFY_OK);
+ 	register_cpu_notifier(&timers_nb);
+ 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq);
+ }
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-origin.patch
 linux-next.patch
-arch-x86-kernel-add-missing-spin_unlock.patch
-arch-x86-kernel-add-missing-spin_unlock-fix2.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-drivers-dma-eliminate-a-null-pointer-dereference.patch
-drivers-media-use-memdup_user.patch
-drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
-drivers-video-omap2-displays-add-missing-mutex_unlock.patch
-arch-ia64-kvm-add-missing-spin_unlock.patch
-drivers-ide-use-memdup_user.patch
-drivers-mfd-kzalloc-doesnt-return-err_ptr.patch
-fs-ubifs-use-err_cast.patch
-drivers-net-wireless-prism54-use-memdup_user.patch
-fs-ocfs2-dlm-add-missing-spin_unlock.patch
-drivers-s390-net-use-memdup_user.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-use-memdup_user.patch
-drivers-block-use-memdup_user.patch
-arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
-drivers-staging-dream-camera-use-memdup_user.patch
-drivers-staging-vme-bridges-add-missing-unlocks.patch
-drivers-staging-eliminate-a-null-pointer-dereference.patch
-drivers-usb-gadget-use-memdup_user.patch
-drivers-usb-serial-eliminate-a-null-pointer-dereference.patch
-mm-use-memdup_user.patch
-mm-use-err_cast.patch
-drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
-drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
+kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call.patch
 
