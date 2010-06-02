@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkkconfigsymbolssh-kconfig-symbols-sometimes-have-lowercase-letters.patch added to -mm tree
-Date: Wed, 02 Jun 2010 14:24:18 -0700
-Message-ID: <201006022124.o52LOIgR017851@imap1.linux-foundation.org>
+Subject: + dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included.patch added to -mm tree
+Date: Wed, 02 Jun 2010 14:27:03 -0700
+Message-ID: <201006022127.o52LR3vU017946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932894Ab0FBVYn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 17:24:43 -0400
+	by vger.kernel.org with ESMTP id S1758048Ab0FBV1j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 17:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdreier@cisco.com, mmarek@suse.cz, rolandd@cisco.com
+Cc: pharon@gmail.com, lenb@kernel.org, mjg@redhat.com
 
 
 The patch titled
-     checkkconfigsymbols.sh: Kconfig symbols sometimes have lowercase letters
+     drivers/platform/x86/dell-wmi.c: fix Dell Studio 1555 eject key
 has been added to the -mm tree.  Its filename is
-     checkkconfigsymbolssh-kconfig-symbols-sometimes-have-lowercase-letters.patch
+     dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkkconfigsymbols.sh: Kconfig symbols sometimes have lowercase letters
-From: Roland Dreier <rdreier@cisco.com>
+Subject: drivers/platform/x86/dell-wmi.c: fix Dell Studio 1555 eject key
+From: Islam Amer <pharon@gmail.com>
 
-Quite a few Kconfig symbols contain lowercase letters.  The current
-checkkconfigsymbols.sh code only contains A-Z in the regexp it uses to
-find config symbols in source code, so it comes up with the wrong symbol
-to look for in Kconfig files and then generates false positives when it
-doesn't find that wrong symbol.  For example checking drivers/net
-generates a false positive for MAC89 because the the actual config option
-is MAC89x0.
+Pressing the eject key on my Dell Studio 1555 does not work and dmesg
+produces this message :
 
-Fix this by also adding a-z to the regexp.
+dell-wmi: Unknown key 0 pressed
 
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Adding a debugging printk in dell-wmi.c after line 222 like this :
+
+printk(KERN_INFO "dell:wmi 0x%x , 0x%x \n", buffer_entry[1], buffer_entry[2]);
+
+dmesg now shows :
+
+dell:wmi 0x0 , 0xe009
+dell-wmi: Unknown key 0 pressed
+
+So for some reason buffer_entry[1] is used although it is empty.
+
+Falling back to buffer_entry[2] in case buffer_entry[1] is 0x0 makes the
+button work.
+
+I suspect it might be better to fix the "dell_new_hk_type" logic though
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16075
+
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkkconfigsymbols.sh |    2 +-
+ drivers/platform/x86/dell-wmi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkkconfigsymbols.sh~checkkconfigsymbolssh-kconfig-symbols-sometimes-have-lowercase-letters scripts/checkkconfigsymbols.sh
---- a/scripts/checkkconfigsymbols.sh~checkkconfigsymbolssh-kconfig-symbols-sometimes-have-lowercase-letters
-+++ a/scripts/checkkconfigsymbols.sh
-@@ -14,7 +14,7 @@ find $paths -name '*.[chS]' -o -name 'Ma
- do
- 	# Output the bare Kconfig variable and the filename; the _MODULE part at
- 	# the end is not removed here (would need perl an not-hungry regexp for that).
--	sed -ne 's!^.*\<\(UML_\)\?CONFIG_\([0-9A-Z_]\+\).*!\2 '$i'!p' < $i
-+	sed -ne 's!^.*\<\(UML_\)\?CONFIG_\([0-9A-Za-z_]\+\).*!\2 '$i'!p' < $i
- done | \
- # Smart "sort|uniq" implemented in awk and tuned to collect the names of all
- # files which use a given symbol
+diff -puN drivers/platform/x86/dell-wmi.c~dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included drivers/platform/x86/dell-wmi.c
+--- a/drivers/platform/x86/dell-wmi.c~dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included
++++ a/drivers/platform/x86/dell-wmi.c
+@@ -221,7 +221,7 @@ static void dell_wmi_notify(u32 value, v
+ 			return;
+ 		}
+ 
+-		if (dell_new_hk_type)
++		if (dell_new_hk_type || buffer_entry[1] == 0x0)
+ 			reported_key = (int)buffer_entry[2];
+ 		else
+ 			reported_key = (int)buffer_entry[1] & 0xffff;
 _
 
-Patches currently in -mm which might be from rdreier@cisco.com are
+Patches currently in -mm which might be from pharon@gmail.com are
 
-checkkconfigsymbolssh-kconfig-symbols-sometimes-have-lowercase-letters.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
+dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included.patch
 
