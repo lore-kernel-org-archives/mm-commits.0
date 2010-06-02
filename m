@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch added to -mm tree
-Date: Tue, 01 Jun 2010 23:03:07 -0700
-Message-ID: <201006020603.o526347E008188@imap1.linux-foundation.org>
+Subject: + sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch added to -mm tree
+Date: Tue, 01 Jun 2010 23:03:10 -0700
+Message-ID: <201006020603.o52637nD008191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751112Ab0FBGDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 02:03:18 -0400
+	by vger.kernel.org with ESMTP id S1751957Ab0FBGDT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 02:03:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, torvalds@linux-foundation.org, wezhang@redha
 
 
 The patch titled
-     sys_personality: change sys_personality() to accept "unsigned int" instead of u_long
+     sys_personality: remove the bogus checks in sys_personality()->__set_personality() path
 has been added to the -mm tree.  Its filename is
-     sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch
+     sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,132 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_personality: change sys_personality() to accept "unsigned int" instead of u_long
+Subject: sys_personality: remove the bogus checks in sys_personality()->__set_personality() path
 From: Oleg Nesterov <oleg@redhat.com>
 
-task_struct->pesonality is "unsigned int", but sys_personality() paths use
-"unsigned long pesonality".  This means that every assignment or
-comparison is not right.  In particular, if this argument does not fit
-into "unsigned int" __set_personality() changes the caller's personality
-and then sys_personality() returns -EINVAL.
+Cleanup, no functional changes.
 
-Turn this argument into "unsigned int" and avoid overflows.  Obviously,
-this is the user-visible change, we just ignore the upper bits.  But this
-can't break the sane application.
+- __set_personality() always changes ->exec_domain/personality, the
+  special case when ->exec_domain remains the same buys nothing but
+  complicates the code. Unify both cases to simplify the code.
 
-There is another thing which can confuse the poorly written applications. 
-User-space thinks that this syscall returns int, not long.  This means
-that the returned value can be negative and look like the error code.  But
-note that libc won't be confused and thus errno won't be set, and with
-this patch the user-space can never get -1 unless sys_personality() really
-fails.  And, most importantly, the negative RET != -1 is only possible if
-that app previously called personality(RET).
+- The -EINVAL check in sys_personality() was never right. If we assume
+  that set_personality() can fail we should check the value it returns
+  instead of verifying that task->personality was actually changed.
 
-Pointed-out-by: Wenming Zhang <wezhang@redhat.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+  Remove it. Before the previous patch it was possible to hit this case
+  due to overflow problems, but this -EINVAL just indicated the kernel
+  bug.
+
+OTOH, probably it makes sense to change lookup_exec_domain() to return
+ERR_PTR() instead of default_exec_domain if the search in exec_domains
+list fails, and report this error to the user-space.  But this means
+another user-space change, and we have in-kernel users which need fixes. 
+For example, PER_OSF4 falls into PER_MASK for unkown reason and nobody
+cares to register this domain.
+
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Wenming Zhang <wezhang@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/personality.h |    2 +-
- include/linux/syscalls.h    |    2 +-
- kernel/exec_domain.c        |   18 +++++++++---------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ kernel/exec_domain.c |   22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/personality.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long include/linux/personality.h
---- a/include/linux/personality.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long
-+++ a/include/linux/personality.h
-@@ -12,7 +12,7 @@ struct pt_regs;
- 
- extern int		register_exec_domain(struct exec_domain *);
- extern int		unregister_exec_domain(struct exec_domain *);
--extern int		__set_personality(unsigned long);
-+extern int		__set_personality(unsigned int);
- 
- #endif /* __KERNEL__ */
- 
-diff -puN include/linux/syscalls.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long include/linux/syscalls.h
---- a/include/linux/syscalls.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long
-+++ a/include/linux/syscalls.h
-@@ -289,7 +289,7 @@ asmlinkage long sys_capget(cap_user_head
- 				cap_user_data_t dataptr);
- asmlinkage long sys_capset(cap_user_header_t header,
- 				const cap_user_data_t data);
--asmlinkage long sys_personality(u_long personality);
-+asmlinkage long sys_personality(unsigned int personality);
- 
- asmlinkage long sys_sigpending(old_sigset_t __user *set);
- asmlinkage long sys_sigprocmask(int how, old_sigset_t __user *set,
-diff -puN kernel/exec_domain.c~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long kernel/exec_domain.c
---- a/kernel/exec_domain.c~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long
+diff -puN kernel/exec_domain.c~sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path kernel/exec_domain.c
+--- a/kernel/exec_domain.c~sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path
 +++ a/kernel/exec_domain.c
-@@ -27,7 +27,7 @@ static struct exec_domain *exec_domains 
- static DEFINE_RWLOCK(exec_domains_lock);
- 
- 
--static u_long ident_map[32] = {
-+static unsigned long ident_map[32] = {
- 	0,	1,	2,	3,	4,	5,	6,	7,
- 	8,	9,	10,	11,	12,	13,	14,	15,
- 	16,	17,	18,	19,	20,	21,	22,	23,
-@@ -56,10 +56,10 @@ default_handler(int segment, struct pt_r
+@@ -134,23 +134,14 @@ unregister:
+ 	return 0;
  }
  
- static struct exec_domain *
--lookup_exec_domain(u_long personality)
-+lookup_exec_domain(unsigned int personality)
+-int
+-__set_personality(unsigned int personality)
++int __set_personality(unsigned int personality)
  {
--	struct exec_domain *	ep;
--	u_long			pers = personality(personality);
-+	unsigned int pers = personality(personality);
-+	struct exec_domain *ep;
+-	struct exec_domain	*ep, *oep;
+-
+-	ep = lookup_exec_domain(personality);
+-	if (ep == current_thread_info()->exec_domain) {
+-		current->personality = personality;
+-		module_put(ep->module);
+-		return 0;
+-	}
++	struct exec_domain *oep = current_thread_info()->exec_domain;
  
- 	read_lock(&exec_domains_lock);
- 	for (ep = exec_domains; ep; ep = ep->next) {
-@@ -70,7 +70,7 @@ lookup_exec_domain(u_long personality)
- 
- #ifdef CONFIG_MODULES
- 	read_unlock(&exec_domains_lock);
--	request_module("personality-%ld", pers);
-+	request_module("personality-%d", pers);
- 	read_lock(&exec_domains_lock);
- 
- 	for (ep = exec_domains; ep; ep = ep->next) {
-@@ -135,7 +135,7 @@ unregister:
++	current_thread_info()->exec_domain = lookup_exec_domain(personality);
+ 	current->personality = personality;
+-	oep = current_thread_info()->exec_domain;
+-	current_thread_info()->exec_domain = ep;
+-
+ 	module_put(oep->module);
++
+ 	return 0;
  }
  
- int
--__set_personality(u_long personality)
-+__set_personality(unsigned int personality)
+@@ -192,11 +183,8 @@ SYSCALL_DEFINE1(personality, unsigned in
  {
- 	struct exec_domain	*ep, *oep;
+ 	unsigned int old = current->personality;
  
-@@ -188,9 +188,9 @@ static int __init proc_execdomains_init(
- module_init(proc_execdomains_init);
- #endif
- 
--SYSCALL_DEFINE1(personality, u_long, personality)
-+SYSCALL_DEFINE1(personality, unsigned int, personality)
- {
--	u_long old = current->personality;
-+	unsigned int old = current->personality;
- 
- 	if (personality != 0xffffffff) {
+-	if (personality != 0xffffffff) {
++	if (personality != 0xffffffff)
  		set_personality(personality);
-@@ -198,7 +198,7 @@ SYSCALL_DEFINE1(personality, u_long, per
- 			return -EINVAL;
- 	}
+-		if (current->personality != personality)
+-			return -EINVAL;
+-	}
  
--	return (long)old;
-+	return old;
+ 	return old;
  }
- 
- 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
 sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch
-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
+sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
 
