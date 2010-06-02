@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-eliminate-a-null-pointer-dereference.patch added to -mm tree
-Date: Tue, 01 Jun 2010 22:57:47 -0700
-Message-ID: <201006020557.o525vipZ007936@imap1.linux-foundation.org>
+Subject: + drivers-dma-eliminate-a-null-pointer-dereference.patch added to -mm tree
+Date: Tue, 01 Jun 2010 22:57:45 -0700
+Message-ID: <201006020557.o525vgQA007933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752818Ab0FBF5v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:51 -0400
+	by vger.kernel.org with ESMTP id S1752732Ab0FBF5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, mchehab@infradead.org
+Cc: julia@diku.dk, dan.j.williams@intel.com, linus.walleij@stericsson.com
 
 
 The patch titled
-     drivers/media: eliminate a NULL pointer dereference
+     drivers/dma: eliminate a NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     drivers-media-eliminate-a-null-pointer-dereference.patch
+     drivers-dma-eliminate-a-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media: eliminate a NULL pointer dereference
+Subject: drivers/dma: eliminate a NULL pointer dereference
 From: Julia Lawall <julia@diku.dk>
 
-In each case, the print involves dereferencing a value that is NULL or is
-near NULL.
+If td_desc is NULL, just skip both kfrees.
 
 A simplified version of the semantic match that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -61,52 +60,35 @@ else S3
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/firewire/firedtv-1394.c       |    2 +-
- drivers/media/video/hdpvr/hdpvr-video.c         |    2 +-
- drivers/media/video/usbvision/usbvision-video.c |    3 +--
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/dma/timb_dma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/dvb/firewire/firedtv-1394.c~drivers-media-eliminate-a-null-pointer-dereference drivers/media/dvb/firewire/firedtv-1394.c
---- a/drivers/media/dvb/firewire/firedtv-1394.c~drivers-media-eliminate-a-null-pointer-dereference
-+++ a/drivers/media/dvb/firewire/firedtv-1394.c
-@@ -58,7 +58,7 @@ static void rawiso_activity_cb(struct hp
- 	num = hpsb_iso_n_ready(iso);
- 
- 	if (!fdtv) {
--		dev_err(fdtv->device, "received at unknown iso channel\n");
-+		pr_err("received at unknown iso channel\n");
- 		goto out;
+diff -puN drivers/dma/timb_dma.c~drivers-dma-eliminate-a-null-pointer-dereference drivers/dma/timb_dma.c
+--- a/drivers/dma/timb_dma.c~drivers-dma-eliminate-a-null-pointer-dereference
++++ a/drivers/dma/timb_dma.c
+@@ -382,7 +382,7 @@ static struct timb_dma_desc *td_alloc_in
+ 	td_desc = kzalloc(sizeof(struct timb_dma_desc), GFP_KERNEL);
+ 	if (!td_desc) {
+ 		dev_err(chan2dev(chan), "Failed to alloc descriptor\n");
+-		goto err;
++		goto out;
  	}
  
-diff -puN drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-eliminate-a-null-pointer-dereference drivers/media/video/hdpvr/hdpvr-video.c
---- a/drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-eliminate-a-null-pointer-dereference
-+++ a/drivers/media/video/hdpvr/hdpvr-video.c
-@@ -366,7 +366,7 @@ static int hdpvr_open(struct file *file)
+ 	td_desc->desc_list_len = td_chan->desc_elems * TIMB_DMA_DESC_SIZE;
+@@ -410,7 +410,7 @@ static struct timb_dma_desc *td_alloc_in
+ err:
+ 	kfree(td_desc->desc_list);
+ 	kfree(td_desc);
+-
++out:
+ 	return NULL;
  
- 	dev = (struct hdpvr_device *)video_get_drvdata(video_devdata(file));
- 	if (!dev) {
--		v4l2_err(&dev->v4l2_dev, "open failing with with ENODEV\n");
-+		pr_err("open failing with with ENODEV\n");
- 		retval = -ENODEV;
- 		goto err;
- 	}
-diff -puN drivers/media/video/usbvision/usbvision-video.c~drivers-media-eliminate-a-null-pointer-dereference drivers/media/video/usbvision/usbvision-video.c
---- a/drivers/media/video/usbvision/usbvision-video.c~drivers-media-eliminate-a-null-pointer-dereference
-+++ a/drivers/media/video/usbvision/usbvision-video.c
-@@ -1671,8 +1671,7 @@ static void __devexit usbvision_disconne
- 	PDEBUG(DBG_PROBE, "");
- 
- 	if (usbvision == NULL) {
--		dev_err(&usbvision->dev->dev,
--			"%s: usb_get_intfdata() failed\n", __func__);
-+		pr_err("%s: usb_get_intfdata() failed\n", __func__);
- 		return;
- 	}
- 
+ }
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
