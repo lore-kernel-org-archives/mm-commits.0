@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-eliminate-a-null-pointer-dereference.patch added to -mm tree
-Date: Tue, 01 Jun 2010 22:57:41 -0700
-Message-ID: <201006020557.o525vcqo007927@imap1.linux-foundation.org>
+Subject: + arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch added to -mm tree
+Date: Tue, 01 Jun 2010 22:57:43 -0700
+Message-ID: <201006020557.o525veZw007930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752231Ab0FBF5o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:44 -0400
+	by vger.kernel.org with ESMTP id S1752231Ab0FBF5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, greg@kroah.com
+Cc: julia@diku.dk, davem@davemloft.net
 
 
 The patch titled
-     drivers/usb/serial: eliminate a NULL pointer dereference
+     arch/sparc/kernel: eliminate what looks like a NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-eliminate-a-null-pointer-dereference.patch
+     arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial: eliminate a NULL pointer dereference
+Subject: arch/sparc/kernel: eliminate what looks like a NULL pointer dereference
 From: Julia Lawall <julia@diku.dk>
 
-If port is NULL, then the call to dev_err will dereference a value that is
-a small offset from NULL.
+At the point of the test, action cannot be NULL, as it has been
+dereferenced in the code just above.
 
 A simplified version of the semantic match that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -55,32 +55,30 @@ if ((E == NULL && ...) || ...)
       when != E = E1
 * E->f
   ... when any
-  return ...;
 }
 else S3
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/digi_acceleport.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/sparc/kernel/sun4d_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/digi_acceleport.c~drivers-usb-serial-eliminate-a-null-pointer-dereference drivers/usb/serial/digi_acceleport.c
---- a/drivers/usb/serial/digi_acceleport.c~drivers-usb-serial-eliminate-a-null-pointer-dereference
-+++ a/drivers/usb/serial/digi_acceleport.c
-@@ -1239,8 +1239,7 @@ static void digi_write_bulk_callback(str
- 
- 	/* port and serial sanity check */
- 	if (port == NULL || (priv = usb_get_serial_port_data(port)) == NULL) {
--		dev_err(&port->dev,
--			"%s: port or port->private is NULL, status=%d\n",
-+		pr_err("%s: port or port->private is NULL, status=%d\n",
- 			__func__, status);
- 		return;
+diff -puN arch/sparc/kernel/sun4d_irq.c~arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference arch/sparc/kernel/sun4d_irq.c
+--- a/arch/sparc/kernel/sun4d_irq.c~arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference
++++ a/arch/sparc/kernel/sun4d_irq.c
+@@ -183,7 +183,7 @@ void sun4d_free_irq(unsigned int irq, vo
+ 		goto out_unlock;
  	}
+ 	
+-	if (action && tmp)
++	if (tmp)
+ 		tmp->next = action->next;
+ 	else
+ 		*actionp = action->next;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
