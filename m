@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-eliminate-a-null-pointer-dereference.patch added to -mm tree
-Date: Tue, 01 Jun 2010 22:57:49 -0700
-Message-ID: <201006020557.o525vkXV007939@imap1.linux-foundation.org>
+Subject: + sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch added to -mm tree
+Date: Tue, 01 Jun 2010 23:03:07 -0700
+Message-ID: <201006020603.o526347E008188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36722 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752647Ab0FBF5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:50 -0400
+	by vger.kernel.org with ESMTP id S1751112Ab0FBGDS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 02:03:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, greg@kroah.com
+Cc: oleg@redhat.com, hpa@zytor.com, torvalds@linux-foundation.org, wezhang@redhat.com
 
 
 The patch titled
-     drivers/staging: eliminate a NULL pointer dereference
+     sys_personality: change sys_personality() to accept "unsigned int" instead of u_long
 has been added to the -mm tree.  Its filename is
-     drivers-staging-eliminate-a-null-pointer-dereference.patch
+     sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,132 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging: eliminate a NULL pointer dereference
-From: Julia Lawall <julia@diku.dk>
+Subject: sys_personality: change sys_personality() to accept "unsigned int" instead of u_long
+From: Oleg Nesterov <oleg@redhat.com>
 
-Eliminate a NULL or near NULL pointer dereference.
+task_struct->pesonality is "unsigned int", but sys_personality() paths use
+"unsigned long pesonality".  This means that every assignment or
+comparison is not right.  In particular, if this argument does not fit
+into "unsigned int" __set_personality() changes the caller's personality
+and then sys_personality() returns -EINVAL.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+Turn this argument into "unsigned int" and avoid overflows.  Obviously,
+this is the user-visible change, we just ignore the upper bits.  But this
+can't break the sane application.
 
-// <smpl>
-@r exists@
-expression E,E1;
-identifier f;
-statement S1,S2,S3;
-@@
+There is another thing which can confuse the poorly written applications. 
+User-space thinks that this syscall returns int, not long.  This means
+that the returned value can be negative and look like the error code.  But
+note that libc won't be confused and thus errno won't be set, and with
+this patch the user-space can never get -1 unless sys_personality() really
+fails.  And, most importantly, the negative RET != -1 is only possible if
+that app previously called personality(RET).
 
-if ((E == NULL && ...) || ...)
-{
-  ... when != if (...) S1 else S2
-      when != E = E1
-* E->f
-  ... when any
-  return ...;
-}
-else S3
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg KH <greg@kroah.com>
+Pointed-out-by: Wenming Zhang <wezhang@redhat.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/usbdux.c |    3 +--
- drivers/staging/dt3155/allocator.c      |    4 +---
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ include/linux/personality.h |    2 +-
+ include/linux/syscalls.h    |    2 +-
+ kernel/exec_domain.c        |   18 +++++++++---------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/staging/comedi/drivers/usbdux.c~drivers-staging-eliminate-a-null-pointer-dereference drivers/staging/comedi/drivers/usbdux.c
---- a/drivers/staging/comedi/drivers/usbdux.c~drivers-staging-eliminate-a-null-pointer-dereference
-+++ a/drivers/staging/comedi/drivers/usbdux.c
-@@ -351,8 +351,7 @@ static int usbdux_ai_stop(struct usbduxs
- 	int ret = 0;
+diff -puN include/linux/personality.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long include/linux/personality.h
+--- a/include/linux/personality.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long
++++ a/include/linux/personality.h
+@@ -12,7 +12,7 @@ struct pt_regs;
  
- 	if (!this_usbduxsub) {
--		dev_err(&this_usbduxsub->interface->dev,
--			"comedi?: usbdux_ai_stop: this_usbduxsub=NULL!\n");
-+		pr_err("comedi?: usbdux_ai_stop: this_usbduxsub=NULL!\n");
- 		return -EFAULT;
- 	}
- 	dev_dbg(&this_usbduxsub->interface->dev, "comedi: usbdux_ai_stop\n");
-diff -puN drivers/staging/dt3155/allocator.c~drivers-staging-eliminate-a-null-pointer-dereference drivers/staging/dt3155/allocator.c
---- a/drivers/staging/dt3155/allocator.c~drivers-staging-eliminate-a-null-pointer-dereference
-+++ a/drivers/staging/dt3155/allocator.c
-@@ -176,9 +176,7 @@ int allocator_free_dma(unsigned long add
- 	prev = ptr; ptr = ptr->next;
+ extern int		register_exec_domain(struct exec_domain *);
+ extern int		unregister_exec_domain(struct exec_domain *);
+-extern int		__set_personality(unsigned long);
++extern int		__set_personality(unsigned int);
  
- 	if (!ptr) {
--		printk(KERN_ERR ALL_MSG
--			"free_dma(0x%08lx) but add. not allocated\n",
--			ptr->address);
-+		pr_err(ALL_MSG "free_dma but add. not allocated\n");
- 		return -EINVAL;
+ #endif /* __KERNEL__ */
+ 
+diff -puN include/linux/syscalls.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long include/linux/syscalls.h
+--- a/include/linux/syscalls.h~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long
++++ a/include/linux/syscalls.h
+@@ -289,7 +289,7 @@ asmlinkage long sys_capget(cap_user_head
+ 				cap_user_data_t dataptr);
+ asmlinkage long sys_capset(cap_user_header_t header,
+ 				const cap_user_data_t data);
+-asmlinkage long sys_personality(u_long personality);
++asmlinkage long sys_personality(unsigned int personality);
+ 
+ asmlinkage long sys_sigpending(old_sigset_t __user *set);
+ asmlinkage long sys_sigprocmask(int how, old_sigset_t __user *set,
+diff -puN kernel/exec_domain.c~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long kernel/exec_domain.c
+--- a/kernel/exec_domain.c~sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long
++++ a/kernel/exec_domain.c
+@@ -27,7 +27,7 @@ static struct exec_domain *exec_domains 
+ static DEFINE_RWLOCK(exec_domains_lock);
+ 
+ 
+-static u_long ident_map[32] = {
++static unsigned long ident_map[32] = {
+ 	0,	1,	2,	3,	4,	5,	6,	7,
+ 	8,	9,	10,	11,	12,	13,	14,	15,
+ 	16,	17,	18,	19,	20,	21,	22,	23,
+@@ -56,10 +56,10 @@ default_handler(int segment, struct pt_r
+ }
+ 
+ static struct exec_domain *
+-lookup_exec_domain(u_long personality)
++lookup_exec_domain(unsigned int personality)
+ {
+-	struct exec_domain *	ep;
+-	u_long			pers = personality(personality);
++	unsigned int pers = personality(personality);
++	struct exec_domain *ep;
+ 
+ 	read_lock(&exec_domains_lock);
+ 	for (ep = exec_domains; ep; ep = ep->next) {
+@@ -70,7 +70,7 @@ lookup_exec_domain(u_long personality)
+ 
+ #ifdef CONFIG_MODULES
+ 	read_unlock(&exec_domains_lock);
+-	request_module("personality-%ld", pers);
++	request_module("personality-%d", pers);
+ 	read_lock(&exec_domains_lock);
+ 
+ 	for (ep = exec_domains; ep; ep = ep->next) {
+@@ -135,7 +135,7 @@ unregister:
+ }
+ 
+ int
+-__set_personality(u_long personality)
++__set_personality(unsigned int personality)
+ {
+ 	struct exec_domain	*ep, *oep;
+ 
+@@ -188,9 +188,9 @@ static int __init proc_execdomains_init(
+ module_init(proc_execdomains_init);
+ #endif
+ 
+-SYSCALL_DEFINE1(personality, u_long, personality)
++SYSCALL_DEFINE1(personality, unsigned int, personality)
+ {
+-	u_long old = current->personality;
++	unsigned int old = current->personality;
+ 
+ 	if (personality != 0xffffffff) {
+ 		set_personality(personality);
+@@ -198,7 +198,7 @@ SYSCALL_DEFINE1(personality, u_long, per
+ 			return -EINVAL;
  	}
- 	PDEBUGG("freeing: %08lx (%li) next %08lx\n", ptr->address, ptr->size,
+ 
+-	return (long)old;
++	return old;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-origin.patch
-linux-next.patch
-arch-x86-kernel-add-missing-spin_unlock.patch
-arch-x86-kernel-add-missing-spin_unlock-fix2.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-drivers-media-use-memdup_user.patch
-drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
-drivers-video-omap2-displays-add-missing-mutex_unlock.patch
-drivers-i2c-use-memdup_user.patch
-arch-ia64-kvm-add-missing-spin_unlock.patch
-drivers-ide-use-memdup_user.patch
-fs-ubifs-use-err_cast.patch
-drivers-net-wireless-prism54-use-memdup_user.patch
-fs-ocfs2-dlm-add-missing-spin_unlock.patch
-drivers-s390-net-use-memdup_user.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-use-memdup_user.patch
-drivers-block-use-memdup_user.patch
-drivers-staging-dream-camera-use-memdup_user.patch
-drivers-staging-vme-bridges-add-missing-unlocks.patch
-drivers-usb-gadget-use-memdup_user.patch
-mm-use-memdup_user.patch
-mm-use-err_cast.patch
-drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
-drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
-drivers-usb-serial-eliminate-a-null-pointer-dereference.patch
-arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
-drivers-dma-eliminate-a-null-pointer-dereference.patch
-drivers-media-eliminate-a-null-pointer-dereference.patch
-drivers-staging-eliminate-a-null-pointer-dereference.patch
+sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch
+remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
 
