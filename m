@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-call-mmu-notifiers-on-hugepage-cow.patch added to -mm tree
-Date: Tue, 01 Jun 2010 23:16:07 -0700
-Message-ID: <201006020616.o526G4GE008684@imap1.linux-foundation.org>
+Subject: + checkpatch-refactor-allowed-asm-includes-and-add-memoryh.patch added to -mm tree
+Date: Wed, 02 Jun 2010 11:35:26 -0700
+Message-ID: <201006021835.o52IZQGn009837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752125Ab0FBGRK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 02:17:10 -0400
+	by vger.kernel.org with ESMTP id S1752410Ab0FBSg2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 14:36:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dougd@cray.com, aarcange@redhat.com, mel@csn.ul.ie
+Cc: w.sang@pengutronix.de, apw@shadowen.org, linux@arm.linux.org.uk
 
 
 The patch titled
-     hugetlb: call mmu notifiers on hugepage cow
+     checkpatch: refactor 'allowed asm includes' and add memory.h
 has been added to the -mm tree.  Its filename is
-     hugetlb-call-mmu-notifiers-on-hugepage-cow.patch
+     checkpatch-refactor-allowed-asm-includes-and-add-memoryh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: call mmu notifiers on hugepage cow
-From: Doug Doan <dougd@cray.com>
+Subject: checkpatch: refactor 'allowed asm includes' and add memory.h
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-When a copy-on-write occurs, we take one of two paths in handle_mm_fault:
-through handle_pte_fault for normal pages, or through hugetlb_fault for
-huge pages.
+Change the check suggesting replacement of asm-includes with
+linux-includes.  Exceptions to this rule are easier to extend now.  Add
+memory.h because ARM has a custom one.
 
-In the normal page case, we eventually get to do_wp_page and call mmu
-notifiers via ptep_clear_flush_notify.  There is no callout to the mmmu
-notifiers in the huge page case.  This patch fixes that.
-
-Signed-off-by: Doug Doan <dougd@cray.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-call-mmu-notifiers-on-hugepage-cow mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-call-mmu-notifiers-on-hugepage-cow
-+++ a/mm/hugetlb.c
-@@ -2349,11 +2349,17 @@ retry_avoidcopy:
- 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
- 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
- 		/* Break COW */
-+		mmu_notifier_invalidate_range_start(mm,
-+			address & huge_page_mask(h),
-+			(address & huge_page_mask(h)) + huge_page_size(h));
- 		huge_ptep_clear_flush(vma, address, ptep);
- 		set_huge_pte_at(mm, address, ptep,
- 				make_huge_pte(vma, new_page, 1));
- 		/* Make the old page be freed below */
- 		new_page = old_page;
-+		mmu_notifier_invalidate_range_end(mm,
-+			address & huge_page_mask(h),
-+			(address & huge_page_mask(h)) + huge_page_size(h));
- 	}
- 	page_cache_release(new_page);
- 	page_cache_release(old_page);
+diff -puN scripts/checkpatch.pl~checkpatch-refactor-allowed-asm-includes-and-add-memoryh scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-refactor-allowed-asm-includes-and-add-memoryh
++++ a/scripts/checkpatch.pl
+@@ -224,6 +224,12 @@ our @modifierList = (
+ 	qr{fastcall},
+ );
+ 
++our $allowed_asm_includes = qr{(?x:
++	irq|
++	memory
++)};
++# memory.h: ARM has a custom one
++
+ sub build_types {
+ 	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
+ 	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
+@@ -2308,7 +2314,7 @@ sub process {
+ 			my $checkfile = "include/linux/$file";
+ 			if (-f "$root/$checkfile" &&
+ 			    $realfile ne $checkfile &&
+-			    $1 ne 'irq')
++			    $1 !~ /$allowed_asm_includes/)
+ 			{
+ 				if ($realfile =~ m{^arch/}) {
+ 					CHK("Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from dougd@cray.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
-hugetlb-call-mmu-notifiers-on-hugepage-cow.patch
+linux-next.patch
+misc-rohm-bh1780gli-ambient-light-sensor-driver.patch
+checkpatch-refactor-allowed-asm-includes-and-add-memoryh.patch
 
