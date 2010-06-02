@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-dma-eliminate-a-null-pointer-dereference.patch added to -mm tree
-Date: Tue, 01 Jun 2010 22:57:45 -0700
-Message-ID: <201006020557.o525vgQA007933@imap1.linux-foundation.org>
+Subject: + drivers-staging-eliminate-a-null-pointer-dereference.patch added to -mm tree
+Date: Tue, 01 Jun 2010 22:57:49 -0700
+Message-ID: <201006020557.o525vkXV007939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752732Ab0FBF5u (ORCPT
+	by vger.kernel.org with ESMTP id S1752647Ab0FBF5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dan.j.williams@intel.com, linus.walleij@stericsson.com
+Cc: julia@diku.dk, greg@kroah.com
 
 
 The patch titled
-     drivers/dma: eliminate a NULL pointer dereference
+     drivers/staging: eliminate a NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     drivers-dma-eliminate-a-null-pointer-dereference.patch
+     drivers-staging-eliminate-a-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/dma: eliminate a NULL pointer dereference
+Subject: drivers/staging: eliminate a NULL pointer dereference
 From: Julia Lawall <julia@diku.dk>
 
-If td_desc is NULL, just skip both kfrees.
+Eliminate a NULL or near NULL pointer dereference.
 
 A simplified version of the semantic match that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -60,35 +60,41 @@ else S3
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/timb_dma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/comedi/drivers/usbdux.c |    3 +--
+ drivers/staging/dt3155/allocator.c      |    4 +---
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/dma/timb_dma.c~drivers-dma-eliminate-a-null-pointer-dereference drivers/dma/timb_dma.c
---- a/drivers/dma/timb_dma.c~drivers-dma-eliminate-a-null-pointer-dereference
-+++ a/drivers/dma/timb_dma.c
-@@ -382,7 +382,7 @@ static struct timb_dma_desc *td_alloc_in
- 	td_desc = kzalloc(sizeof(struct timb_dma_desc), GFP_KERNEL);
- 	if (!td_desc) {
- 		dev_err(chan2dev(chan), "Failed to alloc descriptor\n");
--		goto err;
-+		goto out;
+diff -puN drivers/staging/comedi/drivers/usbdux.c~drivers-staging-eliminate-a-null-pointer-dereference drivers/staging/comedi/drivers/usbdux.c
+--- a/drivers/staging/comedi/drivers/usbdux.c~drivers-staging-eliminate-a-null-pointer-dereference
++++ a/drivers/staging/comedi/drivers/usbdux.c
+@@ -351,8 +351,7 @@ static int usbdux_ai_stop(struct usbduxs
+ 	int ret = 0;
+ 
+ 	if (!this_usbduxsub) {
+-		dev_err(&this_usbduxsub->interface->dev,
+-			"comedi?: usbdux_ai_stop: this_usbduxsub=NULL!\n");
++		pr_err("comedi?: usbdux_ai_stop: this_usbduxsub=NULL!\n");
+ 		return -EFAULT;
  	}
+ 	dev_dbg(&this_usbduxsub->interface->dev, "comedi: usbdux_ai_stop\n");
+diff -puN drivers/staging/dt3155/allocator.c~drivers-staging-eliminate-a-null-pointer-dereference drivers/staging/dt3155/allocator.c
+--- a/drivers/staging/dt3155/allocator.c~drivers-staging-eliminate-a-null-pointer-dereference
++++ a/drivers/staging/dt3155/allocator.c
+@@ -176,9 +176,7 @@ int allocator_free_dma(unsigned long add
+ 	prev = ptr; ptr = ptr->next;
  
- 	td_desc->desc_list_len = td_chan->desc_elems * TIMB_DMA_DESC_SIZE;
-@@ -410,7 +410,7 @@ static struct timb_dma_desc *td_alloc_in
- err:
- 	kfree(td_desc->desc_list);
- 	kfree(td_desc);
--
-+out:
- 	return NULL;
- 
- }
+ 	if (!ptr) {
+-		printk(KERN_ERR ALL_MSG
+-			"free_dma(0x%08lx) but add. not allocated\n",
+-			ptr->address);
++		pr_err(ALL_MSG "free_dma but add. not allocated\n");
+ 		return -EINVAL;
+ 	}
+ 	PDEBUGG("freeing: %08lx (%li) next %08lx\n", ptr->address, ptr->size,
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
