@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch added to -mm tree
-Date: Tue, 01 Jun 2010 22:57:43 -0700
-Message-ID: <201006020557.o525veZw007930@imap1.linux-foundation.org>
+Subject: + drivers-media-eliminate-a-null-pointer-dereference.patch added to -mm tree
+Date: Tue, 01 Jun 2010 22:57:47 -0700
+Message-ID: <201006020557.o525vipZ007936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752231Ab0FBF5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:46 -0400
+	by vger.kernel.org with ESMTP id S1752818Ab0FBF5v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 01:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, davem@davemloft.net
+Cc: julia@diku.dk, mchehab@infradead.org
 
 
 The patch titled
-     arch/sparc/kernel: eliminate what looks like a NULL pointer dereference
+     drivers/media: eliminate a NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
+     drivers-media-eliminate-a-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/sparc/kernel: eliminate what looks like a NULL pointer dereference
+Subject: drivers/media: eliminate a NULL pointer dereference
 From: Julia Lawall <julia@diku.dk>
 
-At the point of the test, action cannot be NULL, as it has been
-dereferenced in the code just above.
+In each case, the print involves dereferencing a value that is NULL or is
+near NULL.
 
 A simplified version of the semantic match that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -55,30 +55,58 @@ if ((E == NULL && ...) || ...)
       when != E = E1
 * E->f
   ... when any
+  return ...;
 }
 else S3
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sun4d_irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/firewire/firedtv-1394.c       |    2 +-
+ drivers/media/video/hdpvr/hdpvr-video.c         |    2 +-
+ drivers/media/video/usbvision/usbvision-video.c |    3 +--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc/kernel/sun4d_irq.c~arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference arch/sparc/kernel/sun4d_irq.c
---- a/arch/sparc/kernel/sun4d_irq.c~arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference
-+++ a/arch/sparc/kernel/sun4d_irq.c
-@@ -183,7 +183,7 @@ void sun4d_free_irq(unsigned int irq, vo
- 		goto out_unlock;
+diff -puN drivers/media/dvb/firewire/firedtv-1394.c~drivers-media-eliminate-a-null-pointer-dereference drivers/media/dvb/firewire/firedtv-1394.c
+--- a/drivers/media/dvb/firewire/firedtv-1394.c~drivers-media-eliminate-a-null-pointer-dereference
++++ a/drivers/media/dvb/firewire/firedtv-1394.c
+@@ -58,7 +58,7 @@ static void rawiso_activity_cb(struct hp
+ 	num = hpsb_iso_n_ready(iso);
+ 
+ 	if (!fdtv) {
+-		dev_err(fdtv->device, "received at unknown iso channel\n");
++		pr_err("received at unknown iso channel\n");
+ 		goto out;
  	}
- 	
--	if (action && tmp)
-+	if (tmp)
- 		tmp->next = action->next;
- 	else
- 		*actionp = action->next;
+ 
+diff -puN drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-eliminate-a-null-pointer-dereference drivers/media/video/hdpvr/hdpvr-video.c
+--- a/drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-eliminate-a-null-pointer-dereference
++++ a/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -366,7 +366,7 @@ static int hdpvr_open(struct file *file)
+ 
+ 	dev = (struct hdpvr_device *)video_get_drvdata(video_devdata(file));
+ 	if (!dev) {
+-		v4l2_err(&dev->v4l2_dev, "open failing with with ENODEV\n");
++		pr_err("open failing with with ENODEV\n");
+ 		retval = -ENODEV;
+ 		goto err;
+ 	}
+diff -puN drivers/media/video/usbvision/usbvision-video.c~drivers-media-eliminate-a-null-pointer-dereference drivers/media/video/usbvision/usbvision-video.c
+--- a/drivers/media/video/usbvision/usbvision-video.c~drivers-media-eliminate-a-null-pointer-dereference
++++ a/drivers/media/video/usbvision/usbvision-video.c
+@@ -1671,8 +1671,7 @@ static void __devexit usbvision_disconne
+ 	PDEBUG(DBG_PROBE, "");
+ 
+ 	if (usbvision == NULL) {
+-		dev_err(&usbvision->dev->dev,
+-			"%s: usb_get_intfdata() failed\n", __func__);
++		pr_err("%s: usb_get_intfdata() failed\n", __func__);
+ 		return;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
