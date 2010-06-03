@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-i8259-only-register-sysdev-for-real-pic.patch added to -mm tree
-Date: Thu, 03 Jun 2010 09:45:51 -0700
-Message-ID: <201006031645.o53GjlZx003535@imap1.linux-foundation.org>
+Subject: + x86-rwsem-stay-on-fast-path-when-count0-in-__up_write.patch added to -mm tree
+Date: Thu, 03 Jun 2010 11:42:15 -0700
+Message-ID: <201006031842.o53IgF8x009034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756779Ab0FCQqf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 12:46:35 -0400
+	by vger.kernel.org with ESMTP id S1755013Ab0FCSms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 14:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adam@os.inf.tu-dresden.de, hpa@zytor.com, jacob.jun.pan@intel.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
+Cc: walken@google.com, dhowells@redhat.com, hpa@zytor.com, mikew@google.com, mingo@elte.hu, suleiman@google.com, tglx@linutronix.de, yinghan@google.com
 
 
 The patch titled
-     x86, i8259: only register sysdev for real PIC
+     x86 rwsem: stay on fast path when count>0 in __up_write()
 has been added to the -mm tree.  Its filename is
-     x86-i8259-only-register-sysdev-for-real-pic.patch
+     x86-rwsem-stay-on-fast-path-when-count0-in-__up_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, i8259: only register sysdev for real PIC
-From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Subject: x86 rwsem: stay on fast path when count>0 in __up_write()
+From: Michel Lespinasse <walken@google.com>
 
-My platform makes use of the null_legacy_pic choice and oopses when doing
-a shutdown as the shutdown code goes through all the registered sysdevs
-and calls their shutdown method which in my case poke on a non-existing
-i8259.  Imho the i8259 specific sysdev should only be registered if the
-i8259 is actually there.
+When count>0 there is no need to take the call_rwsem_wake path.  If we did
+take that path, it would just return without doing anything due to the
+active count not being zero.
 
-Do not register the sysdev function when the null_legacy_pic is used so
-that the i8259 resume, suspend and shutdown functions are not called.
-
-Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
-Cc: Jacob Pan <jacob.jun.pan@intel.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Mike Waychison <mikew@google.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Ying Han <yinghan@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i8259.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/rwsem.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/i8259.c~x86-i8259-only-register-sysdev-for-real-pic arch/x86/kernel/i8259.c
---- a/arch/x86/kernel/i8259.c~x86-i8259-only-register-sysdev-for-real-pic
-+++ a/arch/x86/kernel/i8259.c
-@@ -276,16 +276,6 @@ static struct sys_device device_i8259A =
- 	.cls	= &i8259_sysdev_class,
- };
- 
--static int __init i8259A_init_sysfs(void)
--{
--	int error = sysdev_class_register(&i8259_sysdev_class);
--	if (!error)
--		error = sysdev_register(&device_i8259A);
--	return error;
--}
--
--device_initcall(i8259A_init_sysfs);
--
- static void mask_8259A(void)
- {
- 	unsigned long flags;
-@@ -407,3 +397,19 @@ struct legacy_pic default_legacy_pic = {
- };
- 
- struct legacy_pic *legacy_pic = &default_legacy_pic;
-+
-+static int __init i8259A_init_sysfs(void)
-+{
-+	int error;
-+
-+	if (legacy_pic != &default_legacy_pic)
-+		return 0;
-+
-+	error = sysdev_class_register(&i8259_sysdev_class);
-+	if (!error)
-+		error = sysdev_register(&device_i8259A);
-+	return error;
-+}
-+
-+device_initcall(i8259A_init_sysfs);
-+
+diff -puN arch/x86/include/asm/rwsem.h~x86-rwsem-stay-on-fast-path-when-count0-in-__up_write arch/x86/include/asm/rwsem.h
+--- a/arch/x86/include/asm/rwsem.h~x86-rwsem-stay-on-fast-path-when-count0-in-__up_write
++++ a/arch/x86/include/asm/rwsem.h
+@@ -216,9 +216,8 @@ static inline void __up_write(struct rw_
+ 	rwsem_count_t tmp;
+ 	asm volatile("# beginning __up_write\n\t"
+ 		     LOCK_PREFIX "  xadd      %1,(%2)\n\t"
+-		     /* tries to transition
+-			0xffff0001 -> 0x00000000 */
+-		     "  jz       1f\n"
++		     /* substracts 0xffff0001, returns the old value */
++		     "  jns        1f\n\t"
+ 		     "  call call_rwsem_wake\n"
+ 		     "1:\n\t"
+ 		     "# ending __up_write\n"
 _
 
-Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
+Patches currently in -mm which might be from walken@google.com are
 
-x86-i8259-only-register-sysdev-for-real-pic.patch
+x86-rwsem-stay-on-fast-path-when-count0-in-__up_write.patch
+x86-rwsem-minor-cleanups.patch
+rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers.patch
+rwsem-lighter-active-count-checks-when-waking-up-readers.patch
+rwsem-let-rwsem_waiting_bias-represent-any-number-of-waiting-threads.patch
+rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch
+rwsem-smaller-wrappers-around-rwsem_down_failed_common.patch
 
