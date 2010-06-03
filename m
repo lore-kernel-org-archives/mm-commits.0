@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch added to -mm tree
-Date: Thu, 03 Jun 2010 11:42:25 -0700
-Message-ID: <201006031842.o53IgP8V009056@imap1.linux-foundation.org>
+Subject: + keys-propagate-error-code-instead-of-returning-einval.patch added to -mm tree
+Date: Thu, 03 Jun 2010 12:35:24 -0700
+Message-ID: <201006031935.o53JZO2M011353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755877Ab0FCSm6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 14:42:58 -0400
+	by vger.kernel.org with ESMTP id S1755593Ab0FCTfj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 15:35:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, dhowells@redhat.com, hpa@zytor.com, mikew@google.com, mingo@elte.hu, suleiman@google.com, tglx@linutronix.de, yinghan@google.com
+Cc: error27@gmail.com, dhowells@redhat.com, jmorris@namei.org
 
 
 The patch titled
-     rwsem: wake queued readers when writer blocks on active read lock
+     keys: propagate error code instead of returning -EINVAL
 has been added to the -mm tree.  Its filename is
-     rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch
+     keys-propagate-error-code-instead-of-returning-einval.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem: wake queued readers when writer blocks on active read lock
-From: Michel Lespinasse <walken@google.com>
+Subject: keys: propagate error code instead of returning -EINVAL
+From: Dan Carpenter <error27@gmail.com>
 
-This change addresses the following situation:
+This is from a Smatch check I'm writing.
 
-- Thread A acquires the rwsem for read
-- Thread B tries to acquire the rwsem for write, notices there is already
-  an active owner for the rwsem.
-- Thread C tries to acquire the rwsem for read, notices that thread B already
-  tried to acquire it.
-- Thread C grabs the spinlock and queues itself on the wait queue.
-- Thread B grabs the spinlock and queues itself behind C. At this point A is
-  the only remaining active owner on the rwsem.
+strncpy_from_user() returns -EFAULT on error so the first change just
+silences a smatch warning but doesn't change how the code works.
 
-In this situation thread B could notice that it was the last active writer
-on the rwsem, and decide to wake C to let it proceed in parallel with A
-since they both only want the rwsem for read.
+The other change is a bug fix because install_thread_keyring_to_cred() can
+return a variety of errors such as -EINVAL, -EEXIST, -ENOMEM or
+-EKEYREVOKED.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Mike Waychison <mikew@google.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rwsem.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ security/keys/keyctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/rwsem.c~rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock lib/rwsem.c
---- a/lib/rwsem.c~rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock
-+++ a/lib/rwsem.c
-@@ -67,6 +67,9 @@ __rwsem_do_wake(struct rw_semaphore *sem
- 		goto readers_only;
+diff -puN security/keys/keyctl.c~keys-propagate-error-code-instead-of-returning-einval security/keys/keyctl.c
+--- a/security/keys/keyctl.c~keys-propagate-error-code-instead-of-returning-einval
++++ a/security/keys/keyctl.c
+@@ -33,7 +33,7 @@ static int key_get_type_from_user(char *
+ 	ret = strncpy_from_user(type, _type, len);
  
- 	if (wake_type == RWSEM_WAKE_READ_OWNED)
-+		/* Another active reader was observed, so wakeup is not
-+		 * likely to succeed. Save the atomic op.
-+		 */
- 		goto out;
+ 	if (ret < 0)
+-		return -EFAULT;
++		return ret;
  
- 	/* There's a writer at the front of the queue - try to grant it the
-@@ -111,8 +114,8 @@ __rwsem_do_wake(struct rw_semaphore *sem
- 	 * count adjustment pretty soon.
- 	 */
- 	if (wake_type == RWSEM_WAKE_ANY &&
--	    (rwsem_atomic_update(0, sem) & RWSEM_ACTIVE_MASK))
--		/* Someone grabbed the sem already */
-+	    rwsem_atomic_update(0, sem) < RWSEM_WAITING_BIAS)
-+		/* Someone grabbed the sem for write already */
- 		goto out;
+ 	if (ret == 0 || ret >= len)
+ 		return -EINVAL;
+@@ -1080,7 +1080,7 @@ set:
+ 	return old_setting;
+ error:
+ 	abort_creds(new);
+-	return -EINVAL;
++	return ret;
  
- 	/* Grant an infinite number of read locks to the readers at the front
-@@ -187,9 +190,17 @@ rwsem_down_failed_common(struct rw_semap
- 	/* we're now waiting on the lock, but no longer actively locking */
- 	count = rwsem_atomic_update(adjustment, sem);
- 
--	/* if there are no active locks, wake the front queued process(es) up */
--	if (!(count & RWSEM_ACTIVE_MASK))
-+	/* If there are no active locks, wake the front queued process(es) up.
-+	 *
-+	 * Alternatively, if we're called from a failed down_write(), there
-+	 * were already threads queued before us and there are no active
-+	 * writers, the lock must be read owned; so we try to wake any read
-+	 * locks that were queued ahead of us. */
-+	if (count == RWSEM_WAITING_BIAS)
- 		sem = __rwsem_do_wake(sem, RWSEM_WAKE_NO_ACTIVE);
-+	else if (count > RWSEM_WAITING_BIAS &&
-+		 adjustment == -RWSEM_ACTIVE_WRITE_BIAS)
-+		sem = __rwsem_do_wake(sem, RWSEM_WAKE_READ_OWNED);
- 
- 	spin_unlock_irq(&sem->wait_lock);
+ } /* end keyctl_set_reqkey_keyring() */
  
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
-x86-rwsem-stay-on-fast-path-when-count0-in-__up_write.patch
-x86-rwsem-minor-cleanups.patch
-rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers.patch
-rwsem-lighter-active-count-checks-when-waking-up-readers.patch
-rwsem-let-rwsem_waiting_bias-represent-any-number-of-waiting-threads.patch
-rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch
-rwsem-smaller-wrappers-around-rwsem_down_failed_common.patch
+origin.patch
+linux-next.patch
+mtd-sst25l-check-for-null-consistently.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+padata-add-parenthesis-in-max_seq_nr-macro.patch
+keys-propagate-error-code-instead-of-returning-einval.patch
 
