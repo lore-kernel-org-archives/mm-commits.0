@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure.patch added to -mm tree
-Date: Thu, 03 Jun 2010 13:29:34 -0700
-Message-ID: <201006032029.o53KTZVM013813@imap1.linux-foundation.org>
+Subject: + autofs4-remove-unneeded-null-check-in-try_to_fill_dentry.patch added to -mm tree
+Date: Thu, 03 Jun 2010 14:04:40 -0700
+Message-ID: <201006032104.o53L4e36015423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752857Ab0FCU3z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 16:29:55 -0400
+	by vger.kernel.org with ESMTP id S1752101Ab0FCVEq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 17:04:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nacc@us.ibm.com
+Cc: error27@gmail.com, raven@themaw.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vmscan: fix do_try_to_free_pages() return value when priority==0 reclaim failure
+     autofs4: remove unneeded null check in try_to_fill_dentry()
 has been added to the -mm tree.  Its filename is
-     vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure.patch
+     autofs4-remove-unneeded-null-check-in-try_to_fill_dentry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,145 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: fix do_try_to_free_pages() return value when priority==0 reclaim failure
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: autofs4: remove unneeded null check in try_to_fill_dentry()
+From: Dan Carpenter <error27@gmail.com>
 
-Greg Thelen reported recent Johannes's stack diet patch makes kernel hang.
- His test is following.
+After 97e7449a7ad: "autofs4: fix indirect mount pending expire race" we no
+longer assumed that "ino" can be null.  The other null checks got removed
+but this was one was missed.
 
-  mount -t cgroup none /cgroups -o memory
-  mkdir /cgroups/cg1
-  echo $$ > /cgroups/cg1/tasks
-  dd bs=1024 count=1024 if=/dev/null of=/data/foo
-  echo $$ > /cgroups/tasks
-  echo 1 > /cgroups/cg1/memory.force_empty
-
-Actually, This OOM hard to try logic have been corrupted since following
-two years old patch.
-
-	commit a41f24ea9fd6169b147c53c2392e2887cc1d9247
-	Author: Nishanth Aravamudan <nacc@us.ibm.com>
-	Date:   Tue Apr 29 00:58:25 2008 -0700
-
-	    page allocator: smarter retry of costly-order allocations
-
-Original intention was "return success if the system have shrinkable zones
-though priority==0 reclaim was failure".  But the above patch changed to
-"return nr_reclaimed if .....".  Oh, That forgot nr_reclaimed may be 0 if
-priority==0 reclaim failure.
-
-And Johannes's patch 0aeb2339e54e ("vmscan: remove all_unreclaimable scan
-control") made it more corrupt.  Originally, priority==0 reclaim failure
-on memcg return 0, but this patch changed to return 1.  It totally
-confused memcg.
-
-This patch fixes it completely.
-
-Reported-by: Greg Thelen <gthelen@google.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Greg Thelen <gthelen@google.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ fs/autofs4/root.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure
-+++ a/mm/vmscan.c
-@@ -1724,13 +1724,13 @@ static void shrink_zone(int priority, st
-  * If a zone is deemed to be full of pinned pages then just give it a light
-  * scan then give up on it.
-  */
--static int shrink_zones(int priority, struct zonelist *zonelist,
-+static bool shrink_zones(int priority, struct zonelist *zonelist,
- 					struct scan_control *sc)
- {
- 	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
- 	struct zoneref *z;
- 	struct zone *zone;
--	int progress = 0;
-+	bool all_unreclaimable = true;
- 
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
- 					sc->nodemask) {
-@@ -1757,9 +1757,9 @@ static int shrink_zones(int priority, st
- 		}
- 
- 		shrink_zone(priority, zone, sc);
--		progress = 1;
-+		all_unreclaimable = false;
+diff -puN fs/autofs4/root.c~autofs4-remove-unneeded-null-check-in-try_to_fill_dentry fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-remove-unneeded-null-check-in-try_to_fill_dentry
++++ a/fs/autofs4/root.c
+@@ -198,8 +198,7 @@ static int try_to_fill_dentry(struct den
  	}
--	return progress;
-+	return all_unreclaimable;
- }
  
- /*
-@@ -1782,7 +1782,7 @@ static unsigned long do_try_to_free_page
- 					struct scan_control *sc)
- {
- 	int priority;
--	unsigned long ret = 0;
-+	bool all_unreclaimable;
- 	unsigned long total_scanned = 0;
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	unsigned long lru_pages = 0;
-@@ -1813,7 +1813,7 @@ static unsigned long do_try_to_free_page
- 		sc->nr_scanned = 0;
- 		if (!priority)
- 			disable_swap_token();
--		ret = shrink_zones(priority, zonelist, sc);
-+		all_unreclaimable = shrink_zones(priority, zonelist, sc);
- 		/*
- 		 * Don't shrink slabs when reclaiming memory from
- 		 * over limit cgroups
-@@ -1826,10 +1826,8 @@ static unsigned long do_try_to_free_page
- 			}
- 		}
- 		total_scanned += sc->nr_scanned;
--		if (sc->nr_reclaimed >= sc->nr_to_reclaim) {
--			ret = sc->nr_reclaimed;
-+		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
- 			goto out;
--		}
+ 	/* Initialize expiry counter after successful mount */
+-	if (ino)
+-		ino->last_used = jiffies;
++	ino->last_used = jiffies;
  
- 		/*
- 		 * Try to write back as many pages as we just scanned.  This
-@@ -1849,9 +1847,7 @@ static unsigned long do_try_to_free_page
- 		    priority < DEF_PRIORITY - 2)
- 			congestion_wait(BLK_RW_ASYNC, HZ/10);
- 	}
--	/* top priority shrink_zones still had more to do? don't OOM, then */
--	if (ret && scanning_global_lru(sc))
--		ret = sc->nr_reclaimed;
-+
- out:
- 	/*
- 	 * Now that we've scanned all the zones at this priority level, note
-@@ -1877,7 +1873,14 @@ out:
- 	delayacct_freepages_end();
- 	put_mems_allowed();
- 
--	return ret;
-+	if (sc->nr_reclaimed)
-+		return sc->nr_reclaimed;
-+
-+	/* top priority shrink_zones still had more to do? don't OOM, then */
-+	if (scanning_global_lru(sc) && !all_unreclaimable)
-+		return 1;
-+
-+	return 0;
- }
- 
- unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 	spin_lock(&sbi->fs_lock);
+ 	ino->flags &= ~AUTOFS_INF_PENDING;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
-vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure.patch
-mm-use-memdup_user.patch
-reiser4.patch
+origin.patch
+linux-next.patch
+mtd-sst25l-check-for-null-consistently.patch
+scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
+padata-add-parenthesis-in-max_seq_nr-macro.patch
+keys-propagate-error-code-instead-of-returning-einval.patch
+autofs4-remove-unneeded-null-check-in-try_to_fill_dentry.patch
 
