@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers.patch added to -mm tree
-Date: Thu, 03 Jun 2010 11:42:19 -0700
-Message-ID: <201006031842.o53IgJVA009040@imap1.linux-foundation.org>
+Subject: + rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch added to -mm tree
+Date: Thu, 03 Jun 2010 11:42:25 -0700
+Message-ID: <201006031842.o53IgP8V009056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34692 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755683Ab0FCSm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 14:42:57 -0400
+	by vger.kernel.org with ESMTP id S1755877Ab0FCSm6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 14:42:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: walken@google.com, dhowells@redhat.com, hpa@zytor.com, mikew@google.com, min
 
 
 The patch titled
-     rwsem: fully separate code paths to wake writers vs readers
+     rwsem: wake queued readers when writer blocks on active read lock
 has been added to the -mm tree.  Its filename is
-     rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers.patch
+     rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem: fully separate code paths to wake writers vs readers
+Subject: rwsem: wake queued readers when writer blocks on active read lock
 From: Michel Lespinasse <walken@google.com>
 
-This is in preparation for later changes in the series.
+This change addresses the following situation:
 
-In __rwsem_do_wake(), the first queued waiter is checked first in order to
-determine whether it's a writer or a reader.  The code paths diverge at
-this point.  The code that checks and increments the rwsem active count is
-duplicated on both sides - the point is that later changes in the series
-will be able to independently modify both sides.
+- Thread A acquires the rwsem for read
+- Thread B tries to acquire the rwsem for write, notices there is already
+  an active owner for the rwsem.
+- Thread C tries to acquire the rwsem for read, notices that thread B already
+  tried to acquire it.
+- Thread C grabs the spinlock and queues itself on the wait queue.
+- Thread B grabs the spinlock and queues itself behind C. At this point A is
+  the only remaining active owner on the rwsem.
+
+In this situation thread B could notice that it was the last active writer
+on the rwsem, and decide to wake C to let it proceed in parallel with A
+since they both only want the rwsem for read.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -55,111 +62,53 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rwsem.c |   61 +++++++++++++++++++++++++++-----------------------
- 1 file changed, 34 insertions(+), 27 deletions(-)
+ lib/rwsem.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN lib/rwsem.c~rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers lib/rwsem.c
---- a/lib/rwsem.c~rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers
+diff -puN lib/rwsem.c~rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock lib/rwsem.c
+--- a/lib/rwsem.c~rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock
 +++ a/lib/rwsem.c
-@@ -41,7 +41,7 @@ struct rwsem_waiter {
-  * - if we come here from up_xxxx(), then:
-  *   - the 'active part' of count (&0x0000ffff) reached 0 (but may have changed)
-  *   - the 'waiting part' of count (&0xffff0000) is -ve (and will still be so)
-- *   - there must be someone on the queue
-+ * - there must be someone on the queue
-  * - the spinlock must be held by the caller
-  * - woken process blocks are discarded from the list after having task zeroed
-  * - writers are only woken if downgrading is false
-@@ -54,26 +54,23 @@ __rwsem_do_wake(struct rw_semaphore *sem
- 	struct list_head *next;
- 	signed long oldcount, woken, loop;
+@@ -67,6 +67,9 @@ __rwsem_do_wake(struct rw_semaphore *sem
+ 		goto readers_only;
  
-+	waiter = list_entry(sem->wait_list.next, struct rwsem_waiter, list);
-+	if (!(waiter->flags & RWSEM_WAITING_FOR_WRITE))
-+		goto readers_only;
-+
- 	if (downgrading)
--		goto dont_wake_writers;
-+		goto out;
- 
--	/* if we came through an up_xxxx() call, we only only wake someone up
--	 * if we can transition the active part of the count from 0 -> 1
-+	/* There's a writer at the front of the queue - try to grant it the
-+	 * write lock.  However, we only wake this writer if we can transition
-+	 * the active part of the count from 0 -> 1
- 	 */
-- try_again:
-+ try_again_write:
- 	oldcount = rwsem_atomic_update(RWSEM_ACTIVE_BIAS, sem)
- 						- RWSEM_ACTIVE_BIAS;
- 	if (oldcount & RWSEM_ACTIVE_MASK)
--		goto undo;
--
--	waiter = list_entry(sem->wait_list.next, struct rwsem_waiter, list);
--
--	/* try to grant a single write lock if there's a writer at the front
--	 * of the queue - note we leave the 'active part' of the count
--	 * incremented by 1 and the waiting part incremented by 0x00010000
--	 */
--	if (!(waiter->flags & RWSEM_WAITING_FOR_WRITE))
--		goto readers_only;
-+		/* Someone grabbed the sem already */
-+		goto undo_write;
- 
- 	/* We must be careful not to touch 'waiter' after we set ->task = NULL.
- 	 * It is an allocated on the waiter's stack and may become invalid at
-@@ -87,18 +84,24 @@ __rwsem_do_wake(struct rw_semaphore *sem
- 	put_task_struct(tsk);
- 	goto out;
- 
--	/* don't want to wake any writers */
-- dont_wake_writers:
--	waiter = list_entry(sem->wait_list.next, struct rwsem_waiter, list);
--	if (waiter->flags & RWSEM_WAITING_FOR_WRITE)
--		goto out;
-+ readers_only:
-+	if (downgrading)
-+		goto wake_readers;
-+
-+	/* if we came through an up_xxxx() call, we only only wake someone up
-+	 * if we can transition the active part of the count from 0 -> 1 */
-+ try_again_read:
-+	oldcount = rwsem_atomic_update(RWSEM_ACTIVE_BIAS, sem)
-+						- RWSEM_ACTIVE_BIAS;
-+	if (oldcount & RWSEM_ACTIVE_MASK)
-+		/* Someone grabbed the sem already */
-+		goto undo_read;
- 
--	/* grant an infinite number of read locks to the readers at the front
--	 * of the queue
--	 * - note we increment the 'active part' of the count by the number of
--	 *   readers before waking any processes up
-+ wake_readers:
-+	/* Grant an infinite number of read locks to the readers at the front
-+	 * of the queue.  Note we increment the 'active part' of the count by
-+	 * the number of readers before waking any processes up.
- 	 */
-- readers_only:
- 	woken = 0;
- 	do {
- 		woken++;
-@@ -138,10 +141,14 @@ __rwsem_do_wake(struct rw_semaphore *sem
- 
- 	/* undo the change to the active count, but check for a transition
- 	 * 1->0 */
-- undo:
-+ undo_write:
-+	if (rwsem_atomic_update(-RWSEM_ACTIVE_BIAS, sem) & RWSEM_ACTIVE_MASK)
-+		goto out;
-+	goto try_again_write;
-+ undo_read:
- 	if (rwsem_atomic_update(-RWSEM_ACTIVE_BIAS, sem) & RWSEM_ACTIVE_MASK)
+ 	if (wake_type == RWSEM_WAKE_READ_OWNED)
++		/* Another active reader was observed, so wakeup is not
++		 * likely to succeed. Save the atomic op.
++		 */
  		goto out;
--	goto try_again;
-+	goto try_again_read;
- }
  
- /*
+ 	/* There's a writer at the front of the queue - try to grant it the
+@@ -111,8 +114,8 @@ __rwsem_do_wake(struct rw_semaphore *sem
+ 	 * count adjustment pretty soon.
+ 	 */
+ 	if (wake_type == RWSEM_WAKE_ANY &&
+-	    (rwsem_atomic_update(0, sem) & RWSEM_ACTIVE_MASK))
+-		/* Someone grabbed the sem already */
++	    rwsem_atomic_update(0, sem) < RWSEM_WAITING_BIAS)
++		/* Someone grabbed the sem for write already */
+ 		goto out;
+ 
+ 	/* Grant an infinite number of read locks to the readers at the front
+@@ -187,9 +190,17 @@ rwsem_down_failed_common(struct rw_semap
+ 	/* we're now waiting on the lock, but no longer actively locking */
+ 	count = rwsem_atomic_update(adjustment, sem);
+ 
+-	/* if there are no active locks, wake the front queued process(es) up */
+-	if (!(count & RWSEM_ACTIVE_MASK))
++	/* If there are no active locks, wake the front queued process(es) up.
++	 *
++	 * Alternatively, if we're called from a failed down_write(), there
++	 * were already threads queued before us and there are no active
++	 * writers, the lock must be read owned; so we try to wake any read
++	 * locks that were queued ahead of us. */
++	if (count == RWSEM_WAITING_BIAS)
+ 		sem = __rwsem_do_wake(sem, RWSEM_WAKE_NO_ACTIVE);
++	else if (count > RWSEM_WAITING_BIAS &&
++		 adjustment == -RWSEM_ACTIVE_WRITE_BIAS)
++		sem = __rwsem_do_wake(sem, RWSEM_WAKE_READ_OWNED);
+ 
+ 	spin_unlock_irq(&sem->wait_lock);
+ 
 _
 
 Patches currently in -mm which might be from walken@google.com are
