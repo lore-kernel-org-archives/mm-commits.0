@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmap-area-cache-fix.patch added to -mm tree
-Date: Wed, 02 Jun 2010 14:49:40 -0700
-Message-ID: <201006022149.o52LnexE018936@imap1.linux-foundation.org>
+Subject: + x86-i8259-only-register-sysdev-for-real-pic.patch added to -mm tree
+Date: Thu, 03 Jun 2010 09:45:51 -0700
+Message-ID: <201006031645.o53GjlZx003535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932382Ab0FBVtz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jun 2010 17:49:55 -0400
+	by vger.kernel.org with ESMTP id S1756779Ab0FCQqf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 12:46:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, minchan.kim@gmail.com, npiggin@suse.de, swhiteho@redhat.com
+Cc: adam@os.inf.tu-dresden.de, hpa@zytor.com, jacob.jun.pan@intel.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     mm-vmap-area-cache-fix
+     x86, i8259: only register sysdev for real PIC
 has been added to the -mm tree.  Its filename is
-     mm-vmap-area-cache-fix.patch
+     x86-i8259-only-register-sysdev-for-real-pic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmap-area-cache-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86, i8259: only register sysdev for real PIC
+From: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
 
-add locking comment
+My platform makes use of the null_legacy_pic choice and oopses when doing
+a shutdown as the shutdown code goes through all the registered sysdevs
+and calls their shutdown method which in my case poke on a non-existing
+i8259.  Imho the i8259 specific sysdev should only be registered if the
+i8259 is actually there.
 
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Do not register the sysdev function when the null_legacy_pic is used so
+that the i8259 resume, suspend and shutdown functions are not called.
+
+Signed-off-by: Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+Cc: Jacob Pan <jacob.jun.pan@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/i8259.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmap-area-cache-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmap-area-cache-fix
-+++ a/mm/vmalloc.c
-@@ -265,6 +265,7 @@ static DEFINE_SPINLOCK(vmap_area_lock);
- static LIST_HEAD(vmap_area_list);
- static struct rb_root vmap_area_root = RB_ROOT;
+diff -puN arch/x86/kernel/i8259.c~x86-i8259-only-register-sysdev-for-real-pic arch/x86/kernel/i8259.c
+--- a/arch/x86/kernel/i8259.c~x86-i8259-only-register-sysdev-for-real-pic
++++ a/arch/x86/kernel/i8259.c
+@@ -276,16 +276,6 @@ static struct sys_device device_i8259A =
+ 	.cls	= &i8259_sysdev_class,
+ };
  
-+/* The vmap cache globals are protected by vmap_area_lock */
- static struct rb_node *free_vmap_cache;
- static unsigned long cached_hole_size;
- static unsigned long cached_start;
+-static int __init i8259A_init_sysfs(void)
+-{
+-	int error = sysdev_class_register(&i8259_sysdev_class);
+-	if (!error)
+-		error = sysdev_register(&device_i8259A);
+-	return error;
+-}
+-
+-device_initcall(i8259A_init_sysfs);
+-
+ static void mask_8259A(void)
+ {
+ 	unsigned long flags;
+@@ -407,3 +397,19 @@ struct legacy_pic default_legacy_pic = {
+ };
+ 
+ struct legacy_pic *legacy_pic = &default_legacy_pic;
++
++static int __init i8259A_init_sysfs(void)
++{
++	int error;
++
++	if (legacy_pic != &default_legacy_pic)
++		return 0;
++
++	error = sysdev_class_register(&i8259_sysdev_class);
++	if (!error)
++		error = sysdev_register(&device_i8259A);
++	return error;
++}
++
++device_initcall(i8259A_init_sysfs);
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adam@os.inf.tu-dresden.de are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-arch-x86-kernel-add-missing-spin_unlock.patch
-arch-x86-kernel-add-missing-spin_unlock-fix2.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar-fix.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+x86-i8259-only-register-sysdev-for-real-pic.patch
 
