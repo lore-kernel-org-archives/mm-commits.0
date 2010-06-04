@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-clean-up-interrupt-handler-make-sure-we-request-the-performant-mode-irq.patch added to -mm tree
-Date: Fri, 04 Jun 2010 16:50:50 -0700
-Message-ID: <201006042350.o54NooxG025376@imap1.linux-foundation.org>
+Subject: + cciss-add-performant-mode-support-for-stars-sirius-fix-call-to-put_controller_in_performant_mode.patch added to -mm tree
+Date: Fri, 04 Jun 2010 16:50:54 -0700
+Message-ID: <201006042350.o54Nosca025379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757454Ab0FDXvC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:51:02 -0400
+	by vger.kernel.org with ESMTP id S1757454Ab0FDXvF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mike.miller@hp.com, axboe@kernel.dk, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     cciss: make sure we request the performant mode irq
+     cciss: fix call to put_controller_in_performant_mode
 has been added to the -mm tree.  Its filename is
-     cciss-clean-up-interrupt-handler-make-sure-we-request-the-performant-mode-irq.patch
+     cciss-add-performant-mode-support-for-stars-sirius-fix-call-to-put_controller_in_performant_mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: make sure we request the performant mode irq
+Subject: cciss: fix call to put_controller_in_performant_mode
 From: Mike Miller <mike.miller@hp.com>
 
-Make sure we register the performant mode interrupt Another blunder. 
-Seemed to work because the call to put_controller_into_performant_mode was
-never called.
+call to put_controller_in_performant_mode was in the wrong place
+The call inadvertently ended up in an error path.
 
 Signed-off-by: Mike Miller <mike.miller@hp.com>
 Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
@@ -46,35 +45,28 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/cciss.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-clean-up-interrupt-handler-make-sure-we-request-the-performant-mode-irq drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-clean-up-interrupt-handler-make-sure-we-request-the-performant-mode-irq
+diff -puN drivers/block/cciss.c~cciss-add-performant-mode-support-for-stars-sirius-fix-call-to-put_controller_in_performant_mode drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-add-performant-mode-support-for-stars-sirius-fix-call-to-put_controller_in_performant_mode
 +++ a/drivers/block/cciss.c
-@@ -4308,18 +4308,18 @@ static int __devinit cciss_init_one(stru
- 	/* make sure the board interrupts are off */
- 	hba[i]->access.set_intr_mask(hba[i], CCISS_INTR_OFF);
- 	if (hba[i]->msi_vector || hba[i]->msix_vector) {
--		if (request_irq(hba[i]->intr[SIMPLE_MODE_INT],
-+		if (request_irq(hba[i]->intr[PERF_MODE_INT],
- 				do_cciss_msix_intr,
- 				IRQF_DISABLED, hba[i]->devname, hba[i])) {
- 			printk(KERN_ERR "cciss: Unable to get irq %d for %s\n",
--			       hba[i]->intr[SIMPLE_MODE_INT], hba[i]->devname);
-+			       hba[i]->intr[PERF_MODE_INT], hba[i]->devname);
- 			goto clean2;
- 		}
- 	} else {
--		if (request_irq(hba[i]->intr[SIMPLE_MODE_INT], do_cciss_intx,
-+		if (request_irq(hba[i]->intr[PERF_MODE_INT], do_cciss_intx,
- 				IRQF_DISABLED, hba[i]->devname, hba[i])) {
- 			printk(KERN_ERR "cciss: Unable to get irq %d for %s\n",
--			       hba[i]->intr[SIMPLE_MODE_INT], hba[i]->devname);
-+			       hba[i]->intr[PERF_MODE_INT], hba[i]->devname);
- 			goto clean2;
- 		}
- 	}
+@@ -4142,6 +4142,7 @@ static int __devinit cciss_pci_init(ctlr
+ #ifdef CCISS_DEBUG
+ 	printk(KERN_WARNING "Trying to put board into Performant mode\n");
+ #endif				/* CCISS_DEBUG */
++	cciss_put_controller_into_performant_mode(c);
+ 	return 0;
+ 
+ err_out_free_res:
+@@ -4150,7 +4151,6 @@ err_out_free_res:
+ 	 * Smart Array controllers that pci_enable_device does not undo
+ 	 */
+ 	pci_release_regions(pdev);
+-	cciss_put_controller_into_performant_mode(c);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mike.miller@hp.com are
