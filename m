@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-decodecode-remove-bashisms.patch added to -mm tree
-Date: Fri, 04 Jun 2010 15:52:25 -0700
-Message-ID: <201006042252.o54MqPR3023059@imap1.linux-foundation.org>
+Subject: + rtc-rtc-mxc-remove-six-unused-fields.patch added to -mm tree
+Date: Fri, 04 Jun 2010 16:13:31 -0700
+Message-ID: <201006042313.o54NDVXF023889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751530Ab0FDWx3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 18:53:29 -0400
+	by vger.kernel.org with ESMTP id S1757395Ab0FDXNq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:13:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rabin@rab.in, mmarek@suse.cz, randy.dunlap@oracle.com
+Cc: mcuos.com@gmail.com, a.zummo@towertech.it, p_gortmaker@yahoo.com
 
 
 The patch titled
-     scripts: decodecode: remove bashisms
+     rtc/rtc-mxc: remove six unused fields
 has been added to the -mm tree.  Its filename is
-     scripts-decodecode-remove-bashisms.patch
+     rtc-rtc-mxc-remove-six-unused-fields.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts: decodecode: remove bashisms
-From: Rabin Vincent <rabin@rab.in>
+Subject: rtc/rtc-mxc: remove six unused fields
+From: Wan ZongShun <mcuos.com@gmail.com>
 
-Remove bashisms to make scripts/decodecode work with other shells.
+Remove six unused fields from `struct rtc_plat_data'.
 
-Signed-off-by: Rabin Vincent <rabin@rab.in>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-mxc.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN scripts/decodecode~scripts-decodecode-remove-bashisms scripts/decodecode
---- a/scripts/decodecode~scripts-decodecode-remove-bashisms
-+++ a/scripts/decodecode
-@@ -40,7 +40,7 @@ echo $code
- code=`echo $code | sed -e 's/.*Code: //'`
+diff -puN drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-remove-six-unused-fields drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-remove-six-unused-fields
++++ a/drivers/rtc/rtc-mxc.c
+@@ -83,12 +83,6 @@ struct rtc_plat_data {
+ 	void __iomem *ioaddr;
+ 	int irq;
+ 	struct clk *clk;
+-	unsigned int irqen;
+-	int alrm_sec;
+-	int alrm_min;
+-	int alrm_hour;
+-	int alrm_mday;
+-	struct timespec mxc_rtc_delta;
+ 	struct rtc_time g_rtc_alarm;
+ };
  
- width=`expr index "$code" ' '`
--width=$[($width-1)/2]
-+width=$((($width-1)/2))
- case $width in
- 1) type=byte ;;
- 2) type=2byte ;;
-@@ -48,10 +48,10 @@ case $width in
- esac
- 
- disas() {
--	${CROSS_COMPILE}as $AFLAGS -o $1.o $1.s &> /dev/null
-+	${CROSS_COMPILE}as $AFLAGS -o $1.o $1.s > /dev/null 2>&1
- 
--	if [ "$ARCH" == "arm" ]; then
--		if [ $width == 2 ]; then
-+	if [ "$ARCH" = "arm" ]; then
-+		if [ $width -eq 2 ]; then
- 			OBJDUMPFLAGS="-M force-thumb"
- 		fi
- 
-@@ -59,7 +59,7 @@ disas() {
- 	fi
- 
- 	${CROSS_COMPILE}objdump $OBJDUMPFLAGS -S $1.o | \
--		grep -v "/tmp\|Disassembly\|\.text\|^$" &> $1.dis
-+		grep -v "/tmp\|Disassembly\|\.text\|^$" > $1.dis 2>&1
- }
- 
- marker=`expr index "$code" "\<"`
 _
 
-Patches currently in -mm which might be from rabin@rab.in are
+Patches currently in -mm which might be from mcuos.com@gmail.com are
 
-origin.patch
-scripts-decodecode-remove-bashisms.patch
+linux-next.patch
+nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
+drivers-rtc-rtc-pcf8563c-remove-unused-struct.patch
+rtc-pxa-remove-unused-field.patch
+rtc-m48t59-kfreenull-is-ok.patch
+rtc-rtc-mxc-remove-six-unused-fields.patch
 
