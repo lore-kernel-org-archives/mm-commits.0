@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-add-performant-mode-support-for-stars-sirius-move-next_command-function-from-ifdef.patch added to -mm tree
-Date: Fri, 04 Jun 2010 16:50:56 -0700
-Message-ID: <201006042350.o54Nou8t025382@imap1.linux-foundation.org>
+Subject: + cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code.patch added to -mm tree
+Date: Fri, 04 Jun 2010 16:50:58 -0700
+Message-ID: <201006042350.o54NowHr025385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757454Ab0FDXvI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:51:08 -0400
+	by vger.kernel.org with ESMTP id S1757526Ab0FDXvJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:51:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mike.miller@hp.com, axboe@kernel.dk, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     cciss: move next_command function from ifdef
+     cciss: remove errant debug code
 has been added to the -mm tree.  Its filename is
-     cciss-add-performant-mode-support-for-stars-sirius-move-next_command-function-from-ifdef.patch
+     cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: move next_command function from ifdef
+Subject: cciss: remove errant debug code
 From: Mike Miller <mike.miller@hp.com>
 
-The definition of next_command also ended up in wrong place It ended up
-inside an "#ifdef CONFIG_PROCFS".  Already caught by Randy Dunlap and a
-couple others.  Tried to put it somewhere that made sense.
+Remove a debug statement left behind by accident Ths debug statement got
+left behind.  It was commented out after use but not deleted.
 
 Signed-off-by: Mike Miller <mike.miller@hp.com>
 Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
@@ -46,78 +45,21 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   45 ++++++++++++++++++++--------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ drivers/block/cciss_scsi.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-add-performant-mode-support-for-stars-sirius-move-next_command-function-from-ifdef drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-performant-mode-support-for-stars-sirius-move-next_command-function-from-ifdef
-+++ a/drivers/block/cciss.c
-@@ -205,6 +205,7 @@ static void cciss_hba_release(struct dev
- static void cciss_device_release(struct device *dev);
- static void cciss_free_gendisk(ctlr_info_t *h, int drv_index);
- static void cciss_free_drive_info(ctlr_info_t *h, int drv_index);
-+static inline u32 next_command(ctlr_info_t *h);
+diff -puN drivers/block/cciss_scsi.c~cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code drivers/block/cciss_scsi.c
+--- a/drivers/block/cciss_scsi.c~cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code
++++ a/drivers/block/cciss_scsi.c
+@@ -213,8 +213,6 @@ scsi_cmd_stack_setup(int ctlr, struct cc
  
- /* performant mode helper functions */
- static void  calc_bucket_map(int *bucket, int num_buckets, int nsgs,
-@@ -366,28 +367,6 @@ static const char *raid_label[] = { "0",
- 
- #ifdef CONFIG_PROC_FS
- 
--static inline u32 next_command(ctlr_info_t *h)
--{
--	u32 a;
--
--	if (unlikely(h->transMethod != CFGTBL_Trans_Performant))
--		return h->access.command_completed(h);
--
--	if ((*(h->reply_pool_head) & 1) == (h->reply_pool_wraparound)) {
--		a = *(h->reply_pool_head); /* Next cmd in ring buffer */
--		(h->reply_pool_head)++;
--		h->commands_outstanding--;
--	} else {
--		a = FIFO_EMPTY;
--	}
--	/* Check for wraparound */
--	if (h->reply_pool_head == (h->reply_pool + h->max_commands)) {
--		h->reply_pool_head = h->reply_pool;
--		h->reply_pool_wraparound ^= 1;
--	}
--	return a;
--}
--
- /*
-  * Report information about this controller.
-  */
-@@ -3403,6 +3382,28 @@ static inline void finish_cmd(ctlr_info_
- #endif
- }
- 
-+static inline u32 next_command(ctlr_info_t *h)
-+{
-+	u32 a;
-+
-+	if (unlikely(h->transMethod != CFGTBL_Trans_Performant))
-+		return h->access.command_completed(h);
-+
-+	if ((*(h->reply_pool_head) & 1) == (h->reply_pool_wraparound)) {
-+		a = *(h->reply_pool_head); /* Next cmd in ring buffer */
-+		(h->reply_pool_head)++;
-+		h->commands_outstanding--;
-+	} else {
-+		a = FIFO_EMPTY;
-+	}
-+	/* Check for wraparound */
-+	if (h->reply_pool_head == (h->reply_pool + h->max_commands)) {
-+		h->reply_pool_head = h->reply_pool;
-+		h->reply_pool_wraparound ^= 1;
-+	}
-+	return a;
-+}
-+
- /* process completion of an indexed ("direct lookup") command */
- static inline u32 process_indexed_cmd(ctlr_info_t *h, u32 raw_tag)
- {
+ 	/* Check alignment, see cciss_cmd.h near CommandList_struct def. */
+ 	BUILD_BUG_ON((sizeof(*stk->pool) % COMMANDLIST_ALIGNMENT) != 0);
+-	/* printk(KERN_WARNING "cciss_scsi.c: 0x%08x 0x%08x 0x%08x\n",
+-			0xdeadbeef, sizeof(*stk->pool), 0xbeefdead); */
+ 	/* pci_alloc_consistent guarantees 32-bit DMA address will be used */
+ 	stk->pool = (struct cciss_scsi_cmd_stack_elem_t *)
+ 		pci_alloc_consistent(hba[ctlr]->pdev, size, &stk->cmd_pool_handle);
 _
 
 Patches currently in -mm which might be from mike.miller@hp.com are
