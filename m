@@ -1,50 +1,54 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: mmotm 2010-06-03-16-36 uploaded
-Date: Thu, 3 Jun 2010 18:54:01 -0700
-Message-ID: <20100603185401.1851c94e.akpm@linux-foundation.org>
-References: <201006040005.o5405Afw023296@imap1.linux-foundation.org>
-	<AANLkTilX_Fbc_pR1jtgQJsvu7RbMfgyhJYCxqV725T18@mail.gmail.com>
+From: akpm@linux-foundation.org
+Subject: + x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch added to -mm tree
+Date: Thu, 03 Jun 2010 18:54:09 -0700
+Message-ID: <201006040154.o541s6UL032081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756498Ab0FDByK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 21:54:10 -0400
-In-Reply-To: <AANLkTilX_Fbc_pR1jtgQJsvu7RbMfgyhJYCxqV725T18@mail.gmail.com>
+	by vger.kernel.org with ESMTP id S1756528Ab0FDByp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 21:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Dave Young <hidave.darkstar@gmail.com>
-Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, arjan@infradead.org, davej@codemonkey.org.uk, lenb@kernel.org, mingo@elte.hu, robert.schoene@tu-dresden.de, trenn@suse.de
 
-On Fri, 4 Jun 2010 09:41:58 +0800 Dave Young <hidave.darkstar@gmail.com> wrote:
 
-> On Fri, Jun 4, 2010 at 7:36 AM,  <akpm@linux-foundation.org> wrote:
-> > The mm-of-the-moment snapshot 2010-06-03-16-36 has been uploaded to
-> >
-> > __ http://userweb.kernel.org/~akpm/mmotm/
-> >
-> 
-> Hi, intel_idle build fails:
-> 
-> drivers/idle/intel_idle.c: In function ___intel_idle___:
-> drivers/idle/intel_idle.c:234: error: too few arguments to function ___trace_power
-> _start___
-> make[2]: *** [drivers/idle/intel_idle.o] Error 1
-> make[1]: *** [drivers/idle] Error 2
-> make[1]: *** Waiting for unfinished jobs....
-> 
+The patch titled
+     x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix
+has been added to the -mm tree.  Its filename is
+     x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
 
-Caused by
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
-which changed trace_power_start().
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-drivers/idle/intel_idle.c wasn't there when Thomas wrote that patch.
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-this, I guess:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robert Schoene <robert.schoene@tu-dresden.de>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/idle/intel_idle.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/idle/intel_idle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix drivers/idle/intel_idle.c
 --- a/drivers/idle/intel_idle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix
 +++ a/drivers/idle/intel_idle.c
 @@ -231,7 +231,7 @@ static int intel_idle(struct cpuidle_dev
@@ -58,8 +62,38 @@ this, I guess:
  
 _
 
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-it's a bit odd that all trace_power_start() callers just pass in
-smp_processor_id().  Why not do it within trace_power_start() itself?
-
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar-fix.patch
+mm-vmap-area-cache-fix.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
