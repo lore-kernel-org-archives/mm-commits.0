@@ -1,239 +1,65 @@
-From: akpm@linux-foundation.org
-Subject: mmotm 2010-06-03-16-36 uploaded
-Date: Thu, 03 Jun 2010 16:36:51 -0700
-Message-ID: <201006040005.o5405Afw023296@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: mmotm 2010-06-03-16-36 uploaded
+Date: Thu, 3 Jun 2010 18:54:01 -0700
+Message-ID: <20100603185401.1851c94e.akpm@linux-foundation.org>
+References: <201006040005.o5405Afw023296@imap1.linux-foundation.org>
+	<AANLkTilX_Fbc_pR1jtgQJsvu7RbMfgyhJYCxqV725T18@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750972Ab0FDAFN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 20:05:13 -0400
+	by vger.kernel.org with ESMTP id S1756498Ab0FDByK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jun 2010 21:54:10 -0400
+In-Reply-To: <AANLkTilX_Fbc_pR1jtgQJsvu7RbMfgyhJYCxqV725T18@mail.gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dave Young <hidave.darkstar@gmail.com>
+Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Thomas Renninger <trenn@suse.de>
 
-The mm-of-the-moment snapshot 2010-06-03-16-36 has been uploaded to
+On Fri, 4 Jun 2010 09:41:58 +0800 Dave Young <hidave.darkstar@gmail.com> wrote:
 
-   http://userweb.kernel.org/~akpm/mmotm/
+> On Fri, Jun 4, 2010 at 7:36 AM,  <akpm@linux-foundation.org> wrote:
+> > The mm-of-the-moment snapshot 2010-06-03-16-36 has been uploaded to
+> >
+> > __ http://userweb.kernel.org/~akpm/mmotm/
+> >
+> 
+> Hi, intel_idle build fails:
+> 
+> drivers/idle/intel_idle.c: In function ___intel_idle___:
+> drivers/idle/intel_idle.c:234: error: too few arguments to function ___trace_power
+> _start___
+> make[2]: *** [drivers/idle/intel_idle.o] Error 1
+> make[1]: *** [drivers/idle] Error 2
+> make[1]: *** Waiting for unfinished jobs....
+> 
 
-and will soon be available at
-
-   git://zen-kernel.org/kernel/mmotm.git
-
-It contains the following patches against 2.6.35-rc1:
-
-origin.patch
-rtc-s3c-initialize-driver-data-before-using-it.patch
-rtc-s3c-initialize-s3c_rtc_cpu_type-before-using-it.patch
-fs-compat_rw_copy_check_uvector-add-missing-compat_ptr-call.patch
-ramoops-add-has_iomem-dependency.patch
-frv-invoke-oom-killer-from-page-fault.patch
-m32r-invoke-oom-killer-from-page-fault.patch
-mn10300-invoke-oom-killer-from-page-fault.patch
-xtensa-invoke-oom-killer-from-page-fault.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vmware-balloon-clamp-number-of-collected-non-balloonable-pages.patch
-flat-split-the-stack-data-alignments.patch
-flat-fix-unmap-len-in-load-error-path.patch
-revert-fb_defio-fix-for-non-dirty-ptes.patch
-fb_defio-redo-fix-for-non-dirty-ptes.patch
-sys_personality-change-sys_personality-to-accept-unsigned-int-instead-of-u_long.patch
-arch-um-fix-kunmap_atomic-call-in-skas-uaccessc.patch
-fbdev-fix-frame-buffer-devices-menu.patch
-lib-add-s390-to-atomic64_dec_if_positive-archs.patch
-cgroup-alloc_css_id-increments-hierarchy-depth.patch
-kernel-fix-bug_on-checks-for-cpu-notifier-callbacks-direct-call.patch
-vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure.patch
-omap-remove-bug_on-for-disabled-interrupts.patch
-block-bd_start_claiming-fix-module-refcount.patch
-block-bd_start_claiming-cleanup.patch
-cpufreq-revert-remove-rwsem-lock-from-cpufreq_gov_stop-call-second-call-site.patch
-gconfig-fix-build-failure-on-fedora-13.patch
-sched-prevent-compiler-from-optimising-sched_avg_update-loop.patch
-vfs-dont-hold-s_umount-over-close_bdev_exclusive-call.patch
-x86-i8259-only-register-sysdev-for-real-pic.patch
-acerhdf-add-new-bios-versions.patch
-dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included.patch
-timer-add-on-stack-deferrable-timer-interfaces.patch
-intel_menlow-fix-memory-leaks-in-error-path.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+Caused by
 x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
-x86-rwsem-stay-on-fast-path-when-count0-in-__up_write.patch
-x86-rwsem-minor-cleanups.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-compal-laptop-uses-hwmon-interfaces-depends-on-hwmon.patch
-avr32-invoke-oom-killer-from-page-fault.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-cifs-provide-user-with-a-hint-when-name-resolution-fails.patch
-drivers-dma-eliminate-a-null-pointer-dereference.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-drivers-media-use-memdup_user.patch
-drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
-drivers-video-omap2-displays-add-missing-mutex_unlock.patch
-hpet-factor-timer-allocate-from-open.patch
-posix_timer-move-copy_to_usercreated_timer_id-down-in-timer_create.patch
-arch-ia64-kvm-add-missing-spin_unlock.patch
-input-remove-references-to-obsolete-config_spruce.patch
-checkkconfigsymbolssh-kconfig-symbols-sometimes-have-lowercase-letters.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-ide-use-memdup_user.patch
-drivers-mfd-kzalloc-doesnt-return-err_ptr.patch
-mtd-sst25l-check-for-null-consistently.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-fs-ubifs-use-err_cast.patch
-3x59x-fix-pci-resource-management.patch
-btusb-patch-add_apple_macbookpro62.patch
-fs-ocfs2-dlm-add-missing-spin_unlock.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-fix-missing-bit-coverage-of-async_flags.patch
-serial-general-fixes-in-the-serial_rs485-structure.patch
-altera_uart-proper-section-for-altera_uart_remove.patch
-drivers-s390-net-use-memdup_user.patch
-percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
-percpu-fix-list_head-init-bug-in-__percpu_counter_init.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-drivers-scsi-libsas-use-sam_good.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-mpt-fusion-convert-to-seq_file.patch
-g_ncr5380-remove-misleading-pnp-error-message.patch
-g_ncr5380-fix-broken-mmio-compilation.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-scsi-sdc-quiet-all-sparse-noise.patch
-lpfc-positive-error-return-into-negative.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
-scsi-use-__ux-types-for-headers-exported-to-user-space.patch
-scsi-fix-pmcraid-build-errors.patch
-scsi-fix-be2iscsi-build.patch
-scsi-fix-bnx2i-build-errors.patch
-scsi-remove-private-bit-macros.patch
-drivers-scsi-use-memdup_user.patch
-drivers-block-use-memdup_user.patch
-cciss-enqueue-and-submit-io.patch
-cciss-clean-up-interrupt-handler.patch
-cciss-check-for-msi-in-interrupt_not_for_us.patch
-cciss-make-interrupt-access-methods-return-type-bool.patch
-cciss-add-performant-mode-support-for-stars-sirius.patch
-cciss-new-controller-support-and-bump-driver-version.patch
-arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
-drivers-staging-dream-camera-use-memdup_user.patch
-drivers-staging-vme-bridges-add-missing-unlocks.patch
-drivers-staging-eliminate-a-null-pointer-dereference.patch
-drivers-usb-gadget-use-memdup_user.patch
-drivers-usb-serial-eliminate-a-null-pointer-dereference.patch
-cdc-acm-fix-resource-reclaim-in-error-path-of-acm_probe.patch
-virtio_9ph-include-linux-typesh.patch
-vfs-improve-comment-describing-fget_light.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-clarify-that-nonseekable_open-will-never-fail.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-padata-add-parenthesis-in-max_seq_nr-macro.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-mm.patch
-mm-use-memdup_user.patch
-mm-use-err_cast.patch
-mm-provide-init_mm-mm_context-initializer.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar-fix.patch
-tmpfs-make-tmpfs-scalable-with-caches-for-free-blocks.patch
-hugetlb-call-mmu-notifiers-on-hugepage-cow.patch
-kmap_atomic-make-kunmap_atomic-harder-to-misuse.patch
-mm-vmap-area-cache.patch
-mm-vmap-area-cache-fix.patch
-define-madv_hugepage.patch
-mm-rename-anon_vma_lock-to-vma_lock_anon_vma.patch
-mm-change-direct-call-of-spin_lockanon_vma-lock-to-inline-function.patch
-mm-track-the-root-oldest-anon_vma.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-mm-always-lock-the-root-oldest-anon_vma.patch
-mm-extend-ksm-refcounts-to-the-anon_vma-root.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-ummunotify-userspace-support-for-mmu-notifications-v2.patch
-keys-propagate-error-code-instead-of-returning-einval.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-add-performance-monitor-interrupt-counter.patch
-alpha-add-wrperfmonh-header-file-to-aid-use-of-wrperfmon-palcall.patch
-alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus.patch
-asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-misc-rohm-bh1780gli-ambient-light-sensor-driver.patch
-sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
-char-add-warn_on-in-misc_deregister.patch
-s390-remove-warn_on-for-misc_deregister-failures.patch
-checkpatch-refactor-allowed-asm-includes-and-add-memoryh.patch
-rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers.patch
-rwsem-lighter-active-count-checks-when-waking-up-readers.patch
-rwsem-let-rwsem_waiting_bias-represent-any-number-of-waiting-threads.patch
-rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch
-rwsem-smaller-wrappers-around-rwsem_down_failed_common.patch
-drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
-autofs4-remove-unneeded-null-check-in-try_to_fill_dentry.patch
-nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
-drivers-rtc-rtc-pcf8563c-remove-unused-struct.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-fusion-fix-kernel-doc-warnings.patch
-timerc-fix-kernel-doc-warning.patch
-mtd-nand_base-fix-kernel-doc-warnings-typos.patch
-drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
-edac-add-wissing-pieces-from-mpc85xx-fsl_soc_booke.patch
-ssb-add-dma_dev-to-ssb_device-structure.patch
-b43legacy-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b43-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-b44-replace-the-ssb_dma-api-with-the-generic-dma-api.patch
-ssb-remove-the-ssb-dma-api.patch
-aio-always-reinitialize-iocb-ki_run_list-at-the-end-of-aio_run_iocb.patch
-kfifo-kfifo_is_fullempty-should-return-bools-not-ints.patch
-kfifo-fix-kfifo-miss-use-of-nozamic.patch
-kfifo-add-the-new-generic-kfifo-api.patch
-kfifo-replace-the-old-non-generic-api.patch
-kfifo-add-example-files-to-the-kernel-sample-directory.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-lib-decompress_bunzip2c-fix-checkstack-warning.patch
-time-kill-off-config_generic_time.patch
-vfs-add-super-operation-writeback_inodes.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
-getblk-handle-2tb-devices.patch
+which changed trace_power_start().
+
+drivers/idle/intel_idle.c wasn't there when Thomas wrote that patch.
+
+this, I guess:
+
+--- a/drivers/idle/intel_idle.c~x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix
++++ a/drivers/idle/intel_idle.c
+@@ -231,7 +231,7 @@ static int intel_idle(struct cpuidle_dev
+ 
+ 	stop_critical_timings();
+ #ifndef MODULE
+-	trace_power_start(POWER_CSTATE, (eax >> 4) + 1);
++	trace_power_start(POWER_CSTATE, (eax >> 4) + 1, cpu);
+ #endif
+ 	if (!need_resched()) {
+ 
+_
+
+
+it's a bit odd that all trace_power_start() callers just pass in
+smp_processor_id().  Why not do it within trace_power_start() itself?
+
+
