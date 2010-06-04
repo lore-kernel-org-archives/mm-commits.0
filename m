@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + printk-fix-delayed-messages-from-cpu-hotplug-events.patch added to -mm tree
-Date: Thu, 03 Jun 2010 22:59:01 -0700
-Message-ID: <201006040558.o545wwVB009958@imap1.linux-foundation.org>
+Subject: + printk-fix-delayed-messages-from-cpu-hotplug-events-fix.patch added to -mm tree
+Date: Thu, 03 Jun 2010 22:59:03 -0700
+Message-ID: <201006040559.o545wx34009961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37867 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34531 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752147Ab0FDF7d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 01:59:33 -0400
+	by vger.kernel.org with ESMTP id S1752142Ab0FDF7c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 01:59:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cernekee@gmail.com, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org, cernekee@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     printk: fix delayed messages from CPU hotplug events
+     printk-fix-delayed-messages-from-cpu-hotplug-events-fix
 has been added to the -mm tree.  Its filename is
-     printk-fix-delayed-messages-from-cpu-hotplug-events.patch
+     printk-fix-delayed-messages-from-cpu-hotplug-events-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: fix delayed messages from CPU hotplug events
-From: Kevin Cernekee <cernekee@gmail.com>
+Subject: printk-fix-delayed-messages-from-cpu-hotplug-events-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When a secondary CPU is being brought up, it is not uncommon for printk()
-to be invoked when cpu_online(smp_processor_id()) == 0.  The case that I
-witnessed personally was on MIPS:
+use the hotcpu_notifier() helper
 
-http://lkml.org/lkml/2010/5/30/4
-
-If (can_use_console() == 0), printk() will spool its output to log_buf and
-it will be visible in "dmesg", but that output will NOT be echoed to the
-console until somebody calls release_console_sem() from a CPU that is
-online.  Therefore, the boot time messages from the new CPU can get stuck
-in "limbo" for a long time, and might suddenly appear on the screen when a
-completely unrelated event (e.g.  "eth0: link is down") occurs.
-
-This patch modifies the console code so that any pending messages are
-automatically flushed out to the console whenever a CPU hotplug operation
-completes successfully or aborts.
-
-The issue was seen on 2.6.34.
-
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
-Reviewed-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Kevin Cernekee <cernekee@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+ kernel/printk.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN kernel/printk.c~printk-fix-delayed-messages-from-cpu-hotplug-events kernel/printk.c
---- a/kernel/printk.c~printk-fix-delayed-messages-from-cpu-hotplug-events
+diff -puN kernel/printk.c~printk-fix-delayed-messages-from-cpu-hotplug-events-fix kernel/printk.c
+--- a/kernel/printk.c~printk-fix-delayed-messages-from-cpu-hotplug-events-fix
 +++ a/kernel/printk.c
-@@ -37,6 +37,8 @@
- #include <linux/ratelimit.h>
- #include <linux/kmsg_dump.h>
- #include <linux/syslog.h>
-+#include <linux/cpu.h>
-+#include <linux/notifier.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -985,6 +987,33 @@ void resume_console(void)
+@@ -1009,10 +1009,6 @@ static int __cpuinit console_cpu_notify(
+ 	return NOTIFY_OK;
  }
  
+-static struct notifier_block __cpuinitdata console_nb = {
+-	.notifier_call		= console_cpu_notify,
+-};
+-
  /**
-+ * console_cpu_notify - print deferred console messages after CPU hotplug
-+ * @self: notifier struct
-+ * @action: CPU hotplug event
-+ * @hcpu: unused
-+ *
-+ * If printk() is called from a CPU that is not online yet, the messages
-+ * will be spooled but will not show up on the console.  This function is
-+ * called when a new CPU comes online (or fails to come up), and ensures
-+ * that any such output gets printed.
-+ */
-+static int __cpuinit console_cpu_notify(struct notifier_block *self,
-+	unsigned long action, void *hcpu)
-+{
-+	switch (action) {
-+	case CPU_ONLINE:
-+	case CPU_UP_CANCELED:
-+		acquire_console_sem();
-+		release_console_sem();
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block __cpuinitdata console_nb = {
-+	.notifier_call		= console_cpu_notify,
-+};
-+
-+/**
   * acquire_console_sem - lock the console system for exclusive use.
   *
-  * Acquires a semaphore which guarantees that the caller has
-@@ -1371,7 +1400,7 @@ int unregister_console(struct console *c
- }
- EXPORT_SYMBOL(unregister_console);
- 
--static int __init disable_boot_consoles(void)
-+static int __init printk_late_init(void)
- {
- 	struct console *con;
- 
-@@ -1382,9 +1411,10 @@ static int __init disable_boot_consoles(
+@@ -1411,7 +1407,7 @@ static int __init printk_late_init(void)
  			unregister_console(con);
  		}
  	}
-+	register_hotcpu_notifier(&console_nb);
+-	register_hotcpu_notifier(&console_nb);
++	hotcpu_notifier(console_cpu_notify, 0);
  	return 0;
  }
--late_initcall(disable_boot_consoles);
-+late_initcall(printk_late_init);
- 
- #if defined CONFIG_PRINTK
- 
+ late_initcall(printk_late_init);
 _
 
-Patches currently in -mm which might be from cernekee@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-printk-fix-delayed-messages-from-cpu-hotplug-events.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar-fix.patch
+mm-vmap-area-cache-fix.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
+wait_on_buffer-remove-the-buffer_locked-test.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
 printk-fix-delayed-messages-from-cpu-hotplug-events-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
