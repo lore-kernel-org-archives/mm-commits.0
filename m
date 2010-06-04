@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-experimental-from-swap-account-config.patch added to -mm tree
-Date: Fri, 04 Jun 2010 13:59:14 -0700
-Message-ID: <201006042059.o54KxEmU017440@imap1.linux-foundation.org>
+Subject: + floppy-make-controller-const.patch added to -mm tree
+Date: Fri, 04 Jun 2010 13:59:45 -0700
+Message-ID: <201006042059.o54KxjF5017444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756789Ab0FDU7Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 16:59:25 -0400
+	by vger.kernel.org with ESMTP id S1756020Ab0FDU7z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 16:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp
+Cc: shemminger@vyatta.com, axboe@kernel.dk
 
 
 The patch titled
-     memcg: remove experimental from swap account config
+     floppy: make controller const
 has been added to the -mm tree.  Its filename is
-     memcg-remove-experimental-from-swap-account-config.patch
+     floppy-make-controller-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove experimental from swap account config
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: floppy: make controller const
+From: Stephen Hemminger <shemminger@vyatta.com>
 
-It's 11 months since we changed swap_map[] to indicates SWAP_HAS_CACHE.
-Since that, memcg's swap accounting has been very stable and it seems
-it can be maintained.
+The struct cont_t is just a set of virtual function pointers.
 
-So, I'd like to remove EXPERIMENTAL from the config.
-
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/floppy.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN init/Kconfig~memcg-remove-experimental-from-swap-account-config init/Kconfig
---- a/init/Kconfig~memcg-remove-experimental-from-swap-account-config
-+++ a/init/Kconfig
-@@ -577,8 +577,8 @@ config CGROUP_MEM_RES_CTLR
- 	  could in turn add some fork/exit overhead.
+diff -puN drivers/block/floppy.c~floppy-make-controller-const drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-make-controller-const
++++ a/drivers/block/floppy.c
+@@ -539,7 +539,7 @@ static int max_buffer_sectors;
  
- config CGROUP_MEM_RES_CTLR_SWAP
--	bool "Memory Resource Controller Swap Extension(EXPERIMENTAL)"
--	depends on CGROUP_MEM_RES_CTLR && SWAP && EXPERIMENTAL
-+	bool "Memory Resource Controller Swap Extension"
-+	depends on CGROUP_MEM_RES_CTLR && SWAP
- 	help
- 	  Add swap management feature to memory resource controller. When you
- 	  enable this, you can limit mem+swap usage per cgroup. In other words,
+ static int *errors;
+ typedef void (*done_f)(int);
+-static struct cont_t {
++static const struct cont_t {
+ 	void (*interrupt)(void);
+ 				/* this is called after the interrupt of the
+ 				 * main command */
+@@ -1995,14 +1995,14 @@ static void do_wakeup(void)
+ 	wake_up(&command_done);
+ }
+ 
+-static struct cont_t wakeup_cont = {
++static const struct cont_t wakeup_cont = {
+ 	.interrupt	= empty,
+ 	.redo		= do_wakeup,
+ 	.error		= empty,
+ 	.done		= (done_f)empty
+ };
+ 
+-static struct cont_t intr_cont = {
++static const struct cont_t intr_cont = {
+ 	.interrupt	= empty,
+ 	.redo		= process_fd_request,
+ 	.error		= empty,
+@@ -2223,7 +2223,7 @@ static void redo_format(void)
+ 	debugt(__func__, "queue format request");
+ }
+ 
+-static struct cont_t format_cont = {
++static const struct cont_t format_cont = {
+ 	.interrupt	= format_interrupt,
+ 	.redo		= redo_format,
+ 	.error		= bad_flp_intr,
+@@ -2921,7 +2921,7 @@ do_request:
+ 	return;
+ }
+ 
+-static struct cont_t rw_cont = {
++static const struct cont_t rw_cont = {
+ 	.interrupt	= rw_interrupt,
+ 	.redo		= redo_fd_request,
+ 	.error		= bad_flp_intr,
+@@ -2960,7 +2960,7 @@ static void do_fd_request(struct request
+ 	is_alive(__func__, "");
+ }
+ 
+-static struct cont_t poll_cont = {
++static const struct cont_t poll_cont = {
+ 	.interrupt	= success_and_wakeup,
+ 	.redo		= floppy_ready,
+ 	.error		= generic_failure,
+@@ -2991,7 +2991,7 @@ static void reset_intr(void)
+ 	pr_info("weird, reset interrupt called\n");
+ }
+ 
+-static struct cont_t reset_cont = {
++static const struct cont_t reset_cont = {
+ 	.interrupt	= reset_intr,
+ 	.redo		= success_and_wakeup,
+ 	.error		= generic_failure,
+@@ -3096,7 +3096,7 @@ static void raw_cmd_done(int flag)
+ 	generic_done(flag);
+ }
+ 
+-static struct cont_t raw_cmd_cont = {
++static const struct cont_t raw_cmd_cont = {
+ 	.interrupt	= success_and_wakeup,
+ 	.redo		= floppy_start,
+ 	.error		= generic_failure,
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from shemminger@vyatta.com are
 
-cgroup-alloc_css_id-increments-hierarchy-depth.patch
-vmscan-fix-do_try_to_free_pages-return-value-when-priority==0-reclaim-failure.patch
-percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-mm-rename-anon_vma_lock-to-vma_lock_anon_vma.patch
-mm-change-direct-call-of-spin_lockanon_vma-lock-to-inline-function.patch
-mm-track-the-root-oldest-anon_vma.patch
-mm-always-lock-the-root-oldest-anon_vma.patch
-mm-extend-ksm-refcounts-to-the-anon_vma-root.patch
-memcg-remove-experimental-from-swap-account-config.patch
+origin.patch
+linux-next.patch
+floppy-make-controller-const.patch
 
