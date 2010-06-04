@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code.patch added to -mm tree
-Date: Fri, 04 Jun 2010 16:50:58 -0700
-Message-ID: <201006042350.o54NowHr025385@imap1.linux-foundation.org>
+Subject: + cciss-add-performant-mode-support-for-stars-sirius-change-pad-value-from-32-to-0.patch added to -mm tree
+Date: Fri, 04 Jun 2010 16:51:00 -0700
+Message-ID: <201006042351.o54Np0UG025388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757526Ab0FDXvJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:51:09 -0400
+	by vger.kernel.org with ESMTP id S1757507Ab0FDXvL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 19:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mike.miller@hp.com, axboe@kernel.dk, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     cciss: remove errant debug code
+     cciss: change pad value from 32 to 0
 has been added to the -mm tree.  Its filename is
-     cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code.patch
+     cciss-add-performant-mode-support-for-stars-sirius-change-pad-value-from-32-to-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: remove errant debug code
+Subject: cciss: change pad value from 32 to 0
 From: Mike Miller <mike.miller@hp.com>
 
-Remove a debug statement left behind by accident Ths debug statement got
-left behind.  It was commented out after use but not deleted.
+Change the command padding on 32-bit systems to 0 since setting it to 32
+has the identical effect.
 
 Signed-off-by: Mike Miller <mike.miller@hp.com>
 Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
@@ -45,21 +45,21 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss_scsi.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/block/cciss_cmd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss_scsi.c~cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code drivers/block/cciss_scsi.c
---- a/drivers/block/cciss_scsi.c~cciss-add-performant-mode-support-for-stars-sirius-remove-errant-debug-code
-+++ a/drivers/block/cciss_scsi.c
-@@ -213,8 +213,6 @@ scsi_cmd_stack_setup(int ctlr, struct cc
- 
- 	/* Check alignment, see cciss_cmd.h near CommandList_struct def. */
- 	BUILD_BUG_ON((sizeof(*stk->pool) % COMMANDLIST_ALIGNMENT) != 0);
--	/* printk(KERN_WARNING "cciss_scsi.c: 0x%08x 0x%08x 0x%08x\n",
--			0xdeadbeef, sizeof(*stk->pool), 0xbeefdead); */
- 	/* pci_alloc_consistent guarantees 32-bit DMA address will be used */
- 	stk->pool = (struct cciss_scsi_cmd_stack_elem_t *)
- 		pci_alloc_consistent(hba[ctlr]->pdev, size, &stk->cmd_pool_handle);
+diff -puN drivers/block/cciss_cmd.h~cciss-add-performant-mode-support-for-stars-sirius-change-pad-value-from-32-to-0 drivers/block/cciss_cmd.h
+--- a/drivers/block/cciss_cmd.h~cciss-add-performant-mode-support-for-stars-sirius-change-pad-value-from-32-to-0
++++ a/drivers/block/cciss_cmd.h
+@@ -177,7 +177,7 @@ typedef struct _SGDescriptor_struct {
+ #define COMMANDLIST_ALIGNMENT (32)
+ #define IS_64_BIT ((sizeof(long) - 4)/4)
+ #define IS_32_BIT (!IS_64_BIT)
+-#define PAD_32 (32)
++#define PAD_32 (0)
+ #define PAD_64 (4)
+ #define PADSIZE (IS_32_BIT * PAD_32 + IS_64_BIT * PAD_64)
+ #define DIRECT_LOOKUP_BIT 0x10
 _
 
 Patches currently in -mm which might be from mike.miller@hp.com are
