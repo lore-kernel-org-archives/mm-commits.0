@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-introduce-missing-kfree.patch added to -mm tree
-Date: Fri, 04 Jun 2010 13:10:25 -0700
-Message-ID: <201006042010.o54KAPRD014704@imap1.linux-foundation.org>
+Subject: + drivers-scsi-arcmsr-introduce-missing-kfree.patch added to -mm tree
+Date: Fri, 04 Jun 2010 13:10:27 -0700
+Message-ID: <201006042010.o54KARmK014709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753554Ab0FDULA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 16:11:00 -0400
+	by vger.kernel.org with ESMTP id S1753554Ab0FDULE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 16:11:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, sameo@linux.intel.com
+Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com, nick.cheng@areca.com.tw
 
 
 The patch titled
-     drivers/mfd/davinci_voicecodec.c: introduce missing kfree
+     drivers/scsi/arcmsr/arcmsr_hba.c: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-introduce-missing-kfree.patch
+     drivers-scsi-arcmsr-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/davinci_voicecodec.c: introduce missing kfree
+Subject: drivers/scsi/arcmsr/arcmsr_hba.c: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
 Error handling code following a kmalloc should free the allocated data.
@@ -79,36 +79,33 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Nick Cheng <nick.cheng@areca.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/davinci_voicecodec.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/scsi/arcmsr/arcmsr_hba.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mfd/davinci_voicecodec.c~drivers-mfd-introduce-missing-kfree drivers/mfd/davinci_voicecodec.c
---- a/drivers/mfd/davinci_voicecodec.c~drivers-mfd-introduce-missing-kfree
-+++ a/drivers/mfd/davinci_voicecodec.c
-@@ -94,7 +94,8 @@ static int __init davinci_vc_probe(struc
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
- 	if (!res) {
- 		dev_err(&pdev->dev, "no DMA resource\n");
--		return -ENXIO;
-+		ret = -ENXIO;
-+		goto fail4;
- 	}
+diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~drivers-scsi-arcmsr-introduce-missing-kfree drivers/scsi/arcmsr/arcmsr_hba.c
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c~drivers-scsi-arcmsr-introduce-missing-kfree
++++ a/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -1526,6 +1526,7 @@ static int arcmsr_iop_message_xfer(struc
+ 		if (!acb->fw_state) {
+ 			pcmdmessagefld->cmdmessage.ReturnCode =
+ 			ARCMSR_MESSAGE_RETURNCODE_BUS_HANG_ON;
++			kfree(ver_addr);
+ 			goto message_out;
+ 		}
  
- 	davinci_vc->davinci_vcif.dma_tx_channel = res->start;
-@@ -104,7 +105,8 @@ static int __init davinci_vc_probe(struc
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
- 	if (!res) {
- 		dev_err(&pdev->dev, "no DMA resource\n");
--		return -ENXIO;
-+		ret = -ENXIO;
-+		goto fail4;
- 	}
+@@ -1578,6 +1579,7 @@ static int arcmsr_iop_message_xfer(struc
+ 		if (!acb->fw_state) {
+ 			pcmdmessagefld->cmdmessage.ReturnCode =
+ 			ARCMSR_MESSAGE_RETURNCODE_BUS_HANG_ON;
++			kfree(ver_addr);
+ 			goto message_out;
+ 		}
  
- 	davinci_vc->davinci_vcif.dma_rx_channel = res->start;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
