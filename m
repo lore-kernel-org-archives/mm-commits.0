@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + printk-fix-delayed-messages-from-cpu-hotplug-events-fix.patch added to -mm tree
-Date: Thu, 03 Jun 2010 22:59:03 -0700
-Message-ID: <201006040559.o545wx34009961@imap1.linux-foundation.org>
+Subject: + drivers-mfd-introduce-missing-kfree.patch added to -mm tree
+Date: Fri, 04 Jun 2010 13:10:25 -0700
+Message-ID: <201006042010.o54KAPRD014704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752142Ab0FDF7c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 01:59:32 -0400
+	by vger.kernel.org with ESMTP id S1753554Ab0FDULA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 16:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cernekee@gmail.com, lethal@linux-sh.org
+Cc: julia@diku.dk, sameo@linux.intel.com
 
 
 The patch titled
-     printk-fix-delayed-messages-from-cpu-hotplug-events-fix
+     drivers/mfd/davinci_voicecodec.c: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     printk-fix-delayed-messages-from-cpu-hotplug-events-fix.patch
+     drivers-mfd-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-fix-delayed-messages-from-cpu-hotplug-events-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/mfd/davinci_voicecodec.c: introduce missing kfree
+From: Julia Lawall <julia@diku.dk>
 
-use the hotcpu_notifier() helper
+Error handling code following a kmalloc should free the allocated data.
 
-Cc: Kevin Cernekee <cernekee@gmail.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+expression E;
+identifier f,f1,l;
+position p1,p2;
+expression *ptr != NULL;
+@@
+
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+(
+x->f1 = E
+|
+ (x->f1 == NULL || ...)
+|
+ f(...,x->f1,...)
+)
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/mfd/davinci_voicecodec.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~printk-fix-delayed-messages-from-cpu-hotplug-events-fix kernel/printk.c
---- a/kernel/printk.c~printk-fix-delayed-messages-from-cpu-hotplug-events-fix
-+++ a/kernel/printk.c
-@@ -1009,10 +1009,6 @@ static int __cpuinit console_cpu_notify(
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block __cpuinitdata console_nb = {
--	.notifier_call		= console_cpu_notify,
--};
--
- /**
-  * acquire_console_sem - lock the console system for exclusive use.
-  *
-@@ -1411,7 +1407,7 @@ static int __init printk_late_init(void)
- 			unregister_console(con);
- 		}
+diff -puN drivers/mfd/davinci_voicecodec.c~drivers-mfd-introduce-missing-kfree drivers/mfd/davinci_voicecodec.c
+--- a/drivers/mfd/davinci_voicecodec.c~drivers-mfd-introduce-missing-kfree
++++ a/drivers/mfd/davinci_voicecodec.c
+@@ -94,7 +94,8 @@ static int __init davinci_vc_probe(struc
+ 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "no DMA resource\n");
+-		return -ENXIO;
++		ret = -ENXIO;
++		goto fail4;
  	}
--	register_hotcpu_notifier(&console_nb);
-+	hotcpu_notifier(console_cpu_notify, 0);
- 	return 0;
- }
- late_initcall(printk_late_init);
+ 
+ 	davinci_vc->davinci_vcif.dma_tx_channel = res->start;
+@@ -104,7 +105,8 @@ static int __init davinci_vc_probe(struc
+ 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "no DMA resource\n");
+-		return -ENXIO;
++		ret = -ENXIO;
++		goto fail4;
+ 	}
+ 
+ 	davinci_vc->davinci_vcif.dma_rx_channel = res->start;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar-fix.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer-fix.patch
-wait_on_buffer-remove-the-buffer_locked-test.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-printk-fix-delayed-messages-from-cpu-hotplug-events-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+fs-btrfs-use-memdup_user.patch
+fs-btrfs-use-err_cast.patch
+drivers-dma-eliminate-a-null-pointer-dereference.patch
+drivers-media-use-memdup_user.patch
+drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
+drivers-video-omap2-displays-add-missing-mutex_unlock.patch
+arch-ia64-kvm-add-missing-spin_unlock.patch
+drivers-ide-use-memdup_user.patch
+drivers-mfd-kzalloc-doesnt-return-err_ptr.patch
+fs-ubifs-use-err_cast.patch
+fs-ocfs2-dlm-add-missing-spin_unlock.patch
+drivers-s390-net-use-memdup_user.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-use-memdup_user.patch
+drivers-block-use-memdup_user.patch
+arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
+drivers-staging-dream-camera-use-memdup_user.patch
+drivers-staging-vme-bridges-add-missing-unlocks.patch
+drivers-staging-eliminate-a-null-pointer-dereference.patch
+drivers-usb-gadget-use-memdup_user.patch
+drivers-usb-serial-eliminate-a-null-pointer-dereference.patch
+mm-use-memdup_user.patch
+mm-use-err_cast.patch
+drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
+drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
+drivers-mfd-introduce-missing-kfree.patch
+drivers-scsi-arcmsr-introduce-missing-kfree.patch
 
