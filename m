@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-support-for-calling-into-openfirmware.patch added to -mm tree
-Date: Fri, 04 Jun 2010 15:48:28 -0700
-Message-ID: <201006042248.o54MmSgH022854@imap1.linux-foundation.org>
+Subject: + fs-move-code-out-of-bufferc.patch added to -mm tree
+Date: Fri, 04 Jun 2010 15:51:03 -0700
+Message-ID: <201006042251.o54Mp3dx022926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757370Ab0FDWsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 18:48:45 -0400
+	by vger.kernel.org with ESMTP id S1751530Ab0FDWvS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jun 2010 18:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, hpa@zytor.com, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
+Cc: npiggin@suse.de, hch@lst.de, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     x86: OLPC: add support for calling into OpenFirmware
+     fs: move code out of buffer.c
 has been added to the -mm tree.  Its filename is
-     x86-olpc-add-support-for-calling-into-openfirmware.patch
+     fs-move-code-out-of-bufferc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,421 +33,567 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: OLPC: add support for calling into OpenFirmware
-From: Andres Salomon <dilinger@queued.net>
+Subject: fs: move code out of buffer.c
+From: Nick Piggin <npiggin@suse.de>
 
-Add support for saving OFW's cif, and later calling into it to run OFW
-commands.  OFW remains resident in memory, living within virtual range
-0xff800000 - 0xffc00000.  A single page directory entry points to the
-pgdir that OFW actually uses, so rather than saving the entire page table,
-we save that one entry (and restore it for the call into OFW).
+Move invalidate_bdev, block_sync_page into fs/block_dev.c.  Export
+kill_bdev as well, so brd doesn't have to open code it.  Reduce
+buffer_head.h requirement accordingly.
 
-This is currently only used by the OLPC XO; however, there's nothing
-restricting OFW's usage on other (x86) platforms.
+Removed a rather large comment from invalidate_bdev, as it looked a bit
+obsolete to bother moving.  The small comment replacing it says enough.
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                        |    9 ++
- arch/x86/include/asm/olpc_ofw.h         |   33 ++++++++
- arch/x86/include/asm/pgtable_32_types.h |   14 ++-
- arch/x86/include/asm/setup.h            |    1 
- arch/x86/kernel/Makefile                |    1 
- arch/x86/kernel/head_32.S               |   31 +++++++
- arch/x86/kernel/olpc.c                  |    8 +-
- arch/x86/kernel/olpc_ofw.c              |   88 ++++++++++++++++++++++
- arch/x86/kernel/setup.c                 |    3 
- arch/x86/mm/dump_pagetables.c           |    7 +
- arch/x86/mm/init_32.c                   |   17 ++++
- 11 files changed, 205 insertions(+), 7 deletions(-)
+ arch/powerpc/sysdev/axonram.c           |    1 
+ block/genhd.c                           |    1 
+ block/ioctl.c                           |    2 
+ drivers/block/amiflop.c                 |    2 
+ drivers/block/brd.c                     |    9 +--
+ drivers/block/floppy.c                  |    1 
+ drivers/block/loop.c                    |    1 
+ drivers/cdrom/cdrom.c                   |    1 
+ drivers/char/sysrq.c                    |    1 
+ drivers/md/dm.c                         |    1 
+ drivers/md/md.c                         |    2 
+ drivers/mtd/devices/block2mtd.c         |    1 
+ drivers/s390/block/dasd.c               |    1 
+ drivers/s390/char/tape_block.c          |    1 
+ drivers/scsi/scsicam.c                  |    1 
+ drivers/staging/ramzswap/ramzswap_drv.c |    1 
+ fs/block_dev.c                          |   36 ++++++++++++--
+ fs/buffer.c                             |   56 ----------------------
+ fs/cachefiles/interface.c               |    1 
+ fs/cramfs/inode.c                       |    1 
+ fs/fs-writeback.c                       |    1 
+ fs/libfs.c                              |    2 
+ fs/quota/dquot.c                        |    1 
+ fs/quota/quota.c                        |    1 
+ fs/splice.c                             |    1 
+ fs/sync.c                               |    1 
+ include/linux/buffer_head.h             |    1 
+ include/linux/fs.h                      |    3 +
+ kernel/power/swap.c                     |    1 
+ mm/page-writeback.c                     |    2 
+ mm/swap_state.c                         |    1 
+ 31 files changed, 45 insertions(+), 91 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/Kconfig
-@@ -2060,6 +2060,15 @@ config OLPC
- 	  Add support for detecting the unique features of the OLPC
- 	  XO hardware.
+diff -puN arch/powerpc/sysdev/axonram.c~fs-move-code-out-of-bufferc arch/powerpc/sysdev/axonram.c
+--- a/arch/powerpc/sysdev/axonram.c~fs-move-code-out-of-bufferc
++++ a/arch/powerpc/sysdev/axonram.c
+@@ -25,7 +25,6 @@
  
-+config OLPC_OPENFIRMWARE
-+	bool "Support for OLPC's Open Firmware"
-+	depends on !X86_64 && !X86_PAE
-+	default y if OLPC
-+	help
-+	  This option adds support for the implementation of Open Firmware
-+	  that is used on the OLPC XO-1 Children's Machine.
-+	  If unsure, say N here.
-+
- endif # X86_32
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
+-#include <linux/buffer_head.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
+diff -puN block/genhd.c~fs-move-code-out-of-bufferc block/genhd.c
+--- a/block/genhd.c~fs-move-code-out-of-bufferc
++++ a/block/genhd.c
+@@ -15,7 +15,6 @@
+ #include <linux/slab.h>
+ #include <linux/kmod.h>
+ #include <linux/kobj_map.h>
+-#include <linux/buffer_head.h>
+ #include <linux/mutex.h>
+ #include <linux/idr.h>
  
- config K8_NB
-diff -puN /dev/null arch/x86/include/asm/olpc_ofw.h
---- /dev/null
-+++ a/arch/x86/include/asm/olpc_ofw.h
-@@ -0,0 +1,33 @@
-+#ifndef _ASM_X86_OLPC_OFW_H
-+#define _ASM_X86_OLPC_OFW_H
-+
-+/* hardcode addresses to make life easier dealing w/ VMALLOC_END and others */
-+#define OLPC_OFW_START 0xff800000UL
-+#define OLPC_OFW_SIZE (PGDIR_SIZE)
-+#define OLPC_OFW_END (OLPC_OFW_START + OLPC_OFW_SIZE)
-+
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+
-+#ifndef __ASSEMBLER__
-+
-+/* address of OFW callback interface; will be NULL if OFW isn't found */
-+extern int (*olpc_ofw_cif)(int *);
-+
-+/* page dir entry containing OFW's current memory */
-+extern pgdval_t olpc_ofw_pgd;
-+
-+/* run an OFW command by calling into the firmware */
-+extern int olpc_ofw(const char *name, int nr_args, int nr_res, ...);
-+
-+/* determine/ensure OFW lives in the proper place in (virtual) memory */
-+void olpc_ofw_detect_range(void);
-+
-+#endif
-+
-+#else
-+
-+static inline void olpc_ofw_detect_range(void) { }
-+
-+#endif
-+
-+#endif
-diff -puN arch/x86/include/asm/pgtable_32_types.h~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/include/asm/pgtable_32_types.h
---- a/arch/x86/include/asm/pgtable_32_types.h~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/include/asm/pgtable_32_types.h
-@@ -37,13 +37,21 @@ extern bool __vmalloc_start_set; /* set 
- #define LAST_PKMAP 1024
- #endif
+diff -puN block/ioctl.c~fs-move-code-out-of-bufferc block/ioctl.c
+--- a/block/ioctl.c~fs-move-code-out-of-bufferc
++++ a/block/ioctl.c
+@@ -4,7 +4,7 @@
+ #include <linux/blkpg.h>
+ #include <linux/hdreg.h>
+ #include <linux/backing-dev.h>
+-#include <linux/buffer_head.h>
++#include <linux/fs.h>
+ #include <linux/smp_lock.h>
+ #include <linux/blktrace_api.h>
+ #include <asm/uaccess.h>
+diff -puN drivers/block/amiflop.c~fs-move-code-out-of-bufferc drivers/block/amiflop.c
+--- a/drivers/block/amiflop.c~fs-move-code-out-of-bufferc
++++ a/drivers/block/amiflop.c
+@@ -62,7 +62,7 @@
+ #include <linux/init.h>
+ #include <linux/amifdreg.h>
+ #include <linux/amifd.h>
+-#include <linux/buffer_head.h>
++#include <linux/fs.h>
+ #include <linux/blkdev.h>
+ #include <linux/elevator.h>
+ #include <linux/interrupt.h>
+diff -puN drivers/block/brd.c~fs-move-code-out-of-bufferc drivers/block/brd.c
+--- a/drivers/block/brd.c~fs-move-code-out-of-bufferc
++++ a/drivers/block/brd.c
+@@ -16,7 +16,7 @@
+ #include <linux/bio.h>
+ #include <linux/highmem.h>
+ #include <linux/radix-tree.h>
+-#include <linux/buffer_head.h> /* invalidate_bh_lrus() */
++#include <linux/fs.h>
+ #include <linux/slab.h>
  
--#define PKMAP_BASE ((FIXADDR_BOOT_START - PAGE_SIZE * (LAST_PKMAP + 1))	\
--		    & PMD_MASK)
-+#include <asm/olpc_ofw.h>
-+
-+/* make sure we have enough space for PKMAP region *and* OFW after VMALLOC*/
-+#define PKMAP_BASE ((FIXADDR_BOOT_START - PAGE_SIZE * (LAST_PKMAP + 1) \
-+		- OLPC_OFW_SIZE) & PMD_MASK)
+ #include <asm/uaccess.h>
+@@ -405,14 +405,13 @@ static int brd_ioctl(struct block_device
+ 	error = -EBUSY;
+ 	if (bdev->bd_openers <= 1) {
+ 		/*
+-		 * Invalidate the cache first, so it isn't written
+-		 * back to the device.
++		 * Kill the cache first, so it isn't written back to the
++		 * device.
+ 		 *
+ 		 * Another thread might instantiate more buffercache here,
+ 		 * but there is not much we can do to close that race.
+ 		 */
+-		invalidate_bh_lrus();
+-		truncate_inode_pages(bdev->bd_inode->i_mapping, 0);
++		kill_bdev(bdev);
+ 		brd_free_pages(brd);
+ 		error = 0;
+ 	}
+diff -puN drivers/block/floppy.c~fs-move-code-out-of-bufferc drivers/block/floppy.c
+--- a/drivers/block/floppy.c~fs-move-code-out-of-bufferc
++++ a/drivers/block/floppy.c
+@@ -188,7 +188,6 @@ static int print_unex = 1;
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/mod_devicetable.h>
+-#include <linux/buffer_head.h>	/* for invalidate_buffers() */
+ #include <linux/mutex.h>
+ #include <linux/io.h>
+ #include <linux/uaccess.h>
+diff -puN drivers/block/loop.c~fs-move-code-out-of-bufferc drivers/block/loop.c
+--- a/drivers/block/loop.c~fs-move-code-out-of-bufferc
++++ a/drivers/block/loop.c
+@@ -68,7 +68,6 @@
+ #include <linux/suspend.h>
+ #include <linux/freezer.h>
+ #include <linux/writeback.h>
+-#include <linux/buffer_head.h>		/* for invalidate_bdev() */
+ #include <linux/completion.h>
+ #include <linux/highmem.h>
+ #include <linux/kthread.h>
+diff -puN drivers/cdrom/cdrom.c~fs-move-code-out-of-bufferc drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~fs-move-code-out-of-bufferc
++++ a/drivers/cdrom/cdrom.c
+@@ -265,7 +265,6 @@
  
- #ifdef CONFIG_HIGHMEM
- # define VMALLOC_END	(PKMAP_BASE - 2 * PAGE_SIZE)
- #else
--# define VMALLOC_END	(FIXADDR_START - 2 * PAGE_SIZE)
-+# ifdef CONFIG_OLPC_OPENFIRMWARE
-+   /* dumppages looks a lot saner if we leave a PGDIR_SIZEd gap */
-+#  define VMALLOC_END	(OLPC_OFW_START - PGDIR_SIZE)
-+# else
-+#  define VMALLOC_END	(FIXADDR_START - 2 * PAGE_SIZE)
-+# endif
- #endif
+ #include <linux/module.h>
+ #include <linux/fs.h>
+-#include <linux/buffer_head.h>
+ #include <linux/major.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+diff -puN drivers/char/sysrq.c~fs-move-code-out-of-bufferc drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~fs-move-code-out-of-bufferc
++++ a/drivers/char/sysrq.c
+@@ -33,7 +33,6 @@
+ #include <linux/module.h>
+ #include <linux/suspend.h>
+ #include <linux/writeback.h>
+-#include <linux/buffer_head.h>		/* for fsync_bdev() */
+ #include <linux/swap.h>
+ #include <linux/spinlock.h>
+ #include <linux/vt_kern.h>
+diff -puN drivers/md/dm.c~fs-move-code-out-of-bufferc drivers/md/dm.c
+--- a/drivers/md/dm.c~fs-move-code-out-of-bufferc
++++ a/drivers/md/dm.c
+@@ -14,7 +14,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/blkpg.h>
+ #include <linux/bio.h>
+-#include <linux/buffer_head.h>
+ #include <linux/mempool.h>
+ #include <linux/slab.h>
+ #include <linux/idr.h>
+diff -puN drivers/md/md.c~fs-move-code-out-of-bufferc drivers/md/md.c
+--- a/drivers/md/md.c~fs-move-code-out-of-bufferc
++++ a/drivers/md/md.c
+@@ -36,7 +36,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/sysctl.h>
+ #include <linux/seq_file.h>
+-#include <linux/buffer_head.h> /* for invalidate_bdev */
++#include <linux/fs.h>
+ #include <linux/poll.h>
+ #include <linux/ctype.h>
+ #include <linux/string.h>
+diff -puN drivers/mtd/devices/block2mtd.c~fs-move-code-out-of-bufferc drivers/mtd/devices/block2mtd.c
+--- a/drivers/mtd/devices/block2mtd.c~fs-move-code-out-of-bufferc
++++ a/drivers/mtd/devices/block2mtd.c
+@@ -14,7 +14,6 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/mtd/mtd.h>
+-#include <linux/buffer_head.h>
+ #include <linux/mutex.h>
+ #include <linux/mount.h>
+ #include <linux/slab.h>
+diff -puN drivers/s390/block/dasd.c~fs-move-code-out-of-bufferc drivers/s390/block/dasd.c
+--- a/drivers/s390/block/dasd.c~fs-move-code-out-of-bufferc
++++ a/drivers/s390/block/dasd.c
+@@ -17,7 +17,6 @@
+ #include <linux/ctype.h>
+ #include <linux/major.h>
+ #include <linux/slab.h>
+-#include <linux/buffer_head.h>
+ #include <linux/hdreg.h>
+ #include <linux/async.h>
+ #include <linux/mutex.h>
+diff -puN drivers/s390/char/tape_block.c~fs-move-code-out-of-bufferc drivers/s390/char/tape_block.c
+--- a/drivers/s390/char/tape_block.c~fs-move-code-out-of-bufferc
++++ a/drivers/s390/char/tape_block.c
+@@ -17,7 +17,6 @@
+ #include <linux/module.h>
+ #include <linux/blkdev.h>
+ #include <linux/interrupt.h>
+-#include <linux/buffer_head.h>
+ #include <linux/kernel.h>
  
- #define MODULES_VADDR	VMALLOC_START
-diff -puN arch/x86/include/asm/setup.h~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/include/asm/setup.h
---- a/arch/x86/include/asm/setup.h~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/include/asm/setup.h
-@@ -21,6 +21,7 @@
- #define OLD_CL_MAGIC		0xA33F
- #define OLD_CL_ADDRESS		0x020	/* Relative to real mode data */
- #define NEW_CL_POINTER		0x228	/* Relative to real mode data */
-+#define OLPC_OFW_INFO_OFFSET	0xb0	/* Relative to real mode data */
+ #include <asm/debug.h>
+diff -puN drivers/scsi/scsicam.c~fs-move-code-out-of-bufferc drivers/scsi/scsicam.c
+--- a/drivers/scsi/scsicam.c~fs-move-code-out-of-bufferc
++++ a/drivers/scsi/scsicam.c
+@@ -16,7 +16,6 @@
+ #include <linux/genhd.h>
+ #include <linux/kernel.h>
+ #include <linux/blkdev.h>
+-#include <linux/buffer_head.h>
+ #include <asm/unaligned.h>
  
- #ifndef __ASSEMBLY__
- #include <asm/bootparam.h>
-diff -puN arch/x86/kernel/Makefile~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/kernel/Makefile
-@@ -104,6 +104,7 @@ obj-$(CONFIG_SCx200)		+= scx200.o
- scx200-y			+= scx200_32.o
- 
- obj-$(CONFIG_OLPC)		+= olpc.o
-+obj-$(CONFIG_OLPC_OPENFIRMWARE)	+= olpc_ofw.o
- obj-$(CONFIG_X86_MRST)		+= mrst.o
- 
- microcode-y				:= microcode_core.o
-diff -puN arch/x86/kernel/head_32.S~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/kernel/head_32.S
---- a/arch/x86/kernel/head_32.S~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/kernel/head_32.S
-@@ -131,6 +131,29 @@ ENTRY(startup_32)
- 	movsl
- 1:
- 
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+	movl $0x0, pa(olpc_ofw_cif)
-+
-+	/* Did OpenFirmware boot us? */
-+	movl $pa(boot_params) + OLPC_OFW_INFO_OFFSET, %ebp
-+	cmpl $0x2057464F, (%ebp)	/* Magic number "OFW " */
-+	jne 3f
-+
-+	/* Save the callback address for calling into OFW from linux */
-+	mov 0x8(%ebp), %eax
-+	mov %eax, pa(olpc_ofw_cif)
-+
-+	/* %cr3 holds OFW's pgdir table.  For calling info OFW, we need to
-+	 * the save next-to-last pgdir table entry, which points to a page
-+	 * table that lives within OFW's memory.  The pgdir table contains
-+	 * 1024 entries (each a 4 byte pde), so we want
-+	 * ((int *) %cr3)[1022]. */
-+	movl %cr3, %eax
-+	movl 1022*4(%eax), %ebx
-+	movl %ebx, pa(olpc_ofw_pgd)
-+3:
-+#endif
-+
- #ifdef CONFIG_PARAVIRT
- 	/* This is can only trip for a broken bootloader... */
- 	cmpw $0x207, pa(boot_params + BP_version)
-@@ -658,6 +681,14 @@ ENTRY(stack_start)
- 	.long init_thread_union+THREAD_SIZE
- 	.long __BOOT_DS
- 
-+.globl olpc_ofw_cif
-+.globl olpc_ofw_pgd
-+
-+olpc_ofw_cif:
-+	.long olpc_ofw_cif
-+olpc_ofw_pgd:
-+	.long olpc_ofw_pgd
-+
- ready:	.byte 0
- 
- early_recursion_flag:
-diff -puN arch/x86/kernel/olpc.c~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/kernel/olpc.c
---- a/arch/x86/kernel/olpc.c~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/kernel/olpc.c
-@@ -22,8 +22,8 @@
- #include <asm/setup.h>
- #include <asm/olpc.h>
- 
--#ifdef CONFIG_OPEN_FIRMWARE
--#include <asm/ofw.h>
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+#include <asm/olpc_ofw.h>
- #endif
- 
- struct olpc_platform_t olpc_platform_info;
-@@ -188,13 +188,13 @@ err:
+ #include <scsi/scsicam.h>
+diff -puN drivers/staging/ramzswap/ramzswap_drv.c~fs-move-code-out-of-bufferc drivers/staging/ramzswap/ramzswap_drv.c
+--- a/drivers/staging/ramzswap/ramzswap_drv.c~fs-move-code-out-of-bufferc
++++ a/drivers/staging/ramzswap/ramzswap_drv.c
+@@ -19,7 +19,6 @@
+ #include <linux/kernel.h>
+ #include <linux/bitops.h>
+ #include <linux/blkdev.h>
+-#include <linux/buffer_head.h>
+ #include <linux/device.h>
+ #include <linux/genhd.h>
+ #include <linux/highmem.h>
+diff -puN fs/block_dev.c~fs-move-code-out-of-bufferc fs/block_dev.c
+--- a/fs/block_dev.c~fs-move-code-out-of-bufferc
++++ a/fs/block_dev.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/blkpg.h>
+ #include <linux/buffer_head.h>
++#include <linux/swap.h>
+ #include <linux/pagevec.h>
+ #include <linux/writeback.h>
+ #include <linux/mpage.h>
+@@ -62,13 +63,31 @@ static sector_t max_block(struct block_d
  }
- EXPORT_SYMBOL_GPL(olpc_ec_cmd);
  
--#ifdef CONFIG_OPEN_FIRMWARE
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
- static void __init platform_detect(void)
+ /* Kill _all_ buffers and pagecache , dirty or not.. */
+-static void kill_bdev(struct block_device *bdev)
++void kill_bdev(struct block_device *bdev)
  {
- 	size_t propsize;
- 	__be32 rev;
- 
--	if (ofw("getprop", 4, 1, NULL, "board-revision-int", &rev, 4,
-+	if (olpc_ofw("getprop", 4, 1, NULL, "board-revision-int", &rev, 4,
- 			&propsize) || propsize != 4) {
- 		printk(KERN_ERR "ofw: getprop call failed!\n");
- 		rev = cpu_to_be32(0);
-diff -puN /dev/null arch/x86/kernel/olpc_ofw.c
---- /dev/null
-+++ a/arch/x86/kernel/olpc_ofw.c
-@@ -0,0 +1,88 @@
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <asm/page.h>
-+#include <asm/pgtable.h>
-+#include <asm/olpc_ofw.h>
+-	if (bdev->bd_inode->i_mapping->nrpages == 0)
++	struct address_space *mapping = bdev->bd_inode->i_mapping;
 +
-+static DEFINE_SPINLOCK(ofw_lock);
++	if (mapping->nrpages == 0)
+ 		return;
 +
-+#define MAXARGS 10
+ 	invalidate_bh_lrus();
+-	truncate_inode_pages(bdev->bd_inode->i_mapping, 0);
++	truncate_inode_pages(mapping, 0);
+ }	
++EXPORT_SYMBOL(kill_bdev);
 +
-+/* handle actual call into OFW */
-+static int __olpc_ofw(int *ofw_args)
++/* Invalidate clean unused buffers and pagecache. */
++void invalidate_bdev(struct block_device *bdev)
 +{
-+	pgd_t *base, *pde;
-+	pgdval_t oldval;
-+	int ret;
++	struct address_space *mapping = bdev->bd_inode->i_mapping;
 +
-+	/* temporarily clobber %cr3[1022] w/ olpc_ofw_pgd */
-+	base = __va(read_cr3());
-+	pde = &base[1022];
-+	oldval = pgd_val(*pde);
-+	set_pgd(pde, __pgd(olpc_ofw_pgd));
-+
-+	/* call into ofw */
-+	ret = olpc_ofw_cif(ofw_args);
-+
-+	/* restore %cr3[1022] */
-+	set_pgd(pde, __pgd(oldval));
-+
-+	return ret;
-+}
-+
-+
-+int olpc_ofw(const char *name, int nr_args, int nr_res, ...)
-+{
-+	int args[MAXARGS + 3];
-+	unsigned long flags;
-+	va_list ap;
-+	int ret, i, *ofw_ret;
-+
-+	if (!olpc_ofw_cif)
-+		return -1;
-+	BUG_ON(nr_args + nr_res > MAXARGS);
-+
-+	args[0] = (int) name;
-+	args[1] = nr_args;
-+	args[2] = nr_res;
-+
-+	va_start(ap, nr_res);
-+	i = 3;
-+	while (nr_args) {
-+		args[i++] = va_arg(ap, int);
-+		nr_args--;
-+	}
-+
-+	spin_lock_irqsave(&ofw_lock, flags);
-+	ret = __olpc_ofw(args);
-+	spin_unlock_irqrestore(&ofw_lock, flags);
-+
-+	if (ret == 0) {
-+		while (nr_res) {
-+			ofw_ret = va_arg(ap, int *);
-+			*ofw_ret = args[i++];
-+			nr_res--;
-+		}
-+	}
-+
-+	va_end(ap);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(olpc_ofw);
-+
-+void __init olpc_ofw_detect_range(void)
-+{
-+	if (!olpc_ofw_cif)
++	if (mapping->nrpages == 0)
 +		return;
 +
-+	/* verify that the cif lies within a memory range that we expect */
-+	if ((unsigned long) olpc_ofw_cif < OLPC_OFW_START ||
-+				(unsigned long) olpc_ofw_cif > OLPC_OFW_END) {
-+		printk(KERN_WARNING "OFW detected, but cif has invalid address 0x%lx - disabling!\n",
-+				(unsigned long) olpc_ofw_cif);
-+		olpc_ofw_cif = NULL;
-+	} else
-+		printk(KERN_WARNING "OFW detected in memory, cif @ 0x%lx\n",
-+				(unsigned long) olpc_ofw_cif);
++	invalidate_bh_lrus();
++	lru_add_drain_all();	/* make sure all lru add caches are flushed */
++	invalidate_mapping_pages(mapping, 0, -1);
 +}
-diff -puN arch/x86/kernel/setup.c~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/kernel/setup.c
-@@ -102,6 +102,7 @@
++EXPORT_SYMBOL(invalidate_bdev);
  
- #include <asm/paravirt.h>
- #include <asm/hypervisor.h>
-+#include <asm/olpc_ofw.h>
+ int set_blocksize(struct block_device *bdev, int size)
+ {
+@@ -1607,6 +1626,17 @@ ssize_t blkdev_aio_write(struct kiocb *i
+ }
+ EXPORT_SYMBOL_GPL(blkdev_aio_write);
  
- #include <asm/percpu.h>
- #include <asm/topology.h>
-@@ -859,6 +860,8 @@ void __init setup_arch(char **cmdline_p)
- 
- 	dmi_check_system(bad_bios_dmi_table);
- 
-+	olpc_ofw_detect_range();
++void block_sync_page(struct page *page)
++{
++	struct address_space *mapping;
 +
- 	/*
- 	 * VMware detection requires dmi to be available, so this
- 	 * needs to be done after dmi_scan_machine, for the BP.
-diff -puN arch/x86/mm/dump_pagetables.c~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/mm/dump_pagetables.c
---- a/arch/x86/mm/dump_pagetables.c~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/mm/dump_pagetables.c
-@@ -18,6 +18,7 @@
- #include <linux/seq_file.h>
++	smp_mb();
++	mapping = page_mapping(page);
++	if (mapping)
++		blk_run_backing_dev(mapping->backing_dev_info, page);
++}
++EXPORT_SYMBOL(block_sync_page);
++
+ /*
+  * Try to release a page associated with block device when the system
+  * is under memory pressure.
+diff -puN fs/buffer.c~fs-move-code-out-of-bufferc fs/buffer.c
+--- a/fs/buffer.c~fs-move-code-out-of-bufferc
++++ a/fs/buffer.c
+@@ -235,51 +235,6 @@ out:
+ 	return ret;
+ }
  
- #include <asm/pgtable.h>
-+#include <asm/olpc_ofw.h>
+-/* If invalidate_buffers() will trash dirty buffers, it means some kind
+-   of fs corruption is going on. Trashing dirty data always imply losing
+-   information that was supposed to be just stored on the physical layer
+-   by the user.
+-
+-   Thus invalidate_buffers in general usage is not allwowed to trash
+-   dirty buffers. For example ioctl(FLSBLKBUF) expects dirty data to
+-   be preserved.  These buffers are simply skipped.
+-  
+-   We also skip buffers which are still in use.  For example this can
+-   happen if a userspace program is reading the block device.
+-
+-   NOTE: In the case where the user removed a removable-media-disk even if
+-   there's still dirty data not synced on disk (due a bug in the device driver
+-   or due an error of the user), by not destroying the dirty buffers we could
+-   generate corruption also on the next media inserted, thus a parameter is
+-   necessary to handle this case in the most safe way possible (trying
+-   to not corrupt also the new disk inserted with the data belonging to
+-   the old now corrupted disk). Also for the ramdisk the natural thing
+-   to do in order to release the ramdisk memory is to destroy dirty buffers.
+-
+-   These are two special cases. Normal usage imply the device driver
+-   to issue a sync on the device (without waiting I/O completion) and
+-   then an invalidate_buffers call that doesn't trash dirty buffers.
+-
+-   For handling cache coherency with the blkdev pagecache the 'update' case
+-   is been introduced. It is needed to re-read from disk any pinned
+-   buffer. NOTE: re-reading from disk is destructive so we can do it only
+-   when we assume nobody is changing the buffercache under our I/O and when
+-   we think the disk contains more recent information than the buffercache.
+-   The update == 1 pass marks the buffers we need to update, the update == 2
+-   pass does the actual I/O. */
+-void invalidate_bdev(struct block_device *bdev)
+-{
+-	struct address_space *mapping = bdev->bd_inode->i_mapping;
+-
+-	if (mapping->nrpages == 0)
+-		return;
+-
+-	invalidate_bh_lrus();
+-	lru_add_drain_all();	/* make sure all lru add caches are flushed */
+-	invalidate_mapping_pages(mapping, 0, -1);
+-}
+-EXPORT_SYMBOL(invalidate_bdev);
+-
+ /*
+  * Kick the writeback threads then try to free up some ZONE_NORMAL memory.
+  */
+@@ -3257,17 +3212,6 @@ out:
+ }
+ EXPORT_SYMBOL(try_to_free_buffers);
+ 
+-void block_sync_page(struct page *page)
+-{
+-	struct address_space *mapping;
+-
+-	smp_mb();
+-	mapping = page_mapping(page);
+-	if (mapping)
+-		blk_run_backing_dev(mapping->backing_dev_info, page);
+-}
+-EXPORT_SYMBOL(block_sync_page);
+-
+ /*
+  * There are no bdflush tunables left.  But distributions are
+  * still running obsolete flush daemons, so we terminate them here.
+diff -puN fs/cachefiles/interface.c~fs-move-code-out-of-bufferc fs/cachefiles/interface.c
+--- a/fs/cachefiles/interface.c~fs-move-code-out-of-bufferc
++++ a/fs/cachefiles/interface.c
+@@ -11,7 +11,6 @@
+ 
+ #include <linux/slab.h>
+ #include <linux/mount.h>
+-#include <linux/buffer_head.h>
+ #include "internal.h"
+ 
+ #define list_to_page(head) (list_entry((head)->prev, struct page, lru))
+diff -puN fs/cramfs/inode.c~fs-move-code-out-of-bufferc fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~fs-move-code-out-of-bufferc
++++ a/fs/cramfs/inode.c
+@@ -20,7 +20,6 @@
+ #include <linux/cramfs_fs.h>
+ #include <linux/slab.h>
+ #include <linux/cramfs_fs_sb.h>
+-#include <linux/buffer_head.h>
+ #include <linux/vfs.h>
+ #include <linux/mutex.h>
+ 
+diff -puN fs/fs-writeback.c~fs-move-code-out-of-bufferc fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-move-code-out-of-bufferc
++++ a/fs/fs-writeback.c
+@@ -25,7 +25,6 @@
+ #include <linux/writeback.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
+-#include <linux/buffer_head.h>
+ #include "internal.h"
+ 
+ #define inode_to_bdi(inode)	((inode)->i_mapping->backing_dev_info)
+diff -puN fs/libfs.c~fs-move-code-out-of-bufferc fs/libfs.c
+--- a/fs/libfs.c~fs-move-code-out-of-bufferc
++++ a/fs/libfs.c
+@@ -12,7 +12,7 @@
+ #include <linux/mutex.h>
+ #include <linux/exportfs.h>
+ #include <linux/writeback.h>
+-#include <linux/buffer_head.h>
++#include <linux/buffer_head.h> /* sync_mapping_buffers */
+ 
+ #include <asm/uaccess.h>
+ 
+diff -puN fs/quota/dquot.c~fs-move-code-out-of-bufferc fs/quota/dquot.c
+--- a/fs/quota/dquot.c~fs-move-code-out-of-bufferc
++++ a/fs/quota/dquot.c
+@@ -73,7 +73,6 @@
+ #include <linux/security.h>
+ #include <linux/kmod.h>
+ #include <linux/namei.h>
+-#include <linux/buffer_head.h>
+ #include <linux/capability.h>
+ #include <linux/quotaops.h>
+ #include <linux/writeback.h> /* for inode_lock, oddly enough.. */
+diff -puN fs/quota/quota.c~fs-move-code-out-of-bufferc fs/quota/quota.c
+--- a/fs/quota/quota.c~fs-move-code-out-of-bufferc
++++ a/fs/quota/quota.c
+@@ -13,7 +13,6 @@
+ #include <linux/kernel.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+-#include <linux/buffer_head.h>
+ #include <linux/capability.h>
+ #include <linux/quotaops.h>
+ #include <linux/types.h>
+diff -puN fs/splice.c~fs-move-code-out-of-bufferc fs/splice.c
+--- a/fs/splice.c~fs-move-code-out-of-bufferc
++++ a/fs/splice.c
+@@ -25,7 +25,6 @@
+ #include <linux/mm_inline.h>
+ #include <linux/swap.h>
+ #include <linux/writeback.h>
+-#include <linux/buffer_head.h>
+ #include <linux/module.h>
+ #include <linux/syscalls.h>
+ #include <linux/uio.h>
+diff -puN fs/sync.c~fs-move-code-out-of-bufferc fs/sync.c
+--- a/fs/sync.c~fs-move-code-out-of-bufferc
++++ a/fs/sync.c
+@@ -13,7 +13,6 @@
+ #include <linux/linkage.h>
+ #include <linux/pagemap.h>
+ #include <linux/quotaops.h>
+-#include <linux/buffer_head.h>
+ #include <linux/backing-dev.h>
+ #include "internal.h"
+ 
+diff -puN include/linux/buffer_head.h~fs-move-code-out-of-bufferc include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~fs-move-code-out-of-bufferc
++++ a/include/linux/buffer_head.h
+@@ -227,7 +227,6 @@ int generic_cont_expand_simple(struct in
+ int block_commit_write(struct page *page, unsigned from, unsigned to);
+ int block_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 				get_block_t get_block);
+-void block_sync_page(struct page *);
+ sector_t generic_block_bmap(struct address_space *, sector_t, get_block_t *);
+ int block_truncate_page(struct address_space *, loff_t, get_block_t *);
+ int file_fsync(struct file *, int);
+diff -puN include/linux/fs.h~fs-move-code-out-of-bufferc include/linux/fs.h
+--- a/include/linux/fs.h~fs-move-code-out-of-bufferc
++++ a/include/linux/fs.h
+@@ -1947,6 +1947,7 @@ extern void bd_set_size(struct block_dev
+ extern void bd_forget(struct inode *inode);
+ extern void bdput(struct block_device *);
+ extern struct block_device *open_by_devnum(dev_t, fmode_t);
++extern void kill_bdev(struct block_device *);
+ extern void invalidate_bdev(struct block_device *);
+ extern int sync_blockdev(struct block_device *bdev);
+ extern struct super_block *freeze_bdev(struct block_device *);
+@@ -1956,6 +1957,7 @@ extern int fsync_bdev(struct block_devic
+ #else
+ static inline void bd_forget(struct inode *inode) {}
+ static inline int sync_blockdev(struct block_device *bdev) { return 0; }
++static inline void kill_bdev(struct block_device *bdev) {}
+ static inline void invalidate_bdev(struct block_device *bdev) {}
+ 
+ static inline struct super_block *freeze_bdev(struct block_device *sb)
+@@ -2213,6 +2215,7 @@ extern int generic_segment_checks(const 
+ extern ssize_t blkdev_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 				unsigned long nr_segs, loff_t pos);
+ extern int blkdev_fsync(struct file *filp, int datasync);
++extern void block_sync_page(struct page *page);
+ 
+ /* fs/splice.c */
+ extern ssize_t generic_file_splice_read(struct file *, loff_t *,
+diff -puN kernel/power/swap.c~fs-move-code-out-of-bufferc kernel/power/swap.c
+--- a/kernel/power/swap.c~fs-move-code-out-of-bufferc
++++ a/kernel/power/swap.c
+@@ -17,7 +17,6 @@
+ #include <linux/bitops.h>
+ #include <linux/genhd.h>
+ #include <linux/device.h>
+-#include <linux/buffer_head.h>
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
+ #include <linux/swap.h>
+diff -puN mm/page-writeback.c~fs-move-code-out-of-bufferc mm/page-writeback.c
+--- a/mm/page-writeback.c~fs-move-code-out-of-bufferc
++++ a/mm/page-writeback.c
+@@ -32,7 +32,7 @@
+ #include <linux/sysctl.h>
+ #include <linux/cpu.h>
+ #include <linux/syscalls.h>
+-#include <linux/buffer_head.h>
++#include <linux/buffer_head.h> /* __set_page_dirty_buffers */
+ #include <linux/pagevec.h>
  
  /*
-  * The dumper groups pagetable entries of the same type into one, and for
-@@ -55,6 +56,9 @@ enum address_markers_idx {
- # ifdef CONFIG_HIGHMEM
- 	PKMAP_BASE_NR,
- # endif
-+# ifdef CONFIG_OLPC_OPENFIRMWARE
-+	OLPC_OFW_START_NR,
-+# endif
- 	FIXADDR_START_NR,
- #endif
- };
-@@ -77,6 +81,9 @@ static struct addr_marker address_marker
- # ifdef CONFIG_HIGHMEM
- 	{ 0/*PKMAP_BASE*/,      "Persisent kmap() Area" },
- # endif
-+# ifdef CONFIG_OLPC_OPENFIRMWARE
-+	{ OLPC_OFW_START,	"OpenFirmware Mapping" },
-+# endif
- 	{ 0/*FIXADDR_START*/,   "Fixmap Area" },
- #endif
- 	{ -1, NULL }		/* End of list */
-diff -puN arch/x86/mm/init_32.c~x86-olpc-add-support-for-calling-into-openfirmware arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~x86-olpc-add-support-for-calling-into-openfirmware
-+++ a/arch/x86/mm/init_32.c
-@@ -49,6 +49,7 @@
- #include <asm/paravirt.h>
- #include <asm/setup.h>
- #include <asm/cacheflush.h>
-+#include <asm/olpc_ofw.h>
- #include <asm/page_types.h>
- #include <asm/init.h>
- 
-@@ -903,6 +904,9 @@ void __init mem_init(void)
- 
- 	printk(KERN_INFO "virtual kernel memory layout:\n"
- 		"    fixmap  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+		"    ofw     : 0x%08lx - 0x%08lx   (%4ld MB)\n"
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		"    pkmap   : 0x%08lx - 0x%08lx   (%4ld kB)\n"
- #endif
-@@ -914,6 +918,12 @@ void __init mem_init(void)
- 		FIXADDR_START, FIXADDR_TOP,
- 		(FIXADDR_TOP - FIXADDR_START) >> 10,
- 
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+		olpc_ofw_cif ? OLPC_OFW_START : 0,
-+		olpc_ofw_cif ? OLPC_OFW_END : 0,
-+		olpc_ofw_cif ? (OLPC_OFW_END - OLPC_OFW_START) >> 20 : 0,
-+#endif
-+
- #ifdef CONFIG_HIGHMEM
- 		PKMAP_BASE, PKMAP_BASE+LAST_PKMAP*PAGE_SIZE,
- 		(LAST_PKMAP*PAGE_SIZE) >> 10,
-@@ -941,7 +951,14 @@ void __init mem_init(void)
- 	 */
- #define __FIXADDR_TOP (-PAGE_SIZE)
- #ifdef CONFIG_HIGHMEM
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+	BUILD_BUG_ON(PKMAP_BASE + LAST_PKMAP*PAGE_SIZE	> OLPC_OFW_START);
-+#else
- 	BUILD_BUG_ON(PKMAP_BASE + LAST_PKMAP*PAGE_SIZE	> FIXADDR_START);
-+#endif
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+	BUILD_BUG_ON(OLPC_OFW_END			>= FIXADDR_START);
-+#endif
- 	BUILD_BUG_ON(VMALLOC_END			> PKMAP_BASE);
- #endif
- #define high_memory (-128UL << 20)
+diff -puN mm/swap_state.c~fs-move-code-out-of-bufferc mm/swap_state.c
+--- a/mm/swap_state.c~fs-move-code-out-of-bufferc
++++ a/mm/swap_state.c
+@@ -14,7 +14,6 @@
+ #include <linux/swapops.h>
+ #include <linux/init.h>
+ #include <linux/pagemap.h>
+-#include <linux/buffer_head.h>
+ #include <linux/backing-dev.h>
+ #include <linux/pagevec.h>
+ #include <linux/migrate.h>
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-x86-mm-create-symbolic-index-into-address_markers-array.patch
-x86-olpc-add-support-for-calling-into-openfirmware.patch
-gxfb-fix-incorrect-__init-annotation.patch
-lxfb-fix-incorrect-__init-annotation.patch
+origin.patch
+frv-invoke-oom-killer-from-page-fault.patch
+m32r-invoke-oom-killer-from-page-fault.patch
+mn10300-invoke-oom-killer-from-page-fault.patch
+xtensa-invoke-oom-killer-from-page-fault.patch
+fb_defio-redo-fix-for-non-dirty-ptes.patch
+linux-next.patch
+block-bd_start_claiming-fix-module-refcount.patch
+block-bd_start_claiming-cleanup.patch
+avr32-invoke-oom-killer-from-page-fault.patch
+fs-move-code-out-of-bufferc.patch
+mm-vmap-area-cache.patch
+mm-vmap-area-cache-fix.patch
+reiser4.patch
 
