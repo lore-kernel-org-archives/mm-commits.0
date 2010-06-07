@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-range-remove-unused-definition-of-array_size.patch added to -mm tree
-Date: Mon, 07 Jun 2010 15:49:26 -0700
-Message-ID: <201006072249.o57MnQDd032543@imap1.linux-foundation.org>
+Subject: + char-remove-unused-variable.patch added to -mm tree
+Date: Mon, 07 Jun 2010 16:06:13 -0700
+Message-ID: <201006072306.o57N6DKC000784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752472Ab0FGWtl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jun 2010 18:49:41 -0400
+	by vger.kernel.org with ESMTP id S1751967Ab0FGXG0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jun 2010 19:06:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, hpa@zytor.com, yinghai@kernel.org
+Cc: richard@nod.at
 
 
 The patch titled
-     kernel/range: remove unused definition of ARRAY_SIZE()
+     drivers/char/isicom.c: remove unused variable
 has been added to the -mm tree.  Its filename is
-     kernel-range-remove-unused-definition-of-array_size.patch
+     char-remove-unused-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/range: remove unused definition of ARRAY_SIZE()
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: drivers/char/isicom.c: remove unused variable
+From: Richard Weinberger <richard@nod.at>
 
-Remove duplicate definition of ARRAY_SIZE(), which was never used anyway.
+card is never used within isicom_open().
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/range.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/char/isicom.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/range.c~kernel-range-remove-unused-definition-of-array_size kernel/range.c
---- a/kernel/range.c~kernel-range-remove-unused-definition-of-array_size
-+++ a/kernel/range.c
-@@ -7,10 +7,6 @@
+diff -puN drivers/char/isicom.c~char-remove-unused-variable drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-remove-unused-variable
++++ a/drivers/char/isicom.c
+@@ -872,7 +872,6 @@ static struct tty_port *isicom_find_port
+ static int isicom_open(struct tty_struct *tty, struct file *filp)
+ {
+ 	struct isi_port *port;
+-	struct isi_board *card;
+ 	struct tty_port *tport;
  
- #include <linux/range.h>
- 
--#ifndef ARRAY_SIZE
--#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
--#endif
+ 	tport = isicom_find_port(tty);
+_
+
+Patches currently in -mm which might be from richard@nod.at are
+
+char-remove-unused-variable.patch
+
