@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-select-task-from-tasklist-for-mempolicy-ooms.patch added to -mm tree
-Date: Tue, 08 Jun 2010 14:08:25 -0700
-Message-ID: <201006082108.o58L8PmA024912@imap1.linux-foundation.org>
+Subject: + oom-enable-oom-tasklist-dump-by-default.patch added to -mm tree
+Date: Tue, 08 Jun 2010 14:13:48 -0700
+Message-ID: <201006082113.o58LDmoo025156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754724Ab0FHVIf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 17:08:35 -0400
+	by vger.kernel.org with ESMTP id S1756303Ab0FHVOB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 17:14:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     oom: select task from tasklist for mempolicy ooms
+     oom: enable oom tasklist dump by default
 has been added to the -mm tree.  Its filename is
-     oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+     oom-enable-oom-tasklist-dump-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,267 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: select task from tasklist for mempolicy ooms
+Subject: oom: enable oom tasklist dump by default
 From: David Rientjes <rientjes@google.com>
 
-The oom killer presently kills current whenever there is no more memory
-free or reclaimable on its mempolicy's nodes.  There is no guarantee that
-current is a memory-hogging task or that killing it will free any
-substantial amount of memory, however.
-
-In such situations, it is better to scan the tasklist for nodes that are
-allowed to allocate on current's set of nodes and kill the task with the
-highest badness() score.  This ensures that the most memory-hogging task,
-or the one configured by the user with /proc/pid/oom_adj, is always
-selected in such scenarios.
+The oom killer tasklist dump, enabled with the oom_dump_tasks sysctl, is
+very helpful information in diagnosing why a user's task has been killed. 
+It emits useful information such as each eligible thread's memory usage
+that can determine why the system is oom, so it should be enabled by
+default.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   13 +++++
- mm/mempolicy.c            |   44 +++++++++++++++++++
- mm/oom_kill.c             |   80 ++++++++++++++++++++++--------------
- 3 files changed, 105 insertions(+), 32 deletions(-)
+ Documentation/sysctl/vm.txt |    2 +-
+ mm/oom_kill.c               |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mempolicy.h~oom-select-task-from-tasklist-for-mempolicy-ooms include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~oom-select-task-from-tasklist-for-mempolicy-ooms
-+++ a/include/linux/mempolicy.h
-@@ -210,6 +210,8 @@ extern struct zonelist *huge_zonelist(st
- 				unsigned long addr, gfp_t gfp_flags,
- 				struct mempolicy **mpol, nodemask_t **nodemask);
- extern bool init_nodemask_of_mempolicy(nodemask_t *mask);
-+extern bool mempolicy_nodemask_intersects(struct task_struct *tsk,
-+				const nodemask_t *mask);
- extern unsigned slab_node(struct mempolicy *policy);
+diff -puN Documentation/sysctl/vm.txt~oom-enable-oom-tasklist-dump-by-default Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~oom-enable-oom-tasklist-dump-by-default
++++ a/Documentation/sysctl/vm.txt
+@@ -511,7 +511,7 @@ information may not be desired.
+ If this is set to non-zero, this information is shown whenever the
+ OOM killer actually kills a memory-hogging task.
  
- extern enum zone_type policy_zone;
-@@ -338,7 +340,16 @@ static inline struct zonelist *huge_zone
- 	return node_zonelist(0, gfp_flags);
- }
+-The default value is 0.
++The default value is 1 (enabled).
  
--static inline bool init_nodemask_of_mempolicy(nodemask_t *m) { return false; }
-+static inline bool init_nodemask_of_mempolicy(nodemask_t *m)
-+{
-+	return false;
-+}
-+
-+static inline bool mempolicy_nodemask_intersects(struct task_struct *tsk,
-+			const nodemask_t *mask)
-+{
-+	return false;
-+}
+ ==============================================================
  
- static inline int do_migrate_pages(struct mm_struct *mm,
- 			const nodemask_t *from_nodes,
-diff -puN mm/mempolicy.c~oom-select-task-from-tasklist-for-mempolicy-ooms mm/mempolicy.c
---- a/mm/mempolicy.c~oom-select-task-from-tasklist-for-mempolicy-ooms
-+++ a/mm/mempolicy.c
-@@ -1712,6 +1712,50 @@ bool init_nodemask_of_mempolicy(nodemask
- }
- #endif
- 
-+/*
-+ * mempolicy_nodemask_intersects
-+ *
-+ * If tsk's mempolicy is "default" [NULL], return 'true' to indicate default
-+ * policy.  Otherwise, check for intersection between mask and the policy
-+ * nodemask for 'bind' or 'interleave' policy.  For 'perferred' or 'local'
-+ * policy, always return true since it may allocate elsewhere on fallback.
-+ *
-+ * Takes task_lock(tsk) to prevent freeing of its mempolicy.
-+ */
-+bool mempolicy_nodemask_intersects(struct task_struct *tsk,
-+					const nodemask_t *mask)
-+{
-+	struct mempolicy *mempolicy;
-+	bool ret = true;
-+
-+	if (!mask)
-+		return ret;
-+	task_lock(tsk);
-+	mempolicy = tsk->mempolicy;
-+	if (!mempolicy)
-+		goto out;
-+
-+	switch (mempolicy->mode) {
-+	case MPOL_PREFERRED:
-+		/*
-+		 * MPOL_PREFERRED and MPOL_F_LOCAL are only preferred nodes to
-+		 * allocate from, they may fallback to other nodes when oom.
-+		 * Thus, it's possible for tsk to have allocated memory from
-+		 * nodes in mask.
-+		 */
-+		break;
-+	case MPOL_BIND:
-+	case MPOL_INTERLEAVE:
-+		ret = nodes_intersects(mempolicy->v.nodes, *mask);
-+		break;
-+	default:
-+		BUG();
-+	}
-+out:
-+	task_unlock(tsk);
-+	return ret;
-+}
-+
- /* Allocate a page in interleaved policy.
-    Own path because it needs to do special accounting. */
- static struct page *alloc_page_interleave(gfp_t gfp, unsigned order,
-diff -puN mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms mm/oom_kill.c
---- a/mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms
+diff -puN mm/oom_kill.c~oom-enable-oom-tasklist-dump-by-default mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-enable-oom-tasklist-dump-by-default
 +++ a/mm/oom_kill.c
-@@ -27,6 +27,7 @@
- #include <linux/module.h>
- #include <linux/notifier.h>
- #include <linux/memcontrol.h>
-+#include <linux/mempolicy.h>
- #include <linux/security.h>
+@@ -32,7 +32,7 @@
  
  int sysctl_panic_on_oom;
-@@ -36,20 +37,36 @@ static DEFINE_SPINLOCK(zone_scan_lock);
+ int sysctl_oom_kill_allocating_task;
+-int sysctl_oom_dump_tasks;
++int sysctl_oom_dump_tasks = 1;
+ static DEFINE_SPINLOCK(zone_scan_lock);
  /* #define DEBUG */
  
- /*
-- * Is all threads of the target process nodes overlap ours?
-+ * Do all threads of the target process overlap our allowed nodes?
-+ * @tsk: task struct of which task to consider
-+ * @mask: nodemask passed to page allocator for mempolicy ooms
-  */
--static int has_intersects_mems_allowed(struct task_struct *tsk)
-+static bool has_intersects_mems_allowed(struct task_struct *tsk,
-+					const nodemask_t *mask)
- {
--	struct task_struct *t;
-+	struct task_struct *start = tsk;
- 
--	t = tsk;
- 	do {
--		if (cpuset_mems_allowed_intersects(current, t))
--			return 1;
--		t = next_thread(t);
--	} while (t != tsk);
--
--	return 0;
-+		if (mask) {
-+			/*
-+			 * If this is a mempolicy constrained oom, tsk's
-+			 * cpuset is irrelevant.  Only return true if its
-+			 * mempolicy intersects current, otherwise it may be
-+			 * needlessly killed.
-+			 */
-+			if (mempolicy_nodemask_intersects(tsk, mask))
-+				return true;
-+		} else {
-+			/*
-+			 * This is not a mempolicy constrained oom, so only
-+			 * check the mems of tsk's cpuset.
-+			 */
-+			if (cpuset_mems_allowed_intersects(current, tsk))
-+				return true;
-+		}
-+		tsk = next_thread(tsk);
-+	} while (tsk != start);
-+	return false;
- }
- 
- static struct task_struct *find_lock_task_mm(struct task_struct *p)
-@@ -253,7 +270,8 @@ static enum oom_constraint constrained_a
-  * (not docbooked, we don't want this one cluttering up the manual)
-  */
- static struct task_struct *select_bad_process(unsigned long *ppoints,
--						struct mem_cgroup *mem)
-+		struct mem_cgroup *mem, enum oom_constraint constraint,
-+		const nodemask_t *mask)
- {
- 	struct task_struct *p;
- 	struct task_struct *chosen = NULL;
-@@ -269,7 +287,9 @@ static struct task_struct *select_bad_pr
- 			continue;
- 		if (mem && !task_in_mem_cgroup(p, mem))
- 			continue;
--		if (!has_intersects_mems_allowed(p))
-+		if (!has_intersects_mems_allowed(p,
-+				constraint == CONSTRAINT_MEMORY_POLICY ? mask :
-+									 NULL))
- 			continue;
- 
- 		/*
-@@ -495,7 +515,7 @@ void mem_cgroup_out_of_memory(struct mem
- 		panic("out of memory(memcg). panic_on_oom is selected.\n");
- 	read_lock(&tasklist_lock);
- retry:
--	p = select_bad_process(&points, mem);
-+	p = select_bad_process(&points, mem, CONSTRAINT_NONE, NULL);
- 	if (!p || PTR_ERR(p) == -1UL)
- 		goto out;
- 
-@@ -574,7 +594,8 @@ void clear_zonelist_oom(struct zonelist 
- /*
-  * Must be called with tasklist_lock held for read.
-  */
--static void __out_of_memory(gfp_t gfp_mask, int order)
-+static void __out_of_memory(gfp_t gfp_mask, int order,
-+			enum oom_constraint constraint, const nodemask_t *mask)
- {
- 	struct task_struct *p;
- 	unsigned long points;
-@@ -588,7 +609,7 @@ retry:
- 	 * Rambo mode: Shoot down a process and hope it solves whatever
- 	 * issues we may have.
- 	 */
--	p = select_bad_process(&points, NULL);
-+	p = select_bad_process(&points, NULL, constraint, mask);
- 
- 	if (PTR_ERR(p) == -1UL)
- 		return;
-@@ -622,7 +643,8 @@ void pagefault_out_of_memory(void)
- 		panic("out of memory from page fault. panic_on_oom is selected.\n");
- 
- 	read_lock(&tasklist_lock);
--	__out_of_memory(0, 0); /* unknown gfp_mask and order */
-+	/* unknown gfp_mask and order */
-+	__out_of_memory(0, 0, CONSTRAINT_NONE, NULL);
- 	read_unlock(&tasklist_lock);
- 
- 	/*
-@@ -638,6 +660,7 @@ void pagefault_out_of_memory(void)
-  * @zonelist: zonelist pointer
-  * @gfp_mask: memory allocation flags
-  * @order: amount of memory being requested as a power of 2
-+ * @nodemask: nodemask passed to page allocator
-  *
-  * If we run out of memory, we have the choice between either
-  * killing a random task (bad), letting the system crash (worse)
-@@ -676,24 +699,19 @@ void out_of_memory(struct zonelist *zone
- 	 */
- 	constraint = constrained_alloc(zonelist, gfp_mask, nodemask);
- 	read_lock(&tasklist_lock);
--
--	switch (constraint) {
--	case CONSTRAINT_MEMORY_POLICY:
--		oom_kill_process(current, gfp_mask, order, 0, NULL,
--				"No available memory (MPOL_BIND)");
--		break;
--
--	case CONSTRAINT_NONE:
--		if (sysctl_panic_on_oom) {
-+	if (unlikely(sysctl_panic_on_oom)) {
-+		/*
-+		 * panic_on_oom only affects CONSTRAINT_NONE, the kernel
-+		 * should not panic for cpuset or mempolicy induced memory
-+		 * failures.
-+		 */
-+		if (constraint == CONSTRAINT_NONE) {
- 			dump_header(NULL, gfp_mask, order, NULL);
--			panic("out of memory. panic_on_oom is selected\n");
-+			read_unlock(&tasklist_lock);
-+			panic("Out of memory: panic_on_oom is enabled\n");
- 		}
--		/* Fall-through */
--	case CONSTRAINT_CPUSET:
--		__out_of_memory(gfp_mask, order);
--		break;
- 	}
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+avr32-invoke-oom-killer-from-page-fault.patch
+oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-dump_tasks-use-find_lock_task_mm-too.patch
+oom-pf_exiting-check-should-take-mm-into-account.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-enable-oom-tasklist-dump-by-default.patch
+
