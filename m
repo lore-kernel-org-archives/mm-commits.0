@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-dump_tasks-use-find_lock_task_mm-too.patch added to -mm tree
-Date: Tue, 08 Jun 2010 12:56:43 -0700
-Message-ID: <201006081956.o58JuhR7021609@imap1.linux-foundation.org>
+Subject: + oom-pf_exiting-check-should-take-mm-into-account.patch added to -mm tree
+Date: Tue, 08 Jun 2010 12:59:39 -0700
+Message-ID: <201006081959.o58JxdZx021708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755850Ab0FHT5G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 15:57:06 -0400
+	by vger.kernel.org with ESMTP id S1755706Ab0FHT75 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 15:59:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, oleg@redhat.com, rientjes@google.com
+Cc: oleg@redhat.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com
 
 
 The patch titled
-     oom: dump_tasks use find_lock_task_mm too
+     oom: PF_EXITING check should take mm into account
 has been added to the -mm tree.  Its filename is
-     oom-dump_tasks-use-find_lock_task_mm-too.patch
+     oom-pf_exiting-check-should-take-mm-into-account.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: dump_tasks use find_lock_task_mm too
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: oom: PF_EXITING check should take mm into account
+From: Oleg Nesterov <oleg@redhat.com>
 
-dump_task() should use find_lock_task_mm() too. It is necessary for
-protecting task-exiting race.
+select_bad_process() checks PF_EXITING to detect the task which is going
+to release its memory, but the logic is very wrong.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+	- a single process P with the dead group leader disables
+	  select_bad_process() completely, it will always return
+	  ERR_PTR() while P can live forever
+
+	- if the PF_EXITING task has already released its ->mm
+	  it doesn't make sense to expect it is goiing to free
+	  more memory (except task_struct/etc)
+
+Change the code to ignore the PF_EXITING tasks without ->mm.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   39 +++++++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-dump_tasks-use-find_lock_task_mm-too mm/oom_kill.c
---- a/mm/oom_kill.c~oom-dump_tasks-use-find_lock_task_mm-too
+diff -puN mm/oom_kill.c~oom-pf_exiting-check-should-take-mm-into-account mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-pf_exiting-check-should-take-mm-into-account
 +++ a/mm/oom_kill.c
-@@ -336,35 +336,38 @@ static struct task_struct *select_bad_pr
-  */
- static void dump_tasks(const struct mem_cgroup *mem)
- {
--	struct task_struct *g, *p;
-+	struct task_struct *p;
-+	struct task_struct *task;
+@@ -300,7 +300,7 @@ static struct task_struct *select_bad_pr
+ 		 * the process of exiting and releasing its resources.
+ 		 * Otherwise we could get an easy OOM deadlock.
+ 		 */
+-		if (p->flags & PF_EXITING) {
++		if ((p->flags & PF_EXITING) && p->mm) {
+ 			if (p != current)
+ 				return ERR_PTR(-1UL);
  
- 	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
- 	       "name\n");
--	do_each_thread(g, p) {
--		struct mm_struct *mm;
--
--		if (mem && !task_in_mem_cgroup(p, mem))
-+	for_each_process(p) {
-+		/*
-+		 * We don't have is_global_init() check here, because the old
-+		 * code do that. printing init process is not big matter. But
-+		 * we don't hope to make unnecessary compatibility breaking.
-+		 */
-+		if (p->flags & PF_KTHREAD)
- 			continue;
--		if (!thread_group_leader(p))
-+		if (mem && !task_in_mem_cgroup(p, mem))
- 			continue;
- 
--		task_lock(p);
--		mm = p->mm;
--		if (!mm) {
-+		task = find_lock_task_mm(p);
-+		if (!task) {
- 			/*
--			 * total_vm and rss sizes do not exist for tasks with no
--			 * mm so there's no need to report them; they can't be
--			 * oom killed anyway.
-+			 * Probably oom vs task-exiting race was happen and ->mm
-+			 * have been detached. thus there's no need to report
-+			 * them; they can't be oom killed anyway.
- 			 */
--			task_unlock(p);
- 			continue;
- 		}
-+
- 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
--		       p->pid, __task_cred(p)->uid, p->tgid, mm->total_vm,
--		       get_mm_rss(mm), (int)task_cpu(p), p->signal->oom_adj,
--		       p->comm);
--		task_unlock(p);
--	} while_each_thread(g, p);
-+		       task->pid, __task_cred(task)->uid, task->tgid,
-+		       task->mm->total_vm, get_mm_rss(task->mm),
-+		       (int)task_cpu(task), task->signal->oom_adj, p->comm);
-+		task_unlock(task);
-+	}
- }
- 
- static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-use-memdup_user.patch
 oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
 oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
 oom-dump_tasks-use-find_lock_task_mm-too.patch
-reiser4.patch
+oom-pf_exiting-check-should-take-mm-into-account.patch
+sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
 
