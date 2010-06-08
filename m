@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-enable-oom-tasklist-dump-by-default.patch added to -mm tree
-Date: Tue, 08 Jun 2010 14:13:48 -0700
-Message-ID: <201006082113.o58LDmoo025156@imap1.linux-foundation.org>
+Subject: + oom-avoid-oom-killer-for-lowmem-allocations.patch added to -mm tree
+Date: Tue, 08 Jun 2010 14:19:33 -0700
+Message-ID: <201006082119.o58LJXPG025379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756303Ab0FHVOB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 17:14:01 -0400
+	by vger.kernel.org with ESMTP id S1756401Ab0FHVUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 17:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     oom: enable oom tasklist dump by default
+     oom: avoid oom killer for lowmem allocations
 has been added to the -mm tree.  Its filename is
-     oom-enable-oom-tasklist-dump-by-default.patch
+     oom-avoid-oom-killer-for-lowmem-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: enable oom tasklist dump by default
+Subject: oom: avoid oom killer for lowmem allocations
 From: David Rientjes <rientjes@google.com>
 
-The oom killer tasklist dump, enabled with the oom_dump_tasks sysctl, is
-very helpful information in diagnosing why a user's task has been killed. 
-It emits useful information such as each eligible thread's memory usage
-that can determine why the system is oom, so it should be enabled by
-default.
+If memory has been depleted in lowmem zones even with the protection
+afforded to it by /proc/sys/vm/lowmem_reserve_ratio, it is unlikely that
+killing current users will help.  The memory is either reclaimable (or
+migratable) already, in which case we should not invoke the oom killer at
+all, or it is pinned by an application for I/O.  Killing such an
+application may leave the hardware in an unspecified state and there is no
+guarantee that it will be able to make a timely exit.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Lowmem allocations are now failed in oom conditions when __GFP_NOFAIL is
+not used so that the task can perhaps recover or try again later.
+
+Previously, the heuristic provided some protection for those tasks with
+CAP_SYS_RAWIO, but this is no longer necessary since we will not be
+killing tasks for the purposes of ISA allocations.
+
+high_zoneidx is gfp_zone(gfp_flags), meaning that ZONE_NORMAL will be the
+default for all allocations that are not __GFP_DMA, __GFP_DMA32,
+__GFP_HIGHMEM, and __GFP_MOVABLE on kernels configured to support those
+flags.  Testing for high_zoneidx being less than ZONE_NORMAL will only
+return true for allocations that have either __GFP_DMA or __GFP_DMA32.
+
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    2 +-
- mm/oom_kill.c               |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~oom-enable-oom-tasklist-dump-by-default Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~oom-enable-oom-tasklist-dump-by-default
-+++ a/Documentation/sysctl/vm.txt
-@@ -511,7 +511,7 @@ information may not be desired.
- If this is set to non-zero, this information is shown whenever the
- OOM killer actually kills a memory-hogging task.
+diff -puN mm/page_alloc.c~oom-avoid-oom-killer-for-lowmem-allocations mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-avoid-oom-killer-for-lowmem-allocations
++++ a/mm/page_alloc.c
+@@ -1759,6 +1759,9 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 		/* The OOM killer will not help higher order allocs */
+ 		if (order > PAGE_ALLOC_COSTLY_ORDER)
+ 			goto out;
++		/* The OOM killer does not needlessly kill tasks for lowmem */
++		if (high_zoneidx < ZONE_NORMAL)
++			goto out;
+ 		/*
+ 		 * GFP_THISNODE contains __GFP_NORETRY and we never hit this.
+ 		 * Sanity check for bare calls of __GFP_THISNODE, not real OOM.
+@@ -2052,15 +2055,23 @@ rebalance:
+ 			if (page)
+ 				goto got_pg;
  
--The default value is 0.
-+The default value is 1 (enabled).
+-			/*
+-			 * The OOM killer does not trigger for high-order
+-			 * ~__GFP_NOFAIL allocations so if no progress is being
+-			 * made, there are no other options and retrying is
+-			 * unlikely to help.
+-			 */
+-			if (order > PAGE_ALLOC_COSTLY_ORDER &&
+-						!(gfp_mask & __GFP_NOFAIL))
+-				goto nopage;
++			if (!(gfp_mask & __GFP_NOFAIL)) {
++				/*
++				 * The oom killer is not called for high-order
++				 * allocations that may fail, so if no progress
++				 * is being made, there are no other options and
++				 * retrying is unlikely to help.
++				 */
++				if (order > PAGE_ALLOC_COSTLY_ORDER)
++					goto nopage;
++				/*
++				 * The oom killer is not called for lowmem
++				 * allocations to prevent needlessly killing
++				 * innocent tasks.
++				 */
++				if (high_zoneidx < ZONE_NORMAL)
++					goto nopage;
++			}
  
- ==============================================================
- 
-diff -puN mm/oom_kill.c~oom-enable-oom-tasklist-dump-by-default mm/oom_kill.c
---- a/mm/oom_kill.c~oom-enable-oom-tasklist-dump-by-default
-+++ a/mm/oom_kill.c
-@@ -32,7 +32,7 @@
- 
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
--int sysctl_oom_dump_tasks;
-+int sysctl_oom_dump_tasks = 1;
- static DEFINE_SPINLOCK(zone_scan_lock);
- /* #define DEBUG */
- 
+ 			goto restart;
+ 		}
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -91,4 +127,5 @@ oom-filter-tasks-not-sharing-the-same-cpuset.patch
 oom-sacrifice-child-with-highest-badness-score-for-parent.patch
 oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 oom-enable-oom-tasklist-dump-by-default.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
 
