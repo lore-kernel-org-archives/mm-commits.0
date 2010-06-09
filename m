@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-remove-unused-nipquad-and-nipquad_fmt.patch added to -mm tree
-Date: Wed, 09 Jun 2010 15:47:35 -0700
-Message-ID: <201006092247.o59MlZL7026291@imap1.linux-foundation.org>
+Subject: + maintainers-update-files-for-samsung-arm-architectures.patch added to -mm tree
+Date: Wed, 09 Jun 2010 15:57:22 -0700
+Message-ID: <201006092257.o59MvMWJ026695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756316Ab0FIWrk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 18:47:40 -0400
+	by vger.kernel.org with ESMTP id S1756174Ab0FIW55 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 18:57:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, davem@davemloft.net
+Cc: kgene.kim@samsung.com, ben-linux@fluff.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     kernel.h: remove unused NIPQUAD and NIPQUAD_FMT
+     MAINTAINERS: update files for SAMSUNG ARM ARCHITECTURES
 has been added to the -mm tree.  Its filename is
-     kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
+     maintainers-update-files-for-samsung-arm-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: remove unused NIPQUAD and NIPQUAD_FMT
-From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update files for SAMSUNG ARM ARCHITECTURES
+From: Kukjin Kim <kgene.kim@samsung.com>
 
-There are no more uses of NIPQUAD or NIPQUAD_FMT.  Remove the definitions.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernelh-remove-unused-nipquad-and-nipquad_fmt include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-remove-unused-nipquad-and-nipquad_fmt
-+++ a/include/linux/kernel.h
-@@ -609,17 +609,6 @@ static inline void ftrace_dump(enum ftra
- #endif /* CONFIG_TRACING */
+diff -puN MAINTAINERS~maintainers-update-files-for-samsung-arm-architectures MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-files-for-samsung-arm-architectures
++++ a/MAINTAINERS
+@@ -899,7 +899,7 @@ M:	Ben Dooks <ben-linux@fluff.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.fluff.org/ben/linux/
+ S:	Maintained
+-F:	arch/arm/plat-s3c/
++F:	arch/arm/plat-samsung/
+ F:	arch/arm/plat-s3c24xx/
  
- /*
-- *      Display an IP address in readable format.
-- */
--
--#define NIPQUAD(addr) \
--	((unsigned char *)&addr)[0], \
--	((unsigned char *)&addr)[1], \
--	((unsigned char *)&addr)[2], \
--	((unsigned char *)&addr)[3]
--#define NIPQUAD_FMT "%u.%u.%u.%u"
+ ARM/S3C2410 ARM ARCHITECTURE
+_
+
+Patches currently in -mm which might be from kgene.kim@samsung.com are
+
+maintainers-update-files-for-samsung-arm-architectures.patch
+maintainers-add-maintainer-for-samsung-arm-architectures.patch
+
