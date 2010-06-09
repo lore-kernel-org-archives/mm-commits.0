@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch added to -mm tree
-Date: Wed, 09 Jun 2010 14:41:11 -0700
-Message-ID: <201006092141.o59LfBf9023287@imap1.linux-foundation.org>
+Subject: + oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch added to -mm tree
+Date: Wed, 09 Jun 2010 14:41:14 -0700
+Message-ID: <201006092141.o59LfE9Z023291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756506Ab0FIVms (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:48 -0400
+	by vger.kernel.org with ESMTP id S1758282Ab0FIVmy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com
+Cc: rientjes@google.com, akpm@linux-foundation.org, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com
 
 
 The patch titled
-     oom: dump_tasks use find_lock_task_mm too fix
+     oom: protect dereferencing of task's comm
 has been added to the -mm tree.  Its filename is
-     oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
+     oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: dump_tasks use find_lock_task_mm too fix
+Subject: oom: protect dereferencing of task's comm
 From: David Rientjes <rientjes@google.com>
 
-When find_lock_task_mm() returns a thread other than p in dump_tasks(),
-its name should be displayed instead.  This is the thread that will be
-targeted by the oom killer, not its mm-less parent.
+Andrew notes that dereferencing task->comm is unsafe without holding
+task_lock(task).  That's true even when dealing with current, so all
+existing dereferences within the oom killer need to ensure they are
+holding task_lock() before doing so.
 
-This also allows us to safely dereference task->comm without needing
-get_task_comm().
+This avoids using get_task_comm() because we'd otherwise need to allocate
+a string of TASK_COMM_LEN on the stack (or add synchronization and use a
+global string) and we don't want to do that because page allocations, and
+thus the oom killer, can happen particularly deep in the stack.
 
-While we're here, remove the cast on task_cpu(task) as Andrew suggested.
-
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -52,25 +54,35 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix
+diff -puN mm/oom_kill.c~oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm
 +++ a/mm/oom_kill.c
-@@ -357,10 +357,10 @@ static void dump_tasks(const struct mem_
- 			continue;
- 		}
- 
--		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
-+		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3u     %3d %s\n",
- 		       task->pid, __task_cred(task)->uid, task->tgid,
- 		       task->mm->total_vm, get_mm_rss(task->mm),
--		       (int)task_cpu(task), task->signal->oom_adj, p->comm);
-+		       task_cpu(task), task->signal->oom_adj, task->comm);
- 		task_unlock(task);
+@@ -362,10 +362,10 @@ static void dump_tasks(const struct mem_
+ static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
+ 							struct mem_cgroup *mem)
+ {
++	task_lock(current);
+ 	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
+ 		"oom_adj=%d\n",
+ 		current->comm, gfp_mask, order, current->signal->oom_adj);
+-	task_lock(current);
+ 	cpuset_print_task_mems_allowed(current);
+ 	task_unlock(current);
+ 	dump_stack();
+@@ -454,8 +454,10 @@ static int oom_kill_process(struct task_
+ 		return 0;
  	}
- }
+ 
++	task_lock(p);
+ 	pr_err("%s: Kill process %d (%s) score %lu or sacrifice child\n",
+ 		message, task_pid_nr(p), p->comm, points);
++	task_unlock(p);
+ 
+ 	/* Try to sacrifice the worst child first */
+ 	do_posix_clock_monotonic_gettime(&uptime);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
