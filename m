@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch added to -mm tree
-Date: Wed, 09 Jun 2010 14:41:20 -0700
-Message-ID: <201006092141.o59LfK2S023306@imap1.linux-foundation.org>
+Subject: + oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch added to -mm tree
+Date: Wed, 09 Jun 2010 14:41:11 -0700
+Message-ID: <201006092141.o59LfBf9023287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756506Ab0FIVmh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:37 -0400
+	by vger.kernel.org with ESMTP id S1756506Ab0FIVms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, oleg
 
 
 The patch titled
-     oom: introduce find_lock_task_mm to fix mm false positives fix
+     oom: dump_tasks use find_lock_task_mm too fix
 has been added to the -mm tree.  Its filename is
-     oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
+     oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: introduce find_lock_task_mm to fix mm false positives fix
+Subject: oom: dump_tasks use find_lock_task_mm too fix
 From: David Rientjes <rientjes@google.com>
 
-find_lock_task_mm() should be documented so that we clearly understand
-what it does and why we need it.
+When find_lock_task_mm() returns a thread other than p in dump_tasks(),
+its name should be displayed instead.  This is the thread that will be
+targeted by the oom killer, not its mm-less parent.
 
-At the same time, remove a stale coment about dereferencing of a local
-variable "mm" in badness() which no longer exists and was removed when
-find_lock_task_mm() was added.
+This also allows us to safely dereference task->comm without needing
+get_task_comm().
+
+While we're here, remove the cast on task_cpu(task) as Andrew suggested.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -50,36 +52,25 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix
+diff -puN mm/oom_kill.c~oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix
 +++ a/mm/oom_kill.c
-@@ -81,6 +81,12 @@ static bool has_intersects_mems_allowed(
+@@ -357,10 +357,10 @@ static void dump_tasks(const struct mem_
+ 			continue;
+ 		}
+ 
+-		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
++		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3u     %3d %s\n",
+ 		       task->pid, __task_cred(task)->uid, task->tgid,
+ 		       task->mm->total_vm, get_mm_rss(task->mm),
+-		       (int)task_cpu(task), task->signal->oom_adj, p->comm);
++		       task_cpu(task), task->signal->oom_adj, task->comm);
+ 		task_unlock(task);
+ 	}
  }
- #endif /* CONFIG_NUMA */
- 
-+/*
-+ * The process p may have detached its own ->mm while exiting or through
-+ * use_mm(), but one or more of its subthreads may still have a valid
-+ * pointer.  Return p, or any of its subthreads with a valid ->mm, with
-+ * task_lock() held.
-+ */
- static struct task_struct *find_lock_task_mm(struct task_struct *p)
- {
- 	struct task_struct *t = p;
-@@ -135,10 +141,6 @@ unsigned long badness(struct task_struct
- 	 * The memory size of the process is the basis for the badness.
- 	 */
- 	points = p->mm->total_vm;
--
--	/*
--	 * After this unlock we can no longer dereference local variable `mm'
--	 */
- 	task_unlock(p);
- 
- 	/*
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
