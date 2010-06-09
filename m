@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch added to -mm tree
-Date: Wed, 09 Jun 2010 14:41:14 -0700
-Message-ID: <201006092141.o59LfE9Z023291@imap1.linux-foundation.org>
+Subject: + panic-keep-blinking-in-spite-of-long-spin-timer-mode-update.patch added to -mm tree
+Date: Wed, 09 Jun 2010 15:16:09 -0700
+Message-ID: <201006092216.o59MG9wT024877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758282Ab0FIVmy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:54 -0400
+	by vger.kernel.org with ESMTP id S1752000Ab0FIWQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 18:16:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, akpm@linux-foundation.org, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com
+Cc: tamuki@linet.gr.jp
 
 
 The patch titled
-     oom: protect dereferencing of task's comm
+     panic-keep-blinking-in-spite-of-long-spin-timer-mode-update
 has been added to the -mm tree.  Its filename is
-     oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+     panic-keep-blinking-in-spite-of-long-spin-timer-mode-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: protect dereferencing of task's comm
-From: David Rientjes <rientjes@google.com>
+Subject: panic-keep-blinking-in-spite-of-long-spin-timer-mode-update
+From: TAMUKI Shoichi <tamuki@linet.gr.jp>
 
-Andrew notes that dereferencing task->comm is unsafe without holding
-task_lock(task).  That's true even when dealing with current, so all
-existing dereferences within the oom killer need to ensure they are
-holding task_lock() before doing so.
+ - brush up the explanation of panicblink= in kernel-parameters.txt
+ - use the clamp() macro
 
-This avoids using get_task_comm() because we'd otherwise need to allocate
-a string of TASK_COMM_LEN on the stack (or add synchronization and use a
-global string) and we don't want to do that because page allocations, and
-thus the oom killer, can happen particularly deep in the stack.
-
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: TAMUKI Shoichi <tamuki@linet.gr.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    6 ++----
+ kernel/panic.c                      |    3 +--
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm mm/oom_kill.c
---- a/mm/oom_kill.c~oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm
-+++ a/mm/oom_kill.c
-@@ -362,10 +362,10 @@ static void dump_tasks(const struct mem_
- static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
- 							struct mem_cgroup *mem)
- {
-+	task_lock(current);
- 	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
- 		"oom_adj=%d\n",
- 		current->comm, gfp_mask, order, current->signal->oom_adj);
--	task_lock(current);
- 	cpuset_print_task_mems_allowed(current);
- 	task_unlock(current);
- 	dump_stack();
-@@ -454,8 +454,10 @@ static int oom_kill_process(struct task_
- 		return 0;
- 	}
+diff -puN Documentation/kernel-parameters.txt~panic-keep-blinking-in-spite-of-long-spin-timer-mode-update Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~panic-keep-blinking-in-spite-of-long-spin-timer-mode-update
++++ a/Documentation/kernel-parameters.txt
+@@ -1859,10 +1859,8 @@ and is between 256 and 4096 characters. 
  
-+	task_lock(p);
- 	pr_err("%s: Kill process %d (%s) score %lu or sacrifice child\n",
- 		message, task_pid_nr(p), p->comm, points);
-+	task_unlock(p);
+ 	panic=		[KNL] Kernel behaviour on panic
+ 			Format: <timeout>
+-	panicblink=	[KNL] The speed of panic blink (default is 12 wpm)
+-			The period of panic blink can be computed by the
+-			formula T = 7200 / W, where T is the period in milli-
+-			seconds, W is the speed in wpm (words per minute).
++	panicblink=	[KNL] The speed of panic blink (range is 1 to 100, the
++			lower the slower, the higher the faster, default is 12)
+ 			Should be 5 or less when running under a hypervisor
  
- 	/* Try to sacrifice the worst child first */
- 	do_posix_clock_monotonic_gettime(&uptime);
+ 	parkbd.port=	[HW] Parallel port number the keyboard adapter is
+diff -puN kernel/panic.c~panic-keep-blinking-in-spite-of-long-spin-timer-mode-update kernel/panic.c
+--- a/kernel/panic.c~panic-keep-blinking-in-spite-of-long-spin-timer-mode-update
++++ a/kernel/panic.c
+@@ -122,8 +122,7 @@ NORET_TYPE void panic(const char * fmt, 
+ 
+ 	bust_spinlocks(0);
+ 
+-	if (panic_blink_wpm <= 0 || panic_blink_wpm > 100)
+-		panic_blink_wpm = 12;
++	panic_blink_wpm = clamp(panic_blink_wpm, 1, 100);
+ 
+ 	if (!panic_blink)
+ 		panic_blink = no_blink;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from tamuki@linet.gr.jp are
 
-avr32-invoke-oom-killer-from-page-fault.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-oom-remove-unnecessary-code-and-cleanup.patch
+panic-keep-blinking-in-spite-of-long-spin-timer-mode.patch
+panic-keep-blinking-in-spite-of-long-spin-timer-mode-update.patch
 
