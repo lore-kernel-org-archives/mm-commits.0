@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-improve-commentary-in-dump_tasks.patch added to -mm tree
-Date: Wed, 09 Jun 2010 14:41:09 -0700
-Message-ID: <201006092141.o59Lf92B023283@imap1.linux-foundation.org>
+Subject: + oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch added to -mm tree
+Date: Wed, 09 Jun 2010 14:41:18 -0700
+Message-ID: <201006092141.o59LfIYo023301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758418Ab0FIVmW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:22 -0400
+	by vger.kernel.org with ESMTP id S1756506Ab0FIVmg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, akpm@linux-foundation.org, balbir@in.ibm.com, kosaki.mo
 
 
 The patch titled
-     oom: improve commentary in dump_tasks()
+     oom: add has_intersects_mems_allowed UMA variant
 has been added to the -mm tree.  Its filename is
-     oom-improve-commentary-in-dump_tasks.patch
+     oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: improve commentary in dump_tasks()
+Subject: oom: add has_intersects_mems_allowed UMA variant
 From: David Rientjes <rientjes@google.com>
 
-The comments in dump_tasks() should be updated to be more clear about why
-tasks are filtered and how they are filtered by its argument.
+has_intersects_mems_allowed() shall always return true for machines
+without CONFIG_NUMA since filtering tasks by either cpuset mems or
+mempolicy nodes is unnecessary on such machines.
 
-An unnecessary comment concerning a check for is_global_init() is removed
-since it isn't of importance.
+While we're here, fix the comment to make it conform to kerneldoc style.
 
 Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
@@ -50,44 +50,44 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/oom_kill.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-improve-commentary-in-dump_tasks mm/oom_kill.c
---- a/mm/oom_kill.c~oom-improve-commentary-in-dump_tasks
+diff -puN mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant
 +++ a/mm/oom_kill.c
-@@ -323,7 +323,7 @@ static struct task_struct *select_bad_pr
+@@ -36,10 +36,15 @@ int sysctl_oom_dump_tasks;
+ static DEFINE_SPINLOCK(zone_scan_lock);
+ /* #define DEBUG */
  
- /**
-  * dump_tasks - dump current memory state of all system tasks
-- * @mem: target memory controller
-+ * @mem: current's memory controller, if constrained
-  *
-  * Dumps the current memory state of all system tasks, excluding kernel threads.
-  * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
-@@ -342,11 +342,6 @@ static void dump_tasks(const struct mem_
- 	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
- 	       "name\n");
- 	for_each_process(p) {
--		/*
--		 * We don't have is_global_init() check here, because the old
--		 * code do that. printing init process is not big matter. But
--		 * we don't hope to make unnecessary compatibility breaking.
--		 */
- 		if (p->flags & PF_KTHREAD)
- 			continue;
- 		if (mem && !task_in_mem_cgroup(p, mem))
-@@ -355,8 +350,8 @@ static void dump_tasks(const struct mem_
- 		task = find_lock_task_mm(p);
- 		if (!task) {
- 			/*
--			 * Probably oom vs task-exiting race was happen and ->mm
--			 * have been detached. thus there's no need to report
-+			 * This is a kthread or all of p's threads have already
-+			 * detached their mm's.  There's no need to report
- 			 * them; they can't be oom killed anyway.
- 			 */
- 			continue;
+-/*
+- * Do all threads of the target process overlap our allowed nodes?
++#ifdef CONFIG_NUMA
++/**
++ * has_intersects_mems_allowed() - check task eligiblity for kill
+  * @tsk: task struct of which task to consider
+  * @mask: nodemask passed to page allocator for mempolicy ooms
++ *
++ * Task eligibility is determined by whether or not a candidate task, @tsk,
++ * shares the same mempolicy nodes as current if it is bound by such a policy
++ * and whether or not it has the same set of allowed cpuset nodes.
+  */
+ static bool has_intersects_mems_allowed(struct task_struct *tsk,
+ 					const nodemask_t *mask)
+@@ -68,6 +73,13 @@ static bool has_intersects_mems_allowed(
+ 	} while (tsk != start);
+ 	return false;
+ }
++#else
++static bool has_intersects_mems_allowed(struct task_struct *tsk,
++					const nodemask_t *mask)
++{
++	return true;
++}
++#endif /* CONFIG_NUMA */
+ 
+ static struct task_struct *find_lock_task_mm(struct task_struct *p)
+ {
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
