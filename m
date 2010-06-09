@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch added to -mm tree
-Date: Tue, 08 Jun 2010 16:50:57 -0700
-Message-ID: <201006082350.o58NovSr032191@imap1.linux-foundation.org>
+Subject: + pipe-fix-pipe-buffer-resizing.patch added to -mm tree
+Date: Wed, 09 Jun 2010 14:00:44 -0700
+Message-ID: <201006092100.o59L0imA021300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750925Ab0FHXvV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jun 2010 19:51:21 -0400
+	by vger.kernel.org with ESMTP id S1758289Ab0FIVAt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     oom: check PF_KTHREAD instead of !mm to skip kthreads
+     pipe: fix pipe buffer resizing
 has been added to the -mm tree.  Its filename is
-     oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+     pipe-fix-pipe-buffer-resizing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: check PF_KTHREAD instead of !mm to skip kthreads
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: pipe: fix pipe buffer resizing
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-select_bad_process() thinks a kernel thread can't have ->mm != NULL, this
-is not true due to use_mm().
+pipe_set_size() needs to copy pipe bufs from the old circular buffer to
+the new.
 
-Change the code to check PF_KTHREAD.
+The current code gets this wrong in multiple ways, resulting in oops.
 
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Test program is available here:
+  http://www.kernel.org/pub/linux/kernel/people/mszeredi/piperesize/
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ fs/pipe.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-check-pf_kthread-instead-of-mm-to-skip-kthreads mm/oom_kill.c
---- a/mm/oom_kill.c~oom-check-pf_kthread-instead-of-mm-to-skip-kthreads
-+++ a/mm/oom_kill.c
-@@ -256,14 +256,11 @@ static struct task_struct *select_bad_pr
- 	for_each_process(p) {
- 		unsigned long points;
+diff -puN fs/pipe.c~pipe-fix-pipe-buffer-resizing fs/pipe.c
+--- a/fs/pipe.c~pipe-fix-pipe-buffer-resizing
++++ a/fs/pipe.c
+@@ -1145,13 +1145,20 @@ static long pipe_set_size(struct pipe_in
+ 	 * and adjust the indexes.
+ 	 */
+ 	if (pipe->nrbufs) {
+-		const unsigned int tail = pipe->nrbufs & (pipe->buffers - 1);
+-		const unsigned int head = pipe->nrbufs - tail;
++		unsigned int tail;
++		unsigned int head;
  
--		/*
--		 * skip kernel threads and tasks which have already released
--		 * their mm.
--		 */
-+		/* skip tasks that have already released their mm */
- 		if (!p->mm)
- 			continue;
--		/* skip the init task */
--		if (is_global_init(p))
-+		/* skip the init task and kthreads */
-+		if (is_global_init(p) || (p->flags & PF_KTHREAD))
- 			continue;
- 		if (mem && !task_in_mem_cgroup(p, mem))
- 			continue;
++		tail = pipe->curbuf + pipe->nrbufs;
++		if (tail < pipe->buffers)
++			tail = 0;
++		else
++			tail &= (pipe->buffers - 1);
++
++		head = pipe->nrbufs - tail;
+ 		if (head)
+ 			memcpy(bufs, pipe->bufs + pipe->curbuf, head * sizeof(struct pipe_buffer));
+ 		if (tail)
+-			memcpy(bufs + head, pipe->bufs + pipe->curbuf, tail * sizeof(struct pipe_buffer));
++			memcpy(bufs + head, pipe->bufs, tail * sizeof(struct pipe_buffer));
+ 	}
+ 
+ 	pipe->curbuf = 0;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
+pipe-fix-pipe-buffer-resizing.patch
+pipe-remove-bogus-check-from-set-size-fcntl.patch
 
