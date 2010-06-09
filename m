@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch added to -mm tree
-Date: Wed, 09 Jun 2010 14:41:16 -0700
-Message-ID: <201006092141.o59LfGoM023295@imap1.linux-foundation.org>
+Subject: + oom-improve-commentary-in-dump_tasks.patch added to -mm tree
+Date: Wed, 09 Jun 2010 14:41:09 -0700
+Message-ID: <201006092141.o59Lf92B023283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758418Ab0FIVmP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:15 -0400
+	by vger.kernel.org with ESMTP id S1758418Ab0FIVmW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 17:42:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com
+Cc: rientjes@google.com, akpm@linux-foundation.org, balbir@in.ibm.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com
 
 
 The patch titled
-     oom: sacrifice child with highest badness score for parent fix
+     oom: improve commentary in dump_tasks()
 has been added to the -mm tree.  Its filename is
-     oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
+     oom-improve-commentary-in-dump_tasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: sacrifice child with highest badness score for parent fix
+Subject: oom: improve commentary in dump_tasks()
 From: David Rientjes <rientjes@google.com>
 
-Elaborate on the comment in oom_kill_process() so it's clear why a
-killable child with a different mm is sacrificied for its parent.
+The comments in dump_tasks() should be updated to be more clear about why
+tasks are filtered and how they are filtered by its argument.
 
-At the same time, rename auto variable `c' to "child" and move "cpoints"
-inside the list_for_each_entry() loop with a more descriptive name as akpm
-suggests.
+An unnecessary comment concerning a check for is_global_init() is removed
+since it isn't of importance.
 
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -50,58 +50,44 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ mm/oom_kill.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-sacrifice-child-with-highest-badness-score-for-parent-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-sacrifice-child-with-highest-badness-score-for-parent-fix
+diff -puN mm/oom_kill.c~oom-improve-commentary-in-dump_tasks mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-improve-commentary-in-dump_tasks
 +++ a/mm/oom_kill.c
-@@ -437,7 +437,7 @@ static int oom_kill_process(struct task_
- 			    const char *message)
- {
- 	struct task_struct *victim = p;
--	struct task_struct *c;
-+	struct task_struct *child;
- 	struct task_struct *t = p;
- 	unsigned long victim_points = 0;
- 	struct timespec uptime;
-@@ -459,22 +459,27 @@ static int oom_kill_process(struct task_
- 		message, task_pid_nr(p), p->comm, points);
- 	task_unlock(p);
+@@ -323,7 +323,7 @@ static struct task_struct *select_bad_pr
  
--	/* Try to sacrifice the worst child first */
-+	/*
-+	 * If any of p's children has a different mm and is eligible for kill,
-+	 * the one with the highest badness() score is sacrificed for its
-+	 * parent.  This attempts to lose the minimal amount of work done while
-+	 * still freeing memory.
-+	 */
- 	do_posix_clock_monotonic_gettime(&uptime);
- 	do {
--		unsigned long cpoints;
-+		list_for_each_entry(child, &t->children, sibling) {
-+			unsigned long child_points;
- 
--		list_for_each_entry(c, &t->children, sibling) {
--			if (c->mm == p->mm)
-+			if (child->mm == p->mm)
- 				continue;
--			if (mem && !task_in_mem_cgroup(c, mem))
-+			if (mem && !task_in_mem_cgroup(child, mem))
- 				continue;
- 
- 			/* badness() returns 0 if the thread is unkillable */
--			cpoints = badness(c, uptime.tv_sec);
--			if (cpoints > victim_points) {
--				victim = c;
--				victim_points = cpoints;
-+			child_points = badness(child, uptime.tv_sec);
-+			if (child_points > victim_points) {
-+				victim = child;
-+				victim_points = child_points;
- 			}
- 		}
- 	} while_each_thread(p, t);
+ /**
+  * dump_tasks - dump current memory state of all system tasks
+- * @mem: target memory controller
++ * @mem: current's memory controller, if constrained
+  *
+  * Dumps the current memory state of all system tasks, excluding kernel threads.
+  * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
+@@ -342,11 +342,6 @@ static void dump_tasks(const struct mem_
+ 	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
+ 	       "name\n");
+ 	for_each_process(p) {
+-		/*
+-		 * We don't have is_global_init() check here, because the old
+-		 * code do that. printing init process is not big matter. But
+-		 * we don't hope to make unnecessary compatibility breaking.
+-		 */
+ 		if (p->flags & PF_KTHREAD)
+ 			continue;
+ 		if (mem && !task_in_mem_cgroup(p, mem))
+@@ -355,8 +350,8 @@ static void dump_tasks(const struct mem_
+ 		task = find_lock_task_mm(p);
+ 		if (!task) {
+ 			/*
+-			 * Probably oom vs task-exiting race was happen and ->mm
+-			 * have been detached. thus there's no need to report
++			 * This is a kthread or all of p's threads have already
++			 * detached their mm's.  There's no need to report
+ 			 * them; they can't be oom killed anyway.
+ 			 */
+ 			continue;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
