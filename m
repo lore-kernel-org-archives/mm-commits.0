@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-trees-for-spi-and-device-tree.patch added to -mm tree
-Date: Thu, 10 Jun 2010 13:38:38 -0700
-Message-ID: <201006102038.o5AKccot022488@imap1.linux-foundation.org>
+Subject: + s5pc110-sdhci-s3c-can-override-host-capabilities.patch added to -mm tree
+Date: Thu, 10 Jun 2010 13:43:14 -0700
+Message-ID: <201006102043.o5AKhEtI022722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754860Ab0FJUi4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752812Ab0FJUnk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jun 2010 16:38:56 -0400
+	Thu, 10 Jun 2010 16:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: grant.likely@secretlab.ca
+Cc: kmpark@infradead.org, kyungmin.park@samsung.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     maintainers: add git trees for SPI and device tree
+     s5pc110: SDHCI-s3c can override host capabilities
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-trees-for-spi-and-device-tree.patch
+     s5pc110-sdhci-s3c-can-override-host-capabilities.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maintainers: add git trees for SPI and device tree
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: s5pc110: SDHCI-s3c can override host capabilities
+From: Kyungmin Park <kmpark@infradead.org>
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Each board can override the default sdhci host capabilities.
+Some board has broken features by hardwares and support 8-bit bandwidth.
+
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/plat-samsung/dev-hsmmc.c  |    2 ++
+ arch/arm/plat-samsung/dev-hsmmc1.c |    2 ++
+ arch/arm/plat-samsung/dev-hsmmc2.c |    2 ++
+ 3 files changed, 6 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-trees-for-spi-and-device-tree MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-trees-for-spi-and-device-tree
-+++ a/MAINTAINERS
-@@ -4221,6 +4221,7 @@ OPEN FIRMWARE AND FLATTENED DEVICE TREE
- M:	Grant Likely <grant.likely@secretlab.ca>
- L:	devicetree-discuss@lists.ozlabs.org
- W:	http://fdt.secretlab.ca
-+T:	git git://git.secretlab.ca/git/linux-2.6.git
- S:	Maintained
- F:	drivers/of
- F:	include/linux/of*.h
-@@ -5399,6 +5400,7 @@ M:	David Brownell <dbrownell@users.sourc
- M:	Grant Likely <grant.likely@secretlab.ca>
- L:	spi-devel-general@lists.sourceforge.net
- Q:	http://patchwork.kernel.org/project/spi-devel-general/list/
-+T:	git git://git.secretlab.ca/git/linux-2.6.git
- S:	Maintained
- F:	Documentation/spi/
- F:	drivers/spi/
+diff -puN arch/arm/plat-samsung/dev-hsmmc.c~s5pc110-sdhci-s3c-can-override-host-capabilities arch/arm/plat-samsung/dev-hsmmc.c
+--- a/arch/arm/plat-samsung/dev-hsmmc.c~s5pc110-sdhci-s3c-can-override-host-capabilities
++++ a/arch/arm/plat-samsung/dev-hsmmc.c
+@@ -65,4 +65,6 @@ void s3c_sdhci0_set_platdata(struct s3c_
+ 		set->cfg_gpio = pd->cfg_gpio;
+ 	if (pd->cfg_card)
+ 		set->cfg_card = pd->cfg_card;
++	if (pd->host_caps)
++		set->host_caps = pd->host_caps;
+ }
+diff -puN arch/arm/plat-samsung/dev-hsmmc1.c~s5pc110-sdhci-s3c-can-override-host-capabilities arch/arm/plat-samsung/dev-hsmmc1.c
+--- a/arch/arm/plat-samsung/dev-hsmmc1.c~s5pc110-sdhci-s3c-can-override-host-capabilities
++++ a/arch/arm/plat-samsung/dev-hsmmc1.c
+@@ -65,4 +65,6 @@ void s3c_sdhci1_set_platdata(struct s3c_
+ 		set->cfg_gpio = pd->cfg_gpio;
+ 	if (pd->cfg_card)
+ 		set->cfg_card = pd->cfg_card;
++	if (pd->host_caps)
++		set->host_caps = pd->host_caps;
+ }
+diff -puN arch/arm/plat-samsung/dev-hsmmc2.c~s5pc110-sdhci-s3c-can-override-host-capabilities arch/arm/plat-samsung/dev-hsmmc2.c
+--- a/arch/arm/plat-samsung/dev-hsmmc2.c~s5pc110-sdhci-s3c-can-override-host-capabilities
++++ a/arch/arm/plat-samsung/dev-hsmmc2.c
+@@ -66,4 +66,6 @@ void s3c_sdhci2_set_platdata(struct s3c_
+ 		set->cfg_gpio = pd->cfg_gpio;
+ 	if (pd->cfg_card)
+ 		set->cfg_card = pd->cfg_card;
++	if (pd->host_caps)
++		set->host_caps = pd->host_caps;
+ }
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from kmpark@infradead.org are
 
-linux-next.patch
-maintainers-add-git-trees-for-spi-and-device-tree.patch
+mmc-recognize-csd-structure.patch
+mmc-recognize-csd-structure-fix.patch
+s5pc110-sdhci-s3c-can-override-host-capabilities.patch
+s5pc110-sdhci-s3c-support-on-s5pc110.patch
+sdhci-add-no-hi-speed-bit-quirk-support.patch
 
