@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + genalloc-fix-allocation-from-end-of-pool.patch added to -mm tree
-Date: Thu, 10 Jun 2010 14:13:56 -0700
-Message-ID: <201006102113.o5ALDuv8023970@imap1.linux-foundation.org>
+Subject: + memcg-remove-redundant-codes.patch added to -mm tree
+Date: Thu, 10 Jun 2010 14:16:39 -0700
+Message-ID: <201006102116.o5ALGdwk024073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752453Ab0FJVOF (ORCPT
+	by vger.kernel.org with ESMTP id S1752453Ab0FJVQt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jun 2010 17:14:05 -0400
+	Thu, 10 Jun 2010 17:16:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: imre.deak@nokia.com, akinobu.mita@gmail.com, tj@kernel.org, zygo.blaxell@xandros.com
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     genalloc: fix allocation from end of pool
+     memcg: remove redundant code
 has been added to the -mm tree.  Its filename is
-     genalloc-fix-allocation-from-end-of-pool.patch
+     memcg-remove-redundant-codes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genalloc: fix allocation from end of pool
-From: Imre Deak <imre.deak@nokia.com>
+Subject: memcg: remove redundant code
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-bitmap_find_next_zero_area requires the size of the bitmap, we instead
-passed the last suitable position.  This made it impossible to allocate
-from the end of the pool.
+- try_get_mem_cgroup_from_mm() calls rcu_read_lock/unlock by itself, so we
+  don't have to call them in task_in_mem_cgroup().
+- *mz is not used in __mem_cgroup_uncharge_common().
+- we don't have to call lookup_page_cgroup() in mem_cgroup_end_migration()
+  after we've cleared PCG_MIGRATION of @oldpage.
+- remove empty comment.
+- remove redundant empty line in mem_cgroup_cache_charge().
 
-Fixes a regression introduced by 243797f59b748f679ab88d456fcc4f92236d724b
-("genalloc: use bitmap_find_next_zero_area").
-
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
-Cc: Zygo Blaxell <zygo.blaxell@xandros.com>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN lib/genalloc.c~genalloc-fix-allocation-from-end-of-pool lib/genalloc.c
---- a/lib/genalloc.c~genalloc-fix-allocation-from-end-of-pool
-+++ a/lib/genalloc.c
-@@ -128,7 +128,6 @@ unsigned long gen_pool_alloc(struct gen_
- 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
+diff -puN mm/memcontrol.c~memcg-remove-redundant-codes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-redundant-codes
++++ a/mm/memcontrol.c
+@@ -840,9 +840,7 @@ int task_in_mem_cgroup(struct task_struc
+ 	struct mem_cgroup *curr = NULL;
  
- 		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
--		end_bit -= nbits + 1;
+ 	task_lock(task);
+-	rcu_read_lock();
+ 	curr = try_get_mem_cgroup_from_mm(task->mm);
+-	rcu_read_unlock();
+ 	task_unlock(task);
+ 	if (!curr)
+ 		return 0;
+@@ -2099,7 +2097,6 @@ int mem_cgroup_cache_charge(struct page 
+ 	if (!(gfp_mask & __GFP_WAIT)) {
+ 		struct page_cgroup *pc;
  
- 		spin_lock_irqsave(&chunk->lock, flags);
- 		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
+-
+ 		pc = lookup_page_cgroup(page);
+ 		if (!pc)
+ 			return 0;
+@@ -2293,7 +2290,6 @@ __mem_cgroup_uncharge_common(struct page
+ {
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+-	struct mem_cgroup_per_zone *mz;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -2347,7 +2343,6 @@ __mem_cgroup_uncharge_common(struct page
+ 	 * special functions.
+ 	 */
+ 
+-	mz = page_cgroup_zoneinfo(pc);
+ 	unlock_page_cgroup(pc);
+ 
+ 	memcg_check_events(mem, page);
+@@ -2659,11 +2654,8 @@ void mem_cgroup_end_migration(struct mem
+ 	ClearPageCgroupMigration(pc);
+ 	unlock_page_cgroup(pc);
+ 
+-	if (unused != oldpage)
+-		pc = lookup_page_cgroup(unused);
+ 	__mem_cgroup_uncharge_common(unused, MEM_CGROUP_CHARGE_TYPE_FORCE);
+ 
+-	pc = lookup_page_cgroup(used);
+ 	/*
+ 	 * If a page is a file cache, radix-tree replacement is very atomic
+ 	 * and we can skip this check. When it was an Anon page, its mapcount
+@@ -3807,8 +3799,6 @@ static int mem_cgroup_oom_control_read(s
+ 	return 0;
+ }
+ 
+-/*
+- */
+ static int mem_cgroup_oom_control_write(struct cgroup *cgrp,
+ 	struct cftype *cft, u64 val)
+ {
 _
 
-Patches currently in -mm which might be from imre.deak@nokia.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-genalloc-fix-allocation-from-end-of-pool.patch
+memcg-fix-wake-up-in-oom-wait-queue.patch
+memcg-remove-experimental-from-swap-account-config.patch
+memcg-clean-up-try_charge-main-loop-v2.patch
+memcg-clean-up-waiting-move-acct-v2.patch
+memcg-remove-redundant-codes.patch
+memcg-remove-mem-from-arg-of-charge_common.patch
 
