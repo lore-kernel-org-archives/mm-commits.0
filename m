@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-add-no-hi-speed-bit-quirk-support.patch added to -mm tree
-Date: Thu, 10 Jun 2010 13:43:19 -0700
-Message-ID: <201006102043.o5AKhJjl022731@imap1.linux-foundation.org>
+Subject: + s5pc110-sdhci-s3c-support-on-s5pc110.patch added to -mm tree
+Date: Thu, 10 Jun 2010 13:43:17 -0700
+Message-ID: <201006102043.o5AKhHK1022728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759700Ab0FJUnn (ORCPT
+	by vger.kernel.org with ESMTP id S1759702Ab0FJUnn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 10 Jun 2010 16:43:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kmpark@infradead.org, kyungmin.park@samsung.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     SDHCI: add no hi-speed bit quirk support
+     s5pc110: SDHCI-s3c support on s5pc110
 has been added to the -mm tree.  Its filename is
-     sdhci-add-no-hi-speed-bit-quirk-support.patch
+     s5pc110-sdhci-s3c-support-on-s5pc110.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SDHCI: add no hi-speed bit quirk support
+Subject: s5pc110: SDHCI-s3c support on s5pc110
 From: Kyungmin Park <kmpark@infradead.org>
 
-Some SDHCI controllers like s5pc110 don't have an HISPD bit in the HOSTCTL
-register.
+s5pc110 (aka s5pv210) uses the same SDHCI IP.
 
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |    3 ++-
- drivers/mmc/host/sdhci.h |    2 ++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/mmc/host/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-add-no-hi-speed-bit-quirk-support drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-add-no-hi-speed-bit-quirk-support
-+++ a/drivers/mmc/host/sdhci.c
-@@ -1164,7 +1164,8 @@ static void sdhci_set_ios(struct mmc_hos
- 	else
- 		ctrl &= ~SDHCI_CTRL_4BITBUS;
+diff -puN drivers/mmc/host/Kconfig~s5pc110-sdhci-s3c-support-on-s5pc110 drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~s5pc110-sdhci-s3c-support-on-s5pc110
++++ a/drivers/mmc/host/Kconfig
+@@ -123,7 +123,7 @@ config MMC_SDHCI_PLTFM
  
--	if (ios->timing == MMC_TIMING_SD_HS)
-+	if (ios->timing == MMC_TIMING_SD_HS &&
-+	    !(host->quirks & SDHCI_QUIRK_NO_HISPD_BIT))
- 		ctrl |= SDHCI_CTRL_HISPD;
- 	else
- 		ctrl &= ~SDHCI_CTRL_HISPD;
-diff -puN drivers/mmc/host/sdhci.h~sdhci-add-no-hi-speed-bit-quirk-support drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~sdhci-add-no-hi-speed-bit-quirk-support
-+++ a/drivers/mmc/host/sdhci.h
-@@ -240,6 +240,8 @@ struct sdhci_host {
- #define SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN		(1<<25)
- /* Controller cannot support End Attribute in NOP ADMA descriptor */
- #define SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC		(1<<26)
-+/* Controller doesn't have HISPD bit field in HI-SPEED SD card */
-+#define SDHCI_QUIRK_NO_HISPD_BIT			(1<<27)
- 
- 	int			irq;		/* Device IRQ */
- 	void __iomem *		ioaddr;		/* Mapped address */
+ config MMC_SDHCI_S3C
+ 	tristate "SDHCI support on Samsung S3C SoC"
+-	depends on MMC_SDHCI && (PLAT_S3C24XX || PLAT_S3C64XX)
++	depends on MMC_SDHCI && PLAT_SAMSUNG
+ 	help
+ 	  This selects the Secure Digital Host Controller Interface (SDHCI)
+ 	  often referrered to as the HSMMC block in some of the Samsung S3C
 _
 
 Patches currently in -mm which might be from kmpark@infradead.org are
