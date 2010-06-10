@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions.patch added to -mm tree
-Date: Wed, 09 Jun 2010 16:00:16 -0700
-Message-ID: <201006092300.o59N0GXJ026762@imap1.linux-foundation.org>
+Subject: + mm-extend-ksm-refcounts-to-the-anon_vma-root-fix.patch added to -mm tree
+Date: Wed, 09 Jun 2010 19:07:31 -0700
+Message-ID: <201006100207.o5A27PoU002141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756861Ab0FIXAc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 19:00:32 -0400
+	by vger.kernel.org with ESMTP id S1753815Ab0FJCIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jun 2010 22:08:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se, raj.khem@gmail.com, rmk@arm.linux.org.uk, stable@kernel.org
+Cc: riel@redhat.com, catalin.marinas@arm.com, hidave.darkstar@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
 
 
 The patch titled
-     compiler-gcc.h: gcc-4.5 needs noclone and noinline on __naked functions
+     only drop root anon_vma if not self (kmemleak)
 has been added to the -mm tree.  Its filename is
-     compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions.patch
+     mm-extend-ksm-refcounts-to-the-anon_vma-root-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compiler-gcc.h: gcc-4.5 needs noclone and noinline on __naked functions
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: only drop root anon_vma if not self (kmemleak)
+From: Rik van Riel <riel@redhat.com>
 
-A __naked function is defined in C but with a body completely implemented
-by asm(), including any prologue and epilogue.  These asm() bodies expect
-standard calling conventions for parameter passing.  Older GCCs implement
-that correctly, but 4.[56] currently do not, see GCC PR44290.  In the
-Linux kernel this breaks ARM, causing most arch/arm/mm/copypage-*.c
-modules to get miscompiled, resulting in kernel crashes during bootup.
+With the new anon_vma code we take a refcount on the root anon_vma.
+However, the root anon_vma does not have a refcount on itself, so
+we should not try to do a drop on itself when it is being unlinked.
 
-Part of the kernel fix is to augment the __naked function attribute to
-also imply noinline and noclone.  This patch implements that, and has been
-verified to fix boot failures with gcc-4.5 compiled 2.6.34 and 2.6.35-rc1
-kernels.  The patch is a no-op with older GCCs.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Signed-off-by: Khem Raj <raj.khem@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Tested-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h  |   10 +++++++++-
- include/linux/compiler-gcc4.h |    4 ++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ mm/rmap.c      |    3 ++-
+ mm/rmap.c.orig |   45 ++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 46 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions
-+++ a/include/linux/compiler-gcc.h
-@@ -58,8 +58,12 @@
-  * naked functions because then mcount is called without stack and frame pointer
-  * being set up and there is no chance to restore the lr register to the value
-  * before mcount was called.
-+ *
-+ * The asm() bodies of naked functions often depend on standard calling conventions,
-+ * therefore they must be noinline and noclone.  GCC 4.[56] currently fail to enforce
-+ * this, so we must do so ourselves.  See GCC PR44290.
-  */
--#define __naked				__attribute__((naked)) notrace
-+#define __naked				__attribute__((naked)) noinline __noclone notrace
+diff -puN mm/rmap.c~mm-extend-ksm-refcounts-to-the-anon_vma-root-fix mm/rmap.c
+--- a/mm/rmap.c~mm-extend-ksm-refcounts-to-the-anon_vma-root-fix
++++ a/mm/rmap.c
+@@ -273,7 +273,8 @@ static void anon_vma_unlink(struct anon_
  
- #define __noreturn			__attribute__((noreturn))
+ 	if (empty) {
+ 		/* We no longer need the root anon_vma */
+-		drop_anon_vma(anon_vma->root);
++		if (anon_vma->root != anon_vma)
++			drop_anon_vma(anon_vma->root);
+ 		anon_vma_free(anon_vma);
+ 	}
+ }
+diff -puN mm/rmap.c.orig~mm-extend-ksm-refcounts-to-the-anon_vma-root-fix mm/rmap.c.orig
+--- a/mm/rmap.c.orig~mm-extend-ksm-refcounts-to-the-anon_vma-root-fix
++++ a/mm/rmap.c.orig
+@@ -236,6 +236,12 @@ int anon_vma_fork(struct vm_area_struct 
+ 	 * lock any of the anon_vmas in this anon_vma tree.
+ 	 */
+ 	anon_vma->root = pvma->anon_vma->root;
++	/*
++	 * With KSM refcounts, an anon_vma can stay around longer than the
++	 * process it belongs to.  The root anon_vma needs to be pinned
++	 * until this anon_vma is freed, because the lock lives in the root.
++	 */
++	get_anon_vma(anon_vma->root);
+ 	/* Mark this anon_vma as the one where our new (COWed) pages go. */
+ 	vma->anon_vma = anon_vma;
+ 	anon_vma_chain_link(vma, avc, anon_vma);
+@@ -265,8 +271,11 @@ static void anon_vma_unlink(struct anon_
+ 	empty = list_empty(&anon_vma->head) && !anonvma_external_refcount(anon_vma);
+ 	anon_vma_unlock(anon_vma);
  
-@@ -85,3 +89,7 @@
- #define _gcc_header(x) __gcc_header(linux/compiler-gcc##x.h)
- #define gcc_header(x) _gcc_header(x)
- #include gcc_header(__GNUC__)
+-	if (empty)
++	if (empty) {
++		/* We no longer need the root anon_vma */
++		drop_anon_vma(anon_vma->root);
+ 		anon_vma_free(anon_vma);
++	}
+ }
+ 
+ void unlink_anon_vmas(struct vm_area_struct *vma)
+@@ -1398,6 +1407,40 @@ int try_to_munlock(struct page *page)
+ 		return try_to_unmap_file(page, TTU_MUNLOCK);
+ }
+ 
++#if defined(CONFIG_KSM) || defined(CONFIG_MIGRATION)
++/*
++ * Drop an anon_vma refcount, freeing the anon_vma and anon_vma->root
++ * if necessary.  Be careful to do all the tests under the lock.  Once
++ * we know we are the last user, nobody else can get a reference and we
++ * can do the freeing without the lock.
++ */
++void drop_anon_vma(struct anon_vma *anon_vma)
++{
++	if (atomic_dec_and_lock(&anon_vma->external_refcount, &anon_vma->root->lock)) {
++		struct anon_vma *root = anon_vma->root;
++		int empty = list_empty(&anon_vma->head);
++		int last_root_user = 0;
++		int root_empty = 0;
 +
-+#if !defined(__noclone)
-+#define __noclone	/* not needed */
++		/*
++		 * The refcount on a non-root anon_vma got dropped.  Drop
++		 * the refcount on the root and check if we need to free it.
++		 */
++		if (empty && anon_vma != root) {
++			last_root_user = atomic_dec_and_test(&root->external_refcount);
++			root_empty = list_empty(&root->head);
++		}
++		anon_vma_unlock(anon_vma);
++
++		if (empty) {
++			anon_vma_free(anon_vma);
++			if (root_empty && last_root_user)
++				anon_vma_free(root);
++		}
++	}
++}
 +#endif
-diff -puN include/linux/compiler-gcc4.h~compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions
-+++ a/include/linux/compiler-gcc4.h
-@@ -48,6 +48,10 @@
-  * unreleased.  Really, we need to have autoconf for the kernel.
-  */
- #define unreachable() __builtin_unreachable()
 +
-+/* Mark a function definition as prohibited from being cloned. */
-+#define __noclone	__attribute__((__noclone__))
-+
- #endif
- 
- #endif
+ #ifdef CONFIG_MIGRATION
+ /*
+  * rmap_walk() and its helpers rmap_walk_anon() and rmap_walk_file():
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from riel@redhat.com are
 
-compiler-gcch-gcc-45-needs-noclone-and-noinline-on-__naked-functions.patch
+mm-rename-anon_vma_lock-to-vma_lock_anon_vma.patch
+mm-change-direct-call-of-spin_lockanon_vma-lock-to-inline-function.patch
+mm-track-the-root-oldest-anon_vma.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+mm-always-lock-the-root-oldest-anon_vma.patch
+mm-extend-ksm-refcounts-to-the-anon_vma-root.patch
+mm-extend-ksm-refcounts-to-the-anon_vma-root-fix.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
 
