@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:18:40 -0700
-Message-ID: <201006112018.o5BKIeAX017349@imap1.linux-foundation.org>
+Subject: + maintainers-remove-section-strip.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:32 -0700
+Message-ID: <201006112012.o5BKCWEB017004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39684 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760250Ab0FKUS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756917Ab0FKUT2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:18:58 -0400
+	Fri, 11 Jun 2010 16:19:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, ysato@users.sourceforge.jp
+Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: add file patterns to UCLINUX FOR RENESAS H8/300
+     MAINTAINERS: remove section STRIP
 has been added to the -mm tree.  Its filename is
-     maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
+     maintainers-remove-section-strip.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add file patterns to UCLINUX FOR RENESAS H8/300
+Subject: MAINTAINERS: remove section STRIP
 From: Joe Perches <joe@perches.com>
 
+Commit f80a3f62383bf673c310926d55142d51f118926d ("Staging: strip: delete
+the driver") removed it.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300 MAINTAINERS
---- a/MAINTAINERS~maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300
+diff -puN MAINTAINERS~maintainers-remove-section-strip MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-section-strip
 +++ a/MAINTAINERS
-@@ -5718,6 +5718,9 @@ UCLINUX FOR RENESAS H8/300 (H8300)
- M:	Yoshinori Sato <ysato@users.sourceforge.jp>
- W:	http://uclinux-h8.sourceforge.jp/
- S:	Supported
-+F:	arch/h8300/
-+F:	drivers/ide/ide-h8300.c
-+F:	drivers/net/ne-h8300.c
+@@ -5448,11 +5448,6 @@ M:	Ion Badulescu <ionut@badula.org>
+ S:	Odd Fixes
+ F:	drivers/net/starfire*
  
- UDF FILESYSTEM
- M:	Jan Kara <jack@suse.cz>
+-STARMODE RADIO IP (STRIP) PROTOCOL DRIVER
+-S:	Orphan
+-F:	drivers/staging/strip/strip.c
+-F:	include/linux/if_strip.h
+-
+ STRADIS MPEG-2 DECODER DRIVER
+ M:	Nathan Laredo <laredo@gnu.org>
+ W:	http://www.stradis.com/
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -78,6 +82,5 @@ maintainers-remove-section-smx-uio-interface.patch
 maintainers-update-spear-clock-framework-support-file-patterns.patch
 maintainers-remove-section-strip.patch
 maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
-maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
 documentation-networking-wavelantxt-deleted-not-in-tree.patch
 
