@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:12:13 -0700
-Message-ID: <201006112012.o5BKCD5N016969@imap1.linux-foundation.org>
+Subject: + maintainers-update-arm-voipac-pxa270-file-patterns.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:17 -0700
+Message-ID: <201006112012.o5BKCHdw016975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756316Ab0FKUMr (ORCPT
+	by vger.kernel.org with ESMTP id S1756316Ab0FKUMu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:12:47 -0400
+	Fri, 11 Jun 2010 16:12:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, leochen@broadcom.com, sbranden@broadcom.com
+Cc: joe@perches.com, marek.vasut@gmail.com
 
 
 The patch titled
-     MAINTAINERS: update ARM/BCMRING MTD NAND DRIVER file patterns
+     MAINTAINERS: update ARM/VOIPAC PXA270 file patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
+     maintainers-update-arm-voipac-pxa270-file-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update ARM/BCMRING MTD NAND DRIVER file patterns
+Subject: MAINTAINERS: update ARM/VOIPAC PXA270 file patterns
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Leo Chen <leochen@broadcom.com>
-Cc: Scott Branden <sbranden@broadcom.com>
+Acked-by: Marek Vasut <marek.vasut@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns
+diff -puN MAINTAINERS~maintainers-update-arm-voipac-pxa270-file-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-arm-voipac-pxa270-file-patterns
 +++ a/MAINTAINERS
-@@ -576,7 +576,6 @@ L:	linux-mtd@lists.infradead.org
+@@ -1011,7 +1011,7 @@ M:	Marek Vasut <marek.vasut@gmail.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
  S:	Maintained
- F:	drivers/mtd/nand/bcm_umi_nand.c
- F:	drivers/mtd/nand/bcm_umi_bch.c
--F:	drivers/mtd/nand/bcm_umi_hamming.c
- F:	drivers/mtd/nand/nand_bcm_umi.h
+ F:	arch/arm/mach-pxa/vpac270.c
+-F:	arch/arm/mach-pxa/include/mach-pxa/vpac270.h
++F:	arch/arm/mach-pxa/include/mach/vpac270.h
  
- ARM/CAVIUM NETWORKS CNS3XXX MACHINE SUPPORT
+ ARM/ZIPIT Z2 SUPPORT
+ M:	Marek Vasut <marek.vasut@gmail.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
