@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-ppp-over-l2tp-file-patterns.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:12:23 -0700
-Message-ID: <201006112012.o5BKCNYV016986@imap1.linux-foundation.org>
+Subject: + maintainers-update-networking-file-patterns.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:21 -0700
+Message-ID: <201006112012.o5BKCL2g016983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56996 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757600Ab0FKUNC (ORCPT
+	by vger.kernel.org with ESMTP id S1757823Ab0FKUNE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:13:02 -0400
+	Fri, 11 Jun 2010 16:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jchapman@katalix.com
+Cc: joe@perches.com, linville@tuxdriver.com
 
 
 The patch titled
-     MAINTAINERS: update PPP OVER L2TP file patterns
+     MAINTAINERS: update NETWORKING [WIRELESS] file patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-ppp-over-l2tp-file-patterns.patch
+     maintainers-update-networking-file-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update PPP OVER L2TP file patterns
+Subject: MAINTAINERS: update NETWORKING [WIRELESS] file patterns
 From: Joe Perches <joe@perches.com>
 
-Commit 21b4aaa14329db793832e865f15000c5c0192ac3 ("l2tp: Relocate pppol2tp
-driver to new net/l2tp directory") moved the file.
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: James Chapman <jchapman@katalix.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-ppp-over-l2tp-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-ppp-over-l2tp-file-patterns
+diff -puN MAINTAINERS~maintainers-update-networking-file-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-networking-file-patterns
 +++ a/MAINTAINERS
-@@ -4508,7 +4508,7 @@ F:	drivers/net/pppox.c
- PPP OVER L2TP
- M:	James Chapman <jchapman@katalix.com>
- S:	Maintained
--F:	drivers/net/pppol2tp.c
-+F:	net/l2tp/l2tp_ppp.c
- F:	include/linux/if_pppol2tp.h
+@@ -4019,7 +4019,7 @@ F:	net/rfkill/
+ F:	net/wireless/
+ F:	include/net/ieee80211*
+ F:	include/linux/wireless.h
+-F:	include/linux/iw_handler.h
++F:	include/net/iw_handler.h
+ F:	drivers/net/wireless/
  
- PPS SUPPORT
+ NETWORKING DRIVERS
 _
 
 Patches currently in -mm which might be from joe@perches.com are
