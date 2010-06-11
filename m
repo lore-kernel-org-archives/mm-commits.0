@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-section-strip.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:12:32 -0700
-Message-ID: <201006112012.o5BKCWEB017004@imap1.linux-foundation.org>
+Subject: + maintainers-update-spear-clock-framework-support-file-patterns.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:30 -0700
+Message-ID: <201006112012.o5BKCUHJ017000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756917Ab0FKUT2 (ORCPT
+	by vger.kernel.org with ESMTP id S1759028Ab0FKUTb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:19:28 -0400
+	Fri, 11 Jun 2010 16:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: joe@perches.com, viresh.kumar@st.com
 
 
 The patch titled
-     MAINTAINERS: remove section STRIP
+     MAINTAINERS: update SPEAR CLOCK FRAMEWORK SUPPORT file patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-section-strip.patch
+     maintainers-update-spear-clock-framework-support-file-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove section STRIP
+Subject: MAINTAINERS: update SPEAR CLOCK FRAMEWORK SUPPORT file patterns
 From: Joe Perches <joe@perches.com>
 
-Commit f80a3f62383bf673c310926d55142d51f118926d ("Staging: strip: delete
-the driver") removed it.
-
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Viresh Kumar <viresh.kumar@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-section-strip MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-section-strip
+diff -puN MAINTAINERS~maintainers-update-spear-clock-framework-support-file-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-spear-clock-framework-support-file-patterns
 +++ a/MAINTAINERS
-@@ -5448,11 +5448,6 @@ M:	Ion Badulescu <ionut@badula.org>
- S:	Odd Fixes
- F:	drivers/net/starfire*
+@@ -5367,7 +5367,8 @@ S:	Maintained
+ F:	arch/arm/mach-spear*/clock.c
+ F:	arch/arm/mach-spear*/include/mach/clkdev.h
+ F:	arch/arm/plat-spear/clock.c
+-F:	arch/arm/plat-spear/include/plat/clock.h and clkdev.h
++F:	arch/arm/plat-spear/include/plat/clkdev.h
++F:	arch/arm/plat-spear/include/plat/clock.h
  
--STARMODE RADIO IP (STRIP) PROTOCOL DRIVER
--S:	Orphan
--F:	drivers/staging/strip/strip.c
--F:	include/linux/if_strip.h
--
- STRADIS MPEG-2 DECODER DRIVER
- M:	Nathan Laredo <laredo@gnu.org>
- W:	http://www.stradis.com/
+ SPEAR PAD MULTIPLEXING SUPPORT
+ M:	Viresh Kumar <viresh.kumar@st.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
