@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:12:15 -0700
-Message-ID: <201006112012.o5BKCFrc016972@imap1.linux-foundation.org>
+Subject: + maintainers-update-arm-zipit-z2-support-file-patterns.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:19 -0700
+Message-ID: <201006112012.o5BKCJMe016980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756316Ab0FKUMv (ORCPT
+	by vger.kernel.org with ESMTP id S1756316Ab0FKUMy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:12:51 -0400
+	Fri, 11 Jun 2010 16:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mcuos.com@gmail.com
+Cc: joe@perches.com, marek.vasut@gmail.com
 
 
 The patch titled
-     MAINTAINERS: update ARM/NUVOTON W90X900 ARM ARCHITECTURE file patterns
+     MAINTAINERS: update ARM/ZIPIT Z2 SUPPORT file patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+     maintainers-update-arm-zipit-z2-support-file-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update ARM/NUVOTON W90X900 ARM ARCHITECTURE file patterns
+Subject: MAINTAINERS: update ARM/ZIPIT Z2 SUPPORT file patterns
 From: Joe Perches <joe@perches.com>
 
+Use correct file location.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Marek Vasut <marek.vasut@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns
+diff -puN MAINTAINERS~maintainers-update-arm-zipit-z2-support-file-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-arm-zipit-z2-support-file-patterns
 +++ a/MAINTAINERS
-@@ -977,12 +977,11 @@ F:	drivers/input/keyboard/w90p910_keypad
- F:	drivers/input/touchscreen/w90p910_ts.c
- F:	drivers/watchdog/nuc900_wdt.c
- F:	drivers/net/arm/w90p910_ether.c
--F:	drivers/mtd/nand/w90p910_nand.c
-+F:	drivers/mtd/nand/nuc900_nand.c
- F:	drivers/rtc/rtc-nuc900.c
- F:	drivers/spi/spi_nuc900.c
- F:	drivers/usb/host/ehci-w90x900.c
- F:	drivers/video/nuc900fb.c
--F:	drivers/sound/soc/nuc900/
+@@ -1018,7 +1018,7 @@ M:	Marek Vasut <marek.vasut@gmail.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	arch/arm/mach-pxa/z2.c
+-F:	arch/arm/mach-pxa/include/mach-pxa/z2.h
++F:	arch/arm/mach-pxa/include/mach/z2.h
  
- ARM/U300 MACHINE SUPPORT
- M:	Linus Walleij <linus.walleij@stericsson.com>
+ ASC7621 HARDWARE MONITOR DRIVER
+ M:	George Joseph <george.joseph@fairview5.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
