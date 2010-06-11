@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-networking-file-patterns.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:12:21 -0700
-Message-ID: <201006112012.o5BKCL2g016983@imap1.linux-foundation.org>
+Subject: + maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:34 -0700
+Message-ID: <201006112012.o5BKCYOM017007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757823Ab0FKUNE (ORCPT
+	by vger.kernel.org with ESMTP id S1757720Ab0FKUNZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:13:04 -0400
+	Fri, 11 Jun 2010 16:13:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, linville@tuxdriver.com
+Cc: joe@perches.com, jt@hpl.hp.com
 
 
 The patch titled
-     MAINTAINERS: update NETWORKING [WIRELESS] file patterns
+     MAINTAINERS: remove section WAVELAN NETWORK DRIVER & WIRELESS EXTENSIONS
 has been added to the -mm tree.  Its filename is
-     maintainers-update-networking-file-patterns.patch
+     maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update NETWORKING [WIRELESS] file patterns
+Subject: MAINTAINERS: remove section WAVELAN NETWORK DRIVER & WIRELESS EXTENSIONS
 From: Joe Perches <joe@perches.com>
 
+Commit 1d794e3b353b50ab5d9d46f7c15607f9ec8c78e0 ("Staging: wavelan: delete
+the driver") removed it.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Jean Tourrilhes <jt@hpl.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-networking-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-networking-file-patterns
+diff -puN MAINTAINERS~maintainers-remove-section-wavelan-network-driver-wireless-extensions MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-section-wavelan-network-driver-wireless-extensions
 +++ a/MAINTAINERS
-@@ -4019,7 +4019,7 @@ F:	net/rfkill/
- F:	net/wireless/
- F:	include/net/ieee80211*
- F:	include/linux/wireless.h
--F:	include/linux/iw_handler.h
-+F:	include/net/iw_handler.h
- F:	drivers/net/wireless/
+@@ -6253,14 +6253,6 @@ F:	Documentation/watchdog/
+ F:	drivers/watchdog/
+ F:	include/linux/watchdog.h
  
- NETWORKING DRIVERS
+-WAVELAN NETWORK DRIVER & WIRELESS EXTENSIONS
+-M:	Jean Tourrilhes <jt@hpl.hp.com>
+-L:	linux-wireless@vger.kernel.org
+-W:	http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/
+-S:	Maintained
+-F:	Documentation/networking/wavelan.txt
+-F:	drivers/staging/wavelan/
+-
+ WD7000 SCSI DRIVER
+ M:	Miroslav Zagorac <zaga@fly.cc.fer.hr>
+ L:	linux-scsi@vger.kernel.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
