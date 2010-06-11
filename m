@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-fold-__out_of_memory-into-out_of_memory.patch added to -mm tree
-Date: Fri, 11 Jun 2010 13:29:43 -0700
-Message-ID: <201006112029.o5BKThHr017831@imap1.linux-foundation.org>
+Subject: + mm-use-for_each_online_cpu-in-vmstat.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:42:01 -0700
+Message-ID: <201006112042.o5BKg16k018489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760439Ab0FKUjh (ORCPT
+	by vger.kernel.org with ESMTP id S1760505Ab0FKUmH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 16:39:37 -0400
+	Fri, 11 Jun 2010 16:42:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: minchan.kim@gmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     oom: fold __out_of_memory into out_of_memory
+     mm: use for_each_online_cpu() in vmstat
 has been added to the -mm tree.  Its filename is
-     oom-fold-__out_of_memory-into-out_of_memory.patch
+     mm-use-for_each_online_cpu-in-vmstat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: fold __out_of_memory into out_of_memory
-From: David Rientjes <rientjes@google.com>
+Subject: mm: use for_each_online_cpu() in vmstat
+From: Minchan Kim <minchan.kim@gmail.com>
 
-__out_of_memory() only has a single caller, so fold it into
-out_of_memory() and add a comment about locking for its call to
-oom_kill_process().
+The sum_vm_events passes cpumask for for_each_cpu().  But it's useless
+since we have for_each_online_cpu.  Althougth it's tirival overhead, it's
+not good about coding consistency.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Let's use for_each_online_cpu instead of for_each_cpu with cpumask
+argument.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   65 +++++++++++++++++++++---------------------------
- 1 file changed, 29 insertions(+), 36 deletions(-)
+ mm/vmstat.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-fold-__out_of_memory-into-out_of_memory mm/oom_kill.c
---- a/mm/oom_kill.c~oom-fold-__out_of_memory-into-out_of_memory
-+++ a/mm/oom_kill.c
-@@ -628,41 +628,6 @@ static void clear_system_oom(void)
- 	spin_unlock(&zone_scan_lock);
- }
+diff -puN mm/vmstat.c~mm-use-for_each_online_cpu-in-vmstat mm/vmstat.c
+--- a/mm/vmstat.c~mm-use-for_each_online_cpu-in-vmstat
++++ a/mm/vmstat.c
+@@ -22,14 +22,14 @@
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+ EXPORT_PER_CPU_SYMBOL(vm_event_states);
  
--
--/*
-- * Must be called with tasklist_lock held for read.
-- */
--static void __out_of_memory(gfp_t gfp_mask, int order, const nodemask_t *mask)
--{
--	struct task_struct *p;
--	unsigned long points;
--
--	if (sysctl_oom_kill_allocating_task)
--		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
--				"Out of memory (oom_kill_allocating_task)"))
--			return;
--retry:
--	/*
--	 * Rambo mode: Shoot down a process and hope it solves whatever
--	 * issues we may have.
--	 */
--	p = select_bad_process(&points, NULL, mask);
--
--	if (PTR_ERR(p) == -1UL)
--		return;
--
--	/* Found nothing?!?! Either we hang forever, or we panic. */
--	if (!p) {
--		dump_header(NULL, gfp_mask, order, NULL);
--		read_unlock(&tasklist_lock);
--		panic("Out of memory and no killable processes...\n");
--	}
--
--	if (oom_kill_process(p, gfp_mask, order, points, NULL,
--			     "Out of memory"))
--		goto retry;
--}
--
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-  * @zonelist: zonelist pointer
-@@ -678,7 +643,9 @@ retry:
- void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
- 		int order, nodemask_t *nodemask)
+-static void sum_vm_events(unsigned long *ret, const struct cpumask *cpumask)
++static void sum_vm_events(unsigned long *ret)
  {
-+	struct task_struct *p;
- 	unsigned long freed = 0;
-+	unsigned long points;
- 	enum oom_constraint constraint = CONSTRAINT_NONE;
+ 	int cpu;
+ 	int i;
  
- 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
-@@ -703,10 +670,36 @@ void out_of_memory(struct zonelist *zone
- 	if (zonelist)
- 		constraint = constrained_alloc(zonelist, gfp_mask, nodemask);
- 	check_panic_on_oom(constraint, gfp_mask, order);
-+
- 	read_lock(&tasklist_lock);
--	__out_of_memory(gfp_mask, order,
-+	if (sysctl_oom_kill_allocating_task) {
-+		/*
-+		 * oom_kill_process() needs tasklist_lock held.  If it returns
-+		 * non-zero, current could not be killed so we must fallback to
-+		 * the tasklist scan.
-+		 */
-+		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
-+				"Out of memory (oom_kill_allocating_task)"))
-+			return;
-+	}
-+
-+retry:
-+	p = select_bad_process(&points, NULL,
- 			constraint == CONSTRAINT_MEMORY_POLICY ? nodemask :
- 								 NULL);
-+	if (PTR_ERR(p) == -1UL)
-+		return;
-+
-+	/* Found nothing?!?! Either we hang forever, or we panic. */
-+	if (!p) {
-+		dump_header(NULL, gfp_mask, order, NULL);
-+		read_unlock(&tasklist_lock);
-+		panic("Out of memory and no killable processes...\n");
-+	}
-+
-+	if (oom_kill_process(p, gfp_mask, order, points, NULL,
-+			     "Out of memory"))
-+		goto retry;
- 	read_unlock(&tasklist_lock);
+ 	memset(ret, 0, NR_VM_EVENT_ITEMS * sizeof(unsigned long));
  
- 	/*
+-	for_each_cpu(cpu, cpumask) {
++	for_each_online_cpu(cpu) {
+ 		struct vm_event_state *this = &per_cpu(vm_event_states, cpu);
+ 
+ 		for (i = 0; i < NR_VM_EVENT_ITEMS; i++)
+@@ -45,7 +45,7 @@ static void sum_vm_events(unsigned long 
+ void all_vm_events(unsigned long *ret)
+ {
+ 	get_online_cpus();
+-	sum_vm_events(ret, cpu_online_mask);
++	sum_vm_events(ret);
+ 	put_online_cpus();
+ }
+ EXPORT_SYMBOL_GPL(all_vm_events);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-avr32-invoke-oom-killer-from-page-fault.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
+mm-vmap-area-cache.patch
+mm-vmap-area-cache-fix.patch
+mm-rename-anon_vma_lock-to-vma_lock_anon_vma.patch
+mm-change-direct-call-of-spin_lockanon_vma-lock-to-inline-function.patch
+mm-track-the-root-oldest-anon_vma.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+mm-always-lock-the-root-oldest-anon_vma.patch
+mm-extend-ksm-refcounts-to-the-anon_vma-root.patch
+mm-extend-ksm-refcounts-to-the-anon_vma-root-fix.patch
+mm-use-for_each_online_cpu-in-vmstat.patch
 
