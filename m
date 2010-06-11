@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-add-hw_err-printk-prefix-for-hardware-error-logging.patch added to -mm tree
-Date: Thu, 10 Jun 2010 16:46:30 -0700
-Message-ID: <201006102346.o5ANkVAn030128@imap1.linux-foundation.org>
+Subject: + maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch added to -mm tree
+Date: Fri, 11 Jun 2010 13:12:13 -0700
+Message-ID: <201006112012.o5BKCD5N016969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752942Ab0FJXrW (ORCPT
+	by vger.kernel.org with ESMTP id S1756316Ab0FKUMr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jun 2010 19:47:22 -0400
+	Fri, 11 Jun 2010 16:12:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, hpa@zytor.com, mingo@elte.hu, seto.hidetoshi@jp.fujitsu.com, tglx@linutronix.de
+Cc: joe@perches.com, leochen@broadcom.com, sbranden@broadcom.com
 
 
 The patch titled
-     kernel.h: add HW_ERR printk prefix for hardware error logging
+     MAINTAINERS: update ARM/BCMRING MTD NAND DRIVER file patterns
 has been added to the -mm tree.  Its filename is
-     kernelh-add-hw_err-printk-prefix-for-hardware-error-logging.patch
+     maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: add HW_ERR printk prefix for hardware error logging
-From: Huang Ying <ying.huang@intel.com>
+Subject: MAINTAINERS: update ARM/BCMRING MTD NAND DRIVER file patterns
+From: Joe Perches <joe@perches.com>
 
-This makes hardware error related log in printk log more explicit. So
-that the users can report it to hardware vendor instead of LKML or
-software vendor.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Leo Chen <leochen@broadcom.com>
+Cc: Scott Branden <sbranden@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernelh-add-hw_err-printk-prefix-for-hardware-error-logging include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-hw_err-printk-prefix-for-hardware-error-logging
-+++ a/include/linux/kernel.h
-@@ -247,6 +247,13 @@ extern struct pid *session_of_pgrp(struc
- #define FW_WARN		"[Firmware Warn]: "
- #define FW_INFO		"[Firmware Info]: "
+diff -puN MAINTAINERS~maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns
++++ a/MAINTAINERS
+@@ -576,7 +576,6 @@ L:	linux-mtd@lists.infradead.org
+ S:	Maintained
+ F:	drivers/mtd/nand/bcm_umi_nand.c
+ F:	drivers/mtd/nand/bcm_umi_bch.c
+-F:	drivers/mtd/nand/bcm_umi_hamming.c
+ F:	drivers/mtd/nand/nand_bcm_umi.h
  
-+/*
-+ * HW_ERR
-+ * Add this to a message for hardware errors, so that user can report
-+ * it to hardware vendor instead of LKML or software vendor.
-+ */
-+#define HW_ERR		"[Hardware Error]: "
-+
- #ifdef CONFIG_PRINTK
- asmlinkage int vprintk(const char *fmt, va_list args)
- 	__attribute__ ((format (printf, 1, 0)));
+ ARM/CAVIUM NETWORKS CNS3XXX MACHINE SUPPORT
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-kernelh-add-hw_err-printk-prefix-for-hardware-error-logging.patch
-x86-use-hw_err-in-mce-handler.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
+maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
+maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+maintainers-update-arm-voipac-pxa270-file-patterns.patch
+maintainers-update-arm-zipit-z2-support-file-patterns.patch
+maintainers-update-networking-file-patterns.patch
+maintainers-update-ppp-over-l2tp-file-patterns.patch
+maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+maintainers-remove-section-smx-uio-interface.patch
+maintainers-update-spear-clock-framework-support-file-patterns.patch
+maintainers-remove-section-strip.patch
+maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
+documentation-networking-wavelantxt-deleted-not-in-tree.patch
 
