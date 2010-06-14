@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-proper-init-of-memtype-subtree_max_end.patch added to -mm tree
-Date: Mon, 14 Jun 2010 12:03:15 -0700
-Message-ID: <201006141903.o5EJ3GEM025325@imap1.linux-foundation.org>
+Subject: + serial-mcf-dont-take-spinlocks-in-already-protected-functions.patch added to -mm tree
+Date: Mon, 14 Jun 2010 12:12:47 -0700
+Message-ID: <201006141912.o5EJClVX025753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753289Ab0FNTEJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753829Ab0FNTNB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jun 2010 15:04:09 -0400
+	Mon, 14 Jun 2010 15:13:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venki@google.com, casteyde.christian@free.fr, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: ygeorgie@gmail.com, alan@lxorguk.ukuu.org.uk, gerg@uclinux.org, greg@kroah.com
 
 
 The patch titled
-     x86: proper init of memtype subtree_max_end
+     serial: mcf: don't take spinlocks in already protected functions
 has been added to the -mm tree.  Its filename is
-     x86-proper-init-of-memtype-subtree_max_end.patch
+     serial-mcf-dont-take-spinlocks-in-already-protected-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: proper init of memtype subtree_max_end
-From: Venkatesh Pallipadi <venki@google.com>
+Subject: serial: mcf: don't take spinlocks in already protected functions
+From: Yury Georgievskiy <ygeorgie@gmail.com>
 
-subtree_max_end that was recently added to struct memtype was not getting
-properly initialized resulting in
+Don't take the port spinlock in uart functions where the serial core
+already takes care of locking/unlocking them.
 
-WARNING: kmemcheck: Caught 64-bit read from uninitialized memory
-in memtype_rb_augment_cb()
-reported here
-https://bugzilla.kernel.org/show_bug.cgi?id=16092
+The code would actually lock up on architectures where spinlocks are
+implemented.
 
-This change fixes the problem.
+Also protect calling mcf_rx_chars/mcf_tx_chars in the interrupt handler by
+the port spinlock and use IRQ_RETVAL to return from isr.
 
-Signed-off-by: Venkatesh Pallipadi <venki@google.com>
-Reported-by: Christian Casteyde <casteyde.christian@free.fr>
-Tested-by: Christian Casteyde <casteyde.christian@free.fr>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Yury Georgievskiy <ygeorgie@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat.c        |    2 +-
- arch/x86/mm/pat_rbtree.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/mcf.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN arch/x86/mm/pat.c~x86-proper-init-of-memtype-subtree_max_end arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~x86-proper-init-of-memtype-subtree_max_end
-+++ a/arch/x86/mm/pat.c
-@@ -302,7 +302,7 @@ int reserve_memtype(u64 start, u64 end, 
- 		return -EINVAL;
- 	}
+diff -puN drivers/serial/mcf.c~serial-mcf-dont-take-spinlocks-in-already-protected-functions drivers/serial/mcf.c
+--- a/drivers/serial/mcf.c~serial-mcf-dont-take-spinlocks-in-already-protected-functions
++++ a/drivers/serial/mcf.c
+@@ -70,16 +70,14 @@ static unsigned int mcf_tx_empty(struct 
+ static unsigned int mcf_get_mctrl(struct uart_port *port)
+ {
+ 	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+-	unsigned long flags;
+ 	unsigned int sigs;
  
--	new  = kmalloc(sizeof(struct memtype), GFP_KERNEL);
-+	new  = kzalloc(sizeof(struct memtype), GFP_KERNEL);
- 	if (!new)
- 		return -ENOMEM;
+-	spin_lock_irqsave(&port->lock, flags);
+ 	sigs = (readb(port->membase + MCFUART_UIPR) & MCFUART_UIPR_CTS) ?
+ 		0 : TIOCM_CTS;
+ 	sigs |= (pp->sigs & TIOCM_RTS);
+ 	sigs |= (mcf_getppdcd(port->line) ? TIOCM_CD : 0);
+ 	sigs |= (mcf_getppdtr(port->line) ? TIOCM_DTR : 0);
+-	spin_unlock_irqrestore(&port->lock, flags);
++
+ 	return sigs;
+ }
  
-diff -puN arch/x86/mm/pat_rbtree.c~x86-proper-init-of-memtype-subtree_max_end arch/x86/mm/pat_rbtree.c
---- a/arch/x86/mm/pat_rbtree.c~x86-proper-init-of-memtype-subtree_max_end
-+++ a/arch/x86/mm/pat_rbtree.c
-@@ -226,6 +226,7 @@ int rbt_memtype_check_insert(struct memt
- 		if (ret_type)
- 			new->type = *ret_type;
+@@ -88,16 +86,13 @@ static unsigned int mcf_get_mctrl(struct
+ static void mcf_set_mctrl(struct uart_port *port, unsigned int sigs)
+ {
+ 	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+-	unsigned long flags;
  
-+		new->subtree_max_end = new->end;
- 		memtype_rb_insert(&memtype_rbroot, new);
- 	}
- 	return err;
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->sigs = sigs;
+ 	mcf_setppdtr(port->line, (sigs & TIOCM_DTR));
+ 	if (sigs & TIOCM_RTS)
+ 		writeb(MCFUART_UOP_RTS, port->membase + MCFUART_UOP1);
+ 	else
+ 		writeb(MCFUART_UOP_RTS, port->membase + MCFUART_UOP0);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ /****************************************************************************/
+@@ -105,12 +100,9 @@ static void mcf_set_mctrl(struct uart_po
+ static void mcf_start_tx(struct uart_port *port)
+ {
+ 	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->imr |= MCFUART_UIR_TXREADY;
+ 	writeb(pp->imr, port->membase + MCFUART_UIMR);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ /****************************************************************************/
+@@ -118,12 +110,9 @@ static void mcf_start_tx(struct uart_por
+ static void mcf_stop_tx(struct uart_port *port)
+ {
+ 	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->imr &= ~MCFUART_UIR_TXREADY;
+ 	writeb(pp->imr, port->membase + MCFUART_UIMR);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ /****************************************************************************/
+@@ -131,12 +120,9 @@ static void mcf_stop_tx(struct uart_port
+ static void mcf_stop_rx(struct uart_port *port)
+ {
+ 	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&port->lock, flags);
+ 	pp->imr &= ~MCFUART_UIR_RXREADY;
+ 	writeb(pp->imr, port->membase + MCFUART_UIMR);
+-	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ /****************************************************************************/
+@@ -368,11 +354,15 @@ static irqreturn_t mcf_interrupt(int irq
+ 	unsigned int isr;
+ 
+ 	isr = readb(port->membase + MCFUART_UISR) & pp->imr;
++
++	spin_lock(&port->lock);
+ 	if (isr & MCFUART_UIR_RXREADY)
+ 		mcf_rx_chars(pp);
+ 	if (isr & MCFUART_UIR_TXREADY)
+ 		mcf_tx_chars(pp);
+-	return IRQ_HANDLED;
++	spin_unlock(&port->lock);
++
++	return IRQ_RETVAL(isr);
+ }
+ 
+ /****************************************************************************/
 _
 
-Patches currently in -mm which might be from venki@google.com are
+Patches currently in -mm which might be from ygeorgie@gmail.com are
 
-x86-proper-init-of-memtype-subtree_max_end.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
 
