@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-cmos-attribute-should-be-static.patch added to -mm tree
-Date: Mon, 14 Jun 2010 12:39:24 -0700
-Message-ID: <201006141939.o5EJdOCf026918@imap1.linux-foundation.org>
+Subject: + hp-wmi-add-error-handling-for-hp_wmi_init.patch added to -mm tree
+Date: Mon, 14 Jun 2010 12:53:25 -0700
+Message-ID: <201006141953.o5EJrPYX027608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753774Ab0FNTj2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751100Ab0FNTyK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jun 2010 15:39:28 -0400
+	Mon, 14 Jun 2010 15:54:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, axboe@kernel.dk
+Cc: axel.lin@gmail.com, len.brown@intel.com, mjg@redhat.com, trenn@suse.de
 
 
 The patch titled
-     floppy: cmos attribute should be static
+     hp-wmi: add error handling for hp_wmi_init()
 has been added to the -mm tree.  Its filename is
-     floppy-cmos-attribute-should-be-static.patch
+     hp-wmi-add-error-handling-for-hp_wmi_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: cmos attribute should be static
-From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: hp-wmi: add error handling for hp_wmi_init()
+From: Axel Lin <axel.lin@gmail.com>
 
-As reported by sparse, cmos attribute is local.
+hp_wmi_init() does not check for errors and always returns success.  This
+patch properly handles recource reclaim and return err in error path.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/hp-wmi.c |   31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-cmos-attribute-should-be-static drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-cmos-attribute-should-be-static
-+++ a/drivers/block/floppy.c
-@@ -4127,7 +4127,7 @@ static ssize_t floppy_cmos_show(struct d
- 	return sprintf(buf, "%X\n", UDP->cmos);
+diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-add-error-handling-for-hp_wmi_init drivers/platform/x86/hp-wmi.c
+--- a/drivers/platform/x86/hp-wmi.c~hp-wmi-add-error-handling-for-hp_wmi_init
++++ a/drivers/platform/x86/hp-wmi.c
+@@ -715,23 +715,42 @@ static int __init hp_wmi_init(void)
+ 	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
+ 		err = wmi_install_notify_handler(HPWMI_EVENT_GUID,
+ 						 hp_wmi_notify, NULL);
+-		if (ACPI_SUCCESS(err))
+-			hp_wmi_input_setup();
++		if (ACPI_FAILURE(err))
++			return -EINVAL;
++		err = hp_wmi_input_setup();
++		if (err) {
++			wmi_remove_notify_handler(HPWMI_EVENT_GUID);
++			return err;
++		}
+ 	}
+ 
+ 	if (wmi_has_guid(HPWMI_BIOS_GUID)) {
+ 		err = platform_driver_register(&hp_wmi_driver);
+ 		if (err)
+-			return 0;
++			goto err_driver_reg;
+ 		hp_wmi_platform_dev = platform_device_alloc("hp-wmi", -1);
+ 		if (!hp_wmi_platform_dev) {
+-			platform_driver_unregister(&hp_wmi_driver);
+-			return 0;
++			err = -ENOMEM;
++			goto err_device_alloc;
+ 		}
+-		platform_device_add(hp_wmi_platform_dev);
++		err = platform_device_add(hp_wmi_platform_dev);
++		if (err)
++			goto err_device_add;
+ 	}
+ 
+ 	return 0;
++
++err_device_add:
++	platform_device_put(hp_wmi_platform_dev);
++err_device_alloc:
++	platform_driver_unregister(&hp_wmi_driver);
++err_driver_reg:
++	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
++		input_unregister_device(hp_wmi_input_dev);
++		wmi_remove_notify_handler(HPWMI_EVENT_GUID);
++	}
++
++	return err;
  }
  
--DEVICE_ATTR(cmos, S_IRUGO, floppy_cmos_show, NULL);
-+static DEVICE_ATTR(cmos, S_IRUGO, floppy_cmos_show, NULL);
- 
- static void floppy_device_release(struct device *dev)
- {
+ static void __exit hp_wmi_exit(void)
 _
 
-Patches currently in -mm which might be from shemminger@vyatta.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-floppy-initialize-debug-jiffies-offset.patch
-floppy-remove-unnecessary-inlines.patch
-floppy-silence-warning-during-disk-test.patch
-floppy-use-atomic-type-for-usage_count.patch
-floppy-cmos-attribute-should-be-static.patch
-floppy-fix-signed-unsigned-warnings.patch
-floppy-use-wait_event_interruptible.patch
-floppy-use-warning-macros.patch
-floppy-make-controller-const.patch
+wmi-fix-memory-leak-in-parse_wdg.patch
+acer-wmi-hp-wmi-use-platform_device_unregister-instead-of-platform_device_del-in-module_exit.patch
+hp-wmi-add-error-handling-for-hp_wmi_init.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
 
