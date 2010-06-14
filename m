@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-use-wait_event_interruptible.patch added to -mm tree
-Date: Mon, 14 Jun 2010 12:39:28 -0700
-Message-ID: <201006141939.o5EJdSou026930@imap1.linux-foundation.org>
+Subject: + floppy-silence-warning-during-disk-test.patch added to -mm tree
+Date: Mon, 14 Jun 2010 12:39:20 -0700
+Message-ID: <201006141939.o5EJdKPp026909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753774Ab0FNTjc (ORCPT
+	by vger.kernel.org with ESMTP id S1754768Ab0FNTjY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jun 2010 15:39:32 -0400
+	Mon, 14 Jun 2010 15:39:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: shemminger@vyatta.com, axboe@kernel.dk
 
 
 The patch titled
-     floppy: use wait_event_interruptible
+     floppy: silence warning during disk test
 has been added to the -mm tree.  Its filename is
-     floppy-use-wait_event_interruptible.patch
+     floppy-silence-warning-during-disk-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: use wait_event_interruptible
+Subject: floppy: silence warning during disk test
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Convert wait loops to use wait_event_ macros.
+The first thing the floppy does is read block 0 to test geometry and to
+test for disk presence.  If disk is not present this causes a console
+warning message about failed I/O.  Set flag to silence.
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   59 +++++----------------------------------
- 1 file changed, 9 insertions(+), 50 deletions(-)
+ drivers/block/floppy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/floppy.c~floppy-use-wait_event_interruptible drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-use-wait_event_interruptible
+diff -puN drivers/block/floppy.c~floppy-silence-warning-during-disk-test drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-silence-warning-during-disk-test
 +++ a/drivers/block/floppy.c
-@@ -514,8 +514,6 @@ static unsigned long fdc_busy;
- static DECLARE_WAIT_QUEUE_HEAD(fdc_wait);
- static DECLARE_WAIT_QUEUE_HEAD(command_done);
- 
--#define NO_SIGNAL (!interruptible || !signal_pending(current))
--
- /* Errors during formatting are counted here. */
- static int format_errors;
- 
-@@ -858,36 +856,15 @@ static void set_fdc(int drive)
- }
- 
- /* locks the driver */
--static int _lock_fdc(int drive, bool interruptible, int line)
-+static int lock_fdc(int drive, bool interruptible)
- {
--	if (atomic_read(&usage_count) == 0) {
--		pr_err("Trying to lock fdc while usage count=0 at line %d\n",
--		       line);
-+	if (WARN(atomic_read(&usage_count) == 0,
-+		 "Trying to lock fdc while usage count=0\n"))
- 		return -1;
--	}
- 
--	if (test_and_set_bit(0, &fdc_busy)) {
--		DECLARE_WAITQUEUE(wait, current);
--		add_wait_queue(&fdc_wait, &wait);
--
--		for (;;) {
--			set_current_state(TASK_INTERRUPTIBLE);
--
--			if (!test_and_set_bit(0, &fdc_busy))
--				break;
--
--			schedule();
--
--			if (!NO_SIGNAL) {
--				remove_wait_queue(&fdc_wait, &wait);
--				return -EINTR;
--			}
--		}
-+	if (wait_event_interruptible(fdc_wait, !test_and_set_bit(0, &fdc_busy)))
-+		return -EINTR;
- 
--		set_current_state(TASK_RUNNING);
--		remove_wait_queue(&fdc_wait, &wait);
--		flush_scheduled_work();
--	}
- 	command_status = FD_COMMAND_NONE;
- 
- 	__reschedule_timeout(drive, "lock fdc");
-@@ -895,9 +872,6 @@ static int _lock_fdc(int drive, bool int
- 	return 0;
- }
- 
--#define lock_fdc(drive, interruptible)			\
--	_lock_fdc(drive, interruptible, __LINE__)
--
- /* unlocks the driver */
- static void unlock_fdc(void)
- {
-@@ -2015,25 +1989,10 @@ static int wait_til_done(void (*handler)
- 
- 	schedule_bh(handler);
- 
--	if (command_status < 2 && NO_SIGNAL) {
--		DECLARE_WAITQUEUE(wait, current);
--
--		add_wait_queue(&command_done, &wait);
--		for (;;) {
--			set_current_state(interruptible ?
--					  TASK_INTERRUPTIBLE :
--					  TASK_UNINTERRUPTIBLE);
--
--			if (command_status >= 2 || !NO_SIGNAL)
--				break;
--
--			is_alive(__func__, "");
--			schedule();
--		}
--
--		set_current_state(TASK_RUNNING);
--		remove_wait_queue(&command_done, &wait);
--	}
-+	if (interruptible)
-+		wait_event_interruptible(command_done, command_status >= 2);
-+	else
-+		wait_event(command_done, command_status >= 2);
- 
- 	if (command_status < 2) {
- 		cancel_activity();
+@@ -3829,6 +3829,7 @@ static int __floppy_read_block_0(struct 
+ 	bio.bi_size = size;
+ 	bio.bi_bdev = bdev;
+ 	bio.bi_sector = 0;
++	bio.bi_flags = BIO_QUIET;
+ 	init_completion(&complete);
+ 	bio.bi_private = &complete;
+ 	bio.bi_end_io = floppy_rb0_complete;
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
