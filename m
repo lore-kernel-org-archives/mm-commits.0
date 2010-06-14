@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-support-for-calling-into-openfirmware-fix-fix.patch added to -mm tree
-Date: Fri, 11 Jun 2010 19:54:39 -0700
-Message-ID: <201006120254.o5C2sXbD001714@imap1.linux-foundation.org>
+Subject: + x86-proper-init-of-memtype-subtree_max_end.patch added to -mm tree
+Date: Mon, 14 Jun 2010 12:03:15 -0700
+Message-ID: <201006141903.o5EJ3GEM025325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751982Ab0FLCzA (ORCPT
+	by vger.kernel.org with ESMTP id S1753289Ab0FNTEJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jun 2010 22:55:00 -0400
+	Mon, 14 Jun 2010 15:04:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dilinger@queued.net, hidave.darkstar@gmail.com, hpa@zytor.com, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
+Cc: venki@google.com, casteyde.christian@free.fr, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86-olpc-add-support-for-calling-into-openfirmware-fix-fix
+     x86: proper init of memtype subtree_max_end
 has been added to the -mm tree.  Its filename is
-     x86-olpc-add-support-for-calling-into-openfirmware-fix-fix.patch
+     x86-proper-init-of-memtype-subtree_max_end.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-olpc-add-support-for-calling-into-openfirmware-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86: proper init of memtype subtree_max_end
+From: Venkatesh Pallipadi <venki@google.com>
 
-reduce ifdef complexity
+subtree_max_end that was recently added to struct memtype was not getting
+properly initialized resulting in
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+WARNING: kmemcheck: Caught 64-bit read from uninitialized memory
+in memtype_rb_augment_cb()
+reported here
+https://bugzilla.kernel.org/show_bug.cgi?id=16092
+
+This change fixes the problem.
+
+Signed-off-by: Venkatesh Pallipadi <venki@google.com>
+Reported-by: Christian Casteyde <casteyde.christian@free.fr>
+Tested-by: Christian Casteyde <casteyde.christian@free.fr>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/olpc_ofw.h |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/x86/mm/pat.c        |    2 +-
+ arch/x86/mm/pat_rbtree.c |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/olpc_ofw.h~x86-olpc-add-support-for-calling-into-openfirmware-fix-fix arch/x86/include/asm/olpc_ofw.h
---- a/arch/x86/include/asm/olpc_ofw.h~x86-olpc-add-support-for-calling-into-openfirmware-fix-fix
-+++ a/arch/x86/include/asm/olpc_ofw.h
-@@ -6,10 +6,10 @@
- #define OLPC_OFW_SIZE (PGDIR_SIZE)
- #define OLPC_OFW_END (OLPC_OFW_START + OLPC_OFW_SIZE)
+diff -puN arch/x86/mm/pat.c~x86-proper-init-of-memtype-subtree_max_end arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~x86-proper-init-of-memtype-subtree_max_end
++++ a/arch/x86/mm/pat.c
+@@ -302,7 +302,7 @@ int reserve_memtype(u64 start, u64 end, 
+ 		return -EINVAL;
+ 	}
  
--#ifdef CONFIG_OLPC_OPENFIRMWARE
--
- #ifndef __ASSEMBLER__
+-	new  = kmalloc(sizeof(struct memtype), GFP_KERNEL);
++	new  = kzalloc(sizeof(struct memtype), GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
  
-+#ifdef CONFIG_OLPC_OPENFIRMWARE
-+
- /* address of OFW callback interface; will be NULL if OFW isn't found */
- extern int (*olpc_ofw_cif)(int *);
+diff -puN arch/x86/mm/pat_rbtree.c~x86-proper-init-of-memtype-subtree_max_end arch/x86/mm/pat_rbtree.c
+--- a/arch/x86/mm/pat_rbtree.c~x86-proper-init-of-memtype-subtree_max_end
++++ a/arch/x86/mm/pat_rbtree.c
+@@ -226,6 +226,7 @@ int rbt_memtype_check_insert(struct memt
+ 		if (ret_type)
+ 			new->type = *ret_type;
  
-@@ -22,14 +22,12 @@ extern int olpc_ofw(const char *name, in
- /* determine/ensure OFW lives in the proper place in (virtual) memory */
- void olpc_ofw_detect_range(void);
- 
--#endif
--
--#else
-+#else	/* CONFIG_OLPC_OPENFIRMWARE */
- 
--#ifndef __ASSEMBLER__
- static inline void olpc_ofw_detect_range(void) { }
--#endif
- 
--#endif
-+#endif	/* CONFIG_OLPC_OPENFIRMWARE */
-+
-+#endif	/* __ASSEMBLER__ */
- 
- #endif
++		new->subtree_max_end = new->end;
+ 		memtype_rb_insert(&memtype_rbroot, new);
+ 	}
+ 	return err;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from venki@google.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-x86-olpc-add-support-for-calling-into-openfirmware-fix-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-mmc-recognize-csd-structure-fix.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+x86-proper-init-of-memtype-subtree_max_end.patch
 
