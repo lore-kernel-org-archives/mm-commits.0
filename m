@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-vtc-vc_do_resize-local-var-end-should-be-unsigned-long.patch added to -mm tree
-Date: Mon, 14 Jun 2010 14:32:09 -0700
-Message-ID: <201006142132.o5ELW9Dh032242@imap1.linux-foundation.org>
+Subject: + um-call-free_irq-only-on-enabled-channels.patch added to -mm tree
+Date: Mon, 14 Jun 2010 15:45:47 -0700
+Message-ID: <201006142245.o5EMjlpC003324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809Ab0FNVcX (ORCPT
+	by vger.kernel.org with ESMTP id S1751469Ab0FNWqE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jun 2010 17:32:23 -0400
+	Mon, 14 Jun 2010 18:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qiaochong@loongson.cn, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: richard@nod.at, jdike@addtoit.com
 
 
 The patch titled
-     drivers/char/vt.c:vc_do_resize(): local var `end' should be unsigned long
+     um: call free_irq() only on enabled channels
 has been added to the -mm tree.  Its filename is
-     drivers-char-vtc-vc_do_resize-local-var-end-should-be-unsigned-long.patch
+     um-call-free_irq-only-on-enabled-channels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/vt.c:vc_do_resize(): local var `end' should be unsigned long
-From: qiaochong <qiaochong@loongson.cn>
+Subject: um: call free_irq() only on enabled channels
+From: Richard Weinberger <richard@nod.at>
 
-According include/linux/console_struct.h,vc_scr_end is unsigned long.
+When I use OpenSUSE-11.2 on UML (> 2.6.25)
+I get lots of such errors:
 
-struct vc_data {
-    unsigned short  vc_num;         /* Console number */
-    unsigned int    vc_cols;        /* [#] Console size */
-    unsigned int    vc_rows;
-    unsigned int    vc_size_row;        /* Bytes per row */
-    unsigned int    vc_scan_lines;      /* # of scan lines */
-    unsigned long   vc_origin;      /* [!] Start of real screen */
-    unsigned long   vc_scr_end;     /* [!] End of real screen */
-    unsigned long   vc_visible_origin;  /* [!] Top of visible window */
-    unsigned int    vc_top, vc_bottom;  /* Scrolling region */
-    const struct consw *vc_sw;
-    unsigned short  *vc_screenbuf;
-...
-}
+Registering fd 1 twice
+Irqs : 3, 3
+Ids : 0x09cb41a0, 0x09cb4120
+------------[ cut here ]------------
+WARNING: at kernel/irq/manage.c:896 __free_irq+0x79/0x11a()
+Trying to free already-free IRQ 3
+Modules linked in:
+09dadc6c:  [<081b2edb>] dump_stack+0x1c/0x20
+09dadc84:  [<080716da>] warn_slowpath_common+0x49/0x77
+09dadc9c:  [<08071772>] warn_slowpath_fmt+0x26/0x2a
+09dadcb4:  [<08094e08>] __free_irq+0x79/0x11a
+09dadce4:  [<08094ed6>] free_irq+0x2d/0x49
+09dadcf4:  [<0805b4bc>] close_one_chan+0x70/0x9c
+09dadd0c:  [<0805b833>] close_chan+0x17/0x22
+09dadd1c:  [<0805bdda>] enable_chan+0x70/0x7c
+09dadd3c:  [<0805cbb7>] line_open+0x34/0x9f
+09dadd54:  [<0805b21e>] con_open+0x13/0x35
+09dadd6c:  [<0814dc89>] tty_open+0x285/0x384
+09dadda0:  [<080b754e>] chrdev_open+0xe0/0xf9
+09daddc0:  [<080b3fb2>] __dentry_open+0xf3/0x1e2
+09dadde4:  [<080b4142>] nameidata_to_filp+0x35/0x49
+09daddfc:  [<080bd270>] do_last+0x409/0x50e
+09dade28:  [<080bea04>] do_filp_open+0x175/0x446
+09dadecc:  [<080b3d89>] do_sys_open+0x4a/0x128
+09dadf04:  [<080b3ea2>] sys_open+0x19/0x21
+09dadf28:  [<0805ab5a>] handle_syscall+0x7a/0x98
+09dadf78:  [<08068441>] userspace+0x2c9/0x370
+09dadfe0:  [<08058bb3>] fork_handler+0x53/0x5b
+09dadffc:  [<00766564>] 0x766564
 
-Signed-off-by: qiaochong <qiaochong@loongson.cn>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+---[ end trace 9ebc1094aaf4bded ]---
+
+This patch fixes the issue.
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/um/drivers/chan_kern.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/vt.c~drivers-char-vtc-vc_do_resize-local-var-end-should-be-unsigned-long drivers/char/vt.c
---- a/drivers/char/vt.c~drivers-char-vtc-vc_do_resize-local-var-end-should-be-unsigned-long
-+++ a/drivers/char/vt.c
-@@ -830,10 +830,10 @@ static inline int resize_screen(struct v
- static int vc_do_resize(struct tty_struct *tty, struct vc_data *vc,
- 				unsigned int cols, unsigned int lines)
- {
--	unsigned long old_origin, new_origin, new_scr_end, rlth, rrem, err = 0;
-+	unsigned long old_origin, new_origin, new_scr_end, end, rlth, rrem, err = 0;
- 	unsigned int old_cols, old_rows, old_row_size, old_screen_size;
- 	unsigned int new_cols, new_rows, new_row_size, new_screen_size;
--	unsigned int end, user;
-+	unsigned int user;
- 	unsigned short *newscreen;
+diff -puN arch/um/drivers/chan_kern.c~um-call-free_irq-only-on-enabled-channels arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~um-call-free_irq-only-on-enabled-channels
++++ a/arch/um/drivers/chan_kern.c
+@@ -210,9 +210,9 @@ void free_irqs(void)
+ 	list_for_each(ele, &list) {
+ 		chan = list_entry(ele, struct chan, free_list);
  
- 	WARN_CONSOLE_UNLOCKED();
+-		if (chan->input)
++		if (chan->input && chan->enabled)
+ 			free_irq(chan->line->driver->read_irq, chan);
+-		if (chan->output)
++		if (chan->output && chan->enabled)
+ 			free_irq(chan->line->driver->write_irq, chan);
+ 		chan->enabled = 0;
+ 	}
+@@ -231,9 +231,9 @@ static void close_one_chan(struct chan *
+ 		spin_unlock_irqrestore(&irqs_to_free_lock, flags);
+ 	}
+ 	else {
+-		if (chan->input)
++		if (chan->input && chan->enabled)
+ 			free_irq(chan->line->driver->read_irq, chan);
+-		if (chan->output)
++		if (chan->output && chan->enabled)
+ 			free_irq(chan->line->driver->write_irq, chan);
+ 		chan->enabled = 0;
+ 	}
 _
 
-Patches currently in -mm which might be from qiaochong@loongson.cn are
+Patches currently in -mm which might be from richard@nod.at are
 
-fix-vc-vc_origin-on-take_over_console.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-drivers-char-vtc-vc_do_resize-local-var-end-should-be-unsigned-long.patch
+um-call-free_irq-only-on-enabled-channels.patch
+char-remove-unused-variable.patch
 
