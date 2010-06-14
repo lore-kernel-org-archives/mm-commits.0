@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-call-free_irq-only-on-enabled-channels.patch added to -mm tree
-Date: Mon, 14 Jun 2010 15:45:47 -0700
-Message-ID: <201006142245.o5EMjlpC003324@imap1.linux-foundation.org>
+Subject: + topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage.patch added to -mm tree
+Date: Mon, 14 Jun 2010 15:48:46 -0700
+Message-ID: <201006142248.o5EMmkFU003472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751469Ab0FNWqE (ORCPT
+	by vger.kernel.org with ESMTP id S1757147Ab0FNWtV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jun 2010 18:46:04 -0400
+	Mon, 14 Jun 2010 18:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, jdike@addtoit.com
+Cc: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, tony.luck@intel.com
 
 
 The patch titled
-     um: call free_irq() only on enabled channels
+     topology: alternate fix for ia64 tiger_defconfig build breakage
 has been added to the -mm tree.  Its filename is
-     um-call-free_irq-only-on-enabled-channels.patch
+     topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: call free_irq() only on enabled channels
-From: Richard Weinberger <richard@nod.at>
+Subject: topology: alternate fix for ia64 tiger_defconfig build breakage
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-When I use OpenSUSE-11.2 on UML (> 2.6.25)
-I get lots of such errors:
+Define stubs for the numa_*_id() generic percpu related functions for
+non-NUMA configurations in <asm-generic/topology.h> where the other
+non-numa stubs live.
 
-Registering fd 1 twice
-Irqs : 3, 3
-Ids : 0x09cb41a0, 0x09cb4120
-------------[ cut here ]------------
-WARNING: at kernel/irq/manage.c:896 __free_irq+0x79/0x11a()
-Trying to free already-free IRQ 3
-Modules linked in:
-09dadc6c:  [<081b2edb>] dump_stack+0x1c/0x20
-09dadc84:  [<080716da>] warn_slowpath_common+0x49/0x77
-09dadc9c:  [<08071772>] warn_slowpath_fmt+0x26/0x2a
-09dadcb4:  [<08094e08>] __free_irq+0x79/0x11a
-09dadce4:  [<08094ed6>] free_irq+0x2d/0x49
-09dadcf4:  [<0805b4bc>] close_one_chan+0x70/0x9c
-09dadd0c:  [<0805b833>] close_chan+0x17/0x22
-09dadd1c:  [<0805bdda>] enable_chan+0x70/0x7c
-09dadd3c:  [<0805cbb7>] line_open+0x34/0x9f
-09dadd54:  [<0805b21e>] con_open+0x13/0x35
-09dadd6c:  [<0814dc89>] tty_open+0x285/0x384
-09dadda0:  [<080b754e>] chrdev_open+0xe0/0xf9
-09daddc0:  [<080b3fb2>] __dentry_open+0xf3/0x1e2
-09dadde4:  [<080b4142>] nameidata_to_filp+0x35/0x49
-09daddfc:  [<080bd270>] do_last+0x409/0x50e
-09dade28:  [<080bea04>] do_filp_open+0x175/0x446
-09dadecc:  [<080b3d89>] do_sys_open+0x4a/0x128
-09dadf04:  [<080b3ea2>] sys_open+0x19/0x21
-09dadf28:  [<0805ab5a>] handle_syscall+0x7a/0x98
-09dadf78:  [<08068441>] userspace+0x2c9/0x370
-09dadfe0:  [<08058bb3>] fork_handler+0x53/0x5b
-09dadffc:  [<00766564>] 0x766564
+Fixes ia64 !NUMA build breakage -- e.g., tiger_defconfig
 
----[ end trace 9ebc1094aaf4bded ]---
+Back out now unneeded '#ifndef CONFIG_NUMA' guards from ia64 smpboot.c
 
-This patch fixes the issue.
-
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_kern.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/Kconfig              |    3 +--
+ arch/ia64/kernel/smpboot.c     |    4 ----
+ include/asm-generic/topology.h |   20 +++++++++++++++++++-
+ include/linux/topology.h       |    4 ----
+ 4 files changed, 20 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/drivers/chan_kern.c~um-call-free_irq-only-on-enabled-channels arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~um-call-free_irq-only-on-enabled-channels
-+++ a/arch/um/drivers/chan_kern.c
-@@ -210,9 +210,9 @@ void free_irqs(void)
- 	list_for_each(ele, &list) {
- 		chan = list_entry(ele, struct chan, free_list);
+diff -puN arch/ia64/Kconfig~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage
++++ a/arch/ia64/Kconfig
+@@ -503,8 +503,7 @@ config USE_PERCPU_NUMA_NODE_ID
+ 	depends on NUMA
  
--		if (chan->input)
-+		if (chan->input && chan->enabled)
- 			free_irq(chan->line->driver->read_irq, chan);
--		if (chan->output)
-+		if (chan->output && chan->enabled)
- 			free_irq(chan->line->driver->write_irq, chan);
- 		chan->enabled = 0;
- 	}
-@@ -231,9 +231,9 @@ static void close_one_chan(struct chan *
- 		spin_unlock_irqrestore(&irqs_to_free_lock, flags);
- 	}
- 	else {
--		if (chan->input)
-+		if (chan->input && chan->enabled)
- 			free_irq(chan->line->driver->read_irq, chan);
--		if (chan->output)
-+		if (chan->output && chan->enabled)
- 			free_irq(chan->line->driver->write_irq, chan);
- 		chan->enabled = 0;
- 	}
-_
-
-Patches currently in -mm which might be from richard@nod.at are
-
-um-call-free_irq-only-on-enabled-channels.patch
-char-remove-unused-variable.patch
-
+ config HAVE_MEMORYLESS_NODES
+-	def_bool y
+-	depends on NUMA
++	def_bool NUMA
+ 
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
+diff -puN arch/ia64/kernel/smpboot.c~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage
++++ a/arch/ia64/kernel/smpboot.c
+@@ -390,13 +390,11 @@ smp_callin (void)
+ 
+ 	fix_b0_for_bsp();
+ 
+-#ifdef CONFIG_NUMA
+ 	/*
+ 	 * numa_node_id() works after this.
+ 	 */
+ 	set_numa_node(cpu_to_node_map[cpuid]);
+ 	set_numa_mem(local_memory_node(cpu_to_node_map[cpuid]));
+-#endif
+ 
+ 	ipi_call_lock_irq();
+ 	spin_lock(&vector_lock);
+@@ -640,9 +638,7 @@ void __devinit smp_prepare_boot_cpu(void
+ {
+ 	cpu_set(smp_processor_id(), cpu_online_map);
+ 	cpu_set(smp_processor_id(), cpu_callin_map);
+-#ifdef CONFIG_NUMA
+ 	set_numa_node(cpu_to_node_map[smp_processor_id()]);
+-#endif
+ 	per_cpu(cpu_state, smp_processor_id()) = CPU_ONLINE;
+ 	paravirt_post_smp_prepare_boot_cpu();
+ }
+diff -puN include/asm-generic/topology.h~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage
++++ a/include/asm-generic/topology.h
+@@ -5,7 +5,7 @@
+  *
+  * Copyright (C) 2002, IBM Corp.
+  *
+- * All rights reserved.          
++ * All rights reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -34,9 +34,16 @@
+ #ifndef cpu_to_node
+ #define cpu_to_node(cpu)	((void)(cpu),0)
+ #endif
++#ifndef set_numa_node
++#define set_numa_node(node)
++#endif
++#ifndef set_cpu_numa_node
++#define set_cpu_numa_node(cpu, node)
++#endif
+ #ifndef cpu_to_mem
+ #define cpu_to_mem(cpu)		((void)(cpu),0)
+ #endif
++
+ #ifndef parent_node
+ #define parent_node(node)	((void)(node),0)
+ #endif
+@@ -55,4 +62,15 @@
+ 
+ #endif	/* CONFIG_NUMA */
+ 
++#if !defined(CONFIG_NUMA) || !defined(CONFIG_HAVE_MEMORYLESS_NODES)
++
++#ifndef set_numa_mem
++#define set_numa_mem(node)
++#endif
++#ifndef set_cpu_numa_mem
++#define set_cpu_numa_mem(cpu, node)
++#endif
++
++#endif	/* !CONFIG_NUMA || !CONFIG_HAVE_MEMORYLESS_NODES */
++
+ #endif /* _ASM_GENERIC_TOPOLOGY_H */
+diff -puN include/linux/topology.h~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage include/linux/topology.h
+--- a/include/linux/topology.h~topology-alternate-fix-for-ia64-tiger_defconfig-build-breakage
++++ a/include/linux/topology.h
+@@ -291,10 +291,6 @@ static inline void set_cpu_numa_mem(int 
+ 
+ #else	/* !CONFIG_HAVE_MEMORYLESS_NODES */
+ 
+-static inline void set_numa_mem(int node) {}
+-
+-static inline void set_cpu_numa_mem(int cpu, int node) {}
