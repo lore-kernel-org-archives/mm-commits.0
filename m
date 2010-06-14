@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hp-wmi-add-error-handling-for-hp_wmi_init.patch added to -mm tree
-Date: Mon, 14 Jun 2010 12:53:25 -0700
-Message-ID: <201006141953.o5EJrPYX027608@imap1.linux-foundation.org>
+Subject: + ipmi-make-sure-drivers-were-registered-before-unregistering-them.patch added to -mm tree
+Date: Mon, 14 Jun 2010 13:36:16 -0700
+Message-ID: <201006142036.o5EKaGJw029627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100Ab0FNTyK (ORCPT
+	by vger.kernel.org with ESMTP id S1755295Ab0FNUhQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jun 2010 15:54:10 -0400
+	Mon, 14 Jun 2010 16:37:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, len.brown@intel.com, mjg@redhat.com, trenn@suse.de
+Cc: mjg@redhat.com, cminyard@mvista.com
 
 
 The patch titled
-     hp-wmi: add error handling for hp_wmi_init()
+     ipmi: make sure drivers were registered before unregistering them
 has been added to the -mm tree.  Its filename is
-     hp-wmi-add-error-handling-for-hp_wmi_init.patch
+     ipmi-make-sure-drivers-were-registered-before-unregistering-them.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: add error handling for hp_wmi_init()
-From: Axel Lin <axel.lin@gmail.com>
+Subject: ipmi: make sure drivers were registered before unregistering them
+From: Matthew Garrett <mjg@redhat.com>
 
-hp_wmi_init() does not check for errors and always returns success.  This
-patch properly handles recource reclaim and return err in error path.
+The ipmi code will never register a PCI or Open Firmware driver if a
+hardcoded device is provided by the user.  This can cause us to attempt to
+unregister a driver that was never registered, resulting in an oops.  Keep
+track of registration in order to avoid this.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/hp-wmi.c |   31 +++++++++++++++++++++++++------
- 1 file changed, 25 insertions(+), 6 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-add-error-handling-for-hp_wmi_init drivers/platform/x86/hp-wmi.c
---- a/drivers/platform/x86/hp-wmi.c~hp-wmi-add-error-handling-for-hp_wmi_init
-+++ a/drivers/platform/x86/hp-wmi.c
-@@ -715,23 +715,42 @@ static int __init hp_wmi_init(void)
- 	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
- 		err = wmi_install_notify_handler(HPWMI_EVENT_GUID,
- 						 hp_wmi_notify, NULL);
--		if (ACPI_SUCCESS(err))
--			hp_wmi_input_setup();
-+		if (ACPI_FAILURE(err))
-+			return -EINVAL;
-+		err = hp_wmi_input_setup();
-+		if (err) {
-+			wmi_remove_notify_handler(HPWMI_EVENT_GUID);
-+			return err;
-+		}
- 	}
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-make-sure-drivers-were-registered-before-unregistering-them drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-make-sure-drivers-were-registered-before-unregistering-them
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -302,6 +302,12 @@ struct smi_info {
  
- 	if (wmi_has_guid(HPWMI_BIOS_GUID)) {
- 		err = platform_driver_register(&hp_wmi_driver);
- 		if (err)
--			return 0;
-+			goto err_driver_reg;
- 		hp_wmi_platform_dev = platform_device_alloc("hp-wmi", -1);
- 		if (!hp_wmi_platform_dev) {
--			platform_driver_unregister(&hp_wmi_driver);
--			return 0;
-+			err = -ENOMEM;
-+			goto err_device_alloc;
- 		}
--		platform_device_add(hp_wmi_platform_dev);
-+		err = platform_device_add(hp_wmi_platform_dev);
-+		if (err)
-+			goto err_device_add;
- 	}
+ static int force_kipmid[SI_MAX_PARMS];
+ static int num_force_kipmid;
++#ifdef CONFIG_PCI
++static int pci_registered;
++#endif
++#ifdef CONFIG_PPC_OF
++static int of_registered;
++#endif
  
- 	return 0;
-+
-+err_device_add:
-+	platform_device_put(hp_wmi_platform_dev);
-+err_device_alloc:
-+	platform_driver_unregister(&hp_wmi_driver);
-+err_driver_reg:
-+	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
-+		input_unregister_device(hp_wmi_input_dev);
-+		wmi_remove_notify_handler(HPWMI_EVENT_GUID);
-+	}
-+
-+	return err;
- }
+ static unsigned int kipmid_max_busy_us[SI_MAX_PARMS];
+ static int num_max_busy_us;
+@@ -3314,6 +3320,8 @@ static __devinit int init_ipmi_si(void)
+ 	rv = pci_register_driver(&ipmi_pci_driver);
+ 	if (rv)
+ 		printk(KERN_ERR PFX "Unable to register PCI driver: %d\n", rv);
++	else
++		pci_registered = 1;
+ #endif
  
- static void __exit hp_wmi_exit(void)
+ #ifdef CONFIG_ACPI
+@@ -3330,6 +3338,7 @@ static __devinit int init_ipmi_si(void)
+ 
+ #ifdef CONFIG_PPC_OF
+ 	of_register_platform_driver(&ipmi_of_platform_driver);
++	of_registered = 1;
+ #endif
+ 
+ 	/* We prefer devices with interrupts, but in the case of a machine
+@@ -3383,11 +3392,13 @@ static __devinit int init_ipmi_si(void)
+ 	if (unload_when_empty && list_empty(&smi_infos)) {
+ 		mutex_unlock(&smi_infos_lock);
+ #ifdef CONFIG_PCI
+-		pci_unregister_driver(&ipmi_pci_driver);
++		if (pci_registered)
++			pci_unregister_driver(&ipmi_pci_driver);
+ #endif
+ 
+ #ifdef CONFIG_PPC_OF
+-		of_unregister_platform_driver(&ipmi_of_platform_driver);
++		if (of_registered)
++			of_unregister_platform_driver(&ipmi_of_platform_driver);
+ #endif
+ 		driver_unregister(&ipmi_driver.driver);
+ 		printk(KERN_WARNING PFX
+@@ -3478,14 +3489,16 @@ static __exit void cleanup_ipmi_si(void)
+ 		return;
+ 
+ #ifdef CONFIG_PCI
+-	pci_unregister_driver(&ipmi_pci_driver);
++	if (pci_registered)
++		pci_unregister_driver(&ipmi_pci_driver);
+ #endif
+ #ifdef CONFIG_ACPI
+ 	pnp_unregister_driver(&ipmi_pnp_driver);
+ #endif
+ 
+ #ifdef CONFIG_PPC_OF
+-	of_unregister_platform_driver(&ipmi_of_platform_driver);
++	if (of_registered)
++		of_unregister_platform_driver(&ipmi_of_platform_driver);
+ #endif
+ 
+ 	mutex_lock(&smi_infos_lock);
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from mjg@redhat.com are
 
 linux-next.patch
+ipmi-make-sure-drivers-were-registered-before-unregistering-them.patch
+dell-studio-1555-eject-key-does-not-work-small-patch-to-fix-included.patch
 wmi-fix-memory-leak-in-parse_wdg.patch
 acer-wmi-hp-wmi-use-platform_device_unregister-instead-of-platform_device_del-in-module_exit.patch
 hp-wmi-add-error-handling-for-hp_wmi_init.patch
