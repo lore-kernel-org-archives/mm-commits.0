@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-fix-mapping-use-after-free.patch added to -mm tree
-Date: Mon, 14 Jun 2010 23:22:46 -0700
-Message-ID: <201006150622.o5F6Mdq2021756@imap1.linux-foundation.org>
+Subject: + submittingpatches-add-more-about-patch-descriptions.patch added to -mm tree
+Date: Tue, 15 Jun 2010 12:14:52 -0700
+Message-ID: <201006151914.o5FJErTD025683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58400 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751916Ab0FOGWn (ORCPT
+	by vger.kernel.org with ESMTP id S1758061Ab0FOTPB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jun 2010 02:22:43 -0400
+	Tue, 15 Jun 2010 15:15:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: randy.dunlap@oracle.com, cl@linux-foundation.org
 
 
 The patch titled
-     mm/vmscan.c: fix mapping use after free
+     SubmittingPatches: add more about patch descriptions
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-mapping-use-after-free.patch
+     submittingpatches-add-more-about-patch-descriptions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vmscan.c: fix mapping use after free
-From: Nick Piggin <npiggin@suse.de>
+Subject: SubmittingPatches: add more about patch descriptions
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-We need lock_page_nosync() here because we have no reference to the
-mapping when taking the page lock.
+Add more information about patch descriptions.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/SubmittingPatches |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-mapping-use-after-free mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-mapping-use-after-free
-+++ a/mm/vmscan.c
-@@ -296,7 +296,7 @@ static int may_write_to_queue(struct bac
- static void handle_write_error(struct address_space *mapping,
- 				struct page *page, int error)
- {
--	lock_page(page);
-+	lock_page_nosync(page);
- 	if (page_mapping(page) == mapping)
- 		mapping_set_error(mapping, error);
- 	unlock_page(page);
+diff -puN Documentation/SubmittingPatches~submittingpatches-add-more-about-patch-descriptions Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~submittingpatches-add-more-about-patch-descriptions
++++ a/Documentation/SubmittingPatches
+@@ -98,6 +98,17 @@ system, git, as a "commit log".  See #15
+ If your description starts to get long, that's a sign that you probably
+ need to split up your patch.  See #3, next.
+ 
++When you submit or resubmit a patch or patch series, include the
++complete patch description and justification for it.  Don't just
++say that this is version N of the patch (series).  Don't expect the
++patch merger to refer back to earlier patch versions or referenced
++URLs to find the patch description and put that into the patch.
++I.e., the patch (series) and its description should be self-contained.
++This benefits both the patch merger(s) and reviewers.  Some reviewers
++probably didn't even receive earlier versions of the patch.
++
++If the patch fixes a logged bug entry, refer to that bug entry by
++number and URL.
+ 
+ 
+ 3) Separate your changes.
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-avr32-invoke-oom-killer-from-page-fault.patch
-mm-vmscan-fix-mapping-use-after-free.patch
-fs-move-code-out-of-bufferc.patch
-mm-vmap-area-cache.patch
-mm-vmap-area-cache-fix.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-reiser4.patch
+compal-laptop-uses-hwmon-interfaces-depends-on-hwmon.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+scsi-fix-pmcraid-build-errors.patch
+scsi-fix-be2iscsi-build.patch
+scsi-fix-bnx2i-build-errors.patch
+virtio_9ph-include-linux-typesh.patch
+submittingpatches-add-more-about-patch-descriptions.patch
+fusion-fix-kernel-doc-warnings.patch
+timerc-fix-kernel-doc-warning.patch
+mtd-nand_base-fix-kernel-doc-warnings-typos.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
