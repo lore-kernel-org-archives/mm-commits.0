@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-patterns-to-dell-wmi-extras.patch added to -mm tree
-Date: Tue, 15 Jun 2010 13:14:16 -0700
-Message-ID: <201006152014.o5FKEG3N028272@imap1.linux-foundation.org>
+Subject: + maintainers-add-patterns-to-ps3vram-driver.patch added to -mm tree
+Date: Tue, 15 Jun 2010 13:14:24 -0700
+Message-ID: <201006152014.o5FKEOnB028284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161Ab0FOUOx (ORCPT
+	by vger.kernel.org with ESMTP id S1758058Ab0FOUPD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jun 2010 16:14:53 -0400
+	Tue, 15 Jun 2010 16:15:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mjg59@srcf.ucam.org
+Cc: joe@perches.com, jim@jtan.com
 
 
 The patch titled
-     MAINTAINERS: add patterns to DELL WMI EXTRAS
+     MAINTAINERS: add patterns to PS3VRAM DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-add-patterns-to-dell-wmi-extras.patch
+     maintainers-add-patterns-to-ps3vram-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add patterns to DELL WMI EXTRAS
+Subject: MAINTAINERS: add patterns to PS3VRAM DRIVER
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jim Paris <jim@jtan.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-patterns-to-dell-wmi-extras MAINTAINERS
---- a/MAINTAINERS~maintainers-add-patterns-to-dell-wmi-extras
+diff -puN MAINTAINERS~maintainers-add-patterns-to-ps3vram-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-patterns-to-ps3vram-driver
 +++ a/MAINTAINERS
-@@ -1888,6 +1888,7 @@ F:	drivers/firmware/dcdbas.*
- DELL WMI EXTRAS DRIVER
- M:	Matthew Garrett <mjg59@srcf.ucam.org>
+@@ -4578,6 +4578,7 @@ PS3VRAM DRIVER
+ M:	Jim Paris <jim@jtan.com>
+ L:	cbe-oss-dev@ozlabs.org
  S:	Maintained
-+F:	drivers/platform/x86/dell-wmi.c
++F:	drivers/block/ps3vram.c
  
- DEVICE NUMBER REGISTRY
- M:	Torben Mathiasen <device@lanana.org>
+ PTRACE SUPPORT
+ M:	Roland McGrath <roland@redhat.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
