@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-patterns-to-ps3vram-driver.patch added to -mm tree
-Date: Tue, 15 Jun 2010 13:14:24 -0700
-Message-ID: <201006152014.o5FKEOnB028284@imap1.linux-foundation.org>
+Subject: + maintainers-add-patterns-to-omap-usb.patch added to -mm tree
+Date: Tue, 15 Jun 2010 13:14:20 -0700
+Message-ID: <201006152014.o5FKEKL7028278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758058Ab0FOUPD (ORCPT
+	by vger.kernel.org with ESMTP id S1758269Ab0FOUPc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jun 2010 16:15:03 -0400
+	Tue, 15 Jun 2010 16:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jim@jtan.com
+Cc: joe@perches.com, dbrownell@users.sourceforge.net, felipe.balbi@nokia.com
 
 
 The patch titled
-     MAINTAINERS: add patterns to PS3VRAM DRIVER
+     MAINTAINERS: add patterns to OMAP USB
 has been added to the -mm tree.  Its filename is
-     maintainers-add-patterns-to-ps3vram-driver.patch
+     maintainers-add-patterns-to-omap-usb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add patterns to PS3VRAM DRIVER
+Subject: MAINTAINERS: add patterns to OMAP USB
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jim Paris <jim@jtan.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-patterns-to-ps3vram-driver MAINTAINERS
---- a/MAINTAINERS~maintainers-add-patterns-to-ps3vram-driver
+diff -puN MAINTAINERS~maintainers-add-patterns-to-omap-usb MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-patterns-to-omap-usb
 +++ a/MAINTAINERS
-@@ -4578,6 +4578,7 @@ PS3VRAM DRIVER
- M:	Jim Paris <jim@jtan.com>
- L:	cbe-oss-dev@ozlabs.org
+@@ -4176,6 +4176,8 @@ M:	David Brownell <dbrownell@users.sourc
+ L:	linux-usb@vger.kernel.org
+ L:	linux-omap@vger.kernel.org
  S:	Maintained
-+F:	drivers/block/ps3vram.c
++F:	drivers/usb/*/*omap*
++F:	arch/arm/*omap*/usb*
  
- PTRACE SUPPORT
- M:	Roland McGrath <roland@redhat.com>
+ OMFS FILESYSTEM
+ M:	Bob Copeland <me@bobcopeland.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
