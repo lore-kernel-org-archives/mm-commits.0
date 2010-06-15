@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-patterns-to-omap-usb.patch added to -mm tree
-Date: Tue, 15 Jun 2010 13:14:20 -0700
-Message-ID: <201006152014.o5FKEKL7028278@imap1.linux-foundation.org>
+Subject: + sdhci-remove-useless-set_clock-check.patch added to -mm tree
+Date: Tue, 15 Jun 2010 13:17:49 -0700
+Message-ID: <201006152017.o5FKHnlT028485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758269Ab0FOUPc (ORCPT
+	by vger.kernel.org with ESMTP id S932251Ab0FOUSX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jun 2010 16:15:32 -0400
+	Tue, 15 Jun 2010 16:18:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, dbrownell@users.sourceforge.net, felipe.balbi@nokia.com
+Cc: kyungmin.park@samsung.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: add patterns to OMAP USB
+     sdhci: remove useless set_clock() check
 has been added to the -mm tree.  Its filename is
-     maintainers-add-patterns-to-omap-usb.patch
+     sdhci-remove-useless-set_clock-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add patterns to OMAP USB
-From: Joe Perches <joe@perches.com>
+Subject: sdhci: remove useless set_clock() check
+From: Kyungmin Park <kyungmin.park@samsung.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+When using QUIRK_NONSTANDARD_CLOCK, it checks the set_clock() function
+which is not used actually.  So delete it.
+
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mmc/host/sdhci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-patterns-to-omap-usb MAINTAINERS
---- a/MAINTAINERS~maintainers-add-patterns-to-omap-usb
-+++ a/MAINTAINERS
-@@ -4176,6 +4176,8 @@ M:	David Brownell <dbrownell@users.sourc
- L:	linux-usb@vger.kernel.org
- L:	linux-omap@vger.kernel.org
- S:	Maintained
-+F:	drivers/usb/*/*omap*
-+F:	arch/arm/*omap*/usb*
- 
- OMFS FILESYSTEM
- M:	Bob Copeland <me@bobcopeland.com>
+diff -puN drivers/mmc/host/sdhci.c~sdhci-remove-useless-set_clock-check drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-remove-useless-set_clock-check
++++ a/drivers/mmc/host/sdhci.c
+@@ -1787,7 +1787,7 @@ int sdhci_add_host(struct sdhci_host *ho
+ 	 */
+ 	mmc->ops = &sdhci_ops;
+ 	if (host->quirks & SDHCI_QUIRK_NONSTANDARD_CLOCK &&
+-			host->ops->set_clock && host->ops->get_min_clock)
++			host->ops->get_min_clock)
+ 		mmc->f_min = host->ops->get_min_clock(host);
+ 	else
+ 		mmc->f_min = host->max_clk / 256;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kyungmin.park@samsung.com are
 
-linux-next.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
-maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
-maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
-maintainers-update-arm-voipac-pxa270-file-patterns.patch
-maintainers-update-arm-zipit-z2-support-file-patterns.patch
-maintainers-update-networking-file-patterns.patch
-maintainers-update-ppp-over-l2tp-file-patterns.patch
-maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
-maintainers-remove-section-smx-uio-interface.patch
-maintainers-update-spear-clock-framework-support-file-patterns.patch
-maintainers-remove-section-strip.patch
-maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
-maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
-maintainers-update-drm-drivers-patterns.patch
-maintainers-add-patterns-to-cryptographic-random-number-generator.patch
-maintainers-add-patterns-to-dell-wmi-extras.patch
-maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
-maintainers-add-patterns-to-omap-usb.patch
-maintainers-remove-section-promise-dc4030.patch
-maintainers-add-patterns-to-ps3vram-driver.patch
-maintainers-add-patterns-to-wimax-stack.patch
-documentation-networking-wavelantxt-deleted-not-in-tree.patch
+mmc-recognize-csd-structure.patch
+mmc-recognize-csd-structure-fix.patch
+s5pc110-sdhci-s3c-can-override-host-capabilities.patch
+s5pc110-sdhci-s3c-support-on-s5pc110.patch
+sdhci-add-no-hi-speed-bit-quirk-support.patch
+sdhci-remove-useless-set_clock-check.patch
+sdhci-dont-assign-mmc-caps-at-sdhci-directly.patch
+sdhci-8-bit-data-transfer-width-support.patch
 
