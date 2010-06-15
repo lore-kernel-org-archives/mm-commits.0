@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-section-promise-dc4030.patch added to -mm tree
-Date: Tue, 15 Jun 2010 13:14:22 -0700
-Message-ID: <201006152014.o5FKEMkZ028281@imap1.linux-foundation.org>
+Subject: + maintainers-add-patterns-to-cryptographic-random-number-generator.patch added to -mm tree
+Date: Tue, 15 Jun 2010 13:14:14 -0700
+Message-ID: <201006152014.o5FKEEF9028269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754519Ab0FOUOy (ORCPT
+	by vger.kernel.org with ESMTP id S1754161Ab0FOUOz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jun 2010 16:14:54 -0400
+	Tue, 15 Jun 2010 16:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: joe@perches.com, nhorman@tuxdriver.com
 
 
 The patch titled
-     MAINTAINERS: remove section PROMISE DC4030
+     MAINTAINERS: add patterns to CRYPTOGRAPHIC RANDOM NUMBER GENERATOR
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-section-promise-dc4030.patch
+     maintainers-add-patterns-to-cryptographic-random-number-generator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove section PROMISE DC4030
+Subject: MAINTAINERS: add patterns to CRYPTOGRAPHIC RANDOM NUMBER GENERATOR
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-remove-section-promise-dc4030 MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-section-promise-dc4030
+diff -puN MAINTAINERS~maintainers-add-patterns-to-cryptographic-random-number-generator MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-patterns-to-cryptographic-random-number-generator
 +++ a/MAINTAINERS
-@@ -4546,11 +4546,6 @@ W:	http://prism54.org
+@@ -1735,6 +1735,8 @@ CRYPTOGRAPHIC RANDOM NUMBER GENERATOR
+ M:	Neil Horman <nhorman@tuxdriver.com>
+ L:	linux-crypto@vger.kernel.org
  S:	Maintained
- F:	drivers/net/wireless/prism54/
++F:	crypto/ansi_cprng.c
++F:	crypto/rng.c
  
--PROMISE DC4030 CACHING DISK CONTROLLER DRIVER
--M:	Peter Denison <promise@pnd-pc.demon.co.uk>
--W:	http://www.pnd-pc.demon.co.uk/promise/
--S:	Maintained
--
- PROMISE SATA TX2/TX4 CONTROLLER LIBATA DRIVER
- M:	Mikael Pettersson <mikpe@it.uu.se>
- L:	linux-ide@vger.kernel.org
+ CS5535 Audio ALSA driver
+ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
