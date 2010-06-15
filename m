@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-patterns-to-wimax-stack.patch added to -mm tree
-Date: Tue, 15 Jun 2010 13:14:26 -0700
-Message-ID: <201006152014.o5FKEQFZ028287@imap1.linux-foundation.org>
+Subject: + maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch added to -mm tree
+Date: Tue, 15 Jun 2010 13:14:18 -0700
+Message-ID: <201006152014.o5FKEINS028275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757958Ab0FOUO4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754519Ab0FOUOw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jun 2010 16:14:56 -0400
+	Tue, 15 Jun 2010 16:14:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, inaky.perez-gonzalez@intel.com
+Cc: joe@perches.com, marcelo@kvack.org, vitb@kernel.crashing.org
 
 
 The patch titled
-     MAINTAINERS: add patterns to WIMAX STACK
+     MAINTAINERS: add patterns to POWERPC EMBEDDED PPC8XX
 has been added to the -mm tree.  Its filename is
-     maintainers-add-patterns-to-wimax-stack.patch
+     maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add patterns to WIMAX STACK
+Subject: MAINTAINERS: add patterns to POWERPC EMBEDDED PPC8XX
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+Cc: Vitaly Bordug <vitb@kernel.crashing.org>
+Cc: Marcelo Tosatti <marcelo@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-patterns-to-wimax-stack MAINTAINERS
---- a/MAINTAINERS~maintainers-add-patterns-to-wimax-stack
+diff -puN MAINTAINERS~maintainers-add-patterns-to-powerpc-embedded-ppc8xx MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-patterns-to-powerpc-embedded-ppc8xx
 +++ a/MAINTAINERS
-@@ -6280,6 +6280,11 @@ M:	linux-wimax@intel.com
- L:	wimax@linuxwimax.org
- S:	Supported
- W:	http://linuxwimax.org
-+F:	Documentation/wimax/README.wimax
-+F:	include/linux/wimax.h
-+F:	include/linux/wimax/debug.h
-+F:	include/net/wimax.h
-+F:	net/wimax/
+@@ -3505,6 +3505,7 @@ M:	Marcelo Tosatti <marcelo@kvack.org>
+ W:	http://www.penguinppc.org/
+ L:	linuxppc-dev@ozlabs.org
+ S:	Maintained
++F:	arch/powerpc/platforms/8xx/
  
- WIMEDIA LLC PROTOCOL (WLP) SUBSYSTEM
- M:	David Vrabel <david.vrabel@csr.com>
+ LINUX FOR POWERPC EMBEDDED PPC83XX AND PPC85XX
+ M:	Kumar Gala <galak@kernel.crashing.org>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
