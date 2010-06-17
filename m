@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch added to -mm tree
-Date: Thu, 17 Jun 2010 13:11:22 -0700
-Message-ID: <201006172011.o5HKBM3e024837__43567.7761598074$1276805503$gmane$org@imap1.linux-foundation.org>
+Subject: + gpio-max730x-make-pullups-configurable-via-platformdata.patch added to -mm tree
+Date: Thu, 17 Jun 2010 13:59:32 -0700
+Message-ID: <201006172059.o5HKxWsY027108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933245Ab0FQULg (ORCPT
+	by vger.kernel.org with ESMTP id S1757139Ab0FQU7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jun 2010 16:11:36 -0400
+	Thu, 17 Jun 2010 16:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kishore.kadiyala@ti.com, adrian.hunter@nokia.com, jhnikula@gmail.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, nm@ti.com, svenkatr@ti.com, tony@atomide.com
+Cc: mkl@pengutronix.de, david-b@pacbell.net, w.sang@pengutronix.de
 
 
 The patch titled
-     mmc: omap: fix for bus width which improves SD card's  peformance.
+     gpio: max730x: make pullups configurable via platformdata
 has been added to the -mm tree.  Its filename is
-     mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch
+     gpio-max730x-make-pullups-configurable-via-platformdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: omap: fix for bus width which improves SD card's  peformance.
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Subject: gpio: max730x: make pullups configurable via platformdata
+From: Marc Kleine-Budde <mkl@pengutronix.de>
 
-This patch improves low speeds for SD cards.
+The gpios on the max730x chips have support for internal pullups while in
+input mode.
 
-OMAP-MMC controller's can support maximum bus width of '8'.  when bus
-width is mentioned as "8" in controller data,the SD stack will check
-whether bus width is "4" and if not it will set bus width to "1" and there
-by degrading performance.  This patch fixes the issue and improves the
-performance of SD cards.
+This patch adds support for configuring these pullups via platform data. 
+A new member ("input_pullup_active") to the platform data struct is
+introduced.  A set bit in this variable activates the pullups while the
+respective port is in input mode.  This is a compatible enhancement since
+unset bits lead to disables pullups which was the default in the original
+driver.
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: <linux-mmc@vger.kernel.org>
+_Note_: the 4 lowest bits in "input_pullup_active" are unused because the
+first 4 ports of the controller are not used, too.
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Reviewed-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/gpio/max730x.c      |   22 +++++++++++++++-------
+ include/linux/spi/max7301.h |    8 ++++++++
+ 2 files changed, 23 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -2096,10 +2096,23 @@ static int __init omap_hsmmc_probe(struc
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
- 		     MMC_CAP_WAIT_WHILE_BUSY;
+diff -puN drivers/gpio/max730x.c~gpio-max730x-make-pullups-configurable-via-platformdata drivers/gpio/max730x.c
+--- a/drivers/gpio/max730x.c~gpio-max730x-make-pullups-configurable-via-platformdata
++++ a/drivers/gpio/max730x.c
+@@ -54,7 +54,7 @@ static int max7301_direction_input(struc
+ {
+ 	struct max7301 *ts = container_of(chip, struct max7301, chip);
+ 	u8 *config;
+-	u8 offset_bits;
++	u8 offset_bits, pin_config;
+ 	int ret;
  
--	if (mmc_slot(host).wires >= 8)
-+	switch (mmc_slot(host).wires) {
-+	case 8:
- 		mmc->caps |= MMC_CAP_8_BIT_DATA;
--	else if (mmc_slot(host).wires >= 4)
-+		/* Fall through */
-+	case 4:
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
-+		break;
-+	case 1:
-+		/* Nothing to crib here */
-+	case 0:
-+		/* Assuming nothing was given by board, Core use's 1-Bit */
-+		break;
-+	default:
-+		/* Completely unexpected.. Core goes with 1-Bit Width */
-+		dev_crit(mmc_dev(host->mmc), "Invalid width %d\n used!"
-+			"using 1 instead\n", mmc_slot(host).wires);
-+	}
+ 	/* First 4 pins are unused in the controller */
+@@ -63,12 +63,15 @@ static int max7301_direction_input(struc
  
- 	if (mmc_slot(host).nonremovable)
- 		mmc->caps |= MMC_CAP_NONREMOVABLE;
+ 	config = &ts->port_config[offset >> 2];
+ 
++	if (ts->input_pullup_active & BIT(offset))
++		pin_config = PIN_CONFIG_IN_PULLUP;
++	else
++		pin_config = PIN_CONFIG_IN_WO_PULLUP;
++
+ 	mutex_lock(&ts->lock);
+ 
+-	/* Standard GPIO API doesn't support pull-ups, has to be extended.
+-	 * Hard-coding no pollup for now. */
+ 	*config = (*config & ~(PIN_CONFIG_MASK << offset_bits))
+-			   | (PIN_CONFIG_IN_WO_PULLUP << offset_bits);
++			   | (pin_config << offset_bits);
+ 
+ 	ret = ts->write(ts->dev, 0x08 + (offset >> 2), *config);
+ 
+@@ -177,6 +180,7 @@ int __devinit __max730x_probe(struct max
+ 	/* Power up the chip and disable IRQ output */
+ 	ts->write(dev, 0x04, 0x01);
+ 
++	ts->input_pullup_active = pdata->input_pullup_active;
+ 	ts->chip.label = dev->driver->name;
+ 
+ 	ts->chip.direction_input = max7301_direction_input;
+@@ -191,13 +195,17 @@ int __devinit __max730x_probe(struct max
+ 	ts->chip.owner = THIS_MODULE;
+ 
+ 	/*
+-	 * tristate all pins in hardware and cache the
++	 * initialize pullups according to platform data and cache the
+ 	 * register values for later use.
+ 	 */
+ 	for (i = 1; i < 8; i++) {
+ 		int j;
+-		/* 0xAA means input with internal pullup disabled */
+-		ts->write(dev, 0x08 + i, 0xAA);
++		/*
++		 * initialize port_config with "0xAA", which means
++		 * input with internal pullup disabled. This is needed
++		 * to avoid writing zeros (in the inner for loop),
++		 * which is not allowed according to the datasheet.
++		 */
+ 		ts->port_config[i] = 0xAA;
+ 		for (j = 0; j < 4; j++) {
+ 			int offset = (i - 1) * 4 + j;
+diff -puN include/linux/spi/max7301.h~gpio-max730x-make-pullups-configurable-via-platformdata include/linux/spi/max7301.h
+--- a/include/linux/spi/max7301.h~gpio-max730x-make-pullups-configurable-via-platformdata
++++ a/include/linux/spi/max7301.h
+@@ -11,6 +11,7 @@ struct max7301 {
+ 	struct mutex	lock;
+ 	u8		port_config[8];	/* field 0 is unused */
+ 	u32		out_level;	/* cached output levels */
++	u32		input_pullup_active;
+ 	struct gpio_chip chip;
+ 	struct device *dev;
+ 	int (*write)(struct device *dev, unsigned int reg, unsigned int val);
+@@ -20,6 +21,13 @@ struct max7301 {
+ struct max7301_platform_data {
+ 	/* number assigned to the first GPIO */
+ 	unsigned	base;
++	/*
++	 * bitmask controlling the pullup configuration,
++	 *
++	 * _note_ the 4 lowest bits are unused, because the first 4
++	 * ports of the controller are not used, too.
++	 */
++	u32		input_pullup_active;
+ };
+ 
+ extern int __max730x_remove(struct device *dev);
 _
 
-Patches currently in -mm which might be from kishore.kadiyala@ti.com are
+Patches currently in -mm which might be from mkl@pengutronix.de are
 
-mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch
+gpio-max730x-make-pullups-configurable-via-platformdata.patch
 
