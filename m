@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch added to -mm tree
-Date: Thu, 17 Jun 2010 10:32:43 -0700
-Message-ID: <201006171732.o5HHWb5r017534@imap1.linux-foundation.org>
+Subject: + mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch added to -mm tree
+Date: Thu, 17 Jun 2010 13:11:22 -0700
+Message-ID: <201006172011.o5HKBM3e024837__43567.7761598074$1276805503$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933051Ab0FQRdj (ORCPT
+	by vger.kernel.org with ESMTP id S933245Ab0FQULg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jun 2010 13:33:39 -0400
+	Thu, 17 Jun 2010 16:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, jslaby@suse.cz, len.brown@intel.com, maximlevitsky@gmail.com, pavel@ucw.cz, rjw@sisk.pl, sergey.senozhatsky@gmail.com
+Cc: kishore.kadiyala@ti.com, adrian.hunter@nokia.com, jhnikula@gmail.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, nm@ti.com, svenkatr@ti.com, tony@atomide.com
 
 
 The patch titled
-     cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix
+     mmc: omap: fix for bus width which improves SD card's  peformance.
 has been added to the -mm tree.  Its filename is
-     cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
+     mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: omap: fix for bus width which improves SD card's  peformance.
+From: Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-call tick_sched_init() directly from start_kernel().
+This patch improves low speeds for SD cards.
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+OMAP-MMC controller's can support maximum bus width of '8'.  when bus
+width is mentioned as "8" in controller data,the SD stack will check
+whether bus width is "4" and if not it will set bus width to "1" and there
+by degrading performance.  This patch fixes the issue and improves the
+performance of SD cards.
+
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h      |    9 ++++++---
- init/main.c               |    1 +
- kernel/time/tick-common.c |    1 -
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/tick.h~cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix include/linux/tick.h
---- a/include/linux/tick.h~cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix
-+++ a/include/linux/tick.h
-@@ -92,9 +92,6 @@ extern struct cpumask *tick_get_broadcas
+diff -puN drivers/mmc/host/omap_hsmmc.c~mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -2096,10 +2096,23 @@ static int __init omap_hsmmc_probe(struc
+ 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+ 		     MMC_CAP_WAIT_WHILE_BUSY;
  
- #  ifdef CONFIG_TICK_ONESHOT
- extern struct cpumask *tick_get_broadcast_oneshot_mask(void);
--extern void __init tick_sched_init(void);
--#  else
--static inline void tick_sched_init(void) { }
- #  endif
+-	if (mmc_slot(host).wires >= 8)
++	switch (mmc_slot(host).wires) {
++	case 8:
+ 		mmc->caps |= MMC_CAP_8_BIT_DATA;
+-	else if (mmc_slot(host).wires >= 4)
++		/* Fall through */
++	case 4:
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
++		break;
++	case 1:
++		/* Nothing to crib here */
++	case 0:
++		/* Assuming nothing was given by board, Core use's 1-Bit */
++		break;
++	default:
++		/* Completely unexpected.. Core goes with 1-Bit Width */
++		dev_crit(mmc_dev(host->mmc), "Invalid width %d\n used!"
++			"using 1 instead\n", mmc_slot(host).wires);
++	}
  
- # endif /* BROADCAST */
-@@ -124,6 +121,12 @@ static inline void tick_check_idle(int c
- static inline int tick_oneshot_mode_active(void) { return 0; }
- #endif /* !CONFIG_GENERIC_CLOCKEVENTS */
- 
-+#ifdef CONFIG_TICK_ONESHOT
-+extern void __init tick_sched_init(void);
-+#  else
-+static inline void tick_sched_init(void) { }
-+#endif
-+
- # ifdef CONFIG_NO_HZ
- extern void tick_nohz_stop_sched_tick(int inidle);
- extern void tick_nohz_restart_sched_tick(void);
-diff -puN init/main.c~cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix init/main.c
---- a/init/main.c~cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix
-+++ a/init/main.c
-@@ -611,6 +611,7 @@ asmlinkage void __init start_kernel(void
- 	init_timers();
- 	hrtimers_init();
- 	softirq_init();
-+	tick_sched_init();
- 	timekeeping_init();
- 	time_init();
- 	profile_init();
-diff -puN kernel/time/tick-common.c~cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix
-+++ a/kernel/time/tick-common.c
-@@ -413,5 +413,4 @@ static struct notifier_block tick_notifi
- void __init tick_init(void)
- {
- 	clockevents_register_notifier(&tick_notifier);
--	tick_sched_init();
- }
+ 	if (mmc_slot(host).nonremovable)
+ 		mmc->caps |= MMC_CAP_NONREMOVABLE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kishore.kadiyala@ti.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-x86-olpc-add-support-for-calling-into-openfirmware-fix-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch
 
