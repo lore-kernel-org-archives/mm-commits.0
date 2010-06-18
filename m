@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm.patch added to -mm tree
-Date: Thu, 17 Jun 2010 16:25:51 -0700
-Message-ID: <201006172325.o5HNPp7I000904@imap1.linux-foundation.org>
+Subject: + hmc6352-add-driver-for-the-hmc6352-compass.patch added to -mm tree
+Date: Thu, 17 Jun 2010 22:53:44 -0700
+Message-ID: <201006180553.o5I5rdQl016005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58165 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756186Ab0FQX0I (ORCPT
+	by vger.kernel.org with ESMTP id S1750730Ab0FRFyI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jun 2010 19:26:08 -0400
+	Fri, 18 Jun 2010 01:54:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, airlied@linux.ie, alexdeucher@gmail.com, linux@rainbow-software.org, mattst88@gmail.com
+Cc: kalhan.trisal@intel.com, alan@linux.intel.com, jic23@cam.ac.uk, khali@linux-fr.org
 
 
 The patch titled
-     drm/radeon/kms: fix hibernation regression related to radeon PM
+     hmc6352: add driver for the HMC6352 compass
 has been added to the -mm tree.  Its filename is
-     drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm.patch
+     hmc6352-add-driver-for-the-hmc6352-compass.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,154 +34,254 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/radeon/kms: fix hibernation regression related to radeon PM
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: hmc6352: add driver for the HMC6352 compass
+From: Kalhan Trisal <kalhan.trisal@intel.com>
 
-There is a regression from 2.6.34 related to the recent radeon power
-management changes, caused by attempting to cancel a delayed work item
-that's never been scheduled.  However, the code as is has some other
-issues potentially leading to visible problems.
+This driver will report the heading values in degrees to the sysfs
+interface.  The values returned are headings .  e.g.  245.6
 
-First, the mutex around cancel_delayed_work() in radeon_pm_suspend()
-doesn't really serve any purpose, because cancel_delayed_work() only tries
-to delete the work's timer.  Moreover, it doesn't prevent the work handler
-from running, so the handler can do some wrong things if it wins the race
-and in that case it will rearm itself to do some more wrong things going
-forward.  So, I think it's better to wait for the handler to return in
-case it's already been queued up for execution.  Also, it should be
-prevented from rearming itself in that case.
+Alan: Cleanups requested now all folded in and a sysfs description to keep
+Andrew happy. The sysfs description now resembles hwmon.
 
-Second, in radeon_set_pm_method() the cancel_delayed_work() is not
-sufficient to prevent the work handler from running and queing up itself
-for the next run (the failure scenario is that cancel_delayed_work()
-returns 0, so the handler is run, it waits on the mutex and then rearms
-itself after the mutex has been released), so again the work handler
-should be prevented from rearming itself in that case..
-
-Finally, there's a potential deadlock in radeon_pm_fini(), because
-cancel_delayed_work_sync() is called under rdev->pm.mutex, but the work
-handler tries to acquire the same mutex (if it wins the race).
-
-Fix the issues described above.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reviewed-by: Alex Deucher <alexdeucher@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Ondrej Zary <linux@rainbow-software.org>
-Cc: Matt Turner <mattst88@gmail.com>
+Signed-off-by: Kalhan Trisal <kalhan.trisal@intel.com>
+Reviewed-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/radeon.h    |    3 +
- drivers/gpu/drm/radeon/radeon_pm.c |   41 ++++++++++++++++++++++-----
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ Documentation/ABI/testing/sysfs-bus-i2c-devices-hm6352 |   21 +
+ drivers/misc/Kconfig                                   |    7 
+ drivers/misc/Makefile                                  |    1 
+ drivers/misc/hmc6352.c                                 |  166 ++++++++++
+ 4 files changed, 195 insertions(+)
 
-diff -puN drivers/gpu/drm/radeon/radeon.h~drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm drivers/gpu/drm/radeon/radeon.h
---- a/drivers/gpu/drm/radeon/radeon.h~drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm
-+++ a/drivers/gpu/drm/radeon/radeon.h
-@@ -619,7 +619,8 @@ enum radeon_dynpm_state {
- 	DYNPM_STATE_DISABLED,
- 	DYNPM_STATE_MINIMUM,
- 	DYNPM_STATE_PAUSED,
--	DYNPM_STATE_ACTIVE
-+	DYNPM_STATE_ACTIVE,
-+	DYNPM_STATE_SUSPENDED,
- };
- enum radeon_dynpm_action {
- 	DYNPM_ACTION_NONE,
-diff -puN drivers/gpu/drm/radeon/radeon_pm.c~drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm drivers/gpu/drm/radeon/radeon_pm.c
---- a/drivers/gpu/drm/radeon/radeon_pm.c~drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm
-+++ a/drivers/gpu/drm/radeon/radeon_pm.c
-@@ -397,13 +397,20 @@ static ssize_t radeon_set_pm_method(stru
- 		rdev->pm.dynpm_planned_action = DYNPM_ACTION_DEFAULT;
- 		mutex_unlock(&rdev->pm.mutex);
- 	} else if (strncmp("profile", buf, strlen("profile")) == 0) {
-+		bool flush_wq = false;
+diff -puN /dev/null Documentation/ABI/testing/sysfs-bus-i2c-devices-hm6352
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-bus-i2c-devices-hm6352
+@@ -0,0 +1,21 @@
++Where:		/sys/bus/i2c/devices/.../heading0_input
++Date:		April 2010
++Kernel Version: 2.6.36?
++Contact:	alan.cox@intel.com
++Description:	Reports the current heading from the compass as a floating
++		point value in degrees.
 +
- 		mutex_lock(&rdev->pm.mutex);
--		rdev->pm.pm_method = PM_METHOD_PROFILE;
-+		if (rdev->pm.pm_method == PM_METHOD_DYNPM) {
-+			cancel_delayed_work(&rdev->pm.dynpm_idle_work);
-+			flush_wq = true;
-+		}
- 		/* disable dynpm */
- 		rdev->pm.dynpm_state = DYNPM_STATE_DISABLED;
- 		rdev->pm.dynpm_planned_action = DYNPM_ACTION_NONE;
--		cancel_delayed_work(&rdev->pm.dynpm_idle_work);
-+		rdev->pm.pm_method = PM_METHOD_PROFILE;
- 		mutex_unlock(&rdev->pm.mutex);
-+		if (flush_wq)
-+			flush_workqueue(rdev->wq);
- 	} else {
- 		DRM_ERROR("invalid power method!\n");
- 		goto fail;
-@@ -418,9 +425,18 @@ static DEVICE_ATTR(power_method, S_IRUGO
++Where:		/sys/bus/i2c/devices/.../power_state
++Date:		April 2010
++Kernel Version: 2.6.36?
++Contact:	alan.cox@intel.com
++Description:	Sets the power state of the device. 0 sets the device into
++		sleep mode, 1 wakes it up.
++
++Where:		/sys/bus/i2c/devices/.../calibration
++Date:		April 2010
++Kernel Version: 2.6.36?
++Contact:	alan.cox@intel.com
++Description:	Sets the calibration on or off (1 = on, 0 = off). See the
++		chip data sheet.
++
+diff -puN drivers/misc/Kconfig~hmc6352-add-driver-for-the-hmc6352-compass drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~hmc6352-add-driver-for-the-hmc6352-compass
++++ a/drivers/misc/Kconfig
+@@ -314,6 +314,13 @@ config SENSORS_BH1780
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called bh1780gli.
  
- void radeon_pm_suspend(struct radeon_device *rdev)
- {
-+	bool flush_wq = false;
++config HMC6352
++	tristate "Honeywell HMC6352 compass"
++	depends on I2C
++	help
++	  This driver provides support for the Honeywell HMC6352 compass,
++	  providing configuration and heading data via sysfs.
 +
- 	mutex_lock(&rdev->pm.mutex);
--	cancel_delayed_work(&rdev->pm.dynpm_idle_work);
-+	if (rdev->pm.pm_method == PM_METHOD_DYNPM) {
-+		cancel_delayed_work(&rdev->pm.dynpm_idle_work);
-+		if (rdev->pm.dynpm_state == DYNPM_STATE_ACTIVE)
-+			rdev->pm.dynpm_state = DYNPM_STATE_SUSPENDED;
-+		flush_wq = true;
+ config EP93XX_PWM
+ 	tristate "EP93xx PWM support"
+ 	depends on ARCH_EP93XX
+diff -puN drivers/misc/Makefile~hmc6352-add-driver-for-the-hmc6352-compass drivers/misc/Makefile
+--- a/drivers/misc/Makefile~hmc6352-add-driver-for-the-hmc6352-compass
++++ a/drivers/misc/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_DS1682)		+= ds1682.o
+ obj-$(CONFIG_TI_DAC7512)	+= ti_dac7512.o
+ obj-$(CONFIG_C2PORT)		+= c2port/
+ obj-$(CONFIG_IWMC3200TOP)      += iwmc3200top/
++obj-$(CONFIG_HMC6352)		+= hmc6352.o
+ obj-y				+= eeprom/
+ obj-y				+= cb710/
+ obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
+diff -puN /dev/null drivers/misc/hmc6352.c
+--- /dev/null
++++ a/drivers/misc/hmc6352.c
+@@ -0,0 +1,166 @@
++/*
++ * hmc6352.c - Honeywell Compass Driver
++ *
++ * Copyright (C) 2009 Intel Corp
++ *
++ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
++#include <linux/delay.h>
++#include <linux/sysfs.h>
++
++static DEFINE_MUTEX(compass_mutex);
++
++static int compass_command(struct i2c_client *c, u8 cmd)
++{
++	int ret = i2c_master_send(c, &cmd, 1);
++	if (ret < 0)
++		dev_warn(&c->dev, "command '%c' failed.\n", cmd);
++	return ret;
++}
++
++static int compass_store(struct device *dev, const char *buf, size_t count,
++			const char *map)
++{
++	struct i2c_client *c = to_i2c_client(dev);
++	int ret;
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val))
++		return -EINVAL;
++	if (val >= strlen(map))
++		return -EINVAL;
++	mutex_lock(&compass_mutex);
++	ret = compass_command(c, map[val]);
++	mutex_unlock(&compass_mutex);
++	if (ret < 0)
++		return ret;
++	return count;
++}
++
++static ssize_t compass_calibration_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	return compass_store(dev, buf, count, "EC");
++}
++
++static ssize_t compass_power_mode_store(struct device *dev,
++		struct device_attribute *attr, const  char *buf, size_t count)
++{
++	return compass_store(dev, buf, count, "SW");
++}
++
++static ssize_t compass_heading_data_show(struct device *dev,
++			struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	unsigned char i2c_data[2];
++	unsigned int ret;
++
++	mutex_lock(&compass_mutex);
++	ret = compass_command(client, 'A');
++	if (ret != 1) {
++		mutex_unlock(&compass_mutex);
++		return ret;
 +	}
- 	mutex_unlock(&rdev->pm.mutex);
-+	if (flush_wq)
-+		flush_workqueue(rdev->wq);
- }
- 
- void radeon_pm_resume(struct radeon_device *rdev)
-@@ -432,6 +448,12 @@ void radeon_pm_resume(struct radeon_devi
- 	rdev->pm.current_sclk = rdev->clock.default_sclk;
- 	rdev->pm.current_mclk = rdev->clock.default_mclk;
- 	rdev->pm.current_vddc = rdev->pm.power_state[rdev->pm.default_power_state_index].clock_info[0].voltage.voltage;
-+	if (rdev->pm.pm_method == PM_METHOD_DYNPM
-+	    && rdev->pm.dynpm_state == DYNPM_STATE_SUSPENDED) {
-+		rdev->pm.dynpm_state = DYNPM_STATE_ACTIVE;
-+		queue_delayed_work(rdev->wq, &rdev->pm.dynpm_idle_work,
-+					msecs_to_jiffies(RADEON_IDLE_LOOP_MS));
++	msleep(10); /* sending 'A' cmd we need to wait for 7-10 millisecs */
++	ret = i2c_master_recv(client, i2c_data, 2);
++	mutex_unlock(&compass_mutex);
++	if (ret != 1) {
++		dev_warn(dev, "i2c read data cmd failed\n");
++		return ret;
 +	}
- 	mutex_unlock(&rdev->pm.mutex);
- 	radeon_pm_compute_clocks(rdev);
- }
-@@ -486,6 +508,8 @@ int radeon_pm_init(struct radeon_device 
- void radeon_pm_fini(struct radeon_device *rdev)
- {
- 	if (rdev->pm.num_power_states > 1) {
-+		bool flush_wq = false;
++	ret = (i2c_data[0] << 8) | i2c_data[1];
++	return sprintf(buf, "%d.%d\n", ret/10, ret%10);
++}
 +
- 		mutex_lock(&rdev->pm.mutex);
- 		if (rdev->pm.pm_method == PM_METHOD_PROFILE) {
- 			rdev->pm.profile = PM_PROFILE_DEFAULT;
-@@ -493,13 +517,16 @@ void radeon_pm_fini(struct radeon_device
- 			radeon_pm_set_clocks(rdev);
- 		} else if (rdev->pm.pm_method == PM_METHOD_DYNPM) {
- 			/* cancel work */
--			cancel_delayed_work_sync(&rdev->pm.dynpm_idle_work);
-+			cancel_delayed_work(&rdev->pm.dynpm_idle_work);
-+			flush_wq = true;
- 			/* reset default clocks */
- 			rdev->pm.dynpm_state = DYNPM_STATE_DISABLED;
- 			rdev->pm.dynpm_planned_action = DYNPM_ACTION_DEFAULT;
- 			radeon_pm_set_clocks(rdev);
- 		}
- 		mutex_unlock(&rdev->pm.mutex);
-+		if (flush_wq)
-+			flush_workqueue(rdev->wq);
- 
- 		device_remove_file(rdev->dev, &dev_attr_power_profile);
- 		device_remove_file(rdev->dev, &dev_attr_power_method);
-@@ -720,12 +747,12 @@ static void radeon_dynpm_idle_work_handl
- 			radeon_pm_get_dynpm_state(rdev);
- 			radeon_pm_set_clocks(rdev);
- 		}
 +
-+		queue_delayed_work(rdev->wq, &rdev->pm.dynpm_idle_work,
-+					msecs_to_jiffies(RADEON_IDLE_LOOP_MS));
- 	}
- 	mutex_unlock(&rdev->pm.mutex);
- 	ttm_bo_unlock_delayed_workqueue(&rdev->mman.bdev, resched);
++static DEVICE_ATTR(heading0_input, S_IRUGO, compass_heading_data_show, NULL);
++static DEVICE_ATTR(calibration, S_IWUSR, NULL, compass_calibration_store);
++static DEVICE_ATTR(power_state, S_IWUSR, NULL, compass_power_mode_store);
++
++static struct attribute *mid_att_compass[] = {
++	&dev_attr_heading0_input.attr,
++	&dev_attr_calibration.attr,
++	&dev_attr_power_state.attr,
++	NULL
++};
++
++static const struct attribute_group m_compass_gr = {
++	.name = "hmc6352",
++	.attrs = mid_att_compass
++};
++
++static int hmc6352_probe(struct i2c_client *client,
++					const struct i2c_device_id *id)
++{
++	int res;
++
++	res = sysfs_create_group(&client->dev.kobj, &m_compass_gr);
++	if (res) {
++		dev_err(&client->dev, "device_create_file failed\n");
++		return res;
++	}
++	dev_info(&client->dev, "%s HMC6352 compass chip found\n",
++							client->name);
++	return 0;
++}
++
++static int hmc6352_remove(struct i2c_client *client)
++{
++	sysfs_remove_group(&client->dev.kobj, &m_compass_gr);
++	return 0;
++}
++
++static struct i2c_device_id hmc6352_id[] = {
++	{ "hmc6352", 0 },
++	{ }
++};
++
++MODULE_DEVICE_TABLE(i2c, hmc6352_id);
++
++static struct i2c_driver hmc6352_driver = {
++	.driver = {
++		.name = "hmc6352",
++	},
++	.probe = hmc6352_probe,
++	.remove = hmc6352_remove,
++	.id_table = hmc6352_id,
++};
++
++static int __init sensor_hmc6352_init(void)
++{
++	return i2c_add_driver(&hmc6352_driver);
++}
++
++static void  __exit sensor_hmc6352_exit(void)
++{
++	i2c_del_driver(&hmc6352_driver);
++}
++
++module_init(sensor_hmc6352_init);
++module_exit(sensor_hmc6352_exit);
++
++MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com");
++MODULE_DESCRIPTION("hmc6352 Compass Driver");
++MODULE_LICENSE("GPL v2");
+_
+
+Patches currently in -mm which might be from kalhan.trisal@intel.com are
+
+hmc6352-add-driver-for-the-hmc6352-compass.patch
+
