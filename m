@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcc-46-block-fix-unused-but-set-variables-in-blk-merge.patch added to -mm tree
-Date: Fri, 18 Jun 2010 16:31:41 -0700
-Message-ID: <201006182331.o5INVfjT029559@imap1.linux-foundation.org>
+Subject: + gcc-46-perf-fix-set-but-unused-variables-in-perf.patch added to -mm tree
+Date: Fri, 18 Jun 2010 16:31:21 -0700
+Message-ID: <201006182331.o5INVLau029524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753121Ab0FRXbs (ORCPT
+	by vger.kernel.org with ESMTP id S1753097Ab0FRXbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:31:48 -0400
+	Fri, 18 Jun 2010 19:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, axboe@kernel.dk
+Cc: andi@firstfloor.org, a.p.zijlstra@chello.nl, ak@linux.intel.com, mingo@elte.hu
 
 
 The patch titled
-     gcc-4.6: block: fix unused but set variables in blk-merge
+     gcc-4.6: perf: fix set but unused variables in perf
 has been added to the -mm tree.  Its filename is
-     gcc-46-block-fix-unused-but-set-variables-in-blk-merge.patch
+     gcc-46-perf-fix-set-but-unused-variables-in-perf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcc-4.6: block: fix unused but set variables in blk-merge
+Subject: gcc-4.6: perf: fix set but unused variables in perf
 From: Andi Kleen <andi@firstfloor.org>
 
-Just some dead code.
+Just dead code I believe
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-merge.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/cpu/perf_event.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN block/blk-merge.c~gcc-46-block-fix-unused-but-set-variables-in-blk-merge block/blk-merge.c
---- a/block/blk-merge.c~gcc-46-block-fix-unused-but-set-variables-in-blk-merge
-+++ a/block/blk-merge.c
-@@ -12,7 +12,6 @@
- static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
- 					     struct bio *bio)
+diff -puN arch/x86/kernel/cpu/perf_event.c~gcc-46-perf-fix-set-but-unused-variables-in-perf arch/x86/kernel/cpu/perf_event.c
+--- a/arch/x86/kernel/cpu/perf_event.c~gcc-46-perf-fix-set-but-unused-variables-in-perf
++++ a/arch/x86/kernel/cpu/perf_event.c
+@@ -953,12 +953,9 @@ static void x86_pmu_enable_event(struct 
+ static int x86_pmu_enable(struct perf_event *event)
  {
--	unsigned int phys_size;
- 	struct bio_vec *bv, *bvprv = NULL;
- 	int cluster, i, high, highprv = 1;
- 	unsigned int seg_size, nr_phys_segs;
-@@ -24,7 +23,7 @@ static unsigned int __blk_recalc_rq_segm
- 	fbio = bio;
- 	cluster = test_bit(QUEUE_FLAG_CLUSTER, &q->queue_flags);
- 	seg_size = 0;
--	phys_size = nr_phys_segs = 0;
-+	nr_phys_segs = 0;
- 	for_each_bio(bio) {
- 		bio_for_each_segment(bv, bio, i) {
- 			/*
+ 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
+-	struct hw_perf_event *hwc;
+ 	int assign[X86_PMC_IDX_MAX];
+ 	int n, n0, ret;
+ 
+-	hwc = &event->hw;
+-
+ 	n0 = cpuc->n_events;
+ 	n = collect_events(cpuc, event, false);
+ 	if (n < 0)
+@@ -1122,7 +1119,6 @@ static int x86_pmu_handle_irq(struct pt_
+ 	struct perf_sample_data data;
+ 	struct cpu_hw_events *cpuc;
+ 	struct perf_event *event;
+-	struct hw_perf_event *hwc;
+ 	int idx, handled = 0;
+ 	u64 val;
+ 
+@@ -1135,7 +1131,6 @@ static int x86_pmu_handle_irq(struct pt_
+ 			continue;
+ 
+ 		event = cpuc->events[idx];
+-		hwc = &event->hw;
+ 
+ 		val = x86_perf_event_update(event);
+ 		if (val & (1ULL << (x86_pmu.cntval_bits - 1)))
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
