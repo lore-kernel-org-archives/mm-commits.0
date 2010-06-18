@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef.patch added to -mm tree
-Date: Fri, 18 Jun 2010 16:31:15 -0700
-Message-ID: <201006182331.o5INVFnL029513@imap1.linux-foundation.org>
+Subject: + gcc-46-block-fix-unused-but-set-variables-in-blk-merge.patch added to -mm tree
+Date: Fri, 18 Jun 2010 16:31:41 -0700
+Message-ID: <201006182331.o5INVfjT029559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752930Ab0FRXbm (ORCPT
+	by vger.kernel.org with ESMTP id S1753121Ab0FRXbs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:31:42 -0400
+	Fri, 18 Jun 2010 19:31:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, tglx@linutronix.de
+Cc: andi@firstfloor.org, ak@linux.intel.com, axboe@kernel.dk
 
 
 The patch titled
-     gcc-4.6: irq: move alloc_desk_mask variables inside ifdef
+     gcc-4.6: block: fix unused but set variables in blk-merge
 has been added to the -mm tree.  Its filename is
-     gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef.patch
+     gcc-46-block-fix-unused-but-set-variables-in-blk-merge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcc-4.6: irq: move alloc_desk_mask variables inside ifdef
+Subject: gcc-4.6: block: fix unused but set variables in blk-merge
 From: Andi Kleen <andi@firstfloor.org>
 
-They are only useful with CONFIG_CPUMASK_OFFSTACK
-
-Avoids hundreds of warnings with a gcc 4.6 -Wall build.
+Just some dead code.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irq.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-merge.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/irq.h~gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef include/linux/irq.h
---- a/include/linux/irq.h~gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef
-+++ a/include/linux/irq.h
-@@ -439,12 +439,12 @@ extern int set_irq_msi(unsigned int irq,
- static inline bool alloc_desc_masks(struct irq_desc *desc, int node,
- 							bool boot)
+diff -puN block/blk-merge.c~gcc-46-block-fix-unused-but-set-variables-in-blk-merge block/blk-merge.c
+--- a/block/blk-merge.c~gcc-46-block-fix-unused-but-set-variables-in-blk-merge
++++ a/block/blk-merge.c
+@@ -12,7 +12,6 @@
+ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
+ 					     struct bio *bio)
  {
-+#ifdef CONFIG_CPUMASK_OFFSTACK
- 	gfp_t gfp = GFP_ATOMIC;
- 
- 	if (boot)
- 		gfp = GFP_NOWAIT;
- 
--#ifdef CONFIG_CPUMASK_OFFSTACK
- 	if (!alloc_cpumask_var_node(&desc->affinity, gfp, node))
- 		return false;
- 
+-	unsigned int phys_size;
+ 	struct bio_vec *bv, *bvprv = NULL;
+ 	int cluster, i, high, highprv = 1;
+ 	unsigned int seg_size, nr_phys_segs;
+@@ -24,7 +23,7 @@ static unsigned int __blk_recalc_rq_segm
+ 	fbio = bio;
+ 	cluster = test_bit(QUEUE_FLAG_CLUSTER, &q->queue_flags);
+ 	seg_size = 0;
+-	phys_size = nr_phys_segs = 0;
++	nr_phys_segs = 0;
+ 	for_each_bio(bio) {
+ 		bio_for_each_segment(bv, bio, i) {
+ 			/*
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
