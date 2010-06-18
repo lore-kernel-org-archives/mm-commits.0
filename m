@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch added to -mm tree
-Date: Fri, 18 Jun 2010 13:30:11 -0700
-Message-ID: <201006182030.o5IKUBdn021729@imap1.linux-foundation.org>
+Subject: + drivers-net-cxgb3-t3_hwc-use-new-hex_to_bin-method.patch added to -mm tree
+Date: Fri, 18 Jun 2010 13:54:27 -0700
+Message-ID: <201006182054.o5IKsRGN022805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750745Ab0FRUam (ORCPT
+	by vger.kernel.org with ESMTP id S1751063Ab0FRUyg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 16:30:42 -0400
+	Fri, 18 Jun 2010 16:54:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, eric.dumazet@gmail.com, laijs@cn.fujitsu.com, linux@dominikbrodowski.net, maciej.rutecki@gmail.com, paulmck@linux.vnet.ibm.com, sergey.senozhatsky@gmail.com
+Cc: ext-andriy.shevchenko@nokia.com, davem@davemloft.net, divy@chelsio.com
 
 
 The patch titled
-     fs/fcntl.c:kill_fasync_rcu() fa_lock must be IRQ-safe
+     drivers/net/cxgb3/t3_hw.c: use new hex_to_bin() method
 has been added to the -mm tree.  Its filename is
-     fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
+     drivers-net-cxgb3-t3_hwc-use-new-hex_to_bin-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/fcntl.c:kill_fasync_rcu() fa_lock must be IRQ-safe
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/net/cxgb3/t3_hw.c: use new hex_to_bin() method
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-Fix a lockdep-splat-causing regression introduced by
+Get rid of own implementation of hex_to_bin().
 
-: commit 989a2979205dd34269382b357e6d4b4b6956b889
-: Author:     Eric Dumazet <eric.dumazet@gmail.com>
-: AuthorDate: Wed Apr 14 09:55:35 2010 +0000
-: Commit:     David S. Miller <davem@davemloft.net>
-: CommitDate: Wed Apr 21 16:19:29 2010 -0700
-: 
-:     fasync: RCU and fine grained locking
-
-kill_fasync() can be called from both process and hard-irq context, so
-fa_lock must be taken with IRQs disabled.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16230
-
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Acked-by: Divy Le Ray <divy@chelsio.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fcntl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/cxgb3/t3_hw.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN fs/fcntl.c~fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe fs/fcntl.c
---- a/fs/fcntl.c~fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe
-+++ a/fs/fcntl.c
-@@ -733,12 +733,14 @@ static void kill_fasync_rcu(struct fasyn
- {
- 	while (fa) {
- 		struct fown_struct *fown;
-+		unsigned long flags;
-+
- 		if (fa->magic != FASYNC_MAGIC) {
- 			printk(KERN_ERR "kill_fasync: bad magic number in "
- 			       "fasync_struct!\n");
- 			return;
- 		}
--		spin_lock(&fa->fa_lock);
-+		spin_lock_irqsave(&fa->fa_lock, flags);
- 		if (fa->fa_file) {
- 			fown = &fa->fa_file->f_owner;
- 			/* Don't send SIGURG to processes which have not set a
-@@ -747,7 +749,7 @@ static void kill_fasync_rcu(struct fasyn
- 			if (!(sig == SIGURG && fown->signum == 0))
- 				send_sigio(fown, fa->fa_fd, band);
- 		}
--		spin_unlock(&fa->fa_lock);
-+		spin_unlock_irqrestore(&fa->fa_lock, flags);
- 		fa = rcu_dereference(fa->fa_next);
- 	}
+diff -puN drivers/net/cxgb3/t3_hw.c~drivers-net-cxgb3-t3_hwc-use-new-hex_to_bin-method drivers/net/cxgb3/t3_hw.c
+--- a/drivers/net/cxgb3/t3_hw.c~drivers-net-cxgb3-t3_hwc-use-new-hex_to_bin-method
++++ a/drivers/net/cxgb3/t3_hw.c
+@@ -679,14 +679,6 @@ int t3_seeprom_wp(struct adapter *adapte
+ 	return t3_seeprom_write(adapter, EEPROM_STAT_ADDR, enable ? 0xc : 0);
  }
+ 
+-/*
+- * Convert a character holding a hex digit to a number.
+- */
+-static unsigned int hex2int(unsigned char c)
+-{
+-	return isdigit(c) ? c - '0' : toupper(c) - 'A' + 10;
+-}
+-
+ /**
+  *	get_vpd_params - read VPD parameters from VPD EEPROM
+  *	@adapter: adapter to read
+@@ -727,15 +719,15 @@ static int get_vpd_params(struct adapter
+ 		p->port_type[0] = uses_xaui(adapter) ? 1 : 2;
+ 		p->port_type[1] = uses_xaui(adapter) ? 6 : 2;
+ 	} else {
+-		p->port_type[0] = hex2int(vpd.port0_data[0]);
+-		p->port_type[1] = hex2int(vpd.port1_data[0]);
++		p->port_type[0] = hex_to_bin(vpd.port0_data[0]);
++		p->port_type[1] = hex_to_bin(vpd.port1_data[0]);
+ 		p->xauicfg[0] = simple_strtoul(vpd.xaui0cfg_data, NULL, 16);
+ 		p->xauicfg[1] = simple_strtoul(vpd.xaui1cfg_data, NULL, 16);
+ 	}
+ 
+ 	for (i = 0; i < 6; i++)
+-		p->eth_base[i] = hex2int(vpd.na_data[2 * i]) * 16 +
+-				 hex2int(vpd.na_data[2 * i + 1]);
++		p->eth_base[i] = hex_to_bin(vpd.na_data[2 * i]) * 16 +
++				 hex_to_bin(vpd.na_data[2 * i + 1]);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ext-andriy.shevchenko@nokia.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+drivers-net-cxgb3-t3_hwc-use-new-hex_to_bin-method.patch
 
