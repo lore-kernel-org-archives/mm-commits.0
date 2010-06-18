@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcc-46-nfsd-fix-initialized-but-not-read-warnings.patch added to -mm tree
-Date: Fri, 18 Jun 2010 16:31:33 -0700
-Message-ID: <201006182331.o5INVXxR029547@imap1.linux-foundation.org>
+Subject: + gcc-46-x86-fix-set-but-not-read-variables.patch added to -mm tree
+Date: Fri, 18 Jun 2010 16:31:23 -0700
+Message-ID: <201006182331.o5INVNQr029528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752914Ab0FRXbl (ORCPT
+	by vger.kernel.org with ESMTP id S1753042Ab0FRXbr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:31:41 -0400
+	Fri, 18 Jun 2010 19:31:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, neilb@suse.de, viro@zeniv.linux.org.uk
+Cc: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     gcc-4.6: nfsd: fix initialized but not read warnings
+     gcc-4.6: x86: fix set but not read variables
 has been added to the -mm tree.  Its filename is
-     gcc-46-nfsd-fix-initialized-but-not-read-warnings.patch
+     gcc-46-x86-fix-set-but-not-read-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcc-4.6: nfsd: fix initialized but not read warnings
+Subject: gcc-4.6: x86: fix set but not read variables
 From: Andi Kleen <andi@firstfloor.org>
 
-Fixes at least one real minor bug: the nfs4 recovery dir sysctl
-would not return its status properly.
+Just some dead code, no real bugs.
 
-Also I finished Al's 1e41568d7378d ("Take ima_path_check() in nfsd
-past dentry_open() in nfsd_open()") commit, it moved the IMA
-code, but left the old path initializer in there.
-
-The rest is just dead code removed I think, although I was not
-fully sure about the "is_borc" stuff. Some more review
-would be still good.
-
-Found by gcc 4.6's new warnings.
+Found by gcc 4.6 -Wall
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c |    2 --
- fs/nfsd/nfsctl.c    |    2 ++
- fs/nfsd/nfsproc.c   |    2 --
- fs/nfsd/vfs.c       |   11 +----------
- 4 files changed, 3 insertions(+), 14 deletions(-)
+ arch/x86/kernel/aperture_64.c      |    4 ++--
+ arch/x86/kernel/cpu/mtrr/generic.c |    3 +--
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfsd/nfs4state.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings
-+++ a/fs/nfsd/nfs4state.c
-@@ -3354,11 +3354,9 @@ static inline void
- nfs4_set_lock_denied(struct file_lock *fl, struct nfsd4_lock_denied *deny)
- {
- 	struct nfs4_stateowner *sop;
--	unsigned int hval;
- 
- 	if (fl->fl_lmops == &nfsd_posix_mng_ops) {
- 		sop = (struct nfs4_stateowner *) fl->fl_owner;
--		hval = lockownerid_hashval(sop->so_id);
- 		kref_get(&sop->so_ref);
- 		deny->ld_sop = sop;
- 		deny->ld_clientid = sop->so_client->cl_clientid;
-diff -puN fs/nfsd/nfsctl.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings fs/nfsd/nfsctl.c
---- a/fs/nfsd/nfsctl.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings
-+++ a/fs/nfsd/nfsctl.c
-@@ -1310,6 +1310,8 @@ static ssize_t __write_recoverydir(struc
- 			return -EINVAL;
- 
- 		status = nfs4_reset_recoverydir(recdir);
-+		if (status)
-+			return status;
- 	}
- 
- 	return scnprintf(buf, SIMPLE_TRANSACTION_LIMIT, "%s\n",
-diff -puN fs/nfsd/nfsproc.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings fs/nfsd/nfsproc.c
---- a/fs/nfsd/nfsproc.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings
-+++ a/fs/nfsd/nfsproc.c
-@@ -290,7 +290,6 @@ nfsd_proc_create(struct svc_rqst *rqstp,
- 	 * gospel of sun micro
+diff -puN arch/x86/kernel/aperture_64.c~gcc-46-x86-fix-set-but-not-read-variables arch/x86/kernel/aperture_64.c
+--- a/arch/x86/kernel/aperture_64.c~gcc-46-x86-fix-set-but-not-read-variables
++++ a/arch/x86/kernel/aperture_64.c
+@@ -280,7 +280,7 @@ void __init early_gart_iommu_check(void)
+ 	 * or BIOS forget to put that in reserved.
+ 	 * try to update e820 to make that region as reserved.
  	 */
- 	if (type != S_IFREG) {
--		int	is_borc = 0;
- 		if (type != S_IFBLK && type != S_IFCHR) {
- 			rdev = 0;
- 		} else if (type == S_IFCHR && !(attr->ia_valid & ATTR_SIZE)) {
-@@ -298,7 +297,6 @@ nfsd_proc_create(struct svc_rqst *rqstp,
- 			type = S_IFIFO;
- 		} else {
- 			/* Okay, char or block special */
--			is_borc = 1;
- 			if (!rdev)
- 				rdev = wanted;
- 		}
-diff -puN fs/nfsd/vfs.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~gcc-46-nfsd-fix-initialized-but-not-read-warnings
-+++ a/fs/nfsd/vfs.c
-@@ -1631,7 +1631,7 @@ nfsd_link(struct svc_rqst *rqstp, struct
- 				char *name, int len, struct svc_fh *tfhp)
+-	u32 agp_aper_base = 0, agp_aper_order = 0;
++	u32 agp_aper_order = 0;
+ 	int i, fix, slot, valid_agp = 0;
+ 	u32 ctl;
+ 	u32 aper_size = 0, aper_order = 0, last_aper_order = 0;
+@@ -291,7 +291,7 @@ void __init early_gart_iommu_check(void)
+ 		return;
+ 
+ 	/* This is mostly duplicate of iommu_hole_init */
+-	agp_aper_base = search_agp_bridge(&agp_aper_order, &valid_agp);
++	search_agp_bridge(&agp_aper_order, &valid_agp);
+ 
+ 	fix = 0;
+ 	for (i = 0; i < ARRAY_SIZE(bus_dev_ranges); i++) {
+diff -puN arch/x86/kernel/cpu/mtrr/generic.c~gcc-46-x86-fix-set-but-not-read-variables arch/x86/kernel/cpu/mtrr/generic.c
+--- a/arch/x86/kernel/cpu/mtrr/generic.c~gcc-46-x86-fix-set-but-not-read-variables
++++ a/arch/x86/kernel/cpu/mtrr/generic.c
+@@ -433,13 +433,12 @@ static void generic_get_mtrr(unsigned in
  {
- 	struct dentry	*ddir, *dnew, *dold;
--	struct inode	*dirp, *dest;
-+	struct inode	*dirp;
- 	__be32		err;
- 	int		host_err;
+ 	unsigned int mask_lo, mask_hi, base_lo, base_hi;
+ 	unsigned int tmp, hi;
+-	int cpu;
  
-@@ -1659,7 +1659,6 @@ nfsd_link(struct svc_rqst *rqstp, struct
- 		goto out_nfserr;
+ 	/*
+ 	 * get_mtrr doesn't need to update mtrr_state, also it could be called
+ 	 * from any cpu, so try to print it out directly.
+ 	 */
+-	cpu = get_cpu();
++	get_cpu();
  
- 	dold = tfhp->fh_dentry;
--	dest = dold->d_inode;
- 
- 	host_err = mnt_want_write(tfhp->fh_export->ex_path.mnt);
- 	if (host_err) {
-@@ -2111,15 +2110,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
- 	if (err == -EACCES && S_ISREG(inode->i_mode) &&
- 	    acc == (NFSD_MAY_READ | NFSD_MAY_OWNER_OVERRIDE))
- 		err = inode_permission(inode, MAY_EXEC);
--	if (err)
--		goto nfsd_out;
- 
--	/* Do integrity (permission) checking now, but defer incrementing
--	 * IMA counts to the actual file open.
--	 */
--	path.mnt = exp->ex_path.mnt;
--	path.dentry = dentry;
--nfsd_out:
- 	return err? nfserrno(err) : 0;
- }
+ 	rdmsr(MTRRphysMask_MSR(reg), mask_lo, mask_hi);
  
 _
 
