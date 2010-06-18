@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch added to -mm tree
-Date: Fri, 18 Jun 2010 12:50:47 -0700
-Message-ID: <201006181950.o5IJolX3019934@imap1.linux-foundation.org>
+Subject: + acpi-fix-bogus-preemption-logic.patch added to -mm tree
+Date: Fri, 18 Jun 2010 13:02:08 -0700
+Message-ID: <201006182002.o5IK29sG020448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754099Ab0FRTvG (ORCPT
+	by vger.kernel.org with ESMTP id S1757738Ab0FRUCS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 15:51:06 -0400
+	Fri, 18 Jun 2010 16:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, oleg@redhat.com
+Cc: tglx@linutronix.de, lenb@kernel.org
 
 
 The patch titled
-     memcg: use find_lock_task_mm() in memory cgroups oom
+     acpi: fix bogus preemption logic
 has been added to the -mm tree.  Its filename is
-     memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
+     acpi-fix-bogus-preemption-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use find_lock_task_mm() in memory cgroups oom
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: acpi: fix bogus preemption logic
+From: Thomas Gleixner <tglx@linutronix.de>
 
-When the OOM killer scans task, it check a task is under memcg or
-not when it's called via memcg's context.
+The ACPI_PREEMPTION_POINT() logic was introduced in commit 8bd108d
+(ACPICA: add preemption point after each opcode parse).  The follow up
+commits abe1dfab6, 138d15692, c084ca70 tried to fix the preemption logic
+back and forth, but nobody noticed that the usage of
+in_atomic_preempt_off() in that context is wrong.
 
-But, as Oleg pointed out, a thread group leader may have NULL ->mm
-and task_in_mem_cgroup() may do wrong decision. We have to use
-find_lock_task_mm() in memcg as generic OOM-Killer does.
+The check which guards the call of cond_resched() is:
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+    if (!in_atomic_preempt_off() && !irqs_disabled())
+
+in_atomic_preempt_off() is not intended for general use as the comment
+above the macro definition clearly says:
+
+ * Check whether we were atomic before we did preempt_disable():
+ * (used by the scheduler, *after* releasing the kernel lock)
+
+On a CONFIG_PREEMPT=n kernel the usage of in_atomic_preempt_off() works by
+accident, but with CONFIG_PREEMPT=y it's just broken.
+
+The whole purpose of the ACPI_PREEMPTION_POINT() is to reduce the latency
+on a CONFIG_PREEMPT=n kernel, so make ACPI_PREEMPTION_POINT() depend on
+CONFIG_PREEMPT=n and remove the in_atomic_preempt_off() check.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 ++
- mm/memcontrol.c     |   10 +++++++---
- mm/oom_kill.c       |    2 +-
- 3 files changed, 10 insertions(+), 4 deletions(-)
+ include/acpi/platform/aclinux.h |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/oom.h~memcg-use-find_lock_task_mm-in-memory-cgroups-oom include/linux/oom.h
---- a/include/linux/oom.h~memcg-use-find_lock_task_mm-in-memory-cgroups-oom
-+++ a/include/linux/oom.h
-@@ -45,6 +45,8 @@ static inline void oom_killer_enable(voi
- 	oom_killer_disabled = false;
- }
+diff -puN include/acpi/platform/aclinux.h~acpi-fix-bogus-preemption-logic include/acpi/platform/aclinux.h
+--- a/include/acpi/platform/aclinux.h~acpi-fix-bogus-preemption-logic
++++ a/include/acpi/platform/aclinux.h
+@@ -148,13 +148,17 @@ static inline void *acpi_os_acquire_obje
+ #define ACPI_ALLOCATE_ZEROED(a) acpi_os_allocate_zeroed(a)
+ #define ACPI_FREE(a)            kfree(a)
  
-+extern struct task_struct *find_lock_task_mm(struct task_struct *p);
-+
- /* sysctls */
- extern int sysctl_oom_dump_tasks;
- extern int sysctl_oom_kill_allocating_task;
-diff -puN mm/memcontrol.c~memcg-use-find_lock_task_mm-in-memory-cgroups-oom mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-find_lock_task_mm-in-memory-cgroups-oom
-+++ a/mm/memcontrol.c
-@@ -47,6 +47,7 @@
- #include <linux/mm_inline.h>
- #include <linux/page_cgroup.h>
- #include <linux/cpu.h>
-+#include <linux/oom.h>
- #include "internal.h"
+-/* Used within ACPICA to show where it is safe to preempt execution */
+-#include <linux/hardirq.h>
++#ifndef CONFIG_PREEMPT
++/*
++ * Used within ACPICA to show where it is safe to preempt execution
++ * when CONFIG_PREEMPT=n
++ */
+ #define ACPI_PREEMPTION_POINT() \
+ 	do { \
+-		if (!in_atomic_preempt_off() && !irqs_disabled()) \
++		if (!irqs_disabled()) \
+ 			cond_resched(); \
+ 	} while (0)
++#endif
  
- #include <asm/uaccess.h>
-@@ -838,10 +839,13 @@ int task_in_mem_cgroup(struct task_struc
- {
- 	int ret;
- 	struct mem_cgroup *curr = NULL;
-+	struct task_struct *p;
- 
--	task_lock(task);
--	curr = try_get_mem_cgroup_from_mm(task->mm);
--	task_unlock(task);
-+	p = find_lock_task_mm(task);
-+	if (!p)
-+		return 0;
-+	curr = try_get_mem_cgroup_from_mm(p->mm);
-+	task_unlock(p);
- 	if (!curr)
- 		return 0;
- 	/*
-diff -puN mm/oom_kill.c~memcg-use-find_lock_task_mm-in-memory-cgroups-oom mm/oom_kill.c
---- a/mm/oom_kill.c~memcg-use-find_lock_task_mm-in-memory-cgroups-oom
-+++ a/mm/oom_kill.c
-@@ -87,7 +87,7 @@ static bool has_intersects_mems_allowed(
-  * pointer.  Return p, or any of its subthreads with a valid ->mm, with
-  * task_lock() held.
-  */
--static struct task_struct *find_lock_task_mm(struct task_struct *p)
-+struct task_struct *find_lock_task_mm(struct task_struct *p)
- {
- 	struct task_struct *t = p;
+ #endif /* __KERNEL__ */
  
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 linux-next.patch
-memcg-fix-wake-up-in-oom-wait-queue.patch
-percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-mm-rename-anon_vma_lock-to-vma_lock_anon_vma.patch
-mm-change-direct-call-of-spin_lockanon_vma-lock-to-inline-function.patch
-mm-track-the-root-oldest-anon_vma.patch
-mm-always-lock-the-root-oldest-anon_vma.patch
-mm-extend-ksm-refcounts-to-the-anon_vma-root.patch
-mm-extend-ksm-refcounts-to-the-anon_vma-root-fix.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
-memcg-remove-experimental-from-swap-account-config.patch
-memcg-clean-up-try_charge-main-loop-v2.patch
-memcg-clean-up-waiting-move-acct-v2.patch
-memcg-remove-redundant-codes.patch
-memcg-remove-mem-from-arg-of-charge_common.patch
-memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
+x86-i8259-only-register-sysdev-for-real-pic.patch
+x86-proper-init-of-memtype-subtree_max_end.patch
+acpi-fix-bogus-preemption-logic.patch
+x86-rwsem-stay-on-fast-path-when-count0-in-__up_write.patch
+x86-rwsem-minor-cleanups.patch
+x86-mm-create-symbolic-index-into-address_markers-array.patch
+hpet-factor-timer-allocate-from-open.patch
+posix_timer-move-copy_to_usercreated_timer_id-down-in-timer_create.patch
+kmap_atomic-make-kunmap_atomic-harder-to-misuse.patch
+alpha-add-performance-monitor-interrupt-counter.patch
+alpha-add-wrperfmonh-header-file-to-aid-use-of-wrperfmon-palcall.patch
+alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus.patch
+kernelh-add-hw_err-printk-prefix-for-hardware-error-logging.patch
+x86-use-hw_err-in-mce-handler.patch
+rwsem-fully-separate-code-pathes-to-wake-writers-vs-readers.patch
+rwsem-lighter-active-count-checks-when-waking-up-readers.patch
+rwsem-let-rwsem_waiting_bias-represent-any-number-of-waiting-threads.patch
+rwsem-wake-queued-readers-when-writer-blocks-on-active-read-lock.patch
+rwsem-smaller-wrappers-around-rwsem_down_failed_common.patch
+timerc-fix-kernel-doc-warning.patch
+time-kill-off-config_generic_time.patch
 
