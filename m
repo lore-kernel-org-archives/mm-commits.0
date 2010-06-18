@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-reduce-stack-size-of-migrate_pages.patch added to -mm tree
-Date: Fri, 18 Jun 2010 14:39:17 -0700
-Message-ID: <201006182139.o5ILdHUB024852@imap1.linux-foundation.org>
+Subject: + intel_agp-dont-oops-with-zero-stolen-memory.patch added to -mm tree
+Date: Fri, 18 Jun 2010 14:59:23 -0700
+Message-ID: <201006182159.o5ILxNut025694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753084Ab0FRVjt (ORCPT
+	by vger.kernel.org with ESMTP id S1753585Ab0FRV7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 17:39:49 -0400
+	Fri, 18 Jun 2010 17:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: linux@rainbow-software.org, airlied@linux.ie, daniel.vetter@ffwll.ch, eric@anholt.net
 
 
 The patch titled
-     mempolicy: reduce stack size of migrate_pages()
+     intel_agp: don't oops with zero stolen memory
 has been added to the -mm tree.  Its filename is
-     mempolicy-reduce-stack-size-of-migrate_pages.patch
+     intel_agp-dont-oops-with-zero-stolen-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,138 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: reduce stack size of migrate_pages()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: intel_agp: don't oops with zero stolen memory
+From: Ondrej Zary <linux@rainbow-software.org>
 
-migrate_pages() is using >500 bytes stack. Reduce it.
+When "onboard video memory" is set do "disabled" in BIOS on Asus P4P800-VM
+board (i865G), kernel oopses with memory corruption:
+https://bugs.freedesktop.org/show_bug.cgi?id=28430
 
-   mm/mempolicy.c: In function 'sys_migrate_pages':
-   mm/mempolicy.c:1344: warning: the frame size of 528 bytes is larger than 512 bytes
+Fix that by cleanly aborting the initialization.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ drivers/char/agp/intel-gtt.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages
-+++ a/mm/mempolicy.c
-@@ -1275,33 +1275,39 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
- 		const unsigned long __user *, new_nodes)
- {
- 	const struct cred *cred = current_cred(), *tcred;
--	struct mm_struct *mm;
-+	struct mm_struct *mm = NULL;
- 	struct task_struct *task;
--	nodemask_t old;
--	nodemask_t new;
- 	nodemask_t task_nodes;
- 	int err;
-+	NODEMASK_SCRATCH(scratch);
-+	nodemask_t *old = &scratch->mask1;
-+	nodemask_t *new = &scratch->mask2;
+diff -puN drivers/char/agp/intel-gtt.c~intel_agp-dont-oops-with-zero-stolen-memory drivers/char/agp/intel-gtt.c
+--- a/drivers/char/agp/intel-gtt.c~intel_agp-dont-oops-with-zero-stolen-memory
++++ a/drivers/char/agp/intel-gtt.c
+@@ -797,6 +797,10 @@ static int intel_i830_create_gatt_table(
  
--	err = get_nodes(&old, old_nodes, maxnode);
-+	if (!scratch)
+ 	/* we have to call this as early as possible after the MMIO base address is known */
+ 	intel_i830_init_gtt_entries();
++	if (intel_private.gtt_entries == 0) {
++		iounmap(intel_private.registers);
 +		return -ENOMEM;
-+
-+	err = get_nodes(old, old_nodes, maxnode);
- 	if (err)
--		return err;
-+		goto out;
++	}
  
--	err = get_nodes(&new, new_nodes, maxnode);
-+	err = get_nodes(new, new_nodes, maxnode);
- 	if (err)
--		return err;
-+		goto out;
+ 	agp_bridge->gatt_table = NULL;
  
- 	/* Find the mm_struct */
- 	read_lock(&tasklist_lock);
- 	task = pid ? find_task_by_vpid(pid) : current;
- 	if (!task) {
- 		read_unlock(&tasklist_lock);
--		return -ESRCH;
-+		err = -ESRCH;
-+		goto out;
- 	}
- 	mm = get_task_mm(task);
- 	read_unlock(&tasklist_lock);
+@@ -1279,6 +1283,11 @@ static int intel_i915_create_gatt_table(
  
-+	err = -EINVAL;
- 	if (!mm)
--		return -EINVAL;
-+		goto out;
+ 	/* we have to call this as early as possible after the MMIO base address is known */
+ 	intel_i830_init_gtt_entries();
++	if (intel_private.gtt_entries == 0) {
++		iounmap(intel_private.gtt);
++		iounmap(intel_private.registers);
++		return -ENOMEM;
++	}
  
- 	/*
- 	 * Check if this process has the right to modify the specified
-@@ -1322,12 +1328,12 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 	agp_bridge->gatt_table = NULL;
  
- 	task_nodes = cpuset_mems_allowed(task);
- 	/* Is the user allowed to access the target nodes? */
--	if (!nodes_subset(new, task_nodes) && !capable(CAP_SYS_NICE)) {
-+	if (!nodes_subset(*new, task_nodes) && !capable(CAP_SYS_NICE)) {
- 		err = -EPERM;
- 		goto out;
- 	}
+@@ -1387,6 +1396,11 @@ static int intel_i965_create_gatt_table(
  
--	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
-+	if (!nodes_subset(*new, node_states[N_HIGH_MEMORY])) {
- 		err = -EINVAL;
- 		goto out;
- 	}
-@@ -1336,10 +1342,13 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
- 	if (err)
- 		goto out;
+ 	/* we have to call this as early as possible after the MMIO base address is known */
+ 	intel_i830_init_gtt_entries();
++	if (intel_private.gtt_entries == 0) {
++		iounmap(intel_private.gtt);
++		iounmap(intel_private.registers);
++		return -ENOMEM;
++	}
  
--	err = do_migrate_pages(mm, &old, &new,
-+	err = do_migrate_pages(mm, old, new,
- 		capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
- out:
--	mmput(mm);
-+	if (mm)
-+		mmput(mm);
-+	NODEMASK_SCRATCH_FREE(scratch);
-+
- 	return err;
- }
+ 	agp_bridge->gatt_table = NULL;
  
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-mempolicy-fix-dangling-reference-to-tmpfs-superblock-mpol.patch
-acpi-fix-unused-function-warning.patch
-mm-use-memdup_user.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
-mempolicy-reduce-stack-size-of-migrate_pages.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-reiser4.patch
+linux-next.patch
+drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm.patch
+intel_agp-dont-oops-with-zero-stolen-memory.patch
+g_ncr5380-remove-misleading-pnp-error-message.patch
+g_ncr5380-fix-broken-mmio-compilation.patch
 
