@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcc-46-kernel-fix-unused-but-set-warnings.patch added to -mm tree
-Date: Fri, 18 Jun 2010 16:31:39 -0700
-Message-ID: <201006182331.o5INVd0L029556@imap1.linux-foundation.org>
+Subject: + memcg-clean-up-waiting-move-acct-v2-fix.patch added to -mm tree
+Date: Fri, 18 Jun 2010 16:41:25 -0700
+Message-ID: <201006182341.o5INfPwb029934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753097Ab0FRXb4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752895Ab0FRXmV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:31:56 -0400
+	Fri, 18 Jun 2010 19:42:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, a.p.zijlstra@chello.nl, ak@linux.intel.com, mingo@elte.hu, tglx@linutronix.de
+Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     gcc-4.6: kernel/*: fix unused but set warnings
+     memcg-clean-up-waiting-move-acct-v2-fix
 has been added to the -mm tree.  Its filename is
-     gcc-46-kernel-fix-unused-but-set-warnings.patch
+     memcg-clean-up-waiting-move-acct-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,134 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcc-4.6: kernel/*: fix unused but set warnings
-From: Andi Kleen <andi@firstfloor.org>
+Subject: memcg-clean-up-waiting-move-acct-v2-fix
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-No real bugs I believe, just some dead code.
+>
+> When cgroup_cancel_attach() is called via cgroup_attach_task(),
+> mem_cgroup_clear_mc() can be called even when any migration
+> was done. In such case, mc.to and mc.from is NULL.
+>
+> But, memcg-clean-up-waiting-move-acct-v2.patch
+> doesn't handle this correctly and pass NULL to memcg_oom_recover.
+> fix it.
+>
+> BUG: unable to handle kernel paging request at 000000000000114c
+> IP: [<ffffffff81153bb9>] memcg_oom_recover+0x9/0x30
+> PGD 61ce4b067 PUD 613ea0067 PMD 0
+> Oops: 0000 [#1] SMP
+> <snip>
+> Call Trace:
+>  [<ffffffff81155359>] mem_cgroup_clear_mc+0x119/0x1c0
+>  [<ffffffff811554de>] mem_cgroup_cancel_attach+0xe/0x10
+>  [<ffffffff810b619c>] cgroup_attach_task+0x26c/0x2c0
+>  [<ffffffff810b6257>] cgroup_tasks_write+0x67/0x1c0
+>  [<ffffffff81121555>] ? might_fault+0xa5/0xb0
+>  [<ffffffff8112150c>] ? might_fault+0x5c/0xb0
+>  [<ffffffff810b40a2>] cgroup_file_write+0x2d2/0x330
+>  [<ffffffff81093aa2>] ? print_lock_contention_bug+0x22/0xf0
+>  [<ffffffff81259fef>] ? security_file_permission+0x1f/0x80
+>  [<ffffffff8115d998>] vfs_write+0xc8/0x190
+>  [<ffffffff8115e3a1>] sys_write+0x51/0x90
+>  [<ffffffff8100b072>] system_call_fastpath+0x16/0x1b
+> Code: 20 48 39 43 20 41 bc f0 ff ff ff 75 c7 45 88 ae 48 11 00 00 45 31 e4 eb bb 66 0f 1f 84 00 00 00 00 00 55 48 89 e5 0f 1f 44 00 00 <8b> 87 4c 11 00 00 85 c0 75 05 c9 c3 0f 1f 00 48 89 f9 31 d2 be
+> RIP  [<ffffffff81153bb9>] memcg_oom_recover+0x9/0x30
+>
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Don't crash on a null memcg being passed, check if memcg
+is NULL and handle the condition gracefully
+
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reported-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_bp.c  |    2 --
- kernel/hrtimer.c           |    3 +--
- kernel/sched_fair.c        |    3 +--
- kernel/sysctl.c            |    5 +----
- kernel/trace/ring_buffer.c |    2 --
- 5 files changed, 3 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/debug/kdb/kdb_bp.c~gcc-46-kernel-fix-unused-but-set-warnings kernel/debug/kdb/kdb_bp.c
---- a/kernel/debug/kdb/kdb_bp.c~gcc-46-kernel-fix-unused-but-set-warnings
-+++ a/kernel/debug/kdb/kdb_bp.c
-@@ -274,7 +274,6 @@ static int kdb_bp(int argc, const char *
- 	int i, bpno;
- 	kdb_bp_t *bp, *bp_check;
- 	int diag;
--	int free;
- 	char *symname = NULL;
- 	long offset = 0ul;
- 	int nextarg;
-@@ -305,7 +304,6 @@ static int kdb_bp(int argc, const char *
- 	/*
- 	 * Find an empty bp structure to allocate
- 	 */
--	free = KDB_MAXBPT;
- 	for (bpno = 0, bp = kdb_breakpoints; bpno < KDB_MAXBPT; bpno++, bp++) {
- 		if (bp->bp_free)
- 			break;
-diff -puN kernel/hrtimer.c~gcc-46-kernel-fix-unused-but-set-warnings kernel/hrtimer.c
---- a/kernel/hrtimer.c~gcc-46-kernel-fix-unused-but-set-warnings
-+++ a/kernel/hrtimer.c
-@@ -1096,11 +1096,10 @@ EXPORT_SYMBOL_GPL(hrtimer_cancel);
-  */
- ktime_t hrtimer_get_remaining(const struct hrtimer *timer)
+diff -puN mm/memcontrol.c~memcg-clean-up-waiting-move-acct-v2-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clean-up-waiting-move-acct-v2-fix
++++ a/mm/memcontrol.c
+@@ -1413,7 +1413,7 @@ static void memcg_wakeup_oom(struct mem_
+ 
+ static void memcg_oom_recover(struct mem_cgroup *mem)
  {
--	struct hrtimer_clock_base *base;
- 	unsigned long flags;
- 	ktime_t rem;
- 
--	base = lock_hrtimer_base(timer, &flags);
-+	lock_hrtimer_base(timer, &flags);
- 	rem = hrtimer_expires_remaining(timer);
- 	unlock_hrtimer_base(timer, &flags);
- 
-diff -puN kernel/sched_fair.c~gcc-46-kernel-fix-unused-but-set-warnings kernel/sched_fair.c
---- a/kernel/sched_fair.c~gcc-46-kernel-fix-unused-but-set-warnings
-+++ a/kernel/sched_fair.c
-@@ -1311,7 +1311,7 @@ static struct sched_group *
- find_idlest_group(struct sched_domain *sd, struct task_struct *p,
- 		  int this_cpu, int load_idx)
- {
--	struct sched_group *idlest = NULL, *this = NULL, *group = sd->groups;
-+	struct sched_group *idlest = NULL, *group = sd->groups;
- 	unsigned long min_load = ULONG_MAX, this_load = 0;
- 	int imbalance = 100 + (sd->imbalance_pct-100)/2;
- 
-@@ -1346,7 +1346,6 @@ find_idlest_group(struct sched_domain *s
- 
- 		if (local_group) {
- 			this_load = avg_load;
--			this = group;
- 		} else if (avg_load < min_load) {
- 			min_load = avg_load;
- 			idlest = group;
-diff -puN kernel/sysctl.c~gcc-46-kernel-fix-unused-but-set-warnings kernel/sysctl.c
---- a/kernel/sysctl.c~gcc-46-kernel-fix-unused-but-set-warnings
-+++ a/kernel/sysctl.c
-@@ -1721,10 +1721,7 @@ static __init int sysctl_init(void)
- {
- 	sysctl_set_parent(NULL, root_table);
- #ifdef CONFIG_SYSCTL_SYSCALL_CHECK
--	{
--		int err;
--		err = sysctl_check_table(current->nsproxy, root_table);
--	}
-+	sysctl_check_table(current->nsproxy, root_table);
- #endif
- 	return 0;
+-	if (atomic_read(&mem->oom_lock))
++	if (mem && atomic_read(&mem->oom_lock))
+ 		memcg_wakeup_oom(mem);
  }
-diff -puN kernel/trace/ring_buffer.c~gcc-46-kernel-fix-unused-but-set-warnings kernel/trace/ring_buffer.c
---- a/kernel/trace/ring_buffer.c~gcc-46-kernel-fix-unused-but-set-warnings
-+++ a/kernel/trace/ring_buffer.c
-@@ -3007,13 +3007,11 @@ static void rb_advance_reader(struct rin
  
- static void rb_advance_iter(struct ring_buffer_iter *iter)
- {
--	struct ring_buffer *buffer;
- 	struct ring_buffer_per_cpu *cpu_buffer;
- 	struct ring_buffer_event *event;
- 	unsigned length;
- 
- 	cpu_buffer = iter->cpu_buffer;
--	buffer = cpu_buffer->buffer;
- 
- 	/*
- 	 * Check if we are at the end of the buffer.
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
-linux-next.patch
-percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
-modpost-support-objects-with-more-than-64k-sections.patch
-kernelh-add-hw_err-printk-prefix-for-hardware-error-logging.patch
-x86-use-hw_err-in-mce-handler.patch
-gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef.patch
-gcc-46-x86-avoid-unused-by-set-variables-in-rdmsr.patch
-gcc-46-pagemap-avoid-unused-but-set-variable.patch
-gcc-46-perf-fix-set-but-unused-variables-in-perf.patch
-gcc-46-x86-fix-set-but-not-read-variables.patch
-gcc-46-kgdb-remove-set-but-unused-newpc.patch
-gcc-46-printk-use-stable-variable-to-dump-kmsg-buffer.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-gcc-46-btrfs-clean-up-unused-variables-nonbugs.patch
-gcc-46-nfsd-fix-initialized-but-not-read-warnings.patch
-gcc-46-acpi-fix-unused-but-set-variables-in-acpi.patch
-gcc-46-mm-fix-unused-but-set-warnings.patch
-gcc-46-kernel-fix-unused-but-set-warnings.patch
-gcc-46-block-fix-unused-but-set-variables-in-blk-merge.patch
-gcc-46-fs-fix-unused-but-set-warnings.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+memcg-remove-experimental-from-swap-account-config.patch
+memcg-clean-up-waiting-move-acct-v2-fix.patch
+memcg-remove-redundant-codes.patch
+memcg-remove-mem-from-arg-of-charge_common.patch
+memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
 
