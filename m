@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_agp-dont-oops-with-zero-stolen-memory.patch added to -mm tree
-Date: Fri, 18 Jun 2010 14:59:23 -0700
-Message-ID: <201006182159.o5ILxNut025694@imap1.linux-foundation.org>
+Subject: + maintainers-some-atmel-drivers-change-maintainer.patch added to -mm tree
+Date: Fri, 18 Jun 2010 15:03:45 -0700
+Message-ID: <201006182203.o5IM3jYN025920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753585Ab0FRV7n (ORCPT
+	by vger.kernel.org with ESMTP id S1753470Ab0FRWDw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 17:59:43 -0400
+	Fri, 18 Jun 2010 18:03:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, airlied@linux.ie, daniel.vetter@ffwll.ch, eric@anholt.net
+Cc: nicolas.ferre@atmel.com, avictor.za@gmail.com, haavard.skinnemoen@atmel.com, hskinnemoen@atmel.com
 
 
 The patch titled
-     intel_agp: don't oops with zero stolen memory
+     MAINTAINERS: some Atmel drivers change maintainer
 has been added to the -mm tree.  Its filename is
-     intel_agp-dont-oops-with-zero-stolen-memory.patch
+     maintainers-some-atmel-drivers-change-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_agp: don't oops with zero stolen memory
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: MAINTAINERS: some Atmel drivers change maintainer
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-When "onboard video memory" is set do "disabled" in BIOS on Asus P4P800-VM
-board (i865G), kernel oopses with memory corruption:
-https://bugs.freedesktop.org/show_bug.cgi?id=28430
+I take over the maintenance of SPI, USART, Ethernet and USB gadget
+drivers.  Those drivers are found in Atmel microcontrollers, both
+AT32/AVR32 and AT91/ARM.
 
-Fix that by cleanly aborting the initialization.
-
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: Andrew Victor <avictor.za@gmail.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-gtt.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ MAINTAINERS |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/agp/intel-gtt.c~intel_agp-dont-oops-with-zero-stolen-memory drivers/char/agp/intel-gtt.c
---- a/drivers/char/agp/intel-gtt.c~intel_agp-dont-oops-with-zero-stolen-memory
-+++ a/drivers/char/agp/intel-gtt.c
-@@ -797,6 +797,10 @@ static int intel_i830_create_gatt_table(
+diff -puN MAINTAINERS~maintainers-some-atmel-drivers-change-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-some-atmel-drivers-change-maintainer
++++ a/MAINTAINERS
+@@ -1151,7 +1151,7 @@ F:	drivers/mmc/host/atmel-mci.c
+ F:	drivers/mmc/host/atmel-mci-regs.h
  
- 	/* we have to call this as early as possible after the MMIO base address is known */
- 	intel_i830_init_gtt_entries();
-+	if (intel_private.gtt_entries == 0) {
-+		iounmap(intel_private.registers);
-+		return -ENOMEM;
-+	}
+ ATMEL AT91 / AT32 SERIAL DRIVER
+-M:	Haavard Skinnemoen <hskinnemoen@atmel.com>
++M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ S:	Supported
+ F:	drivers/serial/atmel_serial.c
  
- 	agp_bridge->gatt_table = NULL;
+@@ -1163,18 +1163,18 @@ F:	drivers/video/atmel_lcdfb.c
+ F:	include/video/atmel_lcdc.h
  
-@@ -1279,6 +1283,11 @@ static int intel_i915_create_gatt_table(
+ ATMEL MACB ETHERNET DRIVER
+-M:	Haavard Skinnemoen <hskinnemoen@atmel.com>
++M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ S:	Supported
+ F:	drivers/net/macb.*
  
- 	/* we have to call this as early as possible after the MMIO base address is known */
- 	intel_i830_init_gtt_entries();
-+	if (intel_private.gtt_entries == 0) {
-+		iounmap(intel_private.gtt);
-+		iounmap(intel_private.registers);
-+		return -ENOMEM;
-+	}
+ ATMEL SPI DRIVER
+-M:	Haavard Skinnemoen <hskinnemoen@atmel.com>
++M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ S:	Supported
+ F:	drivers/spi/atmel_spi.*
  
- 	agp_bridge->gatt_table = NULL;
- 
-@@ -1387,6 +1396,11 @@ static int intel_i965_create_gatt_table(
- 
- 	/* we have to call this as early as possible after the MMIO base address is known */
- 	intel_i830_init_gtt_entries();
-+	if (intel_private.gtt_entries == 0) {
-+		iounmap(intel_private.gtt);
-+		iounmap(intel_private.registers);
-+		return -ENOMEM;
-+	}
- 
- 	agp_bridge->gatt_table = NULL;
- 
+ ATMEL USBA UDC DRIVER
+-M:	Haavard Skinnemoen <hskinnemoen@atmel.com>
+-L:	kernel@avr32linux.org
++M:	Nicolas Ferre <nicolas.ferre@atmel.com>
++L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://avr32linux.org/twiki/bin/view/Main/AtmelUsbDeviceDriver
+ S:	Supported
+ F:	drivers/usb/gadget/atmel_usba_udc.*
 _
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
 linux-next.patch
-drm-radeon-kms-fix-hibernation-regression-related-to-radeon-pm.patch
-intel_agp-dont-oops-with-zero-stolen-memory.patch
-g_ncr5380-remove-misleading-pnp-error-message.patch
-g_ncr5380-fix-broken-mmio-compilation.patch
+maintainers-some-atmel-drivers-change-maintainer.patch
 
