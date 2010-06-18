@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcc-46-x86-avoid-unused-by-set-variables-in-rdmsr.patch added to -mm tree
-Date: Fri, 18 Jun 2010 16:31:17 -0700
-Message-ID: <201006182331.o5INVHg5029516@imap1.linux-foundation.org>
+Subject: + gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef.patch added to -mm tree
+Date: Fri, 18 Jun 2010 16:31:15 -0700
+Message-ID: <201006182331.o5INVFnL029513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753095Ab0FRXbs (ORCPT
+	by vger.kernel.org with ESMTP id S1752930Ab0FRXbm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:31:48 -0400
+	Fri, 18 Jun 2010 19:31:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: andi@firstfloor.org, ak@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     gcc-4.6: x86: avoid unused by set variables in rdmsr
+     gcc-4.6: irq: move alloc_desk_mask variables inside ifdef
 has been added to the -mm tree.  Its filename is
-     gcc-46-x86-avoid-unused-by-set-variables-in-rdmsr.patch
+     gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcc-4.6: x86: avoid unused by set variables in rdmsr
+Subject: gcc-4.6: irq: move alloc_desk_mask variables inside ifdef
 From: Andi Kleen <andi@firstfloor.org>
 
-Avoids quite a lot of warnings with a gcc 4.6 -Wall build
-because this happens in a commonly used header file (apic.h)
+They are only useful with CONFIG_CPUMASK_OFFSTACK
+
+Avoids hundreds of warnings with a gcc 4.6 -Wall build.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/msr.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/irq.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/msr.h~gcc-46-x86-avoid-unused-by-set-variables-in-rdmsr arch/x86/include/asm/msr.h
---- a/arch/x86/include/asm/msr.h~gcc-46-x86-avoid-unused-by-set-variables-in-rdmsr
-+++ a/arch/x86/include/asm/msr.h
-@@ -148,8 +148,8 @@ static inline unsigned long long native_
- #define rdmsr(msr, val1, val2)					\
- do {								\
- 	u64 __val = native_read_msr((msr));			\
--	(val1) = (u32)__val;					\
--	(val2) = (u32)(__val >> 32);				\
-+	(void)((val1) = (u32)__val);				\
-+	(void)((val2) = (u32)(__val >> 32));			\
- } while (0)
+diff -puN include/linux/irq.h~gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef include/linux/irq.h
+--- a/include/linux/irq.h~gcc-46-irq-move-alloc_desk_mask-variables-inside-ifdef
++++ a/include/linux/irq.h
+@@ -439,12 +439,12 @@ extern int set_irq_msi(unsigned int irq,
+ static inline bool alloc_desc_masks(struct irq_desc *desc, int node,
+ 							bool boot)
+ {
++#ifdef CONFIG_CPUMASK_OFFSTACK
+ 	gfp_t gfp = GFP_ATOMIC;
  
- static inline void wrmsr(unsigned msr, unsigned low, unsigned high)
+ 	if (boot)
+ 		gfp = GFP_NOWAIT;
+ 
+-#ifdef CONFIG_CPUMASK_OFFSTACK
+ 	if (!alloc_cpumask_var_node(&desc->affinity, gfp, node))
+ 		return false;
+ 
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
