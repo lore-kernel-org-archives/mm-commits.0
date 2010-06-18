@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-unused-function-warning.patch added to -mm tree
-Date: Fri, 18 Jun 2010 14:31:47 -0700
-Message-ID: <201006182131.o5ILVlT1024530@imap1.linux-foundation.org>
+Subject: + mempolicy-reduce-stack-size-of-migrate_pages-fix.patch added to -mm tree
+Date: Fri, 18 Jun 2010 14:39:19 -0700
+Message-ID: <201006182139.o5ILdJuA024855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752989Ab0FRVby (ORCPT
+	by vger.kernel.org with ESMTP id S1753084Ab0FRVjw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 17:31:54 -0400
+	Fri, 18 Jun 2010 17:39:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, len.brown@intel.com, venki@google.com
+Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     acpi: fix unused function warning
+     mempolicy-reduce-stack-size-of-migrate_pages-fix
 has been added to the -mm tree.  Its filename is
-     acpi-fix-unused-function-warning.patch
+     mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix unused function warning
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mempolicy-reduce-stack-size-of-migrate_pages-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_ACPI_PROCFS=n:
+don't play with a might-be-NULL pointer
 
-drivers/acpi/processor_idle.c:83: warning: 'us_to_pm_timer_ticks' defined but not used.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Venkatesh Pallipadi <venki@google.com>
-Cc: Len Brown <len.brown@intel.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mempolicy.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-fix-unused-function-warning drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-fix-unused-function-warning
-+++ a/drivers/acpi/processor_idle.c
-@@ -80,10 +80,13 @@ module_param(nocst, uint, 0000);
- static unsigned int latency_factor __read_mostly = 2;
- module_param(latency_factor, uint, 0644);
+diff -puN mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages-fix
++++ a/mm/mempolicy.c
+@@ -1279,13 +1279,16 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 	struct task_struct *task;
+ 	nodemask_t task_nodes;
+ 	int err;
++	nodemask_t *old;
++	nodemask_t *new;
+ 	NODEMASK_SCRATCH(scratch);
+-	nodemask_t *old = &scratch->mask1;
+-	nodemask_t *new = &scratch->mask2;
  
-+#ifdef CONFIG_ACPI_PROCFS
- static u64 us_to_pm_timer_ticks(s64 t)
- {
- 	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
- }
-+#endif
+ 	if (!scratch)
+ 		return -ENOMEM;
+ 
++	old = &scratch->mask1;
++	new = &scratch->mask2;
 +
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
+ 	err = get_nodes(old, old_nodes, maxnode);
+ 	if (err)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mempolicy-fix-dangling-reference-to-tmpfs-superblock-mpol.patch
-acpi-fix-unused-function-warning.patch
-mm-use-memdup_user.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
+fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar.patch
+mm-vmap-area-cache-fix.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
 oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
 oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
+mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
 reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
