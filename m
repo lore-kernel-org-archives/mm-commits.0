@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch added to -mm tree
-Date: Fri, 18 Jun 2010 16:44:10 -0700
-Message-ID: <201006182344.o5INiAsP030082@imap1.linux-foundation.org>
+Subject: + fbdev-section-fixes-in-viafb-driver.patch added to -mm tree
+Date: Fri, 18 Jun 2010 16:46:31 -0700
+Message-ID: <201006182346.o5INkV3o030141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752895Ab0FRXod (ORCPT
+	by vger.kernel.org with ESMTP id S1751013Ab0FRXqo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:44:33 -0400
+	Fri, 18 Jun 2010 19:46:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@shadowen.org, w.sang@pengutronix.de
+Cc: henne@nachtwindheim.de, FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net
 
 
 The patch titled
-     checkpatch.pl: add check for space after struct or union definition
+     fbdev: section fixes in viafb driver
 has been added to the -mm tree.  Its filename is
-     checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
+     fbdev-section-fixes-in-viafb-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: add check for space after struct or union definition
-From: Joe Perches <joe@perches.com>
+Subject: fbdev: section fixes in viafb driver
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+Move two functions from .devexit to .text, which are called on the probe
+error path.  Also a function which is called by probe is moved from .text
+to .devinit.
+
+WARNING: vmlinux.o(.devinit.text+0x2ca5): Section mismatch in reference
+from the function via_pci_probe() to the function
+.devexit.text:via_teardown_subdevs()
+The function __devinit via_pci_probe() references
+a function __devexit via_teardown_subdevs().
+This is often seen when error handling in the init function
+uses functionality in the exit path.
+The fix is often to remove the __devexit annotation of
+via_teardown_subdevs() so it may be used outside an exit section.
+
+WARNING: vmlinux.o(.devinit.text+0x2cb1): Section mismatch in reference
+from the function via_pci_probe() to the function
+.devexit.text:via_pci_teardown_mmio()
+The function __devinit via_pci_probe() references
+a function __devexit via_pci_teardown_mmio().
+This is often seen when error handling in the init function
+uses functionality in the exit path.
+The fix is often to remove the __devexit annotation of
+via_pci_teardown_mmio() so it may be used outside an exit section.
+
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/video/via/via-core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-check-for-space-after-struct-or-union-definition scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-check-for-space-after-struct-or-union-definition
-+++ a/scripts/checkpatch.pl
-@@ -1882,6 +1882,16 @@ sub process {
- 			ERROR("open brace '{' following function declarations go on the next line\n" . $herecurr);
- 		}
+diff -puN drivers/video/via/via-core.c~fbdev-section-fixes-in-viafb-driver drivers/video/via/via-core.c
+--- a/drivers/video/via/via-core.c~fbdev-section-fixes-in-viafb-driver
++++ a/drivers/video/via/via-core.c
+@@ -64,7 +64,7 @@ static inline int viafb_mmio_read(int re
+  */
+ static u32 viafb_enabled_ints;
  
-+# missing space after union or struct definition
-+		if ($rawline =~ /^\+\s*(union|struct)\s+$Ident[=\{]/) {
-+		    WARN("Missing space after struct or union definition\n" . $herecurr);
-+		}
-+
-+# missing space after enum definition
-+		if ($rawline =~ /^\+\s*enum\{/) {
-+		    WARN("Missing space after enum definition\n" . $herecurr);
-+		}
-+
- # open braces for enum, union and struct go on the same line.
- 		if ($line =~ /^.\s*{/ &&
- 		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
+-static void viafb_int_init(void)
++static void __devinit viafb_int_init(void)
+ {
+ 	viafb_enabled_ints = 0;
+ 
+@@ -496,7 +496,7 @@ out_unmap:
+ 	return ret;
+ }
+ 
+-static void __devexit via_pci_teardown_mmio(struct viafb_dev *vdev)
++static void via_pci_teardown_mmio(struct viafb_dev *vdev)
+ {
+ 	iounmap(vdev->fbmem);
+ 	iounmap(vdev->engine_mmio);
+@@ -560,7 +560,7 @@ static int __devinit via_setup_subdevs(s
+ 	return 0;
+ }
+ 
+-static void __devexit via_teardown_subdevs(void)
++static void via_teardown_subdevs(void)
+ {
+ 	int i;
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
 
-linux-next.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
-maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
-maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
-maintainers-update-arm-voipac-pxa270-file-patterns.patch
-maintainers-update-arm-zipit-z2-support-file-patterns.patch
-maintainers-update-networking-file-patterns.patch
-maintainers-update-ppp-over-l2tp-file-patterns.patch
-maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
-maintainers-remove-section-smx-uio-interface.patch
-maintainers-update-spear-clock-framework-support-file-patterns.patch
-maintainers-remove-section-strip.patch
-maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
-maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
-maintainers-update-drm-drivers-patterns.patch
-maintainers-add-patterns-to-cryptographic-random-number-generator.patch
-maintainers-add-patterns-to-dell-wmi-extras.patch
-maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
-maintainers-add-patterns-to-omap-usb.patch
-maintainers-remove-section-promise-dc4030.patch
-maintainers-add-patterns-to-ps3vram-driver.patch
-maintainers-add-patterns-to-wimax-stack.patch
-checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
-documentation-networking-wavelantxt-deleted-not-in-tree.patch
+fbdev-section-fixes-in-viafb-driver.patch
 
