@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-reduce-stack-size-of-migrate_pages-fix.patch added to -mm tree
-Date: Fri, 18 Jun 2010 14:39:19 -0700
-Message-ID: <201006182139.o5ILdJuA024855@imap1.linux-foundation.org>
+Subject: + mempolicy-reduce-stack-size-of-migrate_pages.patch added to -mm tree
+Date: Fri, 18 Jun 2010 14:39:17 -0700
+Message-ID: <201006182139.o5ILdHUB024852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753084Ab0FRVjw (ORCPT
+	by vger.kernel.org with ESMTP id S1753084Ab0FRVjt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jun 2010 17:39:52 -0400
+	Fri, 18 Jun 2010 17:39:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mempolicy-reduce-stack-size-of-migrate_pages-fix
+     mempolicy: reduce stack size of migrate_pages()
 has been added to the -mm tree.  Its filename is
-     mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+     mempolicy-reduce-stack-size-of-migrate_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy-reduce-stack-size-of-migrate_pages-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mempolicy: reduce stack size of migrate_pages()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-don't play with a might-be-NULL pointer
+migrate_pages() is using >500 bytes stack. Reduce it.
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+   mm/mempolicy.c: In function 'sys_migrate_pages':
+   mm/mempolicy.c:1344: warning: the frame size of 528 bytes is larger than 512 bytes
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages-fix mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages-fix
+diff -puN mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-reduce-stack-size-of-migrate_pages
 +++ a/mm/mempolicy.c
-@@ -1279,13 +1279,16 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+@@ -1275,33 +1275,39 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 		const unsigned long __user *, new_nodes)
+ {
+ 	const struct cred *cred = current_cred(), *tcred;
+-	struct mm_struct *mm;
++	struct mm_struct *mm = NULL;
  	struct task_struct *task;
+-	nodemask_t old;
+-	nodemask_t new;
  	nodemask_t task_nodes;
  	int err;
-+	nodemask_t *old;
-+	nodemask_t *new;
- 	NODEMASK_SCRATCH(scratch);
--	nodemask_t *old = &scratch->mask1;
--	nodemask_t *new = &scratch->mask2;
++	NODEMASK_SCRATCH(scratch);
++	nodemask_t *old = &scratch->mask1;
++	nodemask_t *new = &scratch->mask2;
  
- 	if (!scratch)
- 		return -ENOMEM;
- 
-+	old = &scratch->mask1;
-+	new = &scratch->mask2;
+-	err = get_nodes(&old, old_nodes, maxnode);
++	if (!scratch)
++		return -ENOMEM;
 +
- 	err = get_nodes(old, old_nodes, maxnode);
++	err = get_nodes(old, old_nodes, maxnode);
+ 	if (err)
+-		return err;
++		goto out;
+ 
+-	err = get_nodes(&new, new_nodes, maxnode);
++	err = get_nodes(new, new_nodes, maxnode);
+ 	if (err)
+-		return err;
++		goto out;
+ 
+ 	/* Find the mm_struct */
+ 	read_lock(&tasklist_lock);
+ 	task = pid ? find_task_by_vpid(pid) : current;
+ 	if (!task) {
+ 		read_unlock(&tasklist_lock);
+-		return -ESRCH;
++		err = -ESRCH;
++		goto out;
+ 	}
+ 	mm = get_task_mm(task);
+ 	read_unlock(&tasklist_lock);
+ 
++	err = -EINVAL;
+ 	if (!mm)
+-		return -EINVAL;
++		goto out;
+ 
+ 	/*
+ 	 * Check if this process has the right to modify the specified
+@@ -1322,12 +1328,12 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 
+ 	task_nodes = cpuset_mems_allowed(task);
+ 	/* Is the user allowed to access the target nodes? */
+-	if (!nodes_subset(new, task_nodes) && !capable(CAP_SYS_NICE)) {
++	if (!nodes_subset(*new, task_nodes) && !capable(CAP_SYS_NICE)) {
+ 		err = -EPERM;
+ 		goto out;
+ 	}
+ 
+-	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
++	if (!nodes_subset(*new, node_states[N_HIGH_MEMORY])) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -1336,10 +1342,13 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
  	if (err)
  		goto out;
+ 
+-	err = do_migrate_pages(mm, &old, &new,
++	err = do_migrate_pages(mm, old, new,
+ 		capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
+ out:
+-	mmput(mm);
++	if (mm)
++		mmput(mm);
++	NODEMASK_SCRATCH_FREE(scratch);
++
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-tmpfs-quick-token-library-to-allow-scalable-retrieval-of-tokens-from-token-jar.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
+mempolicy-fix-dangling-reference-to-tmpfs-superblock-mpol.patch
+acpi-fix-unused-function-warning.patch
+mm-use-memdup_user.patch
+oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-dump_tasks-use-find_lock_task_mm-too.patch
 oom-improve-commentary-in-dump_tasks.patch
+oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
 oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
+oom-enable-oom-tasklist-dump-by-default.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-extract-panic-helper-function.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-move-sysctl-declarations-to-oomh.patch
+mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
+oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
+oom-fold-__out_of_memory-into-out_of_memory.patch
+mm-use-for_each_online_cpu-in-vmstat.patch
+mempolicy-reduce-stack-size-of-migrate_pages.patch
 mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
 reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
