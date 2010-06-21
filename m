@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-fix-config_cross_compile-issue-in-config.patch added to -mm tree
-Date: Mon, 21 Jun 2010 12:06:20 -0700
-Message-ID: <201006211906.o5LJ6LPb031516@imap1.linux-foundation.org>
+Subject: + taint-add-taint_hardware_unsupported-flag.patch added to -mm tree
+Date: Mon, 21 Jun 2010 12:21:53 -0700
+Message-ID: <201006211921.o5LJLrnL032272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757268Ab0FUTG5 (ORCPT
+	by vger.kernel.org with ESMTP id S932105Ab0FUTWI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 15:06:57 -0400
+	Mon, 21 Jun 2010 15:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tiago.maluta@gmail.com, mmarek@suse.cz
+Cc: prarit@redhat.com, dzickus@redhat.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     kbuild: fix CONFIG_CROSS_COMPILE issue in .config
+     taint: add TAINT_HARDWARE_UNSUPPORTED flag
 has been added to the -mm tree.  Its filename is
-     kbuild-fix-config_cross_compile-issue-in-config.patch
+     taint-add-taint_hardware_unsupported-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: fix CONFIG_CROSS_COMPILE issue in .config
-From: Tiago Maluta <tiago.maluta@gmail.com>
+Subject: taint: add TAINT_HARDWARE_UNSUPPORTED flag
+From: Prarit Bhargava <prarit@redhat.com>
 
-Linux has an recent option to define CROSS_COMPILE in menuconfig.
+Individual distributions may enable "generic" features such as X86
+support, PPC support, and driver support.
 
-Typically, one of the options when building for another target is
-('arm' is just an example):
+Some of the features that are enabled by these "generic" feature flags may
+not be considered supported by the individual distribution.
 
-# make ARCH=arm CROSS_COMPILE=arm-cc O=../build
+For example, a distribution may want to support PPC but not the Power5
+chipset, or the e1000e driver but not a card with a specific DeviceID
+because of known firmware issues.
 
-If I omit CROSS_COMPILE and use the new way in .config:
-CONFIG_CROSS_COMPILE="arm-cc"
+Typically, one would push a config patch to enable and disable the feature
+and patch the distribution.  However, in some cases this is not feasible
+in order to preserve kabi and at the same time maintain parity with the
+upstream kernel.  In some cases the distribution may want to allow booting
+of these features but explicitly notify a user that they are not
+"officially" supported.  It is also possible that the hardware is fixed
+via a firmware update at a later date, making it supported again.
 
-I got:
+It would be useful for a distribution to notify the installer and bug
+reporting applications, and notify users that the hardware they are using
+is unsupported during panic, oops, BUG(), and WARN().
 
-   cc1: error: unrecognized command line option "-mlittle-endian"
-   cc1: error: unrecognized command line option "-mabi=aapcs-linux"
-   cc1: error: unrecognized command line option "-mno-thumb-interwork"
-   /usr/src/linux/kernel/bounds.c:1: error: bad value (armv5t) for -march= switch
-   /usr/src/linux/kernel/bounds.c:1: error: bad value (armv5t) for -mtune= switch
-   make[2]: *** [kernel/bounds.s] Error 1
-   make[1]: *** [prepare0] Error 2
-   make: *** [sub-make] Error 2
+This patch introduces the TAINT_HARDWARE_UNSUPPORTED flag for
+distributions to use.
 
-Verbose output clearly says that I'm using the host compiler instead cross
-compiler.  This patch fixed my problem.
-
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/oops-tracing.txt |    2 ++
+ include/linux/kernel.h         |    1 +
+ kernel/panic.c                 |    5 +++++
+ 3 files changed, 8 insertions(+)
 
-diff -puN Makefile~kbuild-fix-config_cross_compile-issue-in-config Makefile
---- a/Makefile~kbuild-fix-config_cross_compile-issue-in-config
-+++ a/Makefile
-@@ -190,7 +190,7 @@ SUBARCH := $(shell uname -m | sed -e s/i
- export KBUILD_BUILDHOST := $(SUBARCH)
- ARCH		?= $(SUBARCH)
- CROSS_COMPILE	?=
--CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
-+CROSS_COMPILE	:= $(shell grep CONFIG_CROSS_COMPILE .config | cut -d'"' -f2)
+diff -puN Documentation/oops-tracing.txt~taint-add-taint_hardware_unsupported-flag Documentation/oops-tracing.txt
+--- a/Documentation/oops-tracing.txt~taint-add-taint_hardware_unsupported-flag
++++ a/Documentation/oops-tracing.txt
+@@ -263,6 +263,8 @@ characters, each representing a particul
+  12: 'I' if the kernel is working around a severe bug in the platform
+      firmware (BIOS or similar).
  
- # Architecture as present in compile.h
- UTS_MACHINE 	:= $(ARCH)
++ 13: 'H' if the hardware is unsupported by the distribution
++
+ The primary reason for the 'Tainted: ' string is to tell kernel
+ debuggers if this is a clean kernel or if anything unusual has
+ occurred.  Tainting is permanent: even if an offending module is
+diff -puN include/linux/kernel.h~taint-add-taint_hardware_unsupported-flag include/linux/kernel.h
+--- a/include/linux/kernel.h~taint-add-taint_hardware_unsupported-flag
++++ a/include/linux/kernel.h
+@@ -354,6 +354,7 @@ extern enum system_states {
+ #define TAINT_WARN			9
+ #define TAINT_CRAP			10
+ #define TAINT_FIRMWARE_WORKAROUND	11
++#define TAINT_HARDWARE_UNSUPPORTED	12
+ 
+ extern void dump_stack(void) __cold;
+ 
+diff -puN kernel/panic.c~taint-add-taint_hardware_unsupported-flag kernel/panic.c
+--- a/kernel/panic.c~taint-add-taint_hardware_unsupported-flag
++++ a/kernel/panic.c
+@@ -180,6 +180,7 @@ static const struct tnt tnts[] = {
+ 	{ TAINT_WARN,			'W', ' ' },
+ 	{ TAINT_CRAP,			'C', ' ' },
+ 	{ TAINT_FIRMWARE_WORKAROUND,	'I', ' ' },
++	{ TAINT_HARDWARE_UNSUPPORTED,	'H', ' ' },
+ };
+ 
+ /**
+@@ -197,6 +198,7 @@ static const struct tnt tnts[] = {
+  *  'W' - Taint on warning.
+  *  'C' - modules from drivers/staging are loaded.
+  *  'I' - Working around severe firmware bug.
++ *  'H' - Hardware is unsupported.
+  *
+  *	The string is overwritten by the next call to print_tainted().
+  */
+@@ -243,6 +245,9 @@ void add_taint(unsigned flag)
+ 	 */
+ 	if (flag != TAINT_CRAP && flag != TAINT_WARN && __debug_locks_off())
+ 		printk(KERN_WARNING "Disabling lock debugging due to kernel taint\n");
++	if (flag == TAINT_HARDWARE_UNSUPPORTED)
++		printk(KERN_CRIT
++		       "WARNING: This system's hardware is unsupported.\n");
+ 
+ 	set_bit(flag, &tainted_mask);
+ }
 _
 
-Patches currently in -mm which might be from tiago.maluta@gmail.com are
+Patches currently in -mm which might be from prarit@redhat.com are
 
-kbuild-fix-config_cross_compile-issue-in-config.patch
+linux-next.patch
+percpu-online-cpu-before-memory-failed-in-pcpu_alloc_pages.patch
+hpilo-fix-pointer-warning-in-ilo_ccb_setup.patch
+taint-add-taint_hardware_unsupported-flag.patch
+lib-decompress_bunzip2c-fix-checkstack-warning.patch
 
