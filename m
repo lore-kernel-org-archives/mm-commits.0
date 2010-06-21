@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hid-eliminate-a-double-lock.patch added to -mm tree
-Date: Mon, 21 Jun 2010 15:34:23 -0700
-Message-ID: <201006212234.o5LMYN7B009070@imap1.linux-foundation.org>
+Subject: + arch-sh-mm-eliminate-a-double-lock.patch added to -mm tree
+Date: Mon, 21 Jun 2010 15:35:12 -0700
+Message-ID: <201006212235.o5LMZCNV009093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752010Ab0FUWeb (ORCPT
+	by vger.kernel.org with ESMTP id S1752932Ab0FUWfT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 18:34:31 -0400
+	Mon, 21 Jun 2010 18:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jkosina@suse.cz
+Cc: julia@diku.dk, lethal@linux-sh.org, matt@console-pimps.org
 
 
 The patch titled
-     drivers/hid: eliminate a double lock
+     arch/sh/mm: eliminate a double lock
 has been added to the -mm tree.  Its filename is
-     drivers-hid-eliminate-a-double-lock.patch
+     arch-sh-mm-eliminate-a-double-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hid: eliminate a double lock
+Subject: arch/sh/mm: eliminate a double lock
 From: Julia Lawall <julia@diku.dk>
 
-The path around the loop ends with the lock held, so the call to mutex_lock
-is moved before the beginning of the loop.
+The function begins and ends with a read_lock.  The latter is changed to a
+read_unlock.
 
 A simplified version of the semantic match that finds this problem is as
 follows: (http://coccinelle.lip6.fr/)
@@ -66,32 +66,33 @@ position locked.p,p1,p2;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Acked-by: Matt Fleming <matt@console-pimps.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-debug.c |    2 +-
+ arch/sh/mm/pmb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hid/hid-debug.c~drivers-hid-eliminate-a-double-lock drivers/hid/hid-debug.c
---- a/drivers/hid/hid-debug.c~drivers-hid-eliminate-a-double-lock
-+++ a/drivers/hid/hid-debug.c
-@@ -949,8 +949,8 @@ static ssize_t hid_debug_events_read(str
- 	int ret = 0, len;
- 	DECLARE_WAITQUEUE(wait, current);
+diff -puN arch/sh/mm/pmb.c~arch-sh-mm-eliminate-a-double-lock arch/sh/mm/pmb.c
+--- a/arch/sh/mm/pmb.c~arch-sh-mm-eliminate-a-double-lock
++++ a/arch/sh/mm/pmb.c
+@@ -770,7 +770,7 @@ static void __init pmb_resize(void)
+ 		spin_unlock_irqrestore(&pmbe->lock, flags);
+ 	}
  
-+	mutex_lock(&list->read_mutex);
- 	while (ret == 0) {
--		mutex_lock(&list->read_mutex);
- 		if (list->head == list->tail) {
- 			add_wait_queue(&list->hdev->debug_wait, &wait);
- 			set_current_state(TASK_INTERRUPTIBLE);
+-	read_lock(&pmb_rwlock);
++	read_unlock(&pmb_rwlock);
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
 drivers-hid-eliminate-a-double-lock.patch
+arch-sh-mm-eliminate-a-double-lock.patch
 fs-btrfs-use-memdup_user.patch
 fs-btrfs-use-err_cast.patch
 drivers-dma-eliminate-a-null-pointer-dereference.patch
