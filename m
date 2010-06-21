@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-add-ao531-and-many-bios-versions-for-1410-1810xx-and-packard-bell-netbooks.patch added to -mm tree
-Date: Mon, 21 Jun 2010 14:56:10 -0700
-Message-ID: <201006212156.o5LLuAT4007213@imap1.linux-foundation.org>
+Subject: + drivers-hid-eliminate-a-double-lock.patch added to -mm tree
+Date: Mon, 21 Jun 2010 15:34:23 -0700
+Message-ID: <201006212234.o5LMYN7B009070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932318Ab0FUV47 (ORCPT
+	by vger.kernel.org with ESMTP id S1752010Ab0FUWeb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 17:56:59 -0400
+	Mon, 21 Jun 2010 18:34:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter@piie.net, andi@lisas.de, lenb@kernel.org, mjg@redhat.com, petkovbb@gmail.com
+Cc: julia@diku.dk, jkosina@suse.cz
 
 
 The patch titled
-     acerhdf: add AO531 and many BIOS versions for 1410, 1810xx and packard bell netbooks
+     drivers/hid: eliminate a double lock
 has been added to the -mm tree.  Its filename is
-     acerhdf-add-ao531-and-many-bios-versions-for-1410-1810xx-and-packard-bell-netbooks.patch
+     drivers-hid-eliminate-a-double-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: add AO531 and many BIOS versions for 1410, 1810xx and packard bell netbooks
-From: Peter Feuerer <peter@piie.net>
+Subject: drivers/hid: eliminate a double lock
+From: Julia Lawall <julia@diku.dk>
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>
+The path around the loop ends with the lock held, so the call to mutex_lock
+is moved before the beginning of the loop.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@locked@
+expression E1;
+position p;
+@@
+
+read_lock(E1@p,...);
+
+@r exists@
+expression x <= locked.E1;
+expression locked.E1;
+expression E2;
+identifier lock;
+position locked.p,p1,p2;
+@@
+
+*lock@p1 (E1@p,...);
+... when != E1
+    when != \(x = E2\|&x\)
+*lock@p2 (E1,...);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ drivers/hid/hid-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-add-ao531-and-many-bios-versions-for-1410-1810xx-and-packard-bell-netbooks drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-add-ao531-and-many-bios-versions-for-1410-1810xx-and-packard-bell-netbooks
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
+diff -puN drivers/hid/hid-debug.c~drivers-hid-eliminate-a-double-lock drivers/hid/hid-debug.c
+--- a/drivers/hid/hid-debug.c~drivers-hid-eliminate-a-double-lock
++++ a/drivers/hid/hid-debug.c
+@@ -949,8 +949,8 @@ static ssize_t hid_debug_events_read(str
+ 	int ret = 0, len;
+ 	DECLARE_WAITQUEUE(wait, current);
  
--#define DRV_VER "0.5.23"
-+#define DRV_VER "0.5.24"
- 
- /*
-  * According to the Atom N270 datasheet,
-@@ -153,12 +153,25 @@ static const struct bios_settings_t bios
- 	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
- 	/* Acer 1410 */
-+	{"Acer", "Aspire 1410", "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v0.3113", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v0.3115", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v0.3117", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v0.3119", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v0.3120", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v1.3204", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1410", "v1.3303", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v1.3308", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1410", "v1.3310", 0x55, 0x58, {0x9e, 0x00} },
- 	/* Acer 1810xx */
-+	{"Acer", "Aspire 1810TZ", "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T",  "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810TZ", "v0.3113", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T",  "v0.3113", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810TZ", "v0.3115", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810T",  "v0.3115", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810TZ", "v0.3117", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T",  "v0.3117", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810TZ", "v0.3119", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810T",  "v0.3119", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810TZ", "v0.3120", 0x55, 0x58, {0x9e, 0x00} },
-@@ -167,6 +180,12 @@ static const struct bios_settings_t bios
- 	{"Acer", "Aspire 1810T",  "v1.3204", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810TZ", "v1.3303", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Acer", "Aspire 1810T",  "v1.3303", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810TZ", "v1.3308", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T",  "v1.3308", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810TZ", "v1.3310", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Acer", "Aspire 1810T",  "v1.3310", 0x55, 0x58, {0x9e, 0x00} },
-+	/* Acer 531 */
-+	{"Acer", "AO531h", "v0.3201", 0x55, 0x58, {0x20, 0x00} },
- 	/* Gateway */
- 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
- 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
-@@ -180,7 +199,14 @@ static const struct bios_settings_t bios
- 	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x00} },
- 	{"Packard Bell", "DOTMU",  "v1.3303", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Packard Bell", "DOTMU",  "v0.3120", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMU",  "v0.3108", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMU",  "v0.3113", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMU",  "v0.3115", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMU",  "v0.3117", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMU",  "v0.3119", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMU",  "v1.3204", 0x55, 0x58, {0x9e, 0x00} },
- 	{"Packard Bell", "DOTMA",  "v1.3201", 0x55, 0x58, {0x9e, 0x00} },
-+	{"Packard Bell", "DOTMA",  "v1.3302", 0x55, 0x58, {0x9e, 0x00} },
- 	/* pewpew-terminator */
- 	{"", "", "", 0, 0, {0, 0} }
- };
-@@ -672,6 +698,7 @@ MODULE_DESCRIPTION("Aspire One temperatu
- MODULE_ALIAS("dmi:*:*Acer*:pnAOA*:");
- MODULE_ALIAS("dmi:*:*Acer*:pnAspire 1410*:");
- MODULE_ALIAS("dmi:*:*Acer*:pnAspire 1810*:");
-+MODULE_ALIAS("dmi:*:*Acer*:pnAO531*:");
- MODULE_ALIAS("dmi:*:*Gateway*:pnAOA*:");
- MODULE_ALIAS("dmi:*:*Gateway*:pnLT31*:");
- MODULE_ALIAS("dmi:*:*Packard Bell*:pnAOA*:");
++	mutex_lock(&list->read_mutex);
+ 	while (ret == 0) {
+-		mutex_lock(&list->read_mutex);
+ 		if (list->head == list->tail) {
+ 			add_wait_queue(&list->hdev->debug_wait, &wait);
+ 			set_current_state(TASK_INTERRUPTIBLE);
 _
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from julia@diku.dk are
 
-acerhdf-add-new-bios-versions.patch
-acerhdf-remove-chk_off-as-it-was-only-needed-for-t31-netbooks.patch
-acerhdf-driver-didnt-verify-the-pointers-in-which-it-got-product-information.patch
-acerhdf-add-ao531-and-many-bios-versions-for-1410-1810xx-and-packard-bell-netbooks.patch
+linux-next.patch
+drivers-hid-eliminate-a-double-lock.patch
+fs-btrfs-use-memdup_user.patch
+fs-btrfs-use-err_cast.patch
+drivers-dma-eliminate-a-null-pointer-dereference.patch
+drivers-media-use-memdup_user.patch
+drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
+drivers-video-omap2-displays-add-missing-mutex_unlock.patch
+drivers-s390-net-use-memdup_user.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-use-memdup_user.patch
+drivers-block-use-memdup_user.patch
+arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
+mm-use-memdup_user.patch
+mm-use-err_cast.patch
+drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
+drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
 
