@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-sh-mm-eliminate-a-double-lock.patch added to -mm tree
-Date: Mon, 21 Jun 2010 15:35:12 -0700
-Message-ID: <201006212235.o5LMZCNV009093@imap1.linux-foundation.org>
+Subject: + sysvfs-fix-null-deref-when-allocating-new-inode.patch added to -mm tree
+Date: Mon, 21 Jun 2010 15:40:54 -0700
+Message-ID: <201006212240.o5LMes2t009357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752932Ab0FUWfT (ORCPT
+	by vger.kernel.org with ESMTP id S1751731Ab0FUWlB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 18:35:19 -0400
+	Mon, 21 Jun 2010 18:41:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, lethal@linux-sh.org, matt@console-pimps.org
+Cc: lkundrak@v3.sk, hch@infradead.org, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     arch/sh/mm: eliminate a double lock
+     sysvfs: fix NULL deref. when allocating new inode
 has been added to the -mm tree.  Its filename is
-     arch-sh-mm-eliminate-a-double-lock.patch
+     sysvfs-fix-null-deref-when-allocating-new-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/sh/mm: eliminate a double lock
-From: Julia Lawall <julia@diku.dk>
+Subject: sysvfs: fix NULL deref. when allocating new inode
+From: Lubomir Rintel <lkundrak@v3.sk>
 
-The function begins and ends with a read_lock.  The latter is changed to a
-read_unlock.
+A call to sysv_write_inode() in sysv_new_inode() to its new interface that
+replaced wait flag with writeback structure.  This was broken by
+a9185b41a4f84971b930c519f0c63bd450c4810d ("pass writeback_control to
+->write_inode").
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@locked@
-expression E1;
-position p;
-@@
-
-read_lock(E1@p,...);
-
-@r exists@
-expression x <= locked.E1;
-expression locked.E1;
-expression E2;
-identifier lock;
-position locked.p,p1,p2;
-@@
-
-*lock@p1 (E1@p,...);
-... when != E1
-    when != \(x = E2\|&x\)
-*lock@p2 (E1,...);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Matt Fleming <matt@console-pimps.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>		[2.6.34.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/pmb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysv/ialloc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/mm/pmb.c~arch-sh-mm-eliminate-a-double-lock arch/sh/mm/pmb.c
---- a/arch/sh/mm/pmb.c~arch-sh-mm-eliminate-a-double-lock
-+++ a/arch/sh/mm/pmb.c
-@@ -770,7 +770,7 @@ static void __init pmb_resize(void)
- 		spin_unlock_irqrestore(&pmbe->lock, flags);
- 	}
+diff -puN fs/sysv/ialloc.c~sysvfs-fix-null-deref-when-allocating-new-inode fs/sysv/ialloc.c
+--- a/fs/sysv/ialloc.c~sysvfs-fix-null-deref-when-allocating-new-inode
++++ a/fs/sysv/ialloc.c
+@@ -25,6 +25,7 @@
+ #include <linux/stat.h>
+ #include <linux/string.h>
+ #include <linux/buffer_head.h>
++#include <linux/writeback.h>
+ #include "sysv.h"
  
--	read_lock(&pmb_rwlock);
-+	read_unlock(&pmb_rwlock);
- }
- #endif
+ /* We don't trust the value of
+@@ -139,6 +140,9 @@ struct inode * sysv_new_inode(const stru
+ 	struct inode *inode;
+ 	sysv_ino_t ino;
+ 	unsigned count;
++	struct writeback_control wbc = {
++		.sync_mode = WB_SYNC_NONE
++	};
  
+ 	inode = new_inode(sb);
+ 	if (!inode)
+@@ -168,7 +172,7 @@ struct inode * sysv_new_inode(const stru
+ 	insert_inode_hash(inode);
+ 	mark_inode_dirty(inode);
+ 
+-	sysv_write_inode(inode, 0);	/* ensure inode not allocated again */
++	sysv_write_inode(inode, &wbc);	/* ensure inode not allocated again */
+ 	mark_inode_dirty(inode);	/* cleared by sysv_write_inode() */
+ 	/* That's it. */
+ 	unlock_super(sb);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from lkundrak@v3.sk are
 
-linux-next.patch
-drivers-hid-eliminate-a-double-lock.patch
-arch-sh-mm-eliminate-a-double-lock.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-drivers-dma-eliminate-a-null-pointer-dereference.patch
-drivers-media-use-memdup_user.patch
-drivers-media-video-pvrusb2-add-missing-mutex_unlock.patch
-drivers-video-omap2-displays-add-missing-mutex_unlock.patch
-drivers-s390-net-use-memdup_user.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-use-memdup_user.patch
-drivers-block-use-memdup_user.patch
-arch-sparc-kernel-eliminate-what-looks-like-a-null-pointer-dereference.patch
-mm-use-memdup_user.patch
-mm-use-err_cast.patch
-drivers-message-i2o-exec-osmc-add-missing-mutex_unlock.patch
-drivers-char-n_gsmc-add-missing-spin_unlock_irqrestore.patch
+sysvfs-fix-null-deref-when-allocating-new-inode.patch
 
