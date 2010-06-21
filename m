@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-make-sdhci-work-with-ricoh-mmc-controller.patch added to -mm tree
-Date: Mon, 21 Jun 2010 12:37:55 -0700
-Message-ID: <201006211937.o5LJbthI000561@imap1.linux-foundation.org>
+Subject: + tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks.patch added to -mm tree
+Date: Mon, 21 Jun 2010 13:19:59 -0700
+Message-ID: <201006212019.o5LKJxlx002598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757566Ab0FUTiq (ORCPT
+	by vger.kernel.org with ESMTP id S1752714Ab0FUUUL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 15:38:46 -0400
+	Mon, 21 Jun 2010 16:20:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maximlevitsky@gmail.com, adq_dvb@lidskialf.net, linux-mmc@vger.kernel.org, philipl@overt.org, rjw@sisk.pl
+Cc: tim.c.chen@linux.intel.com, hughd@google.com
 
 
 The patch titled
-     mmc: make sdhci work with ricoh mmc controller
+     tmpfs: make tmpfs scalable with percpu_counter for used blocks
 has been added to the -mm tree.  Its filename is
-     mmc-make-sdhci-work-with-ricoh-mmc-controller.patch
+     tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,151 +34,180 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: make sdhci work with ricoh mmc controller
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: tmpfs: make tmpfs scalable with percpu_counter for used blocks
+From: Tim Chen <tim.c.chen@linux.intel.com>
 
-The current way of disabling it is not well tested by vendor and has all
-kinds of bugs that show up on resume from ram/disk.  A very good example
-is a dead SDHCI controller.
+The current implementation of tmpfs is not scalable.  We found that
+stat_lock is contended by multiple threads when we need to get a new page,
+leading to useless spinning inside this spin lock.
 
-Old way of disabling is still supported by continuing to use
-CONFIG_MMC_RICOH_MMC.
+This patch makes use of the percpu_counter library to maintain local count
+of used blocks to speed up getting and returning of pages.  So the
+acquisition of stat_lock is unnecessary for getting and returning blocks,
+improving the performance of tmpfs on system with large number of cpus. 
+On a 4 socket 32 core NHM-EX system, we saw improvement of 270%.
 
-Based on 'http://list.drzeus.cx/pipermail/sdhci-devel/2007-December/002085.html'
-Therefore most of the credit for this goes to Andrew de Quincey
-
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Andrew de Quincey <adq_dvb@lidskialf.net>
-Acked-by: Philip Langdale <philipl@overt.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-pci.c |   41 +++++++++++++++++++++++++++++++++
- drivers/mmc/host/sdhci.c     |    3 +-
- drivers/mmc/host/sdhci.h     |    4 +++
- 3 files changed, 47 insertions(+), 1 deletion(-)
+ include/linux/shmem_fs.h |    3 +-
+ mm/shmem.c               |   40 +++++++++++++++----------------------
+ 2 files changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci-pci.c~mmc-make-sdhci-work-with-ricoh-mmc-controller drivers/mmc/host/sdhci-pci.c
---- a/drivers/mmc/host/sdhci-pci.c~mmc-make-sdhci-work-with-ricoh-mmc-controller
-+++ a/drivers/mmc/host/sdhci-pci.c
-@@ -17,6 +17,7 @@
- #include <linux/pci.h>
- #include <linux/dma-mapping.h>
- #include <linux/slab.h>
-+#include <linux/device.h>
+diff -puN include/linux/shmem_fs.h~tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks
++++ a/include/linux/shmem_fs.h
+@@ -3,6 +3,7 @@
  
- #include <linux/mmc/host.h>
+ #include <linux/swap.h>
+ #include <linux/mempolicy.h>
++#include <linux/percpu_counter.h>
  
-@@ -84,7 +85,30 @@ static int ricoh_probe(struct sdhci_pci_
- 	if (chip->pdev->subsystem_vendor == PCI_VENDOR_ID_SAMSUNG ||
- 	    chip->pdev->subsystem_vendor == PCI_VENDOR_ID_SONY)
- 		chip->quirks |= SDHCI_QUIRK_NO_CARD_NO_RESET;
-+	return 0;
-+}
-+
-+static int ricoh_mmc_probe_slot(struct sdhci_pci_slot *slot)
-+{
-+	slot->host->caps =
-+		((0x21 << SDHCI_TIMEOUT_CLK_SHIFT)
-+			& SDHCI_TIMEOUT_CLK_MASK) |
-+
-+		((0x21 << SDHCI_CLOCK_BASE_SHIFT)
-+			& SDHCI_CLOCK_BASE_MASK) |
+ /* inode in-kernel data */
  
-+		SDHCI_TIMEOUT_CLK_UNIT |
-+		SDHCI_CAN_VDD_330 |
-+		SDHCI_CAN_DO_SDMA;
-+	return 0;
-+}
-+
-+static int ricoh_mmc_resume(struct sdhci_pci_chip *chip)
-+{
-+	/* Apply a delay to allow controller to settle */
-+	/* Otherwise it becomes confused if card state changed
-+		during suspend */
-+	msleep(500);
+@@ -23,7 +24,7 @@ struct shmem_inode_info {
+ 
+ struct shmem_sb_info {
+ 	unsigned long max_blocks;   /* How many blocks are allowed */
+-	unsigned long free_blocks;  /* How many are left for allocation */
++	struct percpu_counter used_blocks;  /* How many are allocated */
+ 	unsigned long max_inodes;   /* How many inodes are allowed */
+ 	unsigned long free_inodes;  /* How many are left for allocation */
+ 	spinlock_t stat_lock;	    /* Serialize shmem_sb_info changes */
+diff -puN mm/shmem.c~tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks mm/shmem.c
+--- a/mm/shmem.c~tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks
++++ a/mm/shmem.c
+@@ -28,6 +28,7 @@
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
++#include <linux/percpu_counter.h>
+ #include <linux/swap.h>
+ 
+ static struct vfsmount *shm_mnt;
+@@ -233,10 +234,10 @@ static void shmem_free_blocks(struct ino
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	if (sbinfo->max_blocks) {
+-		spin_lock(&sbinfo->stat_lock);
+-		sbinfo->free_blocks += pages;
++		percpu_counter_add(&sbinfo->used_blocks, -pages);
++		spin_lock(&inode->i_lock);
+ 		inode->i_blocks -= pages*BLOCKS_PER_PAGE;
+-		spin_unlock(&sbinfo->stat_lock);
++		spin_unlock(&inode->i_lock);
+ 	}
+ }
+ 
+@@ -416,19 +417,17 @@ static swp_entry_t *shmem_swp_alloc(stru
+ 		if (sgp == SGP_READ)
+ 			return shmem_swp_map(ZERO_PAGE(0));
+ 		/*
+-		 * Test free_blocks against 1 not 0, since we have 1 data
++		 * Test used_blocks against 1 less max_blocks, since we have 1 data
+ 		 * page (and perhaps indirect index pages) yet to allocate:
+ 		 * a waste to allocate index if we cannot allocate data.
+ 		 */
+ 		if (sbinfo->max_blocks) {
+-			spin_lock(&sbinfo->stat_lock);
+-			if (sbinfo->free_blocks <= 1) {
+-				spin_unlock(&sbinfo->stat_lock);
++			if (percpu_counter_compare(&sbinfo->used_blocks, (sbinfo->max_blocks - 1)) > 0)
+ 				return ERR_PTR(-ENOSPC);
+-			}
+-			sbinfo->free_blocks--;
++			percpu_counter_inc(&sbinfo->used_blocks);
++			spin_lock(&inode->i_lock);
+ 			inode->i_blocks += BLOCKS_PER_PAGE;
+-			spin_unlock(&sbinfo->stat_lock);
++			spin_unlock(&inode->i_lock);
+ 		}
+ 
+ 		spin_unlock(&info->lock);
+@@ -1388,17 +1387,16 @@ repeat:
+ 		shmem_swp_unmap(entry);
+ 		sbinfo = SHMEM_SB(inode->i_sb);
+ 		if (sbinfo->max_blocks) {
+-			spin_lock(&sbinfo->stat_lock);
+-			if (sbinfo->free_blocks == 0 ||
++			if ((percpu_counter_compare(&sbinfo->used_blocks, sbinfo->max_blocks) > 0) ||
+ 			    shmem_acct_block(info->flags)) {
+-				spin_unlock(&sbinfo->stat_lock);
+ 				spin_unlock(&info->lock);
+ 				error = -ENOSPC;
+ 				goto failed;
+ 			}
+-			sbinfo->free_blocks--;
++			percpu_counter_inc(&sbinfo->used_blocks);
++			spin_lock(&inode->i_lock);
+ 			inode->i_blocks += BLOCKS_PER_PAGE;
+-			spin_unlock(&sbinfo->stat_lock);
++			spin_unlock(&inode->i_lock);
+ 		} else if (shmem_acct_block(info->flags)) {
+ 			spin_unlock(&info->lock);
+ 			error = -ENOSPC;
+@@ -1792,17 +1790,16 @@ static int shmem_statfs(struct dentry *d
+ 	buf->f_type = TMPFS_MAGIC;
+ 	buf->f_bsize = PAGE_CACHE_SIZE;
+ 	buf->f_namelen = NAME_MAX;
+-	spin_lock(&sbinfo->stat_lock);
+ 	if (sbinfo->max_blocks) {
+ 		buf->f_blocks = sbinfo->max_blocks;
+-		buf->f_bavail = buf->f_bfree = sbinfo->free_blocks;
++		buf->f_bavail = buf->f_bfree =
++				sbinfo->max_blocks - percpu_counter_sum(&sbinfo->used_blocks);
+ 	}
+ 	if (sbinfo->max_inodes) {
+ 		buf->f_files = sbinfo->max_inodes;
+ 		buf->f_ffree = sbinfo->free_inodes;
+ 	}
+ 	/* else leave those fields 0 like simple_statfs */
+-	spin_unlock(&sbinfo->stat_lock);
  	return 0;
  }
  
-@@ -95,6 +119,15 @@ static const struct sdhci_pci_fixes sdhc
- 			  SDHCI_QUIRK_CLOCK_BEFORE_RESET,
- };
+@@ -2243,7 +2240,6 @@ static int shmem_remount_fs(struct super
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
+ 	struct shmem_sb_info config = *sbinfo;
+-	unsigned long blocks;
+ 	unsigned long inodes;
+ 	int error = -EINVAL;
  
-+static const struct sdhci_pci_fixes sdhci_ricoh_mmc = {
-+	.probe_slot	= ricoh_mmc_probe_slot,
-+	.resume		= ricoh_mmc_resume,
-+	.quirks		= SDHCI_QUIRK_32BIT_DMA_ADDR |
-+			  SDHCI_QUIRK_CLOCK_BEFORE_RESET |
-+			  SDHCI_QUIRK_NO_CARD_NO_RESET |
-+			  SDHCI_QUIRK_MISSING_CAPS
-+};
-+
- static const struct sdhci_pci_fixes sdhci_ene_712 = {
- 	.quirks		= SDHCI_QUIRK_SINGLE_POWER_WRITE |
- 			  SDHCI_QUIRK_BROKEN_DMA,
-@@ -374,6 +407,14 @@ static const struct pci_device_id pci_id
- 	},
+@@ -2251,9 +2247,8 @@ static int shmem_remount_fs(struct super
+ 		return error;
  
- 	{
-+		.vendor         = PCI_VENDOR_ID_RICOH,
-+		.device         = 0x843,
-+		.subvendor      = PCI_ANY_ID,
-+		.subdevice      = PCI_ANY_ID,
-+		.driver_data    = (kernel_ulong_t)&sdhci_ricoh_mmc,
-+	},
-+
-+	{
- 		.vendor		= PCI_VENDOR_ID_ENE,
- 		.device		= PCI_DEVICE_ID_ENE_CB712_SD,
- 		.subvendor	= PCI_ANY_ID,
-diff -puN drivers/mmc/host/sdhci.c~mmc-make-sdhci-work-with-ricoh-mmc-controller drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~mmc-make-sdhci-work-with-ricoh-mmc-controller
-+++ a/drivers/mmc/host/sdhci.c
-@@ -1688,7 +1688,8 @@ int sdhci_add_host(struct sdhci_host *ho
- 			host->version);
- 	}
+ 	spin_lock(&sbinfo->stat_lock);
+-	blocks = sbinfo->max_blocks - sbinfo->free_blocks;
+ 	inodes = sbinfo->max_inodes - sbinfo->free_inodes;
+-	if (config.max_blocks < blocks)
++	if (config.max_blocks < percpu_counter_sum(&sbinfo->used_blocks))
+ 		goto out;
+ 	if (config.max_inodes < inodes)
+ 		goto out;
+@@ -2270,7 +2265,6 @@ static int shmem_remount_fs(struct super
  
--	caps = sdhci_readl(host, SDHCI_CAPABILITIES);
-+	caps = (host->quirks & SDHCI_QUIRK_MISSING_CAPS) ? host->caps :
-+		sdhci_readl(host, SDHCI_CAPABILITIES);
+ 	error = 0;
+ 	sbinfo->max_blocks  = config.max_blocks;
+-	sbinfo->free_blocks = config.max_blocks - blocks;
+ 	sbinfo->max_inodes  = config.max_inodes;
+ 	sbinfo->free_inodes = config.max_inodes - inodes;
  
- 	if (host->quirks & SDHCI_QUIRK_FORCE_DMA)
- 		host->flags |= SDHCI_USE_SDMA;
-diff -puN drivers/mmc/host/sdhci.h~mmc-make-sdhci-work-with-ricoh-mmc-controller drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~mmc-make-sdhci-work-with-ricoh-mmc-controller
-+++ a/drivers/mmc/host/sdhci.h
-@@ -242,6 +242,8 @@ struct sdhci_host {
- #define SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC		(1<<26)
- /* Controller doesn't have HISPD bit field in HI-SPEED SD card */
- #define SDHCI_QUIRK_NO_HISPD_BIT			(1<<27)
-+/* Controller is missing device caps. Use caps provided by host */
-+#define SDHCI_QUIRK_MISSING_CAPS			(1<<28)
+@@ -2345,7 +2339,7 @@ int shmem_fill_super(struct super_block 
+ #endif
  
- 	int			irq;		/* Device IRQ */
- 	void __iomem *		ioaddr;		/* Mapped address */
-@@ -294,6 +296,8 @@ struct sdhci_host {
+ 	spin_lock_init(&sbinfo->stat_lock);
+-	sbinfo->free_blocks = sbinfo->max_blocks;
++	percpu_counter_init(&sbinfo->used_blocks, 0);
+ 	sbinfo->free_inodes = sbinfo->max_inodes;
  
- 	struct timer_list	timer;		/* Timer for timeouts */
- 
-+	unsigned int		caps;		/* Alternative capabilities */
-+
- 	unsigned long		private[0] ____cacheline_aligned;
- };
- 
+ 	sb->s_maxbytes = SHMEM_MAX_BYTES;
 _
 
-Patches currently in -mm which might be from maximlevitsky@gmail.com are
+Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
 
-linux-next.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update.patch
-mmc-make-sdhci-work-with-ricoh-mmc-controller.patch
+tmpfs-add-accurate-compare-function-to-percpu_counter-library.patch
+tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks.patch
 
