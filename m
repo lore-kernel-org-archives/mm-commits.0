@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-is-platform-neutral.patch added to -mm tree
-Date: Sat, 19 Jun 2010 14:11:59 -0700
-Message-ID: <201006192111.o5JLBsS8015173@imap1.linux-foundation.org>
+Subject: + pcf857x-support-working-w-o-platform-data.patch added to -mm tree
+Date: Mon, 21 Jun 2010 11:43:48 -0700
+Message-ID: <201006211843.o5LIhm47030405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346Ab0FSVMM (ORCPT
+	by vger.kernel.org with ESMTP id S1751275Ab0FUSoG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 Jun 2010 17:12:12 -0400
+	Mon, 21 Jun 2010 14:44:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: dbaryshkov@gmail.com, david-b@pacbell.net, grant.likely@secretlab.ca, khali@linux-fr.org
 
 
 The patch titled
-     drivers/gpio is platform-neutral
+     pcf857x: support working w/o platform data
 has been added to the -mm tree.  Its filename is
-     drivers-gpio-is-platform-neutral.patch
+     pcf857x-support-working-w-o-platform-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio is platform-neutral
-From: David Brownell <david-b@pacbell.net>
+Subject: pcf857x: support working w/o platform data
+From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 
-Update Kconfig and Makefile in drivers/gpio to discourage inappropriate
-addition of platform-specific code.
+Provide sane defaults for pcf857x, so the driver can be used w/o providing
+platform data (and thus can be simply bound via OF tree).
 
-Signed-by: David Brownell <dbrownell@users.sourceforge.net>
-
+Signed-off-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig  |    2 +-
- drivers/gpio/Makefile |    6 +++++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/gpio/pcf857x.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~drivers-gpio-is-platform-neutral drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~drivers-gpio-is-platform-neutral
-+++ a/drivers/gpio/Kconfig
-@@ -1,5 +1,5 @@
- #
--# GPIO infrastructure and expanders
-+# platform-neutral GPIO infrastructure and expanders
- #
+diff -puN drivers/gpio/pcf857x.c~pcf857x-support-working-w-o-platform-data drivers/gpio/pcf857x.c
+--- a/drivers/gpio/pcf857x.c~pcf857x-support-working-w-o-platform-data
++++ a/drivers/gpio/pcf857x.c
+@@ -190,7 +190,6 @@ static int pcf857x_probe(struct i2c_clie
+ 	pdata = client->dev.platform_data;
+ 	if (!pdata) {
+ 		dev_dbg(&client->dev, "no platform data\n");
+-		return -EINVAL;
+ 	}
  
- config ARCH_WANT_OPTIONAL_GPIOLIB
-diff -puN drivers/gpio/Makefile~drivers-gpio-is-platform-neutral drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~drivers-gpio-is-platform-neutral
-+++ a/drivers/gpio/Makefile
-@@ -1,4 +1,8 @@
--# gpio support: dedicated expander chips, etc
-+# generic gpio support: dedicated expander chips, etc
-+#
-+# NOTE: platform-specific GPIO drivers don't belong in the
-+drivers/gpio directory; put them with other platform setup
-+# code, IRQ controllers, board init, etc.
+ 	/* Allocate, initialize, and register this gpio_chip. */
+@@ -200,7 +199,7 @@ static int pcf857x_probe(struct i2c_clie
  
- ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ 	mutex_init(&gpio->lock);
  
+-	gpio->chip.base = pdata->gpio_base;
++	gpio->chip.base = pdata ? pdata->gpio_base : -1;
+ 	gpio->chip.can_sleep = 1;
+ 	gpio->chip.dev = &client->dev;
+ 	gpio->chip.owner = THIS_MODULE;
+@@ -278,7 +277,7 @@ static int pcf857x_probe(struct i2c_clie
+ 	 * to zero, our software copy of the "latch" then matches the chip's
+ 	 * all-ones reset state.  Otherwise it flags pins to be driven low.
+ 	 */
+-	gpio->out = ~pdata->n_latch;
++	gpio->out = pdata ? ~pdata->n_latch : ~0;
+ 
+ 	status = gpiochip_add(&gpio->chip);
+ 	if (status < 0)
+@@ -299,7 +298,7 @@ static int pcf857x_probe(struct i2c_clie
+ 	/* Let platform code set up the GPIOs and their users.
+ 	 * Now is the first time anyone could use them.
+ 	 */
+-	if (pdata->setup) {
++	if (pdata && pdata->setup) {
+ 		status = pdata->setup(client,
+ 				gpio->chip.base, gpio->chip.ngpio,
+ 				pdata->context);
+@@ -322,7 +321,7 @@ static int pcf857x_remove(struct i2c_cli
+ 	struct pcf857x			*gpio = i2c_get_clientdata(client);
+ 	int				status = 0;
+ 
+-	if (pdata->teardown) {
++	if (pdata && pdata->teardown) {
+ 		status = pdata->teardown(client,
+ 				gpio->chip.base, gpio->chip.ngpio,
+ 				pdata->context);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from dbaryshkov@gmail.com are
 
 linux-next.patch
-drivers-gpio-is-platform-neutral.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-gpio-max730x-make-pullups-configurable-via-platformdata.patch
+pcf857x-support-working-w-o-platform-data.patch
 
