@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcf857x-support-working-w-o-platform-data.patch added to -mm tree
-Date: Mon, 21 Jun 2010 11:43:48 -0700
-Message-ID: <201006211843.o5LIhm47030405@imap1.linux-foundation.org>
+Subject: + kbuild-fix-config_cross_compile-issue-in-config.patch added to -mm tree
+Date: Mon, 21 Jun 2010 12:06:20 -0700
+Message-ID: <201006211906.o5LJ6LPb031516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751275Ab0FUSoG (ORCPT
+	by vger.kernel.org with ESMTP id S1757268Ab0FUTG5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 14:44:06 -0400
+	Mon, 21 Jun 2010 15:06:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbaryshkov@gmail.com, david-b@pacbell.net, grant.likely@secretlab.ca, khali@linux-fr.org
+Cc: tiago.maluta@gmail.com, mmarek@suse.cz
 
 
 The patch titled
-     pcf857x: support working w/o platform data
+     kbuild: fix CONFIG_CROSS_COMPILE issue in .config
 has been added to the -mm tree.  Its filename is
-     pcf857x-support-working-w-o-platform-data.patch
+     kbuild-fix-config_cross_compile-issue-in-config.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcf857x: support working w/o platform data
-From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Subject: kbuild: fix CONFIG_CROSS_COMPILE issue in .config
+From: Tiago Maluta <tiago.maluta@gmail.com>
 
-Provide sane defaults for pcf857x, so the driver can be used w/o providing
-platform data (and thus can be simply bound via OF tree).
+Linux has an recent option to define CROSS_COMPILE in menuconfig.
 
-Signed-off-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Typically, one of the options when building for another target is
+('arm' is just an example):
+
+# make ARCH=arm CROSS_COMPILE=arm-cc O=../build
+
+If I omit CROSS_COMPILE and use the new way in .config:
+CONFIG_CROSS_COMPILE="arm-cc"
+
+I got:
+
+   cc1: error: unrecognized command line option "-mlittle-endian"
+   cc1: error: unrecognized command line option "-mabi=aapcs-linux"
+   cc1: error: unrecognized command line option "-mno-thumb-interwork"
+   /usr/src/linux/kernel/bounds.c:1: error: bad value (armv5t) for -march= switch
+   /usr/src/linux/kernel/bounds.c:1: error: bad value (armv5t) for -mtune= switch
+   make[2]: *** [kernel/bounds.s] Error 1
+   make[1]: *** [prepare0] Error 2
+   make: *** [sub-make] Error 2
+
+Verbose output clearly says that I'm using the host compiler instead cross
+compiler.  This patch fixed my problem.
+
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pcf857x.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/pcf857x.c~pcf857x-support-working-w-o-platform-data drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~pcf857x-support-working-w-o-platform-data
-+++ a/drivers/gpio/pcf857x.c
-@@ -190,7 +190,6 @@ static int pcf857x_probe(struct i2c_clie
- 	pdata = client->dev.platform_data;
- 	if (!pdata) {
- 		dev_dbg(&client->dev, "no platform data\n");
--		return -EINVAL;
- 	}
+diff -puN Makefile~kbuild-fix-config_cross_compile-issue-in-config Makefile
+--- a/Makefile~kbuild-fix-config_cross_compile-issue-in-config
++++ a/Makefile
+@@ -190,7 +190,7 @@ SUBARCH := $(shell uname -m | sed -e s/i
+ export KBUILD_BUILDHOST := $(SUBARCH)
+ ARCH		?= $(SUBARCH)
+ CROSS_COMPILE	?=
+-CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
++CROSS_COMPILE	:= $(shell grep CONFIG_CROSS_COMPILE .config | cut -d'"' -f2)
  
- 	/* Allocate, initialize, and register this gpio_chip. */
-@@ -200,7 +199,7 @@ static int pcf857x_probe(struct i2c_clie
- 
- 	mutex_init(&gpio->lock);
- 
--	gpio->chip.base = pdata->gpio_base;
-+	gpio->chip.base = pdata ? pdata->gpio_base : -1;
- 	gpio->chip.can_sleep = 1;
- 	gpio->chip.dev = &client->dev;
- 	gpio->chip.owner = THIS_MODULE;
-@@ -278,7 +277,7 @@ static int pcf857x_probe(struct i2c_clie
- 	 * to zero, our software copy of the "latch" then matches the chip's
- 	 * all-ones reset state.  Otherwise it flags pins to be driven low.
- 	 */
--	gpio->out = ~pdata->n_latch;
-+	gpio->out = pdata ? ~pdata->n_latch : ~0;
- 
- 	status = gpiochip_add(&gpio->chip);
- 	if (status < 0)
-@@ -299,7 +298,7 @@ static int pcf857x_probe(struct i2c_clie
- 	/* Let platform code set up the GPIOs and their users.
- 	 * Now is the first time anyone could use them.
- 	 */
--	if (pdata->setup) {
-+	if (pdata && pdata->setup) {
- 		status = pdata->setup(client,
- 				gpio->chip.base, gpio->chip.ngpio,
- 				pdata->context);
-@@ -322,7 +321,7 @@ static int pcf857x_remove(struct i2c_cli
- 	struct pcf857x			*gpio = i2c_get_clientdata(client);
- 	int				status = 0;
- 
--	if (pdata->teardown) {
-+	if (pdata && pdata->teardown) {
- 		status = pdata->teardown(client,
- 				gpio->chip.base, gpio->chip.ngpio,
- 				pdata->context);
+ # Architecture as present in compile.h
+ UTS_MACHINE 	:= $(ARCH)
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from tiago.maluta@gmail.com are
 
-linux-next.patch
-pcf857x-support-working-w-o-platform-data.patch
+kbuild-fix-config_cross_compile-issue-in-config.patch
 
