@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-efifb-section-fixes.patch added to -mm tree
-Date: Mon, 21 Jun 2010 14:26:58 -0700
-Message-ID: <201006212126.o5LLQwM6005831@imap1.linux-foundation.org>
+Subject: + maintainers-update-information-about-linux-test-project-maintainence.patch added to -mm tree
+Date: Mon, 21 Jun 2010 14:31:23 -0700
+Message-ID: <201006212131.o5LLVNo2006028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756757Ab0FUV1o (ORCPT
+	by vger.kernel.org with ESMTP id S1758444Ab0FUVbx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jun 2010 17:27:44 -0400
+	Mon, 21 Jun 2010 17:31:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: henne@nachtwindheim.de, pjones@redhat.com
+Cc: subrata@linux.vnet.ibm.com
 
 
 The patch titled
-     fbdev: efifb: section fixes
+     MAINTAINERS: update information about Linux Test Project maintainence
 has been added to the -mm tree.  Its filename is
-     fbdev-efifb-section-fixes.patch
+     maintainers-update-information-about-linux-test-project-maintainence.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: efifb: section fixes
-From: Henrik Kretzschmar <henne@nachtwindheim.de>
+Subject: MAINTAINERS: update information about Linux Test Project maintainence
+From: Subrata Modak <subrata@linux.vnet.ibm.com>
 
-Remove 43 section mismatches by moving the two structures efifb_defined
-and efifb_fix from .init.data to .devinit.data.
-
-Also the two structure arrays dmi_system_table[] and dmi_list[] have been
-moved from .data to .init.rodata and .init.data, which saves, if built-in,
-some space.
-
-On x86_64 'size -A' showed that these sections changed size:
-
-efifb.o:
-section                     size-old        size-new
-.data                       1200            688
-.init.data                  7840            512
-.init.rodata                0               7568
-.devinit.data               0               256
-
-Total                       11927           11911
-
-Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: Peter Jones <pjones@redhat.com>
+Signed-off-by: Subrata Modak <subrata@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/efifb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS      |    2 +-
+ MAINTAINERS.orig |    5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/efifb.c~fbdev-efifb-section-fixes drivers/video/efifb.c
---- a/drivers/video/efifb.c~fbdev-efifb-section-fixes
-+++ a/drivers/video/efifb.c
-@@ -16,7 +16,7 @@
+diff -puN MAINTAINERS~maintainers-update-information-about-linux-test-project-maintainence MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-information-about-linux-test-project-maintainence
++++ a/MAINTAINERS
+@@ -3609,7 +3609,7 @@ M:	Mike Frysinger <vapier@gentoo.org>
+ M:	Subrata Modak <subrata@linux.vnet.ibm.com>
+ L:	ltp-list@lists.sourceforge.net (subscribers-only)
+ W:	http://ltp.sourceforge.net/
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/galak/ltp.git
++T:	git git://ltp.git.sourceforge.net/gitroot/ltp/ltp-dev
+ S:	Maintained
  
- #include <video/vga.h>
+ M32R ARCHITECTURE
+diff -puN MAINTAINERS.orig~maintainers-update-information-about-linux-test-project-maintainence MAINTAINERS.orig
+--- a/MAINTAINERS.orig~maintainers-update-information-about-linux-test-project-maintainence
++++ a/MAINTAINERS.orig
+@@ -6296,6 +6296,11 @@ M:	linux-wimax@intel.com
+ L:	wimax@linuxwimax.org
+ S:	Supported
+ W:	http://linuxwimax.org
++F:	Documentation/wimax/README.wimax
++F:	include/linux/wimax.h
++F:	include/linux/wimax/debug.h
++F:	include/net/wimax.h
++F:	net/wimax/
  
--static struct fb_var_screeninfo efifb_defined __initdata = {
-+static struct fb_var_screeninfo efifb_defined __devinitdata = {
- 	.activate		= FB_ACTIVATE_NOW,
- 	.height			= -1,
- 	.width			= -1,
-@@ -27,7 +27,7 @@ static struct fb_var_screeninfo efifb_de
- 	.vmode			= FB_VMODE_NONINTERLACED,
- };
- 
--static struct fb_fix_screeninfo efifb_fix __initdata = {
-+static struct fb_fix_screeninfo efifb_fix __devinitdata = {
- 	.id			= "EFI VGA",
- 	.type			= FB_TYPE_PACKED_PIXELS,
- 	.accel			= FB_ACCEL_NONE,
-@@ -59,7 +59,7 @@ static struct efifb_dmi_info {
- 	int stride;
- 	int width;
- 	int height;
--} dmi_list[] = {
-+} dmi_list[] __initdata = {
- 	[M_I17] = { "i17", 0x80010000, 1472 * 4, 1440, 900 },
- 	[M_I20] = { "i20", 0x80010000, 1728 * 4, 1680, 1050 }, /* guess */
- 	[M_I20_SR] = { "imac7", 0x40010000, 1728 * 4, 1680, 1050 },
-@@ -83,7 +83,7 @@ static int set_system(const struct dmi_s
- 		DMI_MATCH(DMI_PRODUCT_NAME, name) },		\
- 	  &dmi_list[enumid] }
- 
--static struct dmi_system_id __initdata dmi_system_table[] = {
-+static const struct dmi_system_id dmi_system_table[] __initconst = {
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "iMac4,1", M_I17),
- 	/* At least one of these two will be right; maybe both? */
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "iMac5,1", M_I20),
+ WIMEDIA LLC PROTOCOL (WLP) SUBSYSTEM
+ M:	David Vrabel <david.vrabel@csr.com>
 _
 
-Patches currently in -mm which might be from henne@nachtwindheim.de are
+Patches currently in -mm which might be from subrata@linux.vnet.ibm.com are
 
-fbdev-section-fixes-in-viafb-driver.patch
-fbdev-efifb-section-fixes.patch
+maintainers-update-information-about-linux-test-project-maintainence.patch
 
