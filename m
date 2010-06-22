@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max6900-use-rtc_valid_tm-to-check-returning-tm.patch added to -mm tree
-Date: Tue, 22 Jun 2010 14:18:30 -0700
-Message-ID: <201006222118.o5MLIUAu002631@imap1.linux-foundation.org>
+Subject: + drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update.patch added to -mm tree
+Date: Tue, 22 Jun 2010 14:26:28 -0700
+Message-ID: <201006222126.o5MLQSOl002994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514Ab0FVVSw (ORCPT
+	by vger.kernel.org with ESMTP id S1751006Ab0FVV1N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jun 2010 17:18:52 -0400
+	Tue, 22 Jun 2010 17:27:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mcuos.com@gmail.com, a.zummo@towertech.it, dale@farnsworth.org
+Cc: shubhrajyoti@ti.com, christoph.mair@gmail.com, jic23@cam.ac.uk, stefan@datenfreihafen.org
 
 
 The patch titled
-     rtc/max6900: use rtc_valid_tm() to check returning tm
+     drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update
 has been added to the -mm tree.  Its filename is
-     rtc-max6900-use-rtc_valid_tm-to-check-returning-tm.patch
+     drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc/max6900: use rtc_valid_tm() to check returning tm
-From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
 
-Use rtc_valid_tm() to check returning tm for max6900, it can avoid
-returning wrong tm value.
+- Optimize the wait time for the pressure sensor
+- Definition of long is arch dependent so make it u32.
 
-Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
-Acked-by: Dale Farnsworth <dale@farnsworth.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Christoph Mair <christoph.mair@gmail.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Stefan Schmidt <stefan@datenfreihafen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6900.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/bmp085.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-max6900.c~rtc-max6900-use-rtc_valid_tm-to-check-returning-tm drivers/rtc/rtc-max6900.c
---- a/drivers/rtc/rtc-max6900.c~rtc-max6900-use-rtc_valid_tm-to-check-returning-tm
-+++ a/drivers/rtc/rtc-max6900.c
-@@ -159,7 +159,7 @@ static int max6900_i2c_read_time(struct 
- 		      bcd2bin(regs[MAX6900_REG_CENTURY]) * 100 - 1900;
- 	tm->tm_wday = bcd2bin(regs[MAX6900_REG_DW]);
+diff -puN drivers/misc/bmp085.c~drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update drivers/misc/bmp085.c
+--- a/drivers/misc/bmp085.c~drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update
++++ a/drivers/misc/bmp085.c
+@@ -60,7 +60,7 @@ struct bmp085_data {
+ 	u32 raw_temperature;
+ 	u32 raw_pressure;
+ 	unsigned char oversampling_setting;
+-	unsigned long last_temp_measurement;
++	u32 last_temp_measurement;
+ 	s32 b6; /* calculated temperature correction coefficient */
+ };
  
--	return 0;
-+	return rtc_valid_tm(tm);
- }
+@@ -144,7 +144,7 @@ static s32 bmp085_update_raw_pressure(st
+ 	}
  
- static int max6900_i2c_clear_write_protect(struct i2c_client *client)
+ 	/* wait for the end of conversion */
+-	msleep(2+(3 << data->oversampling_setting<<1));
++	msleep(2+(3 << data->oversampling_setting ));
+ 
+ 	/* copy data into a u32 (4 bytes), but skip the first byte. */
+ 	status = i2c_smbus_read_i2c_block_data(data->client,
 _
 
-Patches currently in -mm which might be from mcuos.com@gmail.com are
+Patches currently in -mm which might be from shubhrajyoti@ti.com are
 
 linux-next.patch
-rtc-fix-ds1388-time-corruption.patch
-maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
-nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
-rtc-nuc900-fix-checking-of-args-during-time-setting.patch
-drivers-rtc-rtc-pcf8563c-remove-unused-struct.patch
-rtc-pxa-remove-unused-field.patch
-rtc-m48t59-kfreenull-is-ok.patch
-rtc-rtc-mxc-remove-six-unused-fields.patch
-rtc-fixes-and-new-functionality-for-fm3130.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-rtc-pxa-remove-unnecessary-private-ops-ioctl.patch
-drivers-rtc-rtc-pl031c-remove-unused-include-linux-versionh.patch
-rtc-driver-for-the-dryice-block-found-in-imx25-chips.patch
-rtc-add-intersil-isl12022-rtc-driver.patch
-rtc-m41t80-use-rtc_valid_tm-to-check-returned-tm.patch
-rtc-max6900-use-rtc_valid_tm-to-check-returning-tm.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update.patch
 
