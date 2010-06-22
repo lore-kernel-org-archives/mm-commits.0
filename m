@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-always-add-new-vmas-at-the-end.patch added to -mm tree
-Date: Tue, 22 Jun 2010 14:08:51 -0700
-Message-ID: <201006222108.o5ML8pJj002146@imap1.linux-foundation.org>
+Subject: + rmap-always-use-anon_vma-root-pointer.patch added to -mm tree
+Date: Tue, 22 Jun 2010 14:08:55 -0700
+Message-ID: <201006222108.o5ML8tTe002154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755611Ab0FVVI7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751240Ab0FVVJH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jun 2010 17:08:59 -0400
+	Tue, 22 Jun 2010 17:09:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: aarcange@redhat.com, riel@redhat.com
 
 
 The patch titled
-     rmap: always add new vmas at the end
+     rmap: always use anon_vma root pointer
 has been added to the -mm tree.  Its filename is
-     rmap-always-add-new-vmas-at-the-end.patch
+     rmap-always-use-anon_vma-root-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: always add new vmas at the end
+Subject: rmap: always use anon_vma root pointer
 From: Andrea Arcangeli <aarcange@redhat.com>
 
-Make sure to always add new VMAs at the end of the list.  This is
-important so rmap_walk does not miss a VMA that was created during the
-rmap_walk.
+Always use anon_vma->root pointer instead of anon_vma_chain.prev.
 
-The old code got this right most of the time due to luck, but was buggy
-when anon_vma_prepare reused a mergeable anon_vma.
+Also optimize the map-paths, if a mapping is already established no need
+to overwrite it with root anon-vma list, we can keep the more finegrined
+anon-vma and skip the overwrite: see the PageAnon check in !exclusive
+case.  This is also the optimization that hidden the ksm bug as this tends
+to make ksm_might_need_to_copy skip the copy, but only the proper fix to
+ksm_might_need_to_copy guarantees not triggering the ksm bug unless ksm is
+in use.  this is an optimization only...
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/rmap.c~rmap-always-add-new-vmas-at-the-end mm/rmap.c
---- a/mm/rmap.c~rmap-always-add-new-vmas-at-the-end
+diff -puN mm/rmap.c~rmap-always-use-anon_vma-root-pointer mm/rmap.c
+--- a/mm/rmap.c~rmap-always-use-anon_vma-root-pointer
 +++ a/mm/rmap.c
-@@ -148,7 +148,7 @@ int anon_vma_prepare(struct vm_area_stru
- 			avc->anon_vma = anon_vma;
- 			avc->vma = vma;
- 			list_add(&avc->same_vma, &vma->anon_vma_chain);
--			list_add(&avc->same_anon_vma, &anon_vma->head);
-+			list_add_tail(&avc->same_anon_vma, &anon_vma->head);
- 			allocated = NULL;
- 			avc = NULL;
- 		}
+@@ -777,15 +777,13 @@ static void __page_set_anon_rmap(struct 
+ 	 * If the page isn't exclusively mapped into this vma,
+ 	 * we must use the _oldest_ possible anon_vma for the
+ 	 * page mapping!
+-	 *
+-	 * So take the last AVC chain entry in the vma, which is
+-	 * the deepest ancestor, and use the anon_vma from that.
+ 	 */
+ 	if (!exclusive) {
+-		struct anon_vma_chain *avc;
+-		avc = list_entry(vma->anon_vma_chain.prev, struct anon_vma_chain, same_vma);
+-		anon_vma = avc->anon_vma;
+-	}
++		if (PageAnon(page))
++			return;
++		anon_vma = anon_vma->root;
++	} else
++		BUG_ON(PageAnon(page));
+ 
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+ 	page->mapping = (struct address_space *) anon_vma;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
