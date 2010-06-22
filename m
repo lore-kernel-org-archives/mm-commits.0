@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-anon_vma-bug-checks.patch added to -mm tree
-Date: Tue, 22 Jun 2010 14:08:59 -0700
-Message-ID: <201006222108.o5ML8x0F002160@imap1.linux-foundation.org>
+Subject: + rtc-m41t80-use-rtc_valid_tm-to-check-returned-tm.patch added to -mm tree
+Date: Tue, 22 Jun 2010 14:17:14 -0700
+Message-ID: <201006222117.o5MLHETC002559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751240Ab0FVVJL (ORCPT
+	by vger.kernel.org with ESMTP id S1755856Ab0FVVRd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jun 2010 17:09:11 -0400
+	Tue, 22 Jun 2010 17:17:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, riel@redhat.com
+Cc: mcuos.com@gmail.com, a.zummo@towertech.it
 
 
 The patch titled
-     rmap: add anon_vma bug checks
+     rtc/m41t80: use rtc_valid_tm() to check returned tm
 has been added to the -mm tree.  Its filename is
-     add-anon_vma-bug-checks.patch
+     rtc-m41t80-use-rtc_valid_tm-to-check-returned-tm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: add anon_vma bug checks
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: rtc/m41t80: use rtc_valid_tm() to check returned tm
+From: Wan ZongShun <mcuos.com@gmail.com>
 
-Verify the refcounting doesn't go wrong, and resurrect the check in
-__page_check_anon_rmap as in old anon-vma code.
+Use rtc_valid_tm() to check returned struct rtc_time *tm - it can avoid
+returning wrong tm value.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/rtc-m41t80.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/rmap.c~add-anon_vma-bug-checks mm/rmap.c
---- a/mm/rmap.c~add-anon_vma-bug-checks
-+++ a/mm/rmap.c
-@@ -813,6 +813,7 @@ static void __page_check_anon_rmap(struc
- 	 * are initially only visible via the pagetables, and the pte is locked
- 	 * over the call to page_add_new_anon_rmap.
- 	 */
-+	BUG_ON(page_anon_vma(page)->root != vma->anon_vma->root);
- 	BUG_ON(page->index != linear_page_index(vma, address));
- #endif
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-m41t80-use-rtc_valid_tm-to-check-returned-tm drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-m41t80-use-rtc_valid_tm-to-check-returned-tm
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -121,7 +121,7 @@ static int m41t80_get_datetime(struct i2
+ 
+ 	/* assume 20YY not 19YY, and ignore the Century Bit */
+ 	tm->tm_year = bcd2bin(buf[M41T80_REG_YEAR]) + 100;
+-	return 0;
++	return rtc_valid_tm(tm);
  }
-@@ -1416,6 +1417,7 @@ int try_to_munlock(struct page *page)
-  */
- void drop_anon_vma(struct anon_vma *anon_vma)
- {
-+	BUG_ON(atomic_read(&anon_vma->external_refcount) <= 0);
- 	if (atomic_dec_and_lock(&anon_vma->external_refcount, &anon_vma->root->lock)) {
- 		struct anon_vma *root = anon_vma->root;
- 		int empty = list_empty(&anon_vma->head);
-@@ -1427,6 +1429,7 @@ void drop_anon_vma(struct anon_vma *anon
- 		 * the refcount on the root and check if we need to free it.
- 		 */
- 		if (empty && anon_vma != root) {
-+			BUG_ON(atomic_read(&root->external_refcount) <= 0);
- 			last_root_user = atomic_dec_and_test(&root->external_refcount);
- 			root_empty = list_empty(&root->head);
- 		}
+ 
+ /* Sets the given date and time to the real time clock. */
+@@ -364,7 +364,7 @@ static int m41t80_rtc_read_alarm(struct 
+ 	t->time.tm_isdst = -1;
+ 	t->enabled = !!(reg[M41T80_REG_ALARM_MON] & M41T80_ALMON_AFE);
+ 	t->pending = !!(reg[M41T80_REG_FLAGS] & M41T80_FLAGS_AF);
+-	return 0;
++	return rtc_valid_tm(t);
+ }
+ 
+ static struct rtc_class_ops m41t80_rtc_ops = {
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mcuos.com@gmail.com are
 
 linux-next.patch
-hugetlb-call-mmu-notifiers-on-hugepage-cow.patch
-define-madv_hugepage.patch
-mmap-remove-unnecessary-lock-from-__vma_link.patch
-rmap-always-add-new-vmas-at-the-end.patch
-ksm-fix-ksm-swapin-time-optimization.patch
-rmap-always-use-anon_vma-root-pointer.patch
-rmap-resurrect-page_address_in_vma-anon_vma-check.patch
-add-anon_vma-bug-checks.patch
+rtc-fix-ds1388-time-corruption.patch
+maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+nuc900-rtc-change-the-waiting-for-device-ready-implement.patch
+rtc-nuc900-fix-checking-of-args-during-time-setting.patch
+drivers-rtc-rtc-pcf8563c-remove-unused-struct.patch
+rtc-pxa-remove-unused-field.patch
+rtc-m48t59-kfreenull-is-ok.patch
+rtc-rtc-mxc-remove-six-unused-fields.patch
+rtc-fixes-and-new-functionality-for-fm3130.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+rtc-pxa-remove-unnecessary-private-ops-ioctl.patch
+drivers-rtc-rtc-pl031c-remove-unused-include-linux-versionh.patch
+rtc-driver-for-the-dryice-block-found-in-imx25-chips.patch
+rtc-add-intersil-isl12022-rtc-driver.patch
+rtc-m41t80-use-rtc_valid_tm-to-check-returned-tm.patch
 
