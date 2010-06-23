@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update.patch added to -mm tree
-Date: Tue, 22 Jun 2010 15:40:34 -0700
-Message-ID: <201006222240.o5MMeYka006377@imap1.linux-foundation.org>
+Subject: + drivers-gpio-is-platform-neutral-fix.patch added to -mm tree
+Date: Tue, 22 Jun 2010 20:39:27 -0700
+Message-ID: <201006230408.o5N48Dqc019452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750994Ab0FVWlK (ORCPT
+	by vger.kernel.org with ESMTP id S1750767Ab0FWEIS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jun 2010 18:41:10 -0400
+	Wed, 23 Jun 2010 00:08:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tim.c.chen@linux.intel.com, hughd@google.com
+Cc: akpm@linux-foundation.org, david-b@pacbell.net
 
 
 The patch titled
-     tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update
+     drivers-gpio-is-platform-neutral-fix
 has been added to the -mm tree.  Its filename is
-     tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update.patch
+     drivers-gpio-is-platform-neutral-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update
-From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: drivers-gpio-is-platform-neutral-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+fix tpyo
+
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
+ drivers/gpio/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update mm/shmem.c
---- a/mm/shmem.c~tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update
-+++ a/mm/shmem.c
-@@ -2248,7 +2248,7 @@ static int shmem_remount_fs(struct super
+diff -puN drivers/gpio/Makefile~drivers-gpio-is-platform-neutral-fix drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~drivers-gpio-is-platform-neutral-fix
++++ a/drivers/gpio/Makefile
+@@ -1,7 +1,7 @@
+ # generic gpio support: dedicated expander chips, etc
+ #
+ # NOTE: platform-specific GPIO drivers don't belong in the
+-drivers/gpio directory; put them with other platform setup
++# drivers/gpio directory; put them with other platform setup
+ # code, IRQ controllers, board init, etc.
  
- 	spin_lock(&sbinfo->stat_lock);
- 	inodes = sbinfo->max_inodes - sbinfo->free_inodes;
--	if (config.max_blocks < percpu_counter_sum(&sbinfo->used_blocks))
-+	if (percpu_counter_compare(&sbinfo->used_blocks, config.max_blocks) > 0)
- 		goto out;
- 	if (config.max_inodes < inodes)
- 		goto out;
+ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
 _
 
-Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tmpfs-add-accurate-compare-function-to-percpu_counter-library.patch
-tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-blocks.patch
-tmpfs-make-tmpfs-scalable-with-percpu_counter-for-used-update.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
+drivers-gpio-is-platform-neutral-fix.patch
+fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-um-drivers-remove-duplicate-structure-field-initialization.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-vmap-area-cache-fix.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+radix-tree-implement-function-radix_tree_range_tag_if_tagged-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
