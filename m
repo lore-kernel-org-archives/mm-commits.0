@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch added to -mm tree
-Date: Wed, 23 Jun 2010 15:26:15 -0700
-Message-ID: <201006232255.o5NMt3Vf004222@imap1.linux-foundation.org>
+Subject: + revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch added to -mm tree
+Date: Wed, 23 Jun 2010 15:26:19 -0700
+Message-ID: <201006232255.o5NMt5qR004228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363Ab0FWWzJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753727Ab0FWWzJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Jun 2010 18:55:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     revert ed5aa19b93da2c094b6647762774a8022e4e1d6c
+     revert 9652e31db6d841e291531547b3f4f12b5aeb42a9
 has been added to the -mm tree.  Its filename is
-     revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
+     revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert ed5aa19b93da2c094b6647762774a8022e4e1d6c
+Subject: revert 9652e31db6d841e291531547b3f4f12b5aeb42a9
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ kernel/module.c |   56 +++++++++++++++++++---------------------------
+ 1 file changed, 24 insertions(+), 32 deletions(-)
 
-diff -puN kernel/module.c~revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c kernel/module.c
---- a/kernel/module.c~revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c
+diff -puN kernel/module.c~revert-9652e31db6d841e291531547b3f4f12b5aeb42a9 kernel/module.c
+--- a/kernel/module.c~revert-9652e31db6d841e291531547b3f4f12b5aeb42a9
 +++ a/kernel/module.c
-@@ -1,6 +1,6 @@
- /*
-    Copyright (C) 2002 Richard Henderson
--   Copyright (C) 2001 Rusty Russell, 2002, 2010 Rusty Russell IBM.
-+   Copyright (C) 2001 Rusty Russell, 2002 Rusty Russell IBM.
+@@ -117,8 +117,6 @@ struct load_info {
+ 	char *secstrings, *strtab;
+ 	unsigned long *strmap;
+ 	unsigned long symoffs, stroffs;
+-	struct _ddebug *debug;
+-	unsigned int num_debug;
+ 	struct {
+ 		unsigned int sym, str, mod, vers, info, pcpu;
+ 	} index;
+@@ -1993,7 +1991,7 @@ static void layout_symtab(struct module 
+ 	mod->core_size += bitmap_weight(info->strmap, strsect->sh_size);
+ }
  
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-@@ -2520,14 +2520,12 @@ static void module_deallocate(struct mod
- 
- static int post_relocation(struct module *mod, const struct load_info *info)
+-static void add_kallsyms(struct module *mod, const struct load_info *info)
++static void add_kallsyms(struct module *mod, struct load_info *info)
  {
--	/* Sort exception table now relocations are done. */
- 	sort_extable(mod->extable, mod->extable + mod->num_exentries);
+ 	unsigned int i, ndst;
+ 	const Elf_Sym *src;
+@@ -2039,8 +2037,6 @@ static void add_kallsyms(struct module *
  
- 	/* Copy relocated percpu area over. */
- 	percpu_modcopy(mod, (void *)info->sechdrs[info->index.pcpu].sh_addr,
- 		       info->sechdrs[info->index.pcpu].sh_size);
+ static void dynamic_debug_setup(struct _ddebug *debug, unsigned int num)
+ {
+-	if (!debug)
+-		return;
+ #ifdef CONFIG_DYNAMIC_DEBUG
+ 	if (ddebug_add_module(debug, num, debug->modname))
+ 		printk(KERN_ERR "dynamic debug error adding module: %s\n",
+@@ -2268,7 +2264,8 @@ static int check_modinfo(struct module *
+ 	return 0;
+ }
  
--	/* Setup kallsyms-specific fields. */
- 	add_kallsyms(mod, info);
+-static void find_module_sections(struct module *mod, struct load_info *info)
++static void find_module_sections(struct module *mod,
++				 const struct load_info *info)
+ {
+ 	mod->kp = section_objs(info, "__param",
+ 			       sizeof(*mod->kp), &mod->num_kp);
+@@ -2323,15 +2320,9 @@ static void find_module_sections(struct 
+ 					     &mod->num_ftrace_callsites);
+ #endif
  
- 	/* Arch-specific module finalizing. */
-@@ -2536,7 +2534,7 @@ static int post_relocation(struct module
+-	mod->extable = section_objs(info, "__ex_table",
+-				    sizeof(*mod->extable), &mod->num_exentries);
+-
+ 	if (section_addr(info, "__obsparm"))
+ 		printk(KERN_WARNING "%s: Ignoring obsolete parameters\n",
+ 		       mod->name);
+-
+-	info->debug = section_objs(info, "__verbose",
+-				   sizeof(*info->debug), &info->num_debug);
+ }
  
+ static int move_module(struct module *mod, struct load_info *info)
+@@ -2518,20 +2509,6 @@ static void module_deallocate(struct mod
+ 	module_free(mod, mod->module_core);
+ }
+ 
+-static int post_relocation(struct module *mod, const struct load_info *info)
+-{
+-	sort_extable(mod->extable, mod->extable + mod->num_exentries);
+-
+-	/* Copy relocated percpu area over. */
+-	percpu_modcopy(mod, (void *)info->sechdrs[info->index.pcpu].sh_addr,
+-		       info->sechdrs[info->index.pcpu].sh_size);
+-
+-	add_kallsyms(mod, info);
+-
+-	/* Arch-specific module finalizing. */
+-	return module_finalize(info->hdr, info->sechdrs, mod);
+-}
+-
  /* Allocate and load the module: note that size of section 0 is always
     zero, and we rely on this for optional sections. */
--static struct module *load_module(void __user *umod,
-+static noinline struct module *load_module(void __user *umod,
- 				  unsigned long len,
- 				  const char __user *uargs)
- {
-@@ -2597,7 +2595,6 @@ static struct module *load_module(void _
- 		goto free_arch_cleanup;
+ static noinline struct module *load_module(void __user *umod,
+@@ -2541,6 +2518,8 @@ static noinline struct module *load_modu
+ 	struct load_info info = { NULL, };
+ 	struct module *mod;
+ 	long err;
++	struct _ddebug *debug = NULL;
++	unsigned int num_debug = 0;
+ 
+ 	DEBUGP("load_module: umod=%p, len=%lu, uargs=%p\n",
+ 	       umod, len, uargs);
+@@ -2582,7 +2561,22 @@ static noinline struct module *load_modu
+ 	if (err < 0)
+ 		goto free_modinfo;
+ 
+-	err = post_relocation(mod, &info);
++  	/* Set up and sort exception table */
++	mod->extable = section_objs(&info, "__ex_table",
++				    sizeof(*mod->extable), &mod->num_exentries);
++	sort_extable(mod->extable, mod->extable + mod->num_exentries);
++
++	/* Finally, copy percpu area over. */
++	percpu_modcopy(mod, (void *)info.sechdrs[info.index.pcpu].sh_addr,
++		       info.sechdrs[info.index.pcpu].sh_size);
++
++	add_kallsyms(mod, &info);
++
++	if (!mod->taints)
++		debug = section_objs(&info, "__verbose",
++				     sizeof(*debug), &num_debug);
++
++	err = module_finalize(info.hdr, info.sechdrs, mod);
+ 	if (err < 0)
+ 		goto free_modinfo;
+ 
+@@ -2610,9 +2604,8 @@ static noinline struct module *load_modu
+ 		goto unlock;
  	}
  
--	/* Mark state as coming so strong_try_module_get() ignores us. */
- 	mod->state = MODULE_STATE_COMING;
+-	/* This has to be done once we're sure module name is unique. */
+-	if (!mod->taints)
+-		dynamic_debug_setup(info.debug, info.num_debug);
++	if (debug)
++		dynamic_debug_setup(debug, num_debug);
  
- 	/* Now sew it into the lists so we can get lockdep and oops
-@@ -2625,12 +2622,10 @@ static struct module *load_module(void _
- 	list_add_rcu(&mod->list, &modules);
+ 	/* Find duplicate symbols */
+ 	err = verify_export_symbols(mod);
+@@ -2644,8 +2637,7 @@ static noinline struct module *load_modu
+ 	/* Unlink carefully: kallsyms could be walking list. */
+ 	list_del_rcu(&mod->list);
+  ddebug:
+-	if (!mod->taints)
+-		dynamic_debug_remove(info.debug);
++	dynamic_debug_remove(debug);
+  unlock:
  	mutex_unlock(&module_mutex);
- 
--	/* Module is ready to execute: parsing args may do that. */
- 	err = parse_args(mod->name, mod->args, mod->kp, mod->num_kp, NULL);
- 	if (err < 0)
- 		goto unlink;
- 
--	/* Link in to syfs. */
- 	err = mod_sysfs_setup(mod, &info, mod->kp, mod->num_kp);
- 	if (err < 0)
- 		goto unlink;
-@@ -2639,8 +2634,9 @@ static struct module *load_module(void _
- 	kfree(info.strmap);
- 	free_copy(&info);
- 
--	/* Done! */
- 	trace_module_load(mod);
-+
-+	/* Done! */
- 	return mod;
- 
-  unlink:
+ 	synchronize_sched();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
