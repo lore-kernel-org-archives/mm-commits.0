@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch added to -mm tree
-Date: Wed, 23 Jun 2010 12:29:21 -0700
-Message-ID: <201006231929.o5NJTL62027049@imap1.linux-foundation.org>
+Subject: + tty-fix-switching-consoles-during-suspend.patch added to -mm tree
+Date: Wed, 23 Jun 2010 12:30:44 -0700
+Message-ID: <201006231930.o5NJUirL027169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753405Ab0FWT3y (ORCPT
+	by vger.kernel.org with ESMTP id S1753405Ab0FWTbU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 15:29:54 -0400
+	Wed, 23 Jun 2010 15:31:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com
+Cc: arnd@arndb.de, greg@kroah.com
 
 
 The patch titled
-     drivers/video/backlight/s6e63m0.c: set permissions on gamma_table file to 0444
+     tty: fix switching consoles during suspend
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+     tty-fix-switching-consoles-during-suspend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/s6e63m0.c: set permissions on gamma_table file to 0444
-From: Axel Lin <axel.lin@gmail.com>
+Subject: tty: fix switching consoles during suspend
+From: Arnd Bergmann <arnd@arndb.de>
 
-gamma_table is not writable, so set permissions to 0444.
+vt_waitactive now expects to be called with the big tty mutex, which
+it tries to release before going to sleep.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
+This fixes the only caller that does not hold the BTM already.
+
+Greg, please apply to the tty series or fold into
+"tty: introduce wait_event_interruptible_tty", which introduces
+the problem.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/vt_ioctl.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444 drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -729,7 +729,7 @@ static ssize_t s6e63m0_sysfs_show_gamma_
- 
- 	return strlen(buf);
+diff -puN drivers/char/vt_ioctl.c~tty-fix-switching-consoles-during-suspend drivers/char/vt_ioctl.c
+--- a/drivers/char/vt_ioctl.c~tty-fix-switching-consoles-during-suspend
++++ a/drivers/char/vt_ioctl.c
+@@ -1761,10 +1761,13 @@ int vt_move_to_console(unsigned int vt, 
+ 		return -EIO;
+ 	}
+ 	release_console_sem();
++	tty_lock();
+ 	if (vt_waitactive(vt + 1)) {
+ 		pr_debug("Suspend: Can't switch VCs.");
++		tty_unlock();
+ 		return -EINTR;
+ 	}
++	tty_unlock();
+ 	return prev;
  }
--static DEVICE_ATTR(gamma_table, 0644,
-+static DEVICE_ATTR(gamma_table, 0444,
- 		s6e63m0_sysfs_show_gamma_table, NULL);
  
- static int __init s6e63m0_probe(struct spi_device *spi)
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 linux-next.patch
-wmi-fix-memory-leak-in-parse_wdg.patch
-acer-wmi-hp-wmi-use-platform_device_unregister-instead-of-platform_device_del-in-module_exit.patch
-hp-wmi-add-error-handling-for-hp_wmi_init.patch
-hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+vfs-clarify-that-nonseekable_open-will-never-fail.patch
+tty-fix-switching-consoles-during-suspend.patch
+kmap_atomic-make-kunmap_atomic-harder-to-misuse.patch
+asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632.patch
+alpha-h8300-m68k-remove-obsolete-asm-mdh-files.patch
 
