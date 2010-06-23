@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-block-remove-wrappers-for-request-type-flags.patch added to -mm tree
-Date: Tue, 22 Jun 2010 23:22:53 -0700
-Message-ID: <201006230651.o5N6pe88025777@imap1.linux-foundation.org>
+Subject: + tpm_tis-fix-subsequent-suspend-failures.patch added to -mm tree
+Date: Wed, 23 Jun 2010 12:18:56 -0700
+Message-ID: <201006231918.o5NJIutP026547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751354Ab0FWGwP (ORCPT
+	by vger.kernel.org with ESMTP id S1751940Ab0FWTTa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 02:52:15 -0400
+	Wed, 23 Jun 2010 15:19:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, jaxboe@fusionio.com, sfr@canb.auug.org.au
+Cc: srajiv@linux.vnet.ibm.com, debora@linux.vnet.ibm.com, helmut.schaa@googlemail.com, jmorris@namei.org, safford@watson.ibm.com
 
 
 The patch titled
-     fix "block: remove wrappers for request type/flags"
+     tpm_tis: fix subsequent suspend failures
 has been added to the -mm tree.  Its filename is
-     fix-block-remove-wrappers-for-request-type-flags.patch
+     tpm_tis-fix-subsequent-suspend-failures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "block: remove wrappers for request type/flags"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tpm_tis: fix subsequent suspend failures
+From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <jaxboe@fusionio.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Fix subsequent suspends by issuing tpm_continue_selftest during resume.
+Otherwise, the tpm chip seems to be not fully initialized and will reject
+the save state command during suspend, thus preventing the whole system
+to suspend.
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16256
+
+Signed-off-by: Helmut Schaa <helmut.schaa@googlemail.com>
+Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: David Safford <safford@watson.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/xd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tpm/tpm_tis.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/xd.c~fix-block-remove-wrappers-for-request-type-flags drivers/block/xd.c
---- a/drivers/block/xd.c~fix-block-remove-wrappers-for-request-type-flags
-+++ a/drivers/block/xd.c
-@@ -322,7 +322,7 @@ static void do_xd_request (struct reques
- 		int res = -EIO;
- 		int retry;
+diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-fix-subsequent-suspend-failures drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpm_tis-fix-subsequent-suspend-failures
++++ a/drivers/char/tpm/tpm_tis.c
+@@ -623,7 +623,14 @@ static int tpm_tis_pnp_suspend(struct pn
  
--		if (req->cmd_type != REQ_TYPE_FS) {
-+		if (req->cmd_type != REQ_TYPE_FS)
- 			goto done;
- 		if (block + count > get_capacity(req->rq_disk))
- 			goto done;
+ static int tpm_tis_pnp_resume(struct pnp_dev *dev)
+ {
+-	return tpm_pm_resume(&dev->dev);
++	struct tpm_chip *chip = pnp_get_drvdata(dev);
++	int ret;
++
++	ret = tpm_pm_resume(&dev->dev);
++	if (!ret)
++		tpm_continue_selftest(chip);
++
++	return ret;
+ }
+ 
+ static struct pnp_device_id tpm_pnp_tbl[] __devinitdata = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-fix-block-remove-wrappers-for-request-type-flags.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-drivers-gpio-is-platform-neutral-fix.patch
-fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-radix-tree-implement-function-radix_tree_range_tag_if_tagged-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+tpm_tis-fix-subsequent-suspend-failures.patch
 
