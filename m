@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-is-platform-neutral-fix.patch added to -mm tree
-Date: Tue, 22 Jun 2010 20:39:27 -0700
-Message-ID: <201006230408.o5N48Dqc019452@imap1.linux-foundation.org>
+Subject: + acpi-fix-bogus-preemption-logic-fix.patch added to -mm tree
+Date: Tue, 22 Jun 2010 21:03:12 -0700
+Message-ID: <201006230431.o5N4Vvpu020354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750767Ab0FWEIS (ORCPT
+	by vger.kernel.org with ESMTP id S1750829Ab0FWEcH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 00:08:18 -0400
+	Wed, 23 Jun 2010 00:32:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, lenb@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     drivers-gpio-is-platform-neutral-fix
+     acpi-fix-bogus-preemption-logic-fix
 has been added to the -mm tree.  Its filename is
-     drivers-gpio-is-platform-neutral-fix.patch
+     acpi-fix-bogus-preemption-logic-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-gpio-is-platform-neutral-fix
+Subject: acpi-fix-bogus-preemption-logic-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix tpyo
+fix build
 
-Cc: David Brownell <david-b@pacbell.net>
+drivers/acpi/apei/erst.c: In function 'erst_exec_stall':
+drivers/acpi/apei/erst.c:186: error: implicit declaration of function 'in_nmi'
+
+I have a bad feeling about this...
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/apei/erst.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/Makefile~drivers-gpio-is-platform-neutral-fix drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~drivers-gpio-is-platform-neutral-fix
-+++ a/drivers/gpio/Makefile
-@@ -1,7 +1,7 @@
- # generic gpio support: dedicated expander chips, etc
- #
- # NOTE: platform-specific GPIO drivers don't belong in the
--drivers/gpio directory; put them with other platform setup
-+# drivers/gpio directory; put them with other platform setup
- # code, IRQ controllers, board init, etc.
+diff -puN drivers/acpi/apei/erst.c~acpi-fix-bogus-preemption-logic-fix drivers/acpi/apei/erst.c
+--- a/drivers/acpi/apei/erst.c~acpi-fix-bogus-preemption-logic-fix
++++ a/drivers/acpi/apei/erst.c
+@@ -33,6 +33,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/cper.h>
+ #include <linux/nmi.h>
++#include <linux/hardirq.h>
+ #include <acpi/apei.h>
  
- ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ #include "apei-internal.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +76,7 @@ cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fi
 cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
 drivers-gpio-is-platform-neutral-fix.patch
 fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
+acpi-fix-bogus-preemption-logic-fix.patch
 intel_menlow-fix-memory-leaks-in-error-path-fix.patch
 x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
