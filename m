@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-fix-switching-consoles-during-suspend.patch added to -mm tree
-Date: Wed, 23 Jun 2010 12:30:44 -0700
-Message-ID: <201006231930.o5NJUirL027169@imap1.linux-foundation.org>
+Subject: + block-dont-count_vm_events-for-discard-bio-in-submit_bio.patch added to -mm tree
+Date: Wed, 23 Jun 2010 12:41:51 -0700
+Message-ID: <201006231941.o5NJfpY0027641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35435 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753405Ab0FWTbU (ORCPT
+	by vger.kernel.org with ESMTP id S1752441Ab0FWTmR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 15:31:20 -0400
+	Wed, 23 Jun 2010 15:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, greg@kroah.com
+Cc: tao.ma@oracle.com, axboe@kernel.dk, hch@lst.de, stable@kernel.org
 
 
 The patch titled
-     tty: fix switching consoles during suspend
+     block: don't count_vm_events for discard bio in submit_bio.
 has been added to the -mm tree.  Its filename is
-     tty-fix-switching-consoles-during-suspend.patch
+     block-dont-count_vm_events-for-discard-bio-in-submit_bio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: fix switching consoles during suspend
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: block: don't count_vm_events for discard bio in submit_bio.
+From: Tao Ma <tao.ma@oracle.com>
 
-vt_waitactive now expects to be called with the big tty mutex, which
-it tries to release before going to sleep.
+In submit_bio() we count vm events by checking READ/WRITE.  But actually
+DISCARD_NOBARRIER also has the WRITE flag set.  It looks as if in
+blkdev_issue_discard(), we also add a page as the payload and the
+bio_has_data check isn't enough.  So add another check for discard bio.
 
-This fixes the only caller that does not hold the BTM already.
-
-Greg, please apply to the tty series or fold into
-"tty: introduce wait_event_interruptible_tty", which introduces
-the problem.
-
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Tao Ma <tao.ma@oracle.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt_ioctl.c |    3 +++
- 1 file changed, 3 insertions(+)
+ block/blk-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt_ioctl.c~tty-fix-switching-consoles-during-suspend drivers/char/vt_ioctl.c
---- a/drivers/char/vt_ioctl.c~tty-fix-switching-consoles-during-suspend
-+++ a/drivers/char/vt_ioctl.c
-@@ -1761,10 +1761,13 @@ int vt_move_to_console(unsigned int vt, 
- 		return -EIO;
- 	}
- 	release_console_sem();
-+	tty_lock();
- 	if (vt_waitactive(vt + 1)) {
- 		pr_debug("Suspend: Can't switch VCs.");
-+		tty_unlock();
- 		return -EINTR;
- 	}
-+	tty_unlock();
- 	return prev;
- }
- 
+diff -puN block/blk-core.c~block-dont-count_vm_events-for-discard-bio-in-submit_bio block/blk-core.c
+--- a/block/blk-core.c~block-dont-count_vm_events-for-discard-bio-in-submit_bio
++++ a/block/blk-core.c
+@@ -1598,7 +1598,7 @@ void submit_bio(int rw, struct bio *bio)
+ 	 * If it's a regular read/write or a barrier with data attached,
+ 	 * go through the normal accounting stuff before submission.
+ 	 */
+-	if (bio_has_data(bio)) {
++	if (bio_has_data(bio) && !(rw & BIO_RW_DISCARD)) {
+ 		if (rw & WRITE) {
+ 			count_vm_events(PGPGOUT, count);
+ 		} else {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from tao.ma@oracle.com are
 
 linux-next.patch
-score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
-vfs-clarify-that-nonseekable_open-will-never-fail.patch
-tty-fix-switching-consoles-during-suspend.patch
-kmap_atomic-make-kunmap_atomic-harder-to-misuse.patch
-asm-generic-ioh-add-big-endian-versions-of-ioreadwrite1632.patch
-alpha-h8300-m68k-remove-obsolete-asm-mdh-files.patch
+block-dont-count_vm_events-for-discard-bio-in-submit_bio.patch
 
