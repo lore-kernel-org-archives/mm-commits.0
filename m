@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch added to -mm tree
-Date: Tue, 22 Jun 2010 21:06:18 -0700
-Message-ID: <201006230435.o5N4Z3pi020507@imap1.linux-foundation.org>
+Subject: + vfs-add-super-operation-writeback_inodes-fix.patch added to -mm tree
+Date: Tue, 22 Jun 2010 22:04:00 -0700
+Message-ID: <201006230532.o5N5WkvW022659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750873Ab0FWEfR (ORCPT
+	by vger.kernel.org with ESMTP id S1750809Ab0FWFcu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 00:35:17 -0400
+	Wed, 23 Jun 2010 01:32:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, chris.mason@oracle.com
+Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
 
 
 The patch titled
-     gcc-46-btrfs-clean-up-unused-variables-bugs-fix
+     vfs-add-super-operation-writeback_inodes-fix
 has been added to the -mm tree.  Its filename is
-     gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
+     vfs-add-super-operation-writeback_inodes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcc-46-btrfs-clean-up-unused-variables-bugs-fix
+Subject: vfs-add-super-operation-writeback_inodes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix build.  Might have been bitrot.
+writeback_inodes_wbc() got removed.
 
-fs/btrfs/inode.c: In function 'check_path_shared':
-fs/btrfs/inode.c:2671: error: 'ret' undeclared (first use in this function)
-fs/btrfs/inode.c:2671: error: (Each undeclared identifier is reported only once
-fs/btrfs/inode.c:2671: error: for each function it appears in.)
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fs-writeback.c  |    2 +-
+ include/linux/fs.h |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/btrfs/inode.c~gcc-46-btrfs-clean-up-unused-variables-bugs-fix fs/btrfs/inode.c
---- a/fs/btrfs/inode.c~gcc-46-btrfs-clean-up-unused-variables-bugs-fix
-+++ a/fs/btrfs/inode.c
-@@ -2673,6 +2673,7 @@ static int check_path_shared(struct btrf
- 	struct extent_buffer *eb;
- 	int level;
- 	u64 refs = 1;
-+	int uninitialized_var(ret);
+diff -puN fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix
++++ a/fs/fs-writeback.c
+@@ -588,6 +588,7 @@ void writeback_inodes_wb(struct bdi_writ
+ 	spin_unlock(&inode_lock);
+ 	/* Leave any unwritten inodes on b_io */
+ }
++EXPORT_SYMBOL(writeback_inodes_wb);
  
- 	for (level = 0; level < BTRFS_MAX_LEVEL; level++) {
- 		if (!path->nodes[level])
+ static void __writeback_inodes_sb(struct super_block *sb,
+ 		struct bdi_writeback *wb, struct writeback_control *wbc)
+@@ -601,7 +602,6 @@ static void __writeback_inodes_sb(struct
+ 	do_writeback_sb_inodes(sb, wb, wbc, true);
+ 	spin_unlock(&inode_lock);
+ }
+-EXPORT_SYMBOL(writeback_inodes_wbc);
+ 
+ /*
+  * The maximum number of pages to writeout in a single bdi flush/kupdate
+diff -puN include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix include/linux/fs.h
+--- a/include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix
++++ a/include/linux/fs.h
+@@ -2098,7 +2098,8 @@ extern int invalidate_inode_pages2_range
+ extern int write_inode_now(struct inode *, int);
+ extern void writeback_skip_sb_inodes(struct super_block *sb,
+ 				     struct bdi_writeback *wb);
+-extern void writeback_inodes_wbc(struct writeback_control *wbc);
++extern void writeback_inodes_wb(struct bdi_writeback *wb,
++				struct writeback_control *wbc);
+ extern int generic_writeback_sb_inodes(struct super_block *sb,
+ 				       struct bdi_writeback *wb,
+ 				       struct writeback_control *wbc,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +124,7 @@ fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
 rtc-fixes-and-new-functionality-for-fm3130-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4-export-find_get_pages.patch
 reiser4.patch
