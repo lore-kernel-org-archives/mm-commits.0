@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch added to -mm tree
-Date: Wed, 23 Jun 2010 15:26:20 -0700
-Message-ID: <201006232255.o5NMt6Ym004240@imap1.linux-foundation.org>
+Subject: + revert-4624469822455b4accc886557f6c997ccdd59066.patch added to -mm tree
+Date: Wed, 23 Jun 2010 15:26:21 -0700
+Message-ID: <201006232255.o5NMt7Tv004246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753774Ab0FWWzh (ORCPT
+	by vger.kernel.org with ESMTP id S1753774Ab0FWWzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 18:55:37 -0400
+	Wed, 23 Jun 2010 18:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     revert d04ab5241f301bdcad2f6beb0ecd326bd82100a7
+     revert 4624469822455b4accc886557f6c997ccdd59066
 has been added to the -mm tree.  Its filename is
-     revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
+     revert-4624469822455b4accc886557f6c997ccdd59066.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,223 +34,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert d04ab5241f301bdcad2f6beb0ecd326bd82100a7
+Subject: revert 4624469822455b4accc886557f6c997ccdd59066
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   77 +++++++++++++++++++++++++---------------------
- 1 file changed, 43 insertions(+), 34 deletions(-)
+ kernel/module.c |   68 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 39 insertions(+), 29 deletions(-)
 
-diff -puN kernel/module.c~revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7 kernel/module.c
---- a/kernel/module.c~revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7
+diff -puN kernel/module.c~revert-4624469822455b4accc886557f6c997ccdd59066 kernel/module.c
+--- a/kernel/module.c~revert-4624469822455b4accc886557f6c997ccdd59066
 +++ a/kernel/module.c
-@@ -1127,9 +1127,8 @@ static const struct kernel_symbol *resol
-  * /sys/module/foo/sections stuff
-  * J. Corbet <corbet@lwn.net>
-  */
--#ifdef CONFIG_SYSFS
-+#if defined(CONFIG_KALLSYMS) && defined(CONFIG_SYSFS)
+@@ -110,16 +110,6 @@ int unregister_module_notifier(struct no
+ }
+ EXPORT_SYMBOL(unregister_module_notifier);
  
--#ifdef CONFIG_KALLSYMS
- static inline bool sect_empty(const Elf_Shdr *sect)
- {
- 	return !(sect->sh_flags & SHF_ALLOC) || sect->sh_size == 0;
-@@ -1166,7 +1165,8 @@ static void free_sect_attrs(struct modul
- 	kfree(sect_attrs);
+-struct load_info {
+-	Elf_Ehdr *hdr;
+-	unsigned long len;
+-	Elf_Shdr *sechdrs;
+-	char *secstrings, *args, *strtab;
+-	struct {
+-		unsigned int sym, str, mod, vers, info, pcpu;
+-	} index;
+-};
+-
+ /* We require a truly strong try_module_get(): 0 means failure due to
+    ongoing or failed initialization etc. */
+ static inline int strong_try_module_get(struct module *mod)
+@@ -1917,10 +1907,11 @@ static int is_exported(const char *name,
  }
  
--static void add_sect_attrs(struct module *mod, const struct load_info *info)
-+static void add_sect_attrs(struct module *mod, unsigned int nsect,
-+		char *secstrings, Elf_Shdr *sechdrs)
+ /* As per nm */
+-static char elf_type(const Elf_Sym *sym, const struct load_info *info)
++static char elf_type(const Elf_Sym *sym,
++		     Elf_Shdr *sechdrs,
++		     const char *secstrings,
++		     struct module *mod)
  {
- 	unsigned int nloaded = 0, i, size[2];
- 	struct module_sect_attrs *sect_attrs;
-@@ -1174,8 +1174,8 @@ static void add_sect_attrs(struct module
- 	struct attribute **gattr;
+-	const Elf_Shdr *sechdrs = info->sechdrs;
+-
+ 	if (ELF_ST_BIND(sym->st_info) == STB_WEAK) {
+ 		if (ELF_ST_TYPE(sym->st_info) == STT_OBJECT)
+ 			return 'v';
+@@ -1950,10 +1941,8 @@ static char elf_type(const Elf_Sym *sym,
+ 		else
+ 			return 'b';
+ 	}
+-	if (strstarts(info->secstrings + sechdrs[sym->st_shndx].sh_name,
+-		      ".debug")) {
++	if (strstarts(secstrings + sechdrs[sym->st_shndx].sh_name, ".debug"))
+ 		return 'n';
+-	}
+ 	return '?';
+ }
  
- 	/* Count loaded sections and allocate structures */
--	for (i = 0; i < info->hdr->e_shnum; i++)
--		if (!sect_empty(&info->sechdrs[i]))
-+	for (i = 0; i < nsect; i++)
-+		if (!sect_empty(&sechdrs[i]))
- 			nloaded++;
- 	size[0] = ALIGN(sizeof(*sect_attrs)
- 			+ nloaded * sizeof(sect_attrs->attrs[0]),
-@@ -1192,12 +1192,11 @@ static void add_sect_attrs(struct module
- 	sect_attrs->nsections = 0;
- 	sattr = &sect_attrs->attrs[0];
- 	gattr = &sect_attrs->grp.attrs[0];
--	for (i = 0; i < info->hdr->e_shnum; i++) {
--		Elf_Shdr *sec = &info->sechdrs[i];
--		if (sect_empty(sec))
-+	for (i = 0; i < nsect; i++) {
-+		if (sect_empty(&sechdrs[i]))
+@@ -2030,30 +2019,35 @@ static unsigned long layout_symtab(struc
+ 	return symoffs;
+ }
+ 
+-static void add_kallsyms(struct module *mod, struct load_info *info,
++static void add_kallsyms(struct module *mod,
++			 Elf_Shdr *sechdrs,
++			 unsigned int shnum,
++			 unsigned int symindex,
++			 unsigned int strindex,
+ 			 unsigned long symoffs,
+ 			 unsigned long stroffs,
++			 const char *secstrings,
+ 			 unsigned long *strmap)
+ {
+ 	unsigned int i, ndst;
+ 	const Elf_Sym *src;
+ 	Elf_Sym *dst;
+ 	char *s;
+-	Elf_Shdr *symsec = &info->sechdrs[info->index.sym];
+ 
+-	mod->symtab = (void *)symsec->sh_addr;
+-	mod->num_symtab = symsec->sh_size / sizeof(Elf_Sym);
+-	mod->strtab = info->strtab;
++	mod->symtab = (void *)sechdrs[symindex].sh_addr;
++	mod->num_symtab = sechdrs[symindex].sh_size / sizeof(Elf_Sym);
++	mod->strtab = (void *)sechdrs[strindex].sh_addr;
+ 
+ 	/* Set types up while we still have access to sections. */
+ 	for (i = 0; i < mod->num_symtab; i++)
+-		mod->symtab[i].st_info = elf_type(&mod->symtab[i], info);
++		mod->symtab[i].st_info
++			= elf_type(&mod->symtab[i], sechdrs, secstrings, mod);
+ 
+ 	mod->core_symtab = dst = mod->module_core + symoffs;
+ 	src = mod->symtab;
+ 	*dst = *src;
+ 	for (ndst = i = 1; i < mod->num_symtab; ++i, ++src) {
+-		if (!is_core_symbol(src, info->sechdrs, info->hdr->e_shnum))
++		if (!is_core_symbol(src, sechdrs, shnum))
  			continue;
--		sattr->address = sec->sh_addr;
--		sattr->name = kstrdup(info->secstrings + sec->sh_name,
-+		sattr->address = sechdrs[i].sh_addr;
-+		sattr->name = kstrdup(secstrings + sechdrs[i].sh_name,
- 					GFP_KERNEL);
- 		if (sattr->name == NULL)
- 			goto out;
-@@ -1265,7 +1264,8 @@ static void free_notes_attrs(struct modu
- 	kfree(notes_attrs);
+ 		dst[ndst] = *src;
+ 		dst[ndst].st_name = bitmap_weight(strmap, dst[ndst].st_name);
+@@ -2062,7 +2056,7 @@ static void add_kallsyms(struct module *
+ 	mod->core_num_syms = ndst;
+ 
+ 	mod->core_strtab = s = mod->module_core + stroffs;
+-	for (*s = 0, i = 1; i < info->sechdrs[info->index.str].sh_size; ++i)
++	for (*s = 0, i = 1; i < sechdrs[strindex].sh_size; ++i)
+ 		if (test_bit(i, strmap))
+ 			*++s = mod->strtab[i];
  }
- 
--static void add_notes_attrs(struct module *mod, const struct load_info *info)
-+static void add_notes_attrs(struct module *mod, unsigned int nsect,
-+			    char *secstrings, Elf_Shdr *sechdrs)
- {
- 	unsigned int notes, loaded, i;
- 	struct module_notes_attrs *notes_attrs;
-@@ -1277,9 +1277,9 @@ static void add_notes_attrs(struct modul
- 
- 	/* Count notes sections and allocate structures.  */
- 	notes = 0;
--	for (i = 0; i < info->hdr->e_shnum; i++)
--		if (!sect_empty(&info->sechdrs[i]) &&
--		    (info->sechdrs[i].sh_type == SHT_NOTE))
-+	for (i = 0; i < nsect; i++)
-+		if (!sect_empty(&sechdrs[i]) &&
-+		    (sechdrs[i].sh_type == SHT_NOTE))
- 			++notes;
- 
- 	if (notes == 0)
-@@ -1293,15 +1293,15 @@ static void add_notes_attrs(struct modul
- 
- 	notes_attrs->notes = notes;
- 	nattr = &notes_attrs->attrs[0];
--	for (loaded = i = 0; i < info->hdr->e_shnum; ++i) {
--		if (sect_empty(&info->sechdrs[i]))
-+	for (loaded = i = 0; i < nsect; ++i) {
-+		if (sect_empty(&sechdrs[i]))
- 			continue;
--		if (info->sechdrs[i].sh_type == SHT_NOTE) {
-+		if (sechdrs[i].sh_type == SHT_NOTE) {
- 			sysfs_bin_attr_init(nattr);
- 			nattr->attr.name = mod->sect_attrs->attrs[loaded].name;
- 			nattr->attr.mode = S_IRUGO;
--			nattr->size = info->sechdrs[i].sh_size;
--			nattr->private = (void *) info->sechdrs[i].sh_addr;
-+			nattr->size = sechdrs[i].sh_size;
-+			nattr->private = (void *) sechdrs[i].sh_addr;
- 			nattr->read = module_notes_read;
- 			++nattr;
- 		}
-@@ -1332,8 +1332,8 @@ static void remove_notes_attrs(struct mo
- 
- #else
- 
--static inline void add_sect_attrs(struct module *mod,
--				  const struct load_info *info)
-+static inline void add_sect_attrs(struct module *mod, unsigned int nsect,
-+		char *sectstrings, Elf_Shdr *sechdrs)
- {
- }
- 
-@@ -1341,16 +1341,17 @@ static inline void remove_sect_attrs(str
- {
- }
- 
--static inline void add_notes_attrs(struct module *mod,
--				   const struct load_info *info)
-+static inline void add_notes_attrs(struct module *mod, unsigned int nsect,
-+				   char *sectstrings, Elf_Shdr *sechdrs)
- {
- }
- 
- static inline void remove_notes_attrs(struct module *mod)
- {
- }
--#endif /* CONFIG_KALLSYMS */
-+#endif
- 
-+#ifdef CONFIG_SYSFS
- static void add_usage_links(struct module *mod)
- {
- #ifdef CONFIG_MODULE_UNLOAD
-@@ -1455,7 +1456,6 @@ out:
- }
- 
- static int mod_sysfs_setup(struct module *mod,
--			   const struct load_info *info,
- 			   struct kernel_param *kparam,
- 			   unsigned int num_params)
- {
-@@ -1480,8 +1480,6 @@ static int mod_sysfs_setup(struct module
- 		goto out_unreg_param;
- 
- 	add_usage_links(mod);
--	add_sect_attrs(mod, info);
--	add_notes_attrs(mod, info);
- 
- 	kobject_uevent(&mod->mkobj.kobj, KOBJ_ADD);
- 	return 0;
-@@ -1498,26 +1496,32 @@ out:
- 
- static void mod_sysfs_fini(struct module *mod)
- {
--	remove_notes_attrs(mod);
--	remove_sect_attrs(mod);
- 	kobject_put(&mod->mkobj.kobj);
- }
- 
--#else /* !CONFIG_SYSFS */
-+#else /* CONFIG_SYSFS */
- 
--static int mod_sysfs_init(struct module *mod)
-+static inline int mod_sysfs_init(struct module *mod)
- {
+@@ -2079,10 +2073,15 @@ static inline unsigned long layout_symta
  	return 0;
  }
  
--static int mod_sysfs_setup(struct module *mod,
--			   const struct load_info *info,
-+static inline int mod_sysfs_setup(struct module *mod,
- 			   struct kernel_param *kparam,
- 			   unsigned int num_params)
- {
- 	return 0;
- }
- 
-+static inline int module_add_modinfo_attrs(struct module *mod)
-+{
-+	return 0;
-+}
-+
-+static inline void module_remove_modinfo_attrs(struct module *mod)
-+{
-+}
-+
- static void mod_sysfs_fini(struct module *mod)
+-static void add_kallsyms(struct module *mod, struct load_info *info,
+-			 unsigned long symoffs,
+-			 unsigned long stroffs,
+-			 unsigned long *strmap)
++static inline void add_kallsyms(struct module *mod,
++				Elf_Shdr *sechdrs,
++				unsigned int shnum,
++				unsigned int symindex,
++				unsigned int strindex,
++				unsigned long symoffs,
++				unsigned long stroffs,
++				const char *secstrings,
++				const unsigned long *strmap)
  {
  }
-@@ -1558,6 +1562,8 @@ static void free_module(struct module *m
- 	mutex_lock(&module_mutex);
- 	stop_machine(__unlink_module, mod, NULL);
- 	mutex_unlock(&module_mutex);
-+	remove_notes_attrs(mod);
-+	remove_sect_attrs(mod);
- 	mod_kobject_remove(mod);
+ #endif /* CONFIG_KALLSYMS */
+@@ -2147,6 +2146,16 @@ static inline void kmemleak_load_module(
+ }
+ #endif
  
- 	/* Arch-specific cleanup. */
-@@ -2682,10 +2688,13 @@ static noinline struct module *load_modu
- 	if (err < 0)
- 		goto unlink;
- 
--	err = mod_sysfs_setup(mod, &info, mod->kp, mod->num_kp);
-+	err = mod_sysfs_setup(mod, mod->kp, mod->num_kp);
- 	if (err < 0)
- 		goto unlink;
- 
-+	add_sect_attrs(mod, info.hdr->e_shnum, info.secstrings, info.sechdrs);
-+	add_notes_attrs(mod, info.hdr->e_shnum, info.secstrings, info.sechdrs);
++struct load_info {
++	Elf_Ehdr *hdr;
++	unsigned long len;
++	Elf_Shdr *sechdrs;
++	char *secstrings, *args, *strtab;
++	struct {
++		unsigned int sym, str, mod, vers, info, pcpu;
++	} index;
++};
 +
- 	/* Get rid of temporary copy and strmap. */
- 	kfree(info.strmap);
- 	free_copy(&info);
+ /* Sets info->hdr and info->len. */
+ static int copy_and_check(struct load_info *info, const void __user *umod, unsigned long len)
+ {
+@@ -2612,7 +2621,8 @@ static noinline struct module *load_modu
+ 	percpu_modcopy(mod, (void *)info.sechdrs[info.index.pcpu].sh_addr,
+ 		       info.sechdrs[info.index.pcpu].sh_size);
+ 
+-	add_kallsyms(mod, &info, symoffs, stroffs, strmap);
++	add_kallsyms(mod, info.sechdrs, info.hdr->e_shnum, info.index.sym, info.index.str,
++		     symoffs, stroffs, info.secstrings, strmap);
+ 	kfree(strmap);
+ 	strmap = NULL;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
