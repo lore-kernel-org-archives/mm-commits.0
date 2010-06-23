@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch added to -mm tree
-Date: Wed, 23 Jun 2010 15:26:19 -0700
-Message-ID: <201006232255.o5NMt5Qo004231@imap1.linux-foundation.org>
+Subject: + revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch added to -mm tree
+Date: Wed, 23 Jun 2010 15:26:20 -0700
+Message-ID: <201006232255.o5NMt6jH004237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753774Ab0FWWzJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753777Ab0FWWzK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 18:55:09 -0400
+	Wed, 23 Jun 2010 18:55:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     revert fdc8302019d9bc10729cd3e8d348571e833388aa
+     revert e92e80797e7eaaf2a9bbd586c63f7c6bd3177276
 has been added to the -mm tree.  Its filename is
-     revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
+     revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert fdc8302019d9bc10729cd3e8d348571e833388aa
+Subject: revert e92e80797e7eaaf2a9bbd586c63f7c6bd3177276
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ kernel/module.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN kernel/module.c~revert-fdc8302019d9bc10729cd3e8d348571e833388aa kernel/module.c
---- a/kernel/module.c~revert-fdc8302019d9bc10729cd3e8d348571e833388aa
+diff -puN kernel/module.c~revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276 kernel/module.c
+--- a/kernel/module.c~revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276
 +++ a/kernel/module.c
-@@ -114,7 +114,7 @@ struct load_info {
- 	Elf_Ehdr *hdr;
- 	unsigned long len;
- 	Elf_Shdr *sechdrs;
--	char *secstrings, *strtab;
-+	char *secstrings, *args, *strtab;
- 	unsigned long *strmap;
- 	unsigned long symoffs, stroffs;
- 	struct {
-@@ -2093,7 +2093,7 @@ static inline void kmemleak_load_module(
- }
- #endif
+@@ -1505,6 +1505,11 @@ static void mod_sysfs_fini(struct module
  
--/* Sets info->hdr and info->len. */
-+/* Sets info->hdr, info->len and info->args. */
- static int copy_and_check(struct load_info *info,
- 			  const void __user *umod, unsigned long len,
- 			  const char __user *uargs)
-@@ -2129,6 +2129,13 @@ static int copy_and_check(struct load_in
- 		goto free_hdr;
- 	}
+ #else /* !CONFIG_SYSFS */
  
-+	/* Now copy in args */
-+	info->args = strndup_user(uargs, ~0UL >> 1);
-+	if (IS_ERR(info->args)) {
-+		err = PTR_ERR(info->args);
-+		goto free_hdr;
-+	}
++static int mod_sysfs_init(struct module *mod)
++{
++	return 0;
++}
 +
- 	info->hdr = hdr;
- 	info->len = len;
- 	return 0;
-@@ -2140,6 +2147,7 @@ free_hdr:
- 
- static void free_copy(struct load_info *info)
+ static int mod_sysfs_setup(struct module *mod,
+ 			   const struct load_info *info,
+ 			   struct kernel_param *kparam,
+@@ -1517,17 +1522,13 @@ static void mod_sysfs_fini(struct module
  {
-+	kfree(info->args);
- 	vfree(info->hdr);
  }
  
-@@ -2457,7 +2465,7 @@ static struct module *layout_and_allocat
- 	err = module_frob_arch_sections(info->hdr, info->sechdrs,
- 					info->secstrings, mod);
- 	if (err < 0)
--		goto out;
-+		goto free_args;
- 
- 	pcpusec = &info->sechdrs[info->index.pcpu];
- 	if (pcpusec->sh_size) {
-@@ -2465,7 +2473,7 @@ static struct module *layout_and_allocat
- 		err = percpu_modalloc(mod,
- 				      pcpusec->sh_size, pcpusec->sh_addralign);
- 		if (err)
--			goto out;
-+			goto free_args;
- 		pcpusec->sh_flags &= ~(unsigned long)SHF_ALLOC;
- 	}
- 
-@@ -2496,7 +2504,8 @@ free_strmap:
- 	kfree(info->strmap);
- free_percpu:
- 	percpu_modfree(mod);
--out:
-+free_args:
-+	kfree(info->args);
- 	return ERR_PTR(err);
+-static void module_remove_modinfo_attrs(struct module *mod)
+-{
+-}
+-
+ static void del_usage_links(struct module *mod)
+ {
  }
  
-@@ -2582,12 +2591,7 @@ static noinline struct module *load_modu
+ #endif /* CONFIG_SYSFS */
  
- 	flush_module_icache(mod);
- 
--	/* Now copy in args */
--	mod->args = strndup_user(uargs, ~0UL >> 1);
--	if (IS_ERR(mod->args)) {
--		err = PTR_ERR(mod->args);
--		goto free_arch_cleanup;
--	}
-+	mod->args = info.args;
- 
- 	mod->state = MODULE_STATE_COMING;
- 
-@@ -2641,8 +2645,6 @@ static noinline struct module *load_modu
-  unlock:
+-static void mod_sysfs_teardown(struct module *mod)
++static void mod_kobject_remove(struct module *mod)
+ {
+ 	del_usage_links(mod);
+ 	module_remove_modinfo_attrs(mod);
+@@ -1557,7 +1558,7 @@ static void free_module(struct module *m
+ 	mutex_lock(&module_mutex);
+ 	stop_machine(__unlink_module, mod, NULL);
  	mutex_unlock(&module_mutex);
- 	synchronize_sched();
--	kfree(mod->args);
-- free_arch_cleanup:
+-	mod_sysfs_teardown(mod);
++	mod_kobject_remove(mod);
+ 
+ 	/* Arch-specific cleanup. */
  	module_arch_cleanup(mod);
-  free_modinfo:
- 	free_modinfo(mod);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
