@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-add-super-operation-writeback_inodes-fix.patch added to -mm tree
-Date: Tue, 22 Jun 2010 22:04:00 -0700
-Message-ID: <201006230532.o5N5WkvW022659@imap1.linux-foundation.org>
+Subject: + fix-block-remove-wrappers-for-request-type-flags.patch added to -mm tree
+Date: Tue, 22 Jun 2010 23:22:53 -0700
+Message-ID: <201006230651.o5N6pe88025777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750809Ab0FWFcu (ORCPT
+	by vger.kernel.org with ESMTP id S1751354Ab0FWGwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 01:32:50 -0400
+	Wed, 23 Jun 2010 02:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
+Cc: akpm@linux-foundation.org, hch@lst.de, jaxboe@fusionio.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     vfs-add-super-operation-writeback_inodes-fix
+     fix "block: remove wrappers for request type/flags"
 has been added to the -mm tree.  Its filename is
-     vfs-add-super-operation-writeback_inodes-fix.patch
+     fix-block-remove-wrappers-for-request-type-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-add-super-operation-writeback_inodes-fix
+Subject: fix "block: remove wrappers for request type/flags"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-writeback_inodes_wbc() got removed.
-
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <jaxboe@fusionio.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |    2 +-
- include/linux/fs.h |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/xd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~vfs-add-super-operation-writeback_inodes-fix
-+++ a/fs/fs-writeback.c
-@@ -588,6 +588,7 @@ void writeback_inodes_wb(struct bdi_writ
- 	spin_unlock(&inode_lock);
- 	/* Leave any unwritten inodes on b_io */
- }
-+EXPORT_SYMBOL(writeback_inodes_wb);
+diff -puN drivers/block/xd.c~fix-block-remove-wrappers-for-request-type-flags drivers/block/xd.c
+--- a/drivers/block/xd.c~fix-block-remove-wrappers-for-request-type-flags
++++ a/drivers/block/xd.c
+@@ -322,7 +322,7 @@ static void do_xd_request (struct reques
+ 		int res = -EIO;
+ 		int retry;
  
- static void __writeback_inodes_sb(struct super_block *sb,
- 		struct bdi_writeback *wb, struct writeback_control *wbc)
-@@ -601,7 +602,6 @@ static void __writeback_inodes_sb(struct
- 	do_writeback_sb_inodes(sb, wb, wbc, true);
- 	spin_unlock(&inode_lock);
- }
--EXPORT_SYMBOL(writeback_inodes_wbc);
- 
- /*
-  * The maximum number of pages to writeout in a single bdi flush/kupdate
-diff -puN include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix include/linux/fs.h
---- a/include/linux/fs.h~vfs-add-super-operation-writeback_inodes-fix
-+++ a/include/linux/fs.h
-@@ -2098,7 +2098,8 @@ extern int invalidate_inode_pages2_range
- extern int write_inode_now(struct inode *, int);
- extern void writeback_skip_sb_inodes(struct super_block *sb,
- 				     struct bdi_writeback *wb);
--extern void writeback_inodes_wbc(struct writeback_control *wbc);
-+extern void writeback_inodes_wb(struct bdi_writeback *wb,
-+				struct writeback_control *wbc);
- extern int generic_writeback_sb_inodes(struct super_block *sb,
- 				       struct bdi_writeback *wb,
- 				       struct writeback_control *wbc,
+-		if (req->cmd_type != REQ_TYPE_FS) {
++		if (req->cmd_type != REQ_TYPE_FS)
+ 			goto done;
+ 		if (block + count > get_capacity(req->rq_disk))
+ 			goto done;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +66,7 @@ linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+fix-block-remove-wrappers-for-request-type-flags.patch
 cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
 cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
 cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
