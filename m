@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-bogus-preemption-logic-fix.patch added to -mm tree
-Date: Tue, 22 Jun 2010 21:03:12 -0700
-Message-ID: <201006230431.o5N4Vvpu020354@imap1.linux-foundation.org>
+Subject: + gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch added to -mm tree
+Date: Tue, 22 Jun 2010 21:06:18 -0700
+Message-ID: <201006230435.o5N4Z3pi020507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750829Ab0FWEcH (ORCPT
+	by vger.kernel.org with ESMTP id S1750873Ab0FWEfR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jun 2010 00:32:07 -0400
+	Wed, 23 Jun 2010 00:35:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, chris.mason@oracle.com
 
 
 The patch titled
-     acpi-fix-bogus-preemption-logic-fix
+     gcc-46-btrfs-clean-up-unused-variables-bugs-fix
 has been added to the -mm tree.  Its filename is
-     acpi-fix-bogus-preemption-logic-fix.patch
+     gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-fix-bogus-preemption-logic-fix
+Subject: gcc-46-btrfs-clean-up-unused-variables-bugs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix build
+fix build.  Might have been bitrot.
 
-drivers/acpi/apei/erst.c: In function 'erst_exec_stall':
-drivers/acpi/apei/erst.c:186: error: implicit declaration of function 'in_nmi'
+fs/btrfs/inode.c: In function 'check_path_shared':
+fs/btrfs/inode.c:2671: error: 'ret' undeclared (first use in this function)
+fs/btrfs/inode.c:2671: error: (Each undeclared identifier is reported only once
+fs/btrfs/inode.c:2671: error: for each function it appears in.)
 
-I have a bad feeling about this...
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/apei/erst.c |    1 +
+ fs/btrfs/inode.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/apei/erst.c~acpi-fix-bogus-preemption-logic-fix drivers/acpi/apei/erst.c
---- a/drivers/acpi/apei/erst.c~acpi-fix-bogus-preemption-logic-fix
-+++ a/drivers/acpi/apei/erst.c
-@@ -33,6 +33,7 @@
- #include <linux/uaccess.h>
- #include <linux/cper.h>
- #include <linux/nmi.h>
-+#include <linux/hardirq.h>
- #include <acpi/apei.h>
+diff -puN fs/btrfs/inode.c~gcc-46-btrfs-clean-up-unused-variables-bugs-fix fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~gcc-46-btrfs-clean-up-unused-variables-bugs-fix
++++ a/fs/btrfs/inode.c
+@@ -2673,6 +2673,7 @@ static int check_path_shared(struct btrf
+ 	struct extent_buffer *eb;
+ 	int level;
+ 	u64 refs = 1;
++	int uninitialized_var(ret);
  
- #include "apei-internal.h"
+ 	for (level = 0; level < BTRFS_MAX_LEVEL; level++) {
+ 		if (!path->nodes[level])
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +80,7 @@ acpi-fix-bogus-preemption-logic-fix.patch
 intel_menlow-fix-memory-leaks-in-error-path-fix.patch
 x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
 dib3000mc-reduce-large-stack-usage-fix.patch
 hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
