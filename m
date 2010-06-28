@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-mvsas-fix-potential-null-dereference.patch added to -mm tree
-Date: Mon, 28 Jun 2010 12:20:57 -0700
-Message-ID: <201006281920.o5SJKvgm026082@imap1.linux-foundation.org>
+Subject: + checkpatch-fix-handling-of-leading-spaces.patch added to -mm tree
+Date: Mon, 28 Jun 2010 12:49:19 -0700
+Message-ID: <201006281949.o5SJnJbU027328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750834Ab0F1TVN (ORCPT
+	by vger.kernel.org with ESMTP id S1751821Ab0F1Ttx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jun 2010 15:21:13 -0400
+	Mon, 28 Jun 2010 15:49:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, James.Bottomley@suse.de, satyasrinivasp@hcl.in
+Cc: raffaele.recalcati@bticino.it, apw@shadowen.org, w.sang@pengutronix.de
 
 
 The patch titled
-     drivers/scsi/mvsas/mv_sas.c: fix potential NULL dereference
+     checkpatch: fix handling of leading spaces
 has been added to the -mm tree.  Its filename is
-     scsi-mvsas-fix-potential-null-dereference.patch
+     checkpatch-fix-handling-of-leading-spaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/mvsas/mv_sas.c: fix potential NULL dereference
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: checkpatch: fix handling of leading spaces
+From: Raffaele Recalcati <raffaele.recalcati@bticino.it>
 
-Stanse found that in mvs_abort_task, mvi_dev is dereferenced earlier than
-tested for being NULL.  Move the assignment below the test.
+I've got a false positive when spaces are present at the beginning of a
+line.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: "James E.J. Bottomley" <James.Bottomley@suse.de>
-Cc: Srinivas <satyasrinivasp@hcl.in>
+So I add this check, obviously excluding to check the lines in the middle of
+comments.
+
+For instance this code passes the checkpatch test:
+
++struct davinci_mcbsp_data {
++       unsigned int    fmt;
++    int             clk_div;
++};
++
++static struct davinci_mcbsp_data mcbsp_data;
+
+
+Where, before the string "int             clk_div", I have 4 spaces (\040
+ascii character).
+
+With v2.6.34 scripts/checkpatch.pl script I get:
+
+scripts/checkpatch.pl 0001-ASoC-DaVinci-Added-support-for-stereo-I2S.patch
+total: 0 errors, 0 warnings, 201 lines checked
+0001-ASoC-DaVinci-Added-support-for-stereo-I2S.patch has no obvious style
+problems and is ready for submission.
+
+That is not correct.  Instead with the proposed patch I get:
+
+scripts/checkpatch.pl 0001-ASoC-DaVinci-Added-support-for-stereo-I2S.patch
+WARNING: please, no space for starting a line,
+                excluding comments
+#63: FILE: sound/soc/davinci/davinci-i2s.c:165:
++    int             clk_div;$
+
+WARNING: please, no space for starting a line,
+                excluding comments
+#95: FILE: sound/soc/davinci/davinci-i2s.c:406:
++    return 0;$
+
+total: 0 errors, 2 warnings, 201 lines checked
+
+That is correct.
+
+Signed-off-by: Raffaele Recalcati <raffaele.recalcati@bticino.it>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mvsas/mv_sas.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/scsi/mvsas/mv_sas.c~scsi-mvsas-fix-potential-null-dereference drivers/scsi/mvsas/mv_sas.c
---- a/drivers/scsi/mvsas/mv_sas.c~scsi-mvsas-fix-potential-null-dereference
-+++ a/drivers/scsi/mvsas/mv_sas.c
-@@ -1640,7 +1640,7 @@ int mvs_abort_task(struct sas_task *task
- 	struct mvs_tmf_task tmf_task;
- 	struct domain_device *dev = task->dev;
- 	struct mvs_device *mvi_dev = (struct mvs_device *)dev->lldd_dev;
--	struct mvs_info *mvi = mvi_dev->mvi_info;
-+	struct mvs_info *mvi;
- 	int rc = TMF_RESP_FUNC_FAILED;
- 	unsigned long flags;
- 	u32 tag;
-@@ -1650,6 +1650,8 @@ int mvs_abort_task(struct sas_task *task
- 		rc = TMF_RESP_FUNC_FAILED;
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-fix-handling-of-leading-spaces scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-handling-of-leading-spaces
++++ a/scripts/checkpatch.pl
+@@ -1454,6 +1454,13 @@ sub process {
+ 			WARN("please, no space before tabs\n" . $herevet);
+ 		}
  
-+	mvi = mvi_dev->mvi_info;
++# check for spaces at the beginning of a line.
++		if ($rawline =~ /^\+ / && $rawline !~ /\+ +\*/)  {
++			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
++			WARN("please, no space for starting a line, \
++				excluding comments\n" . $herevet);
++		}
 +
- 	spin_lock_irqsave(&task->task_state_lock, flags);
- 	if (task->task_state_flags & SAS_TASK_STATE_DONE) {
- 		spin_unlock_irqrestore(&task->task_state_lock, flags);
+ # check we are in a valid C source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c)$/);
+ 
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from raffaele.recalcati@bticino.it are
 
-origin.patch
-linux-next.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix-sleep-inside-atomic.patch
-scsi-mvsas-fix-potential-null-dereference.patch
-vfs-attr-check-attr_size-in-ia_valid-not-ia_mode.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+checkpatch-fix-handling-of-leading-spaces.patch
 
