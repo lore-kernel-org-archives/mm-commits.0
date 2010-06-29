@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-8-bit-data-transfer-width-support.patch added to -mm tree
-Date: Tue, 29 Jun 2010 11:37:03 -0700
-Message-ID: <201006291837.o5TIb1VB021767@imap1.linux-foundation.org>
+Subject: + sdhci-dont-assign-mmc-caps-at-sdhci-directly.patch added to -mm tree
+Date: Tue, 29 Jun 2010 11:37:09 -0700
+Message-ID: <201006291837.o5TIb7G3021775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34411 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754964Ab0F2ShM (ORCPT
+	by vger.kernel.org with ESMTP id S1754965Ab0F2ShT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jun 2010 14:37:12 -0400
+	Tue, 29 Jun 2010 14:37:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kyungmin.park@samsung.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.
 
 
 The patch titled
-     sdhci: 8-bit data transfer width support
+     sdhci: don't assign mmc->caps at SDHCI directly
 has been added to the -mm tree.  Its filename is
-     sdhci-8-bit-data-transfer-width-support.patch
+     sdhci-dont-assign-mmc-caps-at-sdhci-directly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: 8-bit data transfer width support
+Subject: sdhci: don't assign mmc->caps at SDHCI directly
 From: Kyungmin Park <kyungmin.park@samsung.com>
 
-Some host controllers such as s5pc110 support the WIDE8 feature.
+Some host controllers can set mmc->caps before sdhci_add_host().
 
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
@@ -45,36 +45,21 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |    5 +++++
- drivers/mmc/host/sdhci.h |    1 +
- 2 files changed, 6 insertions(+)
+ drivers/mmc/host/sdhci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-8-bit-data-transfer-width-support drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-8-bit-data-transfer-width-support
+diff -puN drivers/mmc/host/sdhci.c~sdhci-dont-assign-mmc-caps-at-sdhci-directly drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-dont-assign-mmc-caps-at-sdhci-directly
 +++ a/drivers/mmc/host/sdhci.c
-@@ -1159,6 +1159,11 @@ static void sdhci_set_ios(struct mmc_hos
- 
- 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
- 
-+	if (ios->bus_width == MMC_BUS_WIDTH_8)
-+		ctrl |= SDHCI_CTRL_8BITBUS;
-+	else
-+		ctrl &= ~SDHCI_CTRL_8BITBUS;
-+
- 	if (ios->bus_width == MMC_BUS_WIDTH_4)
- 		ctrl |= SDHCI_CTRL_4BITBUS;
+@@ -1798,7 +1798,7 @@ int sdhci_add_host(struct sdhci_host *ho
  	else
-diff -puN drivers/mmc/host/sdhci.h~sdhci-8-bit-data-transfer-width-support drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~sdhci-8-bit-data-transfer-width-support
-+++ a/drivers/mmc/host/sdhci.h
-@@ -72,6 +72,7 @@
- #define   SDHCI_CTRL_ADMA1	0x08
- #define   SDHCI_CTRL_ADMA32	0x10
- #define   SDHCI_CTRL_ADMA64	0x18
-+#define  SDHCI_CTRL_8BITBUS	0x20
+ 		mmc->f_min = host->max_clk / 256;
+ 	mmc->f_max = host->max_clk;
+-	mmc->caps = MMC_CAP_SDIO_IRQ;
++	mmc->caps |= MMC_CAP_SDIO_IRQ;
  
- #define SDHCI_POWER_CONTROL	0x29
- #define  SDHCI_POWER_ON		0x01
+ 	if (!(host->quirks & SDHCI_QUIRK_FORCE_1_BIT_DATA))
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
 _
 
 Patches currently in -mm which might be from kyungmin.park@samsung.com are
