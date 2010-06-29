@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-dont-assign-mmc-caps-at-sdhci-directly.patch added to -mm tree
-Date: Tue, 29 Jun 2010 11:37:09 -0700
-Message-ID: <201006291837.o5TIb7G3021775@imap1.linux-foundation.org>
+Subject: + um-os-linux-memc-needs-sys-stath.patch added to -mm tree
+Date: Tue, 29 Jun 2010 11:49:27 -0700
+Message-ID: <201006291849.o5TInRtH022492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754965Ab0F2ShT (ORCPT
+	by vger.kernel.org with ESMTP id S1752206Ab0F2SuV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jun 2010 14:37:19 -0400
+	Tue, 29 Jun 2010 14:50:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyungmin.park@samsung.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.org
+Cc: aleaxander@gmail.com, Aleaxander@gmail.com, bharrosh@panasas.com, jdike@addtoit.com, stable@kernel.org
 
 
 The patch titled
-     sdhci: don't assign mmc->caps at SDHCI directly
+     um: os-linux/mem.c needs sys/stat.h
 has been added to the -mm tree.  Its filename is
-     sdhci-dont-assign-mmc-caps-at-sdhci-directly.patch
+     um-os-linux-memc-needs-sys-stath.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: don't assign mmc->caps at SDHCI directly
-From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: um: os-linux/mem.c needs sys/stat.h
+From: Liu Aleaxander <aleaxander@gmail.com>
 
-Some host controllers can set mmc->caps before sdhci_add_host().
+The os-linux/mem.c file calls fchmod function, which is declared in sys/stat.h
+header file, so include it.  Fixes build breakage under FC13.
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Liu Aleaxander <Aleaxander@gmail.com>
+Acked-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/os-Linux/mem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-dont-assign-mmc-caps-at-sdhci-directly drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-dont-assign-mmc-caps-at-sdhci-directly
-+++ a/drivers/mmc/host/sdhci.c
-@@ -1798,7 +1798,7 @@ int sdhci_add_host(struct sdhci_host *ho
- 	else
- 		mmc->f_min = host->max_clk / 256;
- 	mmc->f_max = host->max_clk;
--	mmc->caps = MMC_CAP_SDIO_IRQ;
-+	mmc->caps |= MMC_CAP_SDIO_IRQ;
- 
- 	if (!(host->quirks & SDHCI_QUIRK_FORCE_1_BIT_DATA))
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+diff -puN arch/um/os-Linux/mem.c~um-os-linux-memc-needs-sys-stath arch/um/os-Linux/mem.c
+--- a/arch/um/os-Linux/mem.c~um-os-linux-memc-needs-sys-stath
++++ a/arch/um/os-Linux/mem.c
+@@ -10,6 +10,7 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <string.h>
++#include <sys/stat.h>
+ #include <sys/mman.h>
+ #include <sys/param.h>
+ #include "init.h"
 _
 
-Patches currently in -mm which might be from kyungmin.park@samsung.com are
+Patches currently in -mm which might be from aleaxander@gmail.com are
 
-linux-next.patch
-mmc-recognize-csd-structure.patch
-mmc-recognize-csd-structure-fix.patch
-s5pc110-sdhci-s3c-can-override-host-capabilities.patch
-s5pc110-sdhci-s3c-support-on-s5pc110.patch
-sdhci-add-no-hi-speed-bit-quirk-support.patch
-sdhci-remove-useless-set_clock-check.patch
-sdhci-8-bit-data-transfer-width-support.patch
-sdhci-dont-assign-mmc-caps-at-sdhci-directly.patch
+um-os-linux-memc-needs-sys-stath.patch
 
