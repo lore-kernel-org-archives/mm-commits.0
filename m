@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-jz4740-mmc-driver-fix.patch added to -mm tree
-Date: Wed, 30 Jun 2010 13:55:44 -0700
-Message-ID: <201006302055.o5UKtiYv025867@imap1.linux-foundation.org>
+Subject: + mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 30 Jun 2010 13:55:42 -0700
+Message-ID: <201006302055.o5UKtg6H025863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756050Ab0F3Uzt (ORCPT
+	by vger.kernel.org with ESMTP id S1753416Ab0F3Uzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Jun 2010 16:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lars@metafoo.de, linux-mmc@vger.kernel.org, matt@console-pimps.org
+Cc: akpm@linux-foundation.org, lars@metafoo.de, matt@console-pimps.org
 
 
 The patch titled
-     mmc-add-jz4740-mmc-driver-fix
+     mmc-add-jz4740-mmc-driver-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mmc-add-jz4740-mmc-driver-fix.patch
+     mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc-add-jz4740-mmc-driver-fix
+Subject: mmc-add-jz4740-mmc-driver-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-uninline jz4740_mmc_wait_irq()
+WARNING: line over 80 characters
+#269: FILE: drivers/mmc/host/jz4740_mmc.c:220:
++			timeout = jz4740_mmc_wait_irq(host, JZ_MMC_IRQ_TXFIFO_WR_REQ);
 
-For it is large and has four callsites.
+WARNING: line over 80 characters
+#287: FILE: drivers/mmc/host/jz4740_mmc.c:238:
++			timeout = jz4740_mmc_wait_irq(host, JZ_MMC_IRQ_TXFIFO_WR_REQ);
 
-Cc: <linux-mmc@vger.kernel.org>
+WARNING: line over 80 characters
+#348: FILE: drivers/mmc/host/jz4740_mmc.c:299:
++			timeout = jz4740_mmc_wait_irq(host, JZ_MMC_IRQ_RXFIFO_RD_REQ);
+
+WARNING: line over 80 characters
+#368: FILE: drivers/mmc/host/jz4740_mmc.c:319:
++			timeout = jz4740_mmc_wait_irq(host, JZ_MMC_IRQ_RXFIFO_RD_REQ);
+
+WARNING: line over 80 characters
+#383: FILE: drivers/mmc/host/jz4740_mmc.c:334:
++		/* This can go away once MIPS implements flush_kernel_dcache_page */
+
+WARNING: line over 80 characters
+#436: FILE: drivers/mmc/host/jz4740_mmc.c:387:
++			cmd->resp[i] |= readw(host->base + JZ_REG_MMC_RESP_FIFO) << 8;
+
+WARNING: suspect code indent for conditional statements (8, 12)
+#560: FILE: drivers/mmc/host/jz4740_mmc.c:511:
++	if (test_and_clear_bit(0, &host->waiting)) {
++	    del_timer(&host->timeout_timer);
+
+WARNING: line over 80 characters
+#720: FILE: drivers/mmc/host/jz4740_mmc.c:671:
++		ret = gpio_request(pdata->gpio_card_detect, "MMC detect change");
+
+WARNING: line over 80 characters
+#722: FILE: drivers/mmc/host/jz4740_mmc.c:673:
++			dev_err(&pdev->dev, "Failed to request detect change gpio\n");
+
+WARNING: line over 80 characters
+#731: FILE: drivers/mmc/host/jz4740_mmc.c:682:
++			dev_err(&pdev->dev, "Failed to request read only gpio: %d\n", ret);
+
+WARNING: line over 80 characters
+#740: FILE: drivers/mmc/host/jz4740_mmc.c:691:
++			dev_err(&pdev->dev, "Failed to request power gpio: %d\n", ret);
+
+WARNING: line over 80 characters
+#743: FILE: drivers/mmc/host/jz4740_mmc.c:694:
++		gpio_direction_output(pdata->gpio_power, pdata->power_active_low);
+
+WARNING: line over 80 characters
+#829: FILE: drivers/mmc/host/jz4740_mmc.c:780:
++	host->base = ioremap_nocache(host->mem->start, resource_size(host->mem));
+
+WARNING: line over 80 characters
+#870: FILE: drivers/mmc/host/jz4740_mmc.c:821:
++		dev_warn(&pdev->dev, "Failed to get irq for card detect gpio\n");
+
+WARNING: line over 80 characters
+#878: FILE: drivers/mmc/host/jz4740_mmc.c:829:
++			dev_err(&pdev->dev, "Failed to request card detect irq");
+
+WARNING: line over 80 characters
+#894: FILE: drivers/mmc/host/jz4740_mmc.c:845:
++	/* It is not that important when it times out, it just needs to timeout. */
+
+total: 0 errors, 16 warnings, 1005 lines checked
+
+./patches/mmc-add-jz4740-mmc-driver.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Matt Fleming <matt@console-pimps.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/jz4740_mmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/jz4740_mmc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/host/jz4740_mmc.c~mmc-add-jz4740-mmc-driver-fix drivers/mmc/host/jz4740_mmc.c
---- a/drivers/mmc/host/jz4740_mmc.c~mmc-add-jz4740-mmc-driver-fix
+diff -puN drivers/mmc/host/jz4740_mmc.c~mmc-add-jz4740-mmc-driver-checkpatch-fixes drivers/mmc/host/jz4740_mmc.c
+--- a/drivers/mmc/host/jz4740_mmc.c~mmc-add-jz4740-mmc-driver-checkpatch-fixes
 +++ a/drivers/mmc/host/jz4740_mmc.c
-@@ -188,7 +188,7 @@ static void jz4740_mmc_request_done(stru
- 	mmc_request_done(host->mmc, req);
- }
+@@ -509,16 +509,16 @@ static irqreturn_t jz_mmc_irq(int irq, v
+ 		goto handled;
  
--static inline unsigned int jz4740_mmc_wait_irq(struct jz4740_mmc_host *host,
-+static unsigned int jz4740_mmc_wait_irq(struct jz4740_mmc_host *host,
- 	unsigned int irq)
- {
- 	unsigned int timeout = JZ4740_MMC_MAX_TIMEOUT;
+ 	if (test_and_clear_bit(0, &host->waiting)) {
+-	    del_timer(&host->timeout_timer);
++		del_timer(&host->timeout_timer);
+ 
+-	    status = readl(host->base + JZ_REG_MMC_STATUS);
++		status = readl(host->base + JZ_REG_MMC_STATUS);
+ 
+-	    if (status & JZ_MMC_STATUS_TIMEOUT_RES) {
++		if (status & JZ_MMC_STATUS_TIMEOUT_RES) {
+ 			host->cmd->error = -ETIMEDOUT;
+ 		} else if (status & JZ_MMC_STATUS_CRC_RES_ERR) {
+ 			host->cmd->error = -EIO;
+ 		} else if (status & (JZ_MMC_STATUS_CRC_READ_ERROR |
+-			    JZ_MMC_STATUS_CRC_WRITE_ERROR)) {
++				JZ_MMC_STATUS_CRC_WRITE_ERROR)) {
+ 			host->cmd->data->error = -EIO;
+ 		} else if (status & (JZ_MMC_STATUS_CRC_READ_ERROR |
+ 				JZ_MMC_STATUS_CRC_WRITE_ERROR)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
