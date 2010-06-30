@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-zone_reclaim-dont-call-disable_swap_token.patch added to -mm tree
-Date: Wed, 30 Jun 2010 16:00:40 -0700
-Message-ID: <201006302300.o5UN0eKx031601@imap1.linux-foundation.org>
+Subject: + vmscan-recalculate-lru_pages-on-each-priority.patch added to -mm tree
+Date: Wed, 30 Jun 2010 16:04:21 -0700
+Message-ID: <201006302304.o5UN4L2e031797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754477Ab0F3XA4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754477Ab0F3XEm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jun 2010 19:00:56 -0400
+	Wed, 30 Jun 2010 19:04:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, minchan.kim@gmail.com, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     vmscan: zone_reclaim don't call disable_swap_token()
+     vmscan: recalculate lru_pages on each priority
 has been added to the -mm tree.  Its filename is
-     vmscan-zone_reclaim-dont-call-disable_swap_token.patch
+     vmscan-recalculate-lru_pages-on-each-priority.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: zone_reclaim don't call disable_swap_token()
+Subject: vmscan: recalculate lru_pages on each priority
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Swap token don't works when zone reclaim is enabled since it was born. 
-Because __zone_reclaim() always call disable_swap_token() unconditionally.
-
-This kill swap token feature completely.  As far as I know, nobody want to
-that.  Remove it.
+shrink_zones() need relatively long time and lru_pages can change
+dramatically during shrink_zones().  So lru_pages should be recalculated
+for each priority.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-zone_reclaim-dont-call-disable_swap_token mm/vmscan.c
---- a/mm/vmscan.c~vmscan-zone_reclaim-dont-call-disable_swap_token
+diff -puN mm/vmscan.c~vmscan-recalculate-lru_pages-on-each-priority mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-recalculate-lru_pages-on-each-priority
 +++ a/mm/vmscan.c
-@@ -2590,7 +2590,6 @@ static int __zone_reclaim(struct zone *z
- 	};
- 	unsigned long slab_reclaimable;
+@@ -1785,7 +1785,6 @@ static unsigned long do_try_to_free_page
+ 	bool all_unreclaimable;
+ 	unsigned long total_scanned = 0;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+-	unsigned long lru_pages = 0;
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
+@@ -1796,18 +1795,6 @@ static unsigned long do_try_to_free_page
  
--	disable_swap_token();
- 	cond_resched();
- 	/*
- 	 * We need to be able to allocate from the reserves for RECLAIM_SWAP
+ 	if (scanning_global_lru(sc))
+ 		count_vm_event(ALLOCSTALL);
+-	/*
+-	 * mem_cgroup will not do shrink_slab.
+-	 */
+-	if (scanning_global_lru(sc)) {
+-		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+-
+-			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+-				continue;
+-
+-			lru_pages += zone_reclaimable_pages(zone);
+-		}
+-	}
+ 
+ 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
+ 		sc->nr_scanned = 0;
+@@ -1819,6 +1806,14 @@ static unsigned long do_try_to_free_page
+ 		 * over limit cgroups
+ 		 */
+ 		if (scanning_global_lru(sc)) {
++			unsigned long lru_pages = 0;
++			for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
++				if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
++					continue;
++
++				lru_pages += zone_reclaimable_pages(zone);
++			}
++
+ 			shrink_slab(sc->nr_scanned, sc->gfp_mask, lru_pages);
+ 			if (reclaim_state) {
+ 				sc->nr_reclaimed += reclaim_state->reclaimed_slab;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -99,5 +130,6 @@ mm-use-for_each_online_cpu-in-vmstat.patch
 mempolicy-reduce-stack-size-of-migrate_pages.patch
 mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
 vmscan-zone_reclaim-dont-call-disable_swap_token.patch
+vmscan-recalculate-lru_pages-on-each-priority.patch
 reiser4.patch
 
