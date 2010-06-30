@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-nuc900-make-returning-time-checking-function-valid.patch added to -mm tree
-Date: Wed, 30 Jun 2010 12:40:49 -0700
-Message-ID: <201006301940.o5UJenOL022480@imap1.linux-foundation.org>
+Subject: + rtc-nuc900-fix-build-warning.patch added to -mm tree
+Date: Wed, 30 Jun 2010 12:40:54 -0700
+Message-ID: <201006301940.o5UJesKP022488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755222Ab0F3Tl1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755222Ab0F3Tla (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jun 2010 15:41:27 -0400
+	Wed, 30 Jun 2010 15:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mcuos.com@gmail.com, a.zummo@towertech.it
 
 
 The patch titled
-     rtc/nuc900: make returning time checking function valid
+     rtc/nuc900: fix build warning
 has been added to the -mm tree.  Its filename is
-     rtc-nuc900-make-returning-time-checking-function-valid.patch
+     rtc-nuc900-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc/nuc900: make returning time checking function valid
+Subject: rtc/nuc900: fix build warning
 From: Wan ZongShun <mcuos.com@gmail.com>
-
-Make returning time checking function valid.  In spite of using the
-'rtc_valid_tm', nevertheless, the read time function omits its returning
-value, that means the 'rtc_valid_tm' is useless here.
 
 Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-nuc900.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~rtc-nuc900-make-returning-time-checking-function-valid drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~rtc-nuc900-make-returning-time-checking-function-valid
+diff -puN drivers/rtc/rtc-nuc900.c~rtc-nuc900-fix-build-warning drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~rtc-nuc900-fix-build-warning
 +++ a/drivers/rtc/rtc-nuc900.c
-@@ -102,7 +102,7 @@ static int *check_rtc_access_enable(stru
- 	return 0;
- }
+@@ -85,7 +85,7 @@ static irqreturn_t nuc900_rtc_interrupt(
  
--static void nuc900_rtc_bcd2bin(unsigned int timereg,
-+static int nuc900_rtc_bcd2bin(unsigned int timereg,
- 				unsigned int calreg, struct rtc_time *tm)
+ static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
  {
- 	tm->tm_mday	= bcd2bin(calreg >> 0);
-@@ -113,7 +113,7 @@ static void nuc900_rtc_bcd2bin(unsigned 
- 	tm->tm_min	= bcd2bin(timereg >> 8);
- 	tm->tm_hour	= bcd2bin(timereg >> 16);
+-	unsigned int i, timeout = 0x1000;
++	unsigned int timeout = 0x1000;
+ 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
  
--	rtc_valid_tm(tm);
-+	return rtc_valid_tm(tm);
- }
- 
- static void nuc900_rtc_bin2bcd(struct device *dev, struct rtc_time *settm,
-@@ -170,9 +170,7 @@ static int nuc900_rtc_read_time(struct d
- 	timeval = __raw_readl(rtc->rtc_reg + REG_RTC_TLR);
- 	clrval	= __raw_readl(rtc->rtc_reg + REG_RTC_CLR);
- 
--	nuc900_rtc_bcd2bin(timeval, clrval, tm);
--
--	return 0;
-+	return nuc900_rtc_bcd2bin(timeval, clrval, tm);
- }
- 
- static int nuc900_rtc_set_time(struct device *dev, struct rtc_time *tm)
-@@ -205,9 +203,7 @@ static int nuc900_rtc_read_alarm(struct 
- 	timeval = __raw_readl(rtc->rtc_reg + REG_RTC_TAR);
- 	carval	= __raw_readl(rtc->rtc_reg + REG_RTC_CAR);
- 
--	nuc900_rtc_bcd2bin(timeval, carval, &alrm->time);
--
--	return 0;
-+	return nuc900_rtc_bcd2bin(timeval, carval, &alrm->time);
- }
- 
- static int nuc900_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ 	mdelay(10);
 _
 
 Patches currently in -mm which might be from mcuos.com@gmail.com are
