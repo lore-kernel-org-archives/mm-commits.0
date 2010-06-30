@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blk-corec-unbork.patch added to -mm tree
-Date: Tue, 29 Jun 2010 15:34:27 -0700
-Message-ID: <201006292303.o5TN3NLU001344@imap1.linux-foundation.org>
+Subject: + aio-do-not-return-erestartsys-and-friends-from-aio.patch added to -mm tree
+Date: Wed, 30 Jun 2010 12:33:57 -0700
+Message-ID: <201006301933.o5UJXvoN022213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752949Ab0F2XDe (ORCPT
+	by vger.kernel.org with ESMTP id S1756294Ab0F3Te2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jun 2010 19:03:34 -0400
+	Wed, 30 Jun 2010 15:34:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, sfr@canb.auug.org.au
+Cc: jack@suse.cz, bcrl@kvack.org, hch@lst.de, jmoyer@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, zach.brown@oracle.com
 
 
 The patch titled
-     blk-core.c: unbork
+     aio: do not return -ERESTARTSYS (and friends) from AIO
 has been added to the -mm tree.  Its filename is
-     blk-corec-unbork.patch
+     aio-do-not-return-erestartsys-and-friends-from-aio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blk-core.c: unbork
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aio: do not return -ERESTARTSYS (and friends) from AIO
+From: Jan Kara <jack@suse.cz>
 
-block/blk-core.c: In function 'submit_bio':
-block/blk-core.c:1601: error: 'BIO_RW_DISCARD' undeclared (first use in this function)
-block/blk-core.c:1601: error: (Each undeclared identifier is reported only once
-block/blk-core.c:1601: error: for each function it appears in.)
+We must not leak ERESTARTSYS (and similar error codes) to userspace as a
+return value of IO.  Because other AIO could have been already submitted
+by the same io_submit syscall, there is no easy way to restart the
+syscall.  So we do not have much other options than fail the particular IO
+with EINTR.
 
-Not sure what's going on here.  Perhaps time skew between Linus merging stuff
-and Stephen merging stuff.
-
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN block/blk-core.c~blk-corec-unbork block/blk-core.c
---- a/block/blk-core.c~blk-corec-unbork
-+++ a/block/blk-core.c
-@@ -1598,7 +1598,7 @@ void submit_bio(int rw, struct bio *bio)
- 	 * If it's a regular read/write or a barrier with data attached,
- 	 * go through the normal accounting stuff before submission.
+diff -puN fs/aio.c~aio-do-not-return-erestartsys-and-friends-from-aio fs/aio.c
+--- a/fs/aio.c~aio-do-not-return-erestartsys-and-friends-from-aio
++++ a/fs/aio.c
+@@ -712,8 +712,18 @@ static ssize_t aio_run_iocb(struct kiocb
  	 */
--	if (bio_has_data(bio) && !(rw & (1 << BIO_RW_DISCARD))) {
-+	if (bio_has_data(bio)) {
- 		if (rw & WRITE) {
- 			count_vm_events(PGPGOUT, count);
- 		} else {
+ 	ret = retry(iocb);
+ 
+-	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED)
++	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
++		/*
++		 * There's no easy way to restart the syscall since other AIO's
++		 * may be already running. Just fail this IO with EINTR.
++		 */
++		if (unlikely(ret == -ERESTARTSYS ||
++			     ret == -ERESTARTNOINTR ||
++			     ret == -ERESTARTNOHAND ||
++			     ret == -ERESTART_RESTARTBLOCK))
++			ret = -EINTR;
+ 		aio_complete(iocb, ret, 0);
++	}
+ out:
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-drivers-gpio-is-platform-neutral.patch
-fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
-blk-corec-unbork.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu-v4-fix-fix-fix.patch
-ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+radix-tree-implement-function-radix_tree_range_tag_if_tagged.patch
 radix-tree-implement-function-radix_tree_range_tag_if_tagged-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
+mm-implement-writeback-livelock-avoidance-using-page-tagging.patch
+aio-do-not-return-erestartsys-and-friends-from-aio.patch
 reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
