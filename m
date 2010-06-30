@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-cdrom-use-pr_level-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 30 Jun 2010 14:28:52 -0700
-Message-ID: <201006302128.o5ULSqDY027485@imap1.linux-foundation.org>
+Subject: + serial-mmio32-support-for-8250_earlyc.patch added to -mm tree
+Date: Wed, 30 Jun 2010 15:25:16 -0700
+Message-ID: <201006302225.o5UMPGQL030079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757238Ab0F3V26 (ORCPT
+	by vger.kernel.org with ESMTP id S1757252Ab0F3WZV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jun 2010 17:28:58 -0400
+	Wed, 30 Jun 2010 18:25:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, joe@perches.com
+Cc: _deepfire@feelingofgreen.ru, greg@kroah.com
 
 
 The patch titled
-     drivers-cdrom-use-pr_level-checkpatch-fixes
+     serial: MMIO32 support for 8250_early.c
 has been added to the -mm tree.  Its filename is
-     drivers-cdrom-use-pr_level-checkpatch-fixes.patch
+     serial-mmio32-support-for-8250_earlyc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-cdrom-use-pr_level-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial: MMIO32 support for 8250_early.c
+From: Samium Gromoff <_deepfire@feelingofgreen.ru>
 
-ERROR: code indent should use tabs where possible
-#50: FILE: drivers/cdrom/cdrom.c:321:
-+        if ((ERRLOGMASK & type) || debug==1)^I^I\$
+Provide MMIO32 support in 8250_early (aka earlycon)
 
-ERROR: spaces required around that '==' (ctx:VxV)
-#50: FILE: drivers/cdrom/cdrom.c:321:
-+        if ((ERRLOGMASK & type) || debug==1)		\
-                                         ^
-
-ERROR: code indent should use tabs where possible
-#57: FILE: drivers/cdrom/cdrom.c:327:
-+        if (0 && (ERRLOGMASK & type) || debug==1 )^I\$
-
-ERROR: spaces required around that '==' (ctx:VxV)
-#57: FILE: drivers/cdrom/cdrom.c:327:
-+        if (0 && (ERRLOGMASK & type) || debug==1 )	\
-                                              ^
-
-ERROR: space prohibited before that close parenthesis ')'
-#57: FILE: drivers/cdrom/cdrom.c:327:
-+        if (0 && (ERRLOGMASK & type) || debug==1 )	\
-
-total: 5 errors, 0 warnings, 426 lines checked
-
-./patches/drivers-cdrom-use-pr_level.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Samium Gromoff <_deepfire@feelingofgreen.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |    3 +
+ drivers/serial/8250_early.c         |   53 ++++++++++++++++++--------
+ 2 files changed, 41 insertions(+), 15 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-use-pr_level-checkpatch-fixes drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~drivers-cdrom-use-pr_level-checkpatch-fixes
-+++ a/drivers/cdrom/cdrom.c
-@@ -318,13 +318,13 @@ static const char *mrw_address_space[] =
- #if (ERRLOGMASK!=CD_NOTHING)
- #define cdinfo(type, fmt, args...)			\
- do {							\
--        if ((ERRLOGMASK & type) || debug==1)		\
-+	if ((ERRLOGMASK & type) || debug == 1)		\
- 		pr_info(fmt, ##args);			\
- } while (0)
- #else
- #define cdinfo(type, fmt, args...)			\
- do {							\
--        if (0 && (ERRLOGMASK & type) || debug==1 )	\
-+	if (0 && (ERRLOGMASK & type) || debug == 1)	\
- 		pr_info(fmt, ##args);			\
- } while (0)
+diff -puN Documentation/kernel-parameters.txt~serial-mmio32-support-for-8250_earlyc Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~serial-mmio32-support-for-8250_earlyc
++++ a/Documentation/kernel-parameters.txt
+@@ -680,8 +680,11 @@ and is between 256 and 4096 characters. 
+ 	earlycon=	[KNL] Output early console device and options.
+ 		uart[8250],io,<addr>[,options]
+ 		uart[8250],mmio,<addr>[,options]
++		uart[8250],mmio32,<addr>[,options]
+ 			Start an early, polled-mode console on the 8250/16550
+ 			UART at the specified I/O port or MMIO address.
++			MMIO inter-register address stride is either 8bit (mmio)
++                        or 32bit (mmio32).
+ 			The options are the same as for ttyS, above.
+ 
+ 	earlyprintk=	[X86,SH,BLACKFIN]
+diff -puN drivers/serial/8250_early.c~serial-mmio32-support-for-8250_earlyc drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-mmio32-support-for-8250_earlyc
++++ a/drivers/serial/8250_early.c
+@@ -19,9 +19,11 @@
+  * The user can specify the device directly, e.g.,
+  *	earlycon=uart8250,io,0x3f8,9600n8
+  *	earlycon=uart8250,mmio,0xff5e0000,115200n8
++ *	earlycon=uart8250,mmio32,0xff5e0000,115200n8
+  * or
+  *	console=uart8250,io,0x3f8,9600n8
+  *	console=uart8250,mmio,0xff5e0000,115200n8
++ *	console=uart8250,mmio32,0xff5e0000,115200n8
+  */
+ 
+ #include <linux/tty.h>
+@@ -48,18 +50,31 @@ static struct early_serial8250_device ea
+ 
+ static unsigned int __init serial_in(struct uart_port *port, int offset)
+ {
+-	if (port->iotype == UPIO_MEM)
++	switch (port->iotype) {
++	case UPIO_MEM:
+ 		return readb(port->membase + offset);
+-	else
++	case UPIO_MEM32:
++		return readl(port->membase + (offset << 2));
++	case UPIO_PORT:
+ 		return inb(port->iobase + offset);
++	default:
++		return 0;
++	}
+ }
+ 
+ static void __init serial_out(struct uart_port *port, int offset, int value)
+ {
+-	if (port->iotype == UPIO_MEM)
++	switch (port->iotype) {
++	case UPIO_MEM:
+ 		writeb(value, port->membase + offset);
+-	else
++		break;
++	case UPIO_MEM32:
++		writel(value, port->membase + (offset << 2));
++		break;
++	case UPIO_PORT:
+ 		outb(value, port->iobase + offset);
++		break;
++	}
+ }
+ 
+ #define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+@@ -137,15 +152,21 @@ static int __init parse_options(struct e
+ 								char *options)
+ {
+ 	struct uart_port *port = &device->port;
+-	int mmio, length;
++	int mmio, mmio32, length;
+ 
+ 	if (!options)
+ 		return -ENODEV;
+ 
+ 	port->uartclk = BASE_BAUD * 16;
+-	if (!strncmp(options, "mmio,", 5)) {
+-		port->iotype = UPIO_MEM;
+-		port->mapbase = simple_strtoul(options + 5, &options, 0);
++
++	mmio = !strncmp(options, "mmio,", 5);
++	mmio32 = !strncmp(options, "mmio32,", 7);
++	if (mmio || mmio32) {
++		port->iotype = (mmio ? UPIO_MEM : UPIO_MEM32);
++		port->mapbase = simple_strtoul(options + (mmio ? 5 : 7),
++					       &options, 0);
++		if (mmio32)
++			port->regshift = 2;
+ #ifdef CONFIG_FIX_EARLYCON_MEM
+ 		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE,
+ 					port->mapbase & PAGE_MASK);
+@@ -157,11 +178,10 @@ static int __init parse_options(struct e
+ 		if (!port->membase) {
+ 			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
+ 				__func__,
+-			       (unsigned long long)port->mapbase);
++			       (unsigned long long) port->mapbase);
+ 			return -ENOMEM;
+ 		}
  #endif
+-		mmio = 1;
+ 	} else if (!strncmp(options, "io,", 3)) {
+ 		port->iotype = UPIO_PORT;
+ 		port->iobase = simple_strtoul(options + 3, &options, 0);
+@@ -181,11 +201,14 @@ static int __init parse_options(struct e
+ 			device->baud);
+ 	}
+ 
+-	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
+-		mmio ? "MMIO" : "I/O port",
+-		mmio ? (unsigned long long) port->mapbase
+-		     : (unsigned long long) port->iobase,
+-		device->options);
++	if (mmio || mmio32)
++		printk(KERN_INFO "Early serial console at MMIO%s 0x%p (options '%s')\n",
++		       mmio32 ? "32" : "", (unsigned long long) port->mapbase,
++		       device->options);
++	else
++		printk(KERN_INFO "Early serial console at I/O port 0x%pr (options '%s')\n",
++		       (unsigned long long) port->iobase, device->options);
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from _deepfire@feelingofgreen.ru are
 
-origin.patch
-drivers-gpio-is-platform-neutral.patch
-fs-fcntlc-kill_fasync_rcu-fa_lock-must-be-irq-safe.patch
-ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-drivers-cdrom-use-pr_level-checkpatch-fixes.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-vmap-area-cache-fix.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-radix-tree-implement-function-radix_tree_range_tag_if_tagged-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
-mmc-add-jz4740-mmc-driver-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+serial-mmio32-support-for-8250_earlyc.patch
 
