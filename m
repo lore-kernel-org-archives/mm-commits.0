@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-nuc900-modify-enable-disable-irqs-and-driver-data-setting-location.patch added to -mm tree
-Date: Wed, 30 Jun 2010 12:40:52 -0700
-Message-ID: <201006301940.o5UJeq9f022483@imap1.linux-foundation.org>
+Subject: + rtc-nuc900-fix-build-warning.patch added to -mm tree
+Date: Wed, 30 Jun 2010 12:42:32 -0700
+Message-ID: <201006301942.o5UJgWlG022541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755613Ab0F3Tlm (ORCPT
+	by vger.kernel.org with ESMTP id S1752867Ab0F3TnH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jun 2010 15:41:42 -0400
+	Wed, 30 Jun 2010 15:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mcuos.com@gmail.com, a.zummo@towertech.it
 
 
 The patch titled
-     rtc/nuc900:  modify enable/disable IRQs and driver data setting location
+     rtc/nuc900: fix build warning
 has been added to the -mm tree.  Its filename is
-     rtc-nuc900-modify-enable-disable-irqs-and-driver-data-setting-location.patch
+     rtc-nuc900-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc/nuc900:  modify enable/disable IRQs and driver data setting location
+Subject: rtc/nuc900: fix build warning
 From: Wan ZongShun <mcuos.com@gmail.com>
 
-This patch does two modifications:
-
-(1) Adjust enable/disable IRQs location,enable it after rtc
-    registration and disable it prior to unregistration.
-
-(2) Put 'platform_set_drvdata(pdev, nuc900_rtc)' in front of rtc
-    registration still be safety, though there is no need to do this, when
-    I move enable irq after rtc registration, I think still put
-    'platform_set_drvdata' before rtc registration that would be a good
-    habit.
+Remove unused local variable.
 
 Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-nuc900.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~rtc-nuc900-modify-enable-disable-irqs-and-driver-data-setting-location drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~rtc-nuc900-modify-enable-disable-irqs-and-driver-data-setting-location
+diff -puN drivers/rtc/rtc-nuc900.c~rtc-nuc900-fix-build-warning drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~rtc-nuc900-fix-build-warning
 +++ a/drivers/rtc/rtc-nuc900.c
-@@ -269,29 +269,30 @@ static int __devinit nuc900_rtc_probe(st
- 		goto fail2;
- 	}
+@@ -85,7 +85,7 @@ static irqreturn_t nuc900_rtc_interrupt(
  
--	nuc900_rtc->irq_num = platform_get_irq(pdev, 0);
--	if (request_irq(nuc900_rtc->irq_num, nuc900_rtc_interrupt,
--				IRQF_DISABLED, "nuc900rtc", nuc900_rtc)) {
--		dev_err(&pdev->dev, "NUC900 RTC request irq failed\n");
--		err = -EBUSY;
--		goto fail3;
--	}
-+	platform_set_drvdata(pdev, nuc900_rtc);
+ static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
+ {
+-	unsigned int i, timeout = 0x1000;
++	unsigned int timeout = 0x1000;
+ 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
  
- 	nuc900_rtc->rtcdev = rtc_device_register(pdev->name, &pdev->dev,
- 						&nuc900_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(nuc900_rtc->rtcdev)) {
- 		dev_err(&pdev->dev, "rtc device register faild\n");
- 		err = PTR_ERR(nuc900_rtc->rtcdev);
--		goto fail4;
-+		goto fail3;
- 	}
- 
--	platform_set_drvdata(pdev, nuc900_rtc);
- 	__raw_writel(__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_TSSR) | MODE24,
- 					nuc900_rtc->rtc_reg + REG_RTC_TSSR);
- 
-+	nuc900_rtc->irq_num = platform_get_irq(pdev, 0);
-+	if (request_irq(nuc900_rtc->irq_num, nuc900_rtc_interrupt,
-+				IRQF_DISABLED, "nuc900rtc", nuc900_rtc)) {
-+		dev_err(&pdev->dev, "NUC900 RTC request irq failed\n");
-+		err = -EBUSY;
-+		goto fail4;
-+	}
-+
- 	return 0;
- 
--fail4:	free_irq(nuc900_rtc->irq_num, nuc900_rtc);
-+fail4:	rtc_device_unregister(nuc900_rtc->rtcdev);
- fail3:	iounmap(nuc900_rtc->rtc_reg);
- fail2:	release_mem_region(res->start, resource_size(res));
- fail1:	kfree(nuc900_rtc);
-@@ -303,8 +304,8 @@ static int __devexit nuc900_rtc_remove(s
- 	struct nuc900_rtc *nuc900_rtc = platform_get_drvdata(pdev);
- 	struct resource *res;
- 
--	rtc_device_unregister(nuc900_rtc->rtcdev);
- 	free_irq(nuc900_rtc->irq_num, nuc900_rtc);
-+	rtc_device_unregister(nuc900_rtc->rtcdev);
- 	iounmap(nuc900_rtc->rtc_reg);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	mdelay(10);
 _
 
 Patches currently in -mm which might be from mcuos.com@gmail.com are
