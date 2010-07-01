@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-allow-non-standard-sdio-cards.patch added to -mm tree
-Date: Thu, 01 Jul 2010 15:31:34 -0700
-Message-ID: <201007012231.o61MVZnQ001593@imap1.linux-foundation.org>
+Subject: + serial-avr32-fix-rs485-for-atmel_serial.patch added to -mm tree
+Date: Thu, 01 Jul 2010 15:37:59 -0700
+Message-ID: <201007012237.o61MbxIn002071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758335Ab0GAWc7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 18:32:59 -0400
+	by vger.kernel.org with ESMTP id S1756404Ab0GAWjC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 18:39:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: notasas@gmail.com, adrian.hunter@nokia.com, kishore.kadiyala@ti.com, kvalo@adurom.com, linux-mmc@vger.kernel.org, linux@arm.linux.org.uk, madhu.cr@ti.com, me@bobcopeland.com, tony@atomide.com
+Cc: peterhuewe@gmx.de, Sebastian.Heutling@who-ing.de, br@pwrnet.de, claudio@evidence.eu.com, michael@evidence.eu.com, rick@efn.org, rmk+kernel@arm.linux.org.uk, ryan@bluewatersys.com
 
 
 The patch titled
-     sdio: allow non-standard SDIO cards
+     serial: avr32: fix rs485 for atmel_serial
 has been added to the -mm tree.  Its filename is
-     sdio-allow-non-standard-sdio-cards.patch
+     serial-avr32-fix-rs485-for-atmel_serial.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: allow non-standard SDIO cards
-From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: serial: avr32: fix rs485 for atmel_serial
+From: Peter Huewe <peterhuewe@gmx.de>
 
-There are some chips (like TI WL12xx series) that can be interfaced over
-SDIO but don't support the SDIO specification, meaning that they are
-missing CIA (Common I/O Area) with all it's registers.  Current Linux SDIO
-implementation relies on those registers to identify and configure the
-card, so non-standard cards can not function and cause lots of warnings
-from the core when it reads invalid data from non-existent registers.
+Fix a build failure [1-4] in the atmel_serial code introduced by
+e8faff7330a3501eafc9bfe5f4f15af444be29f5 ("ARM: 6092/1: atmel_serial:
+support for RS485 communications").
 
-After this patch, init_card() host callback can now set new quirk
-MMC_QUIRK_NONSTD_SDIO, which means that SDIO core should not try to access
-any standard SDIO registers and rely on init_card() to fill all SDIO
-structures instead.  As those cards are usually embedded chips, all the
-required information can be obtained from machine board files by the host
-driver when it's called through init_card() callback.
+The build failure was caused by missing struct field and missing defines
+for the avr32 board - the patch fixes this.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Bob Copeland <me@bobcopeland.com>
-Cc: Kalle Valo <kvalo@adurom.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Cc: Sebastian Heutling <Sebastian.Heutling@who-ing.de>
+Cc: Bernhard Roth <br@pwrnet.de>
+Cc: Ryan Mallon <ryan@bluewatersys.com>
+Cc: Claudio Scordino <claudio@evidence.eu.com>
+Cc: Michael Trimarchi <michael@evidence.eu.com>
+Cc: Rick Bronson <rick@efn.org>
+Cc: Sebastian Heutling <Sebastian.Heutling@who-ing.de>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c  |   36 ++++++++++++++++++++++++++++++------
- include/linux/mmc/card.h |    2 ++
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ arch/avr32/include/asm/ioctls.h             |    3 +++
+ arch/avr32/mach-at32ap/include/mach/board.h |    2 ++
+ drivers/serial/atmel_serial.c               |    1 +
+ 3 files changed, 6 insertions(+)
 
-diff -puN drivers/mmc/core/sdio.c~sdio-allow-non-standard-sdio-cards drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~sdio-allow-non-standard-sdio-cards
-+++ a/drivers/mmc/core/sdio.c
-@@ -63,13 +63,19 @@ static int sdio_init_func(struct mmc_car
+diff -puN arch/avr32/include/asm/ioctls.h~serial-avr32-fix-rs485-for-atmel_serial arch/avr32/include/asm/ioctls.h
+--- a/arch/avr32/include/asm/ioctls.h~serial-avr32-fix-rs485-for-atmel_serial
++++ a/arch/avr32/include/asm/ioctls.h
+@@ -54,6 +54,9 @@
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
- 	func->num = fn;
- 
--	ret = sdio_read_fbr(func);
--	if (ret)
--		goto fail;
-+	if (!(card->quirks & MMC_QUIRK_NONSTD_SDIO)) {
-+		ret = sdio_read_fbr(func);
-+		if (ret)
-+			goto fail;
- 
--	ret = sdio_read_func_cis(func);
--	if (ret)
--		goto fail;
-+		ret = sdio_read_func_cis(func);
-+		if (ret)
-+			goto fail;
-+	} else {
-+		func->vendor = func->card->cis.vendor;
-+		func->device = func->card->cis.device;
-+		func->max_blksize = func->card->cis.blksize;
-+	}
- 
- 	card->sdio_func[fn - 1] = func;
- 
-@@ -412,6 +418,23 @@ static int mmc_sdio_init_card(struct mmc
- 			goto remove;
- 	}
- 
-+	if (card->quirks & MMC_QUIRK_NONSTD_SDIO) {
-+		/*
-+		 * This is non-standard SDIO device, meaning it doesn't
-+		 * have any CIA (Common I/O area) registers present.
-+		 * It's host's responsibility to fill cccr and cis
-+		 * structures in init_card().
-+		 */
-+		mmc_set_clock(host, card->cis.max_dtr);
++#define TIOCGRS485      0x542E
++#define TIOCSRS485      0x542F
 +
-+		if (card->cccr.high_speed) {
-+			mmc_card_set_highspeed(card);
-+			mmc_set_timing(card->host, MMC_TIMING_SD_HS);
-+		}
-+
-+		goto finish;
-+	}
-+
- 	/*
- 	 * Read the common registers.
- 	 */
-@@ -480,6 +503,7 @@ static int mmc_sdio_init_card(struct mmc
- 	else if (err)
- 		goto remove;
+ #define FIONCLEX	0x5450
+ #define FIOCLEX		0x5451
+ #define FIOASYNC	0x5452
+diff -puN arch/avr32/mach-at32ap/include/mach/board.h~serial-avr32-fix-rs485-for-atmel_serial arch/avr32/mach-at32ap/include/mach/board.h
+--- a/arch/avr32/mach-at32ap/include/mach/board.h~serial-avr32-fix-rs485-for-atmel_serial
++++ a/arch/avr32/mach-at32ap/include/mach/board.h
+@@ -5,6 +5,7 @@
+ #define __ASM_ARCH_BOARD_H
  
-+finish:
- 	if (!oldcard)
- 		host->card = card;
- 	return 0;
-diff -puN include/linux/mmc/card.h~sdio-allow-non-standard-sdio-cards include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~sdio-allow-non-standard-sdio-cards
-+++ a/include/linux/mmc/card.h
-@@ -103,6 +103,8 @@ struct mmc_card {
- #define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
- #define MMC_QUIRK_BLKSZ_FOR_BYTE_MODE (1<<1)	/* use func->cur_blksize */
- 						/* for byte mode */
-+#define MMC_QUIRK_NONSTD_SDIO	(1<<2)		/* non-standard SDIO card attached */
-+						/* (missing CIA registers) */
+ #include <linux/types.h>
++#include <linux/serial.h>
  
- 	u32			raw_cid[4];	/* raw card CID */
- 	u32			raw_csd[4];	/* raw card CSD */
+ #define GPIO_PIN_NONE	(-1)
+ 
+@@ -35,6 +36,7 @@ struct atmel_uart_data {
+ 	short		use_dma_tx;	/* use transmit DMA? */
+ 	short		use_dma_rx;	/* use receive DMA? */
+ 	void __iomem	*regs;		/* virtual base address, if any */
++	struct serial_rs485	rs485;		/* rs485 settings */
+ };
+ void at32_map_usart(unsigned int hw_id, unsigned int line, int flags);
+ struct platform_device *at32_add_device_usart(unsigned int id);
+diff -puN drivers/serial/atmel_serial.c~serial-avr32-fix-rs485-for-atmel_serial drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~serial-avr32-fix-rs485-for-atmel_serial
++++ a/drivers/serial/atmel_serial.c
+@@ -41,6 +41,7 @@
+ #include <linux/uaccess.h>
+ 
+ #include <asm/io.h>
++#include <asm/ioctls.h>
+ 
+ #include <asm/mach/serial_at91.h>
+ #include <mach/board.h>
 _
 
-Patches currently in -mm which might be from notasas@gmail.com are
+Patches currently in -mm which might be from peterhuewe@gmx.de are
 
+serial-avr32-fix-rs485-for-atmel_serial.patch
 linux-next.patch
-sdio-allow-non-standard-sdio-cards.patch
-omap_hsmmc-add-init_card-pass-through-callback.patch
-omap-pandora-pass-wl1251-information-to-sdio-core.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
