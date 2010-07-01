@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bugc-make-warn-implementation-match-the-kernel-panicc-one.patch added to -mm tree
-Date: Thu, 01 Jul 2010 14:12:23 -0700
-Message-ID: <201007012112.o61LCNw9027740@imap1.linux-foundation.org>
+Subject: + omap-pandora-pass-wl1251-information-to-sdio-core.patch added to -mm tree
+Date: Thu, 01 Jul 2010 15:31:39 -0700
+Message-ID: <201007012231.o61MVddO001599__10766.9505676769$1278023584$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758882Ab0GAVNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 17:13:08 -0400
+	by vger.kernel.org with ESMTP id S932199Ab0GAWct (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 18:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton@samba.org, arjan@infradead.org, kirill@shutemov.name, mingo@elte.hu
+Cc: notasas@gmail.com, adrian.hunter@nokia.com, kishore.kadiyala@ti.com, kvalo@adurom.com, linux-mmc@vger.kernel.org, linux@arm.linux.org.uk, madhu.cr@ti.com, me@bobcopeland.com, tony@atomide.com
 
 
 The patch titled
-     lib/bug.c: make WARN implementation match the kernel/panic.c one
+     omap: pandora: pass wl1251 information to SDIO core
 has been added to the -mm tree.  Its filename is
-     lib-bugc-make-warn-implementation-match-the-kernel-panicc-one.patch
+     omap-pandora-pass-wl1251-information-to-sdio-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/bug.c: make WARN implementation match the kernel/panic.c one
-From: Anton Blanchard <anton@samba.org>
+Subject: omap: pandora: pass wl1251 information to SDIO core
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-There are a few issues with the exception based WARN implementation in
-lib/bug.c:
+Pandora has TI WL1251 attached on MMC3, which is non-standard SDIO chip.
+Make use MMC_QUIRK_NONSTD_SDIO to tell SDIO core about it.
 
-- Inconsistent printk flags. The "cut here" line is printed at KERN_EMERG, so
-  the console and all logged in users see the single line:
-
-------------[ cut here ]------------
-
-  for each WARN. Fix this so we print everything at KERN_WARNING to match the
-  kernel/panic.c version.
-
-- The lib/bug.c WARN would print "Badness at". Change it to match the
-  kernel/panic.c version which prints "WARNING: at".
-
-- Print the list of modules, similar to kernel/panic.c of modules, similar to
-  kernel/panic.c
-
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Bob Copeland <me@bobcopeland.com>
+Cc: Kalle Valo <kvalo@adurom.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |   16 ++++++++++++++++
+ arch/arm/mach-omap2/hsmmc.c              |    1 +
+ arch/arm/mach-omap2/hsmmc.h              |    4 ++++
+ 3 files changed, 21 insertions(+)
 
-diff -puN lib/bug.c~lib-bugc-make-warn-implementation-match-the-kernel-panicc-one lib/bug.c
---- a/lib/bug.c~lib-bugc-make-warn-implementation-match-the-kernel-panicc-one
-+++ a/lib/bug.c
-@@ -136,8 +136,6 @@ enum bug_trap_type report_bug(unsigned l
+diff -puN arch/arm/mach-omap2/board-omap3pandora.c~omap-pandora-pass-wl1251-information-to-sdio-core arch/arm/mach-omap2/board-omap3pandora.c
+--- a/arch/arm/mach-omap2/board-omap3pandora.c~omap-pandora-pass-wl1251-information-to-sdio-core
++++ a/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -29,6 +29,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/gpio_keys.h>
++#include <linux/mmc/card.h>
  
- 	bug = find_bug(bugaddr);
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -227,6 +228,20 @@ static struct platform_device pandora_ds
+ 	},
+ };
  
--	printk(KERN_EMERG "------------[ cut here ]------------\n");
--
- 	file = NULL;
- 	line = 0;
- 	warning = 0;
-@@ -156,19 +154,24 @@ enum bug_trap_type report_bug(unsigned l
- 
- 	if (warning) {
- 		/* this is a WARN_ON rather than BUG/BUG_ON */
-+		printk(KERN_WARNING "------------[ cut here ]------------\n");
++static void pandora_wl1251_init_card(struct mmc_card *card)
++{
++	/*
++	 * We have TI wl1251 attached to MMC3. Pass this information to
++	 * SDIO core because it can't be probed by normal methods.
++	 */
++	card->quirks |= MMC_QUIRK_NONSTD_SDIO;
++	card->cccr.wide_bus = 1;
++	card->cis.vendor = 0x104c;
++	card->cis.device = 0x9066;
++	card->cis.blksize = 512;
++	card->cis.max_dtr = 20000000;
++}
 +
- 		if (file)
--			printk(KERN_ERR "Badness at %s:%u\n",
-+			printk(KERN_WARNING "WARNING: at %s:%u\n",
- 			       file, line);
- 		else
--			printk(KERN_ERR "Badness at %p "
-+			printk(KERN_WARNING "WARNING: at %p "
- 			       "[verbose debug info unavailable]\n",
- 			       (void *)bugaddr);
+ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -248,6 +263,7 @@ static struct omap2_hsmmc_info omap3pand
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
++		.init_card	= pandora_wl1251_init_card,
+ 	},
+ 	{}	/* Terminator */
+ };
+diff -puN arch/arm/mach-omap2/hsmmc.c~omap-pandora-pass-wl1251-information-to-sdio-core arch/arm/mach-omap2/hsmmc.c
+--- a/arch/arm/mach-omap2/hsmmc.c~omap-pandora-pass-wl1251-information-to-sdio-core
++++ a/arch/arm/mach-omap2/hsmmc.c
+@@ -268,6 +268,7 @@ void __init omap2_hsmmc_init(struct omap
+ 		mmc->slots[0].gpio_wp = c->gpio_wp;
  
-+        	print_modules();
- 		show_regs(regs);
- 		add_taint(BUG_GET_TAINT(bug));
- 		return BUG_TRAP_TYPE_WARN;
- 	}
+ 		mmc->slots[0].remux = c->remux;
++		mmc->slots[0].init_card = c->init_card;
  
-+	printk(KERN_EMERG "------------[ cut here ]------------\n");
+ 		if (c->cover_only)
+ 			mmc->slots[0].cover = 1;
+diff -puN arch/arm/mach-omap2/hsmmc.h~omap-pandora-pass-wl1251-information-to-sdio-core arch/arm/mach-omap2/hsmmc.h
+--- a/arch/arm/mach-omap2/hsmmc.h~omap-pandora-pass-wl1251-information-to-sdio-core
++++ a/arch/arm/mach-omap2/hsmmc.h
+@@ -6,6 +6,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
++struct mmc_card;
 +
- 	if (file)
- 		printk(KERN_CRIT "kernel BUG at %s:%u!\n",
- 		       file, line);
+ struct omap2_hsmmc_info {
+ 	u8	mmc;		/* controller 1/2/3 */
+ 	u8	wires;		/* 1/4/8 wires */
+@@ -23,6 +25,8 @@ struct omap2_hsmmc_info {
+ 	int	ocr_mask;	/* temporary HACK */
+ 	/* Remux (pad configuation) when powering on/off */
+ 	void (*remux)(struct device *dev, int slot, int power_on);
++	/* init some special card */
++	void (*init_card)(struct mmc_card *card);
+ };
+ 
+ #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from notasas@gmail.com are
 
-origin.patch
 linux-next.patch
-panic-keep-blinking-in-spite-of-long-spin-timer-mode.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one.patch
-add-oops-end-marker-to-lib-bugc-warn-implementation.patch
+sdio-allow-non-standard-sdio-cards.patch
+omap_hsmmc-add-init_card-pass-through-callback.patch
+omap-pandora-pass-wl1251-information-to-sdio-core.patch
 
