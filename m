@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.patch added to -mm tree
-Date: Thu, 01 Jul 2010 13:51:58 -0700
-Message-ID: <201007012051.o61KpwCf026055@imap1.linux-foundation.org>
+Subject: + sdhci-pltfm-switch-to-module-device-table-matching.patch added to -mm tree
+Date: Thu, 01 Jul 2010 13:51:53 -0700
+Message-ID: <201007012051.o61KprJa026049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758614Ab0GAUw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 16:52:59 -0400
+	by vger.kernel.org with ESMTP id S933003Ab0GAUwd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 16:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,10 +18,9 @@ Cc: avorontsov@mvista.com, ben@simtec.co.uk, linux-mmc@vger.kernel.org, richard.
 
 
 The patch titled
-     sdhci-pltfm: reorganize Makefile entries to support SoC devices
+     sdhci-pltfm: switch to module device table matching
 has been added to the -mm tree.  Its filename is
-     sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.pat=
-ch
+     sdhci-pltfm-switch-to-module-device-table-matching.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,21 +38,16 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: sdhci-pltfm: reorganize Makefile entries to support SoC device=
-s
+Subject: sdhci-pltfm: switch to module device table matching
 =46rom: Anton Vorontsov <avorontsov@mvista.com>
 
-Due to build system limitations, intermediate and final objects can't h=
-ave
-the same names.  And as we're going to start building SoC-specific
-objects, let's rename the module to sdhci-platform, into which we'll li=
-nk
-sdhci-pltfm and SoC-specifc objects.
+Sometimes want to place SoC-specific parts alongside with the generic
+driver, and to do so, we have to switch the driver over to the module
+device table matching.
 
-There should be no issue in renaming as the driver uses modalias
-mechanism.
-
-This is exactly the same approach as in sdhci-of driver.
+Note that drivers/mmc/host/sdhci-pltfm.h is so far empty, but it'll hol=
+d
+SoC-specific driver data handlers soon.
 
 Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
 Cc: Ben Dooks <ben@simtec.co.uk>
@@ -62,32 +56,96 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/Makefile |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/mmc/host/sdhci-pltfm.c |   14 +++++++++++++-
+ drivers/mmc/host/sdhci-pltfm.h |   14 ++++++++++++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/Makefile~sdhci-pltfm-reorganize-makefile-ent=
-ries-to-support-soc-devices drivers/mmc/host/Makefile
---- a/drivers/mmc/host/Makefile~sdhci-pltfm-reorganize-makefile-entries=
--to-support-soc-devices
-+++ a/drivers/mmc/host/Makefile
-@@ -12,7 +12,6 @@ obj-$(CONFIG_MMC_IMX)		+=3D imxmmc.o
- obj-$(CONFIG_MMC_MXC)		+=3D mxcmmc.o
- obj-$(CONFIG_MMC_SDHCI)		+=3D sdhci.o
- obj-$(CONFIG_MMC_SDHCI_PCI)	+=3D sdhci-pci.o
--obj-$(CONFIG_MMC_SDHCI_PLTFM)	+=3D sdhci-pltfm.o
- obj-$(CONFIG_MMC_SDHCI_S3C)	+=3D sdhci-s3c.o
- obj-$(CONFIG_MMC_SDHCI_SPEAR)	+=3D sdhci-spear.o
- obj-$(CONFIG_MMC_WBSD)		+=3D wbsd.o
-@@ -38,6 +37,9 @@ obj-$(CONFIG_SDH_BFIN)		+=3D bfin_sdh.o
- obj-$(CONFIG_MMC_SH_MMCIF)	+=3D sh_mmcif.o
- obj-$(CONFIG_MMC_JZ4740)	+=3D jz4740_mmc.o
+diff -puN drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-switch-to-module-d=
+evice-table-matching drivers/mmc/host/sdhci-pltfm.c
+--- a/drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-switch-to-module-devic=
+e-table-matching
++++ a/drivers/mmc/host/sdhci-pltfm.c
+@@ -24,6 +24,7 @@
 =20
-+obj-$(CONFIG_MMC_SDHCI_PLTFM)			+=3D sdhci-platform.o
-+sdhci-platform-y				:=3D sdhci-pltfm.o
+ #include <linux/delay.h>
+ #include <linux/highmem.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/platform_device.h>
+=20
+ #include <linux/mmc/host.h>
+@@ -32,6 +33,7 @@
+ #include <linux/sdhci-pltfm.h>
+=20
+ #include "sdhci.h"
++#include "sdhci-pltfm.h"
+=20
+ /*********************************************************************=
+********\
+  *                                                                    =
+       *
+@@ -51,10 +53,14 @@ static struct sdhci_ops sdhci_pltfm_ops=20
+ static int __devinit sdhci_pltfm_probe(struct platform_device *pdev)
+ {
+ 	struct sdhci_pltfm_data *pdata =3D pdev->dev.platform_data;
++	const struct platform_device_id *platid =3D platform_get_device_id(pd=
+ev);
+ 	struct sdhci_host *host;
+ 	struct resource *iomem;
+ 	int ret;
+=20
++	if (!pdata && platid && platid->driver_data)
++		pdata =3D (void *)platid->driver_data;
 +
- obj-$(CONFIG_MMC_SDHCI_OF)	+=3D sdhci-of.o
- sdhci-of-y				:=3D sdhci-of-core.o
- sdhci-of-$(CONFIG_MMC_SDHCI_OF_ESDHC)	+=3D sdhci-of-esdhc.o
+ 	iomem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!iomem) {
+ 		ret =3D -ENOMEM;
+@@ -150,6 +156,12 @@ static int __devexit sdhci_pltfm_remove(
+ 	return 0;
+ }
+=20
++static const struct platform_device_id sdhci_pltfm_ids[] =3D {
++	{ "sdhci", },
++	{ },
++};
++MODULE_DEVICE_TABLE(platform, sdhci_pltfm_ids);
++
+ static struct platform_driver sdhci_pltfm_driver =3D {
+ 	.driver =3D {
+ 		.name	=3D "sdhci",
+@@ -157,6 +169,7 @@ static struct platform_driver sdhci_pltf
+ 	},
+ 	.probe		=3D sdhci_pltfm_probe,
+ 	.remove		=3D __devexit_p(sdhci_pltfm_remove),
++	.id_table	=3D sdhci_pltfm_ids,
+ };
+=20
+ /*********************************************************************=
+********\
+@@ -181,4 +194,3 @@ module_exit(sdhci_drv_exit);
+ MODULE_DESCRIPTION("Secure Digital Host Controller Interface platform =
+driver");
+ MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
+ MODULE_LICENSE("GPL v2");
+-MODULE_ALIAS("platform:sdhci");
+diff -puN /dev/null drivers/mmc/host/sdhci-pltfm.h
+--- /dev/null
++++ a/drivers/mmc/host/sdhci-pltfm.h
+@@ -0,0 +1,14 @@
++/*
++ * Copyright 2010 MontaVista Software, LLC.
++ *
++ * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _DRIVERS_MMC_SDHCI_PLTFM_H
++#define _DRIVERS_MMC_SDHCI_PLTFM_H
++
++#endif /* _DRIVERS_MMC_SDHCI_PLTFM_H */
 _
 
 Patches currently in -mm which might be from avorontsov@mvista.com are
