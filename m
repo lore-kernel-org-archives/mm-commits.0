@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-recalculate-lru_pages-on-each-priority.patch added to -mm tree
-Date: Wed, 30 Jun 2010 16:04:21 -0700
-Message-ID: <201006302304.o5UN4L2e031797@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 01 Jul 2010 11:18:15 -0700
+Message-ID: <201007011818.o61IIDCs017229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754477Ab0F3XEm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jun 2010 19:04:42 -0400
+	by vger.kernel.org with ESMTP id S1757841Ab0GAS3t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 14:29:49 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o61ISDjn022640
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 1 Jul 2010 11:28:59 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, minchan.kim@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     vmscan: recalculate lru_pages on each priority
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     vmscan-recalculate-lru_pages-on-each-priority.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +37,169 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: recalculate lru_pages on each priority
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-shrink_zones() need relatively long time and lru_pages can change
-dramatically during shrink_zones().  So lru_pages should be recalculated
-for each priority.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ drivers/staging/batman-adv/bat_sysfs.c |   56 -----------------------
+ drivers/usb/gadget/f_mass_storage.c    |    8 ---
+ 2 files changed, 64 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-recalculate-lru_pages-on-each-priority mm/vmscan.c
---- a/mm/vmscan.c~vmscan-recalculate-lru_pages-on-each-priority
-+++ a/mm/vmscan.c
-@@ -1785,7 +1785,6 @@ static unsigned long do_try_to_free_page
- 	bool all_unreclaimable;
- 	unsigned long total_scanned = 0;
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
--	unsigned long lru_pages = 0;
- 	struct zoneref *z;
- 	struct zone *zone;
- 	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
-@@ -1796,18 +1795,6 @@ static unsigned long do_try_to_free_page
+diff -puN drivers/staging/batman-adv/bat_sysfs.c~linux-next-git-rejects drivers/staging/batman-adv/bat_sysfs.c
+--- a/drivers/staging/batman-adv/bat_sysfs.c~linux-next-git-rejects
++++ a/drivers/staging/batman-adv/bat_sysfs.c
+@@ -244,62 +244,6 @@ static struct bat_attribute *mesh_attrs[
+ 	NULL,
+ };
  
- 	if (scanning_global_lru(sc))
- 		count_vm_event(ALLOCSTALL);
--	/*
--	 * mem_cgroup will not do shrink_slab.
--	 */
--	if (scanning_global_lru(sc)) {
--		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+-<<<<<<< HEAD
+-static ssize_t transtable_local_read(struct file *filp, struct kobject *kobj,
+-				  struct bin_attribute *bin_attr,
+-				  char *buff, loff_t off, size_t count)
+-{
+-	struct device *dev = to_dev(kobj->parent);
+-	struct net_device *net_dev = to_net_dev(dev);
 -
--			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
--				continue;
+-	return hna_local_fill_buffer_text(net_dev, buff, count, off);
+-}
 -
--			lru_pages += zone_reclaimable_pages(zone);
--		}
--	}
+-static ssize_t transtable_global_read(struct file *filp, struct kobject *kobj,
+-				  struct bin_attribute *bin_attr,
+-				  char *buff, loff_t off, size_t count)
+-{
+-	struct device *dev = to_dev(kobj->parent);
+-	struct net_device *net_dev = to_net_dev(dev);
+-
+-	return hna_global_fill_buffer_text(net_dev, buff, count, off);
+-}
+-
+-static ssize_t originators_read(struct file *filp, struct kobject *kobj,
+-				  struct bin_attribute *bin_attr,
+-				  char *buff, loff_t off, size_t count)
+-{
+-	struct device *dev = to_dev(kobj->parent);
+-	struct net_device *net_dev = to_net_dev(dev);
+-
+-	return orig_fill_buffer_text(net_dev, buff, count, off);
+-}
+-
+-static ssize_t vis_data_read(struct file *filp, struct kobject *kobj,
+-				  struct bin_attribute *bin_attr,
+-				  char *buff, loff_t off, size_t count)
+-{
+-	struct device *dev = to_dev(kobj->parent);
+-	struct net_device *net_dev = to_net_dev(dev);
+-
+-	return vis_fill_buffer_text(net_dev, buff, count, off);
+-}
+-
+-static BAT_BIN_ATTR(transtable_local, S_IRUGO, transtable_local_read, NULL);
+-static BAT_BIN_ATTR(transtable_global, S_IRUGO, transtable_global_read, NULL);
+-static BAT_BIN_ATTR(originators, S_IRUGO, originators_read, NULL);
+-static BAT_BIN_ATTR(vis_data, S_IRUGO, vis_data_read, NULL);
+-
+-static struct bin_attribute *mesh_bin_attrs[] = {
+-	&bat_attr_transtable_local,
+-	&bat_attr_transtable_global,
+-	&bat_attr_originators,
+-	&bat_attr_vis_data,
+-	NULL,
+-};
+-
+-=======
+->>>>>>> FETCH_HEAD
+ int sysfs_add_meshif(struct net_device *dev)
+ {
+ 	struct kobject *batif_kobject = &dev->dev.kobj;
+diff -puN drivers/usb/gadget/f_mass_storage.c~linux-next-git-rejects drivers/usb/gadget/f_mass_storage.c
+--- a/drivers/usb/gadget/f_mass_storage.c~linux-next-git-rejects
++++ a/drivers/usb/gadget/f_mass_storage.c
+@@ -2394,19 +2394,11 @@ reset:
+ 	fsg->bulk_out_enabled = 1;
+ 	common->bulk_out_maxpacket = le16_to_cpu(d->wMaxPacketSize);
+ 	clear_bit(IGNORE_BULK_OUT, &fsg->atomic_bitflags);
+-<<<<<<< HEAD
  
- 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
- 		sc->nr_scanned = 0;
-@@ -1819,6 +1806,14 @@ static unsigned long do_try_to_free_page
- 		 * over limit cgroups
- 		 */
- 		if (scanning_global_lru(sc)) {
-+			unsigned long lru_pages = 0;
-+			for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
-+				if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-+					continue;
-+
-+				lru_pages += zone_reclaimable_pages(zone);
-+			}
-+
- 			shrink_slab(sc->nr_scanned, sc->gfp_mask, lru_pages);
- 			if (reclaim_state) {
- 				sc->nr_reclaimed += reclaim_state->reclaimed_slab;
+ 	/* Allocate the requests */
+ 	for (i = 0; i < FSG_NUM_BUFFERS; ++i) {
+ 		struct fsg_buffhd	*bh = &common->buffhds[i];
+ 
+-=======
+-
+-	/* Allocate the requests */
+-	for (i = 0; i < FSG_NUM_BUFFERS; ++i) {
+-		struct fsg_buffhd	*bh = &common->buffhds[i];
+-
+->>>>>>> FETCH_HEAD
+ 		rc = alloc_request(common, fsg->bulk_in, &bh->inreq);
+ 		if (rc)
+ 			goto reset;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mempolicy-fix-dangling-reference-to-tmpfs-superblock-mpol.patch
-acpi-fix-unused-function-warning.patch
-mm-use-memdup_user.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
+origin.patch
+ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
+mm-vmap-area-cache-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
+revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
+revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
+revert-324d76561842e551051e2a897b958b0539f6867b.patch
+revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
+revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
+revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
+revert-4624469822455b4accc886557f6c997ccdd59066.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+cpuidle-avoid-using-smp_processor_id-in-preemptible-code-nr_iowait_cpu.patch
+acpi-fix-bogus-preemption-logic-fix.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-um-drivers-remove-duplicate-structure-field-initialization.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
+scsi-remove-private-bit-macros.patch
+drivers-cdrom-use-pr_level-checkpatch-fixes.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
 oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
 oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
-mempolicy-reduce-stack-size-of-migrate_pages.patch
 mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-vmscan-zone_reclaim-dont-call-disable_swap_token.patch
-vmscan-recalculate-lru_pages-on-each-priority.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
+mmc-add-jz4740-mmc-driver-fix.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
 reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
