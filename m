@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-pltfm-switch-to-module-device-table-matching.patch added to -mm tree
-Date: Thu, 01 Jul 2010 13:51:53 -0700
-Message-ID: <201007012051.o61KprJa026049@imap1.linux-foundation.org>
+Subject: + add-abi-documentation-for-the-bmp085-digital-pressure-sensor.patch added to -mm tree
+Date: Thu, 01 Jul 2010 14:09:00 -0700
+Message-ID: <201007012109.o61L9002027337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933003Ab0GAUwd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 16:52:33 -0400
+	by vger.kernel.org with ESMTP id S932544Ab0GAVKU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jul 2010 17:10:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@mvista.com, ben@simtec.co.uk, linux-mmc@vger.kernel.org, richard.rojfors@pelagicore.com
+Cc: christoph.mair@gmail.com, jic23@cam.ac.uk, shubhrajyoti@ti.com, stefan@datenfreihafen.org
 
 
 The patch titled
-     sdhci-pltfm: switch to module device table matching
+     Add ABI documentation for the bmp085 digital pressure sensor.
 has been added to the -mm tree.  Its filename is
-     sdhci-pltfm-switch-to-module-device-table-matching.patch
+     add-abi-documentation-for-the-bmp085-digital-pressure-sensor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,136 +25,69 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci-pltfm: switch to module device table matching
-=46rom: Anton Vorontsov <avorontsov@mvista.com>
+Subject: Add ABI documentation for the bmp085 digital pressure sensor.
+From: Christoph Mair <christoph.mair@gmail.com>
 
-Sometimes want to place SoC-specific parts alongside with the generic
-driver, and to do so, we have to switch the driver over to the module
-device table matching.
-
-Note that drivers/mmc/host/sdhci-pltfm.h is so far empty, but it'll hol=
-d
-SoC-specific driver data handlers soon.
-
-Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Ben Dooks <ben@simtec.co.uk>
-Cc: Richard R=F6jfors <richard.rojfors@pelagicore.com>=20
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Christoph Mair <christoph.mair@gmail.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Stefan Schmidt <stefan@datenfreihafen.org>
+Cc: Datta Shubhrajyoti <shubhrajyoti@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-pltfm.c |   14 +++++++++++++-
- drivers/mmc/host/sdhci-pltfm.h |   14 ++++++++++++++
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-i2c-bmp085 |   31 +++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff -puN drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-switch-to-module-d=
-evice-table-matching drivers/mmc/host/sdhci-pltfm.c
---- a/drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-switch-to-module-devic=
-e-table-matching
-+++ a/drivers/mmc/host/sdhci-pltfm.c
-@@ -24,6 +24,7 @@
-=20
- #include <linux/delay.h>
- #include <linux/highmem.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/platform_device.h>
-=20
- #include <linux/mmc/host.h>
-@@ -32,6 +33,7 @@
- #include <linux/sdhci-pltfm.h>
-=20
- #include "sdhci.h"
-+#include "sdhci-pltfm.h"
-=20
- /*********************************************************************=
-********\
-  *                                                                    =
-       *
-@@ -51,10 +53,14 @@ static struct sdhci_ops sdhci_pltfm_ops=20
- static int __devinit sdhci_pltfm_probe(struct platform_device *pdev)
- {
- 	struct sdhci_pltfm_data *pdata =3D pdev->dev.platform_data;
-+	const struct platform_device_id *platid =3D platform_get_device_id(pd=
-ev);
- 	struct sdhci_host *host;
- 	struct resource *iomem;
- 	int ret;
-=20
-+	if (!pdata && platid && platid->driver_data)
-+		pdata =3D (void *)platid->driver_data;
-+
- 	iomem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!iomem) {
- 		ret =3D -ENOMEM;
-@@ -150,6 +156,12 @@ static int __devexit sdhci_pltfm_remove(
- 	return 0;
- }
-=20
-+static const struct platform_device_id sdhci_pltfm_ids[] =3D {
-+	{ "sdhci", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, sdhci_pltfm_ids);
-+
- static struct platform_driver sdhci_pltfm_driver =3D {
- 	.driver =3D {
- 		.name	=3D "sdhci",
-@@ -157,6 +169,7 @@ static struct platform_driver sdhci_pltf
- 	},
- 	.probe		=3D sdhci_pltfm_probe,
- 	.remove		=3D __devexit_p(sdhci_pltfm_remove),
-+	.id_table	=3D sdhci_pltfm_ids,
- };
-=20
- /*********************************************************************=
-********\
-@@ -181,4 +194,3 @@ module_exit(sdhci_drv_exit);
- MODULE_DESCRIPTION("Secure Digital Host Controller Interface platform =
-driver");
- MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
- MODULE_LICENSE("GPL v2");
--MODULE_ALIAS("platform:sdhci");
-diff -puN /dev/null drivers/mmc/host/sdhci-pltfm.h
+diff -puN /dev/null Documentation/ABI/testing/sysfs-i2c-bmp085
 --- /dev/null
-+++ a/drivers/mmc/host/sdhci-pltfm.h
-@@ -0,0 +1,14 @@
-+/*
-+ * Copyright 2010 MontaVista Software, LLC.
-+ *
-+ * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++++ a/Documentation/ABI/testing/sysfs-i2c-bmp085
+@@ -0,0 +1,31 @@
++What:		/sys/bus/i2c/devices/<busnum>-<devaddr>/pressure0_input
++Date:		June 2010
++Contact:	Christoph Mair <christoph.mair@gmail.com>
++Description:	Start a pressure measurement and read the result. Values
++		represent the ambient air pressure in pascal (0.01 millibar).
 +
-+#ifndef _DRIVERS_MMC_SDHCI_PLTFM_H
-+#define _DRIVERS_MMC_SDHCI_PLTFM_H
++		Reading: returns the current air pressure.
 +
-+#endif /* _DRIVERS_MMC_SDHCI_PLTFM_H */
++
++What:		/sys/bus/i2c/devices/<busnum>-<devaddr>/temp0_input
++Date:		June 2010
++Contact:	Christoph Mair <christoph.mair@gmail.com>
++Description:	Measure the ambient temperature. The returned value represents
++		the ambient temperature in units of 0.1 degree celsius.
++
++		Reading: returns the current temperature.
++
++
++What:		/sys/bus/i2c/devices/<busnum>-<devaddr>/oversampling
++Date:		June 2010
++Contact:	Christoph Mair <christoph.mair@gmail.com>
++Description:	Tell the bmp085 to use more samples to calculate a pressure
++		value. When writing to this file the chip will use 2^x samples
++		to calculate the next pressure value with x being the value
++		written. Using this feature will decrease RMS noise and
++		increase the measurement time.
++
++		Reading: returns the current oversampling setting.
++
++		Writing: sets a new oversampling setting.
++		Accepted values: 0..3.
 _
 
-Patches currently in -mm which might be from avorontsov@mvista.com are
+Patches currently in -mm which might be from christoph.mair@gmail.com are
 
-origin.patch
-linux-next.patch
-sdhci-pltfm-switch-to-module-device-table-matching.patch
-sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.patch
-sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update.patch
+add-abi-documentation-for-the-bmp085-digital-pressure-sensor.patch
+bmp085-add-interface-documentation-and-link-to-datasheet.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
