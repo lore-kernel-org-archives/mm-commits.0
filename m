@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-set-vm_fault_write-in-do_swap_page.patch added to -mm tree
-Date: Fri, 02 Jul 2010 15:08:10 -0700
-Message-ID: <201007022208.o62M8A0r029574@imap1.linux-foundation.org>
+Subject: + hwmon-update-maintainers-for-smm665-driver.patch added to -mm tree
+Date: Fri, 02 Jul 2010 15:21:42 -0700
+Message-ID: <201007022221.o62MLgVu030152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752766Ab0GBWIy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 18:08:54 -0400
+	by vger.kernel.org with ESMTP id S1753946Ab0GBWWM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 18:22:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: guenter.roeck@ericsson.com, broonie@opensource.wolfsonmicro.com, hdegoede@redhat.com, khali@linux-fr.org, sameo@linux.intel.com
 
 
 The patch titled
-     mm: set VM_FAULT_WRITE in do_swap_page()
+     hwmon: update MAINTAINERS for smm665 driver
 has been added to the -mm tree.  Its filename is
-     mm-set-vm_fault_write-in-do_swap_page.patch
+     hwmon-update-maintainers-for-smm665-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: set VM_FAULT_WRITE in do_swap_page()
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: hwmon: update MAINTAINERS for smm665 driver
+From: Guenter Roeck <guenter.roeck@ericsson.com>
 
-Set the flag if do_swap_page is decowing the page the same way do_wp_page
-would too.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/memory.c~mm-set-vm_fault_write-in-do_swap_page mm/memory.c
---- a/mm/memory.c~mm-set-vm_fault_write-in-do_swap_page
-+++ a/mm/memory.c
-@@ -2713,6 +2713,7 @@ static int do_swap_page(struct mm_struct
- 	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
- 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 		flags &= ~FAULT_FLAG_WRITE;
-+		ret |= VM_FAULT_WRITE;
- 		exclusive = 1;
- 	}
- 	flush_icache_page(vma, page);
+diff -puN MAINTAINERS~hwmon-update-maintainers-for-smm665-driver MAINTAINERS
+--- a/MAINTAINERS~hwmon-update-maintainers-for-smm665-driver
++++ a/MAINTAINERS
+@@ -5254,6 +5254,13 @@ S:	Supported
+ F:	Documentation/hwmon/emc2103
+ F:	drivers/hwmon/emc2103.c
+ 
++SMM665 HARDWARE MONITOR DRIVER
++M:	Guenter Roeck <linux@roeck-us.net>
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++F:	Documentation/hwmon/smm665
++F:	drivers/hwmon/smm665.c
++
+ SMSC47B397 HARDWARE MONITOR DRIVER
+ M:	"Mark M. Hoffman" <mhoffman@lightlink.com>
+ L:	lm-sensors@lm-sensors.org
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from guenter.roeck@ericsson.com are
 
 linux-next.patch
-hugetlb-call-mmu-notifiers-on-hugepage-cow.patch
-define-madv_hugepage.patch
-mmap-remove-unnecessary-lock-from-__vma_link.patch
-rmap-always-add-new-vmas-at-the-end.patch
-ksm-fix-ksm-swapin-time-optimization.patch
-rmap-always-use-anon_vma-root-pointer.patch
-rmap-resurrect-page_address_in_vma-anon_vma-check.patch
-add-anon_vma-bug-checks.patch
-vmscan-tracing-add-trace-events-for-kswapd-wakeup-sleeping-and-direct-reclaim.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation.patch
-vmscan-tracing-add-trace-event-when-a-page-is-written.patch
-vmscan-tracing-add-a-postprocessing-script-for-reclaim-related-ftrace-events.patch
-vmscan-kill-prev_priority-completely.patch
-vmscan-simplify-shrink_inactive_list.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_inactive_list.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_page_list.patch
-vmscan-update-isolated-page-counters-outside-of-main-path-in-shrink_inactive_list.patch
-rmap-add-exclusive-page-to-private-anon_vma-on-swapin.patch
-mm-set-vm_fault_write-in-do_swap_page.patch
+hwmon-driver-for-smm665-six-channel-active-dc-output-controller-monitor.patch
+hwmon-smm665-driver-documentation.patch
+hwmon-update-maintainers-for-smm665-driver.patch
 
