@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-dont-try-to-kill-oom_unkillable-child.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:11 -0700
-Message-ID: <201007022150.o62LoB1w028686@imap1.linux-foundation.org>
+Subject: + oom-cleanup-has_intersects_mems_allowed.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:50:25 -0700
+Message-ID: <201007022150.o62LoP9U028727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757763Ab0GBVug (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:36 -0400
+	by vger.kernel.org with ESMTP id S1757763Ab0GBVul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: don't try to kill oom_unkillable child
+     oom: cleanup has_intersects_mems_allowed()
 has been added to the -mm tree.  Its filename is
-     oom-dont-try-to-kill-oom_unkillable-child.patch
+     oom-cleanup-has_intersects_mems_allowed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: don't try to kill oom_unkillable child
+Subject: oom: cleanup has_intersects_mems_allowed()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Presently, badness() doesn't care about either CPUSET nor mempolicy.  Then
-if the victim child process have disjoint nodemask, OOM Killer might kill
-innocent process.
+presently has_intersects_mems_allowed() has own thread iterate logic, but
+it should use while_each_thread().
 
-This patch fixes it.
+It slightly improve the code readability.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child mm/oom_kill.c
---- a/mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child
+diff -puN mm/oom_kill.c~oom-cleanup-has_intersects_mems_allowed mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-cleanup-has_intersects_mems_allowed
 +++ a/mm/oom_kill.c
-@@ -429,7 +429,7 @@ static int oom_kill_task(struct task_str
- 
- static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
- 			    unsigned long points, struct mem_cgroup *mem,
--			    const char *message)
-+			    nodemask_t *nodemask, const char *message)
- {
- 	struct task_struct *victim = p;
- 	struct task_struct *child;
-@@ -469,6 +469,8 @@ static int oom_kill_process(struct task_
- 				continue;
- 			if (mem && !task_in_mem_cgroup(child, mem))
- 				continue;
-+			if (!has_intersects_mems_allowed(child, nodemask))
-+				continue;
- 
- 			/* badness() returns 0 if the thread is unkillable */
- 			child_points = badness(child, uptime.tv_sec);
-@@ -519,7 +521,7 @@ retry:
- 	if (!p || PTR_ERR(p) == -1UL)
- 		goto out;
- 
--	if (oom_kill_process(p, gfp_mask, 0, points, mem,
-+	if (oom_kill_process(p, gfp_mask, 0, points, mem, NULL,
- 				"Memory cgroup out of memory"))
- 		goto retry;
- out:
-@@ -678,7 +680,7 @@ void out_of_memory(struct zonelist *zone
- 		 * non-zero, current could not be killed so we must fallback to
- 		 * the tasklist scan.
- 		 */
--		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
-+		if (!oom_kill_process(current, gfp_mask, order, 0, NULL, nodemask,
- 				"Out of memory (oom_kill_allocating_task)"))
- 			return;
- 	}
-@@ -697,7 +699,7 @@ retry:
- 		panic("Out of memory and no killable processes...\n");
- 	}
- 
--	if (oom_kill_process(p, gfp_mask, order, points, NULL,
-+	if (oom_kill_process(p, gfp_mask, order, points, NULL, nodemask,
- 			     "Out of memory"))
- 		goto retry;
- 	read_unlock(&tasklist_lock);
+@@ -69,8 +69,8 @@ static bool has_intersects_mems_allowed(
+ 			if (cpuset_mems_allowed_intersects(current, tsk))
+ 				return true;
+ 		}
+-		tsk = next_thread(tsk);
+-	} while (tsk != start);
++	} while_each_thread(start, tsk);
++
+ 	return false;
+ }
+ #else
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
