@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:17 -0700
-Message-ID: <201007022150.o62LoHQ3028704@imap1.linux-foundation.org>
+Subject: + oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:50:23 -0700
+Message-ID: <201007022150.o62LoNFC028724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754340Ab0GBVuf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:35 -0400
+	by vger.kernel.org with ESMTP id S1757640Ab0GBVuk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: oom_kill_process() needs to check that p is unkillable
+     oom: move OOM_DISABLE check from oom_kill_task to out_of_memory()
 has been added to the -mm tree.  Its filename is
-     oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
+     oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: oom_kill_process() needs to check that p is unkillable
+Subject: oom: move OOM_DISABLE check from oom_kill_task to out_of_memory()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-When oom_kill_allocating_task is enabled, an argument task of
-oom_kill_process is not selected by select_bad_process(), It's just
-out_of_memory() caller task.  It mean the task can be unkillable.  check
-it first.
+Presently if oom_kill_allocating_task is enabled and current have
+OOM_DISABLED, following printk in oom_kill_process is called twice.
+
+    pr_err("%s: Kill process %d (%s) score %lu or sacrifice child\n",
+            message, task_pid_nr(p), p->comm, points);
+
+So, OOM_DISABLE check should be more early.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_kill_process-needs-to-check-that-p-is-unkillable mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_kill_process-needs-to-check-that-p-is-unkillable
+diff -puN mm/oom_kill.c~oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory
 +++ a/mm/oom_kill.c
-@@ -687,7 +687,8 @@ void out_of_memory(struct zonelist *zone
- 	check_panic_on_oom(constraint, gfp_mask, order);
+@@ -424,7 +424,7 @@ static void dump_header(struct task_stru
+ static int oom_kill_task(struct task_struct *p)
+ {
+ 	p = find_lock_task_mm(p);
+-	if (!p || p->signal->oom_adj == OOM_DISABLE) {
++	if (!p) {
+ 		task_unlock(p);
+ 		return 1;
+ 	}
+@@ -686,7 +686,8 @@ void out_of_memory(struct zonelist *zone
  
  	read_lock(&tasklist_lock);
--	if (sysctl_oom_kill_allocating_task) {
-+	if (sysctl_oom_kill_allocating_task &&
-+	    !oom_unkillable_task(current, NULL, nodemask)) {
+ 	if (sysctl_oom_kill_allocating_task &&
+-	    !oom_unkillable_task(current, NULL, nodemask)) {
++	    !oom_unkillable_task(current, NULL, nodemask) &&
++	    (current->signal->oom_adj != OOM_DISABLE)) {
  		/*
  		 * oom_kill_process() needs tasklist_lock held.  If it returns
  		 * non-zero, current could not be killed so we must fallback to
