@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-remove-child-mm-check-from-oom_kill_process.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:27 -0700
-Message-ID: <201007022150.o62LoRXS028730@imap1.linux-foundation.org>
+Subject: + oom-multi-threaded-process-coredump-dont-make-deadlock.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:51:00 -0700
+Message-ID: <201007022151.o62Lp0im028741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757831Ab0GBVus (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:48 -0400
+	by vger.kernel.org with ESMTP id S1757831Ab0GBVvS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: remove child->mm check from oom_kill_process()
+     oom: multi threaded process coredump don't make deadlock
 has been added to the -mm tree.  Its filename is
-     oom-remove-child-mm-check-from-oom_kill_process.patch
+     oom-multi-threaded-process-coredump-dont-make-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: remove child->mm check from oom_kill_process()
+Subject: oom: multi threaded process coredump don't make deadlock
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The current "child->mm == p->mm" check prevents selection of vfork()ed
-task.  But we don't have any reason to don't consider vfork().
+Oleg pointed out current PF_EXITING check is wrong. Because PF_EXITING
+is per-thread flag, not per-process flag. He said,
 
-Remvoed.
+   Two threads, group-leader L and its sub-thread T. T dumps the code.
+   In this case both threads have ->mm != NULL, L has PF_EXITING.
+
+   The first problem is, select_bad_process() always return -1 in this
+   case (even if the caller is T, this doesn't matter).
+
+   The second problem is that we should add TIF_MEMDIE to T, not L.
+
+I think we can remove this dubious PF_EXITING check. but as first step,
+This patch add the protection of multi threaded issue.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-remove-child-mm-check-from-oom_kill_process mm/oom_kill.c
---- a/mm/oom_kill.c~oom-remove-child-mm-check-from-oom_kill_process
+diff -puN mm/oom_kill.c~oom-multi-threaded-process-coredump-dont-make-deadlock mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-multi-threaded-process-coredump-dont-make-deadlock
 +++ a/mm/oom_kill.c
-@@ -479,9 +479,6 @@ static int oom_kill_process(struct task_
- 		list_for_each_entry(child, &t->children, sibling) {
- 			unsigned long child_points;
+@@ -342,7 +342,7 @@ static struct task_struct *select_bad_pr
+ 		 * the process of exiting and releasing its resources.
+ 		 * Otherwise we could get an easy OOM deadlock.
+ 		 */
+-		if ((p->flags & PF_EXITING) && p->mm) {
++		if (thread_group_empty(p) && (p->flags & PF_EXITING) && p->mm) {
+ 			if (p != current)
+ 				return ERR_PTR(-1UL);
  
--			if (child->mm == p->mm)
--				continue;
--
- 			/* badness() returns 0 if the thread is unkillable */
- 			child_points = badness(child, mem, nodemask,
- 					       uptime.tv_sec);
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -119,7 +127,6 @@ oom-kill-duplicate-oom_disable-check.patch
 oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
 oom-cleanup-has_intersects_mems_allowed.patch
 oom-remove-child-mm-check-from-oom_kill_process.patch
-oom-give-the-dying-task-a-higher-priority-fix.patch
 oom-multi-threaded-process-coredump-dont-make-deadlock.patch
 reiser4.patch
 
