@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:19 -0700
-Message-ID: <201007022150.o62LoJV6028708@imap1.linux-foundation.org>
+Subject: + oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:50:17 -0700
+Message-ID: <201007022150.o62LoHQ3028704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757726Ab0GBVug (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:36 -0400
+	by vger.kernel.org with ESMTP id S1754340Ab0GBVuf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: /proc/<pid>/oom_score treat kernel thread honestly
+     oom: oom_kill_process() needs to check that p is unkillable
 has been added to the -mm tree.  Its filename is
-     oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
+     oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: /proc/<pid>/oom_score treat kernel thread honestly
+Subject: oom: oom_kill_process() needs to check that p is unkillable
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-If a kernel thread is using use_mm(), badness() returns a positive value. 
-This is not a big issue because caller take care of it correctly.  But
-there is one exception, /proc/<pid>/oom_score calls badness() directly and
-doesn't care that the task is a regular process.
-
-Another example, /proc/1/oom_score return !0 value.  But it's unkillable. 
-This incorrectness makes administration a little confusing.
-
-This patch fixes it.
+When oom_kill_allocating_task is enabled, an argument task of
+oom_kill_process is not selected by select_bad_process(), It's just
+out_of_memory() caller task.  It mean the task can be unkillable.  check
+it first.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 +++--
- mm/oom_kill.c  |   13 +++++++------
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ mm/oom_kill.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~oom-proc-pid-oom_score-treat-kernel-thread-honestly fs/proc/base.c
---- a/fs/proc/base.c~oom-proc-pid-oom_score-treat-kernel-thread-honestly
-+++ a/fs/proc/base.c
-@@ -428,7 +428,8 @@ static const struct file_operations proc
- #endif
- 
- /* The badness from the OOM killer */
--unsigned long badness(struct task_struct *p, unsigned long uptime);
-+unsigned long badness(struct task_struct *p, struct mem_cgroup *mem,
-+		      nodemask_t *nodemask, unsigned long uptime);
- static int proc_oom_score(struct task_struct *task, char *buffer)
- {
- 	unsigned long points = 0;
-@@ -437,7 +438,7 @@ static int proc_oom_score(struct task_st
- 	do_posix_clock_monotonic_gettime(&uptime);
- 	read_lock(&tasklist_lock);
- 	if (pid_alive(task))
--		points = badness(task, uptime.tv_sec);
-+		points = badness(task, NULL, NULL, uptime.tv_sec);
- 	read_unlock(&tasklist_lock);
- 	return sprintf(buffer, "%lu\n", points);
- }
-diff -puN mm/oom_kill.c~oom-proc-pid-oom_score-treat-kernel-thread-honestly mm/oom_kill.c
---- a/mm/oom_kill.c~oom-proc-pid-oom_score-treat-kernel-thread-honestly
+diff -puN mm/oom_kill.c~oom-oom_kill_process-needs-to-check-that-p-is-unkillable mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_kill_process-needs-to-check-that-p-is-unkillable
 +++ a/mm/oom_kill.c
-@@ -139,8 +139,8 @@ static bool oom_unkillable_task(struct t
-  *    algorithm has been meticulously tuned to meet the principle
-  *    of least surprise ... (be careful when you change it)
-  */
--
--unsigned long badness(struct task_struct *p, unsigned long uptime)
-+unsigned long badness(struct task_struct *p, struct mem_cgroup *mem,
-+		      const nodemask_t *nodemask, unsigned long uptime)
- {
- 	unsigned long points, cpu_time, run_time;
- 	struct task_struct *child;
-@@ -150,6 +150,8 @@ unsigned long badness(struct task_struct
- 	unsigned long utime;
- 	unsigned long stime;
+@@ -687,7 +687,8 @@ void out_of_memory(struct zonelist *zone
+ 	check_panic_on_oom(constraint, gfp_mask, order);
  
-+	if (oom_unkillable_task(p, mem, nodemask))
-+		return 0;
- 	if (oom_adj == OOM_DISABLE)
- 		return 0;
- 
-@@ -351,7 +353,7 @@ static struct task_struct *select_bad_pr
- 		if (p->signal->oom_adj == OOM_DISABLE)
- 			continue;
- 
--		points = badness(p, uptime.tv_sec);
-+		points = badness(p, mem, nodemask, uptime.tv_sec);
- 		if (points > *ppoints || !chosen) {
- 			chosen = p;
- 			*ppoints = points;
-@@ -482,11 +484,10 @@ static int oom_kill_process(struct task_
- 
- 			if (child->mm == p->mm)
- 				continue;
--			if (oom_unkillable_task(p, mem, nodemask))
--				continue;
- 
- 			/* badness() returns 0 if the thread is unkillable */
--			child_points = badness(child, uptime.tv_sec);
-+			child_points = badness(child, mem, nodemask,
-+					       uptime.tv_sec);
- 			if (child_points > victim_points) {
- 				victim = child;
- 				victim_points = child_points;
+ 	read_lock(&tasklist_lock);
+-	if (sysctl_oom_kill_allocating_task) {
++	if (sysctl_oom_kill_allocating_task &&
++	    !oom_unkillable_task(current, NULL, nodemask)) {
+ 		/*
+ 		 * oom_kill_process() needs tasklist_lock held.  If it returns
+ 		 * non-zero, current could not be killed so we must fallback to
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
