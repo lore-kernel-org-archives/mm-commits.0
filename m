@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-cleanup-has_intersects_mems_allowed.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:25 -0700
-Message-ID: <201007022150.o62LoP9U028727@imap1.linux-foundation.org>
+Subject: + oom-kill-duplicate-oom_disable-check.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:50:21 -0700
+Message-ID: <201007022150.o62LoLOb028711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757763Ab0GBVul (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:41 -0400
+	by vger.kernel.org with ESMTP id S1757818Ab0GBVuk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: cleanup has_intersects_mems_allowed()
+     oom: kill duplicate OOM_DISABLE check
 has been added to the -mm tree.  Its filename is
-     oom-cleanup-has_intersects_mems_allowed.patch
+     oom-kill-duplicate-oom_disable-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: cleanup has_intersects_mems_allowed()
+Subject: oom: kill duplicate OOM_DISABLE check
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-presently has_intersects_mems_allowed() has own thread iterate logic, but
-it should use while_each_thread().
-
-It slightly improve the code readability.
+select_bad_process() and badness() have the same OOM_DISABLE check.  This
+patch kills one.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
@@ -49,23 +47,22 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-cleanup-has_intersects_mems_allowed mm/oom_kill.c
---- a/mm/oom_kill.c~oom-cleanup-has_intersects_mems_allowed
+diff -puN mm/oom_kill.c~oom-kill-duplicate-oom_disable-check mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-kill-duplicate-oom_disable-check
 +++ a/mm/oom_kill.c
-@@ -69,8 +69,8 @@ static bool has_intersects_mems_allowed(
- 			if (cpuset_mems_allowed_intersects(current, tsk))
- 				return true;
+@@ -350,9 +350,6 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = ULONG_MAX;
  		}
--		tsk = next_thread(tsk);
--	} while (tsk != start);
-+	} while_each_thread(start, tsk);
-+
- 	return false;
- }
- #else
+ 
+-		if (p->signal->oom_adj == OOM_DISABLE)
+-			continue;
+-
+ 		points = badness(p, mem, nodemask, uptime.tv_sec);
+ 		if (points > *ppoints || !chosen) {
+ 			chosen = p;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
