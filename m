@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:57:49 -0700
-Message-ID: <201007022157.o62Lvn2I029088@imap1.linux-foundation.org>
+Subject: + sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:58:23 -0700
+Message-ID: <201007022158.o62LwNek029104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752639Ab0GBV5w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:57:52 -0400
+	by vger.kernel.org with ESMTP id S1752232Ab0GBV6i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Cc: avorontsov@mvista.com, ben@simtec.co.uk, linux-mmc@vger.kernel.org, richard.rojfors@pelagicore.com
 
 
 The patch titled
-     oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes
+     sdhci-pltfm: add support for CNS3xxx SoC devices
 has been added to the -mm tree.  Its filename is
-     oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
+     sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,117 +28,213 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sdhci-pltfm: add support for CNS3xxx SoC devices
+=46rom: Anton Vorontsov <avorontsov@mvista.com>
 
-WARNING: line over 80 characters
-#56: FILE: mm/oom_kill.c:683:
-+		if (!oom_kill_process(current, gfp_mask, order, 0, NULL, nodemask,
+There's nothing special, just SoC-specific ops and quirks.
 
-total: 0 errors, 1 warnings, 40 lines checked
-
-./patches/oom-dont-try-to-kill-oom_unkillable-child.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Ben Dooks <ben@simtec.co.uk>
+Cc: Richard R=F6jfors <richard.rojfors@pelagicore.com>=20
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/mmc/host/Kconfig         |    9 ++
+ drivers/mmc/host/Makefile        |    1=20
+ drivers/mmc/host/sdhci-cns3xxx.c |   97 +++++++++++++++++++++++++++++
+ drivers/mmc/host/sdhci-pltfm.c   |    3=20
+ drivers/mmc/host/sdhci-pltfm.h   |    4 +
+ 5 files changed, 114 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes mm/oom_kill.c
---- a/mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes
-+++ a/mm/oom_kill.c
-@@ -680,7 +680,8 @@ void out_of_memory(struct zonelist *zone
- 		 * non-zero, current could not be killed so we must fallback to
- 		 * the tasklist scan.
- 		 */
--		if (!oom_kill_process(current, gfp_mask, order, 0, NULL, nodemask,
-+		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
-+				nodemask,
- 				"Out of memory (oom_kill_allocating_task)"))
- 			return;
- 	}
+diff -puN drivers/mmc/host/Kconfig~sdhci-pltfm-add-support-for-cns3xxx-=
+soc-devices drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~sdhci-pltfm-add-support-for-cns3xxx-soc-=
+devices
++++ a/drivers/mmc/host/Kconfig
+@@ -129,6 +129,15 @@ config MMC_SDHCI_PLTFM
+=20
+ 	  If unsure, say N.
+=20
++config MMC_SDHCI_CNS3XXX
++	bool "SDHCI support on the Cavium Networks CNS3xxx SoC"
++	depends on ARCH_CNS3XXX
++	depends on MMC_SDHCI_PLTFM
++	help
++	  This selects the SDHCI support for CNS3xxx System-on-Chip devices.
++
++	  If unsure, say N.
++
+ config MMC_SDHCI_S3C
+ 	tristate "SDHCI support on Samsung S3C SoC"
+ 	depends on MMC_SDHCI && PLAT_SAMSUNG
+diff -puN drivers/mmc/host/Makefile~sdhci-pltfm-add-support-for-cns3xxx=
+-soc-devices drivers/mmc/host/Makefile
+--- a/drivers/mmc/host/Makefile~sdhci-pltfm-add-support-for-cns3xxx-soc=
+-devices
++++ a/drivers/mmc/host/Makefile
+@@ -39,6 +39,7 @@ obj-$(CONFIG_MMC_JZ4740)	+=3D jz4740_mmc.o
+=20
+ obj-$(CONFIG_MMC_SDHCI_PLTFM)			+=3D sdhci-platform.o
+ sdhci-platform-y				:=3D sdhci-pltfm.o
++sdhci-platform-$(CONFIG_MMC_SDHCI_CNS3XXX)	+=3D sdhci-cns3xxx.o
+=20
+ obj-$(CONFIG_MMC_SDHCI_OF)	+=3D sdhci-of.o
+ sdhci-of-y				:=3D sdhci-of-core.o
+diff -puN /dev/null drivers/mmc/host/sdhci-cns3xxx.c
+--- /dev/null
++++ a/drivers/mmc/host/sdhci-cns3xxx.c
+@@ -0,0 +1,97 @@
++/*
++ * SDHCI support for CNS3xxx SoC
++ *
++ * Copyright 2008 Cavium Networks
++ * Copyright 2010 MontaVista Software, LLC.
++ *
++ * Authors: Scott Shu
++ *	    Anton Vorontsov <avorontsov@mvista.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/mmc/host.h>
++#include <linux/sdhci-pltfm.h>
++#include <mach/cns3xxx.h>
++#include "sdhci.h"
++#include "sdhci-pltfm.h"
++
++static unsigned int sdhci_cns3xxx_get_max_clk(struct sdhci_host *host)
++{
++	return 150000000;
++}
++
++static void sdhci_cns3xxx_set_clock(struct sdhci_host *host, unsigned =
+int clock)
++{
++	struct device *dev =3D mmc_dev(host->mmc);
++	int div =3D 1;
++	u16 clk;
++	unsigned long timeout;
++
++	if (clock =3D=3D host->clock)
++		return;
++
++	sdhci_writew(host, 0, SDHCI_CLOCK_CONTROL);
++
++	if (clock =3D=3D 0)
++		goto out;
++
++	while (host->max_clk / div > clock) {
++		/*
++		 * On CNS3xxx divider grows linearly up to 4, and then
++		 * exponentially up to 256.
++		 */
++		if (div < 4)
++			div +=3D 1;
++		else if (div < 256)
++			div *=3D 2;
++		else
++			break;
++	}
++
++	dev_dbg(dev, "desired SD clock: %d, actual: %d\n",
++		clock, host->max_clk / div);
++
++	/* Divide by 3 is special. */
++	if (div !=3D 3)
++		div >>=3D 1;
++
++	clk =3D div << SDHCI_DIVIDER_SHIFT;
++	clk |=3D SDHCI_CLOCK_INT_EN;
++	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
++
++	timeout =3D 20;
++	while (!((clk =3D sdhci_readw(host, SDHCI_CLOCK_CONTROL))
++			& SDHCI_CLOCK_INT_STABLE)) {
++		if (timeout =3D=3D 0) {
++			dev_warn(dev, "clock is unstable");
++			break;
++		}
++		timeout--;
++		mdelay(1);
++	}
++
++	clk |=3D SDHCI_CLOCK_CARD_EN;
++	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
++out:
++	host->clock =3D clock;
++}
++
++static struct sdhci_ops sdhci_cns3xxx_ops =3D {
++	.get_max_clock	=3D sdhci_cns3xxx_get_max_clk,
++	.set_clock	=3D sdhci_cns3xxx_set_clock,
++};
++
++struct sdhci_pltfm_data sdhci_cns3xxx_pdata =3D {
++	.ops =3D &sdhci_cns3xxx_ops,
++	.quirks =3D SDHCI_QUIRK_BROKEN_DMA |
++		  SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
++		  SDHCI_QUIRK_INVERTED_WRITE_PROTECT |
++		  SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
++		  SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
++		  SDHCI_QUIRK_NONSTANDARD_CLOCK,
++};
+diff -puN drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-add-support-for-cn=
+s3xxx-soc-devices drivers/mmc/host/sdhci-pltfm.c
+--- a/drivers/mmc/host/sdhci-pltfm.c~sdhci-pltfm-add-support-for-cns3xx=
+x-soc-devices
++++ a/drivers/mmc/host/sdhci-pltfm.c
+@@ -158,6 +158,9 @@ static int __devexit sdhci_pltfm_remove(
+=20
+ static const struct platform_device_id sdhci_pltfm_ids[] =3D {
+ 	{ "sdhci", },
++#ifdef CONFIG_MMC_SDHCI_CNS3XXX
++	{ "sdhci-cns3xxx", (kernel_ulong_t)&sdhci_cns3xxx_pdata },
++#endif
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(platform, sdhci_pltfm_ids);
+diff -puN drivers/mmc/host/sdhci-pltfm.h~sdhci-pltfm-add-support-for-cn=
+s3xxx-soc-devices drivers/mmc/host/sdhci-pltfm.h
+--- a/drivers/mmc/host/sdhci-pltfm.h~sdhci-pltfm-add-support-for-cns3xx=
+x-soc-devices
++++ a/drivers/mmc/host/sdhci-pltfm.h
+@@ -11,4 +11,8 @@
+ #ifndef _DRIVERS_MMC_SDHCI_PLTFM_H
+ #define _DRIVERS_MMC_SDHCI_PLTFM_H
+=20
++#include <linux/sdhci-pltfm.h>
++
++extern struct sdhci_pltfm_data sdhci_cns3xxx_pdata;
++
+ #endif /* _DRIVERS_MMC_SDHCI_PLTFM_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from avorontsov@mvista.com are
 
 origin.patch
-ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
-mm-vmap-area-cache-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
-vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-move-badness-declaration-into-oomh.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
-mmc-add-jz4740-mmc-driver-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+sdhci-pltfm-switch-to-module-device-table-matching.patch
+sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.patch
+sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
