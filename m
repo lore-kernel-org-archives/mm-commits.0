@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:23 -0700
-Message-ID: <201007022150.o62LoNFC028724@imap1.linux-foundation.org>
+Subject: + oom-dont-try-to-kill-oom_unkillable-child.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:50:11 -0700
+Message-ID: <201007022150.o62LoB1w028686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757640Ab0GBVuk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:40 -0400
+	by vger.kernel.org with ESMTP id S1757763Ab0GBVug (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: move OOM_DISABLE check from oom_kill_task to out_of_memory()
+     oom: don't try to kill oom_unkillable child
 has been added to the -mm tree.  Its filename is
-     oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
+     oom-dont-try-to-kill-oom_unkillable-child.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: move OOM_DISABLE check from oom_kill_task to out_of_memory()
+Subject: oom: don't try to kill oom_unkillable child
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Presently if oom_kill_allocating_task is enabled and current have
-OOM_DISABLED, following printk in oom_kill_process is called twice.
+Presently, badness() doesn't care about either CPUSET nor mempolicy.  Then
+if the victim child process have disjoint nodemask, OOM Killer might kill
+innocent process.
 
-    pr_err("%s: Kill process %d (%s) score %lu or sacrifice child\n",
-            message, task_pid_nr(p), p->comm, points);
-
-So, OOM_DISABLE check should be more early.
+This patch fixes it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -52,31 +51,57 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory mm/oom_kill.c
---- a/mm/oom_kill.c~oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory
+diff -puN mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child
 +++ a/mm/oom_kill.c
-@@ -424,7 +424,7 @@ static void dump_header(struct task_stru
- static int oom_kill_task(struct task_struct *p)
- {
- 	p = find_lock_task_mm(p);
--	if (!p || p->signal->oom_adj == OOM_DISABLE) {
-+	if (!p) {
- 		task_unlock(p);
- 		return 1;
- 	}
-@@ -686,7 +686,8 @@ void out_of_memory(struct zonelist *zone
+@@ -429,7 +429,7 @@ static int oom_kill_task(struct task_str
  
- 	read_lock(&tasklist_lock);
- 	if (sysctl_oom_kill_allocating_task &&
--	    !oom_unkillable_task(current, NULL, nodemask)) {
-+	    !oom_unkillable_task(current, NULL, nodemask) &&
-+	    (current->signal->oom_adj != OOM_DISABLE)) {
- 		/*
- 		 * oom_kill_process() needs tasklist_lock held.  If it returns
+ static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
+ 			    unsigned long points, struct mem_cgroup *mem,
+-			    const char *message)
++			    nodemask_t *nodemask, const char *message)
+ {
+ 	struct task_struct *victim = p;
+ 	struct task_struct *child;
+@@ -469,6 +469,8 @@ static int oom_kill_process(struct task_
+ 				continue;
+ 			if (mem && !task_in_mem_cgroup(child, mem))
+ 				continue;
++			if (!has_intersects_mems_allowed(child, nodemask))
++				continue;
+ 
+ 			/* badness() returns 0 if the thread is unkillable */
+ 			child_points = badness(child, uptime.tv_sec);
+@@ -519,7 +521,7 @@ retry:
+ 	if (!p || PTR_ERR(p) == -1UL)
+ 		goto out;
+ 
+-	if (oom_kill_process(p, gfp_mask, 0, points, mem,
++	if (oom_kill_process(p, gfp_mask, 0, points, mem, NULL,
+ 				"Memory cgroup out of memory"))
+ 		goto retry;
+ out:
+@@ -678,7 +680,7 @@ void out_of_memory(struct zonelist *zone
  		 * non-zero, current could not be killed so we must fallback to
+ 		 * the tasklist scan.
+ 		 */
+-		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
++		if (!oom_kill_process(current, gfp_mask, order, 0, NULL, nodemask,
+ 				"Out of memory (oom_kill_allocating_task)"))
+ 			return;
+ 	}
+@@ -697,7 +699,7 @@ retry:
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+ 
+-	if (oom_kill_process(p, gfp_mask, order, points, NULL,
++	if (oom_kill_process(p, gfp_mask, order, points, NULL, nodemask,
+ 			     "Out of memory"))
+ 		goto retry;
+ 	read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
