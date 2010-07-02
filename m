@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-move-badness-declaration-into-oomh.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:57:18 -0700
-Message-ID: <201007022157.o62LvIre028999@imap1.linux-foundation.org>
+Subject: + oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:57:49 -0700
+Message-ID: <201007022157.o62Lvn2I029088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752639Ab0GBV5t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:57:49 -0400
+	by vger.kernel.org with ESMTP id S1752639Ab0GBV5w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, oleg@redhat.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     oom: move badness() declaration into oom.h
+     oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     oom-move-badness-declaration-into-oomh.patch
+     oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: move badness() declaration into oom.h
+Subject: oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+WARNING: line over 80 characters
+#56: FILE: mm/oom_kill.c:683:
++		if (!oom_kill_process(current, gfp_mask, order, 0, NULL, nodemask,
+
+total: 0 errors, 1 warnings, 40 lines checked
+
+./patches/oom-dont-try-to-kill-oom_unkillable-child.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c      |    3 ---
- include/linux/oom.h |    4 ++++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/oom.h~oom-move-badness-declaration-into-oomh include/linux/oom.h
---- a/include/linux/oom.h~oom-move-badness-declaration-into-oomh
-+++ a/include/linux/oom.h
-@@ -45,6 +45,10 @@ static inline void oom_killer_enable(voi
- 	oom_killer_disabled = false;
- }
- 
-+/* The badness from the OOM killer */
-+extern unsigned long badness(struct task_struct *p, struct mem_cgroup *mem,
-+		      nodemask_t *nodemask, unsigned long uptime);
-+
- /* sysctls */
- extern int sysctl_oom_dump_tasks;
- extern int sysctl_oom_kill_allocating_task;
-diff -puN fs/proc/base.c~oom-move-badness-declaration-into-oomh fs/proc/base.c
---- a/fs/proc/base.c~oom-move-badness-declaration-into-oomh
-+++ a/fs/proc/base.c
-@@ -427,9 +427,6 @@ static const struct file_operations proc
- 
- #endif
- 
--/* The badness from the OOM killer */
--unsigned long badness(struct task_struct *p, struct mem_cgroup *mem,
--		      nodemask_t *nodemask, unsigned long uptime);
- static int proc_oom_score(struct task_struct *task, char *buffer)
- {
- 	unsigned long points = 0;
+diff -puN mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes
++++ a/mm/oom_kill.c
+@@ -680,7 +680,8 @@ void out_of_memory(struct zonelist *zone
+ 		 * non-zero, current could not be killed so we must fallback to
+ 		 * the tasklist scan.
+ 		 */
+-		if (!oom_kill_process(current, gfp_mask, order, 0, NULL, nodemask,
++		if (!oom_kill_process(current, gfp_mask, order, 0, NULL,
++				nodemask,
+ 				"Out of memory (oom_kill_allocating_task)"))
+ 			return;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
