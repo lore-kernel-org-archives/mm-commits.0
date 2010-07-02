@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + oom-oom_kill_process-doesnt-select-kthread-child.patch added to -mm tree
-Date: Fri, 02 Jul 2010 14:50:13 -0700
-Message-ID: <201007022150.o62LoDFb028696@imap1.linux-foundation.org>
+Subject: + oom-make-oom_unkillable_task-helper-function.patch added to -mm tree
+Date: Fri, 02 Jul 2010 14:50:15 -0700
+Message-ID: <201007022150.o62LoG6U028700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757383Ab0GBVue (ORCPT
+	by vger.kernel.org with ESMTP id S1754340Ab0GBVue (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jul 2010 17:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@
 
 
 The patch titled
-     oom: oom_kill_process() doesn't select kthread child
+     oom: make oom_unkillable_task() helper function
 has been added to the -mm tree.  Its filename is
-     oom-oom_kill_process-doesnt-select-kthread-child.patch
+     oom-make-oom_unkillable_task-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: oom_kill_process() doesn't select kthread child
+Subject: oom: make oom_unkillable_task() helper function
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Presently select_bad_process() has a PF_KTHREAD check, but
-oom_kill_process doesn't.  It mean oom_kill_process() may choose wrong
-task, especially, when the child are using use_mm().
+Presently we have the same task check in two places. Unify it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
@@ -48,21 +46,66 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/oom_kill.c |   33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_kill_process-doesnt-select-kthread-child mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_kill_process-doesnt-select-kthread-child
+diff -puN mm/oom_kill.c~oom-make-oom_unkillable_task-helper-function mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-make-oom_unkillable_task-helper-function
 +++ a/mm/oom_kill.c
-@@ -467,6 +467,8 @@ static int oom_kill_process(struct task_
+@@ -101,6 +101,26 @@ static struct task_struct *find_lock_tas
+ 	return NULL;
+ }
+ 
++/* return true if the task is not adequate as candidate victim task. */
++static bool oom_unkillable_task(struct task_struct *p, struct mem_cgroup *mem,
++			   const nodemask_t *nodemask)
++{
++	if (is_global_init(p))
++		return true;
++	if (p->flags & PF_KTHREAD)
++		return true;
++
++	/* When mem_cgroup_out_of_memory() and p is not member of the group */
++	if (mem && !task_in_mem_cgroup(p, mem))
++		return true;
++
++	/* p may not have freeable memory in nodemask */
++	if (!has_intersects_mems_allowed(p, nodemask))
++		return true;
++
++	return false;
++}
++
+ /**
+  * badness - calculate a numeric value for how bad this task has been
+  * @p: task struct of which task we should calculate
+@@ -295,12 +315,7 @@ static struct task_struct *select_bad_pr
+ 	for_each_process(p) {
+ 		unsigned long points;
+ 
+-		/* skip the init task and kthreads */
+-		if (is_global_init(p) || (p->flags & PF_KTHREAD))
+-			continue;
+-		if (mem && !task_in_mem_cgroup(p, mem))
+-			continue;
+-		if (!has_intersects_mems_allowed(p, nodemask))
++		if (oom_unkillable_task(p, mem, nodemask))
+ 			continue;
+ 
+ 		/*
+@@ -467,11 +482,7 @@ static int oom_kill_process(struct task_
  
  			if (child->mm == p->mm)
  				continue;
-+			if (child->flags & PF_KTHREAD)
-+				continue;
- 			if (mem && !task_in_mem_cgroup(child, mem))
+-			if (child->flags & PF_KTHREAD)
+-				continue;
+-			if (mem && !task_in_mem_cgroup(child, mem))
+-				continue;
+-			if (!has_intersects_mems_allowed(child, nodemask))
++			if (oom_unkillable_task(p, mem, nodemask))
  				continue;
- 			if (!has_intersects_mems_allowed(child, nodemask))
+ 
+ 			/* badness() returns 0 if the thread is unkillable */
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
