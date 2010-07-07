@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-vgaarbh-add-missing-part-of-include-guard.patch added to -mm tree
-Date: Wed, 07 Jul 2010 13:14:38 -0700
-Message-ID: <201007072014.o67KEd9G024514@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-io_tic-dont-return-0-if-writing-the-download-record-failed.patch added to -mm tree
+Date: Wed, 07 Jul 2010 13:52:43 -0700
+Message-ID: <201007072052.o67KqhvQ026049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755466Ab0GGUP0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 16:15:26 -0400
+	by vger.kernel.org with ESMTP id S1754607Ab0GGUxQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 16:53:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cardoe@gentoo.org, airlied@redhat.com, jbarnes@virtuousgeek.org
+Cc: roel.kluin@gmail.com, greg@kroah.com
 
 
 The patch titled
-     include/linux/vgaarb.h: add missing part of include guard
+     drivers/usb/serial/io_ti.c: don't return 0 if writing the download record failed
 has been added to the -mm tree.  Its filename is
-     include-linux-vgaarbh-add-missing-part-of-include-guard.patch
+     drivers-usb-serial-io_tic-dont-return-0-if-writing-the-download-record-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/vgaarb.h: add missing part of include guard
-From: Doug Goldstein <cardoe@gentoo.org>
+Subject: drivers/usb/serial/io_ti.c: don't return 0 if writing the download record failed
+From: Roel Kluin <roel.kluin@gmail.com>
 
-vgaarb.h was missing the #define of the #ifndef at the top for the guard
-to prevent multiple #include's from causing re-define errors
+If the write download record failed we shouldn't return 0.
 
-Signed-off-by: Doug Goldstein <cardoe@gentoo.org>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vgaarb.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/serial/io_ti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vgaarb.h~include-linux-vgaarbh-add-missing-part-of-include-guard include/linux/vgaarb.h
---- a/include/linux/vgaarb.h~include-linux-vgaarbh-add-missing-part-of-include-guard
-+++ a/include/linux/vgaarb.h
-@@ -29,6 +29,7 @@
-  */
+diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-dont-return-0-if-writing-the-download-record-failed drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-dont-return-0-if-writing-the-download-record-failed
++++ a/drivers/usb/serial/io_ti.c
+@@ -1321,7 +1321,7 @@ static int download_fw(struct edgeport_s
+ 				kfree(header);
+ 				kfree(rom_desc);
+ 				kfree(ti_manuf_desc);
+-				return status;
++				return -EINVAL;
+ 			}
  
- #ifndef LINUX_VGA_H
-+#define LINUX_VGA_H
- 
- #include <asm/vga.h>
- 
+ 			kfree(vheader);
 _
 
-Patches currently in -mm which might be from cardoe@gentoo.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-include-linux-vgaarbh-add-missing-part-of-include-guard.patch
+linux-next.patch
+mtd-return-1-if-verify-failed.patch
+score-fix-dereference-of-null-pointer-in-local_flush_tlb_page.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+scsi-bfa-correct-onstack-wait_queue_head-declaration.patch
+bfa-wrong-fcport-h2i-message-tested-in-bfa_fcport_isr.patch
+drivers-usb-serial-io_tic-dont-return-0-if-writing-the-download-record-failed.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 
