@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch added to -mm tree
-Date: Wed, 07 Jul 2010 14:41:33 -0700
-Message-ID: <201007072141.o67LfXdb028193@imap1.linux-foundation.org>
+Subject: + edac-mpc85xx-fix-mpc85xx-dependency.patch added to -mm tree
+Date: Wed, 07 Jul 2010 14:45:19 -0700
+Message-ID: <201007072145.o67LjJ8O028411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756659Ab0GGVlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 17:41:51 -0400
+	by vger.kernel.org with ESMTP id S1758008Ab0GGVp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 17:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, jwoithe@physics.adelaide.edu.au, mjg@redhat.com
+Cc: avorontsov@mvista.com, djiang@mvista.com, dougthompson@xmission.com, galak@kernel.crashing.org, ptyser@xes-inc.com, stable@kernel.org
 
 
 The patch titled
-     compal-laptop/fujitsu-laptop/msi-laptop: make dmi_check_cb to return 1 instead of 0
+     edac: mpc85xx: fix MPC85xx dependency
 has been added to the -mm tree.  Its filename is
-     compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch
+     edac-mpc85xx-fix-mpc85xx-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compal-laptop/fujitsu-laptop/msi-laptop: make dmi_check_cb to return 1 instead of 0
-From: Axel Lin <axel.lin@gmail.com>
+Subject: edac: mpc85xx: fix MPC85xx dependency
+From: Anton Vorontsov <avorontsov@mvista.com>
 
-dmi_check_system() walks the table running matching functions until
-someone returns non zero or we hit the end.
+Since commit 5753c082f66eca5be81f6bda85c1718c5eea6ada ("powerpc/85xx:
+Kconfig cleanup"), there is no MPC85xx Kconfig symbol anymore, so the
+driver became non-selectable.
 
-This patch makes dmi_check_cb to return 1 so dmi_check_system() return
-immediately when a match is found.
+This patch fixes the issue by switching to PPC_85xx symbol.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Matthew Garrett <mjg@redhat.com>a
+Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Peter Tyser <ptyser@xes-inc.com>
+Cc: Dave Jiang <djiang@mvista.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/compal-laptop.c  |    2 +-
- drivers/platform/x86/fujitsu-laptop.c |    6 +++---
- drivers/platform/x86/msi-laptop.c     |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/edac/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/compal-laptop.c~compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0 drivers/platform/x86/compal-laptop.c
---- a/drivers/platform/x86/compal-laptop.c~compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0
-+++ a/drivers/platform/x86/compal-laptop.c
-@@ -190,7 +190,7 @@ static int dmi_check_cb(const struct dmi
- 	printk(KERN_INFO "compal-laptop: Identified laptop model '%s'.\n",
- 		id->ident);
+diff -puN drivers/edac/Kconfig~edac-mpc85xx-fix-mpc85xx-dependency drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~edac-mpc85xx-fix-mpc85xx-dependency
++++ a/drivers/edac/Kconfig
+@@ -209,7 +209,7 @@ config EDAC_I5100
  
--	return 0;
-+	return 1;
- }
- 
- static struct dmi_system_id __initdata compal_dmi_table[] = {
-diff -puN drivers/platform/x86/fujitsu-laptop.c~compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0 drivers/platform/x86/fujitsu-laptop.c
---- a/drivers/platform/x86/fujitsu-laptop.c~compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0
-+++ a/drivers/platform/x86/fujitsu-laptop.c
-@@ -603,7 +603,7 @@ static int dmi_check_cb_s6410(const stru
- 	dmi_check_cb_common(id);
- 	fujitsu->keycode1 = KEY_SCREENLOCK;	/* "Lock" */
- 	fujitsu->keycode2 = KEY_HELP;	/* "Mobility Center" */
--	return 0;
-+	return 1;
- }
- 
- static int dmi_check_cb_s6420(const struct dmi_system_id *id)
-@@ -611,7 +611,7 @@ static int dmi_check_cb_s6420(const stru
- 	dmi_check_cb_common(id);
- 	fujitsu->keycode1 = KEY_SCREENLOCK;	/* "Lock" */
- 	fujitsu->keycode2 = KEY_HELP;	/* "Mobility Center" */
--	return 0;
-+	return 1;
- }
- 
- static int dmi_check_cb_p8010(const struct dmi_system_id *id)
-@@ -620,7 +620,7 @@ static int dmi_check_cb_p8010(const stru
- 	fujitsu->keycode1 = KEY_HELP;	/* "Support" */
- 	fujitsu->keycode3 = KEY_SWITCHVIDEOMODE;	/* "Presentation" */
- 	fujitsu->keycode4 = KEY_WWW;	/* "Internet" */
--	return 0;
-+	return 1;
- }
- 
- static struct dmi_system_id fujitsu_dmi_table[] = {
-diff -puN drivers/platform/x86/msi-laptop.c~compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0 drivers/platform/x86/msi-laptop.c
---- a/drivers/platform/x86/msi-laptop.c~compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0
-+++ a/drivers/platform/x86/msi-laptop.c
-@@ -434,7 +434,7 @@ static int dmi_check_cb(const struct dmi
- {
- 	printk(KERN_INFO "msi-laptop: Identified laptop model '%s'.\n",
- 	       id->ident);
--	return 0;
-+	return 1;
- }
- 
- static struct dmi_system_id __initdata msi_dmi_table[] = {
+ config EDAC_MPC85XX
+ 	tristate "Freescale MPC83xx / MPC85xx"
+-	depends on EDAC_MM_EDAC && FSL_SOC && (PPC_83xx || MPC85xx)
++	depends on EDAC_MM_EDAC && FSL_SOC && (PPC_83xx || PPC_85xx)
+ 	help
+ 	  Support for error detection and correction on the Freescale
+ 	  MPC8349, MPC8560, MPC8540, MPC8548
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from avorontsov@mvista.com are
 
+edac-mpc85xx-fix-mpc85xx-dependency.patch
+edac-mpc85xx-add-support-for-mpc8569-edac-controllers.patch
 linux-next.patch
-hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.patch
-fujitsu-laptop-remove-unnecessary-input_free_device-calls.patch
-compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+sdhci-pltfm-switch-to-module-device-table-matching.patch
+sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.patch
+sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch
 
