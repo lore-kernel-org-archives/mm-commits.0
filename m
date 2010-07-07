@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-add-const-to-security_task_setscheduler.patch added to -mm tree
-Date: Wed, 07 Jul 2010 12:38:19 -0700
-Message-ID: <201007071938.o67JcJmV023008@imap1.linux-foundation.org>
+Subject: + sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch added to -mm tree
+Date: Wed, 07 Jul 2010 12:38:26 -0700
+Message-ID: <201007071938.o67JcQnv023011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754374Ab0GGTjL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 15:39:11 -0400
+	by vger.kernel.org with ESMTP id S1754374Ab0GGTjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 15:39:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, jmorris@namei.org, mingo@elte.hu, rostedt@goodmis.org
+Cc: kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org, jmorris@namei.org, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     security: add const to security_task_setscheduler()
+     sched: make sched_param argument static variables in some sched_setscheduler() caller
 has been added to the -mm tree.  Its filename is
-     security-add-const-to-security_task_setscheduler.patch
+     sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,173 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security: add const to security_task_setscheduler()
+Subject: sched: make sched_param argument static variables in some sched_setscheduler() caller
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-All security modules shouldn't change sched_param parameter of
-security_task_setscheduler().  This is not only meaningless, but also make
-harmful result if caller pass static variable.
-
-This patch adds const to it.
+Andrew Morton pointed out almost sched_setscheduler() caller are using
+fixed parameter and it can be converted static.  it reduce runtume memory
+waste a bit.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: James Morris <jmorris@namei.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h   |    9 +++++----
- security/commoncap.c       |    2 +-
- security/security.c        |    4 ++--
- security/selinux/hooks.c   |    3 ++-
- security/smack/smack_lsm.c |    2 +-
- 5 files changed, 11 insertions(+), 9 deletions(-)
+ include/linux/sched.h         |    5 +++--
+ kernel/irq/manage.c           |    4 +++-
+ kernel/kthread.c              |    2 +-
+ kernel/sched.c                |    6 +++---
+ kernel/softirq.c              |    4 +++-
+ kernel/stop_machine.c         |    2 +-
+ kernel/trace/trace_selftest.c |    2 +-
+ kernel/watchdog.c             |    2 +-
+ kernel/workqueue.c            |    2 +-
+ 9 files changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/security.h~security-add-const-to-security_task_setscheduler include/linux/security.h
---- a/include/linux/security.h~security-add-const-to-security_task_setscheduler
-+++ a/include/linux/security.h
-@@ -74,7 +74,8 @@ extern int cap_file_mmap(struct file *fi
- extern int cap_task_fix_setuid(struct cred *new, const struct cred *old, int flags);
- extern int cap_task_prctl(int option, unsigned long arg2, unsigned long arg3,
- 			  unsigned long arg4, unsigned long arg5);
--extern int cap_task_setscheduler(struct task_struct *p, int policy, struct sched_param *lp);
-+extern int cap_task_setscheduler(struct task_struct *p, int policy,
-+				 const struct sched_param *lp);
- extern int cap_task_setioprio(struct task_struct *p, int ioprio);
- extern int cap_task_setnice(struct task_struct *p, int nice);
- extern int cap_syslog(int type, bool from_file);
-@@ -1501,7 +1502,7 @@ struct security_operations {
- 	int (*task_getioprio) (struct task_struct *p);
- 	int (*task_setrlimit) (unsigned int resource, struct rlimit *new_rlim);
- 	int (*task_setscheduler) (struct task_struct *p, int policy,
--				  struct sched_param *lp);
-+				  const struct sched_param *lp);
- 	int (*task_getscheduler) (struct task_struct *p);
- 	int (*task_movememory) (struct task_struct *p);
- 	int (*task_kill) (struct task_struct *p,
-@@ -1750,8 +1751,8 @@ int security_task_setnice(struct task_st
- int security_task_setioprio(struct task_struct *p, int ioprio);
- int security_task_getioprio(struct task_struct *p);
- int security_task_setrlimit(unsigned int resource, struct rlimit *new_rlim);
--int security_task_setscheduler(struct task_struct *p,
--				int policy, struct sched_param *lp);
-+int security_task_setscheduler(struct task_struct *p, int policy,
-+			       const struct sched_param *lp);
- int security_task_getscheduler(struct task_struct *p);
- int security_task_movememory(struct task_struct *p);
- int security_task_kill(struct task_struct *p, struct siginfo *info,
-diff -puN security/commoncap.c~security-add-const-to-security_task_setscheduler security/commoncap.c
---- a/security/commoncap.c~security-add-const-to-security_task_setscheduler
-+++ a/security/commoncap.c
-@@ -726,7 +726,7 @@ static int cap_safe_nice(struct task_str
-  * specified task, returning 0 if permission is granted, -ve if denied.
+diff -puN include/linux/sched.h~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller include/linux/sched.h
+--- a/include/linux/sched.h~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/include/linux/sched.h
+@@ -1922,9 +1922,10 @@ extern int task_nice(const struct task_s
+ extern int can_nice(const struct task_struct *p, const int nice);
+ extern int task_curr(const struct task_struct *p);
+ extern int idle_cpu(int cpu);
+-extern int sched_setscheduler(struct task_struct *, int, struct sched_param *);
++extern int sched_setscheduler(struct task_struct *, int,
++			      const struct sched_param *);
+ extern int sched_setscheduler_nocheck(struct task_struct *, int,
+-				      struct sched_param *);
++				      const struct sched_param *);
+ extern struct task_struct *idle_task(int cpu);
+ extern struct task_struct *curr_task(int cpu);
+ extern void set_curr_task(int cpu, struct task_struct *p);
+diff -puN kernel/irq/manage.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/irq/manage.c
+--- a/kernel/irq/manage.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/irq/manage.c
+@@ -572,7 +572,9 @@ irq_thread_check_affinity(struct irq_des
   */
- int cap_task_setscheduler(struct task_struct *p, int policy,
--			   struct sched_param *lp)
-+			  const struct sched_param *lp)
+ static int irq_thread(void *data)
  {
- 	return cap_safe_nice(p);
- }
-diff -puN security/security.c~security-add-const-to-security_task_setscheduler security/security.c
---- a/security/security.c~security-add-const-to-security_task_setscheduler
-+++ a/security/security.c
-@@ -785,8 +785,8 @@ int security_task_setrlimit(unsigned int
- 	return security_ops->task_setrlimit(resource, new_rlim);
+-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO/2, };
++	static struct sched_param param = {
++		.sched_priority = MAX_USER_RT_PRIO/2,
++	};
+ 	struct irqaction *action = data;
+ 	struct irq_desc *desc = irq_to_desc(action->irq);
+ 	int wake, oneshot = desc->status & IRQ_ONESHOT;
+diff -puN kernel/kthread.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/kthread.c
+--- a/kernel/kthread.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/kthread.c
+@@ -131,7 +131,7 @@ struct task_struct *kthread_create(int (
+ 	wait_for_completion(&create.done);
+ 
+ 	if (!IS_ERR(create.result)) {
+-		struct sched_param param = { .sched_priority = 0 };
++		static struct sched_param param = { .sched_priority = 0 };
+ 		va_list args;
+ 
+ 		va_start(args, namefmt);
+diff -puN kernel/sched.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/sched.c
+--- a/kernel/sched.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/sched.c
+@@ -4570,7 +4570,7 @@ static bool check_same_owner(struct task
  }
  
--int security_task_setscheduler(struct task_struct *p,
--				int policy, struct sched_param *lp)
-+int security_task_setscheduler(struct task_struct *p, int policy,
-+			       const struct sched_param *lp)
+ static int __sched_setscheduler(struct task_struct *p, int policy,
+-				struct sched_param *param, bool user)
++				const struct sched_param *param, bool user)
  {
- 	return security_ops->task_setscheduler(p, policy, lp);
- }
-diff -puN security/selinux/hooks.c~security-add-const-to-security_task_setscheduler security/selinux/hooks.c
---- a/security/selinux/hooks.c~security-add-const-to-security_task_setscheduler
-+++ a/security/selinux/hooks.c
-@@ -3353,7 +3353,8 @@ static int selinux_task_setrlimit(unsign
- 	return 0;
- }
- 
--static int selinux_task_setscheduler(struct task_struct *p, int policy, struct sched_param *lp)
-+static int selinux_task_setscheduler(struct task_struct *p, int policy,
-+				     const struct sched_param *lp)
- {
- 	int rc;
- 
-diff -puN security/smack/smack_lsm.c~security-add-const-to-security_task_setscheduler security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~security-add-const-to-security_task_setscheduler
-+++ a/security/smack/smack_lsm.c
-@@ -1280,7 +1280,7 @@ static int smack_task_getioprio(struct t
-  * Return 0 if read access is permitted
+ 	int retval, oldprio, oldpolicy = -1, on_rq, running;
+ 	unsigned long flags;
+@@ -4716,7 +4716,7 @@ recheck:
+  * NOTE that the task may be already dead.
   */
- static int smack_task_setscheduler(struct task_struct *p, int policy,
--				   struct sched_param *lp)
-+				   const struct sched_param *lp)
+ int sched_setscheduler(struct task_struct *p, int policy,
+-		       struct sched_param *param)
++		       const struct sched_param *param)
  {
- 	int rc;
+ 	return __sched_setscheduler(p, policy, param, true);
+ }
+@@ -4734,7 +4734,7 @@ EXPORT_SYMBOL_GPL(sched_setscheduler);
+  * but our caller might not have that capability.
+  */
+ int sched_setscheduler_nocheck(struct task_struct *p, int policy,
+-			       struct sched_param *param)
++			       const struct sched_param *param)
+ {
+ 	return __sched_setscheduler(p, policy, param, false);
+ }
+diff -puN kernel/softirq.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/softirq.c
+--- a/kernel/softirq.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/softirq.c
+@@ -827,7 +827,9 @@ static int __cpuinit cpu_callback(struct
+ 			     cpumask_any(cpu_online_mask));
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN: {
+-		struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
++		static struct sched_param param = {
++			.sched_priority = MAX_RT_PRIO-1
++		};
  
+ 		p = per_cpu(ksoftirqd, hotcpu);
+ 		per_cpu(ksoftirqd, hotcpu) = NULL;
+diff -puN kernel/stop_machine.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/stop_machine.c
+--- a/kernel/stop_machine.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/stop_machine.c
+@@ -291,7 +291,7 @@ repeat:
+ static int __cpuinit cpu_stop_cpu_callback(struct notifier_block *nfb,
+ 					   unsigned long action, void *hcpu)
+ {
+-	struct sched_param param = { .sched_priority = MAX_RT_PRIO - 1 };
++	static struct sched_param param = { .sched_priority = MAX_RT_PRIO - 1 };
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct cpu_stopper *stopper = &per_cpu(cpu_stopper, cpu);
+ 	struct task_struct *p;
+diff -puN kernel/trace/trace_selftest.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/trace/trace_selftest.c
+--- a/kernel/trace/trace_selftest.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/trace/trace_selftest.c
+@@ -560,7 +560,7 @@ trace_selftest_startup_nop(struct tracer
+ static int trace_wakeup_test_thread(void *data)
+ {
+ 	/* Make this a RT thread, doesn't need to be too high */
+-	struct sched_param param = { .sched_priority = 5 };
++	static struct sched_param param = { .sched_priority = 5 };
+ 	struct completion *x = data;
+ 
+ 	sched_setscheduler(current, SCHED_FIFO, &param);
+diff -puN kernel/watchdog.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/watchdog.c
+--- a/kernel/watchdog.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/watchdog.c
+@@ -310,7 +310,7 @@ static enum hrtimer_restart watchdog_tim
+  */
+ static int watchdog(void *unused)
+ {
+-	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
++	static struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+ 	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
+ 
+ 	sched_setscheduler(current, SCHED_FIFO, &param);
+diff -puN kernel/workqueue.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller kernel/workqueue.c
+--- a/kernel/workqueue.c~sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller
++++ a/kernel/workqueue.c
+@@ -962,7 +962,7 @@ init_cpu_workqueue(struct workqueue_stru
+ 
+ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
+ {
+-	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
++	static struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+ 	struct workqueue_struct *wq = cwq->wq;
+ 	const char *fmt = is_wq_single_threaded(wq) ? "%s" : "%s/%d";
+ 	struct task_struct *p;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 acpi-fix-unused-function-warning.patch
 security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-arugment-static-variables-in-some-sched_setscheduler-caller.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
 mm-use-memdup_user.patch
 oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
 oom-pf_exiting-check-should-take-mm-into-account.patch
