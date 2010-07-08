@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powernow-k8-fix-misleading-variable-naming.patch added to -mm tree
-Date: Thu, 08 Jul 2010 15:13:16 -0700
-Message-ID: <201007082213.o68MDGrw032138@imap1.linux-foundation.org>
+Subject: + timersc-document-meaning-of-deferrable-timer.patch added to -mm tree
+Date: Thu, 08 Jul 2010 15:19:46 -0700
+Message-ID: <201007082219.o68MJkw8032379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753732Ab0GHWOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 18:14:04 -0400
+	by vger.kernel.org with ESMTP id S1752926Ab0GHWT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 18:19:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: borislav.petkov@amd.com, Mark.Langsdorf@amd.com, davej@redhat.com, trenn@suse.de
+Cc: bfields@citi.umich.edu, tglx@linutronix.de
 
 
 The patch titled
-     powernow-k8: fix misleading variable naming
+     timers.c: document meaning of deferrable timer
 has been added to the -mm tree.  Its filename is
-     powernow-k8-fix-misleading-variable-naming.patch
+     timersc-document-meaning-of-deferrable-timer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powernow-k8: fix misleading variable naming
-From: Borislav Petkov <borislav.petkov@amd.com>
+Subject: timers.c: document meaning of deferrable timer
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-rdmsr() takes the lower 32 bits as a second argument and the high 32 as a
-third.  Fix the names accordingly since they were swapped.
+Steal some text from 6e453a67510 "Add support for deferrable timers".  A
+reader shouldn't have to dig through the git logs for the basic
+description of a deferrable timer.
 
-There should be no functionality change resulting from this patch.
-
-Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Mark Langsdorf <Mark.Langsdorf@amd.com>
-Cc: Thomas Renninger <trenn@suse.de>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/timer.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-misleading-variable-naming arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-misleading-variable-naming
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -912,8 +912,8 @@ static int fill_powernow_table_pstate(st
- {
- 	int i;
- 	u32 hi = 0, lo = 0;
--	rdmsr(MSR_PSTATE_CUR_LIMIT, hi, lo);
--	data->max_hw_pstate = (hi & HW_PSTATE_MAX_MASK) >> HW_PSTATE_MAX_SHIFT;
-+	rdmsr(MSR_PSTATE_CUR_LIMIT, lo, hi);
-+	data->max_hw_pstate = (lo & HW_PSTATE_MAX_MASK) >> HW_PSTATE_MAX_SHIFT;
+diff -puN kernel/timer.c~timersc-document-meaning-of-deferrable-timer kernel/timer.c
+--- a/kernel/timer.c~timersc-document-meaning-of-deferrable-timer
++++ a/kernel/timer.c
+@@ -90,8 +90,13 @@ static DEFINE_PER_CPU(struct tvec_base *
  
- 	for (i = 0; i < data->acpi_data.state_count; i++) {
- 		u32 index;
+ /*
+  * Note that all tvec_bases are 2 byte aligned and lower bit of
+- * base in timer_list is guaranteed to be zero. Use the LSB for
+- * the new flag to indicate whether the timer is deferrable
++ * base in timer_list is guaranteed to be zero. Use the LSB to
++ * indicate whether the timer is deferrable.
++ *
++ * A deferrable timer will work normally when the system is busy, but
++ * will not cause a CPU to come out of idle just to service it; instead,
++ * the timer will be serviced when the CPU eventually wakes up with a
++ * subsequent non-deferrable timer.
+  */
+ #define TBASE_DEFERRABLE_FLAG		(0x1)
+ 
 _
 
-Patches currently in -mm which might be from borislav.petkov@amd.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 linux-next.patch
-powernow-k8-limit-pstate-transition-latency-check.patch
-powernow-k8-fix-misleading-variable-naming.patch
+timersc-document-meaning-of-deferrable-timer.patch
+reiser4.patch
 
