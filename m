@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-change-fsync-signature.patch added to -mm tree
-Date: Thu, 08 Jul 2010 15:12:03 -0700
-Message-ID: <201007082212.o68MC3mg032017@imap1.linux-foundation.org>
+Subject: + powernow-k8-fix-misleading-variable-naming.patch added to -mm tree
+Date: Thu, 08 Jul 2010 15:13:16 -0700
+Message-ID: <201007082213.o68MDGrw032138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757577Ab0GHWMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 18:12:34 -0400
+	by vger.kernel.org with ESMTP id S1753732Ab0GHWOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 18:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: edward.shishkin@gmail.com
+Cc: borislav.petkov@amd.com, Mark.Langsdorf@amd.com, davej@redhat.com, trenn@suse.de
 
 
 The patch titled
-     reiser4: change fsync signature
+     powernow-k8: fix misleading variable naming
 has been added to the -mm tree.  Its filename is
-     reiser4-change-fsync-signature.patch
+     powernow-k8-fix-misleading-variable-naming.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,108 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: change fsync signature
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: powernow-k8: fix misleading variable naming
+From: Borislav Petkov <borislav.petkov@amd.com>
 
-Change signatures of
-. reiser4_sync_common();
-. reiser4_sync_file_common()
-in accordance with ->fsync() of file_operations
+rdmsr() takes the lower 32 bits as a second argument and the high 32 as a
+third.  Fix the names accordingly since they were swapped.
 
-Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+There should be no functionality change resulting from this patch.
+
+Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Mark Langsdorf <Mark.Langsdorf@amd.com>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file.c |    2 +-
- fs/reiser4/plugin/file/file.h |    2 +-
- fs/reiser4/plugin/file_ops.c  |    7 ++++---
- fs/reiser4/plugin/object.h    |    2 +-
- 4 files changed, 7 insertions(+), 6 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-change-fsync-signature fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-change-fsync-signature
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -2241,7 +2241,7 @@ ssize_t write_unix_file(struct file *fil
- 	if (result == 0 && ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
- 		reiser4_txn_restart_current();
- 		grab_space_enable();
--		result = reiser4_sync_file_common(file, file->f_dentry,
-+		result = reiser4_sync_file_common(file,
- 						  0 /* data and stat data */);
- 		if (result)
- 			warning("reiser4-7", "failed to sync file %llu",
-diff -puN fs/reiser4/plugin/file/file.h~reiser4-change-fsync-signature fs/reiser4/plugin/file/file.h
---- a/fs/reiser4/plugin/file/file.h~reiser4-change-fsync-signature
-+++ a/fs/reiser4/plugin/file/file.h
-@@ -52,7 +52,7 @@ int reiser4_ioctl_careful(struct inode *
- int reiser4_mmap_careful(struct file *, struct vm_area_struct *);
- int reiser4_open_careful(struct inode *inode, struct file *file);
- int reiser4_release_careful(struct inode *, struct file *);
--int reiser4_sync_file_common(struct file *, struct dentry *, int datasync);
-+int reiser4_sync_file_common(struct file *, int datasync);
- 
- /* address space operations */
- int reiser4_readpage(struct file *, struct page *);
-diff -puN fs/reiser4/plugin/file_ops.c~reiser4-change-fsync-signature fs/reiser4/plugin/file_ops.c
---- a/fs/reiser4/plugin/file_ops.c~reiser4-change-fsync-signature
-+++ a/fs/reiser4/plugin/file_ops.c
-@@ -43,10 +43,11 @@ int reiser4_release_dir_common(struct in
- /* this is common implementation of vfs's fsync method of struct
-    file_operations
- */
--int reiser4_sync_common(struct file *file, struct dentry *dentry, int datasync)
-+int reiser4_sync_common(struct file *file, int datasync)
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-misleading-variable-naming arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-misleading-variable-naming
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -912,8 +912,8 @@ static int fill_powernow_table_pstate(st
  {
- 	reiser4_context *ctx;
- 	int result;
-+	struct dentry *dentry = file->f_path.dentry;
+ 	int i;
+ 	u32 hi = 0, lo = 0;
+-	rdmsr(MSR_PSTATE_CUR_LIMIT, hi, lo);
+-	data->max_hw_pstate = (hi & HW_PSTATE_MAX_MASK) >> HW_PSTATE_MAX_SHIFT;
++	rdmsr(MSR_PSTATE_CUR_LIMIT, lo, hi);
++	data->max_hw_pstate = (lo & HW_PSTATE_MAX_MASK) >> HW_PSTATE_MAX_SHIFT;
  
- 	ctx = reiser4_init_context(dentry->d_inode->i_sb);
- 	if (IS_ERR(ctx))
-@@ -70,12 +71,12 @@ int reiser4_sync_common(struct file *fil
-  * filemap_fdatawrite() that will ultimately call reiser4_writepages(), insert
-  * all missing extents and capture anonymous pages.
-  */
--int reiser4_sync_file_common(struct file *file,
--			     struct dentry *dentry, int datasync)
-+int reiser4_sync_file_common(struct file *file, int datasync)
- {
- 	reiser4_context *ctx;
- 	txn_atom *atom;
- 	reiser4_block_nr reserve;
-+	struct dentry *dentry = file->f_path.dentry;
- 
- 	ctx = reiser4_init_context(dentry->d_inode->i_sb);
- 	if (IS_ERR(ctx))
-diff -puN fs/reiser4/plugin/object.h~reiser4-change-fsync-signature fs/reiser4/plugin/object.h
---- a/fs/reiser4/plugin/object.h~reiser4-change-fsync-signature
-+++ a/fs/reiser4/plugin/object.h
-@@ -34,7 +34,7 @@ int reiser4_getattr_common(struct vfsmou
- loff_t reiser4_llseek_dir_common(struct file *, loff_t off, int origin);
- int reiser4_readdir_common(struct file *, void *dirent, filldir_t);
- int reiser4_release_dir_common(struct inode *, struct file *);
--int reiser4_sync_common(struct file *, struct dentry *, int datasync);
-+int reiser4_sync_common(struct file *, int datasync);
- 
- 
- /* file plugin operations: common implementations */
+ 	for (i = 0; i < data->acpi_data.state_count; i++) {
+ 		u32 index;
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from borislav.petkov@amd.com are
 
-vfs-add-super-operation-writeback_inodes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-vfs-take-2add-set_page_dirty_notag.patch
-vfs-change-writeback_inodes-signature.patch
-reiser4.patch
-reiser4-rename-quota-methods.patch
-reiser4-remove-inode_setattr.patch
-reiser4-change-fsync-signature.patch
-reiser4-writeback_inodes-implementation.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-reiser4-enable.patch
+linux-next.patch
+powernow-k8-limit-pstate-transition-latency-check.patch
+powernow-k8-fix-misleading-variable-naming.patch
 
