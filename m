@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-mark-do_one_initcall-as-__init_or_module.patch added to -mm tree
-Date: Wed, 07 Jul 2010 17:18:51 -0700
-Message-ID: <201007080018.o680Ip7v002943@imap1.linux-foundation.org>
+Subject: + serial-mmio32-support-for-8250_earlyc-fix.patch added to -mm tree
+Date: Thu, 08 Jul 2010 11:59:59 -0700
+Message-ID: <201007081859.o68IxxnO021676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756377Ab0GHATC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2010 20:19:02 -0400
+	by vger.kernel.org with ESMTP id S1755532Ab0GHTAJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kjwinchester@gmail.com, mingo@elte.hu, rusty@rustcorp.com.au
+Cc: randy.dunlap@oracle.com, _deepfire@feelingofgreen.ru, greg@kroah.com
 
 
 The patch titled
-     init/main.c: mark do_one_initcall* as __init_or_module
+     serial-mmio32-support-for-8250_earlyc-fix
 has been added to the -mm tree.  Its filename is
-     init-mainc-mark-do_one_initcall-as-__init_or_module.patch
+     serial-mmio32-support-for-8250_earlyc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/main.c: mark do_one_initcall* as __init_or_module
-From: Kevin Winchester <kjwinchester@gmail.com>
+Subject: serial-mmio32-support-for-8250_earlyc-fix
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Andrew Morton suggested that the do_one_initcall and do_one_initcall_debug
-functions can be marked __init_or_module such that they can be discarded
-for the CONFIG_MODULES=N case.
+Fix printk format warnings in serial-mmio32-support-for-8250_earlyc.patch:
 
-Signed-off-by: Kevin Winchester <kjwinchester@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+drivers/serial/8250_early.c:207: warning: format '%p' expects type 'void *', but argument 3 has type 'long long unsigned int'
+drivers/serial/8250_early.c:210: warning: format '%p' expects type 'void *', but argument 2 has type 'long long unsigned int'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Samium Gromoff <_deepfire@feelingofgreen.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    4 ++--
+ drivers/serial/8250_early.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-mark-do_one_initcall-as-__init_or_module init/main.c
---- a/init/main.c~init-mainc-mark-do_one_initcall-as-__init_or_module
-+++ a/init/main.c
-@@ -724,7 +724,7 @@ core_param(initcall_debug, initcall_debu
+diff -puN drivers/serial/8250_early.c~serial-mmio32-support-for-8250_earlyc-fix drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-mmio32-support-for-8250_earlyc-fix
++++ a/drivers/serial/8250_early.c
+@@ -202,12 +202,12 @@ static int __init parse_options(struct e
+ 	}
  
- static char msgbuf[64];
+ 	if (mmio || mmio32)
+-		printk(KERN_INFO "Early serial console at MMIO%s 0x%p (options '%s')\n",
++		printk(KERN_INFO "Early serial console at MMIO%s 0x%llu (options '%s')\n",
+ 		       mmio32 ? "32" : "", (unsigned long long) port->mapbase,
+ 		       device->options);
+ 	else
+ 		printk(KERN_INFO "Early serial console at I/O port 0x%pr (options '%s')\n",
+-		       (unsigned long long) port->iobase, device->options);
++		       (void *) port->iobase, device->options);
  
--static int do_one_initcall_debug(initcall_t fn)
-+static int __init_or_module do_one_initcall_debug(initcall_t fn)
- {
- 	ktime_t calltime, delta, rettime;
- 	unsigned long long duration;
-@@ -742,7 +742,7 @@ static int do_one_initcall_debug(initcal
- 	return ret;
+ 	return 0;
  }
- 
--int do_one_initcall(initcall_t fn)
-+int __init_or_module do_one_initcall(initcall_t fn)
- {
- 	int count = preempt_count();
- 	int ret;
 _
 
-Patches currently in -mm which might be from kjwinchester@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-init-mainc-fix-warning-calltimetv64-may-be-used-uninitialized.patch
-init-mainc-mark-do_one_initcall-as-__init_or_module.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+compal-laptop-uses-hwmon-interfaces-depends-on-hwmon.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+serial-mmio32-support-for-8250_earlyc-fix.patch
+scsi-fix-pmcraid-build-errors.patch
+scsi-fix-be2iscsi-build.patch
+scsi-fix-bnx2i-build-errors.patch
+virtio_9ph-include-linux-typesh.patch
+submittingpatches-add-more-about-patch-descriptions.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
+fusion-fix-kernel-doc-warnings.patch
+timerc-fix-kernel-doc-warning.patch
+mtd-nand_base-fix-kernel-doc-warnings-typos.patch
+docbook-need-xmldoclinks-for-all-doc-types.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
