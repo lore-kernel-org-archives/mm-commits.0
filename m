@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-make-needlessly-global-symbols-static.patch added to -mm tree
-Date: Thu, 08 Jul 2010 12:39:06 -0700
-Message-ID: <201007081939.o68Jd6mM024098@imap1.linux-foundation.org>
+Subject: + fujitsu-laptop-make-needlessly-global-symbols-static.patch added to -mm tree
+Date: Thu, 08 Jul 2010 12:48:54 -0700
+Message-ID: <201007081948.o68Jmsbh025007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758521Ab0GHTt2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:49:28 -0400
+	by vger.kernel.org with ESMTP id S1756995Ab0GHTtr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:49:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, bp@alien8.de, mjg@redhat.com, peter@piie.net
+Cc: axel.lin@gmail.com, jwoithe@physics.adelaide.edu.au, mjg@redhat.com
 
 
 The patch titled
-     acerhdf: make needlessly global symbols static
+     fujitsu-laptop: make needlessly global symbols static
 has been added to the -mm tree.  Its filename is
-     acerhdf-make-needlessly-global-symbols-static.patch
+     fujitsu-laptop-make-needlessly-global-symbols-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: make needlessly global symbols static
+Subject: fujitsu-laptop: make needlessly global symbols static
 From: Axel Lin <axel.lin@gmail.com>
 
 The following symbols are needlessly defined global:
 
-thz_dev
-cl_dev
-acerhdf_dev
-acerhdf_dev_ops
-acerhdf_cooling_ops
+logolamp_led
+kblamps_led
 
 This patch makes the symbols static.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Borislav Petkov <bp@alien8.de>
-Cc: Peter Feuerer <peter@piie.net>
 Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/platform/x86/fujitsu-laptop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-make-needlessly-global-symbols-static drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-make-needlessly-global-symbols-static
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -92,9 +92,9 @@ static unsigned int fanstate = ACERHDF_F
- static char force_bios[16];
- static char force_product[16];
- static unsigned int prev_interval;
--struct thermal_zone_device *thz_dev;
--struct thermal_cooling_device *cl_dev;
--struct platform_device *acerhdf_dev;
-+static struct thermal_zone_device *thz_dev;
-+static struct thermal_cooling_device *cl_dev;
-+static struct platform_device *acerhdf_dev;
+diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-make-needlessly-global-symbols-static drivers/platform/x86/fujitsu-laptop.c
+--- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-make-needlessly-global-symbols-static
++++ a/drivers/platform/x86/fujitsu-laptop.c
+@@ -182,7 +182,7 @@ static enum led_brightness logolamp_get(
+ static void logolamp_set(struct led_classdev *cdev,
+ 			       enum led_brightness brightness);
  
- module_param(kernelmode, uint, 0);
- MODULE_PARM_DESC(kernelmode, "Kernel mode fan control on / off");
-@@ -406,7 +406,7 @@ static int acerhdf_get_crit_temp(struct 
- }
+-struct led_classdev logolamp_led = {
++static struct led_classdev logolamp_led = {
+  .name = "fujitsu::logolamp",
+  .brightness_get = logolamp_get,
+  .brightness_set = logolamp_set
+@@ -192,7 +192,7 @@ static enum led_brightness kblamps_get(s
+ static void kblamps_set(struct led_classdev *cdev,
+ 			       enum led_brightness brightness);
  
- /* bind callback functions to thermalzone */
--struct thermal_zone_device_ops acerhdf_dev_ops = {
-+static struct thermal_zone_device_ops acerhdf_dev_ops = {
- 	.bind = acerhdf_bind,
- 	.unbind = acerhdf_unbind,
- 	.get_temp = acerhdf_get_ec_temp,
-@@ -481,7 +481,7 @@ err_out:
- }
- 
- /* bind fan callbacks to fan device */
--struct thermal_cooling_device_ops acerhdf_cooling_ops = {
-+static struct thermal_cooling_device_ops acerhdf_cooling_ops = {
- 	.get_max_state = acerhdf_get_max_state,
- 	.get_cur_state = acerhdf_get_cur_state,
- 	.set_cur_state = acerhdf_set_cur_state,
+-struct led_classdev kblamps_led = {
++static struct led_classdev kblamps_led = {
+  .name = "fujitsu::kblamps",
+  .brightness_get = kblamps_get,
+  .brightness_set = kblamps_set
 _
 
 Patches currently in -mm which might be from axel.lin@gmail.com are
@@ -101,6 +84,11 @@ compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of
 asus_acpi-fix-a-memory-leak-in-asus_hotk_get_info.patch
 asus_acpi-fix-coding-style-to-improve-readability.patch
 acerhdf-make-needlessly-global-symbols-static.patch
+classmate-laptop-make-needlessly-global-symbols-static.patch
+fujitsu-laptop-make-needlessly-global-symbols-static.patch
+msi-laptop-make-struct-rfkill_ops-const.patch
+asus-laptop-fix-incorrect-return-value-for-write_acpi_int_ret-if-handle-is-null.patch
+asus-laptop-return-proper-error-for-store_ledd-if-write_acpi_int-fail.patch
 intel_menlow-fix-memory-leaks-in-error-path-fix.patch
 drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
 
