@@ -1,23 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-fix-resource-reclaim-in-error-path.patch added to -mm tree
-Date: Thu, 08 Jul 2010 14:34:40 -0700
-Message-ID: <201007082134.o68LYecY030402@imap1.linux-foundation.org>
+Subject: + toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_proc_entries.patch added to -mm tree
+Date: Thu, 08 Jul 2010 14:39:01 -0700
+Message-ID: <201007082139.o68Ld1te030591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756529Ab0GHVfj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 17:35:39 -0400
+	by vger.kernel.org with ESMTP id S1753238Ab0GHVjx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 17:39:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, bp@alien8.de, mjg@redhat.com, peter@piie.net
+Cc: axel.lin@gmail.com, mjg@redhat.com, nm127@freemail.hu
 
 
 The patch titled
-     acerhdf: fix resource reclaim in error path
+     toshiba_acpi: rename add_device() and remove_device() to create_to=
+shiba_proc_entries() and remove_toshiba_proc_entries()
 has been added to the -mm tree.  Its filename is
-     acerhdf-fix-resource-reclaim-in-error-path.patch
+     toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba=
+_proc_entries-and-remove_toshiba_proc_entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,115 +30,109 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: acerhdf: fix resource reclaim in error path
-From: Axel Lin <axel.lin@gmail.com>
+Subject: toshiba_acpi: rename add_device() and remove_device() to creat=
+e_toshiba_proc_entries() and remove_toshiba_proc_entries()
+=46rom: Axel Lin <axel.lin@gmail.com>
 
-Fix resource reclaim in below cases:
-
-1. acerhdf_register_platform() does not properly handle
-   platform_device_alloc() failure and platform_device_add() failure This
-   patch adds error handing for acerhdf_register_platform().
-
-2. acerhdf_register_platform() return err with acerhdf_dev == NULL. 
-   as a result, acerhdf_unregister_platform() does not do resource reclaim
-   in acerhdf_init() error path.  This patch adds error handing for
-   acerhdf_register_platform(), thus correct the error handing path in
-   acerhdf_init().  goto out_err instead of err_unreg if
-   acerhdf_register_platform() fail.
-
-3. platform_device_del() should only used in error handling.  Current
-   implementation missed a platform_device_put() in acerhdf_exit.  This
-   patch fixes it by using platform_device_unregister() instead of
-   platform_device_del() in acerhdf_unregister_platform.
+To improve readability rename add_device() to
+create_toshiba_proc_entries() and rename remove_device() to
+remove_toshiba_proc_entries().
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Peter Feuerer <peter@piie.net>
 Cc: Matthew Garrett <mjg@redhat.com>
-Acked-by: Borislav Petkov <bp@alien8.de>
+Cc: M=E1rton N=E9meth <nm127@freemail.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ drivers/platform/x86/toshiba_acpi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-fix-resource-reclaim-in-error-path drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-fix-resource-reclaim-in-error-path
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -615,17 +615,26 @@ static int acerhdf_register_platform(voi
- 		return err;
- 
- 	acerhdf_dev = platform_device_alloc("acerhdf", -1);
--	platform_device_add(acerhdf_dev);
-+	if (!acerhdf_dev) {
-+		err = -ENOMEM;
-+		goto err_device_alloc;
-+	}
-+	err = platform_device_add(acerhdf_dev);
-+	if (err)
-+		goto err_device_add;
- 
- 	return 0;
-+
-+err_device_add:
-+	platform_device_put(acerhdf_dev);
-+err_device_alloc:
-+	platform_driver_unregister(&acerhdf_driver);
-+	return err;
- }
- 
- static void acerhdf_unregister_platform(void)
+diff -puN drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-rename-add_d=
+evice-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshi=
+ba_proc_entries drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-rename-add_devic=
+e-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_p=
+roc_entries
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -720,7 +720,7 @@ static const struct file_operations vers
+=20
+ #define PROC_TOSHIBA		"toshiba"
+=20
+-static void __init add_device(void)
++static void __init create_toshiba_proc_entries(void)
  {
--	if (!acerhdf_dev)
--		return;
--
--	platform_device_del(acerhdf_dev);
-+	platform_device_unregister(acerhdf_dev);
- 	platform_driver_unregister(&acerhdf_driver);
+ 	proc_create("lcd", S_IRUGO | S_IWUSR, toshiba_proc_dir, &lcd_proc_fop=
+s);
+ 	proc_create("video", S_IRUGO | S_IWUSR, toshiba_proc_dir, &video_proc=
+_fops);
+@@ -729,7 +729,7 @@ static void __init add_device(void)
+ 	proc_create("version", S_IRUGO, toshiba_proc_dir, &version_proc_fops)=
+;
  }
- 
-@@ -669,7 +678,7 @@ static int __init acerhdf_init(void)
- 
- 	err = acerhdf_register_platform();
- 	if (err)
--		goto err_unreg;
-+		goto out_err;
- 
- 	err = acerhdf_register_thermal();
- 	if (err)
-@@ -682,7 +691,7 @@ err_unreg:
- 	acerhdf_unregister_platform();
- 
- out_err:
--	return -ENODEV;
-+	return err;
- }
- 
- static void __exit acerhdf_exit(void)
+=20
+-static void remove_device(void)
++static void remove_toshiba_proc_entries(void)
+ {
+ 	remove_proc_entry("lcd", toshiba_proc_dir);
+ 	remove_proc_entry("video", toshiba_proc_dir);
+@@ -903,7 +903,7 @@ static void toshiba_acpi_exit(void)
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
+=20
+-	remove_device();
++	remove_toshiba_proc_entries();
+=20
+ 	if (toshiba_proc_dir)
+ 		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
+@@ -965,7 +965,7 @@ static int __init toshiba_acpi_init(void
+ 		toshiba_acpi_exit();
+ 		return -ENODEV;
+ 	} else {
+-		add_device();
++		create_toshiba_proc_entries();
+ 	}
+=20
+ 	props.max_brightness =3D HCI_LCD_BRIGHTNESS_LEVELS - 1;
 _
 
 Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.patch
+hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.=
+patch
 fujitsu-laptop-remove-unnecessary-input_free_device-calls.patch
-compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch
+compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-i=
+nstead-of-0.patch
 asus_acpi-fix-a-memory-leak-in-asus_hotk_get_info.patch
 asus_acpi-fix-coding-style-to-improve-readability.patch
 acerhdf-make-needlessly-global-symbols-static.patch
 classmate-laptop-make-needlessly-global-symbols-static.patch
 fujitsu-laptop-make-needlessly-global-symbols-static.patch
 msi-laptop-make-struct-rfkill_ops-const.patch
-asus-laptop-fix-incorrect-return-value-for-write_acpi_int_ret-if-handle-is-null.patch
-asus-laptop-return-proper-error-for-store_ledd-if-write_acpi_int-fail.patch
+asus-laptop-fix-incorrect-return-value-for-write_acpi_int_ret-if-handle=
+-is-null.patch
+asus-laptop-return-proper-error-for-store_ledd-if-write_acpi_int-fail.p=
+atch
 acerhdf-fix-resource-reclaim-in-error-path.patch
+toshiba_acpi-make-remove_device-and-add_device-void.patch
+toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba_proc=
+_entries-and-remove_toshiba_proc_entries.patch
 intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to=
+-0444.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
