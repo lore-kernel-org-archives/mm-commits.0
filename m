@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-numa-fix-boot-without-ram-on-node0-again-fix.patch added to -mm tree
-Date: Thu, 08 Jul 2010 12:27:48 -0700
-Message-ID: <201007081927.o68JRmjD023459@imap1.linux-foundation.org>
+Subject: + x86-numa-fix-boot-without-ram-on-node0-again.patch added to -mm tree
+Date: Thu, 08 Jul 2010 12:26:12 -0700
+Message-ID: <201007081926.o68JQDf4023246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755297Ab0GHT2k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:28:40 -0400
+	by vger.kernel.org with ESMTP id S1758507Ab0GHTcA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:32:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, lee.schermerhorn@hp.com, mingo@redhat.com, tglx@linutronix.de, tj@kernel.org, vda.linux@googlemail.com, yinghai@kernel.org
+Cc: yinghai@kernel.org, hpa@zytor.com, lee.schermerhorn@hp.com, mingo@redhat.com, tglx@linutronix.de, tj@kernel.org, vda.linux@googlemail.com
 
 
 The patch titled
-     x86-numa-fix-boot-without-ram-on-node0-again-fix
+     x86, numa: fix boot without RAM on node0 again
 has been added to the -mm tree.  Its filename is
-     x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
+     x86-numa-fix-boot-without-ram-on-node0-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +33,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-numa-fix-boot-without-ram-on-node0-again-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86, numa: fix boot without RAM on node0 again
+From: Yinghai Lu <yinghai@kernel.org>
 
-tidy up code comment
+|commit e534c7c5f8d6e9fc46f57fab067c7e48d8ceb172
+|Author: Lee Schermerhorn <lee.schermerhorn@hp.com>
+|Date:   Wed May 26 14:44:58 2010 -0700
+|
+|    numa: x86_64: use generic percpu var numa_node_id() implementation
+|
+|    x86 arch specific changes to use generic numa_node_id() based on generic
+|    percpu variable infrastructure.  Back out x86's custom version of
+|    numa_node_id()
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Tejun Heo <tj@kernel.org>
+broke numa system that doesn't have ram on node0 when MEMORY_HOTPLUG is
+enabled.
+
+Because cpu_up() will call cpu_to_node() before per_cpu(numa_node) is
+setup for APs.
+
+When Node0 doesn't have RAM, on x86, cpus already round it to nearest node
+with RAM in x86_cpu_to_node_map.  and per_cpu(numa_node) is not set up
+until in c_init for APs.
+
+When later cpu_up() calling cpu_to_node() will get 0 again, and make it
+online even there is no RAM on node0.  so later all APs can not booted up,
+and later will have panic.
+
+[    1.611101] On node 0 totalpages: 0
+.........
+[    2.608558] On node 0 totalpages: 0
+[    2.612065] Brought up 1 CPUs
+[    2.615199] Total of 1 processors activated (3990.31 BogoMIPS).
+...
+   93.225341] calling  loop_init+0x0/0x1a4 @ 1
+[   93.229314] PERCPU: allocation failed, size=80 align=8, failed to populate
+[   93.246539] Pid: 1, comm: swapper Tainted: G        W   2.6.35-rc4-tip-yh-04371-gd64e6c4-dirty #354
+[   93.264621] Call Trace:
+[   93.266533]  [<ffffffff81125e43>] pcpu_alloc+0x83a/0x8e7
+[   93.270710]  [<ffffffff81125f15>] __alloc_percpu+0x10/0x12
+[   93.285849]  [<ffffffff8140786c>] alloc_disk_node+0x94/0x16d
+[   93.291811]  [<ffffffff81407956>] alloc_disk+0x11/0x13
+[   93.306157]  [<ffffffff81503e51>] loop_alloc+0xa7/0x180
+[   93.310538]  [<ffffffff8277ef48>] loop_init+0x9b/0x1a4
+[   93.324909]  [<ffffffff8277eead>] ? loop_init+0x0/0x1a4
+[   93.329650]  [<ffffffff810001f2>] do_one_initcall+0x57/0x136
+[   93.345197]  [<ffffffff827486d0>] kernel_init+0x184/0x20e
+[   93.348146]  [<ffffffff81034954>] kernel_thread_helper+0x4/0x10
+[   93.365194]  [<ffffffff81c7cc3c>] ? restore_args+0x0/0x30
+[   93.369305]  [<ffffffff8274854c>] ? kernel_init+0x0/0x20e
+[   93.386011]  [<ffffffff81034950>] ? kernel_thread_helper+0x0/0x10
+[   93.392047] loop: out of memory
+...
+
+Try to assign per_cpu(numa_node) early
+
+Signed-off-by: Yinghai <yinghai@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai <yinghai@kernel.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_percpu.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/kernel/setup_percpu.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/setup_percpu.c~x86-numa-fix-boot-without-ram-on-node0-again-fix arch/x86/kernel/setup_percpu.c
---- a/arch/x86/kernel/setup_percpu.c~x86-numa-fix-boot-without-ram-on-node0-again-fix
+diff -puN arch/x86/kernel/setup_percpu.c~x86-numa-fix-boot-without-ram-on-node0-again arch/x86/kernel/setup_percpu.c
+--- a/arch/x86/kernel/setup_percpu.c~x86-numa-fix-boot-without-ram-on-node0-again
 +++ a/arch/x86/kernel/setup_percpu.c
-@@ -239,12 +239,12 @@ void __init setup_per_cpu_areas(void)
+@@ -238,6 +238,15 @@ void __init setup_per_cpu_areas(void)
+ #ifdef CONFIG_NUMA
  		per_cpu(x86_cpu_to_node_map, cpu) =
  			early_per_cpu_map(x86_cpu_to_node_map, cpu);
- 		/*
--		 * make sure boot cpu numa_node is right, when boot cpu is on
--		 *  the node that doesn't have mem installed
--		 * also cpu_up() will call cpu_to_node() for APs when
--		 *  MEMORY_HOTPLUG is defined, before per_cpu(numa_node) is set
--		 *  up later with c_init aka intel_init/amd_init
--		 * So set them all (boot cpu and all APs)
-+		 * Ensure taht the boot cpu numa_node is correct when the boot
-+		 * cpu is on a node that doesn't have memory installed.
-+		 * Also cpu_up() will call cpu_to_node() for APs when
-+		 * MEMORY_HOTPLUG is defined, before per_cpu(numa_node) is set
-+		 * up later with c_init aka intel_init/amd_init.
-+		 * So set them all (boot cpu and all APs).
- 		 */
- 		set_cpu_numa_node(cpu, early_cpu_to_node(cpu));
++		/*
++		 * make sure boot cpu numa_node is right, when boot cpu is on
++		 *  the node that doesn't have mem installed
++		 * also cpu_up() will call cpu_to_node() for APs when
++		 *  MEMORY_HOTPLUG is defined, before per_cpu(numa_node) is set
++		 *  up later with c_init aka intel_init/amd_init
++		 * So set them all (boot cpu and all APs)
++		 */
++		set_cpu_numa_node(cpu, early_cpu_to_node(cpu));
  #endif
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
-mm-vmap-area-cache-fix.patch
-x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
-vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
-mmc-add-jz4740-mmc-driver-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-
+ #endif
+ 		/*
+@@ -257,14 +266,6 @@ void __init setup_per_cpu_areas(void)
+ 	early_per_cpu_ptr(x86_cpu_to_node_map) = NULL;
+ #endif
+ 
+-#if defined(CONFIG_X86_64) && defined(CONFIG_NUMA)
+-	/*
+-	 * make sure boot cpu numa_node is right, when boot cpu is on the
+-	 * node that doesn't have mem installed
+-	 */
+-	set_cpu_numa_node(boot_cpu_id, early_cpu_to_node(boot_cpu_id));
+-#endif
