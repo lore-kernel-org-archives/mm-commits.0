@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fujitsu-laptop-make-needlessly-global-symbols-static.patch added to -mm tree
-Date: Thu, 08 Jul 2010 12:48:54 -0700
-Message-ID: <201007081948.o68Jmsbh025007@imap1.linux-foundation.org>
+Subject: + msi-laptop-make-struct-rfkill_ops-const.patch added to -mm tree
+Date: Thu, 08 Jul 2010 12:48:56 -0700
+Message-ID: <201007081948.o68Jmuda025010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756995Ab0GHTtr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:49:47 -0400
+	by vger.kernel.org with ESMTP id S1757138Ab0GHTt4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 15:49:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, jwoithe@physics.adelaide.edu.au, mjg@redhat.com
+Cc: axel.lin@gmail.com, mjg@redhat.com, mzxreary@0pointer.de
 
 
 The patch titled
-     fujitsu-laptop: make needlessly global symbols static
+     msi-laptop: make struct rfkill_ops const
 has been added to the -mm tree.  Its filename is
-     fujitsu-laptop-make-needlessly-global-symbols-static.patch
+     msi-laptop-make-struct-rfkill_ops-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fujitsu-laptop: make needlessly global symbols static
+Subject: msi-laptop: make struct rfkill_ops const
 From: Axel Lin <axel.lin@gmail.com>
 
-The following symbols are needlessly defined global:
-
-logolamp_led
-kblamps_led
-
-This patch makes the symbols static.
+rfkill uses a const struct rfkill_ops pointer.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
 Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/fujitsu-laptop.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/x86/msi-laptop.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-make-needlessly-global-symbols-static drivers/platform/x86/fujitsu-laptop.c
---- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-make-needlessly-global-symbols-static
-+++ a/drivers/platform/x86/fujitsu-laptop.c
-@@ -182,7 +182,7 @@ static enum led_brightness logolamp_get(
- static void logolamp_set(struct led_classdev *cdev,
- 			       enum led_brightness brightness);
+diff -puN drivers/platform/x86/msi-laptop.c~msi-laptop-make-struct-rfkill_ops-const drivers/platform/x86/msi-laptop.c
+--- a/drivers/platform/x86/msi-laptop.c~msi-laptop-make-struct-rfkill_ops-const
++++ a/drivers/platform/x86/msi-laptop.c
+@@ -562,15 +562,15 @@ static int rfkill_threeg_set(void *data,
+ 	return 0;
+ }
  
--struct led_classdev logolamp_led = {
-+static struct led_classdev logolamp_led = {
-  .name = "fujitsu::logolamp",
-  .brightness_get = logolamp_get,
-  .brightness_set = logolamp_set
-@@ -192,7 +192,7 @@ static enum led_brightness kblamps_get(s
- static void kblamps_set(struct led_classdev *cdev,
- 			       enum led_brightness brightness);
+-static struct rfkill_ops rfkill_bluetooth_ops = {
++static const struct rfkill_ops rfkill_bluetooth_ops = {
+ 	.set_block = rfkill_bluetooth_set
+ };
  
--struct led_classdev kblamps_led = {
-+static struct led_classdev kblamps_led = {
-  .name = "fujitsu::kblamps",
-  .brightness_get = kblamps_get,
-  .brightness_set = kblamps_set
+-static struct rfkill_ops rfkill_wlan_ops = {
++static const struct rfkill_ops rfkill_wlan_ops = {
+ 	.set_block = rfkill_wlan_set
+ };
+ 
+-static struct rfkill_ops rfkill_threeg_ops = {
++static const struct rfkill_ops rfkill_threeg_ops = {
+ 	.set_block = rfkill_threeg_set
+ };
+ 
 _
 
 Patches currently in -mm which might be from axel.lin@gmail.com are
