@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch added to -mm tree
-Date: Thu, 08 Jul 2010 15:09:11 -0700
-Message-ID: <201007082209.o68M9Bqk031946@imap1.linux-foundation.org>
+Subject: + vfs-change-writeback_inodes-signature.patch added to -mm tree
+Date: Thu, 08 Jul 2010 15:10:13 -0700
+Message-ID: <201007082210.o68MADuU031966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53110 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757124Ab0GHWJO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 18:09:14 -0400
+	by vger.kernel.org with ESMTP id S1757577Ab0GHWKo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 18:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: edward.shishkin@gmail.com
 
 
 The patch titled
-     reiser4: adjust to writeback changes
+     vfs: change ->writeback_inodes() signature
 has been added to the -mm tree.  Its filename is
-     reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch
+     vfs-change-writeback_inodes-signature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: adjust to writeback changes
+Subject: vfs: change ->writeback_inodes() signature
 From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Adjust reiser4 to the latest vfs changes:
-. Change reiser4_writeback_inodes();
-. Use writeback_inodes_wb() instead of writeback_inodes_wbc().
+Change signature of ->writeback_inodes() of super_operations in accordance
+with the signature of writeback_sb_inodes().
 
 Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/entd.c       |    5 ++---
- fs/reiser4/page_cache.c |    3 ---
- fs/reiser4/super_ops.c  |    5 +++--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ fs/fs-writeback.c  |    2 +-
+ include/linux/fs.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiser4/entd.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/entd.c
---- a/fs/reiser4/entd.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
-+++ a/fs/reiser4/entd.c
-@@ -237,14 +237,13 @@ static void entd_flush(struct super_bloc
- 		(ENTD_CAPTURE_APAGE_BURST << PAGE_CACHE_SHIFT);
- 	tmp = rq->wbc->nr_to_write;
- 
--	assert("edward-1561", super == rq->wbc->sb);
--
- 	rq->mapping->a_ops->writepages(rq->mapping, rq->wbc);
- 
- 	if (rq->wbc->nr_to_write > 0) {
- 		rq->wbc->range_start = 0;
- 		rq->wbc->range_end = LLONG_MAX;
--		writeback_inodes_wbc(rq->wbc);
-+		writeback_inodes_wb(&rq->mapping->backing_dev_info->wb,
-+				    rq->wbc);
- 	}
- 	rq->wbc->nr_to_write = ENTD_CAPTURE_APAGE_BURST;
- 
-diff -puN fs/reiser4/page_cache.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/page_cache.c
---- a/fs/reiser4/page_cache.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
-+++ a/fs/reiser4/page_cache.c
-@@ -492,9 +492,6 @@ int reiser4_writepage(struct page *page,
- 	 */
- 	assert("vs-828", PageLocked(page));
- 
--	wbc->sb = page->mapping->host->i_sb;
--	wbc->bdi = page->mapping->backing_dev_info;
--
- 	return write_page_by_ent(page, wbc);
+diff -puN fs/fs-writeback.c~vfs-change-writeback_inodes-signature fs/fs-writeback.c
+--- a/fs/fs-writeback.c~vfs-change-writeback_inodes-signature
++++ a/fs/fs-writeback.c
+@@ -570,7 +570,7 @@ static int do_writeback_sb_inodes(struct
+ 				bool only_this_sb)
+ {
+ 	if (sb->s_op->writeback_inodes)
+-		return sb->s_op->writeback_inodes(sb, wb, wbc);
++		return sb->s_op->writeback_inodes(sb, wb, wbc, only_this_sb);
+ 	return generic_writeback_sb_inodes(sb, wb, wbc, only_this_sb);
  }
  
-diff -puN fs/reiser4/super_ops.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~reiser4-writeback_inodes-implementation-adjust-to-writeback-changes
-+++ a/fs/reiser4/super_ops.c
-@@ -391,7 +391,8 @@ static void reiser4_clear_inode(struct i
-  */
- static int reiser4_writeback_inodes(struct super_block *super,
- 				    struct bdi_writeback *wb,
--				    struct writeback_control *wbc)
-+				    struct writeback_control *wbc,
-+				    bool only_this_sb)
- {
- 	int ret;
- 	long to_write;
-@@ -415,7 +416,7 @@ static int reiser4_writeback_inodes(stru
- 	 * dirty pages into transactions if they were not yet.
- 	 */
- 	spin_lock(&inode_lock);
--	ret = generic_writeback_sb_inodes(super, wb, wbc);
-+	ret = generic_writeback_sb_inodes(super, wb, wbc, only_this_sb);
- 	spin_unlock(&inode_lock);
- 
- 	wbc->nr_to_write = to_write;
+diff -puN include/linux/fs.h~vfs-change-writeback_inodes-signature include/linux/fs.h
+--- a/include/linux/fs.h~vfs-change-writeback_inodes-signature
++++ a/include/linux/fs.h
+@@ -1576,8 +1576,8 @@ struct super_operations {
+ 	void (*umount_begin) (struct super_block *);
+ 	int (*writeback_inodes)(struct super_block *sb,
+ 				struct bdi_writeback *wb,
+-				struct writeback_control *wbc);
+-
++				struct writeback_control *wbc,
++				bool only_this_sb);
+ 	int (*show_options)(struct seq_file *, struct vfsmount *);
+ 	int (*show_stats)(struct seq_file *, struct vfsmount *);
+ #ifdef CONFIG_QUOTA
 _
 
 Patches currently in -mm which might be from edward.shishkin@gmail.com are
@@ -111,6 +81,7 @@ Patches currently in -mm which might be from edward.shishkin@gmail.com are
 vfs-add-super-operation-writeback_inodes.patch
 vfs-add-super-operation-writeback_inodes-fix.patch
 vfs-take-2add-set_page_dirty_notag.patch
+vfs-change-writeback_inodes-signature.patch
 reiser4.patch
 reiser4-writeback_inodes-implementation.patch
 reiser4-writeback_inodes-implementation-fix.patch
@@ -118,7 +89,6 @@ reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch
 reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
 reiser4-fixups.patch
 reiser4-broke.patch
-vfs-change-writeback_inodes-signature.patch
 reiser4-rename-quota-methods.patch
 reiser4-remove-inode_setattr.patch
 reiser4-change-fsync-signature.patch
