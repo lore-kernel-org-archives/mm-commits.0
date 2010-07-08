@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo.patch added to -mm tree
-Date: Thu, 08 Jul 2010 13:58:19 -0700
-Message-ID: <201007082058.o68KwLv1028782@imap1.linux-foundation.org>
+Subject: + drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix.patch added to -mm tree
+Date: Thu, 08 Jul 2010 13:58:26 -0700
+Message-ID: <201007082058.o68KwQ1W028790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758606Ab0GHU63 (ORCPT
+	by vger.kernel.org with ESMTP id S1758608Ab0GHU63 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jul 2010 16:58:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, greg@kroah.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     drivers/base/node.c: reduce stack usage of node_read_meminfo()
+     drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix
 has been added to the -mm tree.  Its filename is
-     drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo.patch
+     drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,160 +33,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base/node.c: reduce stack usage of node_read_meminfo()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-	drivers/base/node.c: In function 'node_read_meminfo':
-	drivers/base/node.c:139: warning: the frame size of 848 bytes is
-	larger than 512 bytes
-
-Fix it by splitting the sprintf() into three parts.  It has no functional
-change.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   46 +++++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ drivers/base/node.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/node.c~drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo drivers/base/node.c
---- a/drivers/base/node.c~drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo
+diff -puN drivers/base/node.c~drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix
 +++ a/drivers/base/node.c
-@@ -66,8 +66,7 @@ static ssize_t node_read_meminfo(struct 
- 	struct sysinfo i;
+@@ -93,7 +93,7 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_MLOCK)));
  
- 	si_meminfo_node(&i, nid);
--
--	n = sprintf(buf, "\n"
-+	n = sprintf(buf,
- 		       "Node %d MemTotal:       %8lu kB\n"
- 		       "Node %d MemFree:        %8lu kB\n"
- 		       "Node %d MemUsed:        %8lu kB\n"
-@@ -78,13 +77,33 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d Active(file):   %8lu kB\n"
- 		       "Node %d Inactive(file): %8lu kB\n"
- 		       "Node %d Unevictable:    %8lu kB\n"
--		       "Node %d Mlocked:        %8lu kB\n"
-+		       "Node %d Mlocked:        %8lu kB\n",
-+		       nid, K(i.totalram),
-+		       nid, K(i.freeram),
-+		       nid, K(i.totalram - i.freeram),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_ANON) +
-+				node_page_state(nid, NR_ACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_ANON) +
-+				node_page_state(nid, NR_INACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_ANON)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
-+		       nid, K(node_page_state(nid, NR_MLOCK)));
-+
  #ifdef CONFIG_HIGHMEM
-+	n += sprintf(buf,
+-	n += sprintf(buf,
++	n += sprintf(buf + n,
  		       "Node %d HighTotal:      %8lu kB\n"
  		       "Node %d HighFree:       %8lu kB\n"
  		       "Node %d LowTotal:       %8lu kB\n"
--		       "Node %d LowFree:        %8lu kB\n"
-+		       "Node %d LowFree:        %8lu kB\n",
-+		       nid, K(i.totalhigh),
-+		       nid, K(i.freehigh),
-+		       nid, K(i.totalram - i.totalhigh),
-+		       nid, K(i.freeram - i.freehigh));
+@@ -103,7 +103,7 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(i.totalram - i.totalhigh),
+ 		       nid, K(i.freeram - i.freehigh));
  #endif
-+	n += sprintf(buf,
+-	n += sprintf(buf,
++	n += sprintf(buf + n,
  		       "Node %d Dirty:          %8lu kB\n"
  		       "Node %d Writeback:      %8lu kB\n"
  		       "Node %d FilePages:      %8lu kB\n"
-@@ -99,25 +118,6 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d Slab:           %8lu kB\n"
- 		       "Node %d SReclaimable:   %8lu kB\n"
- 		       "Node %d SUnreclaim:     %8lu kB\n",
--		       nid, K(i.totalram),
--		       nid, K(i.freeram),
--		       nid, K(i.totalram - i.freeram),
--		       nid, K(node_page_state(nid, NR_ACTIVE_ANON) +
--				node_page_state(nid, NR_ACTIVE_FILE)),
--		       nid, K(node_page_state(nid, NR_INACTIVE_ANON) +
--				node_page_state(nid, NR_INACTIVE_FILE)),
--		       nid, K(node_page_state(nid, NR_ACTIVE_ANON)),
--		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
--		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
--		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
--		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
--		       nid, K(node_page_state(nid, NR_MLOCK)),
--#ifdef CONFIG_HIGHMEM
--		       nid, K(i.totalhigh),
--		       nid, K(i.freehigh),
--		       nid, K(i.totalram - i.totalhigh),
--		       nid, K(i.freeram - i.freehigh),
--#endif
- 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
- 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-fix-unused-function-warning.patch
-security-add-const-to-security_task_setscheduler.patch
+origin.patch
+ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
+mm-vmap-area-cache-fix.patch
+x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
+revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
+revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
+revert-324d76561842e551051e2a897b958b0539f6867b.patch
+revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
+revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
+revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
+revert-4624469822455b4accc886557f6c997ccdd59066.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+acpi-fix-bogus-preemption-logic-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-um-drivers-remove-duplicate-structure-field-initialization.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
 sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-mm-use-memdup_user.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
 oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
 oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
 oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
-mempolicy-reduce-stack-size-of-migrate_pages.patch
 mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-vmscan-zone_reclaim-dont-call-disable_swap_token.patch
-vmscan-recalculate-lru_pages-on-each-priority.patch
-vmscan-tracing-add-trace-events-for-kswapd-wakeup-sleeping-and-direct-reclaim.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation.patch
-vmscan-tracing-add-trace-event-when-a-page-is-written.patch
-vmscan-tracing-add-a-postprocessing-script-for-reclaim-related-ftrace-events.patch
-vmscan-kill-prev_priority-completely.patch
-vmscan-simplify-shrink_inactive_list.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_inactive_list.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_page_list.patch
-vmscan-update-isolated-page-counters-outside-of-main-path-in-shrink_inactive_list.patch
-oom-dont-try-to-kill-oom_unkillable-child.patch
+vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
+vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
+vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
 oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-oom_kill_process-doesnt-select-kthread-child.patch
-oom-make-oom_unkillable_task-helper-function.patch
-oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
-oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
-oom-kill-duplicate-oom_disable-check.patch
-oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
-oom-cleanup-has_intersects_mems_allowed.patch
-oom-remove-child-mm-check-from-oom_kill_process.patch
-oom-give-the-dying-task-a-higher-priority.patch
-oom-multi-threaded-process-coredump-dont-make-deadlock.patch
-rmap-add-exclusive-page-to-private-anon_vma-on-swapin.patch
-mm-set-vm_fault_write-in-do_swap_page.patch
-drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
 drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
+mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
+mmc-add-jz4740-mmc-driver-fix.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
 reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
