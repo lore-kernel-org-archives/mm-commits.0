@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fb-add-device-name-initialization.patch added to -mm tree
-Date: Fri, 09 Jul 2010 16:09:05 -0700
-Message-ID: <201007092309.o69N95Cf030977@imap1.linux-foundation.org>
+Subject: + s3c-fb-add-support-for-display-panning.patch added to -mm tree
+Date: Fri, 09 Jul 2010 16:09:07 -0700
+Message-ID: <201007092309.o69N97SM030980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52363 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46616 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755403Ab0GIXJZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 19:09:25 -0400
+	by vger.kernel.org with ESMTP id S1755403Ab0GIXJ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 19:09:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: p.osciak@samsung.com, ben-linux@fluff.org, inki.dae@samsung.com, kyungmin.pa
 
 
 The patch titled
-     s3c-fb: add device name initialization
+     s3c-fb: add support for display panning
 has been added to the -mm tree.  Its filename is
-     s3c-fb-add-device-name-initialization.patch
+     s3c-fb-add-support-for-display-panning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c-fb: add device name initialization
+Subject: s3c-fb: add support for display panning
 From: Pawel Osciak <p.osciak@samsung.com>
 
-Add framebuffer device name initialization calls for S3C2443, S3C64xx and
-S5P machines.
+Supports all bpp modes.
+
+The PRTCON register is used to disable in-hardware updates of registers
+that store start and end addresses of framebuffer memory.  This prevents
+display corruption in case we do not make it before VSYNC with updating
+them atomically.  With this feature there is no need to wait for a VSYNC
+interrupt before each such update.
 
 Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
@@ -47,125 +52,147 @@ Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2416/s3c2416.c              |    3 +
- arch/arm/mach-s3c2443/s3c2443.c              |    2 +
- arch/arm/mach-s5pc100/cpu.c                  |    3 +
- arch/arm/mach-s5pv210/cpu.c                  |    3 +
- arch/arm/plat-samsung/include/plat/fb-core.h |   29 +++++++++++++++++
- 5 files changed, 39 insertions(+), 1 deletion(-)
+ arch/arm/plat-samsung/include/plat/regs-fb.h |    7 +
+ drivers/video/s3c-fb.c                       |   68 +++++++++++++++++
+ 2 files changed, 75 insertions(+)
 
-diff -puN arch/arm/mach-s3c2416/s3c2416.c~s3c-fb-add-device-name-initialization arch/arm/mach-s3c2416/s3c2416.c
---- a/arch/arm/mach-s3c2416/s3c2416.c~s3c-fb-add-device-name-initialization
-+++ a/arch/arm/mach-s3c2416/s3c2416.c
-@@ -55,6 +55,7 @@
- #include <plat/cpu.h>
+diff -puN arch/arm/plat-samsung/include/plat/regs-fb.h~s3c-fb-add-support-for-display-panning arch/arm/plat-samsung/include/plat/regs-fb.h
+--- a/arch/arm/plat-samsung/include/plat/regs-fb.h~s3c-fb-add-support-for-display-panning
++++ a/arch/arm/plat-samsung/include/plat/regs-fb.h
+@@ -112,6 +112,13 @@
+ #define VIDCON2_ORGYCbCr			(1 << 8)
+ #define VIDCON2_YUVORDCrCb			(1 << 7)
  
- #include <plat/iic-core.h>
-+#include <plat/fb-core.h>
- 
- static struct map_desc s3c2416_iodesc[] __initdata = {
- 	IODESC_ENT(WATCHDOG),
-@@ -90,7 +91,7 @@ int __init s3c2416_init(void)
- 	s3c_i2c0_setname("s3c2440-i2c");
- 	s3c_i2c1_setname("s3c2440-i2c");
- 
--	s3c_device_fb.name = "s3c2443-fb";
-+	s3c_fb_setname("s3c2443-fb");
- 
- 	return sysdev_register(&s3c2416_sysdev);
- }
-diff -puN arch/arm/mach-s3c2443/s3c2443.c~s3c-fb-add-device-name-initialization arch/arm/mach-s3c2443/s3c2443.c
---- a/arch/arm/mach-s3c2443/s3c2443.c~s3c-fb-add-device-name-initialization
-+++ a/arch/arm/mach-s3c2443/s3c2443.c
-@@ -35,6 +35,7 @@
- #include <plat/s3c2443.h>
- #include <plat/devs.h>
- #include <plat/cpu.h>
-+#include <plat/fb-core.h>
- 
- static struct map_desc s3c2443_iodesc[] __initdata = {
- 	IODESC_ENT(WATCHDOG),
-@@ -62,6 +63,7 @@ int __init s3c2443_init(void)
- 	s3c24xx_reset_hook = s3c2443_hard_reset;
- 
- 	s3c_device_nand.name = "s3c2412-nand";
-+	s3c_fb_setname("s3c2443-fb");
- 
- 	/* change WDT IRQ number */
- 	s3c_device_wdt.resource[1].start = IRQ_S3C2443_WDT;
-diff -puN arch/arm/mach-s5pc100/cpu.c~s3c-fb-add-device-name-initialization arch/arm/mach-s5pc100/cpu.c
---- a/arch/arm/mach-s5pc100/cpu.c~s3c-fb-add-device-name-initialization
-+++ a/arch/arm/mach-s5pc100/cpu.c
-@@ -41,6 +41,7 @@
- #include <plat/iic-core.h>
- #include <plat/sdhci.h>
- #include <plat/onenand-core.h>
-+#include <plat/fb-core.h>
- 
- #include <plat/s5pc100.h>
- 
-@@ -92,6 +93,8 @@ void __init s5pc100_map_io(void)
- 	s3c_i2c1_setname("s3c2440-i2c");
- 
- 	s3c_onenand_setname("s5pc100-onenand");
-+
-+	s3c_fb_setname("s5pc100-fb");
- }
- 
- void __init s5pc100_init_clocks(int xtal)
-diff -puN arch/arm/mach-s5pv210/cpu.c~s3c-fb-add-device-name-initialization arch/arm/mach-s5pv210/cpu.c
---- a/arch/arm/mach-s5pv210/cpu.c~s3c-fb-add-device-name-initialization
-+++ a/arch/arm/mach-s5pv210/cpu.c
-@@ -34,6 +34,7 @@
- #include <plat/s5pv210.h>
- #include <plat/iic-core.h>
- #include <plat/sdhci.h>
-+#include <plat/fb-core.h>
- 
- /* Initial IO mappings */
- 
-@@ -92,6 +93,8 @@ void __init s5pv210_map_io(void)
- 	s3c_i2c0_setname("s3c2440-i2c");
- 	s3c_i2c1_setname("s3c2440-i2c");
- 	s3c_i2c2_setname("s3c2440-i2c");
-+
-+	s3c_fb_setname("s5pv210-fb");
- }
- 
- void __init s5pv210_init_clocks(int xtal)
-diff -puN /dev/null arch/arm/plat-samsung/include/plat/fb-core.h
---- /dev/null
-+++ a/arch/arm/plat-samsung/include/plat/fb-core.h
-@@ -0,0 +1,29 @@
-+/*
-+ * arch/arm/plat-samsung/include/plat/fb-core.h
-+ *
-+ * Copyright 2010 Samsung Electronics Co., Ltd.
-+ *	Pawel Osciak <p.osciak@samsung.com>
-+ *
-+ * Samsung framebuffer driver core functions
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++/* PRTCON (S3C6410, S5PC100)
++ * Might not be present in the S3C6410 documentation,
++ * but tests prove it's there almost for sure; shouldn't hurt in any case.
 + */
-+#ifndef __ASM_PLAT_FB_CORE_H
-+#define __ASM_PLAT_FB_CORE_H __FILE__
++#define PRTCON					(0x0c)
++#define PRTCON_PROTECT				(1 << 11)
 +
-+/*
-+ * These functions are only for use with the core support code, such as
-+ * the CPU-specific initialization code.
+ /* VIDTCON0 */
+ 
+ #define VIDTCON0_VBPDE_MASK			(0xff << 24)
+diff -puN drivers/video/s3c-fb.c~s3c-fb-add-support-for-display-panning drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-add-support-for-display-panning
++++ a/drivers/video/s3c-fb.c
+@@ -71,6 +71,7 @@ struct s3c_fb;
+  * @buf_end: Offset of buffer end registers.
+  * @osd: The base for the OSD registers.
+  * @palette: Address of palette memory, or 0 if none.
++ * @has_prtcon: Set if has PRTCON register.
+  */
+ struct s3c_fb_variant {
+ 	unsigned int	is_2443:1;
+@@ -85,6 +86,8 @@ struct s3c_fb_variant {
+ 	unsigned short	osd;
+ 	unsigned short	osd_stride;
+ 	unsigned short	palette[S3C_FB_MAX_WIN];
++
++	unsigned int	has_prtcon:1;
+ };
+ 
+ /**
+@@ -379,6 +382,9 @@ static int s3c_fb_set_par(struct fb_info
+ 
+ 	info->fix.line_length = (var->xres_virtual * var->bits_per_pixel) / 8;
+ 
++	info->fix.xpanstep = info->var.xres_virtual > info->var.xres ? 1 : 0;
++	info->fix.ypanstep = info->var.yres_virtual > info->var.yres ? 1 : 0;
++
+ 	/* disable the window whilst we update it */
+ 	writel(0, regs + WINCON(win_no));
+ 
+@@ -735,6 +741,63 @@ static int s3c_fb_blank(int blank_mode, 
+ 	return 0;
+ }
+ 
++/**
++ * s3c_fb_pan_display() - Pan the display.
++ *
++ * Note that the offsets can be written to the device at any time, as their
++ * values are latched at each vsync automatically. This also means that only
++ * the last call to this function will have any effect on next vsync, but
++ * there is no need to sleep waiting for it to prevent tearing.
++ *
++ * @var: The screen information to verify.
++ * @info: The framebuffer device.
 + */
-+
-+/* Re-define device name depending on support. */
-+static inline void s3c_fb_setname(char *name)
++static int s3c_fb_pan_display(struct fb_var_screeninfo *var,
++			      struct fb_info *info)
 +{
-+#ifdef CONFIG_S3C_DEV_FB
-+	s3c_device_fb.name = name;
-+#endif
++	struct s3c_fb_win *win	= info->par;
++	struct s3c_fb *sfb	= win->parent;
++	void __iomem *buf	= sfb->regs + win->index * 8;
++	unsigned int start_boff, end_boff;
++
++	/* Offset in bytes to the start of the displayed area */
++	start_boff = var->yoffset * info->fix.line_length;
++	/* X offset depends on the current bpp */
++	if (info->var.bits_per_pixel >= 8) {
++		start_boff += var->xoffset * (info->var.bits_per_pixel >> 3);
++	} else {
++		switch (info->var.bits_per_pixel) {
++		case 4:
++			start_boff += var->xoffset >> 1;
++			break;
++		case 2:
++			start_boff += var->xoffset >> 2;
++			break;
++		case 1:
++			start_boff += var->xoffset >> 3;
++			break;
++		default:
++			dev_err(sfb->dev, "invalid bpp\n");
++			return -EINVAL;
++		}
++	}
++	/* Offset in bytes to the end of the displayed area */
++	end_boff = start_boff + var->yres * info->fix.line_length;
++
++	/* Temporarily turn off per-vsync update from shadow registers until
++	 * both start and end addresses are updated to prevent corruption */
++	if (sfb->variant.has_prtcon)
++		writel(PRTCON_PROTECT, sfb->regs + PRTCON);
++
++	writel(info->fix.smem_start + start_boff, buf + sfb->variant.buf_start);
++	writel(info->fix.smem_start + end_boff, buf + sfb->variant.buf_end);
++
++	if (sfb->variant.has_prtcon)
++		writel(0, sfb->regs + PRTCON);
++
++	return 0;
 +}
 +
-+#endif /* __ASM_PLAT_FB_CORE_H */
+ static struct fb_ops s3c_fb_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.fb_check_var	= s3c_fb_check_var,
+@@ -744,6 +807,7 @@ static struct fb_ops s3c_fb_ops = {
+ 	.fb_fillrect	= cfb_fillrect,
+ 	.fb_copyarea	= cfb_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
++	.fb_pan_display	= s3c_fb_pan_display,
+ };
+ 
+ /**
+@@ -1243,6 +1307,8 @@ static struct s3c_fb_driverdata s3c_fb_d
+ 			[3] = 0x320,
+ 			[4] = 0x340,
+ 		},
++
++		.has_prtcon	= 1,
+ 	},
+ 	.win[0]	= &s3c_fb_data_64xx_wins[0],
+ 	.win[1]	= &s3c_fb_data_64xx_wins[1],
+@@ -1271,6 +1337,8 @@ static struct s3c_fb_driverdata s3c_fb_d
+ 			[3] = 0x3000,
+ 			[4] = 0x3400,
+ 		},
++
++		.has_prtcon	= 1,
+ 	},
+ 	.win[0]	= &s3c_fb_data_64xx_wins[0],
+ 	.win[1]	= &s3c_fb_data_64xx_wins[1],
 _
 
 Patches currently in -mm which might be from p.osciak@samsung.com are
