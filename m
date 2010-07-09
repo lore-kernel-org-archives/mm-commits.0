@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch added to -mm tree
-Date: Fri, 09 Jul 2010 14:26:48 -0700
-Message-ID: <201007092126.o69LQmpa026476@imap1.linux-foundation.org>
+Subject: + sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch added to -mm tree
+Date: Fri, 09 Jul 2010 14:26:45 -0700
+Message-ID: <201007092126.o69LQj43026472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46065 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751622Ab0GIV13 (ORCPT
+	by vger.kernel.org with ESMTP id S1751672Ab0GIV13 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 17:27:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avorontsov@mvista.com, ben@simtec.co.uk, kyungmin.park@samsung.com, m.szyprowski@samsung.com
+Cc: m.szyprowski@samsung.com, avorontsov@mvista.com, ben@simtec.co.uk, kyungmin.park@samsung.com
 
 
 The patch titled
-     sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix
+     sdhci-s3c: add support for the non standard minimal clock value
 has been added to the -mm tree.  Its filename is
-     sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch
+     sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sdhci-s3c: add support for the non standard minimal clock value
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-update drivers/mmc/host/sdhci-cns3xxx.c
+S3C SDHCI host controller can change the source for generating mmc clock. 
+By default host bus clock is used, what causes some problems on machines
+with 133MHz bus, because the SDHCI divider cannot be as high get proper
+clock value for identification mode.  This is not a problem for the
+controller, because it can generate lower frequencies from other clock
+sources.  This patch adds a new quirk to SDHCI driver to calculate the
+minimal supported clock frequency.
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+This fixes the flood of the following warnings on Samsung S5PV210 SoCs:
+mmc0: Minimum clock frequency too high for identification mode
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Anton Vorontsov <avorontsov@mvista.com>
 Cc: Ben Dooks <ben@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-cns3xxx.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/sdhci-of-esdhc.c |    1 
+ drivers/mmc/host/sdhci-s3c.c      |   29 ++++++++++++++++++++++++++++
+ drivers/mmc/host/sdhci.c          |    2 -
+ drivers/mmc/host/sdhci.h          |    2 +
+ 4 files changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci-cns3xxx.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix drivers/mmc/host/sdhci-cns3xxx.c
---- a/drivers/mmc/host/sdhci-cns3xxx.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix
-+++ a/drivers/mmc/host/sdhci-cns3xxx.c
-@@ -93,5 +93,6 @@ struct sdhci_pltfm_data sdhci_cns3xxx_pd
- 		  SDHCI_QUIRK_INVERTED_WRITE_PROTECT |
- 		  SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
- 		  SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
+diff -puN drivers/mmc/host/sdhci-of-esdhc.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value drivers/mmc/host/sdhci-of-esdhc.c
+--- a/drivers/mmc/host/sdhci-of-esdhc.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value
++++ a/drivers/mmc/host/sdhci-of-esdhc.c
+@@ -124,6 +124,7 @@ struct sdhci_of_data sdhci_esdhc = {
+ 		  SDHCI_QUIRK_BROKEN_CARD_DETECTION |
+ 		  SDHCI_QUIRK_NO_BUSY_IRQ |
+ 		  SDHCI_QUIRK_NONSTANDARD_CLOCK |
 +		  SDHCI_QUIRK_NONSTANDARD_MINCLOCK |
- 		  SDHCI_QUIRK_NONSTANDARD_CLOCK,
+ 		  SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
+ 		  SDHCI_QUIRK_PIO_NEEDS_DELAY |
+ 		  SDHCI_QUIRK_RESTORE_IRQS_AFTER_RESET |
+diff -puN drivers/mmc/host/sdhci-s3c.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value drivers/mmc/host/sdhci-s3c.c
+--- a/drivers/mmc/host/sdhci-s3c.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value
++++ a/drivers/mmc/host/sdhci-s3c.c
+@@ -209,10 +209,37 @@ static void sdhci_s3c_set_clock(struct s
+ 	}
+ }
+ 
++/**
++ * sdhci_s3c_get_min_clock - callback to get minimal supported clock value
++ * @host: The SDHCI host being queried
++ *
++ * To init mmc host properly a minimal clock value is needed. For high system
++ * bus clock's values the standard formula gives values out of allowed range.
++ * The clock still can be set to lower values, if clock source other then
++ * system bus is selected.
++*/
++static unsigned int sdhci_s3c_get_min_clock(struct sdhci_host *host)
++{
++	struct sdhci_s3c *ourhost = to_s3c(host);
++	unsigned int delta, min = UINT_MAX;
++	int src;
++
++	for (src = 0; src < MAX_BUS_CLK; src++) {
++		delta = sdhci_s3c_consider_clock(ourhost, src, 0);
++		if (delta == UINT_MAX)
++			continue;
++		/* delta is a negative value in this case */
++		if (-delta < min)
++			min = -delta;
++	}
++	return min;
++}
++
+ static struct sdhci_ops sdhci_s3c_ops = {
+ 	.get_max_clock		= sdhci_s3c_get_max_clk,
+ 	.get_timeout_clock	= sdhci_s3c_get_timeout_clk,
+ 	.set_clock		= sdhci_s3c_set_clock,
++	.get_min_clock		= sdhci_s3c_get_min_clock,
  };
+ 
+ static int __devinit sdhci_s3c_probe(struct platform_device *pdev)
+@@ -316,6 +343,8 @@ static int __devinit sdhci_s3c_probe(str
+ 	host->quirks = 0;
+ 	host->irq = irq;
+ 
++	host->quirks |= SDHCI_QUIRK_NONSTANDARD_MINCLOCK;
++
+ 	/* Setup quirks for the controller */
+ 	host->quirks |= SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC;
+ 
+diff -puN drivers/mmc/host/sdhci.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value
++++ a/drivers/mmc/host/sdhci.c
+@@ -1792,7 +1792,7 @@ int sdhci_add_host(struct sdhci_host *ho
+ 	 * Set host parameters.
+ 	 */
+ 	mmc->ops = &sdhci_ops;
+-	if (host->quirks & SDHCI_QUIRK_NONSTANDARD_CLOCK &&
++	if (host->quirks & SDHCI_QUIRK_NONSTANDARD_MINCLOCK &&
+ 			host->ops->get_min_clock)
+ 		mmc->f_min = host->ops->get_min_clock(host);
+ 	else
+diff -puN drivers/mmc/host/sdhci.h~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value
++++ a/drivers/mmc/host/sdhci.h
+@@ -245,6 +245,8 @@ struct sdhci_host {
+ #define SDHCI_QUIRK_NO_HISPD_BIT			(1<<27)
+ /* Controller is missing device caps. Use caps provided by host */
+ #define SDHCI_QUIRK_MISSING_CAPS			(1<<28)
++/* Controller has nonstandard clock management */
++#define SDHCI_QUIRK_NONSTANDARD_MINCLOCK		(1<<29)
+ 
+ 	int			irq;		/* Device IRQ */
+ 	void __iomem *		ioaddr;		/* Mapped address */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.szyprowski@samsung.com are
 
 origin.patch
-ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
-mm-vmap-area-cache-fix.patch
-x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
-vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
-mmc-add-jz4740-mmc-driver-fix.patch
+sdhci-s3c-add-missing-remove-function.patch
+sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch
 sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+sdhci-s3c-add-support-for-new-card-detection-methods.patch
 
