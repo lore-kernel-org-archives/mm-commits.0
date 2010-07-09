@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-s3c-add-missing-remove-function.patch added to -mm tree
-Date: Fri, 09 Jul 2010 14:26:43 -0700
-Message-ID: <201007092126.o69LQhI3026465@imap1.linux-foundation.org>
+Subject: + sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch added to -mm tree
+Date: Fri, 09 Jul 2010 14:26:48 -0700
+Message-ID: <201007092126.o69LQmpa026476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751469Ab0GIV1P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 17:27:15 -0400
+	by vger.kernel.org with ESMTP id S1751622Ab0GIV13 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 17:27:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com
+Cc: akpm@linux-foundation.org, avorontsov@mvista.com, ben@simtec.co.uk, kyungmin.park@samsung.com, m.szyprowski@samsung.com
 
 
 The patch titled
-     sdhci-s3c: add missing remove function
+     sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix
 has been added to the -mm tree.  Its filename is
-     sdhci-s3c-add-missing-remove-function.patch
+     sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci-s3c: add missing remove function
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+update drivers/mmc/host/sdhci-cns3xxx.c
+
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Ben Dooks <ben@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-s3c.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/mmc/host/sdhci-cns3xxx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/host/sdhci-s3c.c~sdhci-s3c-add-missing-remove-function drivers/mmc/host/sdhci-s3c.c
---- a/drivers/mmc/host/sdhci-s3c.c~sdhci-s3c-add-missing-remove-function
-+++ a/drivers/mmc/host/sdhci-s3c.c
-@@ -365,6 +365,26 @@ static int __devinit sdhci_s3c_probe(str
- 
- static int __devexit sdhci_s3c_remove(struct platform_device *pdev)
- {
-+	struct sdhci_host *host =  platform_get_drvdata(pdev);
-+	struct sdhci_s3c *sc = sdhci_priv(host);
-+	int ptr;
-+
-+	sdhci_remove_host(host, 1);
-+
-+	for (ptr = 0; ptr < 3; ptr++) {
-+		clk_disable(sc->clk_bus[ptr]);
-+		clk_put(sc->clk_bus[ptr]);
-+	}
-+	clk_disable(sc->clk_io);
-+	clk_put(sc->clk_io);
-+
-+	iounmap(host->ioaddr);
-+	release_resource(sc->ioarea);
-+	kfree(sc->ioarea);
-+
-+	sdhci_free_host(host);
-+	platform_set_drvdata(pdev, NULL);
-+
- 	return 0;
- }
- 
+diff -puN drivers/mmc/host/sdhci-cns3xxx.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix drivers/mmc/host/sdhci-cns3xxx.c
+--- a/drivers/mmc/host/sdhci-cns3xxx.c~sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix
++++ a/drivers/mmc/host/sdhci-cns3xxx.c
+@@ -93,5 +93,6 @@ struct sdhci_pltfm_data sdhci_cns3xxx_pd
+ 		  SDHCI_QUIRK_INVERTED_WRITE_PROTECT |
+ 		  SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
+ 		  SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
++		  SDHCI_QUIRK_NONSTANDARD_MINCLOCK |
+ 		  SDHCI_QUIRK_NONSTANDARD_CLOCK,
+ };
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
+mm-vmap-area-cache-fix.patch
+x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
 linux-next.patch
-sdhci-s3c-add-missing-remove-function.patch
-sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
+revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
+revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
+revert-324d76561842e551051e2a897b958b0539f6867b.patch
+revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
+revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
+revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
+revert-4624469822455b4accc886557f6c997ccdd59066.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+acpi-fix-bogus-preemption-logic-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-um-drivers-remove-duplicate-structure-field-initialization.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
+vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
+vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
+oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
+mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
+mmc-add-jz4740-mmc-driver-fix.patch
 sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch
-sdhci-s3c-add-support-for-new-card-detection-methods.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
