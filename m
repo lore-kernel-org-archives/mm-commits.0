@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fb-window-3-of-64xx-does-not-have-an-osd_d-register.patch added to -mm tree
-Date: Fri, 09 Jul 2010 16:09:11 -0700
-Message-ID: <201007092309.o69N9Baj030987@imap1.linux-foundation.org>
+Subject: + s3c-fb-add-support-for-dma-channel-control-on-s5pv210.patch added to -mm tree
+Date: Fri, 09 Jul 2010 16:09:21 -0700
+Message-ID: <201007092309.o69N9LRL031009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755527Ab0GIXJ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 19:09:28 -0400
+	by vger.kernel.org with ESMTP id S1755669Ab0GIXJj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 19:09:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: p.osciak@samsung.com, ben-linux@fluff.org, inki.dae@samsung.com, kyungmin.pa
 
 
 The patch titled
-     s3c-fb: window 3 of 64xx+ does not have an osd_d register
+     s3c-fb: add support for DMA channel control on S5PV210
 has been added to the -mm tree.  Its filename is
-     s3c-fb-window-3-of-64xx-does-not-have-an-osd_d-register.patch
+     s3c-fb-add-support-for-dma-channel-control-on-s5pv210.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c-fb: window 3 of 64xx+ does not have an osd_d register
+Subject: s3c-fb: add support for DMA channel control on S5PV210
 From: Pawel Osciak <p.osciak@samsung.com>
 
+S5PV210 SoCs allow enabling/disabling DMA channels per window.  For a
+window to display data from framebuffer memory, its channel has to be
+enabled.
+
 Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: InKi Dae <inki.dae@samsung.com>
 Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/plat-samsung/include/plat/regs-fb.h |    4 ++++
+ drivers/video/s3c-fb.c                       |   15 +++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN drivers/video/s3c-fb.c~s3c-fb-window-3-of-64xx-does-not-have-an-osd_d-register drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~s3c-fb-window-3-of-64xx-does-not-have-an-osd_d-register
+diff -puN arch/arm/plat-samsung/include/plat/regs-fb.h~s3c-fb-add-support-for-dma-channel-control-on-s5pv210 arch/arm/plat-samsung/include/plat/regs-fb.h
+--- a/arch/arm/plat-samsung/include/plat/regs-fb.h~s3c-fb-add-support-for-dma-channel-control-on-s5pv210
++++ a/arch/arm/plat-samsung/include/plat/regs-fb.h
+@@ -223,6 +223,10 @@
+ /* S5PV210 */
+ #define SHADOWCON				(0x34)
+ #define SHADOWCON_WINx_PROTECT(_win)		(1 << (10 + (_win)))
++/* DMA channels (all windows) */
++#define SHADOWCON_CHx_ENABLE(_win)		(1 << (_win))
++/* Local input channels (windows 0-2) */
++#define SHADOWCON_CHx_LOCAL_ENABLE(_win)	(1 << (5 + (_win)))
+ 
+ #define VIDOSDxA_TOPLEFT_X_MASK			(0x7ff << 11)
+ #define VIDOSDxA_TOPLEFT_X_SHIFT		(11)
+diff -puN drivers/video/s3c-fb.c~s3c-fb-add-support-for-dma-channel-control-on-s5pv210 drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-add-support-for-dma-channel-control-on-s5pv210
 +++ a/drivers/video/s3c-fb.c
-@@ -1434,7 +1434,6 @@ static struct s3c_fb_win_variant s3c_fb_
- 	},
- 	[3] = {
- 		.has_osd_c	= 1,
--		.has_osd_d	= 1,
- 		.palette_sz	= 16,
- 		.palette_16bpp	= 1,
- 		.valid_bpp	= (VALID_BPP124  | VALID_BPP(16) |
+@@ -634,6 +634,13 @@ static int s3c_fb_set_par(struct fb_info
+ 	writel(data, regs + sfb->variant.wincon + (win_no * 4));
+ 	writel(0x0, regs + sfb->variant.winmap + (win_no * 4));
+ 
++	/* Enable DMA channel for this window */
++	if (sfb->variant.has_shadowcon) {
++		data = readl(sfb->regs + SHADOWCON);
++		data |= SHADOWCON_CHx_ENABLE(win_no);
++		writel(data, sfb->regs + SHADOWCON);
++	}
++
+ 	shadow_protect_win(win, 0);
+ 
+ 	return 0;
+@@ -1091,7 +1098,15 @@ static void s3c_fb_free_memory(struct s3
+  */
+ static void s3c_fb_release_win(struct s3c_fb *sfb, struct s3c_fb_win *win)
+ {
++	u32 data;
++
+ 	if (win->fbinfo) {
++		if (sfb->variant.has_shadowcon) {
++			data = readl(sfb->regs + SHADOWCON);
++			data &= ~SHADOWCON_CHx_ENABLE(win->index);
++			data &= ~SHADOWCON_CHx_LOCAL_ENABLE(win->index);
++			writel(data, sfb->regs + SHADOWCON);
++		}
+ 		unregister_framebuffer(win->fbinfo);
+ 		if (win->fbinfo->cmap.len)
+ 			fb_dealloc_cmap(&win->fbinfo->cmap);
 _
 
 Patches currently in -mm which might be from p.osciak@samsung.com are
