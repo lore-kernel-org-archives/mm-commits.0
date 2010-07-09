@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s3c-fb-only-init-window-colour-key-controls-for-windows-with-blending.patch added to -mm tree
-Date: Fri, 09 Jul 2010 16:08:50 -0700
-Message-ID: <201007092308.o69N8oPU030949@imap1.linux-foundation.org>
+Subject: + s3c-fb-add-default-window-feature.patch added to -mm tree
+Date: Fri, 09 Jul 2010 16:08:46 -0700
+Message-ID: <201007092308.o69N8kh0030942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60700 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755612Ab0GIXJe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 19:09:34 -0400
+	by vger.kernel.org with ESMTP id S1755653Ab0GIXJf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 19:09:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, inki.dae@samsung.com, m.szyprowski@samsung.com, p.osciak@samsung.com
+Cc: inki.dae@samsung.com, ben-linux@fluff.org, m.szyprowski@samsung.com, p.osciak@samsung.com
 
 
 The patch titled
-     s3c-fb: only init window colour key controls for windows with blending
+     s3c-fb: add default window feature.
 has been added to the -mm tree.  Its filename is
-     s3c-fb-only-init-window-colour-key-controls-for-windows-with-blending.patch
+     s3c-fb-add-default-window-feature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c-fb: only init window colour key controls for windows with blending
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: s3c-fb: add default window feature.
+From: InKi Dae <inki.dae@samsung.com>
 
-The driver clears all windows, but also sets the windows' colour key
-controls at the same time.  However, the last window does not have these
-registers as it is always blended into the previous window.
+s5pv210 has five window layers (window0 ~ 4), among them, window0 ~ 2
+could be used for local path with fimc(capture device) and fimd writeback
+feature so this patch makes default window layer for UI to be set at
+machine code.
 
-Move the colour key initialisation into the probe, and run it for only
-nr_win-1 windows.
-
+Signed-off-by: InKi Dae <inki.dae@samsung.com>
+Reviewed-by: KyungMin Park <kyungmin.park.samsung.com>
 Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Cc: InKi Dae <inki.dae@samsung.com>
-Cc: KyungMin Park <kyungmin.park.samsung.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ arch/arm/plat-samsung/include/plat/fb.h |    3 +++
+ drivers/video/s3c-fb.c                  |    6 +++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/s3c-fb.c~s3c-fb-only-init-window-colour-key-controls-for-windows-with-blending drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~s3c-fb-only-init-window-colour-key-controls-for-windows-with-blending
+diff -puN arch/arm/plat-samsung/include/plat/fb.h~s3c-fb-add-default-window-feature arch/arm/plat-samsung/include/plat/fb.h
+--- a/arch/arm/plat-samsung/include/plat/fb.h~s3c-fb-add-default-window-feature
++++ a/arch/arm/plat-samsung/include/plat/fb.h
+@@ -42,6 +42,7 @@ struct s3c_fb_pd_win {
+  * @setup_gpio: Setup the external GPIO pins to the right state to transfer
+  *		the data from the display system to the connected display
+  *		device.
++ * @default_win: default window layer number to be used for UI layer.
+  * @vidcon0: The base vidcon0 values to control the panel data format.
+  * @vidcon1: The base vidcon1 values to control the panel data output.
+  * @win: The setup data for each hardware window, or NULL for unused.
+@@ -58,6 +59,8 @@ struct s3c_fb_platdata {
+ 
+ 	struct s3c_fb_pd_win	*win[S3C_FB_MAX_WIN];
+ 
++	u32			 default_win;
++
+ 	u32			 vidcon0;
+ 	u32			 vidcon1;
+ };
+diff -puN drivers/video/s3c-fb.c~s3c-fb-add-default-window-feature drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-add-default-window-feature
 +++ a/drivers/video/s3c-fb.c
-@@ -845,9 +845,6 @@ static void s3c_fb_clear_win(struct s3c_
- 	void __iomem *regs = sfb->regs;
+@@ -300,9 +300,9 @@ static int s3c_fb_set_par(struct fb_info
+ 	/* disable the window whilst we update it */
+ 	writel(0, regs + WINCON(win_no));
  
- 	writel(0, regs + WINCON(win));
--	writel(0xffffff, regs + WxKEYCONy(win, 0));
--	writel(0xffffff, regs + WxKEYCONy(win, 1));
--
- 	writel(0, regs + VIDOSD_A(win));
- 	writel(0, regs + VIDOSD_B(win));
- 	writel(0, regs + VIDOSD_C(win));
-@@ -920,6 +917,12 @@ static int __devinit s3c_fb_probe(struct
- 	for (win = 0; win < S3C_FB_MAX_WIN; win++)
- 		s3c_fb_clear_win(sfb, win);
+-	/* use window 0 as the basis for the lcd output timings */
++	/* use platform specified window as the basis for the lcd timings */
  
-+	/* initialise colour key controls */
-+	for (win = 0; win < (S3C_FB_MAX_WIN - 1); win++) {
-+		writel(0xffffff, sfb->regs + WxKEYCONy(win, 0));
-+		writel(0xffffff, sfb->regs + WxKEYCONy(win, 1));
-+	}
-+
- 	/* we have the register setup, start allocating framebuffers */
+-	if (win_no == 0) {
++	if (win_no == sfb->pdata->default_win) {
+ 		clkdiv = s3c_fb_calc_pixclk(sfb, var->pixclock);
  
- 	for (win = 0; win < S3C_FB_MAX_WIN; win++) {
-@@ -1020,6 +1023,11 @@ static int s3c_fb_resume(struct platform
- 	for (win_no = 0; win_no < S3C_FB_MAX_WIN; win_no++)
- 		s3c_fb_clear_win(sfb, win_no);
+ 		data = sfb->pdata->vidcon0;
+@@ -636,7 +636,7 @@ static int s3c_fb_blank(int blank_mode, 
+ 	/* we're stuck with this until we can do something about overriding
+ 	 * the power control using the blanking event for a single fb.
+ 	 */
+-	if (index == 0)
++	if (index == sfb->pdata->default_win)
+ 		s3c_fb_enable(sfb, blank_mode != FB_BLANK_POWERDOWN ? 1 : 0);
  
-+	for (win_no = 0; win_no < S3C_FB_MAX_WIN - 1; win_no++) {
-+		writel(0xffffff, sfb->regs + WxKEYCONy(win_no, 1));
-+		writel(0xffffff, sfb->regs + WxKEYCONy(win_no, 1));
-+	}
-+
- 	/* restore framebuffers */
- 	for (win_no = 0; win_no < S3C_FB_MAX_WIN; win_no++) {
- 		win = sfb->windows[win_no];
+ 	return 0;
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from inki.dae@samsung.com are
 
-linux-next.patch
 s3c-fb-change-to-depending-on-config_s3c_fb_dev.patch
 s3c-fb-add-default-window-feature.patch
 s3c-fb-fix-distortedness-situation-for-the-mode-more-then-24bpp.patch
@@ -116,5 +120,4 @@ s3c-fb-correct-window-osd-size-and-alpha-register-handling.patch
 s3c-fb-protect-window-specific-registers-during-updates.patch
 s3c-fb-fix-section-mismatch.patch
 s3c-fb-add-support-for-dma-channel-control-on-s5pv210.patch
-panic-keep-blinking-in-spite-of-long-spin-timer-mode.patch
 
