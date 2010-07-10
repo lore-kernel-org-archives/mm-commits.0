@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch added to -mm tree
-Date: Fri, 09 Jul 2010 17:02:12 -0700
-Message-ID: <201007100002.o6A02CSH000796@imap1.linux-foundation.org>
+Subject: + hp-wmi-add-return-value-checking-for-input_allocate_device.patch added to -mm tree
+Date: Fri, 09 Jul 2010 17:02:58 -0700
+Message-ID: <201007100002.o6A02wfU000890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752013Ab0GJACY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:02:24 -0400
+	by vger.kernel.org with ESMTP id S1754922Ab0GJADN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, carlos@strangeworlds.co.uk, mjg@redhat.com
+Cc: axel.lin@gmail.com, mjg@redhat.com, trenn@suse.de
 
 
 The patch titled
-     acer-wmi: fix memory leaks in WMID_set_capabilities and get_wmid_devices
+     hp-wmi: add return value checking for input_allocate_device()
 has been added to the -mm tree.  Its filename is
-     acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch
+     hp-wmi-add-return-value-checking-for-input_allocate_device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acer-wmi: fix memory leaks in WMID_set_capabilities and get_wmid_devices
+Subject: hp-wmi: add return value checking for input_allocate_device()
 From: Axel Lin <axel.lin@gmail.com>
 
-When acpi_evaluate_object() is passed ACPI_ALLOCATE_BUFFER, the caller
-must kfree the returned buffer if AE_OK is returned.
-
-The callers of wmi_query_block() pass ACPI_ALLOCATE_BUFFER, and thus must
-check its return value before accessing or kfree() on the buffer.
-
-This patch adds a missing kfree(out.pointer) before exit
-WMID_set_capabilities() and get_wmid_devices().
+Add error checking and return -ENOMEM if input_allocate_device() fail.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Acked-by: Thomas Renninger <trenn@suse.de>
 Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acer-wmi.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/platform/x86/hp-wmi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/platform/x86/acer-wmi.c~acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices drivers/platform/x86/acer-wmi.c
---- a/drivers/platform/x86/acer-wmi.c~acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices
-+++ a/drivers/platform/x86/acer-wmi.c
-@@ -772,6 +772,7 @@ static acpi_status WMID_set_capabilities
- 		obj->buffer.length == sizeof(u32)) {
- 		devices = *((u32 *) obj->buffer.pointer);
- 	} else {
-+		kfree(out.pointer);
- 		return AE_ERROR;
- 	}
+diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-add-return-value-checking-for-input_allocate_device drivers/platform/x86/hp-wmi.c
+--- a/drivers/platform/x86/hp-wmi.c~hp-wmi-add-return-value-checking-for-input_allocate_device
++++ a/drivers/platform/x86/hp-wmi.c
+@@ -527,6 +527,8 @@ static int __init hp_wmi_input_setup(voi
+ 	int err;
  
-@@ -788,6 +789,7 @@ static acpi_status WMID_set_capabilities
- 	if (!(devices & 0x20))
- 		max_brightness = 0x9;
+ 	hp_wmi_input_dev = input_allocate_device();
++	if (!hp_wmi_input_dev)
++		return -ENOMEM;
  
-+	kfree(out.pointer);
- 	return status;
- }
- 
-@@ -1094,6 +1096,7 @@ static u32 get_wmid_devices(void)
- 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
- 	union acpi_object *obj;
- 	acpi_status status;
-+	u32 devices = 0;
- 
- 	status = wmi_query_block(WMID_GUID2, 1, &out);
- 	if (ACPI_FAILURE(status))
-@@ -1102,10 +1105,11 @@ static u32 get_wmid_devices(void)
- 	obj = (union acpi_object *) out.pointer;
- 	if (obj && obj->type == ACPI_TYPE_BUFFER &&
- 		obj->buffer.length == sizeof(u32)) {
--		return *((u32 *) obj->buffer.pointer);
--	} else {
--		return 0;
-+		devices = *((u32 *) obj->buffer.pointer);
- 	}
-+
-+	kfree(out.pointer);
-+	return devices;
- }
- 
- /*
+ 	hp_wmi_input_dev->name = "HP WMI hotkeys";
+ 	hp_wmi_input_dev->phys = "wmi/input0";
 _
 
 Patches currently in -mm which might be from axel.lin@gmail.com are
@@ -116,6 +79,7 @@ acerhdf-fix-resource-reclaim-in-error-path.patch
 toshiba_acpi-make-remove_device-and-add_device-void.patch
 toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_proc_entries.patch
 acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch
+hp-wmi-add-return-value-checking-for-input_allocate_device.patch
 intel_menlow-fix-memory-leaks-in-error-path-fix.patch
 drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
 
