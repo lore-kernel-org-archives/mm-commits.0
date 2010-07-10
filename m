@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hp-wmi-add-return-value-checking-for-input_allocate_device.patch added to -mm tree
-Date: Fri, 09 Jul 2010 17:02:58 -0700
-Message-ID: <201007100002.o6A02wfU000890@imap1.linux-foundation.org>
+Subject: + maintainers-fix-edac-i7core-file-patterns.patch added to -mm tree
+Date: Fri, 09 Jul 2010 17:03:33 -0700
+Message-ID: <201007100003.o6A03XF6000915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754922Ab0GJADN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:03:13 -0400
+	by vger.kernel.org with ESMTP id S1755523Ab0GJADk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:03:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, mjg@redhat.com, trenn@suse.de
+Cc: joe@perches.com, mchehab@infradead.org
 
 
 The patch titled
-     hp-wmi: add return value checking for input_allocate_device()
+     MAINTAINERS: fix EDAC-I7CORE file patterns
 has been added to the -mm tree.  Its filename is
-     hp-wmi-add-return-value-checking-for-input_allocate_device.patch
+     maintainers-fix-edac-i7core-file-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: add return value checking for input_allocate_device()
-From: Axel Lin <axel.lin@gmail.com>
+Subject: MAINTAINERS: fix EDAC-I7CORE file patterns
+From: Joe Perches <joe@perches.com>
 
-Add error checking and return -ENOMEM if input_allocate_device() fail.
+File patterns are one per line.
+Fixed include file location.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/hp-wmi.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/hp-wmi.c~hp-wmi-add-return-value-checking-for-input_allocate_device drivers/platform/x86/hp-wmi.c
---- a/drivers/platform/x86/hp-wmi.c~hp-wmi-add-return-value-checking-for-input_allocate_device
-+++ a/drivers/platform/x86/hp-wmi.c
-@@ -527,6 +527,8 @@ static int __init hp_wmi_input_setup(voi
- 	int err;
+diff -puN MAINTAINERS~maintainers-fix-edac-i7core-file-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-edac-i7core-file-patterns
++++ a/MAINTAINERS
+@@ -2132,7 +2132,9 @@ M:	Mauro Carvalho Chehab <mchehab@redhat
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+-F:	drivers/edac/i7core_edac.c linux/edac_mce.h drivers/edac/edac_mce.c
++F:	drivers/edac/i7core_edac.c
++F:	drivers/edac/edac_mce.c
++F:	include/linux/edac_mce.h
  
- 	hp_wmi_input_dev = input_allocate_device();
-+	if (!hp_wmi_input_dev)
-+		return -ENOMEM;
- 
- 	hp_wmi_input_dev->name = "HP WMI hotkeys";
- 	hp_wmi_input_dev->phys = "wmi/input0";
+ EDAC-I82975X
+ M:	Ranganathan Desikan <ravi@jetztechnologies.com>
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+maintainers-fix-edac-i7core-file-patterns.patch
 linux-next.patch
-hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.patch
-fujitsu-laptop-remove-unnecessary-input_free_device-calls.patch
-compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch
-asus_acpi-fix-a-memory-leak-in-asus_hotk_get_info.patch
-asus_acpi-fix-coding-style-to-improve-readability.patch
-acerhdf-make-needlessly-global-symbols-static.patch
-classmate-laptop-make-needlessly-global-symbols-static.patch
-fujitsu-laptop-make-needlessly-global-symbols-static.patch
-msi-laptop-make-struct-rfkill_ops-const.patch
-asus-laptop-fix-incorrect-return-value-for-write_acpi_int_ret-if-handle-is-null.patch
-asus-laptop-return-proper-error-for-store_ledd-if-write_acpi_int-fail.patch
-acerhdf-fix-resource-reclaim-in-error-path.patch
-toshiba_acpi-make-remove_device-and-add_device-void.patch
-toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_proc_entries.patch
-acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch
-hp-wmi-add-return-value-checking-for-input_allocate_device.patch
-intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
+maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
+maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+maintainers-update-arm-voipac-pxa270-file-patterns.patch
+maintainers-update-arm-zipit-z2-support-file-patterns.patch
+maintainers-update-networking-file-patterns.patch
+maintainers-update-ppp-over-l2tp-file-patterns.patch
+maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+maintainers-remove-section-smx-uio-interface.patch
+maintainers-update-spear-clock-framework-support-file-patterns.patch
+maintainers-remove-section-strip.patch
+maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
+maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
+maintainers-update-drm-drivers-patterns.patch
+maintainers-add-patterns-to-cryptographic-random-number-generator.patch
+maintainers-add-patterns-to-dell-wmi-extras.patch
+maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
+maintainers-add-patterns-to-omap-usb.patch
+maintainers-remove-section-promise-dc4030.patch
+maintainers-add-patterns-to-ps3vram-driver.patch
+maintainers-add-patterns-to-wimax-stack.patch
+checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
+documentation-networking-wavelantxt-deleted-not-in-tree.patch
 
