@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mmu-notifiers-remove-mmu-notifier-calls-in-apply_to_page_range.patch added to -mm tree
-Date: Fri, 09 Jul 2010 17:00:42 -0700
-Message-ID: <201007100000.o6A00gOW000759@imap1.linux-foundation.org>
+Subject: + acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch added to -mm tree
+Date: Fri, 09 Jul 2010 17:02:12 -0700
+Message-ID: <201007100002.o6A02CSH000796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987Ab0GJABC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:01:02 -0400
+	by vger.kernel.org with ESMTP id S1752013Ab0GJACY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:02:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, aarcange@redhat.com, avi@qumranet.com, jeremy.fitzhardinge@citrix.com, stefano.stabellini@eu.citrix.com
+Cc: axel.lin@gmail.com, carlos@strangeworlds.co.uk, mjg@redhat.com
 
 
 The patch titled
-     mmu-notifiers: remove mmu notifier calls in apply_to_page_range()
+     acer-wmi: fix memory leaks in WMID_set_capabilities and get_wmid_devices
 has been added to the -mm tree.  Its filename is
-     mmu-notifiers-remove-mmu-notifier-calls-in-apply_to_page_range.patch
+     acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmu-notifiers: remove mmu notifier calls in apply_to_page_range()
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: acer-wmi: fix memory leaks in WMID_set_capabilities and get_wmid_devices
+From: Axel Lin <axel.lin@gmail.com>
 
-It is not appropriate for apply_to_page_range() to directly call any mmu
-notifiers, because it is a general purpose function whose effect depends
-on what context it is called in and what the callback function does.
+When acpi_evaluate_object() is passed ACPI_ALLOCATE_BUFFER, the caller
+must kfree the returned buffer if AE_OK is returned.
 
-In particular, if it is being used as part of an mmu notifier
-implementation, the recursive calls can be particularly problematic.
+The callers of wmi_query_block() pass ACPI_ALLOCATE_BUFFER, and thus must
+check its return value before accessing or kfree() on the buffer.
 
-It is up to apply_to_page_range's caller to do any notifier calls if
-necessary.  It does not affect any in-tree users because they all operate
-on init_mm, and mmu notifiers only pertain to usermode mappings.
+This patch adds a missing kfree(out.pointer) before exit
+WMID_set_capabilities() and get_wmid_devices().
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Cc: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/platform/x86/acer-wmi.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mmu-notifiers-remove-mmu-notifier-calls-in-apply_to_page_range mm/memory.c
---- a/mm/memory.c~mmu-notifiers-remove-mmu-notifier-calls-in-apply_to_page_range
-+++ a/mm/memory.c
-@@ -2000,7 +2000,6 @@ int apply_to_page_range(struct mm_struct
- 	int err;
+diff -puN drivers/platform/x86/acer-wmi.c~acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices drivers/platform/x86/acer-wmi.c
+--- a/drivers/platform/x86/acer-wmi.c~acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices
++++ a/drivers/platform/x86/acer-wmi.c
+@@ -772,6 +772,7 @@ static acpi_status WMID_set_capabilities
+ 		obj->buffer.length == sizeof(u32)) {
+ 		devices = *((u32 *) obj->buffer.pointer);
+ 	} else {
++		kfree(out.pointer);
+ 		return AE_ERROR;
+ 	}
  
- 	BUG_ON(addr >= end);
--	mmu_notifier_invalidate_range_start(mm, start, end);
- 	pgd = pgd_offset(mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
-@@ -2008,7 +2007,7 @@ int apply_to_page_range(struct mm_struct
- 		if (err)
- 			break;
- 	} while (pgd++, addr = next, addr != end);
--	mmu_notifier_invalidate_range_end(mm, start, end);
-+
- 	return err;
+@@ -788,6 +789,7 @@ static acpi_status WMID_set_capabilities
+ 	if (!(devices & 0x20))
+ 		max_brightness = 0x9;
+ 
++	kfree(out.pointer);
+ 	return status;
  }
- EXPORT_SYMBOL_GPL(apply_to_page_range);
+ 
+@@ -1094,6 +1096,7 @@ static u32 get_wmid_devices(void)
+ 	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	union acpi_object *obj;
+ 	acpi_status status;
++	u32 devices = 0;
+ 
+ 	status = wmi_query_block(WMID_GUID2, 1, &out);
+ 	if (ACPI_FAILURE(status))
+@@ -1102,10 +1105,11 @@ static u32 get_wmid_devices(void)
+ 	obj = (union acpi_object *) out.pointer;
+ 	if (obj && obj->type == ACPI_TYPE_BUFFER &&
+ 		obj->buffer.length == sizeof(u32)) {
+-		return *((u32 *) obj->buffer.pointer);
+-	} else {
+-		return 0;
++		devices = *((u32 *) obj->buffer.pointer);
+ 	}
++
++	kfree(out.pointer);
++	return devices;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-mmu-notifiers-remove-mmu-notifier-calls-in-apply_to_page_range.patch
+hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.patch
+fujitsu-laptop-remove-unnecessary-input_free_device-calls.patch
+compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch
+asus_acpi-fix-a-memory-leak-in-asus_hotk_get_info.patch
+asus_acpi-fix-coding-style-to-improve-readability.patch
+acerhdf-make-needlessly-global-symbols-static.patch
+classmate-laptop-make-needlessly-global-symbols-static.patch
+fujitsu-laptop-make-needlessly-global-symbols-static.patch
+msi-laptop-make-struct-rfkill_ops-const.patch
+asus-laptop-fix-incorrect-return-value-for-write_acpi_int_ret-if-handle-is-null.patch
+asus-laptop-return-proper-error-for-store_ledd-if-write_acpi_int-fail.patch
+acerhdf-fix-resource-reclaim-in-error-path.patch
+toshiba_acpi-make-remove_device-and-add_device-void.patch
+toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_proc_entries.patch
+acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
 
