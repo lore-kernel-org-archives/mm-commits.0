@@ -1,23 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-edac-i7core-file-patterns.patch added to -mm tree
-Date: Fri, 09 Jul 2010 17:03:33 -0700
-Message-ID: <201007100003.o6A03XF6000915@imap1.linux-foundation.org>
+Subject: + x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used.patch added to -mm tree
+Date: Mon, 12 Jul 2010 00:34:18 -0700
+Message-ID: <201007120734.o6C7YOsS026463@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755523Ab0GJADk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2010 20:03:40 -0400
+	by vger.kernel.org with ESMTP id S1754171Ab0GLHhV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 12 Jul 2010 03:37:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mchehab@infradead.org
+Cc: yinghai@kernel.org, borislav.petkov@amd.com, conny.seidel@amd.com, hannes@cmpxchg.org, hpa@zytor.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     MAINTAINERS: fix EDAC-I7CORE file patterns
+     x86,nobootmem: make alloc_bootmem_node fall back to other node when 32bit numa is used
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-edac-i7core-file-patterns.patch
+     x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: fix EDAC-I7CORE file patterns
-From: Joe Perches <joe@perches.com>
+Subject: x86,nobootmem: make alloc_bootmem_node fall back to other node when 32bit numa is used
+From: Yinghai Lu <yinghai@kernel.org>
 
-File patterns are one per line.
-Fixed include file location.
+Borislav Petkov reported his 32bit numa system has problem:
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+[    0.000000] Reserving total of 4c00 pages for numa KVA remap
+[    0.000000] kva_start_pfn ~ 32800 max_low_pfn ~ 375fe
+[    0.000000] max_pfn = 238000
+[    0.000000] 8202MB HIGHMEM available.
+[    0.000000] 885MB LOWMEM available.
+[    0.000000]   mapped low ram: 0 - 375fe000
+[    0.000000]   low ram: 0 - 375fe000
+[    0.000000] alloc (nid=8 100000 - 7ee00000) (1000000 - ffffffff) 1000 1000 => 34e7000
+[    0.000000] alloc (nid=8 100000 - 7ee00000) (1000000 - ffffffff) 200 40 => 34c9d80
+[    0.000000] alloc (nid=0 100000 - 7ee00000) (1000000 - ffffffffffffffff) 180 40 => 34e6140
+[    0.000000] alloc (nid=1 80000000 - c7e60000) (1000000 - ffffffffffffffff) 240 40 => 80000000
+[    0.000000] BUG: unable to handle kernel paging request at 40000000
+[    0.000000] IP: [<c2c8cff1>] __alloc_memory_core_early+0x147/0x1d6
+[    0.000000] *pdpt = 0000000000000000 *pde = f000ff53f000ff00
+...
+[    0.000000] Call Trace:
+[    0.000000]  [<c2c8b4f8>] ? __alloc_bootmem_node+0x216/0x22f
+[    0.000000]  [<c2c90c9b>] ? sparse_early_usemaps_alloc_node+0x5a/0x10b
+[    0.000000]  [<c2c9149e>] ? sparse_init+0x1dc/0x499
+[    0.000000]  [<c2c79118>] ? paging_init+0x168/0x1df
+[    0.000000]  [<c2c780ff>] ? native_pagetable_setup_start+0xef/0x1bb
+
+looks like it allocate much high address for bootmem.
+
+Try to cut limit with get_max_mapped()
+
+Reported-by: Borislav Petkov <borislav.petkov@amd.com>
+Tested-by: Conny Seidel <conny.seidel@amd.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: <stable@kernel.org>		[2.6.34.x]
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/bootmem.c    |   24 ++++++++++++++++++++----
+ mm/page_alloc.c |    3 +++
+ 2 files changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-edac-i7core-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-edac-i7core-file-patterns
-+++ a/MAINTAINERS
-@@ -2132,7 +2132,9 @@ M:	Mauro Carvalho Chehab <mchehab@redhat
- L:	linux-edac@vger.kernel.org
- W:	bluesmoke.sourceforge.net
- S:	Maintained
--F:	drivers/edac/i7core_edac.c linux/edac_mce.h drivers/edac/edac_mce.c
-+F:	drivers/edac/i7core_edac.c
-+F:	drivers/edac/edac_mce.c
-+F:	include/linux/edac_mce.h
+diff -puN mm/bootmem.c~x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used mm/bootmem.c
+--- a/mm/bootmem.c~x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used
++++ a/mm/bootmem.c
+@@ -833,15 +833,24 @@ static void * __init ___alloc_bootmem_no
+ void * __init __alloc_bootmem_node(pg_data_t *pgdat, unsigned long size,
+ 				   unsigned long align, unsigned long goal)
+ {
++	void *ptr;
++
+ 	if (WARN_ON_ONCE(slab_is_available()))
+ 		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
  
- EDAC-I82975X
- M:	Ranganathan Desikan <ravi@jetztechnologies.com>
+ #ifdef CONFIG_NO_BOOTMEM
+-	return __alloc_memory_core_early(pgdat->node_id, size, align,
++	ptr = __alloc_memory_core_early(pgdat->node_id, size, align,
++					 goal, -1ULL);
++	if (ptr)
++		return ptr;
++
++	ptr = __alloc_memory_core_early(MAX_NUMNODES, size, align,
+ 					 goal, -1ULL);
+ #else
+-	return ___alloc_bootmem_node(pgdat->bdata, size, align, goal, 0);
++	ptr = ___alloc_bootmem_node(pgdat->bdata, size, align, goal, 0);
+ #endif
++
++	return ptr;
+ }
+ 
+ void * __init __alloc_bootmem_node_high(pg_data_t *pgdat, unsigned long size,
+@@ -977,14 +986,21 @@ void * __init __alloc_bootmem_low(unsign
+ void * __init __alloc_bootmem_low_node(pg_data_t *pgdat, unsigned long size,
+ 				       unsigned long align, unsigned long goal)
+ {
++	void *ptr;
++
+ 	if (WARN_ON_ONCE(slab_is_available()))
+ 		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+ 
+ #ifdef CONFIG_NO_BOOTMEM
+-	return __alloc_memory_core_early(pgdat->node_id, size, align,
++	ptr = __alloc_memory_core_early(pgdat->node_id, size, align,
++				goal, ARCH_LOW_ADDRESS_LIMIT);
++	if (ptr)
++		return ptr;
++	ptr = __alloc_memory_core_early(MAX_NUMNODES, size, align,
+ 				goal, ARCH_LOW_ADDRESS_LIMIT);
+ #else
+-	return ___alloc_bootmem_node(pgdat->bdata, size, align,
++	ptr = ___alloc_bootmem_node(pgdat->bdata, size, align,
+ 				goal, ARCH_LOW_ADDRESS_LIMIT);
+ #endif
++	return ptr;
+ }
+diff -puN mm/page_alloc.c~x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used mm/page_alloc.c
+--- a/mm/page_alloc.c~x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used
++++ a/mm/page_alloc.c
+@@ -3634,6 +3634,9 @@ void * __init __alloc_memory_core_early(
+ 	int i;
+ 	void *ptr;
+ 
++	if (limit > get_max_mapped())
++		limit = get_max_mapped();
++
+ 	/* need to go over early_node_map to find out good range for node */
+ 	for_each_active_range_index_in_nid(i, nid) {
+ 		u64 addr;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
-maintainers-fix-edac-i7core-file-patterns.patch
+x86-numa-fix-boot-without-ram-on-node0-again.patch
+x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
 linux-next.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
-maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
-maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
-maintainers-update-arm-voipac-pxa270-file-patterns.patch
-maintainers-update-arm-zipit-z2-support-file-patterns.patch
-maintainers-update-networking-file-patterns.patch
-maintainers-update-ppp-over-l2tp-file-patterns.patch
-maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
-maintainers-remove-section-smx-uio-interface.patch
-maintainers-update-spear-clock-framework-support-file-patterns.patch
-maintainers-remove-section-strip.patch
-maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
-maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
-maintainers-update-drm-drivers-patterns.patch
-maintainers-add-patterns-to-cryptographic-random-number-generator.patch
-maintainers-add-patterns-to-dell-wmi-extras.patch
-maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
-maintainers-add-patterns-to-omap-usb.patch
-maintainers-remove-section-promise-dc4030.patch
-maintainers-add-patterns-to-ps3vram-driver.patch
-maintainers-add-patterns-to-wimax-stack.patch
-checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
-documentation-networking-wavelantxt-deleted-not-in-tree.patch
+x86nobootmem-make-alloc_bootmem_node-fall-back-to-other-node-when-32bit-numa-is-used.patch
+kernel-range-remove-unused-definition-of-array_size.patch
 
