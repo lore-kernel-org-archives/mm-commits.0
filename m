@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch added to -mm tree
-Date: Mon, 12 Jul 2010 16:23:04 -0700
-Message-ID: <201007122323.o6CNN4gA003068@imap1.linux-foundation.org>
+Subject: + edd-fix-possible-memory-leak-in-edd_init-error-path.patch added to -mm tree
+Date: Mon, 12 Jul 2010 16:23:15 -0700
+Message-ID: <201007122323.o6CNNFQV003076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755911Ab0GLXXk (ORCPT
+	by vger.kernel.org with ESMTP id S1755569Ab0GLXXv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jul 2010 19:23:40 -0400
+	Mon, 12 Jul 2010 19:23:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axel.lin@gmail.com, jens.axboe@oracle.com, shemminger@vyatta.com
+Cc: axel.lin@gmail.com, jens.axboe@oracle.com, shemminger@vyatta.com
 
 
 The patch titled
-     edd-fix-possible-memory-leak-in-edd_init-error-path-fix
+     edd: fix possible memory leak in edd_init() error path
 has been added to the -mm tree.  Its filename is
-     edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
+     edd-fix-possible-memory-leak-in-edd_init-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edd-fix-possible-memory-leak-in-edd_init-error-path-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: edd: fix possible memory leak in edd_init() error path
+From: Axel Lin <axel.lin@gmail.com>
 
-remove unneeded NULL test
+The error may happen at any iteration of the for loop, this patch properly
+unregisters already registed edd_devices in error path.
 
-Cc: Axel Lin <axel.lin@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
 Cc: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/edd.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/firmware/edd.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN drivers/firmware/edd.c~edd-fix-possible-memory-leak-in-edd_init-error-path-fix drivers/firmware/edd.c
---- a/drivers/firmware/edd.c~edd-fix-possible-memory-leak-in-edd_init-error-path-fix
+diff -puN drivers/firmware/edd.c~edd-fix-possible-memory-leak-in-edd_init-error-path drivers/firmware/edd.c
+--- a/drivers/firmware/edd.c~edd-fix-possible-memory-leak-in-edd_init-error-path
 +++ a/drivers/firmware/edd.c
-@@ -778,11 +778,8 @@ edd_init(void)
- 	return 0;
+@@ -744,7 +744,7 @@ static inline int edd_num_devices(void)
+ static int __init
+ edd_init(void)
+ {
+-	unsigned int i;
++	int i;
+ 	int rc=0;
+ 	struct edd_device *edev;
  
- out:
--	while (--i >= 0) {
--		edev = edd_devices[i];
--		if (edev)
--			edd_device_unregister(edev);
--	}
-+	while (--i >= 0)
-+		edd_device_unregister(edd_devices[i]);
- 	kset_unregister(edd_kset);
+@@ -760,21 +760,30 @@ edd_init(void)
+ 	if (!edd_kset)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < edd_num_devices() && !rc; i++) {
++	for (i = 0; i < edd_num_devices(); i++) {
+ 		edev = kzalloc(sizeof (*edev), GFP_KERNEL);
+-		if (!edev)
+-			return -ENOMEM;
++		if (!edev) {
++			rc = -ENOMEM;
++			goto out;
++		}
+ 
+ 		rc = edd_device_register(edev, i);
+ 		if (rc) {
+ 			kfree(edev);
+-			break;
++			goto out;
+ 		}
+ 		edd_devices[i] = edev;
+ 	}
+ 
+-	if (rc)
+-		kset_unregister(edd_kset);
++	return 0;
++
++out:
++	while (--i >= 0) {
++		edev = edd_devices[i];
++		if (edev)
++			edd_device_unregister(edev);
++	}
++	kset_unregister(edd_kset);
  	return rc;
  }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-origin.patch
-ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
-mm-vmap-area-cache-fix.patch
-x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-acpi-fix-bogus-preemption-logic-fix.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
+hp-wmi-return-enodev-if-bios-does-not-export-any-supported-hp-wmi-guid.patch
+fujitsu-laptop-remove-unnecessary-input_free_device-calls.patch
+compal-laptop-fujitsu-laptop-msi-laptop-make-dmi_check_cb-to-return-1-instead-of-0.patch
+asus_acpi-fix-a-memory-leak-in-asus_hotk_get_info.patch
+asus_acpi-fix-coding-style-to-improve-readability.patch
+acerhdf-make-needlessly-global-symbols-static.patch
+classmate-laptop-make-needlessly-global-symbols-static.patch
+fujitsu-laptop-make-needlessly-global-symbols-static.patch
+msi-laptop-make-struct-rfkill_ops-const.patch
+asus-laptop-fix-incorrect-return-value-for-write_acpi_int_ret-if-handle-is-null.patch
+asus-laptop-return-proper-error-for-store_ledd-if-write_acpi_int-fail.patch
+acerhdf-fix-resource-reclaim-in-error-path.patch
+toshiba_acpi-make-remove_device-and-add_device-void.patch
+toshiba_acpi-rename-add_device-and-remove_device-to-create_toshiba_proc_entries-and-remove_toshiba_proc_entries.patch
+hp-wmi-add-return-value-checking-for-input_allocate_device.patch
+acer-wmi-fix-memory-leaks-in-wmid_set_capabilities-and-get_wmid_devices.patch
+acer-wmi-fix-memory-leaks-in-wmab_execute-error-path.patch
+acer-wmi-remove-non-used-acer_quirks-struct-definition.patch
+asus-laptop-fix-wapf-wlan_status-and-bluetooth_status-module_param-permissions.patch
+eeepc-laptop-fix-hotplug_disabled-module_param-permissions.patch
 intel_menlow-fix-memory-leaks-in-error-path-fix.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
-serial-mmio32-support-for-8250_earlyc-fix-fix.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
-vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
+edd-fix-possible-memory-leak-in-edd_init-error-path.patch
 edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
-mmc-add-jz4740-mmc-driver-fix.patch
-sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value-fix.patch
-hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
