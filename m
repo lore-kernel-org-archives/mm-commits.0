@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-save-space-for-the-terminator.patch added to -mm tree
-Date: Mon, 12 Jul 2010 13:13:52 -0700
-Message-ID: <201007122013.o6CKDqPL026849@imap1.linux-foundation.org>
+Subject: + sysfs-fix-discrepancies-between-implementation-and-documentation.patch added to -mm tree
+Date: Mon, 12 Jul 2010 14:28:59 -0700
+Message-ID: <201007122128.o6CLSxlY030309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752323Ab0GLUOQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752802Ab0GLV34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jul 2010 16:14:16 -0400
+	Mon, 12 Jul 2010 17:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, bblum@andrew.cmu.edu, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serge@hallyn.com
+Cc: bvanassche@acm.org, bart.vanassche@gmail.com, greg@kroah.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     cgroups: save space for the terminator
+     sysfs: fix discrepancies between implementation and documentation
 has been added to the -mm tree.  Its filename is
-     cgroups-save-space-for-the-terminator.patch
+     sysfs-fix-discrepancies-between-implementation-and-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: save space for the terminator
-From: Dan Carpenter <error27@gmail.com>
+Subject: sysfs: fix discrepancies between implementation and documentation
+From: Bart Van Assche <bvanassche@acm.org>
 
-The original code didn't leave enough space for a NULL terminator.  These
-strings are copied with strcpy() into fixed length buffers in
-cgroup_root_from_opts().
+Fix all discrepancies I know of between the sysfs implementation and its
+documentation.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
-Reviewd-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Ben Blum <bblum@andrew.cmu.edu>
+Signed-off-by: Bart Van Assche <bart.vanassche@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/filesystems/sysfs.txt |   44 ++++++++++++++------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-save-space-for-the-terminator kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-save-space-for-the-terminator
-+++ a/kernel/cgroup.c
-@@ -1102,7 +1102,7 @@ static int parse_cgroupfs_options(char *
- 			if (opts->release_agent)
- 				return -EINVAL;
- 			opts->release_agent =
--				kstrndup(token + 14, PATH_MAX, GFP_KERNEL);
-+				kstrndup(token + 14, PATH_MAX - 1, GFP_KERNEL);
- 			if (!opts->release_agent)
- 				return -ENOMEM;
- 		} else if (!strncmp(token, "name=", 5)) {
-@@ -1123,7 +1123,7 @@ static int parse_cgroupfs_options(char *
- 			if (opts->name)
- 				return -EINVAL;
- 			opts->name = kstrndup(name,
--					      MAX_CGROUP_ROOT_NAMELEN,
-+					      MAX_CGROUP_ROOT_NAMELEN - 1,
- 					      GFP_KERNEL);
- 			if (!opts->name)
- 				return -ENOMEM;
+diff -puN Documentation/filesystems/sysfs.txt~sysfs-fix-discrepancies-between-implementation-and-documentation Documentation/filesystems/sysfs.txt
+--- a/Documentation/filesystems/sysfs.txt~sysfs-fix-discrepancies-between-implementation-and-documentation
++++ a/Documentation/filesystems/sysfs.txt
+@@ -4,7 +4,7 @@ sysfs - _The_ filesystem for exporting k
+ Patrick Mochel	<mochel@osdl.org>
+ Mike Murphy <mamurph@cs.clemson.edu>
+ 
+-Revised:    22 February 2009
++Revised:    10 July 2010
+ Original:   10 January 2003
+ 
+ 
+@@ -124,7 +124,7 @@ show and store methods of the attribute 
+ 
+ struct sysfs_ops {
+         ssize_t (*show)(struct kobject *, struct attribute *, char *);
+-        ssize_t (*store)(struct kobject *, struct attribute *, const char *);
++        ssize_t (*store)(struct kobject *, struct attribute *, const char *, size_t);
+ };
+ 
+ [ Subsystems should have already defined a struct kobj_type as a
+@@ -139,18 +139,22 @@ calls the associated methods. 
+ 
+ To illustrate:
+ 
++#define to_dev(obj) container_of(obj, struct device, kobj)
+ #define to_dev_attr(_attr) container_of(_attr, struct device_attribute, attr)
+-#define to_dev(d) container_of(d, struct device, kobj)
+ 
+-static ssize_t
+-dev_attr_show(struct kobject * kobj, struct attribute * attr, char * buf)
++static ssize_t dev_attr_show(struct kobject *kobj, struct attribute *attr,
++                             char *buf)
+ {
+-        struct device_attribute * dev_attr = to_dev_attr(attr);
+-        struct device * dev = to_dev(kobj);
+-        ssize_t ret = 0;
++        struct device_attribute *dev_attr = to_dev_attr(attr);
++        struct device *dev = to_dev(kobj);
++        ssize_t ret = -EIO;
+ 
+         if (dev_attr->show)
+-                ret = dev_attr->show(dev, buf);
++                ret = dev_attr->show(dev, dev_attr, buf);
++        if (ret >= (ssize_t)PAGE_SIZE) {
++                print_symbol("dev_attr_show: %s returned bad count\n",
++                                (unsigned long)dev_attr->show);
++        }
+         return ret;
+ }
+ 
+@@ -163,10 +167,9 @@ To read or write attributes, show() or s
+ specified when declaring the attribute. The method types should be as
+ simple as those defined for device attributes:
+ 
+-ssize_t (*show)(struct device * dev, struct device_attribute * attr,
+-                char * buf);
+-ssize_t (*store)(struct device * dev, struct device_attribute * attr,
+-                 const char * buf);
++ssize_t (*show)(struct device *dev, struct device_attribute *attr, char *buf);
++ssize_t (*store)(struct device *dev, struct device_attribute *attr,
++                 const char *buf, size_t count);
+ 
+ IOW, they should take only an object, an attribute, and a buffer as parameters.
+ 
+@@ -209,8 +212,8 @@ Other notes:
+ 
+ - show() should always use snprintf(). 
+ 
+-- store() should return the number of bytes used from the buffer. This
+-  can be done using strlen().
++- store() should return the number of bytes used from the buffer. If the
++  entire buffer has been used, just return the count argument.
+ 
+ - show() or store() can always return errors. If a bad value comes
+   through, be sure to return an error.
+@@ -223,15 +226,18 @@ Other notes:
+ 
+ A very simple (and naive) implementation of a device attribute is:
+ 
+-static ssize_t show_name(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_name(struct device *dev, struct device_attribute *attr,
++                         char *buf)
+ {
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", dev->name);
+ }
+ 
+-static ssize_t store_name(struct device * dev, const char * buf)
++static ssize_t store_name(struct device *dev, struct device_attribute *attr,
++                          const char *buf, size_t count)
+ {
+-	sscanf(buf, "%20s", dev->name);
+-	return strnlen(buf, PAGE_SIZE);
++        snprintf(dev->name, sizeof(dev->name), "%.*s",
++                 (int)min(count, sizeof(dev->name) - 1), buf);
++	return count;
+ }
+ 
+ static DEVICE_ATTR(name, S_IRUGO, show_name, store_name);
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from bvanassche@acm.org are
 
-linux-next.patch
-mtd-sst25l-check-for-null-consistently.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-9p-strlen-doesnt-count-the-terminator.patch
-autofs4-remove-unneeded-null-check-in-try_to_fill_dentry.patch
-cgroups-save-space-for-the-terminator.patch
+sysfs-fix-discrepancies-between-implementation-and-documentation.patch
 
