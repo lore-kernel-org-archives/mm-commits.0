@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch added to -mm tree
-Date: Mon, 12 Jul 2010 15:23:57 -0700
-Message-ID: <201007122223.o6CMNvd4032674@imap1.linux-foundation.org>
+Subject: + writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch added to -mm tree
+Date: Mon, 12 Jul 2010 15:23:59 -0700
+Message-ID: <201007122223.o6CMNxfi032677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754442Ab0GLWYh (ORCPT
+	by vger.kernel.org with ESMTP id S1754442Ab0GLWYi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jul 2010 18:24:37 -0400
+	Mon, 12 Jul 2010 18:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, hch@infradead.org
+Cc: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hch@infradead.org, jack@suse.cz
 
 
 The patch titled
-     writeback: avoid unnecessary calculation of bdi dirty thresholds
+     writeback: don't redirty tail an inode with dirty pages
 has been added to the -mm tree.  Its filename is
-     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
+     writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,205 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: avoid unnecessary calculation of bdi dirty thresholds
+Subject: writeback: don't redirty tail an inode with dirty pages
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Split get_dirty_limits() into global_dirty_limits()+bdi_dirty_limit(), so
-that the latter can be avoided when under global dirty background
-threshold (which is the normal state for most systems).
+Avoid delaying writeback for an expire inode with lots of dirty pages, but
+no active dirtier at the moment.  Previously we only do that for the
+kupdate case.
+
+Any filesystem that does delayed allocation or unwritten extent conversion
+after IO completion will cause this - for example, XFS.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |    2 
- include/linux/writeback.h |    5 +-
- mm/backing-dev.c          |    3 -
- mm/page-writeback.c       |   74 ++++++++++++++++++------------------
- 4 files changed, 43 insertions(+), 41 deletions(-)
+ fs/fs-writeback.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
+diff -puN fs/fs-writeback.c~writeback-dont-redirty-tail-an-inode-with-dirty-pages fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-dont-redirty-tail-an-inode-with-dirty-pages
 +++ a/fs/fs-writeback.c
-@@ -593,7 +593,7 @@ static inline bool over_bground_thresh(v
- {
- 	unsigned long background_thresh, dirty_thresh;
- 
--	get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
-+	global_dirty_limits(&background_thresh, &dirty_thresh);
- 
- 	return (global_page_state(NR_FILE_DIRTY) +
- 		global_page_state(NR_UNSTABLE_NFS) >= background_thresh);
-diff -puN include/linux/writeback.h~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds include/linux/writeback.h
---- a/include/linux/writeback.h~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
-+++ a/include/linux/writeback.h
-@@ -124,8 +124,9 @@ struct ctl_table;
- int dirty_writeback_centisecs_handler(struct ctl_table *, int,
- 				      void __user *, size_t *, loff_t *);
- 
--void get_dirty_limits(unsigned long *pbackground, unsigned long *pdirty,
--		      unsigned long *pbdi_dirty, struct backing_dev_info *bdi);
-+void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
-+unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
-+			       unsigned long dirty);
- 
- void page_writeback_init(void);
- void balance_dirty_pages_ratelimited_nr(struct address_space *mapping,
-diff -puN mm/backing-dev.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds mm/backing-dev.c
---- a/mm/backing-dev.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
-+++ a/mm/backing-dev.c
-@@ -83,7 +83,8 @@ static int bdi_debug_stats_show(struct s
- 		nr_more_io++;
- 	spin_unlock(&inode_lock);
- 
--	get_dirty_limits(&background_thresh, &dirty_thresh, &bdi_thresh, bdi);
-+	global_dirty_limits(&background_thresh, &dirty_thresh);
-+	bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
- 
- #define K(x) ((x) << (PAGE_SHIFT - 10))
- 	seq_printf(m,
-diff -puN mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
-+++ a/mm/page-writeback.c
-@@ -267,10 +267,11 @@ static inline void task_dirties_fraction
-  *
-  *   dirty -= (dirty/8) * p_{t}
-  */
--static void task_dirty_limit(struct task_struct *tsk, unsigned long *pdirty)
-+static unsigned long task_dirty_limit(struct task_struct *tsk,
-+				       unsigned long bdi_dirty)
- {
- 	long numerator, denominator;
--	unsigned long dirty = *pdirty;
-+	unsigned long dirty = bdi_dirty;
- 	u64 inv = dirty >> 3;
- 
- 	task_dirties_fraction(tsk, &numerator, &denominator);
-@@ -278,10 +279,8 @@ static void task_dirty_limit(struct task
- 	do_div(inv, denominator);
- 
- 	dirty -= inv;
--	if (dirty < *pdirty/2)
--		dirty = *pdirty/2;
- 
--	*pdirty = dirty;
-+	return max(dirty, bdi_dirty/2);
- }
- 
- /*
-@@ -391,9 +390,7 @@ unsigned long determine_dirtyable_memory
- 	return x + 1;	/* Ensure that we never return 0 */
- }
- 
--void
--get_dirty_limits(unsigned long *pbackground, unsigned long *pdirty,
--		 unsigned long *pbdi_dirty, struct backing_dev_info *bdi)
-+void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty)
- {
- 	unsigned long background;
- 	unsigned long dirty;
-@@ -425,26 +422,28 @@ get_dirty_limits(unsigned long *pbackgro
- 	}
- 	*pbackground = background;
- 	*pdirty = dirty;
-+}
- 
--	if (bdi) {
--		u64 bdi_dirty;
--		long numerator, denominator;
-+unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
-+			       unsigned long dirty)
-+{
-+	u64 bdi_dirty;
-+	long numerator, denominator;
- 
--		/*
--		 * Calculate this BDI's share of the dirty ratio.
--		 */
--		bdi_writeout_fraction(bdi, &numerator, &denominator);
-+	/*
-+	 * Calculate this BDI's share of the dirty ratio.
-+	 */
-+	bdi_writeout_fraction(bdi, &numerator, &denominator);
- 
--		bdi_dirty = (dirty * (100 - bdi_min_ratio)) / 100;
--		bdi_dirty *= numerator;
--		do_div(bdi_dirty, denominator);
--		bdi_dirty += (dirty * bdi->min_ratio) / 100;
--		if (bdi_dirty > (dirty * bdi->max_ratio) / 100)
--			bdi_dirty = dirty * bdi->max_ratio / 100;
-+	bdi_dirty = (dirty * (100 - bdi_min_ratio)) / 100;
-+	bdi_dirty *= numerator;
-+	do_div(bdi_dirty, denominator);
- 
--		*pbdi_dirty = bdi_dirty;
--		task_dirty_limit(current, pbdi_dirty);
--	}
-+	bdi_dirty += (dirty * bdi->min_ratio) / 100;
-+	if (bdi_dirty > (dirty * bdi->max_ratio) / 100)
-+		bdi_dirty = dirty * bdi->max_ratio / 100;
-+
-+	return task_dirty_limit(current, bdi_dirty);
- }
- 
- /*
-@@ -475,14 +474,24 @@ static void balance_dirty_pages(struct a
- 			.range_cyclic	= 1,
- 		};
- 
--		get_dirty_limits(&background_thresh, &dirty_thresh,
--				 &bdi_thresh, bdi);
--
- 		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
- 				 global_page_state(NR_UNSTABLE_NFS);
- 		nr_writeback = global_page_state(NR_WRITEBACK) +
- 			       global_page_state(NR_WRITEBACK_TEMP);
- 
-+		global_dirty_limits(&background_thresh, &dirty_thresh);
-+
-+		/*
-+		 * Throttle it only when the background writeback cannot
-+		 * catch-up. This avoids (excessively) small writeouts
-+		 * when the bdi limits are ramping up.
-+		 */
-+		if (nr_reclaimable + nr_writeback <
-+				(background_thresh + dirty_thresh) / 2)
-+			break;
-+
-+		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
-+
- 		/*
- 		 * In order to avoid the stacked BDI deadlock we need
- 		 * to ensure we accurately count the 'dirty' pages when
-@@ -514,15 +523,6 @@ static void balance_dirty_pages(struct a
- 		if (!dirty_exceeded)
- 			break;
- 
--		/*
--		 * Throttle it only when the background writeback cannot
--		 * catch-up. This avoids (excessively) small writeouts
--		 * when the bdi limits are ramping up.
--		 */
--		if (nr_reclaimable + nr_writeback <
--				(background_thresh + dirty_thresh) / 2)
--			break;
--
- 		if (!bdi->dirty_exceeded)
- 			bdi->dirty_exceeded = 1;
- 
-@@ -635,7 +635,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 	unsigned long dirty_thresh;
- 
-         for ( ; ; ) {
--		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
-+		global_dirty_limits(&background_thresh, &dirty_thresh);
- 
-                 /*
-                  * Boost the allowable dirty threshold a bit for page
+@@ -366,18 +366,7 @@ writeback_single_inode(struct inode *ino
+ 	spin_lock(&inode_lock);
+ 	inode->i_state &= ~I_SYNC;
+ 	if (!(inode->i_state & I_FREEING)) {
+-		if ((inode->i_state & I_DIRTY_PAGES) && wbc->for_kupdate) {
+-			/*
+-			 * More pages get dirtied by a fast dirtier.
+-			 */
+-			goto select_queue;
+-		} else if (inode->i_state & I_DIRTY) {
+-			/*
+-			 * At least XFS will redirty the inode during the
+-			 * writeback (delalloc) and on io completion (isize).
+-			 */
+-			redirty_tail(inode);
+-		} else if (mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
++		if (mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
+ 			/*
+ 			 * We didn't write back all the pages.  nfs_writepages()
+ 			 * sometimes bales out without doing anything. Redirty
+@@ -399,7 +388,6 @@ writeback_single_inode(struct inode *ino
+ 				 * soon as the queue becomes uncongested.
+ 				 */
+ 				inode->i_state |= I_DIRTY_PAGES;
+-select_queue:
+ 				if (wbc->nr_to_write <= 0) {
+ 					/*
+ 					 * slice used up: queue for next turn
+@@ -422,6 +410,14 @@ select_queue:
+ 				inode->i_state |= I_DIRTY_PAGES;
+ 				redirty_tail(inode);
+ 			}
++		} else if (inode->i_state & I_DIRTY) {
++			/*
++			 * Filesystems can dirty the inode during writeback
++			 * operations, such as delayed allocation during
++			 * submission or metadata updates after data IO
++			 * completion.
++			 */
++			redirty_tail(inode);
+ 		} else if (atomic_read(&inode->i_count)) {
+ 			/*
+ 			 * The inode is clean, inuse
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
