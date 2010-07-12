@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edd-fix-possible-memory-leak-in-edd_init-error-path.patch added to -mm tree
-Date: Mon, 12 Jul 2010 16:23:15 -0700
-Message-ID: <201007122323.o6CNNFQV003076@imap1.linux-foundation.org>
+Subject: + eeepc-laptop-fix-hotplug_disabled-module_param-permissions.patch added to -mm tree
+Date: Mon, 12 Jul 2010 16:18:21 -0700
+Message-ID: <201007122318.o6CNILSm002836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755569Ab0GLXXv (ORCPT
+	by vger.kernel.org with ESMTP id S1755929Ab0GLXZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jul 2010 19:23:51 -0400
+	Mon, 12 Jul 2010 19:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, jens.axboe@oracle.com, shemminger@vyatta.com
+Cc: axel.lin@gmail.com, alan-jenkins@tuffmail.co.uk, corentincj@iksaif.net, mjg@redhat.com
 
 
 The patch titled
-     edd: fix possible memory leak in edd_init() error path
+     eeepc-laptop: fix hotplug_disabled module_param permissions
 has been added to the -mm tree.  Its filename is
-     edd-fix-possible-memory-leak-in-edd_init-error-path.patch
+     eeepc-laptop-fix-hotplug_disabled-module_param-permissions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edd: fix possible memory leak in edd_init() error path
+Subject: eeepc-laptop: fix hotplug_disabled module_param permissions
 From: Axel Lin <axel.lin@gmail.com>
 
-The error may happen at any iteration of the for loop, this patch properly
-unregisters already registed edd_devices in error path.
+The hotplug_disabled module parameter is determinated at the module load
+time.  Change the value after the module is loaded does not make sense and
+has no effect at all, thus set the permissions to 0444 instead of 0644.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/edd.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/edd.c~edd-fix-possible-memory-leak-in-edd_init-error-path drivers/firmware/edd.c
---- a/drivers/firmware/edd.c~edd-fix-possible-memory-leak-in-edd_init-error-path
-+++ a/drivers/firmware/edd.c
-@@ -744,7 +744,7 @@ static inline int edd_num_devices(void)
- static int __init
- edd_init(void)
- {
--	unsigned int i;
-+	int i;
- 	int rc=0;
- 	struct edd_device *edev;
+diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-fix-hotplug_disabled-module_param-permissions drivers/platform/x86/eeepc-laptop.c
+--- a/drivers/platform/x86/eeepc-laptop.c~eeepc-laptop-fix-hotplug_disabled-module_param-permissions
++++ a/drivers/platform/x86/eeepc-laptop.c
+@@ -53,7 +53,7 @@ MODULE_LICENSE("GPL");
  
-@@ -760,21 +760,30 @@ edd_init(void)
- 	if (!edd_kset)
- 		return -ENOMEM;
+ static bool hotplug_disabled;
  
--	for (i = 0; i < edd_num_devices() && !rc; i++) {
-+	for (i = 0; i < edd_num_devices(); i++) {
- 		edev = kzalloc(sizeof (*edev), GFP_KERNEL);
--		if (!edev)
--			return -ENOMEM;
-+		if (!edev) {
-+			rc = -ENOMEM;
-+			goto out;
-+		}
- 
- 		rc = edd_device_register(edev, i);
- 		if (rc) {
- 			kfree(edev);
--			break;
-+			goto out;
- 		}
- 		edd_devices[i] = edev;
- 	}
- 
--	if (rc)
--		kset_unregister(edd_kset);
-+	return 0;
-+
-+out:
-+	while (--i >= 0) {
-+		edev = edd_devices[i];
-+		if (edev)
-+			edd_device_unregister(edev);
-+	}
-+	kset_unregister(edd_kset);
- 	return rc;
- }
- 
+-module_param(hotplug_disabled, bool, 0644);
++module_param(hotplug_disabled, bool, 0444);
+ MODULE_PARM_DESC(hotplug_disabled,
+ 		 "Disable hotplug for wireless device. "
+ 		 "If your laptop need that, please report to "
 _
 
 Patches currently in -mm which might be from axel.lin@gmail.com are
