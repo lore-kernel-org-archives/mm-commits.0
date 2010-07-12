@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-warning-dirent-is-used-uninitialized-in-this-function.patch added to -mm tree
-Date: Mon, 12 Jul 2010 14:43:37 -0700
-Message-ID: <201007122143.o6CLhbxX030929@imap1.linux-foundation.org>
+Subject: + writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch added to -mm tree
+Date: Mon, 12 Jul 2010 15:23:57 -0700
+Message-ID: <201007122223.o6CMNvd4032674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753779Ab0GLVns (ORCPT
+	by vger.kernel.org with ESMTP id S1754442Ab0GLWYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Jul 2010 17:43:48 -0400
+	Mon, 12 Jul 2010 18:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kjwinchester@gmail.com, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, hch@infradead.org
 
 
 The patch titled
-     vfs: fix warning: 'dirent' is used uninitialized in this function
+     writeback: avoid unnecessary calculation of bdi dirty thresholds
 has been added to the -mm tree.  Its filename is
-     vfs-fix-warning-dirent-is-used-uninitialized-in-this-function.patch
+     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,219 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix warning: 'dirent' is used uninitialized in this function
-From: Kevin Winchester <kjwinchester@gmail.com>
+Subject: writeback: avoid unnecessary calculation of bdi dirty thresholds
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Using:
+Split get_dirty_limits() into global_dirty_limits()+bdi_dirty_limit(), so
+that the latter can be avoided when under global dirty background
+threshold (which is the normal state for most systems).
 
-	gcc (GCC) 4.5.0 20100610 (prerelease)
-
-The following warnings appear:
-
-	fs/readdir.c: In function `filldir64':
-	fs/readdir.c:240:15: warning: `dirent' is used uninitialized in this function
-	fs/readdir.c: In function `filldir':
-	fs/readdir.c:155:15: warning: `dirent' is used uninitialized in this function
-	fs/compat.c: In function `compat_filldir64':
-	fs/compat.c:1071:11: warning: `dirent' is used uninitialized in this function
-	fs/compat.c: In function `compat_filldir':
-	fs/compat.c:984:15: warning: `dirent' is used uninitialized in this function
-
-The warnings are related to the use of the NAME_OFFSET() macro.  Luckily,
-it appears as though the standard offsetof() macro is what is being
-implemented by NAME_OFFSET(), thus we can fix the warning and use a more
-standard code construct at the same time.
-
-Signed-off-by: Kevin Winchester <kjwinchester@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c  |   10 +++++-----
- fs/readdir.c |    8 +++++---
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ fs/fs-writeback.c         |    2 
+ include/linux/writeback.h |    5 +-
+ mm/backing-dev.c          |    3 -
+ mm/page-writeback.c       |   74 ++++++++++++++++++------------------
+ 4 files changed, 43 insertions(+), 41 deletions(-)
 
-diff -puN fs/compat.c~vfs-fix-warning-dirent-is-used-uninitialized-in-this-function fs/compat.c
---- a/fs/compat.c~vfs-fix-warning-dirent-is-used-uninitialized-in-this-function
-+++ a/fs/compat.c
-@@ -15,6 +15,7 @@
-  *  published by the Free Software Foundation.
-  */
+diff -puN fs/fs-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
++++ a/fs/fs-writeback.c
+@@ -593,7 +593,7 @@ static inline bool over_bground_thresh(v
+ {
+ 	unsigned long background_thresh, dirty_thresh;
  
-+#include <linux/stddef.h>
- #include <linux/kernel.h>
- #include <linux/linkage.h>
- #include <linux/compat.h>
-@@ -891,8 +892,6 @@ asmlinkage long compat_sys_mount(char __
- 	return retval;
+-	get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
++	global_dirty_limits(&background_thresh, &dirty_thresh);
+ 
+ 	return (global_page_state(NR_FILE_DIRTY) +
+ 		global_page_state(NR_UNSTABLE_NFS) >= background_thresh);
+diff -puN include/linux/writeback.h~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
++++ a/include/linux/writeback.h
+@@ -124,8 +124,9 @@ struct ctl_table;
+ int dirty_writeback_centisecs_handler(struct ctl_table *, int,
+ 				      void __user *, size_t *, loff_t *);
+ 
+-void get_dirty_limits(unsigned long *pbackground, unsigned long *pdirty,
+-		      unsigned long *pbdi_dirty, struct backing_dev_info *bdi);
++void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
++unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
++			       unsigned long dirty);
+ 
+ void page_writeback_init(void);
+ void balance_dirty_pages_ratelimited_nr(struct address_space *mapping,
+diff -puN mm/backing-dev.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds mm/backing-dev.c
+--- a/mm/backing-dev.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
++++ a/mm/backing-dev.c
+@@ -83,7 +83,8 @@ static int bdi_debug_stats_show(struct s
+ 		nr_more_io++;
+ 	spin_unlock(&inode_lock);
+ 
+-	get_dirty_limits(&background_thresh, &dirty_thresh, &bdi_thresh, bdi);
++	global_dirty_limits(&background_thresh, &dirty_thresh);
++	bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
+ 
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+ 	seq_printf(m,
+diff -puN mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds
++++ a/mm/page-writeback.c
+@@ -267,10 +267,11 @@ static inline void task_dirties_fraction
+  *
+  *   dirty -= (dirty/8) * p_{t}
+  */
+-static void task_dirty_limit(struct task_struct *tsk, unsigned long *pdirty)
++static unsigned long task_dirty_limit(struct task_struct *tsk,
++				       unsigned long bdi_dirty)
+ {
+ 	long numerator, denominator;
+-	unsigned long dirty = *pdirty;
++	unsigned long dirty = bdi_dirty;
+ 	u64 inv = dirty >> 3;
+ 
+ 	task_dirties_fraction(tsk, &numerator, &denominator);
+@@ -278,10 +279,8 @@ static void task_dirty_limit(struct task
+ 	do_div(inv, denominator);
+ 
+ 	dirty -= inv;
+-	if (dirty < *pdirty/2)
+-		dirty = *pdirty/2;
+ 
+-	*pdirty = dirty;
++	return max(dirty, bdi_dirty/2);
  }
  
--#define NAME_OFFSET(de) ((int) ((de)->d_name - (char __user *) (de)))
+ /*
+@@ -391,9 +390,7 @@ unsigned long determine_dirtyable_memory
+ 	return x + 1;	/* Ensure that we never return 0 */
+ }
+ 
+-void
+-get_dirty_limits(unsigned long *pbackground, unsigned long *pdirty,
+-		 unsigned long *pbdi_dirty, struct backing_dev_info *bdi)
++void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty)
+ {
+ 	unsigned long background;
+ 	unsigned long dirty;
+@@ -425,26 +422,28 @@ get_dirty_limits(unsigned long *pbackgro
+ 	}
+ 	*pbackground = background;
+ 	*pdirty = dirty;
++}
+ 
+-	if (bdi) {
+-		u64 bdi_dirty;
+-		long numerator, denominator;
++unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
++			       unsigned long dirty)
++{
++	u64 bdi_dirty;
++	long numerator, denominator;
+ 
+-		/*
+-		 * Calculate this BDI's share of the dirty ratio.
+-		 */
+-		bdi_writeout_fraction(bdi, &numerator, &denominator);
++	/*
++	 * Calculate this BDI's share of the dirty ratio.
++	 */
++	bdi_writeout_fraction(bdi, &numerator, &denominator);
+ 
+-		bdi_dirty = (dirty * (100 - bdi_min_ratio)) / 100;
+-		bdi_dirty *= numerator;
+-		do_div(bdi_dirty, denominator);
+-		bdi_dirty += (dirty * bdi->min_ratio) / 100;
+-		if (bdi_dirty > (dirty * bdi->max_ratio) / 100)
+-			bdi_dirty = dirty * bdi->max_ratio / 100;
++	bdi_dirty = (dirty * (100 - bdi_min_ratio)) / 100;
++	bdi_dirty *= numerator;
++	do_div(bdi_dirty, denominator);
+ 
+-		*pbdi_dirty = bdi_dirty;
+-		task_dirty_limit(current, pbdi_dirty);
+-	}
++	bdi_dirty += (dirty * bdi->min_ratio) / 100;
++	if (bdi_dirty > (dirty * bdi->max_ratio) / 100)
++		bdi_dirty = dirty * bdi->max_ratio / 100;
++
++	return task_dirty_limit(current, bdi_dirty);
+ }
+ 
+ /*
+@@ -475,14 +474,24 @@ static void balance_dirty_pages(struct a
+ 			.range_cyclic	= 1,
+ 		};
+ 
+-		get_dirty_limits(&background_thresh, &dirty_thresh,
+-				 &bdi_thresh, bdi);
 -
- struct compat_old_linux_dirent {
- 	compat_ulong_t	d_ino;
- 	compat_ulong_t	d_offset;
-@@ -981,7 +980,8 @@ static int compat_filldir(void *__buf, c
- 	struct compat_linux_dirent __user * dirent;
- 	struct compat_getdents_callback *buf = __buf;
- 	compat_ulong_t d_ino;
--	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 2, sizeof(compat_long_t));
-+	int reclen = ALIGN(offsetof(struct compat_linux_dirent, d_name) +
-+		namlen + 2, sizeof(compat_long_t));
+ 		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+ 				 global_page_state(NR_UNSTABLE_NFS);
+ 		nr_writeback = global_page_state(NR_WRITEBACK) +
+ 			       global_page_state(NR_WRITEBACK_TEMP);
  
- 	buf->error = -EINVAL;	/* only used if we fail.. */
- 	if (reclen > buf->count)
-@@ -1068,8 +1068,8 @@ static int compat_filldir64(void * __buf
- {
- 	struct linux_dirent64 __user *dirent;
- 	struct compat_getdents_callback64 *buf = __buf;
--	int jj = NAME_OFFSET(dirent);
--	int reclen = ALIGN(jj + namlen + 1, sizeof(u64));
-+	int reclen = ALIGN(offsetof(struct linux_dirent64, d_name) + namlen + 1,
-+		sizeof(u64));
- 	u64 off;
++		global_dirty_limits(&background_thresh, &dirty_thresh);
++
++		/*
++		 * Throttle it only when the background writeback cannot
++		 * catch-up. This avoids (excessively) small writeouts
++		 * when the bdi limits are ramping up.
++		 */
++		if (nr_reclaimable + nr_writeback <
++				(background_thresh + dirty_thresh) / 2)
++			break;
++
++		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
++
+ 		/*
+ 		 * In order to avoid the stacked BDI deadlock we need
+ 		 * to ensure we accurately count the 'dirty' pages when
+@@ -514,15 +523,6 @@ static void balance_dirty_pages(struct a
+ 		if (!dirty_exceeded)
+ 			break;
  
- 	buf->error = -EINVAL;	/* only used if we fail.. */
-diff -puN fs/readdir.c~vfs-fix-warning-dirent-is-used-uninitialized-in-this-function fs/readdir.c
---- a/fs/readdir.c~vfs-fix-warning-dirent-is-used-uninitialized-in-this-function
-+++ a/fs/readdir.c
-@@ -4,6 +4,7 @@
-  *  Copyright (C) 1995  Linus Torvalds
-  */
+-		/*
+-		 * Throttle it only when the background writeback cannot
+-		 * catch-up. This avoids (excessively) small writeouts
+-		 * when the bdi limits are ramping up.
+-		 */
+-		if (nr_reclaimable + nr_writeback <
+-				(background_thresh + dirty_thresh) / 2)
+-			break;
+-
+ 		if (!bdi->dirty_exceeded)
+ 			bdi->dirty_exceeded = 1;
  
-+#include <linux/stddef.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/time.h>
-@@ -54,7 +55,6 @@ EXPORT_SYMBOL(vfs_readdir);
-  * anyway. Thus the special "fillonedir()" function for that
-  * case (the low-level handlers don't need to care about this).
-  */
--#define NAME_OFFSET(de) ((int) ((de)->d_name - (char __user *) (de)))
+@@ -635,7 +635,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 	unsigned long dirty_thresh;
  
- #ifdef __ARCH_WANT_OLD_READDIR
+         for ( ; ; ) {
+-		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
++		global_dirty_limits(&background_thresh, &dirty_thresh);
  
-@@ -152,7 +152,8 @@ static int filldir(void * __buf, const c
- 	struct linux_dirent __user * dirent;
- 	struct getdents_callback * buf = (struct getdents_callback *) __buf;
- 	unsigned long d_ino;
--	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 2, sizeof(long));
-+	int reclen = ALIGN(offsetof(struct linux_dirent, d_name) + namlen + 2,
-+		sizeof(long));
- 
- 	buf->error = -EINVAL;	/* only used if we fail.. */
- 	if (reclen > buf->count)
-@@ -237,7 +238,8 @@ static int filldir64(void * __buf, const
- {
- 	struct linux_dirent64 __user *dirent;
- 	struct getdents_callback64 * buf = (struct getdents_callback64 *) __buf;
--	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 1, sizeof(u64));
-+	int reclen = ALIGN(offsetof(struct linux_dirent64, d_name) + namlen + 1,
-+		sizeof(u64));
- 
- 	buf->error = -EINVAL;	/* only used if we fail.. */
- 	if (reclen > buf->count)
+                 /*
+                  * Boost the allowable dirty threshold a bit for page
 _
 
-Patches currently in -mm which might be from kjwinchester@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
+origin.patch
 linux-next.patch
-vfs-fix-warning-dirent-is-used-uninitialized-in-this-function.patch
-init-mainc-fix-warning-calltimetv64-may-be-used-uninitialized.patch
-init-mainc-mark-do_one_initcall-as-__init_or_module.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+writeback-take-account-of-nr_writeback_temp-in-balance_dirty_pages.patch
+writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
+writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
+writeback-fix-queue_io-ordering.patch
+writeback-merge-for_kupdate-and-for_kupdate-cases.patch
+vfs-add-super-operation-writeback_inodes.patch
 
