@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cs5535-mfgpt-reuse-timers-that-have-never-been-set-up.patch added to -mm tree
-Date: Thu, 15 Jul 2010 13:09:24 -0700
-Message-ID: <201007152009.o6FK9Odt016638@imap1.linux-foundation.org>
+Subject: + drivers-char-add-packet-hub-driver-for-the-topcliff-pch-update.patch added to -mm tree
+Date: Thu, 15 Jul 2010 13:34:19 -0700
+Message-ID: <201007152034.o6FKYJlV017741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934620Ab0GOUKC (ORCPT
+	by vger.kernel.org with ESMTP id S934652Ab0GOUe5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 16:10:02 -0400
+	Thu, 15 Jul 2010 16:34:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JRottmann@LiPPERTEmbedded.de, dilinger@queued.net, jordan@cosmicpenguin.net, tglx@linutronix.de
+Cc: masa-korg@dsn.okisemi.com, arnd@arndb.de, greg@kroah.com
 
 
 The patch titled
-     cs5535-mfgpt: reuse timers that have never been set up
+     drivers-char-add-packet-hub-driver-for-the-topcliff-pch-update
 has been added to the -mm tree.  Its filename is
-     cs5535-mfgpt-reuse-timers-that-have-never-been-set-up.patch
+     drivers-char-add-packet-hub-driver-for-the-topcliff-pch-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cs5535-mfgpt: reuse timers that have never been set up
-From: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Subject: drivers-char-add-packet-hub-driver-for-the-topcliff-pch-update
+From: Masayuki Ohtak <masa-korg@dsn.okisemi.com>
 
-The MFGPT hardware may be set up only once, therefore
-cs5535_mfgpt_free_timer() didn't re-set the timer's "avail" bit.  However
-if a timer is freed before it has actually been in use then it may be made
-available again.
-
-Signed-off-by: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
-Acked-by: Andres Salomon <dilinger@queued.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Signed-off-by: Masayuki Ohtake <masa-korg@dsn.okisemi.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/cs5535-mfgpt.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/char/pch_phub/pch_phub.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/misc/cs5535-mfgpt.c~cs5535-mfgpt-reuse-timers-that-have-never-been-set-up drivers/misc/cs5535-mfgpt.c
---- a/drivers/misc/cs5535-mfgpt.c~cs5535-mfgpt-reuse-timers-that-have-never-been-set-up
-+++ a/drivers/misc/cs5535-mfgpt.c
-@@ -211,6 +211,17 @@ EXPORT_SYMBOL_GPL(cs5535_mfgpt_alloc_tim
-  */
- void cs5535_mfgpt_free_timer(struct cs5535_mfgpt_timer *timer)
- {
-+	unsigned long flags;
-+	uint16_t val;
-+
-+	/* timer can be made available again only if never set up */
-+	val = cs5535_mfgpt_read(timer, MFGPT_REG_SETUP);
-+	if (!(val & MFGPT_SETUP_SETUP)) {
-+		spin_lock_irqsave(&timer->chip->lock, flags);
-+		__set_bit(timer->nr, timer->chip->avail);
-+		spin_unlock_irqrestore(&timer->chip->lock, flags);
-+	}
-+
- 	kfree(timer);
- }
- EXPORT_SYMBOL_GPL(cs5535_mfgpt_free_timer);
-_
-
-Patches currently in -mm which might be from JRottmann@LiPPERTEmbedded.de are
-
-cs5535-mfgpt-reuse-timers-that-have-never-been-set-up.patch
-
+diff -puN drivers/char/pch_phub/pch_phub.c~drivers-char-add-packet-hub-driver-for-the-topcliff-pch-update drivers/char/pch_phub/pch_phub.c
+--- a/drivers/char/pch_phub/pch_phub.c~drivers-char-add-packet-hub-driver-for-the-topcliff-pch-update
++++ a/drivers/char/pch_phub/pch_phub.c
+@@ -470,6 +470,10 @@ static ssize_t pch_phub_write(struct fil
+ 	}
+ 
+ 	for (addr_offset = 0; addr_offset < size; addr_offset++) {
++		if (PCH_PHUB_OROM_SIZE < pos + addr_offset) {
++			*ppos += addr_offset;
++			goto return_ok;
++		}
+ 		ret_value1 = get_user(data, &buf[addr_offset]);
+ 		if (ret_value1) {
+ 			err = -EFAULT;
+@@ -482,12 +486,6 @@ static ssize_t pch_phub_write(struct fil
+ 			err = ret_value2;
+ 			goto return_err;
+ 		}
+-
+-		if (PCH_PHUB_OROM_SIZE < pos + addr_offset) {
+-			*ppos += addr_offset;
+-			goto return_ok;
+-		}
