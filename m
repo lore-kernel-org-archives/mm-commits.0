@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport_serial-use-the-pci-irq-if-offered.patch added to -mm tree
-Date: Thu, 15 Jul 2010 11:40:30 -0700
-Message-ID: <201007151840.o6FIeVHH012421@imap1.linux-foundation.org>
+Subject: + maintainers-update-laurent-pinchart-email.patch added to -mm tree
+Date: Thu, 15 Jul 2010 11:42:41 -0700
+Message-ID: <201007151842.o6FIgfbC012517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934111Ab0GOSk6 (ORCPT
+	by vger.kernel.org with ESMTP id S934094Ab0GOSmt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 14:40:58 -0400
+	Thu, 15 Jul 2010 14:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fbriere@fbriere.net, alan@lxorguk.ukuu.org.uk
+Cc: joe@perches.com, laurent.pinchart@ideasonboard.com
 
 
 The patch titled
-     parport_serial: use the PCI IRQ if offered
+     MAINTAINERS: update Laurent Pinchart email
 has been added to the -mm tree.  Its filename is
-     parport_serial-use-the-pci-irq-if-offered.patch
+     maintainers-update-laurent-pinchart-email.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,54 +26,70 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport_serial: use the PCI IRQ if offered
-=46rom: Fr=E9d=E9ric Bri=E8re <fbriere@fbriere.net>
+Subject: MAINTAINERS: update Laurent Pinchart email
+From: Joe Perches <joe@perches.com>
 
-Commit 51dcdfe ("parport: Use the PCI IRQ if offered") added IRQ suppor=
-t
-for PCI parallel port devices handled by parport_pc, but turned it off =
-for
-parport_serial, despite a printk() message to the contrary.
+Laurent is sending auto-replies with a new email address, so might as well
+update MAINTAINERS.
 
-Signed-off-by: Fr=E9d=E9ric Bri=E8re <fbriere@fbriere.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_serial.c |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/parport/parport_serial.c~parport_serial-use-the-pci-i=
-rq-if-offered drivers/parport/parport_serial.c
---- a/drivers/parport/parport_serial.c~parport_serial-use-the-pci-irq-i=
-f-offered
-+++ a/drivers/parport/parport_serial.c
-@@ -342,7 +342,6 @@ static int __devinit parport_register (s
- 			dev_dbg(&dev->dev,
- 		"PCI parallel port detected: I/O at %#lx(%#lx), IRQ %d\n",
- 				io_lo, io_hi, irq);
--			irq =3D PARPORT_IRQ_NONE;
- 		}
- 		port =3D parport_pc_probe_port (io_lo, io_hi, irq,
- 			      PARPORT_DMA_NONE, &dev->dev, IRQF_SHARED);
+diff -puN MAINTAINERS~maintainers-update-laurent-pinchart-email MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-laurent-pinchart-email
++++ a/MAINTAINERS
+@@ -6055,7 +6055,7 @@ F:	drivers/net/usb/usbnet.c
+ F:	include/linux/usb/usbnet.h
+ 
+ USB VIDEO CLASS
+-M:	Laurent Pinchart <laurent.pinchart@skynet.be>
++M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-uvc-devel@lists.berlios.de (subscribers-only)
+ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
 _
 
-Patches currently in -mm which might be from fbriere@fbriere.net are
+Patches currently in -mm which might be from joe@perches.com are
 
-parport_serial-use-the-pci-irq-if-offered.patch
+linux-next.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
+maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
+maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+maintainers-update-arm-voipac-pxa270-file-patterns.patch
+maintainers-update-arm-zipit-z2-support-file-patterns.patch
+maintainers-update-networking-file-patterns.patch
+maintainers-update-ppp-over-l2tp-file-patterns.patch
+maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+maintainers-remove-section-smx-uio-interface.patch
+maintainers-update-spear-clock-framework-support-file-patterns.patch
+maintainers-remove-section-strip.patch
+maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
+maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
+maintainers-update-drm-drivers-patterns.patch
+maintainers-add-patterns-to-cryptographic-random-number-generator.patch
+maintainers-add-patterns-to-dell-wmi-extras.patch
+maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
+maintainers-add-patterns-to-omap-usb.patch
+maintainers-remove-section-promise-dc4030.patch
+maintainers-add-patterns-to-ps3vram-driver.patch
+maintainers-add-patterns-to-wimax-stack.patch
+maintainers-update-laurent-pinchart-email.patch
+checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
+documentation-networking-wavelantxt-deleted-not-in-tree.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
