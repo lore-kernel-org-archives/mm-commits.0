@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-laurent-pinchart-email.patch added to -mm tree
-Date: Thu, 15 Jul 2010 11:42:41 -0700
-Message-ID: <201007151842.o6FIgfbC012517@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-ds3232-rtc-fix.patch added to -mm tree
+Date: Thu, 15 Jul 2010 11:54:55 -0700
+Message-ID: <201007151854.o6FIstDZ013132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934094Ab0GOSmt (ORCPT
+	by vger.kernel.org with ESMTP id S934137Ab0GOSzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 14:42:49 -0400
+	Thu, 15 Jul 2010 14:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, laurent.pinchart@ideasonboard.com
+Cc: akpm@linux-foundation.org, Mingkai.hu@freescale.com, a.zummo@towertech.it, b22599@freescale.com, kumar.gala@freescale.com, mcuos.com@gmail.com, srikanth.srinivasan@freescale.com, tie-fei.zang@freescale.com
 
 
 The patch titled
-     MAINTAINERS: update Laurent Pinchart email
+     rtc-add-support-for-ds3232-rtc-fix
 has been added to the -mm tree.  Its filename is
-     maintainers-update-laurent-pinchart-email.patch
+     rtc-add-support-for-ds3232-rtc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update Laurent Pinchart email
-From: Joe Perches <joe@perches.com>
+Subject: rtc-add-support-for-ds3232-rtc-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Laurent is sending auto-replies with a new email address, so might as well
-update MAINTAINERS.
+fix Kconfig help text
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jingchang Lu <b22599@freescale.com>
+Cc: Kumar Gala <kumar.gala@freescale.com>
+Cc: Mingkai Hu <Mingkai.hu@freescale.com>
+Cc: Roy Zang <tie-fei.zang@freescale.com>
+Cc: Srikanth Srinivasan <srikanth.srinivasan@freescale.com>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/Kconfig |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-laurent-pinchart-email MAINTAINERS
---- a/MAINTAINERS~maintainers-update-laurent-pinchart-email
-+++ a/MAINTAINERS
-@@ -6055,7 +6055,7 @@ F:	drivers/net/usb/usbnet.c
- F:	include/linux/usb/usbnet.h
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-ds3232-rtc-fix drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-ds3232-rtc-fix
++++ a/drivers/rtc/Kconfig
+@@ -171,8 +171,7 @@ config RTC_DRV_DS3232
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for Dallas Semiconductor
+-	  DS3232 real-time clock chips.  If an interrupt is associated
+-	  with the device, the alarm functionality is supported.
++	  DS3232 real-time clock chips.
  
- USB VIDEO CLASS
--M:	Laurent Pinchart <laurent.pinchart@skynet.be>
-+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-uvc-devel@lists.berlios.de (subscribers-only)
- L:	linux-media@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called rtc-ds3232.
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
+mm-vmap-area-cache-fix.patch
+x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
 linux-next.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
-drivers-scsi-chc-dont-use-vprintk-as-macro.patch
-kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
-maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
-maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
-maintainers-update-arm-voipac-pxa270-file-patterns.patch
-maintainers-update-arm-zipit-z2-support-file-patterns.patch
-maintainers-update-networking-file-patterns.patch
-maintainers-update-ppp-over-l2tp-file-patterns.patch
-maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
-maintainers-remove-section-smx-uio-interface.patch
-maintainers-update-spear-clock-framework-support-file-patterns.patch
-maintainers-remove-section-strip.patch
-maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
-maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
-maintainers-update-drm-drivers-patterns.patch
-maintainers-add-patterns-to-cryptographic-random-number-generator.patch
-maintainers-add-patterns-to-dell-wmi-extras.patch
-maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
-maintainers-add-patterns-to-omap-usb.patch
-maintainers-remove-section-promise-dc4030.patch
-maintainers-add-patterns-to-ps3vram-driver.patch
-maintainers-add-patterns-to-wimax-stack.patch
-maintainers-update-laurent-pinchart-email.patch
-checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
-documentation-networking-wavelantxt-deleted-not-in-tree.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-driver-core-remove-config_sysfs_deprecated.patch
+module-fix-crash-in-get_ksymbol-when-oopsing-in-module-init.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+acpi-fix-bogus-preemption-logic-fix.patch
+compal-laptop-added-jhl90-battery-hwmon-interface.patch
+acer-wmi-fix-memory-leaks-in-wmab_execute-error-path-v2-fix.patch
+intel_menlow-fix-memory-leaks-in-error-path-fix.patch
+x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
+dib3000mc-reduce-large-stack-usage-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+arch-um-drivers-remove-duplicate-structure-field-initialization.patch
+3x59x-fix-pci-resource-management.patch
+altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
+serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
+serial-mmio32-support-for-8250_earlyc-fix-fix.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+scsi-remove-private-bit-macros.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
+vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
+vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
+vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
+oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
+mmc-add-jz4740-mmc-driver-checkpatch-fixes.patch
+mmc-add-jz4740-mmc-driver-fix.patch
+hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+rtc-add-support-for-ds3232-rtc-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
