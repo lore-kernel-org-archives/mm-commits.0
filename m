@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-68328serialc-remove-dead-alma_ans-dragonixvz-m68ez328ads.patch added to -mm tree
-Date: Thu, 15 Jul 2010 11:58:01 -0700
-Message-ID: <201007151858.o6FIw1Ce013303@imap1.linux-foundation.org>
+Subject: + s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch added to -mm tree
+Date: Thu, 15 Jul 2010 11:52:52 -0700
+Message-ID: <201007151852.o6FIqqNf013085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48606 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934355Ab0GOS7G (ORCPT
+	by vger.kernel.org with ESMTP id S934473Ab0GOTE0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 14:59:06 -0400
+	Thu, 15 Jul 2010 15:04:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: siccegge@cs.fau.de, gerg@uclinux.org, greg@kroah.com
+Cc: mcuelenaere@gmail.com, ben-linux@fluff.org, inki.dae@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, p.osciak@samsung.com
 
 
 The patch titled
-     drivers/serial/68328serial.c: remove dead (ALMA_ANS | DRAGONIXVZ | M68EZ328ADS)
+     s3c-fb: automatically calculate pixel clock when none is given
 has been added to the -mm tree.  Its filename is
-     drivers-serial-68328serialc-remove-dead-alma_ans-dragonixvz-m68ez328ads.patch
+     s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/68328serial.c: remove dead (ALMA_ANS | DRAGONIXVZ | M68EZ328ADS)
-From: Christoph Egger <siccegge@cs.fau.de>
+Subject: s3c-fb: automatically calculate pixel clock when none is given
+From: Maurus Cuelenaere <mcuelenaere@gmail.com>
 
-(ALMA_ANS | DRAGONIXVZ | M68EZ328ADS) doesn't exist in Kconfig, therefore
-remove all references to it from the source code.
+Add a simple algorithm which calculates the pixel clock based on the video
+mode parameters.  This is only done when no pixel clock is supplied
+through the platform data.
 
-Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Maurus Cuelenaere <mcuelenaere@gmail.com>
+Cc: Pawel Osciak <p.osciak@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: InKi Dae <inki.dae@samsung.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/68328serial.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/video/s3c-fb.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN drivers/serial/68328serial.c~drivers-serial-68328serialc-remove-dead-alma_ans-dragonixvz-m68ez328ads drivers/serial/68328serial.c
---- a/drivers/serial/68328serial.c~drivers-serial-68328serialc-remove-dead-alma_ans-dragonixvz-m68ez328ads
-+++ a/drivers/serial/68328serial.c
-@@ -98,19 +98,13 @@ static void change_speed(struct m68k_ser
-  *	Setup for console. Argument comes from the boot command line.
-  */
+diff -puN drivers/video/s3c-fb.c~s3c-fb-automatically-calculate-pixel-clock-when-none-is-given drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-automatically-calculate-pixel-clock-when-none-is-given
++++ a/drivers/video/s3c-fb.c
+@@ -1027,6 +1027,28 @@ static struct fb_ops s3c_fb_ops = {
+ };
  
--#if defined(CONFIG_M68EZ328ADS) || defined(CONFIG_ALMA_ANS) || defined(CONFIG_DRAGONIXVZ)
--#define	CONSOLE_BAUD_RATE	115200
--#define	DEFAULT_CBAUD		B115200
--#else
--	/* (es) */
--	/* note: this is messy, but it works, again, perhaps defined somewhere else?*/
--	#ifdef CONFIG_M68VZ328
--	#define CONSOLE_BAUD_RATE	19200
--	#define DEFAULT_CBAUD		B19200
--	#endif
--	/* (/es) */
-+/* note: this is messy, but it works, again, perhaps defined somewhere else?*/
-+#ifdef CONFIG_M68VZ328
-+#define CONSOLE_BAUD_RATE	19200
-+#define DEFAULT_CBAUD		B19200
- #endif
- 
+ /**
++ * s3c_fb_missing_pixclock() - calculates pixel clock
++ * @mode: The video mode to change.
++ *
++ * Calculate the pixel clock when none has been given through platform data.
++ */
++static void __devinit s3c_fb_missing_pixclock(struct fb_videomode *mode)
++{
++	u64 pixclk = 1000000000000ULL;
++	u32 div;
 +
- #ifndef CONSOLE_BAUD_RATE
- #define	CONSOLE_BAUD_RATE	9600
- #define	DEFAULT_CBAUD		B9600
++	div  = mode->left_margin + mode->hsync_len + mode->right_margin +
++	       mode->xres;
++	div *= mode->upper_margin + mode->vsync_len + mode->lower_margin +
++	       mode->yres;
++	div *= mode->refresh ? : 60;
++
++	do_div(pixclk, div);
++
++	mode->pixclock = pixclk;
++}
++
++/**
+  * s3c_fb_alloc_memory() - allocate display memory for framebuffer window
+  * @sfb: The base resources for the hardware.
+  * @win: The window to initialise memory for.
+@@ -1364,6 +1386,9 @@ static int __devinit s3c_fb_probe(struct
+ 		if (!pd->win[win])
+ 			continue;
+ 
++		if (!pd->win[win]->win_mode.pixclock)
++			s3c_fb_missing_pixclock(&pd->win[win]->win_mode);
++
+ 		ret = s3c_fb_probe_win(sfb, win, fbdrv->win[win],
+ 				       &sfb->windows[win]);
+ 		if (ret < 0) {
 _
 
-Patches currently in -mm which might be from siccegge@cs.fau.de are
+Patches currently in -mm which might be from mcuelenaere@gmail.com are
 
 linux-next.patch
-drivers-serial-68328serialc-remove-dead-alma_ans-dragonixvz-m68ez328ads.patch
-edac-add-wissing-pieces-from-mpc85xx-fsl_soc_booke.patch
+s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch
 
