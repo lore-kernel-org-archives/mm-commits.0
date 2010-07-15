@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fs-inodec-work-around-bug.patch added to -mm tree
-Date: Wed, 14 Jul 2010 17:01:38 -0700
-Message-ID: <201007150030.o6F0UtgT031660@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 15 Jul 2010 11:02:27 -0700
+Message-ID: <201007151802.o6FI2Fmp010580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41102 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757351Ab0GOAbK (ORCPT
+	by vger.kernel.org with ESMTP id S933810Ab0GOSCS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Jul 2010 20:31:10 -0400
+	Thu, 15 Jul 2010 14:02:18 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o6FI2FIT028666
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jul 2010 11:02:17 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fs/inode.c: work around bug
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fs-inodec-work-around-bug.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +38,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/inode.c: work around bug
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Someone's leaving I_DIRTY_SYNC|I_DIRTY_DATASYNC|I_DIRTY_PAGES set on inodes.
-
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/microblaze/mm/init.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/inode.c~fs-inodec-work-around-bug fs/inode.c
---- a/fs/inode.c~fs-inodec-work-around-bug
-+++ a/fs/inode.c
-@@ -1241,7 +1241,7 @@ static void iput_final(struct inode *ino
- 	hlist_del_init(&inode->i_hash);
- 	spin_unlock(&inode_lock);
- 	wake_up_inode(inode);
--	BUG_ON(inode->i_state != (I_FREEING | I_CLEAR));
-+//	BUG_ON(inode->i_state != (I_FREEING | I_CLEAR));
- 	destroy_inode(inode);
- }
+diff -puN arch/microblaze/mm/init.c~linux-next-git-rejects arch/microblaze/mm/init.c
+--- a/arch/microblaze/mm/init.c~linux-next-git-rejects
++++ a/arch/microblaze/mm/init.c
+@@ -136,12 +136,7 @@ void __init setup_memory(void)
+ 	 */
+ 	map_size = init_bootmem_node(NODE_DATA(0),
+ 		PFN_UP(TOPHYS((u32)klimit)), min_low_pfn, max_low_pfn);
+-<<<<<<< HEAD
+-#endif
+ 	memblock_reserve(PFN_UP(TOPHYS((u32)klimit)) << PAGE_SHIFT, map_size);
+-=======
+-	lmb_reserve(PFN_UP(TOPHYS((u32)klimit)) << PAGE_SHIFT, map_size);
+->>>>>>> FETCH_HEAD
  
+ 	/* free bootmem is whole main memory */
+ 	free_bootmem(memory_start, memory_size);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,19 +71,12 @@ ipc-semc-bugfix-for-semop-not-reporting-successful-operation.patch
 mm-vmap-area-cache-fix.patch
 x86-numa-fix-boot-without-ram-on-node0-again-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 revert-driver-core-remove-config_sysfs_deprecated.patch
 module-fix-crash-in-get_ksymbol-when-oopsing-in-module-init.patch
 fs-inodec-work-around-bug.patch
 i-need-old-gcc.patch
-revert-ed5aa19b93da2c094b6647762774a8022e4e1d6c.patch
-revert-9652e31db6d841e291531547b3f4f12b5aeb42a9.patch
-revert-fdc8302019d9bc10729cd3e8d348571e833388aa.patch
-revert-324d76561842e551051e2a897b958b0539f6867b.patch
-revert-e92e80797e7eaaf2a9bbd586c63f7c6bd3177276.patch
-revert-d04ab5241f301bdcad2f6beb0ecd326bd82100a7.patch
-revert-3ab7269a6058c136795ce9417f7051a0edde60db.patch
-revert-4624469822455b4accc886557f6c997ccdd59066.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
 acpi-fix-bogus-preemption-logic-fix.patch
 compal-laptop-added-jhl90-battery-hwmon-interface.patch
