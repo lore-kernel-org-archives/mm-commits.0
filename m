@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-add-erase-capability.patch added to -mm tree
-Date: Thu, 15 Jul 2010 12:26:14 -0700
-Message-ID: <201007151926.o6FJQFYr014718__26135.6661249467$1279222050$gmane$org@imap1.linux-foundation.org>
+Subject: + s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch added to -mm tree
+Date: Thu, 15 Jul 2010 12:36:20 -0700
+Message-ID: <201007151936.o6FJaKPX015165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934473Ab0GOT07 (ORCPT
+	by vger.kernel.org with ESMTP id S934474Ab0GOTgx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 15:26:59 -0400
+	Thu, 15 Jul 2010 15:36:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, axboe@kernel.dk, bengardiner@nanometrics.ca, hch@lst.de, kmpark@infradead.org, linux-mmc@vger.kernel.org, madhu.cr@ti.com
+Cc: mcuelenaere@gmail.com, ben-linux@fluff.org, inki.dae@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, p.osciak@samsung.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     omap_hsmmc: add erase capability
+     s3c-fb: automatically calculate pixel clock when none is given
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-add-erase-capability.patch
+     s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: add erase capability
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: s3c-fb: automatically calculate pixel clock when none is given
+From: Maurus Cuelenaere <mcuelenaere@gmail.com>
 
-Disable the data (busy) timeout for erases and set the MMC_CAP_ERASE
-capability.
+Add a simple algorithm which calculates the pixel clock based on the video
+mode parameters.  This is only done when no pixel clock is supplied
+through the platform data.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kyungmin Park <kmpark@infradead.org>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ben Gardiner <bengardiner@nanometrics.ca>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Maurus Cuelenaere <mcuelenaere@gmail.com>
+Cc: Pawel Osciak <p.osciak@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: InKi Dae <inki.dae@samsung.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ drivers/video/s3c-fb.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-erase-capability drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-erase-capability
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -28,6 +28,7 @@
- #include <linux/clk.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/core.h>
-+#include <linux/mmc/mmc.h>
- #include <linux/io.h>
- #include <linux/semaphore.h>
- #include <linux/gpio.h>
-@@ -78,6 +79,7 @@
- #define INT_EN_MASK		0x307F0033
- #define BWR_ENABLE		(1 << 4)
- #define BRR_ENABLE		(1 << 5)
-+#define DTO_ENABLE		(1 << 20)
- #define INIT_STREAM		(1 << 1)
- #define DP_SELECT		(1 << 21)
- #define DDIR			(1 << 4)
-@@ -523,7 +525,8 @@ static void omap_hsmmc_stop_clock(struct
- 		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
- }
+diff -puN drivers/video/s3c-fb.c~s3c-fb-automatically-calculate-pixel-clock-when-none-is-given drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~s3c-fb-automatically-calculate-pixel-clock-when-none-is-given
++++ a/drivers/video/s3c-fb.c
+@@ -1027,6 +1027,28 @@ static struct fb_ops s3c_fb_ops = {
+ };
  
--static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host)
-+static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
-+				  struct mmc_command *cmd)
- {
- 	unsigned int irq_mask;
- 
-@@ -532,6 +535,10 @@ static void omap_hsmmc_enable_irq(struct
- 	else
- 		irq_mask = INT_EN_MASK;
- 
-+	/* Disable timeout for erases */
-+	if (cmd->opcode == MMC_ERASE)
-+		irq_mask &= ~DTO_ENABLE;
+ /**
++ * s3c_fb_missing_pixclock() - calculates pixel clock
++ * @mode: The video mode to change.
++ *
++ * Calculate the pixel clock when none has been given through platform data.
++ */
++static void __devinit s3c_fb_missing_pixclock(struct fb_videomode *mode)
++{
++	u64 pixclk = 1000000000000ULL;
++	u32 div;
 +
- 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
- 	OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
- 	OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-@@ -782,7 +789,7 @@ omap_hsmmc_start_command(struct omap_hsm
- 		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
- 	host->cmd = cmd;
++	div  = mode->left_margin + mode->hsync_len + mode->right_margin +
++	       mode->xres;
++	div *= mode->upper_margin + mode->vsync_len + mode->lower_margin +
++	       mode->yres;
++	div *= mode->refresh ? : 60;
++
++	do_div(pixclk, div);
++
++	mode->pixclock = pixclk;
++}
++
++/**
+  * s3c_fb_alloc_memory() - allocate display memory for framebuffer window
+  * @sfb: The base resources for the hardware.
+  * @win: The window to initialise memory for.
+@@ -1364,6 +1386,9 @@ static int __devinit s3c_fb_probe(struct
+ 		if (!pd->win[win])
+ 			continue;
  
--	omap_hsmmc_enable_irq(host);
-+	omap_hsmmc_enable_irq(host, cmd);
- 
- 	host->response_busy = 0;
- 	if (cmd->flags & MMC_RSP_PRESENT) {
-@@ -2104,7 +2111,7 @@ static int __init omap_hsmmc_probe(struc
- 	mmc->max_seg_size = mmc->max_req_size;
- 
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
--		     MMC_CAP_WAIT_WHILE_BUSY;
-+		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE;
- 
- 	switch (mmc_slot(host).wires) {
- 	case 8:
++		if (!pd->win[win]->win_mode.pixclock)
++			s3c_fb_missing_pixclock(&pd->win[win]->win_mode);
++
+ 		ret = s3c_fb_probe_win(sfb, win, fbdrv->win[win],
+ 				       &sfb->windows[win]);
+ 		if (ret < 0) {
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from mcuelenaere@gmail.com are
 
 linux-next.patch
-mmc-recognize-csd-structure.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-split-mmc_sd_init_card.patch
-mmc-implement-sd-combo-iomem-support.patch
-mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch
-sdio-allow-non-standard-sdio-cards.patch
-omap_hsmmc-add-init_card-pass-through-callback.patch
-omap-pandora-pass-wl1251-information-to-sdio-core.patch
-mmc-add-erase-secure-erase-trim-and-secure-trim-operations.patch
-mmc_block-add-discard-support.patch
-omap_hsmmc-add-erase-capability.patch
-block-add-secure-discard.patch
-mmc_block-add-support-for-secure-discard.patch
+s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch
+arm-samsung-remove-pixclock-from-several-boards.patch
 
