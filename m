@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_block-add-support-for-secure-discard.patch added to -mm tree
-Date: Thu, 15 Jul 2010 12:26:19 -0700
-Message-ID: <201007151926.o6FJQKGL014724__12152.0589026206$1279222049$gmane$org@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-add-erase-capability.patch added to -mm tree
+Date: Thu, 15 Jul 2010 12:26:14 -0700
+Message-ID: <201007151926.o6FJQFYr014718__26135.6661249467$1279222050$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934522Ab0GOT1H (ORCPT
+	by vger.kernel.org with ESMTP id S934473Ab0GOT07 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 15:27:07 -0400
+	Thu, 15 Jul 2010 15:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adrian.hunter@nokia.com, axboe@kernel.dk, bengardiner@nanometrics.ca, hch@ls
 
 
 The patch titled
-     mmc_block: add support for secure discard
+     omap_hsmmc: add erase capability
 has been added to the -mm tree.  Its filename is
-     mmc_block-add-support-for-secure-discard.patch
+     omap_hsmmc-add-erase-capability.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_block: add support for secure discard
+Subject: omap_hsmmc: add erase capability
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Secure discard is implemented by Secure Trim if the discard is unaligned
-or Secure Erase otherwise.
+Disable the data (busy) timeout for erases and set the MMC_CAP_ERASE
+capability.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -50,87 +50,67 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |   46 ++++++++++++++++++++++++++++++++++---
- drivers/mmc/card/queue.c |    3 ++
- 2 files changed, 46 insertions(+), 3 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mmc/card/block.c~mmc_block-add-support-for-secure-discard drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc_block-add-support-for-secure-discard
-+++ a/drivers/mmc/card/block.c
-@@ -280,6 +280,42 @@ out:
- 	return err ? 0 : 1;
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-erase-capability drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-erase-capability
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -28,6 +28,7 @@
+ #include <linux/clk.h>
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/core.h>
++#include <linux/mmc/mmc.h>
+ #include <linux/io.h>
+ #include <linux/semaphore.h>
+ #include <linux/gpio.h>
+@@ -78,6 +79,7 @@
+ #define INT_EN_MASK		0x307F0033
+ #define BWR_ENABLE		(1 << 4)
+ #define BRR_ENABLE		(1 << 5)
++#define DTO_ENABLE		(1 << 20)
+ #define INIT_STREAM		(1 << 1)
+ #define DP_SELECT		(1 << 21)
+ #define DDIR			(1 << 4)
+@@ -523,7 +525,8 @@ static void omap_hsmmc_stop_clock(struct
+ 		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
  }
  
-+static int mmc_blk_issue_secdiscard_rq(struct mmc_queue *mq,
-+				       struct request *req)
-+{
-+	struct mmc_blk_data *md = mq->data;
-+	struct mmc_card *card = md->queue.card;
-+	unsigned int from, nr, arg;
-+	int err = 0;
-+
-+	mmc_claim_host(card->host);
-+
-+	if (!mmc_can_secure_erase_trim(card)) {
-+		err = -EOPNOTSUPP;
-+		goto out;
-+	}
-+
-+	from = blk_rq_pos(req);
-+	nr = blk_rq_sectors(req);
-+
-+	if (mmc_can_trim(card) && !mmc_erase_group_aligned(card, from, nr))
-+		arg = MMC_SECURE_TRIM1_ARG;
-+	else
-+		arg = MMC_SECURE_ERASE_ARG;
-+
-+	err = mmc_erase(card, from, nr, arg);
-+	if (!err && arg == MMC_SECURE_TRIM1_ARG)
-+		err = mmc_erase(card, from, nr, MMC_SECURE_TRIM2_ARG);
-+out:
-+	spin_lock_irq(&md->lock);
-+	__blk_end_request(req, err, blk_rq_bytes(req));
-+	spin_unlock_irq(&md->lock);
-+
-+	mmc_release_host(card->host);
-+
-+	return err ? 0 : 1;
-+}
-+
- static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
+-static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host)
++static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
++				  struct mmc_command *cmd)
  {
- 	struct mmc_blk_data *md = mq->data;
-@@ -510,10 +546,14 @@ static int mmc_blk_issue_rw_rq(struct mm
+ 	unsigned int irq_mask;
  
- static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
- {
--	if (req->cmd_flags & REQ_DISCARD)
--		return mmc_blk_issue_discard_rq(mq, req);
--	else
-+	if (req->cmd_flags & REQ_DISCARD) {
-+		if (req->cmd_flags & REQ_SECURE)
-+			return mmc_blk_issue_secdiscard_rq(mq, req);
-+		else
-+			return mmc_blk_issue_discard_rq(mq, req);
-+	} else {
- 		return mmc_blk_issue_rw_rq(mq, req);
-+	}
- }
+@@ -532,6 +535,10 @@ static void omap_hsmmc_enable_irq(struct
+ 	else
+ 		irq_mask = INT_EN_MASK;
  
- static inline int mmc_blk_readonly(struct mmc_card *card)
-diff -puN drivers/mmc/card/queue.c~mmc_block-add-support-for-secure-discard drivers/mmc/card/queue.c
---- a/drivers/mmc/card/queue.c~mmc_block-add-support-for-secure-discard
-+++ a/drivers/mmc/card/queue.c
-@@ -141,6 +141,9 @@ int mmc_init_queue(struct mmc_queue *mq,
- 			mq->queue->limits.discard_alignment =
- 							card->erase_size << 9;
- 		}
-+		if (mmc_can_secure_erase_trim(card))
-+			queue_flag_set_unlocked(QUEUE_FLAG_SECDISCARD,
-+						mq->queue);
- 	}
++	/* Disable timeout for erases */
++	if (cmd->opcode == MMC_ERASE)
++		irq_mask &= ~DTO_ENABLE;
++
+ 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+ 	OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+ 	OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
+@@ -782,7 +789,7 @@ omap_hsmmc_start_command(struct omap_hsm
+ 		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
+ 	host->cmd = cmd;
  
- #ifdef CONFIG_MMC_BLOCK_BOUNCE
+-	omap_hsmmc_enable_irq(host);
++	omap_hsmmc_enable_irq(host, cmd);
+ 
+ 	host->response_busy = 0;
+ 	if (cmd->flags & MMC_RSP_PRESENT) {
+@@ -2104,7 +2111,7 @@ static int __init omap_hsmmc_probe(struc
+ 	mmc->max_seg_size = mmc->max_req_size;
+ 
+ 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+-		     MMC_CAP_WAIT_WHILE_BUSY;
++		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE;
+ 
+ 	switch (mmc_slot(host).wires) {
+ 	case 8:
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
