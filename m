@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-shrink_slab-require-number-of-lru_pages-not-page-order.patch added to -mm tree
-Date: Thu, 15 Jul 2010 12:16:14 -0700
-Message-ID: <201007151916.o6FJGERD014277@imap1.linux-foundation.org>
+Subject: + mmc_block-add-discard-support.patch added to -mm tree
+Date: Thu, 15 Jul 2010 12:26:12 -0700
+Message-ID: <201007151926.o6FJQCJ4014715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934274Ab0GOTQa (ORCPT
+	by vger.kernel.org with ESMTP id S934384Ab0GOT1F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Jul 2010 15:16:30 -0400
+	Thu, 15 Jul 2010 15:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, hannes@cmpxchg.org, minchan.kim@gmail.com, riel@redhat.com
+Cc: adrian.hunter@nokia.com, axboe@kernel.dk, bengardiner@nanometrics.ca, hch@lst.de, kmpark@infradead.org, linux-mmc@vger.kernel.org, madhu.cr@ti.com
 
 
 The patch titled
-     vmscan: shrink_slab() requires the number of lru_pages, not the page order
+     mmc_block: add discard support
 has been added to the -mm tree.  Its filename is
-     vmscan-shrink_slab-require-number-of-lru_pages-not-page-order.patch
+     mmc_block-add-discard-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: shrink_slab() requires the number of lru_pages, not the page order
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mmc_block: add discard support
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Presently shrink_slab() has the following scanning equation.
+Enable MMC to service discard requests.  In the case of SD and MMC cards
+that do not support trim, discards become erases.  In the case of cards
+(MMC) that only allow erases in multiples of erase group size, round to
+the nearest completely discarded erase group.
 
-                            lru_scanned        max_pass
-  basic_scan_objects = 4 x -------------  x -----------------------------
-                            lru_pages        shrinker->seeks (default:2)
-
-  scan_objects = min(basic_scan_objects, max_pass * 2)
-
-If we pass very small value as lru_pages instead real number of lru pages,
-shrink_slab() drop much objects rather than necessary.  And now,
-__zone_reclaim() pass 'order' as lru_pages by mistake.  That produces a
-bad result.
-
-For example, if we receive very low memory pressure (scan = 32, order =
-0), shrink_slab() via zone_reclaim() always drop _all_ icache/dcache
-objects.  (see above equation, very small lru_pages make very big
-scan_objects result).
-
-This patch fixes it.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kyungmin Park <kmpark@infradead.org>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ben Gardiner <bengardiner@nanometrics.ca>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/mmc/card/block.c |   42 ++++++++++++++++++++++++++++++++++++-
+ drivers/mmc/card/queue.c |   16 ++++++++++++--
+ 2 files changed, 55 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-shrink_slab-require-number-of-lru_pages-not-page-order mm/vmscan.c
---- a/mm/vmscan.c~vmscan-shrink_slab-require-number-of-lru_pages-not-page-order
-+++ a/mm/vmscan.c
-@@ -2623,6 +2623,8 @@ static int __zone_reclaim(struct zone *z
+diff -puN drivers/mmc/card/block.c~mmc_block-add-discard-support drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc_block-add-discard-support
++++ a/drivers/mmc/card/block.c
+@@ -247,7 +247,40 @@ static u32 get_card_status(struct mmc_ca
+ 	return cmd.resp[0];
+ }
  
- 	nr_slab_pages0 = zone_page_state(zone, NR_SLAB_RECLAIMABLE);
- 	if (nr_slab_pages0 > zone->min_slab_pages) {
-+		unsigned long lru_pages = zone_reclaimable_pages(zone);
+-static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
++static int mmc_blk_issue_discard_rq(struct mmc_queue *mq, struct request *req)
++{
++	struct mmc_blk_data *md = mq->data;
++	struct mmc_card *card = md->queue.card;
++	unsigned int from, nr, arg;
++	int err = 0;
 +
- 		/*
- 		 * shrink_slab() does not currently allow us to determine how
- 		 * many pages were freed in this zone. So we take the current
-@@ -2633,7 +2635,7 @@ static int __zone_reclaim(struct zone *z
- 		 * Note that shrink_slab will free memory on all zones and may
- 		 * take a long time.
- 		 */
--		while (shrink_slab(sc.nr_scanned, gfp_mask, order) &&
-+		while (shrink_slab(sc.nr_scanned, gfp_mask, lru_pages) &&
- 		       (zone_page_state(zone, NR_SLAB_RECLAIMABLE) + nr_pages >
- 				nr_slab_pages0))
- 			;
++	mmc_claim_host(card->host);
++
++	if (!mmc_can_erase(card)) {
++		err = -EOPNOTSUPP;
++		goto out;
++	}
++
++	from = blk_rq_pos(req);
++	nr = blk_rq_sectors(req);
++
++	if (mmc_can_trim(card))
++		arg = MMC_TRIM_ARG;
++	else
++		arg = MMC_ERASE_ARG;
++
++	err = mmc_erase(card, from, nr, arg);
++out:
++	spin_lock_irq(&md->lock);
++	__blk_end_request(req, err, blk_rq_bytes(req));
++	spin_unlock_irq(&md->lock);
++
++	mmc_release_host(card->host);
++
++	return err ? 0 : 1;
++}
++
++static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
+ {
+ 	struct mmc_blk_data *md = mq->data;
+ 	struct mmc_card *card = md->queue.card;
+@@ -475,6 +508,13 @@ static int mmc_blk_issue_rq(struct mmc_q
+ 	return 0;
+ }
+ 
++static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
++{
++	if (req->cmd_flags & REQ_DISCARD)
++		return mmc_blk_issue_discard_rq(mq, req);
++	else
++		return mmc_blk_issue_rw_rq(mq, req);
++}
+ 
+ static inline int mmc_blk_readonly(struct mmc_card *card)
+ {
+diff -puN drivers/mmc/card/queue.c~mmc_block-add-discard-support drivers/mmc/card/queue.c
+--- a/drivers/mmc/card/queue.c~mmc_block-add-discard-support
++++ a/drivers/mmc/card/queue.c
+@@ -30,9 +30,9 @@
+ static int mmc_prep_request(struct request_queue *q, struct request *req)
+ {
+ 	/*
+-	 * We only like normal block requests.
++	 * We only like normal block requests and discards.
+ 	 */
+-	if (req->cmd_type != REQ_TYPE_FS) {
++	if (req->cmd_type != REQ_TYPE_FS && !(req->cmd_flags & REQ_DISCARD)) {
+ 		blk_dump_rq_flags(req, "MMC bad request");
+ 		return BLKPREP_KILL;
+ 	}
+@@ -130,6 +130,18 @@ int mmc_init_queue(struct mmc_queue *mq,
+ 	blk_queue_prep_rq(mq->queue, mmc_prep_request);
+ 	blk_queue_ordered(mq->queue, QUEUE_ORDERED_DRAIN);
+ 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, mq->queue);
++	if (mmc_can_erase(card)) {
++		queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, mq->queue);
++		mq->queue->limits.max_discard_sectors = UINT_MAX;
++		if (card->erased_byte == 0)
++			mq->queue->limits.discard_zeroes_data = 1;
++		if (!mmc_can_trim(card) && is_power_of_2(card->erase_size)) {
++			mq->queue->limits.discard_granularity =
++							card->erase_size << 9;
++			mq->queue->limits.discard_alignment =
++							card->erase_size << 9;
++		}
++	}
+ 
+ #ifdef CONFIG_MMC_BLOCK_BOUNCE
+ 	if (host->max_hw_segs == 1) {
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
-acpi-fix-unused-function-warning.patch
-serial-mmio32-support-for-8250_earlyc-fix-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-mm-use-memdup_user.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
-mempolicy-reduce-stack-size-of-migrate_pages.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-vmscan-zone_reclaim-dont-call-disable_swap_token.patch
-vmscan-recalculate-lru_pages-on-each-priority.patch
-vmscan-tracing-add-trace-events-for-kswapd-wakeup-sleeping-and-direct-reclaim.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation.patch
-vmscan-tracing-add-trace-event-when-a-page-is-written.patch
-vmscan-tracing-add-a-postprocessing-script-for-reclaim-related-ftrace-events.patch
-vmscan-kill-prev_priority-completely.patch
-vmscan-simplify-shrink_inactive_list.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_inactive_list.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_page_list.patch
-vmscan-update-isolated-page-counters-outside-of-main-path-in-shrink_inactive_list.patch
-oom-dont-try-to-kill-oom_unkillable-child.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-oom_kill_process-doesnt-select-kthread-child.patch
-oom-make-oom_unkillable_task-helper-function.patch
-oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
-oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
-oom-kill-duplicate-oom_disable-check.patch
-oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
-oom-cleanup-has_intersects_mems_allowed.patch
-oom-remove-child-mm-check-from-oom_kill_process.patch
-oom-give-the-dying-task-a-higher-priority.patch
-oom-multi-threaded-process-coredump-dont-make-deadlock.patch
-rmap-add-exclusive-page-to-private-anon_vma-on-swapin.patch
-mm-set-vm_fault_write-in-do_swap_page.patch
-drivers-base-nodec-reduce-stack-usage-of-node_read_meminfo.patch
-vmscan-avoid-subtraction-of-unsigned-types.patch
-vmscan-protect-reading-of-reclaim_stat-with-lru_lock.patch
-vmscan-shrink_slab-require-number-of-lru_pages-not-page-order.patch
-reiser4.patch
+linux-next.patch
+mmc-recognize-csd-structure.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-split-mmc_sd_init_card.patch
+mmc-implement-sd-combo-iomem-support.patch
+mmc-omap-fix-for-bus-width-which-improves-sd-cards-peformance.patch
+sdio-allow-non-standard-sdio-cards.patch
+omap_hsmmc-add-init_card-pass-through-callback.patch
+omap-pandora-pass-wl1251-information-to-sdio-core.patch
+mmc-add-erase-secure-erase-trim-and-secure-trim-operations.patch
+mmc_block-add-discard-support.patch
+omap_hsmmc-add-erase-capability.patch
+block-add-secure-discard.patch
+mmc_block-add-support-for-secure-discard.patch
 
