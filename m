@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-squashfs-xattrc-fix-warning.patch added to -mm tree
-Date: Mon, 19 Jul 2010 14:42:45 -0700
-Message-ID: <201007192212.o6JMC9cn023969@imap1.linux-foundation.org>
+Subject: + reiser4-broke.patch added to -mm tree
+Date: Mon, 19 Jul 2010 14:43:35 -0700
+Message-ID: <201007192212.o6JMCxl7024002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966620Ab0GSWNC (ORCPT
+	by vger.kernel.org with ESMTP id S966620Ab0GSWNd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 18:13:02 -0400
+	Mon, 19 Jul 2010 18:13:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, phillip@lougher.demon.co.uk
+Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
 
 
 The patch titled
-     fs/squashfs/xattr.c: fix warning
+     reiser4-broke
 has been added to the -mm tree.  Its filename is
-     fs-squashfs-xattrc-fix-warning.patch
+     reiser4-broke.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/squashfs/xattr.c: fix warning
+Subject: reiser4-broke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/squashfs/xattr.c:37: warning: 'squashfs_xattr_handler' declared inline after being called
-fs/squashfs/xattr.c:37: warning: previous declaration of 'squashfs_xattr_handler' was here
+argh
 
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+fs/reiser4/super_ops.c: In function 'reiser4_delete_inode':
+fs/reiser4/super_ops.c:208: error: implicit declaration of function 'clear_inode'
+fs/reiser4/super_ops.c: At top level:
+fs/reiser4/super_ops.c:468: error: unknown field 'delete_inode' specified in initializer
+fs/reiser4/super_ops.c:468: warning: initialization from incompatible pointer type
+fs/reiser4/super_ops.c:472: error: unknown field 'clear_inode' specified in initializer
+fs/reiser4/super_ops.c:472: warning: initialization from incompatible pointer type
+
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/xattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiser4/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/squashfs/xattr.c~fs-squashfs-xattrc-fix-warning fs/squashfs/xattr.c
---- a/fs/squashfs/xattr.c~fs-squashfs-xattrc-fix-warning
-+++ a/fs/squashfs/xattr.c
-@@ -295,7 +295,7 @@ static const struct xattr_handler squash
- 	.get	= squashfs_security_get
- };
- 
--static inline const struct xattr_handler *squashfs_xattr_handler(int type)
-+static const struct xattr_handler *squashfs_xattr_handler(int type)
- {
- 	if (type & ~(SQUASHFS_XATTR_PREFIX_MASK | SQUASHFS_XATTR_VALUE_OOL))
- 		/* ignore unrecognised type */
+diff -puN fs/reiser4/Kconfig~reiser4-broke fs/reiser4/Kconfig
+--- a/fs/reiser4/Kconfig~reiser4-broke
++++ a/fs/reiser4/Kconfig
+@@ -1,6 +1,7 @@
+ config REISER4_FS
+ 	tristate "Reiser4 (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select LZO_COMPRESS
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,6 +136,7 @@ reiser4-export-find_get_pages.patch
 reiser4.patch
 reiser4-writeback_inodes-implementation-fix.patch
 reiser4-fixups.patch
+reiser4-broke.patch
 journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
