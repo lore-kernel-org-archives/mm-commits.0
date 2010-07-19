@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-sysfs-dont-allow-the-creation-of-symlinks-we-cant-remove.patch added to -mm tree
-Date: Mon, 19 Jul 2010 13:07:49 -0700
-Message-ID: <201007192037.o6JKbGeg019839@imap1.linux-foundation.org>
+Subject: + security-add-const-to-security_task_setscheduler-fix.patch added to -mm tree
+Date: Mon, 19 Jul 2010 13:53:46 -0700
+Message-ID: <201007192123.o6JLNCD5021776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936465Ab0GSUjD (ORCPT
+	by vger.kernel.org with ESMTP id S965514Ab0GSVXc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 16:39:03 -0400
+	Mon, 19 Jul 2010 17:23:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, gregkh@suse.de, johannes@sipsolutions.net, kay.sievers@vrfy.org, macro@linux-mips.org, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, jmorris@namei.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     revert "sysfs: Don't allow the creation of symlinks we can't remove"
+     security-add-const-to-security_task_setscheduler-fix
 has been added to the -mm tree.  Its filename is
-     revert-sysfs-dont-allow-the-creation-of-symlinks-we-cant-remove.patch
+     security-add-const-to-security_task_setscheduler-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "sysfs: Don't allow the creation of symlinks we can't remove"
+Subject: security-add-const-to-security_task_setscheduler-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make networking work
-    
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+fix CONFIG_SECURITY=n case
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: James Morris <jmorris@namei.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/symlink.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ include/linux/security.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/sysfs/symlink.c~revert-sysfs-dont-allow-the-creation-of-symlinks-we-cant-remove fs/sysfs/symlink.c
---- a/fs/sysfs/symlink.c~revert-sysfs-dont-allow-the-creation-of-symlinks-we-cant-remove
-+++ a/fs/sysfs/symlink.c
-@@ -28,7 +28,6 @@ static int sysfs_do_create_link(struct k
- 	struct sysfs_dirent *target_sd = NULL;
- 	struct sysfs_dirent *sd = NULL;
- 	struct sysfs_addrm_cxt acxt;
--	enum kobj_ns_type ns_type;
- 	int error;
+diff -puN include/linux/security.h~security-add-const-to-security_task_setscheduler-fix include/linux/security.h
+--- a/include/linux/security.h~security-add-const-to-security_task_setscheduler-fix
++++ a/include/linux/security.h
+@@ -2320,7 +2320,7 @@ static inline int security_task_setrlimi
  
- 	BUG_ON(!name);
-@@ -59,28 +58,16 @@ static int sysfs_do_create_link(struct k
- 	if (!sd)
- 		goto out_put;
- 
--	ns_type = sysfs_ns_type(parent_sd);
--	if (ns_type)
-+	if (sysfs_ns_type(parent_sd))
- 		sd->s_ns = target->ktype->namespace(target);
- 	sd->s_symlink.target_sd = target_sd;
- 	target_sd = NULL;	/* reference is now owned by the symlink */
- 
- 	sysfs_addrm_start(&acxt, parent_sd);
--	/* Symlinks must be between directories with the same ns_type */
--	if (ns_type == sysfs_ns_type(sd->s_symlink.target_sd->s_parent)) {
--		if (warn)
--			error = sysfs_add_one(&acxt, sd);
--		else
--			error = __sysfs_add_one(&acxt, sd);
--	} else {
--		error = -EINVAL;
--		WARN(1, KERN_WARNING
--			"sysfs: symlink across ns_types %s/%s -> %s/%s\n",
--			parent_sd->s_name,
--			sd->s_name,
--			sd->s_symlink.target_sd->s_parent->s_name,
--			sd->s_symlink.target_sd->s_name);
--	}
-+	if (warn)
-+		error = sysfs_add_one(&acxt, sd);
-+	else
-+		error = __sysfs_add_one(&acxt, sd);
- 	sysfs_addrm_finish(&acxt);
- 
- 	if (error)
+ static inline int security_task_setscheduler(struct task_struct *p,
+ 					     int policy,
+-					     struct sched_param *lp)
++					     const struct sched_param *lp)
+ {
+ 	return cap_task_setscheduler(p, policy, lp);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +90,7 @@ arch-um-drivers-remove-duplicate-structure-field-initialization.patch
 altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
 serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
 serial-mmio32-support-for-8250_earlyc-fix-fix.patch
+security-add-const-to-security_task_setscheduler-fix.patch
 sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
 scsi-remove-private-bit-macros.patch
 vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
