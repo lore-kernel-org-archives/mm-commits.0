@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + security-add-const-to-security_task_setscheduler-fix.patch added to -mm tree
-Date: Mon, 19 Jul 2010 13:53:46 -0700
-Message-ID: <201007192123.o6JLNCD5021776@imap1.linux-foundation.org>
+Subject: + writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch added to -mm tree
+Date: Mon, 19 Jul 2010 14:06:11 -0700
+Message-ID: <201007192135.o6JLZagD022189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965514Ab0GSVXc (ORCPT
+	by vger.kernel.org with ESMTP id S966851Ab0GSVgT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 17:23:32 -0400
+	Mon, 19 Jul 2010 17:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jmorris@namei.org, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, rostedt@goodmis.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org
 
 
 The patch titled
-     security-add-const-to-security_task_setscheduler-fix
+     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix
 has been added to the -mm tree.  Its filename is
-     security-add-const-to-security_task_setscheduler-fix.patch
+     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security-add-const-to-security_task_setscheduler-fix
+Subject: writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix CONFIG_SECURITY=n case
+mm/page-writeback.c: In function 'balance_dirty_pages_ratelimited_nr':
+mm/page-writeback.c:466: warning: 'dirty_exceeded' may be used uninitialized in this function
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Morris <jmorris@namei.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |    2 +-
+ mm/page-writeback.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/security.h~security-add-const-to-security_task_setscheduler-fix include/linux/security.h
---- a/include/linux/security.h~security-add-const-to-security_task_setscheduler-fix
-+++ a/include/linux/security.h
-@@ -2320,7 +2320,7 @@ static inline int security_task_setrlimi
+diff -puN mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix
++++ a/mm/page-writeback.c
+@@ -463,7 +463,7 @@ static void balance_dirty_pages(struct a
+ 	unsigned long bdi_thresh;
+ 	unsigned long pages_written = 0;
+ 	unsigned long pause = 1;
+-	int dirty_exceeded;
++	bool dirty_exceeded = false;
+ 	struct backing_dev_info *bdi = mapping->backing_dev_info;
  
- static inline int security_task_setscheduler(struct task_struct *p,
- 					     int policy,
--					     struct sched_param *lp)
-+					     const struct sched_param *lp)
- {
- 	return cap_task_setscheduler(p, policy, lp);
- }
+ 	for (;;) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +109,7 @@ vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixe
 oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
 oom-move-badness-declaration-into-oomh.patch
 oom-move-badness-declaration-into-oomh-fix.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
 drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
