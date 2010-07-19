@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-broke.patch added to -mm tree
-Date: Mon, 19 Jul 2010 14:43:35 -0700
-Message-ID: <201007192212.o6JMCxl7024002@imap1.linux-foundation.org>
+Subject: + drivers-net-82596c-fix-warning.patch added to -mm tree
+Date: Mon, 19 Jul 2010 14:50:20 -0700
+Message-ID: <201007192219.o6JMJil8024300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966620Ab0GSWNd (ORCPT
+	by vger.kernel.org with ESMTP id S967079Ab0GSWUP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 18:13:33 -0400
+	Mon, 19 Jul 2010 18:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, segooon@gmail.com
 
 
 The patch titled
-     reiser4-broke
+     drivers/net/82596.c: fix warning
 has been added to the -mm tree.  Its filename is
-     reiser4-broke.patch
+     drivers-net-82596c-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-broke
+Subject: drivers/net/82596.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-argh
+drivers/net/82596.c: In function 'i596_open':
+drivers/net/82596.c:1044: warning: label 'err_irq_dev' defined but not used
 
-fs/reiser4/super_ops.c: In function 'reiser4_delete_inode':
-fs/reiser4/super_ops.c:208: error: implicit declaration of function 'clear_inode'
-fs/reiser4/super_ops.c: At top level:
-fs/reiser4/super_ops.c:468: error: unknown field 'delete_inode' specified in initializer
-fs/reiser4/super_ops.c:468: warning: initialization from incompatible pointer type
-fs/reiser4/super_ops.c:472: error: unknown field 'clear_inode' specified in initializer
-fs/reiser4/super_ops.c:472: warning: initialization from incompatible pointer type
+Caused by "82596: free resources on error"
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Kulikov Vasiliy <segooon@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/82596.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiser4/Kconfig~reiser4-broke fs/reiser4/Kconfig
---- a/fs/reiser4/Kconfig~reiser4-broke
-+++ a/fs/reiser4/Kconfig
-@@ -1,6 +1,7 @@
- config REISER4_FS
- 	tristate "Reiser4 (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
- 	select LZO_COMPRESS
+diff -puN drivers/net/82596.c~drivers-net-82596c-fix-warning drivers/net/82596.c
+--- a/drivers/net/82596.c~drivers-net-82596c-fix-warning
++++ a/drivers/net/82596.c
+@@ -1040,8 +1040,8 @@ err_queue:
+ err_irq_56:
+ #ifdef ENABLE_MVME16x_NET
+ 	free_irq(0x56, dev);
+-#endif
+ err_irq_dev:
++#endif
+ 	free_irq(dev->irq, dev);
+ 
+ 	return res;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +89,7 @@ hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 fs-squashfs-xattrc-fix-warning.patch
 arch-um-drivers-remove-duplicate-structure-field-initialization.patch
+drivers-net-82596c-fix-warning.patch
 3x59x-fix-pci-resource-management.patch
 altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
 serial-mcf-dont-take-spinlocks-in-already-protected-functions-fix.patch
