@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix.patch added to -mm tree
-Date: Mon, 19 Jul 2010 16:02:26 -0700
-Message-ID: <201007192331.o6JNVoAo027185@imap1.linux-foundation.org>
+Subject: + gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable.patch added to -mm tree
+Date: Mon, 19 Jul 2010 16:22:27 -0700
+Message-ID: <201007192351.o6JNppjC027956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754294Ab0GSXcb (ORCPT
+	by vger.kernel.org with ESMTP id S1753827Ab0GSXwd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 19:32:31 -0400
+	Mon, 19 Jul 2010 19:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, david-b@pacbell.net, gbean@codeaurora.org, khali@
 
 
 The patch titled
-     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix
+     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable
 has been added to the -mm tree.  Its filename is
-     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix.patch
+     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix
+Subject: gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable
 From: Andrew Morton <akpm@linux-foundation.org>
-
-s/tristate/bool/ to fix allmodonfig
 
 Cc: David Brownell <david-b@pacbell.net>
 Cc: Gregory Bean <gbean@codeaurora.org>
@@ -46,21 +44,20 @@ Cc: Trilok Soni <tsoni@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix
+diff -puN drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable
 +++ a/drivers/gpio/Kconfig
-@@ -203,7 +203,7 @@ config GPIO_STMPE
- 	  Expanders.
- 
+@@ -205,6 +205,7 @@ config GPIO_STMPE
  config GPIO_SX150X
--	tristate "Semtech SX150x I2C GPIO expander"
-+	bool "Semtech SX150x I2C GPIO expander"
+ 	tristate "Semtech SX150x I2C GPIO expander"
  	depends on I2C
++	depends on BROKEN
  	default n
  	help
+ 	  Say yes here to provide support for Semtech SX150-series I2C
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,7 +120,7 @@ hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
 fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
 rtc-fixes-and-new-functionality-for-fm3130-fix.patch
 rtc-add-support-for-ds3232-rtc-fix.patch
-gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix.patch
+gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable.patch
 drivers-video-via-via-gpioc-fix-warning.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
