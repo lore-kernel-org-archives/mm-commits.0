@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-82596c-fix-warning.patch added to -mm tree
-Date: Mon, 19 Jul 2010 14:50:20 -0700
-Message-ID: <201007192219.o6JMJil8024300@imap1.linux-foundation.org>
+Subject: + gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix.patch added to -mm tree
+Date: Mon, 19 Jul 2010 16:02:26 -0700
+Message-ID: <201007192331.o6JNVoAo027185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967079Ab0GSWUP (ORCPT
+	by vger.kernel.org with ESMTP id S1754294Ab0GSXcb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 18:20:15 -0400
+	Mon, 19 Jul 2010 19:32:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, segooon@gmail.com
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, gbean@codeaurora.org, khali@linux-fr.org, tsoni@codeaurora.org
 
 
 The patch titled
-     drivers/net/82596.c: fix warning
+     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix
 has been added to the -mm tree.  Its filename is
-     drivers-net-82596c-fix-warning.patch
+     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/82596.c: fix warning
+Subject: gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/82596.c: In function 'i596_open':
-drivers/net/82596.c:1044: warning: label 'err_irq_dev' defined but not used
+s/tristate/bool/ to fix allmodonfig
 
-Caused by "82596: free resources on error"
-
-Cc: Kulikov Vasiliy <segooon@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Gregory Bean <gbean@codeaurora.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Trilok Soni <tsoni@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/82596.c |    2 +-
+ drivers/gpio/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/82596.c~drivers-net-82596c-fix-warning drivers/net/82596.c
---- a/drivers/net/82596.c~drivers-net-82596c-fix-warning
-+++ a/drivers/net/82596.c
-@@ -1040,8 +1040,8 @@ err_queue:
- err_irq_56:
- #ifdef ENABLE_MVME16x_NET
- 	free_irq(0x56, dev);
--#endif
- err_irq_dev:
-+#endif
- 	free_irq(dev->irq, dev);
+diff -puN drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix
++++ a/drivers/gpio/Kconfig
+@@ -203,7 +203,7 @@ config GPIO_STMPE
+ 	  Expanders.
  
- 	return res;
+ config GPIO_SX150X
+-	tristate "Semtech SX150x I2C GPIO expander"
++	bool "Semtech SX150x I2C GPIO expander"
+ 	depends on I2C
+ 	default n
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +123,7 @@ hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
 fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
 rtc-fixes-and-new-functionality-for-fm3130-fix.patch
 rtc-add-support-for-ds3232-rtc-fix.patch
+gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-fix.patch
 drivers-video-via-via-gpioc-fix-warning.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
