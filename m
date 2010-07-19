@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch added to -mm tree
-Date: Mon, 19 Jul 2010 14:06:11 -0700
-Message-ID: <201007192135.o6JLZagD022189@imap1.linux-foundation.org>
+Subject: + fs-squashfs-xattrc-fix-warning.patch added to -mm tree
+Date: Mon, 19 Jul 2010 14:42:45 -0700
+Message-ID: <201007192212.o6JMC9cn023969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966851Ab0GSVgT (ORCPT
+	by vger.kernel.org with ESMTP id S966620Ab0GSWNC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Jul 2010 17:36:19 -0400
+	Mon, 19 Jul 2010 18:13:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org
+Cc: akpm@linux-foundation.org, phillip@lougher.demon.co.uk
 
 
 The patch titled
-     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix
+     fs/squashfs/xattr.c: fix warning
 has been added to the -mm tree.  Its filename is
-     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
+     fs-squashfs-xattrc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix
+Subject: fs/squashfs/xattr.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/page-writeback.c: In function 'balance_dirty_pages_ratelimited_nr':
-mm/page-writeback.c:466: warning: 'dirty_exceeded' may be used uninitialized in this function
+fs/squashfs/xattr.c:37: warning: 'squashfs_xattr_handler' declared inline after being called
+fs/squashfs/xattr.c:37: warning: previous declaration of 'squashfs_xattr_handler' was here
 
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
+ fs/squashfs/xattr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix
-+++ a/mm/page-writeback.c
-@@ -463,7 +463,7 @@ static void balance_dirty_pages(struct a
- 	unsigned long bdi_thresh;
- 	unsigned long pages_written = 0;
- 	unsigned long pause = 1;
--	int dirty_exceeded;
-+	bool dirty_exceeded = false;
- 	struct backing_dev_info *bdi = mapping->backing_dev_info;
+diff -puN fs/squashfs/xattr.c~fs-squashfs-xattrc-fix-warning fs/squashfs/xattr.c
+--- a/fs/squashfs/xattr.c~fs-squashfs-xattrc-fix-warning
++++ a/fs/squashfs/xattr.c
+@@ -295,7 +295,7 @@ static const struct xattr_handler squash
+ 	.get	= squashfs_security_get
+ };
  
- 	for (;;) {
+-static inline const struct xattr_handler *squashfs_xattr_handler(int type)
++static const struct xattr_handler *squashfs_xattr_handler(int type)
+ {
+ 	if (type & ~(SQUASHFS_XATTR_PREFIX_MASK | SQUASHFS_XATTR_VALUE_OOL))
+ 		/* ignore unrecognised type */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +83,7 @@ gcc-46-btrfs-clean-up-unused-variables-bugs-fix.patch
 dib3000mc-reduce-large-stack-usage-fix.patch
 hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-squashfs-xattrc-fix-warning.patch
 arch-um-drivers-remove-duplicate-structure-field-initialization.patch
 3x59x-fix-pci-resource-management.patch
 altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
