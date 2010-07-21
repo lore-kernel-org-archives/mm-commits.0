@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-add-comment-to-the-dirty-limit-functions.patch added to -mm tree
-Date: Wed, 21 Jul 2010 15:29:07 -0700
-Message-ID: <201007212229.o6LMT7ui018736@imap1.linux-foundation.org>
+Subject: + edac-mpc85xx-add-support-for-new-mpcxxx-pxxxx-edac-controllers.patch added to -mm tree
+Date: Wed, 21 Jul 2010 15:40:40 -0700
+Message-ID: <201007212240.o6LMeeGS019228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514Ab0GUW3d (ORCPT
+	by vger.kernel.org with ESMTP id S1753020Ab0GUWlA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Jul 2010 18:29:33 -0400
+	Wed, 21 Jul 2010 18:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, hch@infradead.org
+Cc: avorontsov@mvista.com, djiang@mvista.com, dougthompson@xmission.com, ptyser@xes-inc.com, scottwood@freescale.com
 
 
 The patch titled
-     writeback: add comment to the dirty limit functions
+     edac: mpc85xx: add support for new MPCxxx/Pxxxx EDAC controllers
 has been added to the -mm tree.  Its filename is
-     writeback-add-comment-to-the-dirty-limit-functions.patch
+     edac-mpc85xx-add-support-for-new-mpcxxx-pxxxx-edac-controllers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: add comment to the dirty limit functions
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: edac: mpc85xx: add support for new MPCxxx/Pxxxx EDAC controllers
+From: Anton Vorontsov <avorontsov@mvista.com>
 
-Document global_dirty_limits() and bdi_dirty_limit().
+Simply add proper IDs into the device table.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Scott Wood <scottwood@freescale.com>
+Cc: Peter Tyser <ptyser@xes-inc.com>
+Cc: Dave Jiang <djiang@mvista.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/edac/mpc85xx_edac.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/page-writeback.c~writeback-add-comment-to-the-dirty-limit-functions mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-add-comment-to-the-dirty-limit-functions
-+++ a/mm/page-writeback.c
-@@ -390,6 +390,15 @@ unsigned long determine_dirtyable_memory
- 	return x + 1;	/* Ensure that we never return 0 */
- }
+diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-add-support-for-new-mpcxxx-pxxxx-edac-controllers drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-add-support-for-new-mpcxxx-pxxxx-edac-controllers
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -646,8 +646,12 @@ static struct of_device_id mpc85xx_l2_er
+ 	{ .compatible = "fsl,mpc8555-l2-cache-controller", },
+ 	{ .compatible = "fsl,mpc8560-l2-cache-controller", },
+ 	{ .compatible = "fsl,mpc8568-l2-cache-controller", },
++	{ .compatible = "fsl,mpc8569-l2-cache-controller", },
+ 	{ .compatible = "fsl,mpc8572-l2-cache-controller", },
++	{ .compatible = "fsl,p1020-l2-cache-controller", },
++	{ .compatible = "fsl,p1021-l2-cache-controller", },
+ 	{ .compatible = "fsl,p2020-l2-cache-controller", },
++	{ .compatible = "fsl,p4080-l2-cache-controller", },
+ 	{},
+ };
  
-+/**
-+ * global_dirty_limits - background writeback and dirty throttling thresholds
-+ *
-+ * Calculate the dirty thresholds based on sysctl parameters
-+ * - vm.dirty_background_ratio  or  vm.dirty_background_bytes
-+ * - vm.dirty_ratio             or  vm.dirty_bytes
-+ * The dirty limits will be lifted by 1/4 for PF_LESS_THROTTLE (ie. nfsd) and
-+ * runtime tasks.
-+ */
- void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty)
- {
- 	unsigned long background;
-@@ -424,8 +433,18 @@ void global_dirty_limits(unsigned long *
- 	*pdirty = dirty;
- }
+@@ -1123,7 +1127,10 @@ static struct of_device_id mpc85xx_mc_er
+ 	{ .compatible = "fsl,mpc8569-memory-controller", },
+ 	{ .compatible = "fsl,mpc8572-memory-controller", },
+ 	{ .compatible = "fsl,mpc8349-memory-controller", },
++	{ .compatible = "fsl,p1020-memory-controller", },
++	{ .compatible = "fsl,p1021-memory-controller", },
+ 	{ .compatible = "fsl,p2020-memory-controller", },
++	{ .compatible = "fsl,p4080-memory-controller", },
+ 	{},
+ };
  
--unsigned long bdi_dirty_limit(struct backing_dev_info *bdi,
--			       unsigned long dirty)
-+/**
-+ * bdi_dirty_limit - current task's share of dirty throttling threshold on @bdi
-+ *
-+ * Once the global dirty limit is _exceeded_, all dirtiers will be throttled.
-+ * To avoid starving fast devices (which can sync dirty pages in short time) or
-+ * throttling light dirtiers, we start throttling individual tasks on a per-bdi
-+ * basis when _approaching_ the global dirty limit. Relative high limits will
-+ * be allocated to fast devices and/or light dirtiers. The bdi's dirty share is
-+ * evaluated adapting to its throughput and bounded if the bdi->min_ratio
-+ * and/or bdi->max_ratio parameters are set.
-+ */
-+unsigned long bdi_dirty_limit(struct backing_dev_info *bdi, unsigned long dirty)
- {
- 	u64 bdi_dirty;
- 	long numerator, denominator;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from avorontsov@mvista.com are
 
+origin.patch
 linux-next.patch
-fs-inodec-work-around-bug.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
-writeback-add-comment-to-the-dirty-limit-functions.patch
-writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
-writeback-fix-queue_io-ordering.patch
-writeback-merge-for_kupdate-and-for_kupdate-cases.patch
-vfs-add-super-operation-writeback_inodes.patch
+sdhci-pltfm-switch-to-module-device-table-matching.patch
+sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.patch
+sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch
+sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch
+sdhci-turn-timeout-timer-into-delayed-work.patch
+sdhci-use-work-structs-instead-of-tasklets.patch
+sdhci-clear-interrupt-status-register-just-once.patch
+sdhci-use-threaded-irq-handler.patch
+sdhci-turn-host-lock-into-a-mutex.patch
+sdhci-get-rid-of-card-detect-work.patch
+sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense.patch
+sdhci-use-jiffies-instead-of-a-timeout-counter.patch
+edac-mpc85xx-add-support-for-new-mpcxxx-pxxxx-edac-controllers.patch
 
