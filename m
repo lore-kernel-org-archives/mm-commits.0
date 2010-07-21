@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rx8581c-fix-setdatetime.patch added to -mm tree
-Date: Wed, 21 Jul 2010 14:56:53 -0700
-Message-ID: <201007212156.o6LLurrj017320@imap1.linux-foundation.org>
+Subject: + list-debugging-warn-when-deleting-a-deleted-entry.patch added to -mm tree
+Date: Wed, 21 Jul 2010 15:18:44 -0700
+Message-ID: <201007212218.o6LMIi8Z018341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758788Ab0GUV5J (ORCPT
+	by vger.kernel.org with ESMTP id S1753120Ab0GUWT1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Jul 2010 17:57:09 -0400
+	Wed, 21 Jul 2010 18:19:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rudolf.marek@sysgo.com, a.zummo@towertech.it, martyn.welch@gefanuc.com, mcuos.com@gmail.com
+Cc: baruch@tkos.co.il, davej@codemonkey.org.uk
 
 
 The patch titled
-     drivers/rtc/rtc-rx8581.c: fix setdatetime
+     list debugging: warn when deleting a deleted entry
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rx8581c-fix-setdatetime.patch
+     list-debugging-warn-when-deleting-a-deleted-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-rx8581.c: fix setdatetime
-From: Rudolf Marek <rudolf.marek@sysgo.com>
+Subject: list debugging: warn when deleting a deleted entry
+From: Baruch Siach <baruch@tkos.co.il>
 
-Fix the logic while writing new date/time to the chip.  The driver
-incorrectly wrote back register values to different registers and even
-with wrong mask.  The patch adds clearing of the VLF register, which
-should be cleared if all date/time values are set.
+Use the magic LIST_POISON* values to detect an incorrect use of list_del
+on a deleted entry.  This DEBUG_LIST specific warning is easier to
+understand than the generic Oops message caused by LIST_POISON
+dereference.
 
-Signed-off-by: Rudolf Marek <rudolf.marek@sysgo.com>
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Martyn Welch <martyn.welch@gefanuc.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx8581.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ lib/list_debug.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/rtc/rtc-rx8581.c~drivers-rtc-rtc-rx8581c-fix-setdatetime drivers/rtc/rtc-rx8581.c
---- a/drivers/rtc/rtc-rx8581.c~drivers-rtc-rtc-rx8581c-fix-setdatetime
-+++ a/drivers/rtc/rtc-rx8581.c
-@@ -168,7 +168,7 @@ static int rx8581_set_datetime(struct i2
- 		return -EIO;
- 	}
- 
--	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
-+	err = i2c_smbus_write_byte_data(client, RX8581_REG_CTRL,
- 		(data | RX8581_CTRL_STOP));
- 	if (err < 0) {
- 		dev_err(&client->dev, "Unable to write control register\n");
-@@ -182,6 +182,20 @@ static int rx8581_set_datetime(struct i2
- 		return -EIO;
- 	}
- 
-+	/* get VLF and clear it */
-+	data = i2c_smbus_read_byte_data(client, RX8581_REG_FLAG);
-+	if (data < 0) {
-+		dev_err(&client->dev, "Unable to read flag register\n");
-+		return -EIO;
-+	}
-+
-+	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
-+		(data & ~(RX8581_FLAG_VLF)));
-+	if (err != 0) {
-+		dev_err(&client->dev, "Unable to write flag register\n");
-+		return -EIO;
-+	}
-+
- 	/* Restart the clock */
- 	data = i2c_smbus_read_byte_data(client, RX8581_REG_CTRL);
- 	if (data < 0) {
-@@ -189,8 +203,8 @@ static int rx8581_set_datetime(struct i2
- 		return -EIO;
- 	}
- 
--	err = i2c_smbus_write_byte_data(client, RX8581_REG_FLAG,
--		(data | ~(RX8581_CTRL_STOP)));
-+	err = i2c_smbus_write_byte_data(client, RX8581_REG_CTRL,
-+		(data & ~(RX8581_CTRL_STOP)));
- 	if (err != 0) {
- 		dev_err(&client->dev, "Unable to write control register\n");
- 		return -EIO;
+diff -puN lib/list_debug.c~list-debugging-warn-when-deleting-a-deleted-entry lib/list_debug.c
+--- a/lib/list_debug.c~list-debugging-warn-when-deleting-a-deleted-entry
++++ a/lib/list_debug.c
+@@ -43,6 +43,12 @@ EXPORT_SYMBOL(__list_add);
+  */
+ void list_del(struct list_head *entry)
+ {
++	WARN(entry->next == LIST_POISON1,
++		"list_del corruption, next is LIST_POISON1 (%p)\n",
++		LIST_POISON1);
++	WARN(entry->next != LIST_POISON1 && entry->prev == LIST_POISON2,
++		"list_del corruption, prev is LIST_POISON2 (%p)\n",
++		LIST_POISON2);
+ 	WARN(entry->prev->next != entry,
+ 		"list_del corruption. prev->next should be %p, "
+ 		"but was %p\n", entry, entry->prev->next);
 _
 
-Patches currently in -mm which might be from rudolf.marek@sysgo.com are
+Patches currently in -mm which might be from baruch@tkos.co.il are
 
-drivers-rtc-rtc-rx8581c-fix-setdatetime.patch
+linux-next.patch
+list-debugging-warn-when-deleting-a-deleted-entry.patch
+rtc-driver-for-the-dryice-block-found-in-imx25-chips.patch
 
