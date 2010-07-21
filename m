@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mmc-host-msm-sdcc-remove-dead-config-options.patch added to -mm tree
-Date: Wed, 21 Jul 2010 14:18:03 -0700
-Message-ID: <201007212118.o6LLI3fc015813__31133.9322630831$1279747130$gmane$org@imap1.linux-foundation.org>
+Subject: + dynamic-debug-move-ddebug_remove_module-down-into-free_module.patch added to -mm tree
+Date: Wed, 21 Jul 2010 14:34:48 -0700
+Message-ID: <201007212134.o6LLYmEh016472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754143Ab0GUVSo (ORCPT
+	by vger.kernel.org with ESMTP id S1758256Ab0GUVfD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Jul 2010 17:18:44 -0400
+	Wed, 21 Jul 2010 17:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qy03fugy@stud.informatik.uni-erlangen.de, davidb@codeaurora.org, dwalker@codeaurora.org, linux-mmc@vger.kernel.org
+Cc: jbaron@redhat.com, stable@kernel.org, trenn@suse.de
 
 
 The patch titled
-     drivers/mmc/host/msm-sdcc: remove dead config options
+     dynamic debug: move ddebug_remove_module() down into free_module()
 has been added to the -mm tree.  Its filename is
-     drivers-mmc-host-msm-sdcc-remove-dead-config-options.patch
+     dynamic-debug-move-ddebug_remove_module-down-into-free_module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mmc/host/msm-sdcc: remove dead config options
-From: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
+Subject: dynamic debug: move ddebug_remove_module() down into free_module()
+From: Jason Baron <jbaron@redhat.com>
 
-CONFIG_MMC_MSM7X00A_RESUME_IN_WQ and CONFIG_MMC_EMBEDDED_SDIO don't exist
-in Kconfig and is never defined anywhere else, therefore removing all
-references for it from the source code.
+The command
 
-Signed-off-by: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
-Acked-by: David Brown <davidb@codeaurora.org>
-Cc: Daniel Walker <dwalker@codeaurora.org>
-Cc: <linux-mmc@vger.kernel.org>
+	echo "file ec.c +p" >/sys/kernel/debug/dynamic_debug/control
+
+causes an oops.
+
+Move the call to ddebug_remove_module() down into free_module().  In this
+way it should be called from all error paths.  Currently, we are missing
+the remove if the module init routine fails.
+
+Signed-off-by: Jason Baron <jbaron@redhat.com>
+Reported-by: Thomas Renninger <trenn@suse.de>
+Tested-by: Thomas Renninger <trenn@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/msm_sdcc.c |   25 -------------------------
- drivers/mmc/host/msm_sdcc.h |    4 ----
- 2 files changed, 29 deletions(-)
+ kernel/module.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/msm_sdcc.c~drivers-mmc-host-msm-sdcc-remove-dead-config-options drivers/mmc/host/msm_sdcc.c
---- a/drivers/mmc/host/msm_sdcc.c~drivers-mmc-host-msm-sdcc-remove-dead-config-options
-+++ a/drivers/mmc/host/msm_sdcc.c
-@@ -1129,15 +1129,6 @@ msmsdcc_probe(struct platform_device *pd
- 	host->dmares = dmares;
- 	spin_lock_init(&host->lock);
+diff -puN kernel/module.c~dynamic-debug-move-ddebug_remove_module-down-into-free_module kernel/module.c
+--- a/kernel/module.c~dynamic-debug-move-ddebug_remove_module-down-into-free_module
++++ a/kernel/module.c
+@@ -787,7 +787,6 @@ SYSCALL_DEFINE2(delete_module, const cha
  
--#ifdef CONFIG_MMC_EMBEDDED_SDIO
--	if (plat->embedded_sdio)
--		mmc_set_embedded_sdio_data(mmc,
--					   &plat->embedded_sdio->cis,
--					   &plat->embedded_sdio->cccr,
--					   plat->embedded_sdio->funcs,
--					   plat->embedded_sdio->num_funcs);
--#endif
--
- 	/*
- 	 * Setup DMA
- 	 */
-@@ -1299,22 +1290,6 @@ msmsdcc_probe(struct platform_device *pd
- }
+ 	/* Store the name of the last unloaded module for diagnostic purposes */
+ 	strlcpy(last_unloaded_module, mod->name, sizeof(last_unloaded_module));
+-	ddebug_remove_module(mod->name);
  
- #ifdef CONFIG_PM
--#ifdef CONFIG_MMC_MSM7X00A_RESUME_IN_WQ
--static void
--do_resume_work(struct work_struct *work)
--{
--	struct msmsdcc_host *host =
--		container_of(work, struct msmsdcc_host, resume_task);
--	struct mmc_host	*mmc = host->mmc;
--
--	if (mmc) {
--		mmc_resume_host(mmc);
--		if (host->stat_irq)
--			enable_irq(host->stat_irq);
--	}
--}
--#endif
--
+ 	free_module(mod);
+ 	return 0;
+@@ -1550,6 +1549,9 @@ static void free_module(struct module *m
+ 	remove_sect_attrs(mod);
+ 	mod_kobject_remove(mod);
  
- static int
- msmsdcc_suspend(struct platform_device *dev, pm_message_t state)
-diff -puN drivers/mmc/host/msm_sdcc.h~drivers-mmc-host-msm-sdcc-remove-dead-config-options drivers/mmc/host/msm_sdcc.h
---- a/drivers/mmc/host/msm_sdcc.h~drivers-mmc-host-msm-sdcc-remove-dead-config-options
-+++ a/drivers/mmc/host/msm_sdcc.h
-@@ -235,10 +235,6 @@ struct msmsdcc_host {
- 	int			cmdpoll;
- 	struct msmsdcc_stats	stats;
++	/* Remove dynamic debug info */
++	ddebug_remove_module(mod->name);
++
+ 	/* Arch-specific cleanup. */
+ 	module_arch_cleanup(mod);
  
--#ifdef CONFIG_MMC_MSM7X00A_RESUME_IN_WQ
--	struct work_struct	resume_task;
--#endif
+_
+
+Patches currently in -mm which might be from jbaron@redhat.com are
+
+dynamic-debug-move-ddebug_remove_module-down-into-free_module.patch
+linux-next.patch
+
