@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-change-externals-to-globals.patch added to -mm tree
-Date: Wed, 21 Jul 2010 13:34:55 -0700
-Message-ID: <201007212034.o6LKYvGB013760@imap1.linux-foundation.org>
+Subject: + maintainers-orphan-befs.patch added to -mm tree
+Date: Wed, 21 Jul 2010 13:51:41 -0700
+Message-ID: <201007212051.o6LKpf42014458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42618 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750803Ab0GUUfo (ORCPT
+	by vger.kernel.org with ESMTP id S1754683Ab0GUUvq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Jul 2010 16:35:44 -0400
+	Wed, 21 Jul 2010 16:51:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kagen101@gmail.com, apw@shadowen.org, w.sang@pengutronix.de
+Cc: joe@perches.com, rathamahata@gmail.com
 
 
 The patch titled
-     checkpatch: change externals to globals
+     MAINTAINERS: orphan BEFS
 has been added to the -mm tree.  Its filename is
-     checkpatch-change-externals-to-globals.patch
+     maintainers-orphan-befs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: change externals to globals
-From: Joe Eloff <kagen101@gmail.com>
+Subject: MAINTAINERS: orphan BEFS
+From: Joe Perches <joe@perches.com>
 
-Make error message say 'ERROR: do not initialise globals to 0 or NULL'
-rather than 'ERROR: do not initialise externals to 0 or NULL'.  Makes more
-sense in the context since there is an extern keyword in C and that is a
-global declaration within the scope of the current file.
+This old address bounces and Sergey doesn't answer at another email
+address.
 
-Signed-off-by: Joe Eloff <kagen101@gmail.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Sergey Kostyliov <rathamahata@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-change-externals-to-globals scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-change-externals-to-globals
-+++ a/scripts/checkpatch.pl
-@@ -1791,9 +1791,9 @@ sub process {
- 			WARN("EXPORT_SYMBOL(foo); should immediately follow its function/variable\n" . $herecurr);
- 		}
+diff -puN MAINTAINERS~maintainers-orphan-befs MAINTAINERS
+--- a/MAINTAINERS~maintainers-orphan-befs
++++ a/MAINTAINERS
+@@ -1252,8 +1252,7 @@ S:	Maintained
+ F:	drivers/net/hamradio/baycom*
  
--# check for external initialisers.
-+# check for global initialisers.
- 		if ($line =~ /^.$Type\s*$Ident\s*(?:\s+$Modifier)*\s*=\s*(0|NULL|false)\s*;/) {
--			ERROR("do not initialise externals to 0 or NULL\n" .
-+			ERROR("do not initialise globals to 0 or NULL\n" .
- 				$herecurr);
- 		}
- # check for static initialisers.
+ BEFS FILE SYSTEM
+-M:	"Sergey S. Kostyliov" <rathamahata@php4.ru>
+-S:	Maintained
++S:	Orphan
+ F:	Documentation/filesystems/befs.txt
+ F:	fs/befs/
+ 
 _
 
-Patches currently in -mm which might be from kagen101@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-checkpatch-change-externals-to-globals.patch
+origin.patch
+linux-next.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
+maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
+maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+maintainers-update-arm-voipac-pxa270-file-patterns.patch
+maintainers-update-arm-zipit-z2-support-file-patterns.patch
+maintainers-update-networking-file-patterns.patch
+maintainers-update-ppp-over-l2tp-file-patterns.patch
+maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+maintainers-remove-section-smx-uio-interface.patch
+maintainers-update-spear-clock-framework-support-file-patterns.patch
+maintainers-remove-section-strip.patch
+maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
+maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
+maintainers-update-drm-drivers-patterns.patch
+maintainers-add-patterns-to-cryptographic-random-number-generator.patch
+maintainers-add-patterns-to-dell-wmi-extras.patch
+maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
+maintainers-add-patterns-to-omap-usb.patch
+maintainers-remove-section-promise-dc4030.patch
+maintainers-add-patterns-to-ps3vram-driver.patch
+maintainers-add-patterns-to-wimax-stack.patch
+maintainers-update-laurent-pinchart-email.patch
+maintainers-orphan-befs.patch
+checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
+documentation-networking-wavelantxt-deleted-not-in-tree.patch
 
