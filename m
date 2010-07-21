@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-use-jiffies-instead-of-a-timeout-counter.patch added to -mm tree
-Date: Wed, 21 Jul 2010 14:14:16 -0700
-Message-ID: <201007212114.o6LLEG4u015624@imap1.linux-foundation.org>
+Subject: + sdhci-get-rid-of-card-detect-work.patch added to -mm tree
+Date: Wed, 21 Jul 2010 14:14:12 -0700
+Message-ID: <201007212114.o6LLECHQ015617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754932Ab0GUVPm (ORCPT
+	by vger.kernel.org with ESMTP id S1755059Ab0GUVPn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Jul 2010 17:15:42 -0400
+	Wed, 21 Jul 2010 17:15:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: avorontsov@mvista.com, albert_herranz@yahoo.es, ben-linux@fluff.org, matt@co
 
 
 The patch titled
-     sdhci: use jiffies instead of a timeout counter
+     sdhci: get rid of card detect work
 has been added to the -mm tree.  Its filename is
-     sdhci-use-jiffies-instead-of-a-timeout-counter.patch
+     sdhci-get-rid-of-card-detect-work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: use jiffies instead of a timeout counter
+Subject: sdhci: get rid of card detect work
 From: Anton Vorontsov <avorontsov@mvista.com>
 
-Just a cosmetic change, should not affect functionality.
+Nowadays we can just call the card detection handler directly, no need for
+the separate work struct.
+
+We still need host->finish_work as sdhci_finish_work() calls
+mmc_request_done(), which tries to re-enter the driver.
 
 Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
 Cc: Wolfram Sang <w.sang@pengutronix.de>
@@ -48,66 +52,74 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/mmc/host/sdhci.c |   14 ++------------
+ drivers/mmc/host/sdhci.h |    1 -
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-use-jiffies-instead-of-a-timeout-counter drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-use-jiffies-instead-of-a-timeout-counter
+diff -puN drivers/mmc/host/sdhci.c~sdhci-get-rid-of-card-detect-work drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-get-rid-of-card-detect-work
 +++ a/drivers/mmc/host/sdhci.c
-@@ -22,6 +22,7 @@
- #include <linux/slab.h>
- #include <linux/mutex.h>
- #include <linux/scatterlist.h>
-+#include <linux/jiffies.h>
+@@ -1245,14 +1245,8 @@ static const struct mmc_host_ops sdhci_o
+  *                                                                           *
+ \*****************************************************************************/
  
- #include <linux/leds.h>
- 
-@@ -160,17 +161,16 @@ static void sdhci_reset(struct sdhci_hos
- 		host->clock = 0;
- 
- 	/* Wait max 100 ms */
--	timeout = 100;
-+	timeout = jiffies + msecs_to_jiffies(100);
- 
- 	/* hw clears the bit when it's done */
- 	while (sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask) {
--		if (timeout == 0) {
-+		if (time_after(jiffies, timeout)) {
- 			printk(KERN_ERR "%s: Reset 0x%x never completed.\n",
- 				mmc_hostname(host->mmc), (int)mask);
- 			sdhci_dumpregs(host);
- 			return;
+-static void sdhci_card_detect_work(struct work_struct *wk)
++static void sdhci_card_detect(struct sdhci_host *host)
+ {
+-	struct sdhci_host *host;
+-
+-	host = container_of(wk, struct sdhci_host, card_detect_work);
+-
+-	mutex_lock(&host->lock);
+-
+ 	if (!(sdhci_readl(host, SDHCI_PRESENT_STATE) & SDHCI_CARD_PRESENT)) {
+ 		if (host->mrq) {
+ 			printk(KERN_ERR "%s: Card removed during transfer!\n",
+@@ -1268,8 +1262,6 @@ static void sdhci_card_detect_work(struc
  		}
--		timeout--;
- 		msleep(1);
  	}
  
-@@ -884,7 +884,7 @@ static void sdhci_send_command(struct sd
- 	WARN_ON(host->cmd);
+-	mutex_unlock(&host->lock);
+-
+ 	mmc_detect_change(host->mmc, msecs_to_jiffies(200));
+ }
  
- 	/* Wait max 10 ms */
--	timeout = 10;
-+	timeout = jiffies + msecs_to_jiffies(10);
+@@ -1517,7 +1509,7 @@ static irqreturn_t sdhci_irq_thread(int 
+ 	sdhci_writel(host, intmask, SDHCI_INT_STATUS);
  
- 	mask = SDHCI_CMD_INHIBIT;
- 	if ((cmd->data != NULL) || (cmd->flags & MMC_RSP_BUSY))
-@@ -896,7 +896,7 @@ static void sdhci_send_command(struct sd
- 		mask &= ~SDHCI_DATA_INHIBIT;
+ 	if (intmask & (SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE))
+-		schedule_work(&host->card_detect_work);
++		sdhci_card_detect(host);
  
- 	while (sdhci_readl(host, SDHCI_PRESENT_STATE) & mask) {
--		if (timeout == 0) {
-+		if (time_after(jiffies, timeout)) {
- 			printk(KERN_ERR "%s: Controller never released "
- 				"inhibit bit(s).\n", mmc_hostname(host->mmc));
- 			sdhci_dumpregs(host);
-@@ -904,7 +904,6 @@ static void sdhci_send_command(struct sd
- 			schedule_work(&host->finish_work);
- 			return;
- 		}
--		timeout--;
- 		mdelay(1);
- 	}
+ 	intmask &= ~(SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE);
  
+@@ -1872,7 +1864,6 @@ int sdhci_add_host(struct sdhci_host *ho
+ 	/*
+ 	 * Init work structs.
+ 	 */
+-	INIT_WORK(&host->card_detect_work, sdhci_card_detect_work);
+ 	INIT_WORK(&host->finish_work, sdhci_finish_work);
+ 
+ 	INIT_DELAYED_WORK(&host->timeout_work, sdhci_timeout_work);
+@@ -1957,7 +1948,6 @@ void sdhci_remove_host(struct sdhci_host
+ 
+ 	flush_delayed_work(&host->timeout_work);
+ 
+-	flush_work(&host->card_detect_work);
+ 	flush_work(&host->finish_work);
+ 
+ 	kfree(host->adma_desc);
+diff -puN drivers/mmc/host/sdhci.h~sdhci-get-rid-of-card-detect-work drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-get-rid-of-card-detect-work
++++ a/drivers/mmc/host/sdhci.h
+@@ -296,7 +296,6 @@ struct sdhci_host {
+ 	dma_addr_t		adma_addr;	/* Mapped ADMA descr. table */
+ 	dma_addr_t		align_addr;	/* Mapped bounce buffer */
+ 
+-	struct work_struct	card_detect_work;
+ 	struct work_struct	finish_work;
+ 
+ 	struct delayed_work	timeout_work;	/* Work for timeouts */
 _
 
 Patches currently in -mm which might be from avorontsov@mvista.com are
