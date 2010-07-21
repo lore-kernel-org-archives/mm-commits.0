@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-remove-unneeded-ifdef-config_pm.patch added to -mm tree
-Date: Wed, 21 Jul 2010 14:16:09 -0700
-Message-ID: <201007212116.o6LLG9RN015690@imap1.linux-foundation.org>
+Subject: + drivers-mmc-host-msm-sdcc-remove-dead-config-options.patch added to -mm tree
+Date: Wed, 21 Jul 2010 14:18:03 -0700
+Message-ID: <201007212118.o6LLI3fc015813__31133.9322630831$1279747130$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754143Ab0GUVQy (ORCPT
+	by vger.kernel.org with ESMTP id S1754143Ab0GUVSo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Jul 2010 17:16:54 -0400
+	Wed, 21 Jul 2010 17:18:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qy03fugy@stud.informatik.uni-erlangen.de, a.zummo@towertech.it, mcuos.com@gmail.com
+Cc: qy03fugy@stud.informatik.uni-erlangen.de, davidb@codeaurora.org, dwalker@codeaurora.org, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc: remove unneeded ifdef CONFIG_PM
+     drivers/mmc/host/msm-sdcc: remove dead config options
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-remove-unneeded-ifdef-config_pm.patch
+     drivers-mmc-host-msm-sdcc-remove-dead-config-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc: remove unneeded ifdef CONFIG_PM
+Subject: drivers/mmc/host/msm-sdcc: remove dead config options
 From: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
 
-Because CONFIG_PM is a precondition to CONFIG_ACPI, the ifdef CONFIG_PM
-within ifdef CONFIG_ACPI is redundant.
+CONFIG_MMC_MSM7X00A_RESUME_IN_WQ and CONFIG_MMC_EMBEDDED_SDIO don't exist
+in Kconfig and is never defined anywhere else, therefore removing all
+references for it from the source code.
 
 Signed-off-by: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: David Brown <davidb@codeaurora.org>
+Cc: Daniel Walker <dwalker@codeaurora.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/mmc/host/msm_sdcc.c |   25 -------------------------
+ drivers/mmc/host/msm_sdcc.h |    4 ----
+ 2 files changed, 29 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-remove-unneeded-ifdef-config_pm drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-remove-unneeded-ifdef-config_pm
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -970,7 +970,6 @@ static inline int cmos_poweroff(struct d
+diff -puN drivers/mmc/host/msm_sdcc.c~drivers-mmc-host-msm-sdcc-remove-dead-config-options drivers/mmc/host/msm_sdcc.c
+--- a/drivers/mmc/host/msm_sdcc.c~drivers-mmc-host-msm-sdcc-remove-dead-config-options
++++ a/drivers/mmc/host/msm_sdcc.c
+@@ -1129,15 +1129,6 @@ msmsdcc_probe(struct platform_device *pd
+ 	host->dmares = dmares;
+ 	spin_lock_init(&host->lock);
  
- #include <linux/acpi.h>
- 
--#ifdef	CONFIG_PM
- static u32 rtc_handler(void *context)
- {
- 	acpi_clear_event(ACPI_EVENT_RTC);
-@@ -999,11 +998,6 @@ static void rtc_wake_off(struct device *
- {
- 	acpi_disable_event(ACPI_EVENT_RTC, 0);
- }
--#else
--#define rtc_wake_setup()	do{}while(0)
--#define rtc_wake_on		NULL
--#define rtc_wake_off		NULL
+-#ifdef CONFIG_MMC_EMBEDDED_SDIO
+-	if (plat->embedded_sdio)
+-		mmc_set_embedded_sdio_data(mmc,
+-					   &plat->embedded_sdio->cis,
+-					   &plat->embedded_sdio->cccr,
+-					   plat->embedded_sdio->funcs,
+-					   plat->embedded_sdio->num_funcs);
 -#endif
+-
+ 	/*
+ 	 * Setup DMA
+ 	 */
+@@ -1299,22 +1290,6 @@ msmsdcc_probe(struct platform_device *pd
+ }
  
- /* Every ACPI platform has a mc146818 compatible "cmos rtc".  Here we find
-  * its device node and pass extra config data.  This helps its driver use
-_
-
-Patches currently in -mm which might be from qy03fugy@stud.informatik.uni-erlangen.de are
-
-drivers-rtc-remove-unneeded-ifdef-config_pm.patch
-
+ #ifdef CONFIG_PM
+-#ifdef CONFIG_MMC_MSM7X00A_RESUME_IN_WQ
+-static void
+-do_resume_work(struct work_struct *work)
+-{
+-	struct msmsdcc_host *host =
+-		container_of(work, struct msmsdcc_host, resume_task);
+-	struct mmc_host	*mmc = host->mmc;
+-
+-	if (mmc) {
+-		mmc_resume_host(mmc);
+-		if (host->stat_irq)
+-			enable_irq(host->stat_irq);
+-	}
+-}
+-#endif
+-
+ 
+ static int
+ msmsdcc_suspend(struct platform_device *dev, pm_message_t state)
+diff -puN drivers/mmc/host/msm_sdcc.h~drivers-mmc-host-msm-sdcc-remove-dead-config-options drivers/mmc/host/msm_sdcc.h
+--- a/drivers/mmc/host/msm_sdcc.h~drivers-mmc-host-msm-sdcc-remove-dead-config-options
++++ a/drivers/mmc/host/msm_sdcc.h
+@@ -235,10 +235,6 @@ struct msmsdcc_host {
+ 	int			cmdpoll;
+ 	struct msmsdcc_stats	stats;
+ 
+-#ifdef CONFIG_MMC_MSM7X00A_RESUME_IN_WQ
+-	struct work_struct	resume_task;
+-#endif
