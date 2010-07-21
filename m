@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-clear-interrupt-status-register-just-once.patch added to -mm tree
-Date: Wed, 21 Jul 2010 14:14:06 -0700
-Message-ID: <201007212114.o6LLE6ak015603@imap1.linux-foundation.org>
+Subject: + sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense.patch added to -mm tree
+Date: Wed, 21 Jul 2010 14:14:14 -0700
+Message-ID: <201007212114.o6LLEEFE015620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758237Ab0GUVPL (ORCPT
+	by vger.kernel.org with ESMTP id S1758155Ab0GUVPL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 21 Jul 2010 17:15:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: avorontsov@mvista.com, albert_herranz@yahoo.es, ben-linux@fluff.org, matt@co
 
 
 The patch titled
-     sdhci: clear interrupt status register just once
+     sdhci: get rid of mdelay()s where it is safe and makes sense
 has been added to the -mm tree.  Its filename is
-     sdhci-clear-interrupt-status-register-just-once.patch
+     sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: clear interrupt status register just once
+Subject: sdhci: get rid of mdelay()s where it is safe and makes sense
 From: Anton Vorontsov <avorontsov@mvista.com>
 
-There's no need to clear the interrupt status register bit-by-bit, we can
-just clear it once.  This simplifies irq handler.
+Since we don't run in the atomic context any longer, we can turn mdelay()s
+into msleep()s.
+
+The only place where the driver is still using mdelay() is
+sdhci_send_command().  There it is possible to use sleepable delays too,
+but we don't actually want to force rescheduling in a hot path.
+
+Sure, we might end up calling msleep() there too, just not via this safe
+patch.
 
 Signed-off-by: Anton Vorontsov <avorontsov@mvista.com>
 Cc: Wolfram Sang <w.sang@pengutronix.de>
@@ -49,58 +56,68 @@ Cc: Pierre Ossman <pierre@ossman.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |   23 ++++++-----------------
- 1 file changed, 6 insertions(+), 17 deletions(-)
+ drivers/mmc/host/sdhci-of-esdhc.c |    2 +-
+ drivers/mmc/host/sdhci.c          |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-clear-interrupt-status-register-just-once drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-clear-interrupt-status-register-just-once
+diff -puN drivers/mmc/host/sdhci-of-esdhc.c~sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense drivers/mmc/host/sdhci-of-esdhc.c
+--- a/drivers/mmc/host/sdhci-of-esdhc.c~sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense
++++ a/drivers/mmc/host/sdhci-of-esdhc.c
+@@ -94,7 +94,7 @@ static void esdhc_set_clock(struct sdhci
+ 	setbits32(host->ioaddr + ESDHC_SYSTEM_CONTROL, ESDHC_CLOCK_IPGEN |
+ 		  ESDHC_CLOCK_HCKEN | ESDHC_CLOCK_PEREN |
+ 		  div << ESDHC_DIVIDER_SHIFT | pre_div << ESDHC_PREDIV_SHIFT);
+-	mdelay(100);
++	msleep(100);
+ out:
+ 	host->clock = clock;
+ }
+diff -puN drivers/mmc/host/sdhci.c~sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense
 +++ a/drivers/mmc/host/sdhci.c
-@@ -1528,38 +1528,29 @@ static irqreturn_t sdhci_irq(int irq, vo
- 		goto out;
+@@ -171,7 +171,7 @@ static void sdhci_reset(struct sdhci_hos
+ 			return;
+ 		}
+ 		timeout--;
+-		mdelay(1);
++		msleep(1);
  	}
  
-+	sdhci_writel(host, intmask, SDHCI_INT_STATUS);
-+
- 	DBG("*** %s got interrupt: 0x%08x\n",
- 		mmc_hostname(host->mmc), intmask);
+ 	if (host->quirks & SDHCI_QUIRK_RESTORE_IRQS_AFTER_RESET)
+@@ -1019,7 +1019,7 @@ static void sdhci_set_clock(struct sdhci
+ 			return;
+ 		}
+ 		timeout--;
+-		mdelay(1);
++		msleep(1);
+ 	}
  
--	if (intmask & (SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE)) {
--		sdhci_writel(host, intmask & (SDHCI_INT_CARD_INSERT |
--			SDHCI_INT_CARD_REMOVE), SDHCI_INT_STATUS);
-+	if (intmask & (SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE))
- 		schedule_work(&host->card_detect_work);
--	}
+ 	clk |= SDHCI_CLOCK_CARD_EN;
+@@ -1086,7 +1086,7 @@ static void sdhci_set_power(struct sdhci
+ 	 * can apply clock after applying power
+ 	 */
+ 	if (host->quirks & SDHCI_QUIRK_DELAY_AFTER_POWER)
+-		mdelay(10);
++		msleep(10);
+ }
  
- 	intmask &= ~(SDHCI_INT_CARD_INSERT | SDHCI_INT_CARD_REMOVE);
- 
--	if (intmask & SDHCI_INT_CMD_MASK) {
--		sdhci_writel(host, intmask & SDHCI_INT_CMD_MASK,
--			SDHCI_INT_STATUS);
-+	if (intmask & SDHCI_INT_CMD_MASK)
- 		sdhci_cmd_irq(host, intmask & SDHCI_INT_CMD_MASK);
--	}
- 
--	if (intmask & SDHCI_INT_DATA_MASK) {
--		sdhci_writel(host, intmask & SDHCI_INT_DATA_MASK,
--			SDHCI_INT_STATUS);
-+	if (intmask & SDHCI_INT_DATA_MASK)
- 		sdhci_data_irq(host, intmask & SDHCI_INT_DATA_MASK);
--	}
- 
- 	intmask &= ~(SDHCI_INT_CMD_MASK | SDHCI_INT_DATA_MASK);
- 
- 	intmask &= ~SDHCI_INT_ERROR;
- 
--	if (intmask & SDHCI_INT_BUS_POWER) {
-+	if (intmask & SDHCI_INT_BUS_POWER)
- 		printk(KERN_ERR "%s: Card is consuming too much power!\n",
- 			mmc_hostname(host->mmc));
--		sdhci_writel(host, SDHCI_INT_BUS_POWER, SDHCI_INT_STATUS);
--	}
- 
- 	intmask &= ~SDHCI_INT_BUS_POWER;
- 
-@@ -1572,8 +1563,6 @@ static irqreturn_t sdhci_irq(int irq, vo
- 		printk(KERN_ERR "%s: Unexpected interrupt 0x%08x.\n",
- 			mmc_hostname(host->mmc), intmask);
- 		sdhci_dumpregs(host);
+ /*****************************************************************************\
+_
+
+Patches currently in -mm which might be from avorontsov@mvista.com are
+
+origin.patch
+linux-next.patch
+sdhci-pltfm-switch-to-module-device-table-matching.patch
+sdhci-pltfm-reorganize-makefile-entries-to-support-soc-devices.patch
+sdhci-pltfm-add-support-for-cns3xxx-soc-devices.patch
+sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch
+sdhci-turn-timeout-timer-into-delayed-work.patch
+sdhci-use-work-structs-instead-of-tasklets.patch
+sdhci-clear-interrupt-status-register-just-once.patch
+sdhci-use-threaded-irq-handler.patch
+sdhci-turn-host-lock-into-a-mutex.patch
+sdhci-get-rid-of-card-detect-work.patch
+sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense.patch
+sdhci-use-jiffies-instead-of-a-timeout-counter.patch
+
