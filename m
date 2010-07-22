@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch added to -mm tree
-Date: Thu, 22 Jul 2010 14:24:21 -0700
-Message-ID: <201007222124.o6MLOLqf013140@imap1.linux-foundation.org>
+Subject: + hwmon-coretemp-documentation-update-and-cleanup.patch added to -mm tree
+Date: Thu, 22 Jul 2010 14:24:19 -0700
+Message-ID: <201007222124.o6MLOJqN013137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753934Ab0GVVZN (ORCPT
+	by vger.kernel.org with ESMTP id S1758681Ab0GVVZN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 22 Jul 2010 17:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gong.chen@linux.intel.com, guenter.roeck@ericsson.com, huaxu.wan@intel.com, khali@linux-fr.org, r.marek@assembler.cz
+Cc: gong.chen@linux.intel.com, guenter.roeck@ericsson.com, huaxu.wan@intel.com, khali@linux-fr.org, r.marek@assembler.cz
 
 
 The patch titled
-     drivers/hwmon/coretemp.c: remove unneeded #ifdef CONFIG_HOTPLUG_CPU
+     hwmon: coretemp: documentation update and cleanup
 has been added to the -mm tree.  Its filename is
-     drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
+     hwmon-coretemp-documentation-update-and-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/coretemp.c: remove unneeded #ifdef CONFIG_HOTPLUG_CPU
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hwmon: coretemp: documentation update and cleanup
+From: Chen Gong <gong.chen@linux.intel.com>
 
-register_hotcpu_notifier() is designed to make these ifdefs unnecessary.
+Update coretemp supported CPU TjMax lists and some cleanup work.
 
-Cc: Chen Gong <gong.chen@linux.intel.com>
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
 Cc: Rudolf Marek <r.marek@assembler.cz>
 Cc: Huaxu Wan <huaxu.wan@intel.com>
 Cc: Jean Delvare <khali@linux-fr.org>
@@ -47,112 +47,172 @@ Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/coretemp.c |    4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/hwmon/coretemp |  102 ++++++++++++++++++++++++++++++++-
+ drivers/hwmon/Kconfig        |    2 
+ drivers/hwmon/coretemp.c     |    4 -
+ 3 files changed, 104 insertions(+), 4 deletions(-)
 
-diff -puN drivers/hwmon/coretemp.c~drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu drivers/hwmon/coretemp.c
---- a/drivers/hwmon/coretemp.c~drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu
+diff -puN Documentation/hwmon/coretemp~hwmon-coretemp-documentation-update-and-cleanup Documentation/hwmon/coretemp
+--- a/Documentation/hwmon/coretemp~hwmon-coretemp-documentation-update-and-cleanup
++++ a/Documentation/hwmon/coretemp
+@@ -22,7 +22,7 @@ Temperature is measured in degrees Celsi
+ the actual value of temperature register is in fact a delta from TjMax.
+ 
+ Temperature known as TjMax is the maximum junction temperature of processor.
+-Intel defines this temperature as 85C or 100C. At this temperature, protection
++Intel defines this temperature as 80C or 105C. At this temperature, protection
+ mechanism will perform actions to forcibly cool down the processor. Alarm
+ may be raised, if the temperature grows enough (more than TjMax) to trigger
+ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+@@ -38,3 +38,103 @@ temp1_label	 - Contains string "Core X",
+ The TjMax temperature is set to 85 degrees C if undocumented model specific
+ register (UMSR) 0xee has bit 30 set. If not the TjMax is 100 degrees C as
+ (sometimes) documented in processor datasheet.
++
++Appendix A. Known TjMax lists (TBD):
++Some information comes from ark.intel.com
++
++Process		Processor					TjMax(C)
++
++32nm		Core i3/i5/i7 Processors
++		i7 660UM/640/620, 640LM/620, 620M, 610E		105
++		i5 540UM/520/430, 540M/520/450/430		105
++		i3 330E, 370M/350/330				90 rPGA, 105 BGA
++		i3 330UM					105
++
++32nm		Core i7 Extreme Processors
++		980X						100
++
++32nm		Celeron Processors
++		U3400						105
++		P4505/P4500 					90
++
++45nm		Xeon Processors 5400 Quad-Core
++		X5492, X5482, X5472, X5470, X5460, X5450	85
++		E5472, E5462, E5450/40/30/20/10/05		85
++		L5408						95
++		L5430, L5420, L5410				70
++
++45nm		Xeon Processors 5200 Dual-Core
++		X5282, X5272, X5270, X5260			90
++		E5240, E5220, E5205				90
++		E5205, E5220					70
++		L5240						70
++		L5238, L5215					95
++
++45nm		Atom Processors
++		D525/510/425/410				100
++		Z560/550/540/530P/530/520PT/520/515/510PT/510P	90
++		Z510/500					90
++		N475/470/455/450				100
++		N280/270					90
++
++45nm		Core2 Processors
++		Solo ULV SU3500/3300				100
++		T9900/9800/9600/9550/9500/9400/9300/8300/8100	105
++		T6670/6500/6400					105
++		T6600						90
++		SU9600/9400/9300				105
++		SP9600/9400					105
++		SL9600/9400/9380/9300				105
++		P9700/9600/9500/8800/8700/8600/8400/7570	105
++		P7550/7450					90
++
++45nm		Core2 Quad Processors
++		Q9100/9000					100
++
++45nm		Core2 Extreme Processors
++		X9100/9000					105
++		QX9300						100
++
++45nm		Core i3/i5/i7 Processors
++		i7 940XM/920					100
++		i7 840QM/820/740/720				100
++
++45nm		Celeron Processors
++		SU2300						100
++		900 						105
++
++65nm		Core2 Duo Processors
++		Solo U2200, U2100				100
++		U7700/7600/7500					100
++		T7800/7700/7600/7500/7400/7300/7250/7200/7100	100
++		T5870/5670/5600/5550/5500/5470/5450/5300/5270	100
++		T5250						100
++		T5800/5750/5200					85
++		L7700/7500/7400/7300/7200			100
++
++65nm		Core2 Extreme Processors
++		X7900/7800					100
++
++65nm		Core Duo Processors
++		U2500/2400					100
++		T2700/2600/2450/2400/2350/2300E/2300/2250/2050	100
++		L2500/2400/2300					100
++
++65nm		Core Solo Processors
++		U1500/1400/1300					100
++		T1400/1350/1300/1250				100
++
++65nm		Xeon Processors 5000 Quad-Core
++		X5000						90-95
++		E5000						80
++		L5000						70
++		L5318						95
++
++65nm		Xeon Processors 5000 Dual-Core
++		5080, 5063, 5060, 5050, 5030			80-90
++		5160, 5150, 5148, 5140, 5130, 5120, 5110	80
++		L5138						100
++
++65nm		Celeron Processors
++		T1700/1600					100
++		560/550/540/530					100
+diff -puN drivers/hwmon/Kconfig~hwmon-coretemp-documentation-update-and-cleanup drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~hwmon-coretemp-documentation-update-and-cleanup
++++ a/drivers/hwmon/Kconfig
+@@ -405,7 +405,7 @@ config SENSORS_CORETEMP
+ 	help
+ 	  If you say yes here you get support for the temperature
+ 	  sensor inside your CPU. Most of the family 6 CPUs
+-	  are supported. Check documentation/driver for details.
++	  are supported. Check Documentation/hwmon/coretemp for details.
+ 
+ config SENSORS_IBMAEM
+ 	tristate "IBM Active Energy Manager temperature/power sensors and control"
+diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-documentation-update-and-cleanup drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~hwmon-coretemp-documentation-update-and-cleanup
 +++ a/drivers/hwmon/coretemp.c
-@@ -480,7 +480,6 @@ exit:
- 	return err;
- }
- 
--#ifdef CONFIG_HOTPLUG_CPU
- static void coretemp_device_remove(unsigned int cpu)
- {
- 	struct pdev_entry *p, *n;
-@@ -518,7 +517,6 @@ static int __cpuinit coretemp_cpu_callba
- static struct notifier_block coretemp_cpu_notifier __refdata = {
- 	.notifier_call = coretemp_cpu_callback,
+@@ -54,12 +54,12 @@ struct coretemp_data {
+ 	const char *name;
+ 	u32 id;
+ 	u16 core_id;
++	u8 alarm;
+ 	char valid;		/* zero until following fields are valid */
+ 	unsigned long last_updated;	/* in jiffies */
+ 	int temp;
+ 	int tjmax;
+ 	int ttarget;
+-	u8 alarm;
  };
--#endif				/* !CONFIG_HOTPLUG_CPU */
  
- static int __init coretemp_init(void)
- {
-@@ -552,9 +550,7 @@ static int __init coretemp_init(void)
- 		goto exit_driver_unreg;
- 	}
+ /*
+@@ -308,7 +308,7 @@ static int __devinit coretemp_probe(stru
+ #ifdef CONFIG_SMP
+ 	data->core_id = c->cpu_core_id;
+ #endif
+-	data->name = "coretemp";
++	data->name = DRVNAME;
+ 	mutex_init(&data->update_lock);
  
--#ifdef CONFIG_HOTPLUG_CPU
- 	register_hotcpu_notifier(&coretemp_cpu_notifier);
--#endif
- 	return 0;
- 
- exit_driver_unreg:
+ 	/* test if we can access the THERM_STATUS MSR */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gong.chen@linux.intel.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-revert-driver-core-remove-config_sysfs_deprecated.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-mm-vmap-area-cache.patch
-acpi-fix-bogus-preemption-logic.patch
-compal-laptop-added-jhl90-battery-hwmon-interface.patch
-acer-wmi-fix-memory-leaks-in-wmab_execute-error-path.patch
-x86-cpufreq-make-trace_power_frequency-cpufreq-driver-independent.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-dib3000mc-reduce-large-stack-usage-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-squashfs-xattrc-fix-warning.patch
-arch-um-drivers-remove-duplicate-structure-field-initialization.patch
-3x59x-fix-pci-resource-management.patch
-altera_uart-simplify-altera_uart_console_putc-checkpatch-fixes.patch
-serial-mcf-dont-take-spinlocks-in-already-protected-functions.patch
-serial-mmio32-support-for-8250_earlyc.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-scsi-remove-private-bit-macros.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
-vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
-vmscan-shrink_slab-require-number-of-lru_pages-not-page-order-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-mmc-add-jz4740-mmc-driver.patch
-hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
+hwmon-coretemp-update-hotplug-condition-check.patch
+hwmon-coretemp-enable-coretemp-device-add-operation-failure.patch
+hwmon-coretemp-documentation-update-and-cleanup.patch
 drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-rtc-add-support-for-ds3232-rtc-fix.patch
-gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver-disable.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
