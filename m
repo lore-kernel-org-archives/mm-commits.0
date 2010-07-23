@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-fix-wiring-up-default-setkeycode-setkeycodebig.patch added to -mm tree
-Date: Fri, 23 Jul 2010 12:17:46 -0700
-Message-ID: <201007231917.o6NJHkVD003482@imap1.linux-foundation.org>
+Subject: + infiniband-remove-dependency-on-__gfp_nofail.patch added to -mm tree
+Date: Fri, 23 Jul 2010 12:30:33 -0700
+Message-ID: <201007231930.o6NJUXMU004061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757258Ab0GWTSb (ORCPT
+	by vger.kernel.org with ESMTP id S1751885Ab0GWTbW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Jul 2010 15:18:31 -0400
+	Fri, 23 Jul 2010 15:31:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarod@redhat.com, Valdis.Kletnieks@vt.edu, dtor@mail.ru, kmcmartin@redhat.com
+Cc: rientjes@google.com, rolandd@cisco.com, swise@opengridcomputing.com
 
 
 The patch titled
-     input: fix wiring up default setkeycode/setkeycodebig
+     infiniband: remove dependency on __GFP_NOFAIL
 has been added to the -mm tree.  Its filename is
-     input-fix-wiring-up-default-setkeycode-setkeycodebig.patch
+     infiniband-remove-dependency-on-__gfp_nofail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: fix wiring up default setkeycode/setkeycodebig
-From: Jarod Wilson <jarod@redhat.com>
+Subject: infiniband: remove dependency on __GFP_NOFAIL
+From: David Rientjes <rientjes@google.com>
 
-I believe there's a mistake in 94977ff15f4214ee4630cf4a67195a1d48da771c,
-where the conditions on which to set a setkeycodebig function are
-incorrect.  Previously, we had the case where if the dev didn't provide
-its own setkeycode, we'd set the default input layer one.  Now, we set
-setkeycode big if the dev provides its own setkeycode but doesn't provide
-setkeycodebig.  Devices that provide neither setkeycode nor setkeycodebig
-wind up with neither, which blows up horribly later on down the road when
-a setkeycode{,big} operation is attempted.  Such is the case with the
-thinkpad_acpi driver's input device registered for the extra hotkey
-buttons on my own t61.  This makes it happy again, and seems to be an
-obvious fix for a thinko.
+The alloc_skb() in various allocations are failable, so remove
+__GFP_NOFAIL from their masks.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-Cc: Kyle McMartin <kmcmartin@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Tested-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Acked-by: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/cxgb4/cq.c  |    4 ++--
+ drivers/infiniband/hw/cxgb4/mem.c |    2 +-
+ drivers/infiniband/hw/cxgb4/qp.c  |    6 +++---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/input/input.c~input-fix-wiring-up-default-setkeycode-setkeycodebig drivers/input/input.c
---- a/drivers/input/input.c~input-fix-wiring-up-default-setkeycode-setkeycodebig
-+++ a/drivers/input/input.c
-@@ -1929,7 +1929,7 @@ int input_register_device(struct input_d
- 			dev->getkeycodebig_from_scancode = input_default_getkeycode_from_scancode;
- 	}
+diff -puN drivers/infiniband/hw/cxgb4/cq.c~infiniband-remove-dependency-on-__gfp_nofail drivers/infiniband/hw/cxgb4/cq.c
+--- a/drivers/infiniband/hw/cxgb4/cq.c~infiniband-remove-dependency-on-__gfp_nofail
++++ a/drivers/infiniband/hw/cxgb4/cq.c
+@@ -43,7 +43,7 @@ static int destroy_cq(struct c4iw_rdev *
+ 	int ret;
  
--	if (dev->setkeycode) {
-+	if (!dev->setkeycode) {
- 		if (!dev->setkeycodebig)
- 			dev->setkeycodebig = input_default_setkeycode;
- 	}
+ 	wr_len = sizeof *res_wr + sizeof *res;
+-	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(wr_len, GFP_KERNEL);
+ 	if (!skb)
+ 		return -ENOMEM;
+ 	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
+@@ -118,7 +118,7 @@ static int create_cq(struct c4iw_rdev *r
+ 	/* build fw_ri_res_wr */
+ 	wr_len = sizeof *res_wr + sizeof *res;
+ 
+-	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(wr_len, GFP_KERNEL);
+ 	if (!skb) {
+ 		ret = -ENOMEM;
+ 		goto err4;
+diff -puN drivers/infiniband/hw/cxgb4/mem.c~infiniband-remove-dependency-on-__gfp_nofail drivers/infiniband/hw/cxgb4/mem.c
+--- a/drivers/infiniband/hw/cxgb4/mem.c~infiniband-remove-dependency-on-__gfp_nofail
++++ a/drivers/infiniband/hw/cxgb4/mem.c
+@@ -59,7 +59,7 @@ static int write_adapter_mem(struct c4iw
+ 		wr_len = roundup(sizeof *req + sizeof *sc +
+ 				 roundup(copy_len, T4_ULPTX_MIN_IO), 16);
+ 
+-		skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++		skb = alloc_skb(wr_len, GFP_KERNEL);
+ 		if (!skb)
+ 			return -ENOMEM;
+ 		set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
+diff -puN drivers/infiniband/hw/cxgb4/qp.c~infiniband-remove-dependency-on-__gfp_nofail drivers/infiniband/hw/cxgb4/qp.c
+--- a/drivers/infiniband/hw/cxgb4/qp.c~infiniband-remove-dependency-on-__gfp_nofail
++++ a/drivers/infiniband/hw/cxgb4/qp.c
+@@ -130,7 +130,7 @@ static int create_qp(struct c4iw_rdev *r
+ 	/* build fw_ri_res_wr */
+ 	wr_len = sizeof *res_wr + 2 * sizeof *res;
+ 
+-	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(wr_len, GFP_KERNEL);
+ 	if (!skb) {
+ 		ret = -ENOMEM;
+ 		goto err7;
+@@ -961,7 +961,7 @@ static int rdma_fini(struct c4iw_dev *rh
+ 	PDBG("%s qhp %p qid 0x%x tid %u\n", __func__, qhp, qhp->wq.sq.qid,
+ 	     qhp->ep->hwtid);
+ 
+-	skb = alloc_skb(sizeof *wqe, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(sizeof *wqe, GFP_KERNEL);
+ 	if (!skb)
+ 		return -ENOMEM;
+ 	set_wr_txq(skb, CPL_PRIORITY_DATA, qhp->ep->txq_idx);
+@@ -1035,7 +1035,7 @@ static int rdma_init(struct c4iw_dev *rh
+ 	PDBG("%s qhp %p qid 0x%x tid %u\n", __func__, qhp, qhp->wq.sq.qid,
+ 	     qhp->ep->hwtid);
+ 
+-	skb = alloc_skb(sizeof *wqe, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(sizeof *wqe, GFP_KERNEL);
+ 	if (!skb)
+ 		return -ENOMEM;
+ 	set_wr_txq(skb, CPL_PRIORITY_DATA, qhp->ep->txq_idx);
 _
 
-Patches currently in -mm which might be from jarod@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+ptrace-dont-run-write_locktasklist_lock-if-the-parent-doesnt-ptrace-other-processes.patch
 linux-next.patch
-input-fix-uninitialized-old_keycode-oops-in-input_set_keycode.patch
-input-fix-wiring-up-default-setkeycode-setkeycodebig.patch
+avr32-invoke-oom-killer-from-page-fault.patch
+infiniband-remove-dependency-on-__gfp_nofail.patch
+oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-dump_tasks-use-find_lock_task_mm-too.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
+oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
+oom-avoid-sending-exiting-tasks-a-sigkill.patch
+oom-filter-tasks-not-sharing-the-same-cpuset.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
+oom-enable-oom-tasklist-dump-by-default.patch
+oom-avoid-oom-killer-for-lowmem-allocations.patch
+oom-extract-panic-helper-function.patch
+oom-remove-special-handling-for-pagefault-ooms.patch
+oom-move-sysctl-declarations-to-oomh.patch
+oom-remove-unnecessary-code-and-cleanup.patch
+mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
+oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
+oom-fold-__out_of_memory-into-out_of_memory.patch
+oom-dont-try-to-kill-oom_unkillable-child.patch
+oom-oom_kill_process-doesnt-select-kthread-child.patch
+oom-make-oom_unkillable_task-helper-function.patch
+oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
+oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
+oom-kill-duplicate-oom_disable-check.patch
+oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
+oom-cleanup-has_intersects_mems_allowed.patch
+oom-remove-child-mm-check-from-oom_kill_process.patch
+oom-give-the-dying-task-a-higher-priority.patch
+oom-multi-threaded-process-coredump-dont-make-deadlock.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
 
