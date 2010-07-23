@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + infiniband-remove-dependency-on-__gfp_nofail.patch added to -mm tree
-Date: Fri, 23 Jul 2010 12:30:33 -0700
-Message-ID: <201007231930.o6NJUXMU004061@imap1.linux-foundation.org>
+Subject: + fs-bio-integrityc-remove-dependency-on-__gfp_nofail.patch added to -mm tree
+Date: Fri, 23 Jul 2010 12:37:12 -0700
+Message-ID: <201007231937.o6NJbC3Y004337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751885Ab0GWTbW (ORCPT
+	by vger.kernel.org with ESMTP id S1753177Ab0GWThq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Jul 2010 15:31:22 -0400
+	Fri, 23 Jul 2010 15:37:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, rolandd@cisco.com, swise@opengridcomputing.com
+Cc: rientjes@google.com, jens.axboe@oracle.com
 
 
 The patch titled
-     infiniband: remove dependency on __GFP_NOFAIL
+     fs/bio-integrity.c: remove dependency on __GFP_NOFAIL
 has been added to the -mm tree.  Its filename is
-     infiniband-remove-dependency-on-__gfp_nofail.patch
+     fs-bio-integrityc-remove-dependency-on-__gfp_nofail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: infiniband: remove dependency on __GFP_NOFAIL
+Subject: fs/bio-integrity.c: remove dependency on __GFP_NOFAIL
 From: David Rientjes <rientjes@google.com>
 
-The alloc_skb() in various allocations are failable, so remove
-__GFP_NOFAIL from their masks.
+The kmalloc() in bio_integrity_prep() is failable, so remove __GFP_NOFAIL
+from its mask.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Acked-by: Steve Wise <swise@opengridcomputing.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cq.c  |    4 ++--
- drivers/infiniband/hw/cxgb4/mem.c |    2 +-
- drivers/infiniband/hw/cxgb4/qp.c  |    6 +++---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ fs/bio-integrity.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/cxgb4/cq.c~infiniband-remove-dependency-on-__gfp_nofail drivers/infiniband/hw/cxgb4/cq.c
---- a/drivers/infiniband/hw/cxgb4/cq.c~infiniband-remove-dependency-on-__gfp_nofail
-+++ a/drivers/infiniband/hw/cxgb4/cq.c
-@@ -43,7 +43,7 @@ static int destroy_cq(struct c4iw_rdev *
- 	int ret;
+diff -puN fs/bio-integrity.c~fs-bio-integrityc-remove-dependency-on-__gfp_nofail fs/bio-integrity.c
+--- a/fs/bio-integrity.c~fs-bio-integrityc-remove-dependency-on-__gfp_nofail
++++ a/fs/bio-integrity.c
+@@ -413,7 +413,7 @@ int bio_integrity_prep(struct bio *bio)
  
- 	wr_len = sizeof *res_wr + sizeof *res;
--	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-+	skb = alloc_skb(wr_len, GFP_KERNEL);
- 	if (!skb)
- 		return -ENOMEM;
- 	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
-@@ -118,7 +118,7 @@ static int create_cq(struct c4iw_rdev *r
- 	/* build fw_ri_res_wr */
- 	wr_len = sizeof *res_wr + sizeof *res;
- 
--	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-+	skb = alloc_skb(wr_len, GFP_KERNEL);
- 	if (!skb) {
- 		ret = -ENOMEM;
- 		goto err4;
-diff -puN drivers/infiniband/hw/cxgb4/mem.c~infiniband-remove-dependency-on-__gfp_nofail drivers/infiniband/hw/cxgb4/mem.c
---- a/drivers/infiniband/hw/cxgb4/mem.c~infiniband-remove-dependency-on-__gfp_nofail
-+++ a/drivers/infiniband/hw/cxgb4/mem.c
-@@ -59,7 +59,7 @@ static int write_adapter_mem(struct c4iw
- 		wr_len = roundup(sizeof *req + sizeof *sc +
- 				 roundup(copy_len, T4_ULPTX_MIN_IO), 16);
- 
--		skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-+		skb = alloc_skb(wr_len, GFP_KERNEL);
- 		if (!skb)
- 			return -ENOMEM;
- 		set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
-diff -puN drivers/infiniband/hw/cxgb4/qp.c~infiniband-remove-dependency-on-__gfp_nofail drivers/infiniband/hw/cxgb4/qp.c
---- a/drivers/infiniband/hw/cxgb4/qp.c~infiniband-remove-dependency-on-__gfp_nofail
-+++ a/drivers/infiniband/hw/cxgb4/qp.c
-@@ -130,7 +130,7 @@ static int create_qp(struct c4iw_rdev *r
- 	/* build fw_ri_res_wr */
- 	wr_len = sizeof *res_wr + 2 * sizeof *res;
- 
--	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-+	skb = alloc_skb(wr_len, GFP_KERNEL);
- 	if (!skb) {
- 		ret = -ENOMEM;
- 		goto err7;
-@@ -961,7 +961,7 @@ static int rdma_fini(struct c4iw_dev *rh
- 	PDBG("%s qhp %p qid 0x%x tid %u\n", __func__, qhp, qhp->wq.sq.qid,
- 	     qhp->ep->hwtid);
- 
--	skb = alloc_skb(sizeof *wqe, GFP_KERNEL | __GFP_NOFAIL);
-+	skb = alloc_skb(sizeof *wqe, GFP_KERNEL);
- 	if (!skb)
- 		return -ENOMEM;
- 	set_wr_txq(skb, CPL_PRIORITY_DATA, qhp->ep->txq_idx);
-@@ -1035,7 +1035,7 @@ static int rdma_init(struct c4iw_dev *rh
- 	PDBG("%s qhp %p qid 0x%x tid %u\n", __func__, qhp, qhp->wq.sq.qid,
- 	     qhp->ep->hwtid);
- 
--	skb = alloc_skb(sizeof *wqe, GFP_KERNEL | __GFP_NOFAIL);
-+	skb = alloc_skb(sizeof *wqe, GFP_KERNEL);
- 	if (!skb)
- 		return -ENOMEM;
- 	set_wr_txq(skb, CPL_PRIORITY_DATA, qhp->ep->txq_idx);
+ 	/* Allocate kernel buffer for protection data */
+ 	len = sectors * blk_integrity_tuple_size(bi);
+-	buf = kmalloc(len, GFP_NOIO | __GFP_NOFAIL | q->bounce_gfp);
++	buf = kmalloc(len, GFP_NOIO | q->bounce_gfp);
+ 	if (unlikely(buf == NULL)) {
+ 		printk(KERN_ERR "could not allocate integrity buffer\n");
+ 		return -EIO;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -122,6 +68,8 @@ ptrace-dont-run-write_locktasklist_lock-if-the-parent-doesnt-ptrace-other-proces
 linux-next.patch
 avr32-invoke-oom-killer-from-page-fault.patch
 infiniband-remove-dependency-on-__gfp_nofail.patch
+fs-bio-integrityc-remove-dependency-on-__gfp_nofail.patch
+fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
 oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
 oom-pf_exiting-check-should-take-mm-into-account.patch
 oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
