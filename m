@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i5000-improve-handling-of-pci_enable_device-return-value.patch added to -mm tree
-Date: Fri, 23 Jul 2010 14:44:54 -0700
-Message-ID: <201007232144.o6NLitrT009904@imap1.linux-foundation.org>
+Subject: + edac-i5400-improve-handling-of-pci_enable_device-return-value.patch added to -mm tree
+Date: Fri, 23 Jul 2010 14:44:57 -0700
+Message-ID: <201007232144.o6NLivlR009907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756033Ab0GWVpI (ORCPT
+	by vger.kernel.org with ESMTP id S1756033Ab0GWVpJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Jul 2010 17:45:08 -0400
+	Fri, 23 Jul 2010 17:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: segooon@gmail.com, dougthompson@xmission.com, jroberson@jroberson.net, mcheh
 
 
 The patch titled
-     edac: i5000: improve handling of pci_enable_device() return value
+     edac: i5400: improve handling of pci_enable_device() return value
 has been added to the -mm tree.  Its filename is
-     edac-i5000-improve-handling-of-pci_enable_device-return-value.patch
+     edac-i5400-improve-handling-of-pci_enable_device-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5000: improve handling of pci_enable_device() return value
+Subject: edac: i5400: improve handling of pci_enable_device() return value
 From: Kulikov Vasiliy <segooon@gmail.com>
 
 -EIO is not the only error code that pci_enable_device() may return, also
@@ -48,13 +48,13 @@ Cc: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |    2 +-
+ drivers/edac/i5400_edac.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/i5000_edac.c~edac-i5000-improve-handling-of-pci_enable_device-return-value drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~edac-i5000-improve-handling-of-pci_enable_device-return-value
-+++ a/drivers/edac/i5000_edac.c
-@@ -1482,7 +1482,7 @@ static int __devinit i5000_init_one(stru
+diff -puN drivers/edac/i5400_edac.c~edac-i5400-improve-handling-of-pci_enable_device-return-value drivers/edac/i5400_edac.c
+--- a/drivers/edac/i5400_edac.c~edac-i5400-improve-handling-of-pci_enable_device-return-value
++++ a/drivers/edac/i5400_edac.c
+@@ -1348,7 +1348,7 @@ static int __devinit i5400_init_one(stru
  
  	/* wake up device */
  	rc = pci_enable_device(pdev);
