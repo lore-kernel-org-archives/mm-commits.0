@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timers-add-usleep-timer.patch added to -mm tree
-Date: Thu, 22 Jul 2010 16:17:01 -0700
-Message-ID: <201007222317.o6MNH1ej017923@imap1.linux-foundation.org>
+Subject: + input-fix-uninitialized-old_keycode-oops-in-input_set_keycode.patch added to -mm tree
+Date: Fri, 23 Jul 2010 12:17:41 -0700
+Message-ID: <201007231917.o6NJHgkp003474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166Ab0GVXRl (ORCPT
+	by vger.kernel.org with ESMTP id S1757258Ab0GWTS2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Jul 2010 19:17:41 -0400
+	Fri, 23 Jul 2010 15:18:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ppannuto@codeaurora.org, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de
+Cc: jarod@redhat.com, Valdis.Kletnieks@vt.edu, dtor@mail.ru, kmcmartin@redhat.com
 
 
 The patch titled
-     timers: add usleep[_range] timer
+     input: fix uninitialized old_keycode oops in input_set_keycode
 has been added to the -mm tree.  Its filename is
-     timers-add-usleep-timer.patch
+     input-fix-uninitialized-old_keycode-oops-in-input_set_keycode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timers: add usleep[_range] timer
-From: Patrick Pannuto <ppannuto@codeaurora.org>
+Subject: input: fix uninitialized old_keycode oops in input_set_keycode
+From: Jarod Wilson <jarod@redhat.com>
 
-usleep[_range] are finer precision implementations of msleep and are
-designed to be drop-in replacements for udelay where a precise sleep /
-busy-wait is unnecessary.  They also allow an easy interface to specify
-slack when a precise (ish) wakeup is unnecessary to help minimize wakeups
+Patch as suggested by Kyle McMartin, in response to Red Hat bugzilla
+615707, filed against a rawhide kernel carrying ir-core enabling patches
+from the linuxtv staging/other tree.  Fix is based on the similar logic in
+input_set_keycode_big, and is confirmed by the bz reporter.
 
-Signed-off-by: Patrick Pannuto <ppannuto@codeaurora.org>
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Cc: Kyle McMartin <kmcmartin@redhat.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Tested-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delay.h |    6 ++++++
- kernel/timer.c        |   22 ++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ drivers/input/input.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/delay.h~timers-add-usleep-timer include/linux/delay.h
---- a/include/linux/delay.h~timers-add-usleep-timer
-+++ a/include/linux/delay.h
-@@ -45,6 +45,12 @@ extern unsigned long lpj_fine;
- void calibrate_delay(void);
- void msleep(unsigned int msecs);
- unsigned long msleep_interruptible(unsigned int msecs);
-+void usleep_range(unsigned long min, unsigned long max);
-+
-+static inline void usleep(unsigned long usecs)
-+{
-+	usleep_range(usecs, usecs);
-+}
+diff -puN drivers/input/input.c~input-fix-uninitialized-old_keycode-oops-in-input_set_keycode drivers/input/input.c
+--- a/drivers/input/input.c~input-fix-uninitialized-old_keycode-oops-in-input_set_keycode
++++ a/drivers/input/input.c
+@@ -929,6 +929,7 @@ int input_set_keycode(struct input_dev *
+ 		if (retval)
+ 			goto out;
  
- static inline void ssleep(unsigned int seconds)
- {
-diff -puN kernel/timer.c~timers-add-usleep-timer kernel/timer.c
---- a/kernel/timer.c~timers-add-usleep-timer
-+++ a/kernel/timer.c
-@@ -1763,3 +1763,25 @@ unsigned long msleep_interruptible(unsig
- }
++		old_keycode = kt_entry.keycode;
+ 		kt_entry.keycode = keycode;
  
- EXPORT_SYMBOL(msleep_interruptible);
-+
-+static int __sched do_usleep_range(unsigned long min, unsigned long max)
-+{
-+	ktime_t kmin;
-+	unsigned long delta;
-+
-+	kmin = ktime_set(0, min * NSEC_PER_USEC);
-+	delta = max - min;
-+	return schedule_hrtimeout_range(&kmin, delta, HRTIMER_MODE_REL);
-+}
-+
-+/**
-+ * usleep_range - Drop in replacement for udelay where wakeup is flexible
-+ * @min: Minimum time in usecs to sleep
-+ * @max: Maximum time in usecs to sleep
-+ */
-+void usleep_range(unsigned long min, unsigned long max)
-+{
-+	__set_current_state(TASK_UNINTERRUPTIBLE);
-+	do_usleep_range(min, max);
-+}
-+EXPORT_SYMBOL(usleep_range);
+ 		retval = dev->setkeycodebig(dev, &kt_entry);
 _
 
-Patches currently in -mm which might be from ppannuto@codeaurora.org are
+Patches currently in -mm which might be from jarod@redhat.com are
 
-timers-add-usleep-timer.patch
+linux-next.patch
+input-fix-uninitialized-old_keycode-oops-in-input_set_keycode.patch
+input-fix-wiring-up-default-setkeycode-setkeycodebig.patch
 
