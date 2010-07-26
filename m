@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-sr-add-no_read_disc_info-scsi_device-flag.patch added to -mm tree
-Date: Mon, 26 Jul 2010 14:41:22 -0700
-Message-ID: <201007262141.o6QLfNLx011363@imap1.linux-foundation.org>
+Subject: + scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch added to -mm tree
+Date: Mon, 26 Jul 2010 14:41:28 -0700
+Message-ID: <201007262141.o6QLfSci011375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755365Ab0GZVlk (ORCPT
+	by vger.kernel.org with ESMTP id S1755467Ab0GZVlk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 26 Jul 2010 17:41:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hdegoede@redhat.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, 
 
 
 The patch titled
-     scsi/sr: add no_read_disc_info scsi_device flag
+     scsi/sd: add a no_read_capacity_16 scsi_device flag
 has been added to the -mm tree.  Its filename is
-     scsi-sr-add-no_read_disc_info-scsi_device-flag.patch
+     scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi/sr: add no_read_disc_info scsi_device flag
+Subject: scsi/sd: add a no_read_capacity_16 scsi_device flag
 From: Hans de Goede <hdegoede@redhat.com>
 
-Some USB devices emulate a usb-mass-storage attached (scsi) cdrom device,
-usually this fake cdrom contains the windows software for the device. 
-While working on supporting Appotech ax3003 based photoframes, which do
-this I discovered that they will go of into lala land when ever they see a
-READ_DISC_INFO scsi command.
+I seem to have a knack for digging up buggy usb devices which don't work
+with Linux, and I'm crazy enough to try to make them work.  So this time a
+friend of mine asked me to get an mp4 player (an mp3 player which can play
+videos on a small screen) to work with Linux.
 
-Thus this patch adds a scsi_device flag (which can then be set by the
-usb-storage driver through an unsual-devs entry), to indicate this, and
-makes the sr driver honor this flag.
+It is based on the well known rockbox chipset for which we already have an
+unusual devs entries to work around some of its bugs.  But this model
+comes with an additional twist.
 
-I know this sucks, but as discussed on linux-scsi list there is no other
-way to make this device work properly.
+This model chokes on read_capacity_16 calls.  Now normally we don't make
+those calls, but this model comes with an sdcard slot and when there is no
+card in there (and shipped from the factory there is none), it reports a
+size of 0.  However this time the programmers actually got the
+read_capacity_10 response right!  So they substract one from the size as
+stored internally in the mp3 player before reporting it back, resulting in
+an answer of ...  0xffffffff sectors, causing sd.c to try a
+read_capacity_16, on which the device crashes.
 
-Looking at usb traces made under windows, windows never sends a
-READ_DISC_INFO during normal interactions with a usb cdrom device.  So as
-this cdrom emulation thingie becomes more common we might see more of this
-problem.
+This patch adds a flag to scsi_device to indicate that a a device cannot
+handle read_capacity_16, and when this flag is set if a device reports an
+lba of 0xffffffff as answer to a read_capacity_10, assumes it tries to
+report a size of 0.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -63,39 +68,47 @@ Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sr.c          |    8 +++++++-
+ drivers/scsi/sd.c          |   12 ++++++++++++
  include/scsi/scsi_device.h |    1 +
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ 2 files changed, 13 insertions(+)
 
-diff -puN drivers/scsi/sr.c~scsi-sr-add-no_read_disc_info-scsi_device-flag drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-sr-add-no_read_disc_info-scsi_device-flag
-+++ a/drivers/scsi/sr.c
-@@ -862,10 +862,16 @@ static void get_capabilities(struct scsi
- static int sr_packet(struct cdrom_device_info *cdi,
- 		struct packet_command *cgc)
- {
-+	struct scsi_cd *cd = cdi->handle;
-+	struct scsi_device *sdev = cd->device;
-+
-+	if (cgc->cmd[0] == GPCMD_READ_DISC_INFO && sdev->no_read_disc_info)
-+		return -EDRIVE_CANT_DO_THIS;
-+
- 	if (cgc->timeout <= 0)
- 		cgc->timeout = IOCTL_TIMEOUT;
+diff -puN drivers/scsi/sd.c~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag
++++ a/drivers/scsi/sd.c
+@@ -1490,6 +1490,9 @@ static int read_capacity_16(struct scsi_
+ 	unsigned long long lba;
+ 	unsigned sector_size;
  
--	sr_do_ioctl(cdi->handle, cgc);
-+	sr_do_ioctl(cd, cgc);
++	if (sdp->no_read_capacity_16)
++		return -EINVAL;
++
+ 	do {
+ 		memset(cmd, 0, 16);
+ 		cmd[0] = SERVICE_ACTION_IN;
+@@ -1618,6 +1621,15 @@ static int read_capacity_10(struct scsi_
+ 	sector_size = get_unaligned_be32(&buffer[4]);
+ 	lba = get_unaligned_be32(&buffer[0]);
  
- 	return cgc->stat;
- }
-diff -puN include/scsi/scsi_device.h~scsi-sr-add-no_read_disc_info-scsi_device-flag include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~scsi-sr-add-no_read_disc_info-scsi_device-flag
++	if (sdp->no_read_capacity_16 && (lba == 0xffffffff)) {
++		/* Some buggy (usb cardreader) devices return an lba of
++		   0xffffffff when the want to report a size of 0 (with
++		   which they really mean no media is present) */
++		sdkp->capacity = 0;
++		sdkp->hw_sector_size = sector_size;
++		return sector_size;
++	}
++
+ 	if ((sizeof(sdkp->capacity) == 4) && (lba == 0xffffffff)) {
+ 		sd_printk(KERN_ERR, sdkp, "Too big for this kernel. Use a "
+ 			"kernel compiled with support for large block "
+diff -puN include/scsi/scsi_device.h~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag include/scsi/scsi_device.h
+--- a/include/scsi/scsi_device.h~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag
 +++ a/include/scsi/scsi_device.h
-@@ -148,6 +148,7 @@ struct scsi_device {
- 	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
+@@ -149,6 +149,7 @@ struct scsi_device {
  	unsigned last_sector_bug:1;	/* do not use multisector accesses on
  					   SD_LAST_BUGGY_SECTORS */
-+	unsigned no_read_disc_info:1;	/* Avoid READ_DISC_INFO cmds */
+ 	unsigned no_read_disc_info:1;	/* Avoid READ_DISC_INFO cmds */
++	unsigned no_read_capacity_16:1; /* Avoid READ_CAPACITY_16 cmds */
  	unsigned is_visible:1;	/* is the device visible in sysfs */
  
  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
