@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap.patch added to -mm tree
-Date: Mon, 26 Jul 2010 13:46:16 -0700
-Message-ID: <201007262046.o6QKkHcn009052@imap1.linux-foundation.org>
+Subject: + rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 26 Jul 2010 13:47:49 -0700
+Message-ID: <201007262047.o6QKlnfU009082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608Ab0GZUrF (ORCPT
+	by vger.kernel.org with ESMTP id S1754189Ab0GZUsZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 16:47:05 -0400
+	Mon, 26 Jul 2010 16:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Fix false positive BUG_ON in __page_set_anon_rmap
+     rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap.patch
+     rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,152 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix false positive BUG_ON in __page_set_anon_rmap
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Problem: wrong BUG_ON() in  __page_set_anon_rmap().
-Kernel version: mmotm-0719
+ERROR: code indent should use tabs where possible
+#74: FILE: mm/rmap.c:787:
++ ^I^I * In this case, swapped-out-but-not-discarded swap-cache$
 
-How to reproduce:
-  create a small cgroup
-  # mount -t cgroup none /cgroup -o memory
-  # mkdir /cgroup/A
-  # echo 30M > /cgroup/A/memory.limit_in_bytes
+WARNING: please, no space before tabs
+#74: FILE: mm/rmap.c:787:
++ ^I^I * In this case, swapped-out-but-not-discarded swap-cache$
 
-and run a malloc() program to cause swap-in v.s. swap-out ping-pong.
+ERROR: code indent should use tabs where possible
+#75: FILE: mm/rmap.c:788:
++ ^I^I * is remapped. So, no need to update page->mapping here.$
 
-Description:
-  Even if SwapCache is fully unmapped and mapcount goes down to 0,
-  page->mapping is not cleared and will remain on memory until kswapd or some
-  finds it. If a thread cause a page fault onto such "unmapped-but-not-discarded"
-  swapcache, it will see a swap cache whose mapcount is 0 but page->mapping has a
-  valid value.
+WARNING: please, no space before tabs
+#75: FILE: mm/rmap.c:788:
++ ^I^I * is remapped. So, no need to update page->mapping here.$
 
-  When it's reused at do_swap_page(), __page_set_anon_rmap() is called with
-  "exclusive==1" and hits BUG_ON(). But this BUG_ON() is wrong. Nothing bad
-  with rmapping a page which has page->mapping isn't 0.
+ERROR: code indent should use tabs where possible
+#76: FILE: mm/rmap.c:789:
++ ^I^I * We convice anon_vma poitned by page->mapping is not obsolete$
 
-Log:
-Jul 22 16:06:02 ubuntu kernel: [  892.542485]
-Jul 22 16:06:02 ubuntu kernel: [  892.542488] Pid: 2951, comm: malloc Not tainted 2.6.35-rc5-mm1 #3 440BX Desktop Reference Platform/VMware Virtual Platform
-Jul 22 16:06:02 ubuntu kernel: [  892.542491] RIP: 0010:[<ffffffff810e676c>]  [<ffffffff810e676c>] __page_set_anon_rmap+0x39/0x54
-Jul 22 16:06:02 ubuntu kernel: [  892.542503] RSP: 0000:ffff880056a31dd8  EFLAGS: 00010202
-Jul 22 16:06:02 ubuntu kernel: [  892.542505] RAX: ffff880059be7810 RBX: ffffea0001228038 RCX: ffff880059be7801
-Jul 22 16:06:02 ubuntu kernel: [  892.542507] RDX: 0000000002823000 RSI: ffff8800569c5580 RDI: ffff8800569c5580
-Jul 22 16:06:02 ubuntu kernel: [  892.542509] RBP: ffff880056a31de8 R08: ffff880056a31db8 R09: 00000000ffffffec
-Jul 22 16:06:02 ubuntu kernel: [  892.542511] R10: ffff880056a31ec0 R11: ffffffff00000000 R12: ffff8800569c5580
-Jul 22 16:06:02 ubuntu kernel: [  892.542514] R13: 0000000000000001 R14: 0000000000000008 R15: ffffea0001228038
-Jul 22 16:06:02 ubuntu kernel: [  892.542517] FS:  00007f8c8d618700(0000) GS:ffff880001e00000(0000) knlGS:0000000000000000
-Jul 22 16:06:02 ubuntu kernel: [  892.542520] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-Jul 22 16:06:02 ubuntu kernel: [  892.542522] CR2: 0000000002823000 CR3: 00000000607e2000 CR4: 00000000000006f0
-Jul 22 16:06:02 ubuntu kernel: [  892.542527] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-Jul 22 16:06:02 ubuntu kernel: [  892.542532] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Jul 22 16:06:02 ubuntu kernel: [  892.542535] Process malloc (pid: 2951, threadinfo ffff880056a30000, task ffff880037b796d0)
-Jul 22 16:06:02 ubuntu kernel: [  892.542538]  ffff880056a31de8 ffffea0001228038 ffff880056a31e28 ffffffff810e6b3f
-Jul 22 16:06:02 ubuntu kernel: [  892.542544] <0> ffff880000000001 0000000002823000 ffff8800569c5580 ffff8800569c5580
-Jul 22 16:06:02 ubuntu kernel: [  892.542548] <0> ffff88005ed2f0a0 ffff88006359e300 ffff880056a31ef8 ffffffff810e07b8
-Jul 22 16:06:02 ubuntu kernel: [  892.542556]  [<ffffffff810e6b3f>] do_page_add_anon_rmap+0x62/0x6d
-Jul 22 16:06:02 ubuntu kernel: [  892.542560]  [<ffffffff810e07b8>] handle_mm_fault+0x716/0x8d7
-Jul 22 16:06:02 ubuntu kernel: [  892.542567]  [<ffffffff8100870a>] ? __switch_to+0x215/0x227
-Jul 22 16:06:02 ubuntu kernel: [  892.542571]  [<ffffffff81040d03>] ? pick_next_task_fair+0xdb/0xec
-Jul 22 16:06:02 ubuntu kernel: [  892.542576]  [<ffffffff8144e42a>] ? schedule+0x589/0x5db
-Jul 22 16:06:02 ubuntu kernel: [  892.542579]  [<ffffffff81453192>] do_page_fault+0x2c4/0x2dc
-Jul 22 16:06:02 ubuntu kernel: [  892.542582]  [<ffffffff814502b5>] page_fault+0x25/0x30
-Jul 22 16:06:02 ubuntu kernel: [  892.542619]  RSP <ffff880056a31dd8>
-Jul 22 16:06:02 ubuntu kernel: [  892.542622] ---[ end trace 3e21bbaadd2d0799 ]---
+WARNING: please, no space before tabs
+#76: FILE: mm/rmap.c:789:
++ ^I^I * We convice anon_vma poitned by page->mapping is not obsolete$
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+ERROR: code indent should use tabs where possible
+#77: FILE: mm/rmap.c:790:
++ ^I^I * because vma->anon_vma is necessary to be a family of it.$
+
+WARNING: please, no space before tabs
+#77: FILE: mm/rmap.c:790:
++ ^I^I * because vma->anon_vma is necessary to be a family of it.$
+
+ERROR: code indent should use tabs where possible
+#78: FILE: mm/rmap.c:791:
++ ^I^I */$
+
+WARNING: please, no space before tabs
+#78: FILE: mm/rmap.c:791:
++ ^I^I */$
+
+total: 5 errors, 5 warnings, 18 lines checked
+
+./patches/rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/rmap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/rmap.c~rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap mm/rmap.c
---- a/mm/rmap.c~rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap
+diff -puN mm/rmap.c~rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes mm/rmap.c
+--- a/mm/rmap.c~rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes
 +++ a/mm/rmap.c
-@@ -782,8 +782,16 @@ static void __page_set_anon_rmap(struct 
+@@ -784,11 +784,11 @@ static void __page_set_anon_rmap(struct 
+ 		anon_vma = anon_vma->root;
+ 	} else {
+ 		/*
+- 		 * In this case, swapped-out-but-not-discarded swap-cache
+- 		 * is remapped. So, no need to update page->mapping here.
+- 		 * We convice anon_vma poitned by page->mapping is not obsolete
+- 		 * because vma->anon_vma is necessary to be a family of it.
+- 		 */
++		 * In this case, swapped-out-but-not-discarded swap-cache
++		 * is remapped. So, no need to update page->mapping here.
++		 * We convice anon_vma poitned by page->mapping is not obsolete
++		 * because vma->anon_vma is necessary to be a family of it.
++		 */
  		if (PageAnon(page))
  			return;
- 		anon_vma = anon_vma->root;
--	} else
--		BUG_ON(PageAnon(page));
-+	} else {
-+		/*
-+ 		 * In this case, swapped-out-but-not-discarded swap-cache
-+ 		 * is remapped. So, no need to update page->mapping here.
-+ 		 * We convice anon_vma poitned by page->mapping is not obsolete
-+ 		 * because vma->anon_vma is necessary to be a family of it.
-+ 		 */
-+		if (PageAnon(page))
-+			return;
-+	}
- 
- 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
- 	page->mapping = (struct address_space *) anon_vma;
+ 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-mm-rename-anon_vma_lock-to-vma_lock_anon_vma.patch
-mm-change-direct-call-of-spin_lockanon_vma-lock-to-inline-function.patch
-mm-track-the-root-oldest-anon_vma.patch
-mm-always-lock-the-root-oldest-anon_vma.patch
-mm-extend-ksm-refcounts-to-the-anon_vma-root.patch
-mm-extend-ksm-refcounts-to-the-anon_vma-root-fix.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-give-current-access-to-memory-reserves-if-it-has-been-killed.patch
-oom-avoid-sending-exiting-tasks-a-sigkill.patch
-oom-filter-tasks-not-sharing-the-same-cpuset.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms.patch
-oom-enable-oom-tasklist-dump-by-default.patch
-oom-avoid-oom-killer-for-lowmem-allocations.patch
-oom-extract-panic-helper-function.patch
-oom-remove-special-handling-for-pagefault-ooms.patch
-oom-move-sysctl-declarations-to-oomh.patch
-oom-remove-unnecessary-code-and-cleanup.patch
-mm-rename-try_set_zone_oom-to-try_set_zonelist_oom.patch
-oom-remove-constraint-argument-from-select_bad_process-and-__out_of_memory.patch
-oom-fold-__out_of_memory-into-out_of_memory.patch
-mm-use-for_each_online_cpu-in-vmstat.patch
-mempolicy-reduce-stack-size-of-migrate_pages.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+mm-vmap-area-cache.patch
+acpi-fix-bogus-preemption-logic.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-squashfs-xattrc-fix-warning.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+scsi-remove-private-bit-macros.patch
+fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
 mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap.patch
-vmscan-tracing-add-trace-events-for-kswapd-wakeup-sleeping-and-direct-reclaim.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation.patch
-vmscan-tracing-add-trace-event-when-a-page-is-written.patch
-vmscan-tracing-add-a-postprocessing-script-for-reclaim-related-ftrace-events.patch
-vmscan-kill-prev_priority-completely.patch
-vmscan-simplify-shrink_inactive_list.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_inactive_list.patch
-vmscan-set-up-pagevec-as-late-as-possible-in-shrink_page_list.patch
-vmscan-update-isolated-page-counters-outside-of-main-path-in-shrink_inactive_list.patch
-oom-dont-try-to-kill-oom_unkillable-child.patch
-oom-oom_kill_process-doesnt-select-kthread-child.patch
-oom-make-oom_unkillable_task-helper-function.patch
-oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
-oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
-oom-kill-duplicate-oom_disable-check.patch
-oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
-oom-cleanup-has_intersects_mems_allowed.patch
-oom-remove-child-mm-check-from-oom_kill_process.patch
-oom-give-the-dying-task-a-higher-priority.patch
-oom-multi-threaded-process-coredump-dont-make-deadlock.patch
+shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
+rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch
+vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
+vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
+vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
+oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
 oom-move-badness-declaration-into-oomh.patch
 oom-move-badness-declaration-into-oomh-fix.patch
-cgroups-save-space-for-the-terminator.patch
-memcg-remove-experimental-from-swap-account-config.patch
-memcg-clean-up-try_charge-main-loop-v2.patch
-memcg-clean-up-waiting-move-acct-v2.patch
-memcg-clean-up-waiting-move-acct-v2-fix.patch
-memcg-remove-redundant-codes.patch
-memcg-remove-mem-from-arg-of-charge_common.patch
-memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
-memcg-avoid-css_get.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
+vmscan-shrink_slab-require-number-of-lru_pages-not-page-order-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
+mmc-add-jz4740-mmc-driver.patch
+hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
+drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+rtc-add-support-for-ds3232-rtc-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+fs-sysv-v7-adjust-sanity-checks-for-some-volumes-checkpatch-fixes.patch
+fs-sysv-v7-add-support-for-non-pdp11-v7-filesystems-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
