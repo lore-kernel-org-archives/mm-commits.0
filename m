@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 26 Jul 2010 13:47:49 -0700
-Message-ID: <201007262047.o6QKlnfU009082@imap1.linux-foundation.org>
+Subject: + drivers-scsi-53c700c-remove-dma_is_consistent-usage.patch added to -mm tree
+Date: Mon, 26 Jul 2010 14:30:25 -0700
+Message-ID: <201007262130.o6QLUPFT010897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754189Ab0GZUsZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752131Ab0GZVbG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 16:48:25 -0400
+	Mon, 26 Jul 2010 17:31:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, konrad.wilk@oracle.com, linux-arch@vger.kernel.org
 
 
 The patch titled
-     rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes
+     drivers/scsi/53c700.c: remove dma_is_consistent usage
 has been added to the -mm tree.  Its filename is
-     rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch
+     drivers-scsi-53c700c-remove-dma_is_consistent-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,151 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/scsi/53c700.c: remove dma_is_consistent usage
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-ERROR: code indent should use tabs where possible
-#74: FILE: mm/rmap.c:787:
-+ ^I^I * In this case, swapped-out-but-not-discarded swap-cache$
+This driver is the only user of dma_is_consistent().  We plan to remove
+this API.
 
-WARNING: please, no space before tabs
-#74: FILE: mm/rmap.c:787:
-+ ^I^I * In this case, swapped-out-but-not-discarded swap-cache$
+The driver uses the API in the following way:
 
-ERROR: code indent should use tabs where possible
-#75: FILE: mm/rmap.c:788:
-+ ^I^I * is remapped. So, no need to update page->mapping here.$
+BUG_ON(!dma_is_consistent(hostdata->dev, pScript) && L1_CACHE_BYTES < dma_get_cache_alignment());
 
-WARNING: please, no space before tabs
-#75: FILE: mm/rmap.c:788:
-+ ^I^I * is remapped. So, no need to update page->mapping here.$
+The above code tries to see if L1_CACHE_BYTES is greater than
+dma_get_cache_alignment() on sysmtes that can not allocate coherent memory
+(some old systems can't).
 
-ERROR: code indent should use tabs where possible
-#76: FILE: mm/rmap.c:789:
-+ ^I^I * We convice anon_vma poitned by page->mapping is not obsolete$
+James Bottomley explained that this is necessary because the driver packs
+the set of mailboxes into a single coherent area and separates the
+different usages by a L1 cache stride.  So it's fatal if the dma coherence
+stride is greater than the L1 cache size.
 
-WARNING: please, no space before tabs
-#76: FILE: mm/rmap.c:789:
-+ ^I^I * We convice anon_vma poitned by page->mapping is not obsolete$
+He also pointed out that we can kill this checking because we don't hit
+this BUG_ON on all architectures that actually use the driver.
 
-ERROR: code indent should use tabs where possible
-#77: FILE: mm/rmap.c:790:
-+ ^I^I * because vma->anon_vma is necessary to be a family of it.$
-
-WARNING: please, no space before tabs
-#77: FILE: mm/rmap.c:790:
-+ ^I^I * because vma->anon_vma is necessary to be a family of it.$
-
-ERROR: code indent should use tabs where possible
-#78: FILE: mm/rmap.c:791:
-+ ^I^I */$
-
-WARNING: please, no space before tabs
-#78: FILE: mm/rmap.c:791:
-+ ^I^I */$
-
-total: 5 errors, 5 warnings, 18 lines checked
-
-./patches/rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/scsi/53c700.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/rmap.c~rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes mm/rmap.c
---- a/mm/rmap.c~rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -784,11 +784,11 @@ static void __page_set_anon_rmap(struct 
- 		anon_vma = anon_vma->root;
- 	} else {
- 		/*
-- 		 * In this case, swapped-out-but-not-discarded swap-cache
-- 		 * is remapped. So, no need to update page->mapping here.
-- 		 * We convice anon_vma poitned by page->mapping is not obsolete
-- 		 * because vma->anon_vma is necessary to be a family of it.
-- 		 */
-+		 * In this case, swapped-out-but-not-discarded swap-cache
-+		 * is remapped. So, no need to update page->mapping here.
-+		 * We convice anon_vma poitned by page->mapping is not obsolete
-+		 * because vma->anon_vma is necessary to be a family of it.
-+		 */
- 		if (PageAnon(page))
- 			return;
- 	}
+diff -puN drivers/scsi/53c700.c~drivers-scsi-53c700c-remove-dma_is_consistent-usage drivers/scsi/53c700.c
+--- a/drivers/scsi/53c700.c~drivers-scsi-53c700c-remove-dma_is_consistent-usage
++++ a/drivers/scsi/53c700.c
+@@ -309,9 +309,6 @@ NCR_700_detect(struct scsi_host_template
+ 	hostdata->msgin = memory + MSGIN_OFFSET;
+ 	hostdata->msgout = memory + MSGOUT_OFFSET;
+ 	hostdata->status = memory + STATUS_OFFSET;
+-	/* all of these offsets are L1_CACHE_BYTES separated.  It is fatal
+-	 * if this isn't sufficient separation to avoid dma flushing issues */
+-	BUG_ON(!dma_is_consistent(hostdata->dev, pScript) && L1_CACHE_BYTES < dma_get_cache_alignment());
+ 	hostdata->slots = (struct NCR_700_command_slot *)(memory + SLOTS_OFFSET);
+ 	hostdata->dev = dev;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-mm-vmap-area-cache.patch
-acpi-fix-bogus-preemption-logic.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-fs-squashfs-xattrc-fix-warning.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-scsi-remove-private-bit-macros.patch
-fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
-vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
-mm.patch
-mm-track-the-root-oldest-anon_vma-fix.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
-shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
-rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch
-vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
-vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
-vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
-oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
-vmscan-shrink_slab-require-number-of-lru_pages-not-page-order-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
-drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
-edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
-mmc-recognize-csd-structure-fix.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-fix.patch
-mmc-add-jz4740-mmc-driver.patch
-hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
-drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
-fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
-rtc-fixes-and-new-functionality-for-fm3130-fix.patch
-rtc-add-support-for-ds3232-rtc-fix.patch
-drivers-video-via-via-gpioc-fix-warning.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
-fs-sysv-v7-adjust-sanity-checks-for-some-volumes-checkpatch-fixes.patch
-fs-sysv-v7-add-support-for-non-pdp11-v7-filesystems-checkpatch-fixes.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+dma-mapping-rename-arch_kmalloc_minalign-to-arch_dma_minalign.patch
+dma-mapping-unify-dma_get_cache_alignment-implementations.patch
+dma-mapping-parisc-set-arch_dma_minalign.patch
+drivers-scsi-53c700c-remove-dma_is_consistent-usage.patch
+dma-mapping-remove-dma_is_consistent-api.patch
 
