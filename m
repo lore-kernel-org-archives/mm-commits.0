@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-storage-add-new-no_read_capacity_16-quirk.patch added to -mm tree
-Date: Mon, 26 Jul 2010 14:41:30 -0700
-Message-ID: <201007262141.o6QLfU5e011386@imap1.linux-foundation.org>
+Subject: + gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver.patch added to -mm tree
+Date: Mon, 26 Jul 2010 15:28:48 -0700
+Message-ID: <201007262228.o6QMSmmg013619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755458Ab0GZVlm (ORCPT
+	by vger.kernel.org with ESMTP id S1752411Ab0GZW3I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 17:41:42 -0400
+	Mon, 26 Jul 2010 18:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hdegoede@redhat.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, mdharm-usb@one-eyed-alien.net, stern@rowland.harvard.edu
+Cc: gbean@codeaurora.org, david-b@pacbell.net, khali@linux-fr.org, tsoni@codeaurora.org
 
 
 The patch titled
-     usb-storage: add new no_read_capacity_16 quirk
+     gpio: sx150x: add Semtech I2C sx150x gpio expander driver
 has been added to the -mm tree.  Its filename is
-     usb-storage-add-new-no_read_capacity_16-quirk.patch
+     gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,792 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-storage: add new no_read_capacity_16 quirk
-From: Hans de Goede <hdegoede@redhat.com>
+Subject: gpio: sx150x: add Semtech I2C sx150x gpio expander driver
+From: Gregory Bean <gbean@codeaurora.org>
 
-Some Rockbox based mp4 players will crash when ever they see a
-read_capacity_16 scsi command.  So add a new US_FL which tells the scsi sd
-driver to not issue any read_capacity_16 scsi commands.
+Add support for Semtech SX150-series I2C GPIO expanders.  Compatible
+models include:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+8 bits:  sx1508q
+16 bits: sx1509q
+
+Signed-off-by: Gregory Bean <gbean@codeaurora.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Trilok Soni <tsoni@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/scsiglue.c     |    4 ++++
- drivers/usb/storage/unusual_devs.h |    3 ++-
- include/linux/usb_usual.h          |    4 +++-
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/gpio/Kconfig       |   11 
+ drivers/gpio/Makefile      |    1 
+ drivers/gpio/sx150x.c      |  645 +++++++++++++++++++++++++++++++++++
+ include/linux/i2c/sx150x.h |   78 ++++
+ 4 files changed, 735 insertions(+)
 
-diff -puN drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_capacity_16-quirk drivers/usb/storage/scsiglue.c
---- a/drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_capacity_16-quirk
-+++ a/drivers/usb/storage/scsiglue.c
-@@ -209,6 +209,10 @@ static int slave_configure(struct scsi_d
- 		if (us->fflags & US_FL_CAPACITY_HEURISTICS)
- 			sdev->guess_capacity = 1;
+diff -puN drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver
++++ a/drivers/gpio/Kconfig
+@@ -202,6 +202,17 @@ config GPIO_STMPE
+ 	  This enables support for the GPIOs found on the STMPE I/O
+ 	  Expanders.
  
-+		/* Some devices cannot handle READ_CAPACITY_16 */
-+		if (us->fflags & US_FL_NO_READ_CAPACITY_16)
-+			sdev->no_read_capacity_16 = 1;
++config GPIO_SX150X
++	bool "Semtech SX150x I2C GPIO expander"
++	depends on I2C=y
++	default n
++	help
++	  Say yes here to provide support for Semtech SX150-series I2C
++	  GPIO expanders. Compatible models include:
 +
- 		/* assume SPC3 or latter devices support sense size > 18 */
- 		if (sdev->scsi_level > SCSI_SPC_2)
- 			us->fflags |= US_FL_SANE_SENSE;
-diff -puN drivers/usb/storage/unusual_devs.h~usb-storage-add-new-no_read_capacity_16-quirk drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-storage-add-new-no_read_capacity_16-quirk
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -877,7 +877,8 @@ UNUSUAL_DEV(  0x071b, 0x3203, 0x0000, 0x
- 		"RockChip",
- 		"MP3",
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
--		US_FL_NO_WP_DETECT | US_FL_MAX_SECTORS_64),
-+		US_FL_NO_WP_DETECT | US_FL_MAX_SECTORS_64 |
-+		US_FL_NO_READ_CAPACITY_16),
- 
- /* Reported by Jean-Baptiste Onofre <jb@nanthrax.net>
-  * Support the following product :
-diff -puN include/linux/usb_usual.h~usb-storage-add-new-no_read_capacity_16-quirk include/linux/usb_usual.h
---- a/include/linux/usb_usual.h~usb-storage-add-new-no_read_capacity_16-quirk
-+++ a/include/linux/usb_usual.h
-@@ -60,7 +60,9 @@
- 	US_FLAG(BAD_SENSE,	0x00020000)			\
- 		/* Bad Sense (never more than 18 bytes) */	\
- 	US_FLAG(NO_READ_DISC_INFO,	0x00040000)		\
--		/* cannot handle READ_DISC_INFO */
-+		/* cannot handle READ_DISC_INFO */		\
-+	US_FLAG(NO_READ_CAPACITY_16,	0x00080000)		\
-+		/* cannot handle READ_CAPACITY_16 */
- 
- #define US_FLAG(name, value)	US_FL_##name = value ,
- enum { US_DO_ALL_FLAGS };
++	  8 bits:  sx1508q
++	  16 bits: sx1509q
++
+ config GPIO_TC35892
+ 	bool "TC35892 GPIOs"
+ 	depends on MFD_TC35892
+diff -puN drivers/gpio/Makefile~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver
++++ a/drivers/gpio/Makefile
+@@ -36,3 +36,4 @@ obj-$(CONFIG_GPIO_WM8994)	+= wm8994-gpio
+ obj-$(CONFIG_GPIO_SCH)		+= sch_gpio.o
+ obj-$(CONFIG_GPIO_RDC321X)	+= rdc321x-gpio.o
+ obj-$(CONFIG_GPIO_JANZ_TTL)	+= janz-ttl.o
++obj-$(CONFIG_GPIO_SX150X)	+= sx150x.o
+diff -puN /dev/null drivers/gpio/sx150x.c
+--- /dev/null
++++ a/drivers/gpio/sx150x.c
+@@ -0,0 +1,645 @@
++/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ * 02110-1301, USA.
++ */
++#include <linux/gpio.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/workqueue.h>
++#include <linux/i2c/sx150x.h>
++
++struct sx150x_device_data {
++	u8 reg_pullup;
++	u8 reg_pulldn;
++	u8 reg_drain;
++	u8 reg_polarity;
++	u8 reg_dir;
++	u8 reg_data;
++	u8 reg_irq_mask;
++	u8 reg_irq_src;
++	u8 reg_sense;
++	u8 reg_clock;
++	u8 reg_misc;
++	u8 reg_reset;
++	u8 ngpios;
++};
++
++struct sx150x_chip {
++	struct gpio_chip                 gpio_chip;
++	struct i2c_client               *client;
++	const struct sx150x_device_data *dev_cfg;
++	int                              irq_summary;
++	int                              irq_base;
++	u32                              irq_sense;
++	unsigned long                    irq_set_type_pending;
++	struct irq_chip                  irq_chip;
++	struct mutex                     lock;
++};
++
++static const struct sx150x_device_data sx150x_devices[] = {
++	[0] = { /* sx1508q */
++		.reg_pullup   = 0x03,
++		.reg_pulldn   = 0x04,
++		.reg_drain    = 0x05,
++		.reg_polarity = 0x06,
++		.reg_dir      = 0x07,
++		.reg_data     = 0x08,
++		.reg_irq_mask = 0x09,
++		.reg_irq_src  = 0x0c,
++		.reg_sense    = 0x0b,
++		.reg_clock    = 0x0f,
++		.reg_misc     = 0x10,
++		.reg_reset    = 0x7d,
++		.ngpios       = 8
++	},
++	[1] = { /* sx1509q */
++		.reg_pullup   = 0x07,
++		.reg_pulldn   = 0x09,
++		.reg_drain    = 0x0b,
++		.reg_polarity = 0x0d,
++		.reg_dir      = 0x0f,
++		.reg_data     = 0x11,
++		.reg_irq_mask = 0x13,
++		.reg_irq_src  = 0x19,
++		.reg_sense    = 0x17,
++		.reg_clock    = 0x1e,
++		.reg_misc     = 0x1f,
++		.reg_reset    = 0x7d,
++		.ngpios       = 16
++	},
++};
++
++static const struct i2c_device_id sx150x_id[] = {
++	{"sx1508q", 0},
++	{"sx1509q", 1},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, sx150x_id);
++
++static s32 sx150x_i2c_write(struct i2c_client *client, u8 reg, u8 val)
++{
++	s32 err = i2c_smbus_write_byte_data(client, reg, val);
++
++	if (err < 0)
++		dev_warn(&client->dev,
++			"i2c write fail: can't write %02x to %02x: %d\n",
++			val, reg, err);
++	return err;
++}
++
++static s32 sx150x_i2c_read(struct i2c_client *client, u8 reg, u8 *val)
++{
++	s32 err = i2c_smbus_read_byte_data(client, reg);
++
++	if (err >= 0)
++		*val = err;
++	else
++		dev_warn(&client->dev,
++			"i2c read fail: can't read from %02x: %d\n",
++			reg, err);
++	return err;
++}
++
++static inline bool offset_is_oscio(struct sx150x_chip *chip, unsigned offset)
++{
++	return (chip->dev_cfg->ngpios == offset);
++}
++
++/*
++ * These utility functions solve the common problem of locating and setting
++ * configuration bits.  Configuration bits are grouped into registers
++ * whose indexes increase downwards.  For example, with eight-bit registers,
++ * sixteen gpios would have their config bits grouped in the following order:
++ * REGISTER N-1 [ f e d c b a 9 8 ]
++ *          N   [ 7 6 5 4 3 2 1 0 ]
++ *
++ * For multi-bit configurations, the pattern gets wider:
++ * REGISTER N-3 [ f f e e d d c c ]
++ *          N-2 [ b b a a 9 9 8 8 ]
++ *          N-1 [ 7 7 6 6 5 5 4 4 ]
++ *          N   [ 3 3 2 2 1 1 0 0 ]
++ *
++ * Given the address of the starting register 'N', the index of the gpio
++ * whose configuration we seek to change, and the width in bits of that
++ * configuration, these functions allow us to locate the correct
++ * register and mask the correct bits.
++ */
++static inline void sx150x_find_cfg(u8 offset, u8 width,
++				u8 *reg, u8 *mask, u8 *shift)
++{
++	*reg   -= offset * width / 8;
++	*mask   = (1 << width) - 1;
++	*shift  = (offset * width) % 8;
++	*mask <<= *shift;
++}
++
++static s32 sx150x_write_cfg(struct sx150x_chip *chip,
++			u8 offset, u8 width, u8 reg, u8 val)
++{
++	u8  mask;
++	u8  data;
++	u8  shift;
++	s32 err;
++
++	sx150x_find_cfg(offset, width, &reg, &mask, &shift);
++	err = sx150x_i2c_read(chip->client, reg, &data);
++	if (err < 0)
++		return err;
++
++	data &= ~mask;
++	data |= (val << shift) & mask;
++	return sx150x_i2c_write(chip->client, reg, data);
++}
++
++static int sx150x_get_io(struct sx150x_chip *chip, unsigned offset)
++{
++	u8  reg = chip->dev_cfg->reg_data;
++	u8  mask;
++	u8  data;
++	u8  shift;
++	s32 err;
++
++	sx150x_find_cfg(offset, 1, &reg, &mask, &shift);
++	err = sx150x_i2c_read(chip->client, reg, &data);
++	if (err >= 0)
++		err = (data & mask) != 0 ? 1 : 0;
++
++	return err;
++}
++
++static void sx150x_set_oscio(struct sx150x_chip *chip, int val)
++{
++	sx150x_i2c_write(chip->client,
++			chip->dev_cfg->reg_clock,
++			(val ? 0x1f : 0x10));
++}
++
++static void sx150x_set_io(struct sx150x_chip *chip, unsigned offset, int val)
++{
++	sx150x_write_cfg(chip,
++			offset,
++			1,
++			chip->dev_cfg->reg_data,
++			(val ? 1 : 0));
++}
++
++static int sx150x_io_input(struct sx150x_chip *chip, unsigned offset)
++{
++	return sx150x_write_cfg(chip,
++				offset,
++				1,
++				chip->dev_cfg->reg_dir,
++				1);
++}
++
++static int sx150x_io_output(struct sx150x_chip *chip, unsigned offset, int val)
++{
++	int err;
++
++	err = sx150x_write_cfg(chip,
++			offset,
++			1,
++			chip->dev_cfg->reg_data,
++			(val ? 1 : 0));
++	if (err >= 0)
++		err = sx150x_write_cfg(chip,
++				offset,
++				1,
++				chip->dev_cfg->reg_dir,
++				0);
++	return err;
++}
++
++static int sx150x_gpio_get(struct gpio_chip *gc, unsigned offset)
++{
++	struct sx150x_chip *chip;
++	int status = -EINVAL;
++
++	chip = container_of(gc, struct sx150x_chip, gpio_chip);
++
++	if (!offset_is_oscio(chip, offset)) {
++		mutex_lock(&chip->lock);
++		status = sx150x_get_io(chip, offset);
++		mutex_unlock(&chip->lock);
++	}
++
++	return status;
++}
++
++static void sx150x_gpio_set(struct gpio_chip *gc, unsigned offset, int val)
++{
++	struct sx150x_chip *chip;
++
++	chip = container_of(gc, struct sx150x_chip, gpio_chip);
++
++	mutex_lock(&chip->lock);
++	if (offset_is_oscio(chip, offset))
++		sx150x_set_oscio(chip, val);
++	else
++		sx150x_set_io(chip, offset, val);
++	mutex_unlock(&chip->lock);
++}
++
++static int sx150x_gpio_direction_input(struct gpio_chip *gc, unsigned offset)
++{
++	struct sx150x_chip *chip;
++	int status = -EINVAL;
++
++	chip = container_of(gc, struct sx150x_chip, gpio_chip);
++
++	if (!offset_is_oscio(chip, offset)) {
++		mutex_lock(&chip->lock);
++		status = sx150x_io_input(chip, offset);
++		mutex_unlock(&chip->lock);
++	}
++	return status;
++}
++
++static int sx150x_gpio_direction_output(struct gpio_chip *gc,
++					unsigned offset,
++					int val)
++{
++	struct sx150x_chip *chip;
++	int status = 0;
++
++	chip = container_of(gc, struct sx150x_chip, gpio_chip);
++
++	if (!offset_is_oscio(chip, offset)) {
++		mutex_lock(&chip->lock);
++		status = sx150x_io_output(chip, offset, val);
++		mutex_unlock(&chip->lock);
++	}
++	return status;
++}
++
++static int sx150x_gpio_to_irq(struct gpio_chip *gc, unsigned offset)
++{
++	struct sx150x_chip *chip;
++
++	chip = container_of(gc, struct sx150x_chip, gpio_chip);
++
++	if (offset >= chip->dev_cfg->ngpios)
++		return -EINVAL;
++
++	if (chip->irq_base < 0)
++		return -EINVAL;
++
++	return chip->irq_base + offset;
++}
++
++static void sx150x_irq_mask(unsigned int irq)
++{
++	struct irq_chip *ic = get_irq_chip(irq);
++	struct sx150x_chip *chip;
++	unsigned n;
++
++	chip = container_of(ic, struct sx150x_chip, irq_chip);
++	n = irq - chip->irq_base;
++
++	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 1);
++	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense, 0);
++}
++
++static void sx150x_irq_unmask(unsigned int irq)
++{
++	struct irq_chip *ic = get_irq_chip(irq);
++	struct sx150x_chip *chip;
++	unsigned n;
++
++	chip = container_of(ic, struct sx150x_chip, irq_chip);
++	n = irq - chip->irq_base;
++
++	sx150x_write_cfg(chip, n, 1, chip->dev_cfg->reg_irq_mask, 0);
++	sx150x_write_cfg(chip, n, 2, chip->dev_cfg->reg_sense,
++			 chip->irq_sense >> (n * 2));
++}
++
++static int sx150x_irq_set_type(unsigned int irq, unsigned int flow_type)
++{
++	struct irq_chip *ic = get_irq_chip(irq);
++	struct sx150x_chip *chip;
++	unsigned n, val = 0;
++
++	if (flow_type & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
++		return -EINVAL;
++
++	chip = container_of(ic, struct sx150x_chip, irq_chip);
++	n = irq - chip->irq_base;
++
++	if (flow_type & IRQ_TYPE_EDGE_RISING)
++		val |= 0x1;
++	if (flow_type & IRQ_TYPE_EDGE_FALLING)
++		val |= 0x2;
++
++	chip->irq_sense &= ~(3UL << (n * 2));
++	chip->irq_sense |= val << (n * 2);
++	chip->irq_set_type_pending |= BIT(n);
++	return 0;
++}
++
++static irqreturn_t sx150x_irq_thread_fn(int irq, void *dev_id)
++{
++	struct sx150x_chip *chip = (struct sx150x_chip *)dev_id;
++	unsigned nhandled = 0;
++	unsigned sub_irq;
++	unsigned n;
++	s32 err;
++	u8 val;
++	int i;
++
++	for (i = (chip->dev_cfg->ngpios / 8) - 1; i >= 0; --i) {
++		err = sx150x_i2c_read(chip->client,
++				      chip->dev_cfg->reg_irq_src - i,
++				      &val);
++		if (err < 0)
++			continue;
++
++		sx150x_i2c_write(chip->client,
++				chip->dev_cfg->reg_irq_src - i,
++				val);
++		for (n = 0; n < 8; ++n) {
++			if (val & (1 << n)) {
++				sub_irq = chip->irq_base + (i * 8) + n;
++				handle_nested_irq(sub_irq);
++				++nhandled;
++			}
++		}
++	}
++
++	return (nhandled > 0 ? IRQ_HANDLED : IRQ_NONE);
++}
++
++static void sx150x_irq_bus_lock(unsigned int irq)
++{
++	struct irq_chip *ic = get_irq_chip(irq);
++	struct sx150x_chip *chip;
++
++	chip = container_of(ic, struct sx150x_chip, irq_chip);
++
++	mutex_lock(&chip->lock);
++}
++
++static void sx150x_irq_bus_sync_unlock(unsigned int irq)
++{
++	struct irq_chip *ic = get_irq_chip(irq);
++	struct sx150x_chip *chip;
++	unsigned n;
++
++	chip = container_of(ic, struct sx150x_chip, irq_chip);
++
++	while (chip->irq_set_type_pending) {
++		n = __ffs(chip->irq_set_type_pending);
++		chip->irq_set_type_pending &= ~BIT(n);
++		if (!(irq_to_desc(n + chip->irq_base)->status & IRQ_MASKED))
++			sx150x_write_cfg(chip, n, 2,
++					chip->dev_cfg->reg_sense,
++					chip->irq_sense >> (n * 2));
++	}
++
++	mutex_unlock(&chip->lock);
++}
++
++static void sx150x_init_chip(struct sx150x_chip *chip,
++			struct i2c_client *client,
++			kernel_ulong_t driver_data,
++			struct sx150x_platform_data *pdata)
++{
++	mutex_init(&chip->lock);
++
++	chip->client                     = client;
++	chip->dev_cfg                    = &sx150x_devices[driver_data];
++	chip->gpio_chip.label            = client->name;
++	chip->gpio_chip.direction_input  = sx150x_gpio_direction_input;
++	chip->gpio_chip.direction_output = sx150x_gpio_direction_output;
++	chip->gpio_chip.get              = sx150x_gpio_get;
++	chip->gpio_chip.set              = sx150x_gpio_set;
++	chip->gpio_chip.to_irq           = sx150x_gpio_to_irq;
++	chip->gpio_chip.base             = pdata->gpio_base;
++	chip->gpio_chip.can_sleep        = 1;
++	chip->gpio_chip.ngpio            = chip->dev_cfg->ngpios;
++	if (pdata->oscio_is_gpo)
++		++chip->gpio_chip.ngpio;
++
++	chip->irq_chip.name            = client->name;
++	chip->irq_chip.mask            = sx150x_irq_mask;
++	chip->irq_chip.unmask          = sx150x_irq_unmask;
++	chip->irq_chip.set_type        = sx150x_irq_set_type;
++	chip->irq_chip.bus_lock        = sx150x_irq_bus_lock;
++	chip->irq_chip.bus_sync_unlock = sx150x_irq_bus_sync_unlock;
++	chip->irq_summary              = -1;
++	chip->irq_base                 = -1;
++	chip->irq_sense                = 0;
++	chip->irq_set_type_pending     = 0;
++}
++
++static int sx150x_init_io(struct sx150x_chip *chip, u8 base, u16 cfg)
++{
++	int err = 0;
++	unsigned n;
++
++	for (n = 0; err >= 0 && n < (chip->dev_cfg->ngpios / 8); ++n)
++		err = sx150x_i2c_write(chip->client, base - n, cfg >> (n * 8));
++	return err;
++}
++
++static int sx150x_init_hw(struct sx150x_chip *chip,
++			struct sx150x_platform_data *pdata)
++{
++	int err = 0;
++
++	err = i2c_smbus_write_word_data(chip->client,
++					chip->dev_cfg->reg_reset,
++					0x3412);
++	if (err < 0)
++		return err;
++
++	err = sx150x_i2c_write(chip->client,
++			chip->dev_cfg->reg_misc,
++			0x01);
++	if (err < 0)
++		return err;
++
++	err = sx150x_init_io(chip, chip->dev_cfg->reg_pullup,
++			pdata->io_pullup_ena);
++	if (err < 0)
++		return err;
++
++	err = sx150x_init_io(chip, chip->dev_cfg->reg_pulldn,
++			pdata->io_pulldn_ena);
++	if (err < 0)
++		return err;
++
++	err = sx150x_init_io(chip, chip->dev_cfg->reg_drain,
++			pdata->io_open_drain_ena);
++	if (err < 0)
++		return err;
++
++	err = sx150x_init_io(chip, chip->dev_cfg->reg_polarity,
++			pdata->io_polarity);
++	if (err < 0)
++		return err;
++
++	if (pdata->oscio_is_gpo)
++		sx150x_set_oscio(chip, 0);
++
++	return err;
++}
++
++static int sx150x_install_irq_chip(struct sx150x_chip *chip,
++				int irq_summary,
++				int irq_base)
++{
++	int err;
++	unsigned n;
++	unsigned irq;
++
++	chip->irq_summary = irq_summary;
++	chip->irq_base    = irq_base;
++
++	for (n = 0; n < chip->dev_cfg->ngpios; ++n) {
++		irq = irq_base + n;
++		set_irq_chip_and_handler(irq, &chip->irq_chip, handle_edge_irq);
++		set_irq_nested_thread(irq, 1);
++#ifdef CONFIG_ARM
++		set_irq_flags(irq, IRQF_VALID);
++#else
++		set_irq_noprobe(irq);
++#endif
++	}
++
++	err = request_threaded_irq(irq_summary,
++				NULL,
++				sx150x_irq_thread_fn,
++				IRQF_SHARED | IRQF_TRIGGER_FALLING,
++				chip->irq_chip.name,
++				chip);
++	if (err < 0) {
++		chip->irq_summary = -1;
++		chip->irq_base    = -1;
++	}
++
++	return err;
++}
++
++static void sx150x_remove_irq_chip(struct sx150x_chip *chip)
++{
++	unsigned n;
++	unsigned irq;
++
++	free_irq(chip->irq_summary, chip);
++
++	for (n = 0; n < chip->dev_cfg->ngpios; ++n) {
++		irq = chip->irq_base + n;
++		set_irq_handler(irq, NULL);
++		set_irq_chip(irq, NULL);
++	}
++}
++
++static int __devinit sx150x_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	static const u32 i2c_funcs = I2C_FUNC_SMBUS_BYTE_DATA |
++				     I2C_FUNC_SMBUS_WRITE_WORD_DATA;
++	struct sx150x_platform_data *pdata;
++	struct sx150x_chip *chip;
++	int rc;
++
++	pdata = client->dev.platform_data;
++	if (!pdata)
++		return -EINVAL;
++
++	if (!i2c_check_functionality(client->adapter, i2c_funcs))
++		return -ENOSYS;
++
++	chip = kzalloc(sizeof(struct sx150x_chip), GFP_KERNEL);
++	if (!chip)
++		return -ENOMEM;
++
++	sx150x_init_chip(chip, client, id->driver_data, pdata);
++	rc = sx150x_init_hw(chip, pdata);
++	if (rc < 0)
++		goto probe_fail_pre_gpiochip_add;
++
++	rc = gpiochip_add(&chip->gpio_chip);
++	if (rc < 0)
++		goto probe_fail_pre_gpiochip_add;
++
++	if (pdata->irq_summary >= 0) {
++		rc = sx150x_install_irq_chip(chip,
++					pdata->irq_summary,
++					pdata->irq_base);
++		if (rc < 0)
++			goto probe_fail_post_gpiochip_add;
++	}
++
++	i2c_set_clientdata(client, chip);
++
++	return 0;
++probe_fail_post_gpiochip_add:
++	WARN_ON(gpiochip_remove(&chip->gpio_chip) < 0);
++probe_fail_pre_gpiochip_add:
++	kfree(chip);
++	return rc;
++}
++
++static int __devexit sx150x_remove(struct i2c_client *client)
++{
++	struct sx150x_chip *chip;
++	int rc;
++
++	chip = i2c_get_clientdata(client);
++	rc = gpiochip_remove(&chip->gpio_chip);
++	if (rc < 0)
++		return rc;
++
++	if (chip->irq_summary >= 0)
++		sx150x_remove_irq_chip(chip);
++
++	kfree(chip);
++
++	return 0;
++}
++
++static struct i2c_driver sx150x_driver = {
++	.driver = {
++		.name = "sx150x",
++		.owner = THIS_MODULE
++	},
++	.probe    = sx150x_probe,
++	.remove   = __devexit_p(sx150x_remove),
++	.id_table = sx150x_id,
++};
++
++static int __init sx150x_init(void)
++{
++	return i2c_add_driver(&sx150x_driver);
++}
++subsys_initcall(sx150x_init);
++
++static void __exit sx150x_exit(void)
++{
++	return i2c_del_driver(&sx150x_driver);
++}
++module_exit(sx150x_exit);
++
++MODULE_AUTHOR("Gregory Bean <gbean@codeaurora.org>");
++MODULE_DESCRIPTION("Driver for Semtech SX150X I2C GPIO Expanders");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("i2c:sx150x");
+diff -puN /dev/null include/linux/i2c/sx150x.h
+--- /dev/null
++++ a/include/linux/i2c/sx150x.h
+@@ -0,0 +1,78 @@
++/*
++ * Driver for the Semtech SX150x I2C GPIO Expanders
++ *
++ * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ * 02110-1301, USA.
++ */
++#ifndef __LINUX_I2C_SX150X_H
++#define __LINUX_I2C_SX150X_H
++
++/**
++ * struct sx150x_platform_data - config data for SX150x driver
++ * @gpio_base: The index number of the first GPIO assigned to this
++ *             GPIO expander.  The expander will create a block of
++ *             consecutively numbered gpios beginning at the given base,
++ *             with the size of the block depending on the model of the
++ *             expander chip.
++ * @oscio_is_gpo: If set to true, the driver will configure OSCIO as a GPO
++ *                instead of as an oscillator, increasing the size of the
++ *                GP(I)O pool created by this expander by one.  The
++ *                output-only GPO pin will be added at the end of the block.
++ * @io_pullup_ena: A bit-mask which enables or disables the pull-up resistor
++ *                 for each IO line in the expander.  Setting the bit at
++ *                 position n will enable the pull-up for the IO at
++ *                 the corresponding offset.  For chips with fewer than
++ *                 16 IO pins, high-end bits are ignored.
++ * @io_pulldn_ena: A bit-mask which enables-or disables the pull-down
++ *                 resistor for each IO line in the expander. Setting the
++ *                 bit at position n will enable the pull-down for the IO at
++ *                 the corresponding offset.  For chips with fewer than
++ *                 16 IO pins, high-end bits are ignored.
++ * @io_open_drain_ena: A bit-mask which enables-or disables open-drain
++ *                     operation for each IO line in the expander. Setting the
++ *                     bit at position n enables open-drain operation for
++ *                     the IO at the corresponding offset.  Clearing the bit
++ *                     enables regular push-pull operation for that IO.
++ *                     For chips with fewer than 16 IO pins, high-end bits
++ *                     are ignored.
++ * @io_polarity: A bit-mask which enables polarity inversion for each IO line
++ *               in the expander.  Setting the bit at position n inverts
++ *               the polarity of that IO line, while clearing it results
++ *               in normal polarity. For chips with fewer than 16 IO pins,
++ *               high-end bits are ignored.
++ * @irq_summary: The 'summary IRQ' line to which the GPIO expander's INT line
++ *               is connected, via which it reports interrupt events
++ *               across all GPIO lines.  This must be a real,
++ *               pre-existing IRQ line.
++ *               Setting this value < 0 disables the irq_chip functionality
++ *               of the driver.
++ * @irq_base: The first 'virtual IRQ' line at which our block of GPIO-based
++ *            IRQ lines will appear.  Similarly to gpio_base, the expander
++ *            will create a block of irqs beginning at this number.
++ *            This value is ignored if irq_summary is < 0.
++ */
++struct sx150x_platform_data {
++	unsigned gpio_base;
++	bool     oscio_is_gpo;
++	u16      io_pullup_ena;
++	u16      io_pulldn_ena;
++	u16      io_open_drain_ena;
++	u16      io_polarity;
++	int      irq_summary;
++	unsigned irq_base;
++};
++
++#endif /* __LINUX_I2C_SX150X_H */
 _
 
-Patches currently in -mm which might be from hdegoede@redhat.com are
+Patches currently in -mm which might be from gbean@codeaurora.org are
 
 linux-next.patch
-scsi-sr-add-no_read_disc_info-scsi_device-flag.patch
-usb-storage-add-new-no_read_disc_info-quirk.patch
-scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch
-usb-storage-add-new-no_read_capacity_16-quirk.patch
-hwmon-driver-for-smm665-six-channel-active-dc-output-controller-monitor.patch
-hwmon-smm665-driver-documentation.patch
-hwmon-update-maintainers-for-smm665-driver.patch
-hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
-hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors-v3.patch
+gpio-sx150x-add-semtech-i2c-sx150x-gpio-expander-driver.patch
 
