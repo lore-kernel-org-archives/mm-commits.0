@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch added to -mm tree
-Date: Mon, 26 Jul 2010 14:41:28 -0700
-Message-ID: <201007262141.o6QLfSci011375@imap1.linux-foundation.org>
+Subject: + usb-storage-add-new-no_read_capacity_16-quirk.patch added to -mm tree
+Date: Mon, 26 Jul 2010 14:41:30 -0700
+Message-ID: <201007262141.o6QLfU5e011386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41089 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755467Ab0GZVlk (ORCPT
+	by vger.kernel.org with ESMTP id S1755458Ab0GZVlm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 17:41:40 -0400
+	Mon, 26 Jul 2010 17:41:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hdegoede@redhat.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, 
 
 
 The patch titled
-     scsi/sd: add a no_read_capacity_16 scsi_device flag
+     usb-storage: add new no_read_capacity_16 quirk
 has been added to the -mm tree.  Its filename is
-     scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch
+     usb-storage-add-new-no_read_capacity_16-quirk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi/sd: add a no_read_capacity_16 scsi_device flag
+Subject: usb-storage: add new no_read_capacity_16 quirk
 From: Hans de Goede <hdegoede@redhat.com>
 
-I seem to have a knack for digging up buggy usb devices which don't work
-with Linux, and I'm crazy enough to try to make them work.  So this time a
-friend of mine asked me to get an mp4 player (an mp3 player which can play
-videos on a small screen) to work with Linux.
-
-It is based on the well known rockbox chipset for which we already have an
-unusual devs entries to work around some of its bugs.  But this model
-comes with an additional twist.
-
-This model chokes on read_capacity_16 calls.  Now normally we don't make
-those calls, but this model comes with an sdcard slot and when there is no
-card in there (and shipped from the factory there is none), it reports a
-size of 0.  However this time the programmers actually got the
-read_capacity_10 response right!  So they substract one from the size as
-stored internally in the mp3 player before reporting it back, resulting in
-an answer of ...  0xffffffff sectors, causing sd.c to try a
-read_capacity_16, on which the device crashes.
-
-This patch adds a flag to scsi_device to indicate that a a device cannot
-handle read_capacity_16, and when this flag is set if a device reports an
-lba of 0xffffffff as answer to a read_capacity_10, assumes it tries to
-report a size of 0.
+Some Rockbox based mp4 players will crash when ever they see a
+read_capacity_16 scsi command.  So add a new US_FL which tells the scsi sd
+driver to not issue any read_capacity_16 scsi commands.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -68,50 +49,52 @@ Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.c          |   12 ++++++++++++
- include/scsi/scsi_device.h |    1 +
- 2 files changed, 13 insertions(+)
+ drivers/usb/storage/scsiglue.c     |    4 ++++
+ drivers/usb/storage/unusual_devs.h |    3 ++-
+ include/linux/usb_usual.h          |    4 +++-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/sd.c~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag
-+++ a/drivers/scsi/sd.c
-@@ -1490,6 +1490,9 @@ static int read_capacity_16(struct scsi_
- 	unsigned long long lba;
- 	unsigned sector_size;
+diff -puN drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_capacity_16-quirk drivers/usb/storage/scsiglue.c
+--- a/drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_capacity_16-quirk
++++ a/drivers/usb/storage/scsiglue.c
+@@ -209,6 +209,10 @@ static int slave_configure(struct scsi_d
+ 		if (us->fflags & US_FL_CAPACITY_HEURISTICS)
+ 			sdev->guess_capacity = 1;
  
-+	if (sdp->no_read_capacity_16)
-+		return -EINVAL;
++		/* Some devices cannot handle READ_CAPACITY_16 */
++		if (us->fflags & US_FL_NO_READ_CAPACITY_16)
++			sdev->no_read_capacity_16 = 1;
 +
- 	do {
- 		memset(cmd, 0, 16);
- 		cmd[0] = SERVICE_ACTION_IN;
-@@ -1618,6 +1621,15 @@ static int read_capacity_10(struct scsi_
- 	sector_size = get_unaligned_be32(&buffer[4]);
- 	lba = get_unaligned_be32(&buffer[0]);
+ 		/* assume SPC3 or latter devices support sense size > 18 */
+ 		if (sdev->scsi_level > SCSI_SPC_2)
+ 			us->fflags |= US_FL_SANE_SENSE;
+diff -puN drivers/usb/storage/unusual_devs.h~usb-storage-add-new-no_read_capacity_16-quirk drivers/usb/storage/unusual_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-storage-add-new-no_read_capacity_16-quirk
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -877,7 +877,8 @@ UNUSUAL_DEV(  0x071b, 0x3203, 0x0000, 0x
+ 		"RockChip",
+ 		"MP3",
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+-		US_FL_NO_WP_DETECT | US_FL_MAX_SECTORS_64),
++		US_FL_NO_WP_DETECT | US_FL_MAX_SECTORS_64 |
++		US_FL_NO_READ_CAPACITY_16),
  
-+	if (sdp->no_read_capacity_16 && (lba == 0xffffffff)) {
-+		/* Some buggy (usb cardreader) devices return an lba of
-+		   0xffffffff when the want to report a size of 0 (with
-+		   which they really mean no media is present) */
-+		sdkp->capacity = 0;
-+		sdkp->hw_sector_size = sector_size;
-+		return sector_size;
-+	}
-+
- 	if ((sizeof(sdkp->capacity) == 4) && (lba == 0xffffffff)) {
- 		sd_printk(KERN_ERR, sdkp, "Too big for this kernel. Use a "
- 			"kernel compiled with support for large block "
-diff -puN include/scsi/scsi_device.h~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~scsi-sd-add-a-no_read_capacity_16-scsi_device-flag
-+++ a/include/scsi/scsi_device.h
-@@ -149,6 +149,7 @@ struct scsi_device {
- 	unsigned last_sector_bug:1;	/* do not use multisector accesses on
- 					   SD_LAST_BUGGY_SECTORS */
- 	unsigned no_read_disc_info:1;	/* Avoid READ_DISC_INFO cmds */
-+	unsigned no_read_capacity_16:1; /* Avoid READ_CAPACITY_16 cmds */
- 	unsigned is_visible:1;	/* is the device visible in sysfs */
+ /* Reported by Jean-Baptiste Onofre <jb@nanthrax.net>
+  * Support the following product :
+diff -puN include/linux/usb_usual.h~usb-storage-add-new-no_read_capacity_16-quirk include/linux/usb_usual.h
+--- a/include/linux/usb_usual.h~usb-storage-add-new-no_read_capacity_16-quirk
++++ a/include/linux/usb_usual.h
+@@ -60,7 +60,9 @@
+ 	US_FLAG(BAD_SENSE,	0x00020000)			\
+ 		/* Bad Sense (never more than 18 bytes) */	\
+ 	US_FLAG(NO_READ_DISC_INFO,	0x00040000)		\
+-		/* cannot handle READ_DISC_INFO */
++		/* cannot handle READ_DISC_INFO */		\
++	US_FLAG(NO_READ_CAPACITY_16,	0x00080000)		\
++		/* cannot handle READ_CAPACITY_16 */
  
- 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
+ #define US_FLAG(name, value)	US_FL_##name = value ,
+ enum { US_DO_ALL_FLAGS };
 _
 
 Patches currently in -mm which might be from hdegoede@redhat.com are
