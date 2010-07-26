@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbmem-vm_io-set-but-not-propagated.patch added to -mm tree
-Date: Mon, 26 Jul 2010 15:38:17 -0700
-Message-ID: <201007262238.o6QMcHwE014029@imap1.linux-foundation.org>
+Subject: + scripts-checkpatchpl-add-more-exceptions-to-80-char-lines.patch added to -mm tree
+Date: Mon, 26 Jul 2010 15:39:50 -0700
+Message-ID: <201007262239.o6QMdoUT014075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752245Ab0GZWia (ORCPT
+	by vger.kernel.org with ESMTP id S1752245Ab0GZWkL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 18:38:30 -0400
+	Mon, 26 Jul 2010 18:40:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dgdegra@tycho.nsa.gov, FlorianSchandinat@gmx.de, airlied@linux.ie, ewalsh@tycho.nsa.gov, konrad.wilk@oracle.com
+Cc: joe@perches.com, apw@shadowen.org, w.sang@pengutronix.de
 
 
 The patch titled
-     fbmem: VM_IO set, but not propagated
+     scripts/checkpatch.pl: add more exceptions to 80 char lines
 has been added to the -mm tree.  Its filename is
-     fbmem-vm_io-set-but-not-propagated.patch
+     scripts-checkpatchpl-add-more-exceptions-to-80-char-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbmem: VM_IO set, but not propagated
-From: Daniel De Graaf <dgdegra@tycho.nsa.gov>
+Subject: scripts/checkpatch.pl: add more exceptions to 80 char lines
+From: Joe Perches <joe@perches.com>
 
-When we setup up the VMA flags for the mmap flag and we end up using the
-fallback mmap functionality we set the vma->vm_flags |= VM_IO.  However we
-neglect to propagate the flag to the vma->vm_page_prot.
+Add new logging functions netdev_<level> and netif_<level>.
+Don't complain if the only thing on a line is a quoted string.
 
-This bug was found when Linux kernel was running under Xen.  In that
-scenario, any page that has VM_IO flag to it, means that it MUST be a
-MMIO/VRAM backend memory , _not_ System RAM.  That is what the fbmem.c
-does: sets VM_IO, ioremaps the region - everything is peachy.
-
-Well, not exactly.  The vm_page_prot does not get the relevant PTE flags
-set (_PAGE_IOMAP) which under Xen is a death-kneel to pages that are
-referencing real physical devices but don't have that flag set.
-
-This patch fixes this.
-
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Tested-by: Eamon Walsh <ewalsh@tycho.nsa.gov>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbmem-vm_io-set-but-not-propagated drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbmem-vm_io-set-but-not-propagated
-+++ a/drivers/video/fbmem.c
-@@ -1362,6 +1362,7 @@ fb_mmap(struct file *file, struct vm_are
- 	vma->vm_pgoff = off >> PAGE_SHIFT;
- 	/* This is an IO map - tell maydump to skip this VMA */
- 	vma->vm_flags |= VM_IO | VM_RESERVED;
-+	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 	fb_pgprotect(file, vma, off);
- 	if (io_remap_pfn_range(vma, vma->vm_start, off >> PAGE_SHIFT,
- 			     vma->vm_end - vma->vm_start, vma->vm_page_prot))
+diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-add-more-exceptions-to-80-char-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~scripts-checkpatchpl-add-more-exceptions-to-80-char-lines
++++ a/scripts/checkpatch.pl
+@@ -195,7 +195,7 @@ our $typeTypedefs = qr{(?x:
+ our $logFunctions = qr{(?x:
+ 	printk|
+ 	pr_(debug|dbg|vdbg|devel|info|warning|err|notice|alert|crit|emerg|cont)|
+-	dev_(printk|dbg|vdbg|info|warn|err|notice|alert|crit|emerg|WARN)|
++	(dev|netdev|netif)_(printk|dbg|vdbg|info|warn|err|notice|alert|crit|emerg|WARN)|
+ 	WARN|
+ 	panic
+ )};
+@@ -1409,7 +1409,8 @@ sub process {
+ #80 column limit
+ 		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
+ 		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
+-		    $line !~ /^\+\s*$logFunctions\s*\(\s*(?:KERN_\S+\s*)?"[X\t]*"\s*(?:,|\)\s*;)\s*$/ &&
++		    !($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(KERN_\S+\s*|[^"]*))?"[X\t]*"\s*(?:,|\)\s*;)\s*$/ ||
++		    $line =~ /^\+\s*"[^"]*"\s*(?:\s*|,|\)\s*;)\s*$/) &&
+ 		    $length > 80)
+ 		{
+ 			WARN("line over 80 characters\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from dgdegra@tycho.nsa.gov are
+Patches currently in -mm which might be from joe@perches.com are
 
-fbmem-vm_io-set-but-not-propagated.patch
+linux-next.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-qla2xxx-qla_osc-fix-continuation-line-formats.patch
+drivers-scsi-chc-dont-use-vprintk-as-macro.patch
+kernelh-remove-unused-nipquad-and-nipquad_fmt.patch
+maintainers-update-arm-bcmring-mtd-nand-driver-file-patterns.patch
+maintainers-update-arm-nuvoton-w90x900-arm-architecture-file-patterns.patch
+maintainers-update-arm-voipac-pxa270-file-patterns.patch
+maintainers-update-arm-zipit-z2-support-file-patterns.patch
+maintainers-update-networking-file-patterns.patch
+maintainers-update-ppp-over-l2tp-file-patterns.patch
+maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+maintainers-remove-section-smx-uio-interface.patch
+maintainers-update-spear-clock-framework-support-file-patterns.patch
+maintainers-remove-section-strip.patch
+maintainers-remove-section-wavelan-network-driver-wireless-extensions.patch
+maintainers-add-file-patterns-to-uclinux-for-renesas-h8-300.patch
+maintainers-update-drm-drivers-patterns.patch
+maintainers-add-patterns-to-cryptographic-random-number-generator.patch
+maintainers-add-patterns-to-dell-wmi-extras.patch
+maintainers-add-patterns-to-powerpc-embedded-ppc8xx.patch
+maintainers-add-patterns-to-omap-usb.patch
+maintainers-remove-section-promise-dc4030.patch
+maintainers-add-patterns-to-ps3vram-driver.patch
+maintainers-add-patterns-to-wimax-stack.patch
+maintainers-update-laurent-pinchart-email.patch
+maintainers-orphan-befs.patch
+checkpatchpl-add-check-for-space-after-struct-or-union-definition.patch
+scripts-checkpatchpl-add-more-exceptions-to-80-char-lines.patch
+documentation-networking-wavelantxt-deleted-not-in-tree.patch
 
