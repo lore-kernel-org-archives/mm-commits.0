@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + usb-storage-add-new-no_read_disc_info-quirk.patch added to -mm tree
-Date: Mon, 26 Jul 2010 14:41:25 -0700
-Message-ID: <201007262141.o6QLfP2k011369@imap1.linux-foundation.org>
+Subject: + scsi-sr-add-no_read_disc_info-scsi_device-flag.patch added to -mm tree
+Date: Mon, 26 Jul 2010 14:41:22 -0700
+Message-ID: <201007262141.o6QLfNLx011363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755458Ab0GZVlj (ORCPT
+	by vger.kernel.org with ESMTP id S1755365Ab0GZVlk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 17:41:39 -0400
+	Mon, 26 Jul 2010 17:41:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hdegoede@redhat.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, 
 
 
 The patch titled
-     usb-storage: add new no_read_disc_info quirk
+     scsi/sr: add no_read_disc_info scsi_device flag
 has been added to the -mm tree.  Its filename is
-     usb-storage-add-new-no_read_disc_info-quirk.patch
+     scsi-sr-add-no_read_disc_info-scsi_device-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-storage: add new no_read_disc_info quirk
+Subject: scsi/sr: add no_read_disc_info scsi_device flag
 From: Hans de Goede <hdegoede@redhat.com>
 
-Appotech ax3003 (the larger brother of the ax203) based devices are even
-more buggy then the ax203.  They will go of into lala land when ever they
-see a READ_DISC_INFO scsi command.  So add a new US_FL which tells the
-scsi sr driver to not issue any READ_DISC_INFO scsi commands.
+Some USB devices emulate a usb-mass-storage attached (scsi) cdrom device,
+usually this fake cdrom contains the windows software for the device. 
+While working on supporting Appotech ax3003 based photoframes, which do
+this I discovered that they will go of into lala land when ever they see a
+READ_DISC_INFO scsi command.
+
+Thus this patch adds a scsi_device flag (which can then be set by the
+usb-storage driver through an unsual-devs entry), to indicate this, and
+makes the sr driver honor this flag.
+
+I know this sucks, but as discussed on linux-scsi list there is no other
+way to make this device work properly.
+
+Looking at usb traces made under windows, windows never sends a
+READ_DISC_INFO during normal interactions with a usb cdrom device.  So as
+this cdrom emulation thingie becomes more common we might see more of this
+problem.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -50,54 +63,42 @@ Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/scsiglue.c     |    4 ++++
- drivers/usb/storage/unusual_devs.h |    5 +++++
- include/linux/usb_usual.h          |    4 +++-
- 3 files changed, 12 insertions(+), 1 deletion(-)
+ drivers/scsi/sr.c          |    8 +++++++-
+ include/scsi/scsi_device.h |    1 +
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_disc_info-quirk drivers/usb/storage/scsiglue.c
---- a/drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_disc_info-quirk
-+++ a/drivers/usb/storage/scsiglue.c
-@@ -253,6 +253,10 @@ static int slave_configure(struct scsi_d
- 		 * or to force 192-byte transfer lengths for MODE SENSE.
- 		 * But they do need to use MODE SENSE(10). */
- 		sdev->use_10_for_ms = 1;
+diff -puN drivers/scsi/sr.c~scsi-sr-add-no_read_disc_info-scsi_device-flag drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-sr-add-no_read_disc_info-scsi_device-flag
++++ a/drivers/scsi/sr.c
+@@ -862,10 +862,16 @@ static void get_capabilities(struct scsi
+ static int sr_packet(struct cdrom_device_info *cdi,
+ 		struct packet_command *cgc)
+ {
++	struct scsi_cd *cd = cdi->handle;
++	struct scsi_device *sdev = cd->device;
 +
-+		/* Some (fake) usb cdrom devices don't like READ_DISC_INFO */
-+		if (us->fflags & US_FLAG_NO_READ_DISC_INFO)
-+			sdev->no_read_disc_info = 1;
- 	}
++	if (cgc->cmd[0] == GPCMD_READ_DISC_INFO && sdev->no_read_disc_info)
++		return -EDRIVE_CANT_DO_THIS;
++
+ 	if (cgc->timeout <= 0)
+ 		cgc->timeout = IOCTL_TIMEOUT;
  
- 	/* The CB and CBI transports have no way to pass LUN values
-diff -puN drivers/usb/storage/unusual_devs.h~usb-storage-add-new-no_read_disc_info-quirk drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-storage-add-new-no_read_disc_info-quirk
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -1858,6 +1858,11 @@ UNUSUAL_DEV( 0x1908, 0x1320, 0x0000, 0x0
- 		"Photo Frame",
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
- 		US_FL_BAD_SENSE ),
-+UNUSUAL_DEV( 0x1908, 0x3335, 0x0200, 0x0200,
-+		"BUILDWIN",
-+		"Photo Frame",
-+		US_SC_DEVICE, US_PR_DEVICE, NULL,
-+		US_FL_NO_READ_DISC_INFO ),
+-	sr_do_ioctl(cdi->handle, cgc);
++	sr_do_ioctl(cd, cgc);
  
- UNUSUAL_DEV( 0x2116, 0x0320, 0x0001, 0x0001,
- 		"ST",
-diff -puN include/linux/usb_usual.h~usb-storage-add-new-no_read_disc_info-quirk include/linux/usb_usual.h
---- a/include/linux/usb_usual.h~usb-storage-add-new-no_read_disc_info-quirk
-+++ a/include/linux/usb_usual.h
-@@ -58,7 +58,9 @@
- 	US_FLAG(CAPACITY_OK,	0x00010000)			\
- 		/* READ CAPACITY response is correct */		\
- 	US_FLAG(BAD_SENSE,	0x00020000)			\
--		/* Bad Sense (never more than 18 bytes) */
-+		/* Bad Sense (never more than 18 bytes) */	\
-+	US_FLAG(NO_READ_DISC_INFO,	0x00040000)		\
-+		/* cannot handle READ_DISC_INFO */
+ 	return cgc->stat;
+ }
+diff -puN include/scsi/scsi_device.h~scsi-sr-add-no_read_disc_info-scsi_device-flag include/scsi/scsi_device.h
+--- a/include/scsi/scsi_device.h~scsi-sr-add-no_read_disc_info-scsi_device-flag
++++ a/include/scsi/scsi_device.h
+@@ -148,6 +148,7 @@ struct scsi_device {
+ 	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
+ 	unsigned last_sector_bug:1;	/* do not use multisector accesses on
+ 					   SD_LAST_BUGGY_SECTORS */
++	unsigned no_read_disc_info:1;	/* Avoid READ_DISC_INFO cmds */
+ 	unsigned is_visible:1;	/* is the device visible in sysfs */
  
- #define US_FLAG(name, value)	US_FL_##name = value ,
- enum { US_DO_ALL_FLAGS };
+ 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
 _
 
 Patches currently in -mm which might be from hdegoede@redhat.com are
