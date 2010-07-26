@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmio_mmc-allow-2-byte-requests-in-4-bit-mode.patch added to -mm tree
-Date: Mon, 26 Jul 2010 16:03:49 -0700
-Message-ID: <201007262303.o6QN3n5n015124@imap1.linux-foundation.org>
+Subject: + tmio_mmc-make-ack_mmc_irqs-write-only.patch added to -mm tree
+Date: Mon, 26 Jul 2010 16:05:56 -0700
+Message-ID: <201007262305.o6QN5ugY015175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60548 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751349Ab0GZXEO (ORCPT
+	by vger.kernel.org with ESMTP id S1751874Ab0GZXGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Jul 2010 19:04:14 -0400
+	Mon, 26 Jul 2010 19:06:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yusuke.goda.sx@renesas.com, damm@opensource.se, linux-mmc@vger.kernel.org
+Cc: yusuke.goda.sx@renesas.com, damm@opensource.se, ian@mnementh.co.uk, lethal@linux-sh.org
 
 
 The patch titled
-     tmio_mmc: allow 2 byte requests in 4-bit mode
+     tmio_mmc: make ack_mmc_irqs() write-only
 has been added to the -mm tree.  Its filename is
-     tmio_mmc-allow-2-byte-requests-in-4-bit-mode.patch
+     tmio_mmc-make-ack_mmc_irqs-write-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmio_mmc: allow 2 byte requests in 4-bit mode
+Subject: tmio_mmc: make ack_mmc_irqs() write-only
 From: Yusuke Goda <yusuke.goda.sx@renesas.com>
 
-Adjust the tmio_mmc block size check to accept 2-byte requests in 4-bit
-mode.  Tested with the SDHI hardware block included in sh7724.
+Update ack_mmc_irqs() to acknowledge using write instead of
+read-modify-write.  Without this fix the old read-modify-write
+implementation may acknowledge interrupt sources by mistake.  The driver
+may if so lock-up waiting forever for an interrupt that will never come. 
+Observed with the TMIO_STAT_RXRDY bit together with CMD53 on AR6002 and
+BCM4318 SDIO cards in polled mode.
 
 Signed-off-by: Yusuke Goda <yusuke.goda.sx@renesas.com>
 Tested-by: Magnus Damm <damm@opensource.se>
 Acked-by: Magnus Damm <damm@opensource.se>
-Cc: <linux-mmc@vger.kernel.org>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/tmio_mmc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mmc/host/tmio_mmc.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/mmc/host/tmio_mmc.c~tmio_mmc-allow-2-byte-requests-in-4-bit-mode drivers/mmc/host/tmio_mmc.c
---- a/drivers/mmc/host/tmio_mmc.c~tmio_mmc-allow-2-byte-requests-in-4-bit-mode
-+++ a/drivers/mmc/host/tmio_mmc.c
-@@ -660,8 +660,8 @@ static int tmio_mmc_start_data(struct tm
- 	pr_debug("setup data transfer: blocksize %08x  nr_blocks %d\n",
- 		 data->blksz, data->blocks);
+diff -puN drivers/mmc/host/tmio_mmc.h~tmio_mmc-make-ack_mmc_irqs-write-only drivers/mmc/host/tmio_mmc.h
+--- a/drivers/mmc/host/tmio_mmc.h~tmio_mmc-make-ack_mmc_irqs-write-only
++++ a/drivers/mmc/host/tmio_mmc.h
+@@ -82,10 +82,7 @@
  
--	/* Hardware cannot perform 1 and 2 byte requests in 4 bit mode */
--	if (data->blksz < 4 && host->mmc->ios.bus_width == MMC_BUS_WIDTH_4) {
-+	/* Hardware cannot perform 1 byte requests in 4 bit mode */
-+	if (data->blksz < 2 && host->mmc->ios.bus_width == MMC_BUS_WIDTH_4) {
- 		pr_err("%s: %d byte block unsupported in 4 bit mode\n",
- 		       mmc_hostname(host->mmc), data->blksz);
- 		return -EINVAL;
+ #define ack_mmc_irqs(host, i) \
+ 	do { \
+-		u32 mask;\
+-		mask  = sd_ctrl_read32((host), CTL_STATUS); \
+-		mask &= ~((i) & TMIO_MASK_IRQ); \
+-		sd_ctrl_write32((host), CTL_STATUS, mask); \
++		sd_ctrl_write32((host), CTL_STATUS, ~(i)); \
+ 	} while (0)
+ 
+ 
 _
 
 Patches currently in -mm which might be from yusuke.goda.sx@renesas.com are
 
+tmio_mmc-make-ack_mmc_irqs-write-only.patch
 tmio_mmc-prevent-unexpected-status-clear.patch
 tmio_mmc-allow-2-byte-requests-in-4-bit-mode.patch
 
