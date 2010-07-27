@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-storage-add-new-no_read_disc_info-quirk-fix.patch added to -mm tree
-Date: Tue, 27 Jul 2010 13:16:04 -0700
-Message-ID: <201007272045.o6RKjgDE004435@imap1.linux-foundation.org>
+Subject: + fbdev-add-jz4740-framebuffer-driver-fix.patch added to -mm tree
+Date: Tue, 27 Jul 2010 14:08:39 -0700
+Message-ID: <201007272138.o6RLcHOZ006737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811Ab0G0UqV (ORCPT
+	by vger.kernel.org with ESMTP id S1752715Ab0G0Vic (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jul 2010 16:46:21 -0400
+	Tue, 27 Jul 2010 17:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, hdegoede@redhat.com, mdharm-usb@one-eyed-alien.net, stern@rowland.harvard.edu
+Cc: akpm@linux-foundation.org, lars@metafoo.de, ralf@linux-mips.org
 
 
 The patch titled
-     usb-storage-add-new-no_read_disc_info-quirk-fix
+     fbdev-add-jz4740-framebuffer-driver-fix
 has been added to the -mm tree.  Its filename is
-     usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+     fbdev-add-jz4740-framebuffer-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-storage-add-new-no_read_disc_info-quirk-fix
+Subject: fbdev-add-jz4740-framebuffer-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/storage/scsiglue.c: In function 'slave_configure':
-drivers/usb/storage/scsiglue.c:262: error: 'US_FLAG_NO_READ_DISC_INFO' undeclared (first use in this function)
-drivers/usb/storage/scsiglue.c:262: error: (Each undeclared identifier is reported only once
-drivers/usb/storage/scsiglue.c:262: error: for each function it appears in.)
+Fix x86 allmodconfig.  Might not be right.
 
-
-huh?
-
-
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/scsiglue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_disc_info-quirk-fix drivers/usb/storage/scsiglue.c
---- a/drivers/usb/storage/scsiglue.c~usb-storage-add-new-no_read_disc_info-quirk-fix
-+++ a/drivers/usb/storage/scsiglue.c
-@@ -255,7 +255,7 @@ static int slave_configure(struct scsi_d
- 		sdev->use_10_for_ms = 1;
- 
- 		/* Some (fake) usb cdrom devices don't like READ_DISC_INFO */
--		if (us->fflags & US_FLAG_NO_READ_DISC_INFO)
-+		if (us->fflags & US_FL_NO_READ_DISC_INFO)
- 			sdev->no_read_disc_info = 1;
- 	}
- 
+diff -puN drivers/video/Kconfig~fbdev-add-jz4740-framebuffer-driver-fix drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-add-jz4740-framebuffer-driver-fix
++++ a/drivers/video/Kconfig
+@@ -2240,6 +2240,7 @@ config FB_BROADSHEET
+ config FB_JZ4740
+ 	tristate "JZ4740 LCD framebuffer support"
+ 	depends on FB
++	depends on MIPS
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +111,7 @@ fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
 rtc-fixes-and-new-functionality-for-fm3130-fix.patch
 rtc-add-support-for-ds3232-rtc-fix.patch
 drivers-video-via-via-gpioc-fix-warning.patch
+fbdev-add-jz4740-framebuffer-driver-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
 fs-sysv-v7-adjust-sanity-checks-for-some-volumes-checkpatch-fixes.patch
@@ -138,5 +128,4 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
-a.patch
 
