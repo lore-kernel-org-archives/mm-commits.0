@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-convert-direct-reclaim-tracepoint-to-define_trace.patch added to -mm tree
-Date: Tue, 27 Jul 2010 16:02:28 -0700
-Message-ID: <201007272302.o6RN2Sfp010305@imap1.linux-foundation.org>
+Subject: + memcg-add-mm_vmscan_memcg_isolate-tracepoint.patch added to -mm tree
+Date: Tue, 27 Jul 2010 16:02:38 -0700
+Message-ID: <201007272302.o6RN2cNE010317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750971Ab0G0XDD (ORCPT
+	by vger.kernel.org with ESMTP id S1751737Ab0G0XDG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jul 2010 19:03:03 -0400
+	Tue, 27 Jul 2010 19:03:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@j
 
 
 The patch titled
-     vmscan: convert direct reclaim tracepoint to DEFINE_TRACE
+     memcg: add mm_vmscan_memcg_isolate tracepoint
 has been added to the -mm tree.  Its filename is
-     vmscan-convert-direct-reclaim-tracepoint-to-define_trace.patch
+     memcg-add-mm_vmscan_memcg_isolate-tracepoint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: convert direct reclaim tracepoint to DEFINE_TRACE
+Subject: memcg: add mm_vmscan_memcg_isolate tracepoint
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Mel Gorman recently added some vmscan tracepoints.  Unfortunately they are
-covered only global reclaim.  But we want to trace memcg reclaim too.
-
-Thus, this patch convert them to DEFINE_TRACE macro.  it help to reuse
-tracepoint definition for other similar usage (i.e.  memcg).  This patch
-have no functionally change.
+Memcg also need to trace page isolation information as global reclaim. 
+This patch does it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -51,52 +47,58 @@ Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ include/trace/events/vmscan.h |   15 +++++++++++++++
+ mm/memcontrol.c               |    6 ++++++
+ 2 files changed, 21 insertions(+)
 
-diff -puN include/trace/events/vmscan.h~vmscan-convert-direct-reclaim-tracepoint-to-define_trace include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~vmscan-convert-direct-reclaim-tracepoint-to-define_trace
+diff -puN include/trace/events/vmscan.h~memcg-add-mm_vmscan_memcg_isolate-tracepoint include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~memcg-add-mm_vmscan_memcg_isolate-tracepoint
 +++ a/include/trace/events/vmscan.h
-@@ -68,7 +68,7 @@ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
- 		__entry->order)
+@@ -213,6 +213,21 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
+ 
  );
  
--TRACE_EVENT(mm_vmscan_direct_reclaim_begin,
-+DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_begin_template,
- 
- 	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
- 
-@@ -92,7 +92,15 @@ TRACE_EVENT(mm_vmscan_direct_reclaim_beg
- 		show_gfp_flags(__entry->gfp_flags))
- );
- 
--TRACE_EVENT(mm_vmscan_direct_reclaim_end,
-+DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
++DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_memcg_isolate,
 +
-+	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
++	TP_PROTO(int order,
++		unsigned long nr_requested,
++		unsigned long nr_scanned,
++		unsigned long nr_taken,
++		unsigned long nr_lumpy_taken,
++		unsigned long nr_lumpy_dirty,
++		unsigned long nr_lumpy_failed,
++		int isolate_mode),
 +
-+	TP_ARGS(order, may_writepage, gfp_flags)
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode)
++
 +);
 +
-+
-+DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+ TRACE_EVENT(mm_vmscan_writepage,
  
- 	TP_PROTO(unsigned long nr_reclaimed),
+ 	TP_PROTO(struct page *page,
+diff -puN mm/memcontrol.c~memcg-add-mm_vmscan_memcg_isolate-tracepoint mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-mm_vmscan_memcg_isolate-tracepoint
++++ a/mm/memcontrol.c
+@@ -51,6 +51,8 @@
  
-@@ -109,6 +117,13 @@ TRACE_EVENT(mm_vmscan_direct_reclaim_end
- 	TP_printk("nr_reclaimed=%lu", __entry->nr_reclaimed)
- );
+ #include <asm/uaccess.h>
  
-+DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_direct_reclaim_end,
++#include <trace/events/vmscan.h>
 +
-+	TP_PROTO(unsigned long nr_reclaimed),
-+
-+	TP_ARGS(nr_reclaimed)
-+);
-+
- TRACE_EVENT(mm_vmscan_lru_isolate,
+ struct cgroup_subsys mem_cgroup_subsys __read_mostly;
+ #define MEM_CGROUP_RECLAIM_RETRIES	5
+ struct mem_cgroup *root_mem_cgroup __read_mostly;
+@@ -1007,6 +1009,10 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	}
  
- 	TP_PROTO(int order,
+ 	*scanned = scan;
++
++	trace_mm_vmscan_memcg_isolate(0, nr_to_scan, scan, nr_taken,
++				      0, 0, 0, mode);
++
+ 	return nr_taken;
+ }
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
