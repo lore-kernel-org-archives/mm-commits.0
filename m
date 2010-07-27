@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-use-raw_local_irq_save-restore-instead-local_irq_save-restore.patch added to -mm tree
-Date: Tue, 27 Jul 2010 16:18:47 -0700
-Message-ID: <201007272318.o6RNIlxX011021@imap1.linux-foundation.org>
+Subject: + timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch added to -mm tree
+Date: Tue, 27 Jul 2010 16:22:02 -0700
+Message-ID: <201007272322.o6RNM2le011142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752878Ab0G0XTE (ORCPT
+	by vger.kernel.org with ESMTP id S1751692Ab0G0XWj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jul 2010 19:19:04 -0400
+	Tue, 27 Jul 2010 19:22:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: monstr@monstr.eu, mingo@elte.hu, rostedt@goodmis.org, tglx@linutronix.de
+Cc: richard@rsk.demon.co.uk, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     asm-generic: use raw_local_irq_save/restore instead local_irq_save/restore
+     timer_list: remove alignment padding on 64 bit when CONFIG_TIMER_STATS
 has been added to the -mm tree.  Its filename is
-     asm-generic-use-raw_local_irq_save-restore-instead-local_irq_save-restore.patch
+     timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic: use raw_local_irq_save/restore instead local_irq_save/restore
-From: Michal Simek <monstr@monstr.eu>
+Subject: timer_list: remove alignment padding on 64 bit when CONFIG_TIMER_STATS
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-The start/stop_critical_timing functions for preemptirqsoff, preemptoff
-and irqsoff tracers contain atomic_inc() and atomic_dec() operations.
+Reorder structure timer_list to remove 8 bytes of alignment padding on 64
+bit builds when CONFIG_TIMER_STATS is selected.
 
-Atomic operations use local_irq_save/restore macros to ensure atomic
-access but they are traced by the same function which is causing recursion
-problem.
+timer_list is widely used across the kernel so many structures will
+benefit and shrink in size.
 
-The reason is when these tracers are turn ON then the
-local_irq_save/restore macros are changed in include/linux/irqflags.h to
-call trace_hardirqs_on/off which call start/stop_critical_timing.
+For example, with my config on x86_64
+	per_cpu_dm_data shrinks from 136 to 128 bytes
+and
+	ahci_port_priv shrinks from 1032 to 968 bytes.
 
-Microblaze was affected because it uses generic atomic implementation. 
-
-Signed-off-by: Michal Simek <monstr@monstr.eu>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/atomic.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/timer.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/atomic.h~asm-generic-use-raw_local_irq_save-restore-instead-local_irq_save-restore include/asm-generic/atomic.h
---- a/include/asm-generic/atomic.h~asm-generic-use-raw_local_irq_save-restore-instead-local_irq_save-restore
-+++ a/include/asm-generic/atomic.h
-@@ -57,11 +57,11 @@ static inline int atomic_add_return(int 
- 	unsigned long flags;
- 	int temp;
+diff -puN include/linux/timer.h~timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats include/linux/timer.h
+--- a/include/linux/timer.h~timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats
++++ a/include/linux/timer.h
+@@ -24,9 +24,9 @@ struct timer_list {
+ 	int slack;
  
--	local_irq_save(flags);
-+	raw_local_irq_save(flags); /* Don't trace it in a irqsoff handler */
- 	temp = v->counter;
- 	temp += i;
- 	v->counter = temp;
--	local_irq_restore(flags);
-+	raw_local_irq_restore(flags);
- 
- 	return temp;
- }
-@@ -78,11 +78,11 @@ static inline int atomic_sub_return(int 
- 	unsigned long flags;
- 	int temp;
- 
--	local_irq_save(flags);
-+	raw_local_irq_save(flags); /* Don't trace it in a irqsoff handler */
- 	temp = v->counter;
- 	temp -= i;
- 	v->counter = temp;
--	local_irq_restore(flags);
-+	raw_local_irq_restore(flags);
- 
- 	return temp;
- }
-@@ -135,9 +135,9 @@ static inline void atomic_clear_mask(uns
- 	unsigned long flags;
- 
- 	mask = ~mask;
--	local_irq_save(flags);
-+	raw_local_irq_save(flags); /* Don't trace it in a irqsoff handler */
- 	*addr &= mask;
--	local_irq_restore(flags);
-+	raw_local_irq_restore(flags);
- }
- 
- #define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
+ #ifdef CONFIG_TIMER_STATS
++	int start_pid;
+ 	void *start_site;
+ 	char start_comm[16];
+-	int start_pid;
+ #endif
+ #ifdef CONFIG_LOCKDEP
+ 	struct lockdep_map lockdep_map;
 _
 
-Patches currently in -mm which might be from monstr@monstr.eu are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-asm-generic-use-raw_local_irq_save-restore-instead-local_irq_save-restore.patch
-linux-next.patch
+timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
 
