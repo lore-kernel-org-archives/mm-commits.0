@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-vmscan-add-memcg-reclaim-tracepoint.patch added to -mm tree
-Date: Tue, 27 Jul 2010 16:02:34 -0700
-Message-ID: <201007272302.o6RN2YwB010309@imap1.linux-foundation.org>
+Subject: + vmscan-convert-direct-reclaim-tracepoint-to-define_trace.patch added to -mm tree
+Date: Tue, 27 Jul 2010 16:02:28 -0700
+Message-ID: <201007272302.o6RN2Sfp010305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43364 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751173Ab0G0XDF (ORCPT
+	by vger.kernel.org with ESMTP id S1750971Ab0G0XDD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jul 2010 19:03:05 -0400
+	Tue, 27 Jul 2010 19:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@j
 
 
 The patch titled
-     memcg, vmscan: add memcg reclaim tracepoint
+     vmscan: convert direct reclaim tracepoint to DEFINE_TRACE
 has been added to the -mm tree.  Its filename is
-     memcg-vmscan-add-memcg-reclaim-tracepoint.patch
+     vmscan-convert-direct-reclaim-tracepoint-to-define_trace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg, vmscan: add memcg reclaim tracepoint
+Subject: vmscan: convert direct reclaim tracepoint to DEFINE_TRACE
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Memcg also need to trace reclaim progress as direct reclaim.  This patch
-add it.
+Mel Gorman recently added some vmscan tracepoints.  Unfortunately they are
+covered only global reclaim.  But we want to trace memcg reclaim too.
+
+Thus, this patch convert them to DEFINE_TRACE macro.  it help to reuse
+tracepoint definition for other similar usage (i.e.  memcg).  This patch
+have no functionally change.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -47,106 +51,52 @@ Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   28 ++++++++++++++++++++++++++++
- mm/vmscan.c                   |   20 +++++++++++++++++++-
- 2 files changed, 47 insertions(+), 1 deletion(-)
+ include/trace/events/vmscan.h |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~memcg-vmscan-add-memcg-reclaim-tracepoint include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~memcg-vmscan-add-memcg-reclaim-tracepoint
+diff -puN include/trace/events/vmscan.h~vmscan-convert-direct-reclaim-tracepoint-to-define_trace include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~vmscan-convert-direct-reclaim-tracepoint-to-define_trace
 +++ a/include/trace/events/vmscan.h
-@@ -99,6 +99,19 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_be
- 	TP_ARGS(order, may_writepage, gfp_flags)
+@@ -68,7 +68,7 @@ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
+ 		__entry->order)
  );
  
-+DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
+-TRACE_EVENT(mm_vmscan_direct_reclaim_begin,
++DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_begin_template,
+ 
+ 	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
+ 
+@@ -92,7 +92,15 @@ TRACE_EVENT(mm_vmscan_direct_reclaim_beg
+ 		show_gfp_flags(__entry->gfp_flags))
+ );
+ 
+-TRACE_EVENT(mm_vmscan_direct_reclaim_end,
++DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
 +
 +	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
 +
 +	TP_ARGS(order, may_writepage, gfp_flags)
 +);
 +
-+DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
 +
-+	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
-+
-+	TP_ARGS(order, may_writepage, gfp_flags)
-+);
++DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
  
- DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+ 	TP_PROTO(unsigned long nr_reclaimed),
  
-@@ -124,6 +137,21 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
- 	TP_ARGS(nr_reclaimed)
+@@ -109,6 +117,13 @@ TRACE_EVENT(mm_vmscan_direct_reclaim_end
+ 	TP_printk("nr_reclaimed=%lu", __entry->nr_reclaimed)
  );
  
-+DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
++DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_direct_reclaim_end,
 +
 +	TP_PROTO(unsigned long nr_reclaimed),
 +
 +	TP_ARGS(nr_reclaimed)
 +);
-+
-+DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
-+
-+	TP_PROTO(unsigned long nr_reclaimed),
-+
-+	TP_ARGS(nr_reclaimed)
-+);
-+
 +
  TRACE_EVENT(mm_vmscan_lru_isolate,
  
  	TP_PROTO(int order,
-diff -puN mm/vmscan.c~memcg-vmscan-add-memcg-reclaim-tracepoint mm/vmscan.c
---- a/mm/vmscan.c~memcg-vmscan-add-memcg-reclaim-tracepoint
-+++ a/mm/vmscan.c
-@@ -1951,6 +1951,11 @@ unsigned long mem_cgroup_shrink_node_zon
- 	sc.nodemask = &nm;
- 	sc.nr_reclaimed = 0;
- 	sc.nr_scanned = 0;
-+
-+	trace_mm_vmscan_memcg_softlimit_reclaim_begin(0,
-+						      sc.may_writepage,
-+						      sc.gfp_mask);
-+
- 	/*
- 	 * NOTE: Although we can get the priority field, using it
- 	 * here is not a good idea, since it limits the pages we can scan.
-@@ -1959,6 +1964,9 @@ unsigned long mem_cgroup_shrink_node_zon
- 	 * the priority and make it zero.
- 	 */
- 	shrink_zone(0, zone, &sc);
-+
-+	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
-+
- 	return sc.nr_reclaimed;
- }
- 
-@@ -1968,6 +1976,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 					   unsigned int swappiness)
- {
- 	struct zonelist *zonelist;
-+	unsigned long nr_reclaimed;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
-@@ -1982,7 +1991,16 @@ unsigned long try_to_free_mem_cgroup_pag
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
- 	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
--	return do_try_to_free_pages(zonelist, &sc);
-+
-+	trace_mm_vmscan_memcg_reclaim_begin(0,
-+					    sc.may_writepage,
-+					    sc.gfp_mask);
-+
-+	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-+
-+	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
-+
-+	return nr_reclaimed;
- }
- #endif
- 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
