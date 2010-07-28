@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-check-kmalloc-return-value.patch added to -mm tree
-Date: Wed, 28 Jul 2010 16:14:38 -0700
-Message-ID: <201007282314.o6SNEcDl008143@imap1.linux-foundation.org>
+Subject: + video-w100fb-ignore-void-return-value-fix-build-failure.patch added to -mm tree
+Date: Wed, 28 Jul 2010 16:17:27 -0700
+Message-ID: <201007282317.o6SNHR9q008254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751774Ab0G1XOu (ORCPT
+	by vger.kernel.org with ESMTP id S1754884Ab0G1XRm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jul 2010 19:14:50 -0400
+	Wed, 28 Jul 2010 19:17:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segooon@gmail.com, penberg@cs.helsinki.fi
+Cc: peterhuewe@gmx.de, henne@nachtwindheim.de, stable@kernel.org
 
 
 The patch titled
-     mm/vmalloc.c: check kmalloc() return value
+     drivers/video/w100fb.c: ignore void return value / fix build failure
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-check-kmalloc-return-value.patch
+     video-w100fb-ignore-void-return-value-fix-build-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vmalloc.c: check kmalloc() return value
-From: Kulikov Vasiliy <segooon@gmail.com>
+Subject: drivers/video/w100fb.c: ignore void return value / fix build failure
+From: Peter Huewe <peterhuewe@gmx.de>
 
-kmalloc() may fail, if so return -ENOMEM.
+Fix a build failure [1] (error: void value not ignored as it ought to be)
+by removing an assignment of a void return value.  The functionality of
+the code is not changed.
 
-Signed-off-by: Kulikov Vasiliy <segooon@gmail.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Acked-by: Henrik Kretzschmar <henne@nachtwindheim.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/video/w100fb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-check-kmalloc-return-value mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-check-kmalloc-return-value
-+++ a/mm/vmalloc.c
-@@ -2494,8 +2494,11 @@ static int vmalloc_open(struct inode *in
- 	unsigned int *ptr = NULL;
- 	int ret;
- 
--	if (NUMA_BUILD)
-+	if (NUMA_BUILD) {
- 		ptr = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
-+		if (ptr == NULL)
-+			return -ENOMEM;
-+	}
- 	ret = seq_open(file, &vmalloc_op);
- 	if (!ret) {
- 		struct seq_file *m = file->private_data;
+diff -puN drivers/video/w100fb.c~video-w100fb-ignore-void-return-value-fix-build-failure drivers/video/w100fb.c
+--- a/drivers/video/w100fb.c~video-w100fb-ignore-void-return-value-fix-build-failure
++++ a/drivers/video/w100fb.c
+@@ -858,9 +858,9 @@ unsigned long w100fb_gpio_read(int port)
+ void w100fb_gpio_write(int port, unsigned long value)
+ {
+ 	if (port==W100_GPIO_PORT_A)
+-		value = writel(value, remapped_regs + mmGPIO_DATA);
++		writel(value, remapped_regs + mmGPIO_DATA);
+ 	else
+-		value = writel(value, remapped_regs + mmGPIO_DATA2);
++		writel(value, remapped_regs + mmGPIO_DATA2);
+ }
+ EXPORT_SYMBOL(w100fb_gpio_read);
+ EXPORT_SYMBOL(w100fb_gpio_write);
 _
 
-Patches currently in -mm which might be from segooon@gmail.com are
+Patches currently in -mm which might be from peterhuewe@gmx.de are
 
+origin.patch
+video-w100fb-ignore-void-return-value-fix-build-failure.patch
 linux-next.patch
-mm-vmallocc-check-kmalloc-return-value.patch
-i2o-fix-overflow-of-copy_to_user.patch
-i2o-check-return-code-from-put_user.patch
-edac-i5000-improve-handling-of-pci_enable_device-return-value.patch
-edac-i5400-improve-handling-of-pci_enable_device-return-value.patch
 
