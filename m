@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + random-reorder-struct-entropy_store-to-remove-padding-on-64bits.patch added to -mm tree
-Date: Wed, 28 Jul 2010 15:49:13 -0700
-Message-ID: <201007282249.o6SMnDKo007011@imap1.linux-foundation.org>
+Subject: + staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch added to -mm tree
+Date: Wed, 28 Jul 2010 15:59:14 -0700
+Message-ID: <201007282259.o6SMxErw007439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35859 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750980Ab0G1WuM (ORCPT
+	by vger.kernel.org with ESMTP id S1752234Ab0G1W7V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jul 2010 18:50:12 -0400
+	Wed, 28 Jul 2010 18:59:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, herbert@gondor.hengli.com.au, mpm@selenic.com
+Cc: jic23@cam.ac.uk
 
 
 The patch titled
-     random: reorder struct entropy_store to remove padding on 64bits
+     staging:iio: iio_sw_ring_helper_state - add dummy case for no buffer builds.
 has been added to the -mm tree.  Its filename is
-     random-reorder-struct-entropy_store-to-remove-padding-on-64bits.patch
+     staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: reorder struct entropy_store to remove padding on 64bits
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: staging:iio: iio_sw_ring_helper_state - add dummy case for no buffer builds.
+From: Jonathan Cameron <jic23@cam.ac.uk>
 
-Re-order structure entropy_store to remove 8 bytes of padding on 64 bit
-builds, so shrinking this structure from 72 to 64 bytes and allowing it to
-fit into one cache line.
-
-mpm sez: I have a vague memory that we reordered things so that the r/w
-bits would be on a separate cache line than the r/o bits.  But as we never
-added the alignment primitives to actually enforce that, I guess it
-doesn't matter much.  
-
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/iio/ring_sw.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/char/random.c~random-reorder-struct-entropy_store-to-remove-padding-on-64bits drivers/char/random.c
---- a/drivers/char/random.c~random-reorder-struct-entropy_store-to-remove-padding-on-64bits
-+++ a/drivers/char/random.c
-@@ -407,8 +407,8 @@ struct entropy_store {
- 	struct poolinfo *poolinfo;
- 	__u32 *pool;
- 	const char *name;
--	int limit;
- 	struct entropy_store *pull;
-+	int limit;
- 
- 	/* read-write data: */
- 	spinlock_t lock;
+diff -puN drivers/staging/iio/ring_sw.h~staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds drivers/staging/iio/ring_sw.h
+--- a/drivers/staging/iio/ring_sw.h~staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds
++++ a/drivers/staging/iio/ring_sw.h
+@@ -222,5 +222,8 @@ void iio_sw_trigger_bh_to_ring(struct wo
+ #else /* CONFIG_IIO_RING_BUFFER*/
+ static inline void iio_ring_sw_register_funcs(struct iio_ring_access_funcs *ra)
+ {};
++struct iio_sw_ring_helper_state {
++	struct iio_dev			*indio_dev;
++};
+ #endif /* !CONFIG_IIO_RING_BUFFER */
+ #endif /* _IIO_RING_SW_H_ */
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from jic23@cam.ac.uk are
 
-timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer.patch
-writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
-random-reorder-struct-entropy_store-to-remove-padding-on-64bits.patch
+linux-next.patch
+staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch
+staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case.patch
+misc-rohm-bh1780gli-ambient-light-sensor-driver.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update.patch
+add-abi-documentation-for-the-bmp085-digital-pressure-sensor.patch
+bmp085-add-interface-documentation-and-link-to-datasheet.patch
+hmc6352-add-driver-for-the-hmc6352-compass.patch
+hwmon-driver-for-smm665-six-channel-active-dc-output-controller-monitor.patch
+hwmon-smm665-driver-documentation.patch
 
