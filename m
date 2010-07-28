@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch added to -mm tree
-Date: Wed, 28 Jul 2010 15:59:14 -0700
-Message-ID: <201007282259.o6SMxErw007439@imap1.linux-foundation.org>
+Subject: + staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case.patch added to -mm tree
+Date: Wed, 28 Jul 2010 15:59:16 -0700
+Message-ID: <201007282259.o6SMxGFk007442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752234Ab0G1W7V (ORCPT
+	by vger.kernel.org with ESMTP id S1755691Ab0G1W7V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 28 Jul 2010 18:59:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jic23@cam.ac.uk
 
 
 The patch titled
-     staging:iio: iio_sw_ring_helper_state - add dummy case for no buffer builds.
+     staging:iio:lis3l02dq add a thresh_timestamp field to state for no ring case
 has been added to the -mm tree.  Its filename is
-     staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch
+     staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging:iio: iio_sw_ring_helper_state - add dummy case for no buffer builds.
+Subject: staging:iio:lis3l02dq add a thresh_timestamp field to state for no ring case
 From: Jonathan Cameron <jic23@cam.ac.uk>
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/ring_sw.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/staging/iio/accel/lis3l02dq.h      |    2 ++
+ drivers/staging/iio/accel/lis3l02dq_core.c |   14 +++++++-------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/staging/iio/ring_sw.h~staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds drivers/staging/iio/ring_sw.h
---- a/drivers/staging/iio/ring_sw.h~staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds
-+++ a/drivers/staging/iio/ring_sw.h
-@@ -222,5 +222,8 @@ void iio_sw_trigger_bh_to_ring(struct wo
- #else /* CONFIG_IIO_RING_BUFFER*/
- static inline void iio_ring_sw_register_funcs(struct iio_ring_access_funcs *ra)
- {};
-+struct iio_sw_ring_helper_state {
-+	struct iio_dev			*indio_dev;
-+};
- #endif /* !CONFIG_IIO_RING_BUFFER */
- #endif /* _IIO_RING_SW_H_ */
+diff -puN drivers/staging/iio/accel/lis3l02dq.h~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case drivers/staging/iio/accel/lis3l02dq.h
+--- a/drivers/staging/iio/accel/lis3l02dq.h~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case
++++ a/drivers/staging/iio/accel/lis3l02dq.h
+@@ -151,6 +151,7 @@ Form of high byte dependant on justifica
+  * @helper:		data and func pointer allowing generic functions
+  * @us:			actual spi_device
+  * @work_thresh:	bh for threshold events
++ * @thresh_timestamp:	timestamp for threshold interrupts.
+  * @inter:		used to check if new interrupt has been triggered
+  * @trig:		data ready trigger registered with iio
+  * @tx:			transmit buffer
+@@ -161,6 +162,7 @@ struct lis3l02dq_state {
+ 	struct iio_sw_ring_helper_state	help;
+ 	struct spi_device		*us;
+ 	struct work_struct		work_thresh;
++	s64				thresh_timestamp;
+ 	bool				inter;
+ 	struct iio_trigger		*trig;
+ 	u8				*tx;
+diff -puN drivers/staging/iio/accel/lis3l02dq_core.c~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case drivers/staging/iio/accel/lis3l02dq_core.c
+--- a/drivers/staging/iio/accel/lis3l02dq_core.c~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case
++++ a/drivers/staging/iio/accel/lis3l02dq_core.c
+@@ -615,7 +615,7 @@ static int lis3l02dq_thresh_handler_th(s
+ 	struct lis3l02dq_state *st = lis3l02dq_h_to_s(h);
+ 
+ 	/* Stash the timestamp somewhere convenient for the bh */
+-	h->last_timestamp = timestamp;
++	st->thresh_timestamp = timestamp;
+ 	schedule_work(&st->work_thresh);
+ 
+ 	return 0;
+@@ -640,32 +640,32 @@ static void lis3l02dq_thresh_handler_bh_
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Z_HIGH)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Z_HIGH,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Z_LOW)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Z_LOW,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Y_HIGH)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Y_HIGH,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Y_LOW)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Y_LOW,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_X_HIGH)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_X_HIGH,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_X_LOW)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_X_LOW,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 	/* reenable the irq */
+ 	enable_irq(st->us->irq);
+ 	/* Ack and allow for new interrupts */
 _
 
 Patches currently in -mm which might be from jic23@cam.ac.uk are
