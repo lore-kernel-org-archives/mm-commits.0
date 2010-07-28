@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-s6e63m0-fix-section-mismatch.patch added to -mm tree
-Date: Wed, 28 Jul 2010 15:31:31 -0700
-Message-ID: <201007282231.o6SMVVP0006245@imap1.linux-foundation.org>
+Subject: + random-reorder-struct-entropy_store-to-remove-padding-on-64bits.patch added to -mm tree
+Date: Wed, 28 Jul 2010 15:49:13 -0700
+Message-ID: <201007282249.o6SMnDKo007011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752206Ab0G1Whw (ORCPT
+	by vger.kernel.org with ESMTP id S1750980Ab0G1WuM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jul 2010 18:37:52 -0400
+	Wed, 28 Jul 2010 18:50:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, inki.dae@samsung.com, rpurdie@rpsys.net
+Cc: richard@rsk.demon.co.uk, herbert@gondor.hengli.com.au, mpm@selenic.com
 
 
 The patch titled
-     backlight: s6e63m0: fix section mismatch
+     random: reorder struct entropy_store to remove padding on 64bits
 has been added to the -mm tree.  Its filename is
-     backlight-s6e63m0-fix-section-mismatch.patch
+     random-reorder-struct-entropy_store-to-remove-padding-on-64bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: s6e63m0: fix section mismatch
-From: Axel Lin <axel.lin@gmail.com>
+Subject: random: reorder struct entropy_store to remove padding on 64bits
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-Eliminate section mismatch warning by marking s6e63m0_probe() as __devinit.
+Re-order structure entropy_store to remove 8 bytes of padding on 64 bit
+builds, so shrinking this structure from 72 to 64 bytes and allowing it to
+fit into one cache line.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: InKi Dae <inki.dae@samsung.com>
+mpm sez: I have a vague memory that we reordered things so that the r/w
+bits would be on a separate cache line than the r/o bits.  But as we never
+added the alignment primitives to actually enforce that, I guess it
+doesn't matter much.  
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |    2 +-
+ drivers/char/random.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-fix-section-mismatch drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-fix-section-mismatch
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -732,7 +732,7 @@ static ssize_t s6e63m0_sysfs_show_gamma_
- static DEVICE_ATTR(gamma_table, 0444,
- 		s6e63m0_sysfs_show_gamma_table, NULL);
+diff -puN drivers/char/random.c~random-reorder-struct-entropy_store-to-remove-padding-on-64bits drivers/char/random.c
+--- a/drivers/char/random.c~random-reorder-struct-entropy_store-to-remove-padding-on-64bits
++++ a/drivers/char/random.c
+@@ -407,8 +407,8 @@ struct entropy_store {
+ 	struct poolinfo *poolinfo;
+ 	__u32 *pool;
+ 	const char *name;
+-	int limit;
+ 	struct entropy_store *pull;
++	int limit;
  
--static int __init s6e63m0_probe(struct spi_device *spi)
-+static int __devinit s6e63m0_probe(struct spi_device *spi)
- {
- 	int ret = 0;
- 	struct s6e63m0 *lcd = NULL;
+ 	/* read-write data: */
+ 	spinlock_t lock;
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-linux-next.patch
-drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
-backlight-s6e63m0-unregister-backlight-device-and-remove-sysfs-attribute-file-in-s6e63m0_remove.patch
-backlight-s6e63m0-fix-section-mismatch.patch
-edd-fix-possible-memory-leak-in-edd_init-error-path.patch
-edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
+timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
+buffer_head-remove-redundant-test-from-wait_on_buffer.patch
+writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
+random-reorder-struct-entropy_store-to-remove-padding-on-64bits.patch
 
