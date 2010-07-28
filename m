@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2.patch added to -mm tree
-Date: Wed, 28 Jul 2010 12:53:41 -0700
-Message-ID: <201007281953.o6SJrfuX031431@imap1.linux-foundation.org>
+Subject: + drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch added to -mm tree
+Date: Wed, 28 Jul 2010 14:59:53 -0700
+Message-ID: <201007282159.o6SLxrJg004780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875Ab0G1Tyl (ORCPT
+	by vger.kernel.org with ESMTP id S1756518Ab0G1WBH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Jul 2010 15:54:41 -0400
+	Wed, 28 Jul 2010 18:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mcree@orcon.net.nz, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, mattst88@gmail.com, mingo@elte.hu, peterz@infradead.org, rth@twiddle.net, tglx@linutronix.de
+Cc: ryan@bluewatersys.com, ben@decadent.org.uk, cbouatmailru@gmail.com, dwmw2@infradead.org, geert@linux-m68k.org, vilensky@compulab.co.il
 
 
 The patch titled
-     alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2
+     drivers/power/ds2782_battery.c: fix ds2782 battery driver units
 has been added to the -mm tree.  Its filename is
-     alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2.patch
+     drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,167 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2
-From: Michael Cree <mcree@orcon.net.nz>
+Subject: drivers/power/ds2782_battery.c: fix ds2782 battery driver units
+From: Ryan Mallon <ryan@bluewatersys.com>
 
-Signed-off-by: Michael Cree <mcree@orcon.net.nz>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jay Estabrook <jay.estabrook@hp.com>
+Correct the unit names in the ds2782 battery driver. Changes voltage_uA
+to voltage_uV and capacity_uA to capacity.
+
+Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Yulia Vilensky <vilensky@compulab.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/perf_event.c |   32 ++++++++++++++++++-------------
- arch/alpha/kernel/time.c       |   26 +++++++++++++++++++++++++
- 2 files changed, 45 insertions(+), 13 deletions(-)
+ drivers/power/ds2782_battery.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/alpha/kernel/perf_event.c~alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2 arch/alpha/kernel/perf_event.c
---- a/arch/alpha/kernel/perf_event.c~alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2
-+++ a/arch/alpha/kernel/perf_event.c
-@@ -517,8 +517,10 @@ static void alpha_pmu_read(struct perf_e
- static void alpha_pmu_unthrottle(struct perf_event *event)
- {
- 	struct hw_perf_event *hwc = &event->hw;
-+	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
+diff -puN drivers/power/ds2782_battery.c~drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units drivers/power/ds2782_battery.c
+--- a/drivers/power/ds2782_battery.c~drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units
++++ a/drivers/power/ds2782_battery.c
+@@ -44,8 +44,8 @@ struct ds278x_info;
  
--	wrperfmon(PERFMON_CMD_ENABLE, (1<<hwc->idx));
-+	cpuc->idx_mask |= 1UL<<hwc->idx;
-+	wrperfmon(PERFMON_CMD_ENABLE, (1UL<<hwc->idx));
+ struct ds278x_battery_ops {
+ 	int (*get_battery_current)(struct ds278x_info *info, int *current_uA);
+-	int (*get_battery_voltage)(struct ds278x_info *info, int *voltage_uA);
+-	int (*get_battery_capacity)(struct ds278x_info *info, int *capacity_uA);
++	int (*get_battery_voltage)(struct ds278x_info *info, int *voltage_uV);
++	int (*get_battery_capacity)(struct ds278x_info *info, int *capacity);
+ };
+ 
+ #define to_ds278x_info(x) container_of(x, struct ds278x_info, battery)
+@@ -137,7 +137,7 @@ static int ds2782_get_current(struct ds2
+ 	return 0;
  }
  
- 
-@@ -756,12 +758,19 @@ static void alpha_perf_event_irq_handler
- 	__get_cpu_var(irq_pmi_count)++;
- 	cpuc = &__get_cpu_var(cpu_hw_events);
- 
--	/* la_ptr is the counter that overflowed. */
-+	/* Completely counting through the PMC's period to trigger a new PMC
-+	 * overflow interrupt while in this interrupt routine is utterly
-+	 * disastrous!  The EV6 and EV67 counters are sufficiently large to
-+	 * prevent this but to be really sure disable the PMCs.
-+	 */
-+	wrperfmon(PERFMON_CMD_DISABLE, cpuc->idx_mask);
- 
--	if (la_ptr >= perf_max_events) {
-+	/* la_ptr is the counter that overflowed. */
-+	if (unlikely(la_ptr >= perf_max_events)) {
- 		/* This should never occur! */
- 		irq_err_count++;
- 		pr_warning("PMI: silly index %ld\n", la_ptr);
-+		wrperfmon(PERFMON_CMD_ENABLE, cpuc->idx_mask);
- 		return;
- 	}
- 
-@@ -773,17 +782,19 @@ static void alpha_perf_event_irq_handler
- 			break;
- 	}
- 
--	if (j == cpuc->n_events) {
-+	if (unlikely(j == cpuc->n_events)) {
- 		/* This can occur if the event is disabled right on a PMC overflow. */
-+		wrperfmon(PERFMON_CMD_ENABLE, cpuc->idx_mask);
- 		return;
- 	}
- 
- 	event = cpuc->event[j];
- 
--	if (!event) {
-+	if (unlikely(!event)) {
- 		/* This should never occur! */
- 		irq_err_count++;
- 		pr_warning("PMI: No event at index %d!\n", idx);
-+		wrperfmon(PERFMON_CMD_ENABLE, cpuc->idx_mask);
- 		return;
- 	}
- 
-@@ -792,24 +803,19 @@ static void alpha_perf_event_irq_handler
- 	data.period = event->hw.last_period;
- 
- 	if (alpha_perf_event_set_period(event, hwc, idx)) {
--		if (perf_event_overflow(event, 0, &data, regs)) {
-+		if (perf_event_overflow(event, 1, &data, regs)) {
- 			/* Interrupts coming too quickly; "throttle" the
- 			 * counter, i.e., disable it for a little while.
- 			 */
--			wrperfmon(PERFMON_CMD_DISABLE, 1<<idx);
-+			cpuc->idx_mask &= ~(1UL<<idx);
- 		}
- 	}
-+	wrperfmon(PERFMON_CMD_ENABLE, cpuc->idx_mask);
- 
- 	return;
+-static int ds2782_get_voltage(struct ds278x_info *info, int *voltage_uA)
++static int ds2782_get_voltage(struct ds278x_info *info, int *voltage_uV)
+ {
+ 	s16 raw;
+ 	int err;
+@@ -149,7 +149,7 @@ static int ds2782_get_voltage(struct ds2
+ 	err = ds278x_read_reg16(info, DS278x_REG_VOLT_MSB, &raw);
+ 	if (err)
+ 		return err;
+-	*voltage_uA = (raw / 32) * 4800;
++	*voltage_uV = (raw / 32) * 4800;
+ 	return 0;
  }
  
+@@ -177,7 +177,7 @@ static int ds2786_get_current(struct ds2
+ 	return 0;
+ }
  
--/* I wonder what this is for ??? */
--void set_perf_event_pending(void)
--{
--}
--
--
- 
- /*
-  * Init call to initialise performance events at kernel startup.
-diff -puN arch/alpha/kernel/time.c~alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2 arch/alpha/kernel/time.c
---- a/arch/alpha/kernel/time.c~alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2
-+++ a/arch/alpha/kernel/time.c
-@@ -41,6 +41,7 @@
- #include <linux/init.h>
- #include <linux/bcd.h>
- #include <linux/profile.h>
-+#include <linux/perf_event.h>
- 
- #include <asm/uaccess.h>
- #include <asm/io.h>
-@@ -82,6 +83,26 @@ static struct {
- 
- unsigned long est_cycle_freq;
- 
-+#ifdef CONFIG_PERF_EVENTS
-+
-+DEFINE_PER_CPU(u8, perf_event_pending);
-+
-+#define set_perf_event_pending_flag()  __get_cpu_var(perf_event_pending) = 1
-+#define test_perf_event_pending()      __get_cpu_var(perf_event_pending)
-+#define clear_perf_event_pending()     __get_cpu_var(perf_event_pending) = 0
-+
-+void set_perf_event_pending(void)
-+{
-+	set_perf_event_pending_flag();
-+}
-+
-+#else  /* CONFIG_PERF_EVENTS */
-+
-+#define test_perf_event_pending()      0
-+#define clear_perf_event_pending()
-+
-+#endif /* CONFIG_PERF_EVENTS */
-+
- 
- static inline __u32 rpcc(void)
+-static int ds2786_get_voltage(struct ds278x_info *info, int *voltage_uA)
++static int ds2786_get_voltage(struct ds278x_info *info, int *voltage_uV)
  {
-@@ -175,6 +196,11 @@ irqreturn_t timer_interrupt(int irq, voi
- 		update_process_times(user_mode(get_irq_regs()));
- #endif
- 
-+	if (test_perf_event_pending()) {
-+		clear_perf_event_pending();
-+		perf_event_do_pending();
-+	}
-+
- 	return IRQ_HANDLED;
+ 	s16 raw;
+ 	int err;
+@@ -189,7 +189,7 @@ static int ds2786_get_voltage(struct ds2
+ 	err = ds278x_read_reg16(info, DS278x_REG_VOLT_MSB, &raw);
+ 	if (err)
+ 		return err;
+-	*voltage_uA = (raw / 8) * 1220;
++	*voltage_uV = (raw / 8) * 1220;
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from mcree@orcon.net.nz are
+Patches currently in -mm which might be from ryan@bluewatersys.com are
 
-alpha-add-performance-monitor-interrupt-counter.patch
-alpha-add-wrperfmonh-header-file-to-aid-use-of-wrperfmon-palcall.patch
-alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus.patch
-alpha-implement-hw-performance-events-on-the-ev67-and-later-cpus-v2.patch
+origin.patch
+linux-next.patch
+drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch
+gpiolib-decouple-might_sleep_if-from-debug.patch
 
