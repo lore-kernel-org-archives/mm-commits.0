@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch added to -mm tree
-Date: Tue, 27 Jul 2010 16:22:02 -0700
-Message-ID: <201007272322.o6RNM2le011142@imap1.linux-foundation.org>
+Subject: + ipmi-fix-acpi-detecting-with-regspacing.patch added to -mm tree
+Date: Wed, 28 Jul 2010 12:22:35 -0700
+Message-ID: <201007281922.o6SJMbgJ029991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751692Ab0G0XWj (ORCPT
+	by vger.kernel.org with ESMTP id S1751159Ab0G1TXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Jul 2010 19:22:39 -0400
+	Wed, 28 Jul 2010 15:23:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, mingo@elte.hu, tglx@linutronix.de
+Cc: yinghai@kernel.org, bjorn.helgaas@hp.com, len.brown@intel.com, minyard@acm.org, mjg@redhat.com, myron.stowe@hp.com, stable@kernel.org
 
 
 The patch titled
-     timer_list: remove alignment padding on 64 bit when CONFIG_TIMER_STATS
+     ipmi: fix ACPI detection with regspacing
 has been added to the -mm tree.  Its filename is
-     timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
+     ipmi-fix-acpi-detecting-with-regspacing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timer_list: remove alignment padding on 64 bit when CONFIG_TIMER_STATS
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: ipmi: fix ACPI detection with regspacing
+From: Yinghai Lu <yinghai@kernel.org>
 
-Reorder structure timer_list to remove 8 bytes of alignment padding on 64
-bit builds when CONFIG_TIMER_STATS is selected.
+after the commint that changed ipmi_si detecting sequence from SMBIOS/ACPI
+to ACPI/SMBIOS,
 
-timer_list is widely used across the kernel so many structures will
-benefit and shrink in size.
+| commit 754d453185275951d39792865927ec494fa1ebd8
+| Author: Matthew Garrett <mjg@redhat.com>
+| Date:   Wed May 26 14:43:47 2010 -0700
+|
+|    ipmi: change device discovery order
+|
+|    The ipmi spec provides an ordering for si discovery.  Change the driver to
+|    match, with the exception of preferring smbios to SPMI as HPs (at least)
+|    contain accurate information in the former but not the latter.
 
-For example, with my config on x86_64
-	per_cpu_dm_data shrinks from 136 to 128 bytes
-and
-	ahci_port_priv shrinks from 1032 to 968 bytes.
+ipmi_si can not be initialized.
 
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+[  138.799739] calling  init_ipmi_devintf+0x0/0x109 @ 1
+[  138.805050] ipmi device interface
+[  138.818131] initcall init_ipmi_devintf+0x0/0x109 returned 0 after 12797 usecs
+[  138.822998] calling  init_ipmi_si+0x0/0xa90 @ 1
+[  138.840276] IPMI System Interface driver.
+[  138.846137] ipmi_si: probing via ACPI
+[  138.849225] ipmi_si 00:09: [io  0x0ca2] regsize 1 spacing 1 irq 0
+[  138.864438] ipmi_si: Adding ACPI-specified kcs state machine
+[  138.870893] ipmi_si: probing via SMBIOS
+[  138.880945] ipmi_si: Adding SMBIOS-specified kcs state machineipmi_si: duplicate interface
+[  138.896511] ipmi_si: probing via SPMI
+[  138.899861] ipmi_si: Adding SPMI-specified kcs state machineipmi_si: duplicate interface
+[  138.917095] ipmi_si: Trying ACPI-specified kcs state machine at i/o address 0xca2, slave address 0x0, irq 0
+[  138.928658] ipmi_si: Interface detection failed
+[  138.953411] initcall init_ipmi_si+0x0/0xa90 returned 0 after 110847 usecs
+
+in smbios has
+DMI/SMBIOS
+Handle 0x00C5, DMI type 38, 18 bytes
+IPMI Device Information
+        Interface Type: KCS (Keyboard Control Style)
+        Specification Version: 2.0
+        I2C Slave Address: 0x00
+        NV Storage Device: Not Present
+        Base Address: 0x0000000000000CA2 (I/O)
+        Register Spacing: 32-bit Boundaries
+in DSDT has
+                    Device (BMC)
+                    {
+
+                        Name (_HID, EisaId ("IPI0001"))
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            If (LEqual (OSN, Zero))
+                            {
+                                Return (Zero)
+                            }
+
+                            Return (0x0F)
+                        }
+
+                        Name (_STR, Unicode ("IPMI_KCS"))
+                        Name (_UID, Zero)
+                        Name (_CRS, ResourceTemplate ()
+                        {
+                            IO (Decode16,
+                                0x0CA2,             // Range Minimum
+                                0x0CA2,             // Range Maximum
+                                0x00,               // Alignment
+                                0x01,               // Length
+                                )
+                            IO (Decode16,
+                                0x0CA6,             // Range Minimum
+                                0x0CA6,             // Range Maximum
+                                0x00,               // Alignment
+                                0x01,               // Length
+                                )
+                        })
+                        Method (_IFT, 0, NotSerialized)
+                        {
+                            Return (One)
+                        }
+
+                        Method (_SRV, 0, NotSerialized)
+                        {
+                            Return (0x0200)
+                        }
+                    }
+so the reg spacing should be 4 instead of 1.
+
+Try to calculate regspacing for this kind of system.
+
+Observed on a Sun Fire X4800.  Other OSes work and pass certification.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Myron Stowe <myron.stowe@hp.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/timer.h~timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats include/linux/timer.h
---- a/include/linux/timer.h~timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats
-+++ a/include/linux/timer.h
-@@ -24,9 +24,9 @@ struct timer_list {
- 	int slack;
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-acpi-detecting-with-regspacing drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-acpi-detecting-with-regspacing
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2176,6 +2176,14 @@ static int __devinit ipmi_pnp_probe(stru
+ 	info->io.addr_data = res->start;
  
- #ifdef CONFIG_TIMER_STATS
-+	int start_pid;
- 	void *start_site;
- 	char start_comm[16];
--	int start_pid;
- #endif
- #ifdef CONFIG_LOCKDEP
- 	struct lockdep_map lockdep_map;
+ 	info->io.regspacing = DEFAULT_REGSPACING;
++	res = pnp_get_resource(dev,
++			       (info->io.addr_type == IPMI_IO_ADDR_SPACE) ?
++					IORESOURCE_IO : IORESOURCE_MEM,
++			       1);
++	if (res) {
++		if (res->start > info->io.addr_data)
++			info->io.regspacing = res->start - info->io.addr_data;
++	}
+ 	info->io.regsize = DEFAULT_REGSPACING;
+ 	info->io.regshift = 0;
+ 
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
-timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
-buffer_head-remove-redundant-test-from-wait_on_buffer.patch
-writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
+ipmi-fix-acpi-detecting-with-regspacing.patch
+linux-next.patch
+kernel-range-remove-unused-definition-of-array_size.patch
 
