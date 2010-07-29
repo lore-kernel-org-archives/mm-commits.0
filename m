@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-return-efault-on-copy_to_user-failures.patch added to -mm tree
-Date: Thu, 29 Jul 2010 12:25:48 -0700
-Message-ID: <201007291925.o6TJPm3f028977@imap1.linux-foundation.org>
+Subject: + hwmon-coretemp-documentation-update-and-cleanup-update.patch added to -mm tree
+Date: Thu, 29 Jul 2010 12:35:05 -0700
+Message-ID: <201007291935.o6TJZ5Tn029420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755078Ab0G2T0a (ORCPT
+	by vger.kernel.org with ESMTP id S1757393Ab0G2Tfu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jul 2010 15:26:30 -0400
+	Thu, 29 Jul 2010 15:35:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, ebiederm@xmission.com, paulmck@linux.vnet.ibm.com, seto.hidetoshi@jp.fujitsu.com, simon.kagstrom@netinsight.net, xiyou.wangcong@gmail.com
+Cc: gong.chen@linux.intel.com, guenter.roeck@ericsson.com, huaxu.wan@intel.com, khali@linux-fr.org, r.marek@assembler.cz
 
 
 The patch titled
-     kexec: return -EFAULT on copy_to_user() failures
+     hwmon-coretemp-documentation-update-and-cleanup-update
 has been added to the -mm tree.  Its filename is
-     kexec-return-efault-on-copy_to_user-failures.patch
+     hwmon-coretemp-documentation-update-and-cleanup-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: return -EFAULT on copy_to_user() failures
-From: Dan Carpenter <error27@gmail.com>
+Subject: hwmon-coretemp-documentation-update-and-cleanup-update
+From: Chen Gong <gong.chen@linux.intel.com>
 
-copy_to/from_user() returns the number of bytes remaining to be copied. 
-It never returns a negative value.  The correct return code is -EFAULT and
-not -EIO.
-
-All the callers check for non-zero returns so that's Ok, but the return
-code is passed to the user so we should fix this.
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Simon Kagstrom <simon.kagstrom@netinsight.net>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Cc: Huaxu Wan <huaxu.wan@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ Documentation/hwmon/coretemp |    9 +++++----
+ drivers/hwmon/coretemp.c     |    4 ++--
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-return-efault-on-copy_to_user-failures kernel/kexec.c
---- a/kernel/kexec.c~kexec-return-efault-on-copy_to_user-failures
-+++ a/kernel/kexec.c
-@@ -151,8 +151,10 @@ static int do_kimage_alloc(struct kimage
- 	image->nr_segments = nr_segments;
- 	segment_bytes = nr_segments * sizeof(*segments);
- 	result = copy_from_user(image->segment, segments, segment_bytes);
--	if (result)
-+	if (result) {
-+		result = -EFAULT;
- 		goto out;
-+	}
+diff -puN Documentation/hwmon/coretemp~hwmon-coretemp-documentation-update-and-cleanup-update Documentation/hwmon/coretemp
+--- a/Documentation/hwmon/coretemp~hwmon-coretemp-documentation-update-and-cleanup-update
++++ a/Documentation/hwmon/coretemp
+@@ -21,8 +21,8 @@ Temperature is measured in degrees Celsi
+ 1 degree C. Valid temperatures are from 0 to TjMax degrees C, because
+ the actual value of temperature register is in fact a delta from TjMax.
  
- 	/*
- 	 * Verify we have good destination addresses.  The caller is
-@@ -827,7 +829,7 @@ static int kimage_load_normal_segment(st
- 		result = copy_from_user(ptr, buf, uchunk);
- 		kunmap(page);
- 		if (result) {
--			result = (result < 0) ? result : -EIO;
-+			result = -EFAULT;
- 			goto out;
- 		}
- 		ubytes -= uchunk;
-@@ -882,7 +884,7 @@ static int kimage_load_crash_segment(str
- 		kexec_flush_icache_page(page);
- 		kunmap(page);
- 		if (result) {
--			result = (result < 0) ? result : -EIO;
-+			result = -EFAULT;
- 			goto out;
- 		}
- 		ubytes -= uchunk;
+-Temperature known as TjMax is the maximum junction temperature of processor.
+-Intel defines this temperature as 80C or 105C. At this temperature, protection
++Temperature known as TjMax is the maximum junction temperature of processor,
++which depends on the CPU model. See table below. At this temperature, protection
+ mechanism will perform actions to forcibly cool down the processor. Alarm
+ may be raised, if the temperature grows enough (more than TjMax) to trigger
+ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+@@ -65,8 +65,8 @@ Process		Processor					TjMax(C)
+ 
+ 45nm		Xeon Processors 5200 Dual-Core
+ 		X5282, X5272, X5270, X5260			90
+-		E5240, E5220, E5205				90
+-		E5205, E5220					70
++		E5240						90
++		E5205, E5220					70, 90
+ 		L5240						70
+ 		L5238, L5215					95
+ 
+@@ -76,6 +76,7 @@ Process		Processor					TjMax(C)
+ 		Z510/500					90
+ 		N475/470/455/450				100
+ 		N280/270					90
++		330/230						125
+ 
+ 45nm		Core2 Processors
+ 		Solo ULV SU3500/3300				100
+diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-documentation-update-and-cleanup-update drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~hwmon-coretemp-documentation-update-and-cleanup-update
++++ a/drivers/hwmon/coretemp.c
+@@ -54,12 +54,12 @@ struct coretemp_data {
+ 	const char *name;
+ 	u32 id;
+ 	u16 core_id;
+-	u8 alarm;
+ 	char valid;		/* zero until following fields are valid */
+ 	unsigned long last_updated;	/* in jiffies */
+ 	int temp;
+ 	int tjmax;
+ 	int ttarget;
++	u8 alarm;
+ };
+ 
+ /*
+@@ -308,7 +308,7 @@ static int __devinit coretemp_probe(stru
+ #ifdef CONFIG_SMP
+ 	data->core_id = c->cpu_core_id;
+ #endif
+-	data->name = DRVNAME;
++	data->name = "coretemp";
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* test if we can access the THERM_STATUS MSR */
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from gong.chen@linux.intel.com are
 
-linux-next.patch
-mtd-sst25l-check-for-null-consistently.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-autofs4-remove-unneeded-null-check-in-try_to_fill_dentry.patch
-cgroups-save-space-for-the-terminator.patch
-kexec-return-efault-on-copy_to_user-failures.patch
+origin.patch
+hwmon-coretemp-update-hotplug-condition-check.patch
+hwmon-coretemp-enable-coretemp-device-add-operation-failure.patch
+hwmon-coretemp-documentation-update-and-cleanup.patch
+hwmon-coretemp-documentation-update-and-cleanup-update.patch
+drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
 
