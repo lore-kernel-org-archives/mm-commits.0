@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-add-regulator-support.patch added to -mm tree
-Date: Thu, 29 Jul 2010 13:52:32 -0700
-Message-ID: <201007292052.o6TKqWoh000627__27299.4848237888$1280436769$gmane$org@imap1.linux-foundation.org>
+Subject: + ptrace-optimize-exit_ptrace-for-the-likely-case.patch added to -mm tree
+Date: Thu, 29 Jul 2010 13:58:13 -0700
+Message-ID: <201007292058.o6TKwDiF000884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757208Ab0G2Uwk (ORCPT
+	by vger.kernel.org with ESMTP id S1755034Ab0G2U60 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jul 2010 16:52:40 -0400
+	Thu, 29 Jul 2010 16:58:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.szyprowski@samsung.com, broonie@opensource.wolfsonmicro.com, kyungmin.park@samsung.com, linux-mmc@vger.kernel.org
+Cc: oleg@redhat.com, roland@redhat.com, yanmin_zhang@linux.intel.com
 
 
 The patch titled
-     sdhci: add regulator support
+     ptrace: optimize exit_ptrace() for the likely case
 has been added to the -mm tree.  Its filename is
-     sdhci-add-regulator-support.patch
+     ptrace-optimize-exit_ptrace-for-the-likely-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: add regulator support
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: ptrace: optimize exit_ptrace() for the likely case
+From: Oleg Nesterov <oleg@redhat.com>
 
-This patch adds support for regulator API to sdhci core driver. 
-Regulators can be used to disable power in suspended state to reduce
-dissipated energy.
+exit_ptrace() takes tasklist_lock unconditionally.  We need this lock to
+avoid the race with ptrace_traceme(), it acts as a barrier.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: <linux-mmc@vger.kernel.org>
+Change its caller, forget_original_parent(), to call exit_ptrace() under
+tasklist_lock.  Change exit_ptrace() to drop and reacquire this lock if
+needed.
+
+This allows us to add the fastpath list_empty(ptraced) check.  In the
+likely no-tracees case exit_ptrace() just returns and we avoid the lock()
++ unlock() sequence.
+
+"Zhang, Yanmin" <yanmin_zhang@linux.intel.com> suggested to add this
+check, and he reports that this change adds about 11% improvement in some
+tests.
+
+Suggested-and-tested-by: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |   26 +++++++++++++++++++++++++-
- drivers/mmc/host/sdhci.h |    2 ++
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ kernel/exit.c   |    7 +++++--
+ kernel/ptrace.c |   12 +++++++++---
+ 2 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-add-regulator-support drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-add-regulator-support
-+++ a/drivers/mmc/host/sdhci.c
-@@ -23,6 +23,7 @@
- #include <linux/mutex.h>
- #include <linux/scatterlist.h>
- #include <linux/jiffies.h>
-+#include <linux/regulator/consumer.h>
+diff -puN kernel/exit.c~ptrace-optimize-exit_ptrace-for-the-likely-case kernel/exit.c
+--- a/kernel/exit.c~ptrace-optimize-exit_ptrace-for-the-likely-case
++++ a/kernel/exit.c
+@@ -771,9 +771,12 @@ static void forget_original_parent(struc
+ 	struct task_struct *p, *n, *reaper;
+ 	LIST_HEAD(dead_children);
  
- #include <linux/leds.h>
+-	exit_ptrace(father);
+-
+ 	write_lock_irq(&tasklist_lock);
++	/*
++	 * Note that exit_ptrace() and find_new_reaper() might
++	 * drop tasklist_lock and reacquire it.
++	 */
++	exit_ptrace(father);
+ 	reaper = find_new_reaper(father);
  
-@@ -1573,7 +1574,10 @@ int sdhci_suspend_host(struct sdhci_host
- 
- 	free_irq(host->irq, host);
- 
--	return 0;
-+	if (host->vmmc)
-+		ret = regulator_disable(host->vmmc);
-+
-+	return ret;
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+diff -puN kernel/ptrace.c~ptrace-optimize-exit_ptrace-for-the-likely-case kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-optimize-exit_ptrace-for-the-likely-case
++++ a/kernel/ptrace.c
+@@ -324,26 +324,32 @@ int ptrace_detach(struct task_struct *ch
  }
  
- EXPORT_SYMBOL_GPL(sdhci_suspend_host);
-@@ -1582,6 +1586,13 @@ int sdhci_resume_host(struct sdhci_host 
+ /*
+- * Detach all tasks we were using ptrace on.
++ * Detach all tasks we were using ptrace on. Called with tasklist held
++ * for writing, and returns with it held too. But note it can release
++ * and reacquire the lock.
+  */
+ void exit_ptrace(struct task_struct *tracer)
  {
- 	int ret;
+ 	struct task_struct *p, *n;
+ 	LIST_HEAD(ptrace_dead);
  
-+	if (host->vmmc) {
-+		int ret = regulator_enable(host->vmmc);
-+		if (ret)
-+			return ret;
-+	}
+-	write_lock_irq(&tasklist_lock);
++	if (likely(list_empty(&tracer->ptraced)))
++		return;
 +
+ 	list_for_each_entry_safe(p, n, &tracer->ptraced, ptrace_entry) {
+ 		if (__ptrace_detach(tracer, p))
+ 			list_add(&p->ptrace_entry, &ptrace_dead);
+ 	}
+-	write_unlock_irq(&tasklist_lock);
+ 
++	write_unlock_irq(&tasklist_lock);
+ 	BUG_ON(!list_empty(&tracer->ptraced));
+ 
+ 	list_for_each_entry_safe(p, n, &ptrace_dead, ptrace_entry) {
+ 		list_del_init(&p->ptrace_entry);
+ 		release_task(p);
+ 	}
 +
- 	if (host->flags & (SDHCI_USE_SDMA | SDHCI_USE_ADMA)) {
- 		if (host->ops->enable_dma)
- 			host->ops->enable_dma(host);
-@@ -1878,6 +1889,14 @@ int sdhci_add_host(struct sdhci_host *ho
- 	if (ret)
- 		return ret;
++	write_lock_irq(&tasklist_lock);
+ }
  
-+	host->vmmc = regulator_get(mmc_dev(mmc), "vmmc");
-+	if (IS_ERR(host->vmmc)) {
-+		printk(KERN_INFO "%s: no vmmc regulator found\n", mmc_hostname(mmc));
-+		host->vmmc = NULL;
-+	} else {
-+		regulator_enable(host->vmmc);
-+	}
-+
- 	sdhci_init(host, 0);
- 
- #ifdef CONFIG_MMC_DEBUG
-@@ -1955,6 +1974,11 @@ void sdhci_remove_host(struct sdhci_host
- 
- 	flush_work(&host->finish_work);
- 
-+	if (host->vmmc) {
-+		regulator_disable(host->vmmc);
-+		regulator_put(host->vmmc);
-+	}
-+
- 	kfree(host->adma_desc);
- 	kfree(host->align_buffer);
- 
-diff -puN drivers/mmc/host/sdhci.h~sdhci-add-regulator-support drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~sdhci-add-regulator-support
-+++ a/drivers/mmc/host/sdhci.h
-@@ -253,6 +253,8 @@ struct sdhci_host {
- 
- 	const struct sdhci_ops	*ops;		/* Low level hw interface */
- 
-+	struct regulator	*vmmc;		/* Power regulator */
-+
- 	/* Internal data */
- 	struct mmc_host		*mmc;		/* MMC structure */
- 	u64			dma_mask;	/* custom DMA mask */
+ int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len)
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-sdhci-s3c-add-support-for-the-non-standard-minimal-clock-value.patch
-sdhci-s3c-enable-sdhci_quirk_no_hispd_bit-quirk.patch
-sdhci-s3c-add-support-for-new-card-detection-methods.patch
-sdhci-add-regulator-support.patch
-s3c-fb-change-to-depending-on-config_s3c_fb_dev.patch
-s3c-fb-add-default-window-feature.patch
-s3c-fb-fix-distortedness-situation-for-the-mode-more-then-24bpp.patch
-s3c-fb-only-init-window-colour-key-controls-for-windows-with-blending.patch
-s3c-fb-initial-move-to-unifying-the-header-files.patch
-s3c-fb-udpate-to-support-s3c2416-s3c2443-style-hardware.patch
-s3c-fb-integrate-palette-setup-code-into-main-driver.patch
-s3c-fb-fix-various-null-references-on-framebuffer-memory-alloc-failure.patch
-s3c-fb-correct-framesel1-bitfield-defines-for-vidintcon0-register.patch
-s3c-fb-separate-s5pc100-and-s5pv210-framebuffer-driver-data-structures.patch
-s3c-fb-add-device-name-initialization.patch
-s3c-fb-add-support-for-display-panning.patch
-s3c-fb-add-wait-for-vsync-ioctl.patch
-s3c-fb-window-3-of-64xx-does-not-have-an-osd_d-register.patch
-s3c-fb-add-shadowcon-shadow-register-locking-support-for-s5pv210.patch
-s3c-fb-correct-window-osd-size-and-alpha-register-handling.patch
-s3c-fb-protect-window-specific-registers-during-updates.patch
-s3c-fb-fix-section-mismatch.patch
-s3c-fb-add-support-for-dma-channel-control-on-s5pv210.patch
-s3c-fb-automatically-calculate-pixel-clock-when-none-is-given.patch
-arm-samsung-remove-pixclock-from-several-boards.patch
+oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-dump_tasks-use-find_lock_task_mm-too.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
+oom-dont-try-to-kill-oom_unkillable-child.patch
+oom-oom_kill_process-doesnt-select-kthread-child.patch
+oom-make-oom_unkillable_task-helper-function.patch
+oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
+oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
+oom-kill-duplicate-oom_disable-check.patch
+oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
+oom-cleanup-has_intersects_mems_allowed.patch
+oom-remove-child-mm-check-from-oom_kill_process.patch
+oom-give-the-dying-task-a-higher-priority.patch
+oom-multi-threaded-process-coredump-dont-make-deadlock.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
+sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
+memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
+ptrace-optimize-exit_ptrace-for-the-likely-case.patch
+pids-alloc_pidmap-remove-the-unnecessary-boundary-checks.patch
+aio-do-not-return-erestartsys-and-friends-from-aio.patch
 
