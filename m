@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-00-index-remove-reference-to-exceptiontxt.patch added to -mm tree
-Date: Thu, 29 Jul 2010 12:36:12 -0700
-Message-ID: <201007291936.o6TJaCgq029464@imap1.linux-foundation.org>
+Subject: + pci-add-pci-dma-unamp-state-api-to-feature-removal-scheduletxt.patch added to -mm tree
+Date: Thu, 29 Jul 2010 12:52:46 -0700
+Message-ID: <201007291952.o6TJqk21030288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757393Ab0G2TgO (ORCPT
+	by vger.kernel.org with ESMTP id S1757630Ab0G2TxS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jul 2010 15:36:14 -0400
+	Thu, 29 Jul 2010 15:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shijie8@gmail.com
+Cc: fujita.tomonori@lab.ntt.co.jp, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     Documentation/00-INDEX: remove reference to exception.txt
+     pci: add PCI DMA unamp state API to feature-removal-schedule.txt
 has been added to the -mm tree.  Its filename is
-     documentation-00-index-remove-reference-to-exceptiontxt.patch
+     pci-add-pci-dma-unamp-state-api-to-feature-removal-scheduletxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/00-INDEX: remove reference to exception.txt
-From: Huang Shijie <shijie8@gmail.com>
+Subject: pci: add PCI DMA unamp state API to feature-removal-schedule.txt
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-The exception.txt has been removed from the Documentation directory.  So
-update the index file for it.
+It was replaced with the DMA unamp state API (which can be used for
+any bus).
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN Documentation/00-INDEX~documentation-00-index-remove-reference-to-exceptiontxt Documentation/00-INDEX
---- a/Documentation/00-INDEX~documentation-00-index-remove-reference-to-exceptiontxt
-+++ a/Documentation/00-INDEX
-@@ -130,8 +130,6 @@ edac.txt
- 	- information on EDAC - Error Detection And Correction
- eisa.txt
- 	- info on EISA bus support.
--exception.txt
--	- how Linux v2.2 handles exceptions without verify_area etc.
- fault-injection/
- 	- dir with docs about the fault injection capabilities infrastructure.
- fb/
+diff -puN Documentation/feature-removal-schedule.txt~pci-add-pci-dma-unamp-state-api-to-feature-removal-scheduletxt Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~pci-add-pci-dma-unamp-state-api-to-feature-removal-scheduletxt
++++ a/Documentation/feature-removal-schedule.txt
+@@ -532,3 +532,12 @@ Why:	superseded by acpi_sleep=nonvs
+ Who:	Rafael J. Wysocki <rjw@sisk.pl>
+ 
+ ----------------------------
++
++What: 	PCI DMA unmap state API
++When:	August 2012
++Why:	PCI DMA unmap state API (include/linux/pci-dma.h) was replaced
++	with DMA unmap state API (DMA unmap state API can be used for
++	any bus).
++Who:	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
++
++----------------------------
 _
 
-Patches currently in -mm which might be from shijie8@gmail.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 linux-next.patch
-documentation-00-index-remove-reference-to-exceptiontxt.patch
+dma-mapping-rename-arch_kmalloc_minalign-to-arch_dma_minalign.patch
+dma-mapping-unify-dma_get_cache_alignment-implementations.patch
+dma-mapping-parisc-set-arch_dma_minalign.patch
+drivers-scsi-53c700c-remove-dma_is_consistent-usage.patch
+dma-mapping-remove-dma_is_consistent-api.patch
+documentation-dma-api-howtotxt-add-multiple-types-of-iommus-support.patch
+pci-add-pci-dma-unamp-state-api-to-feature-removal-scheduletxt.patch
 
