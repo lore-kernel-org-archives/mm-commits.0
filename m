@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim.patch added to -mm tree
-Date: Thu, 29 Jul 2010 12:23:03 -0700
-Message-ID: <201007291923.o6TJN3K6028845@imap1.linux-foundation.org>
+Subject: + memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone.patch added to -mm tree
+Date: Thu, 29 Jul 2010 12:22:59 -0700
+Message-ID: <201007291922.o6TJMxJp028838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757109Ab0G2TXi (ORCPT
+	by vger.kernel.org with ESMTP id S1755078Ab0G2TXh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jul 2010 15:23:38 -0400
+	Thu, 29 Jul 2010 15:23:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, d-nishimura@mtf.biglobe.n
 
 
 The patch titled
-     memcg: remove nid and zid argument from mem_cgroup_soft_limit_reclaim()
+     memcg: kill unnecessary initialization in mem_cgroup_shrink_node_zone()
 has been added to the -mm tree.  Its filename is
-     memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim.patch
+     memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove nid and zid argument from mem_cgroup_soft_limit_reclaim()
+Subject: memcg: kill unnecessary initialization in mem_cgroup_shrink_node_zone()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-mem_cgroup_soft_limit_reclaim() has zone, nid and zid argument.  but nid
-and zid can be calculated from zone.  So remove it.
+sc.nr_reclaimed and sc.nr_scanned have already been initialized few lines
+above "struct scan_control sc = {}" statement.
+
+So, This patch remove this unnecessary code.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Nishimura Daisuke <d-nishimura@mtf.biglobe.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- mm/memcontrol.c            |    5 ++---
- mm/vmscan.c                |    7 ++-----
- 3 files changed, 7 insertions(+), 11 deletions(-)
+ mm/vmscan.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim
-+++ a/include/linux/memcontrol.h
-@@ -123,8 +123,8 @@ static inline bool mem_cgroup_disabled(v
- 
- void mem_cgroup_update_file_mapped(struct page *page, int val);
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
--						gfp_t gfp_mask, int nid,
--						int zid);
-+					    gfp_t gfp_mask);
-+
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct mem_cgroup;
- 
-@@ -299,7 +299,7 @@ static inline void mem_cgroup_update_fil
- 
- static inline
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
--					    gfp_t gfp_mask, int nid, int zid)
-+					    gfp_t gfp_mask)
- {
- 	return 0;
- }
-diff -puN mm/memcontrol.c~memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim
-+++ a/mm/memcontrol.c
-@@ -2847,8 +2847,7 @@ static int mem_cgroup_resize_memsw_limit
- }
- 
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
--						gfp_t gfp_mask, int nid,
--						int zid)
-+					    gfp_t gfp_mask)
- {
- 	unsigned long nr_reclaimed = 0;
- 	struct mem_cgroup_per_zone *mz, *next_mz = NULL;
-@@ -2860,7 +2859,7 @@ unsigned long mem_cgroup_soft_limit_recl
- 	if (order > 0)
- 		return 0;
- 
--	mctz = soft_limit_tree_node_zone(nid, zid);
-+	mctz = soft_limit_tree_node_zone(zone_to_nid(zone), zone_idx(zone));
- 	/*
- 	 * This loop can run a while, specially if mem_cgroup's continuously
- 	 * keep exceeding their soft limit and putting the system under
-diff -puN mm/vmscan.c~memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim mm/vmscan.c
---- a/mm/vmscan.c~memcg-remove-nid-and-zid-argument-from-mem_cgroup_soft_limit_reclaim
+diff -puN mm/vmscan.c~memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone mm/vmscan.c
+--- a/mm/vmscan.c~memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone
 +++ a/mm/vmscan.c
-@@ -2133,7 +2133,6 @@ loop_again:
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
- 			int nr_slab;
--			int nid, zid;
+@@ -1950,8 +1950,6 @@ unsigned long mem_cgroup_shrink_node_zon
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+ 	sc.nodemask = &nm;
+-	sc.nr_reclaimed = 0;
+-	sc.nr_scanned = 0;
  
- 			if (!populated_zone(zone))
- 				continue;
-@@ -2143,14 +2142,12 @@ loop_again:
- 
- 			sc.nr_scanned = 0;
- 
--			nid = pgdat->node_id;
--			zid = zone_idx(zone);
- 			/*
- 			 * Call soft limit reclaim before calling shrink_zone.
- 			 * For now we ignore the return value
- 			 */
--			mem_cgroup_soft_limit_reclaim(zone, order, sc.gfp_mask,
--							nid, zid);
-+			mem_cgroup_soft_limit_reclaim(zone, order, sc.gfp_mask);
-+
- 			/*
- 			 * We put equal pressure on every zone, unless one
- 			 * zone has way too many pages free already.
+ 	trace_mm_vmscan_memcg_softlimit_reclaim_begin(0,
+ 						      sc.may_writepage,
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
