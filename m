@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone.patch added to -mm tree
-Date: Thu, 29 Jul 2010 12:22:59 -0700
-Message-ID: <201007291922.o6TJMxJp028838@imap1.linux-foundation.org>
+Subject: + memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask.patch added to -mm tree
+Date: Thu, 29 Jul 2010 12:23:01 -0700
+Message-ID: <201007291923.o6TJN1Ne028842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755078Ab0G2TXh (ORCPT
+	by vger.kernel.org with ESMTP id S1756879Ab0G2TXi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jul 2010 15:23:37 -0400
+	Thu, 29 Jul 2010 15:23:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, balbir@in.ibm.com, d-nishimura@mtf.biglobe.n
 
 
 The patch titled
-     memcg: kill unnecessary initialization in mem_cgroup_shrink_node_zone()
+     memcg: mem_cgroup_shrink_node_zone() doesn't need sc.nodemask
 has been added to the -mm tree.  Its filename is
-     memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone.patch
+     memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: kill unnecessary initialization in mem_cgroup_shrink_node_zone()
+Subject: memcg: mem_cgroup_shrink_node_zone() doesn't need sc.nodemask
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-sc.nr_reclaimed and sc.nr_scanned have already been initialized few lines
-above "struct scan_control sc = {}" statement.
-
-So, This patch remove this unnecessary code.
+Currently mem_cgroup_shrink_node_zone() call shrink_zone() directly.  thus
+it doesn't need to initialize sc.nodemask because shrink_zone() doesn't
+use it at all.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Nishimura Daisuke <d-nishimura@mtf.biglobe.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/swap.h |    3 +--
+ mm/memcontrol.c      |    3 +--
+ mm/vmscan.c          |    5 +----
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmscan.c~memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone mm/vmscan.c
---- a/mm/vmscan.c~memcg-kill-unnecessary-initialization-in-mem_cgroup_shrink_node_zone
+diff -puN include/linux/swap.h~memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask include/linux/swap.h
+--- a/include/linux/swap.h~memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask
++++ a/include/linux/swap.h
+@@ -244,8 +244,7 @@ extern unsigned long try_to_free_mem_cgr
+ extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
+ 						gfp_t gfp_mask, bool noswap,
+ 						unsigned int swappiness,
+-						struct zone *zone,
+-						int nid);
++						struct zone *zone);
+ extern int __isolate_lru_page(struct page *page, int mode, int file);
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+diff -puN mm/memcontrol.c~memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask
++++ a/mm/memcontrol.c
+@@ -1282,8 +1282,7 @@ static int mem_cgroup_hierarchical_recla
+ 		/* we use swappiness of local cgroup */
+ 		if (check_soft)
+ 			ret = mem_cgroup_shrink_node_zone(victim, gfp_mask,
+-				noswap, get_swappiness(victim), zone,
+-				zone->zone_pgdat->node_id);
++				noswap, get_swappiness(victim), zone);
+ 		else
+ 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
+ 						noswap, get_swappiness(victim));
+diff -puN mm/vmscan.c~memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask mm/vmscan.c
+--- a/mm/vmscan.c~memcg-mem_cgroup_shrink_node_zone-doesnt-need-scnodemask
 +++ a/mm/vmscan.c
-@@ -1950,8 +1950,6 @@ unsigned long mem_cgroup_shrink_node_zon
+@@ -1934,7 +1934,7 @@ unsigned long try_to_free_pages(struct z
+ unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
+ 						gfp_t gfp_mask, bool noswap,
+ 						unsigned int swappiness,
+-						struct zone *zone, int nid)
++						struct zone *zone)
+ {
+ 	struct scan_control sc = {
+ 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
+@@ -1945,11 +1945,8 @@ unsigned long mem_cgroup_shrink_node_zon
+ 		.order = 0,
+ 		.mem_cgroup = mem,
+ 	};
+-	nodemask_t nm  = nodemask_of_node(nid);
+-
  	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
  			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
- 	sc.nodemask = &nm;
--	sc.nr_reclaimed = 0;
--	sc.nr_scanned = 0;
+-	sc.nodemask = &nm;
  
  	trace_mm_vmscan_memcg_softlimit_reclaim_begin(0,
  						      sc.may_writepage,
