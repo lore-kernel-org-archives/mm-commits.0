@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + staging-iio-ring_sw-add-select-of-triggers-to-avoid-build-issue.patch added to -mm tree
-Date: Fri, 30 Jul 2010 14:20:37 -0700
-Message-ID: <201007302120.o6ULKbDn001006@imap1.linux-foundation.org>
+Subject: + staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case.patch added to -mm tree
+Date: Fri, 30 Jul 2010 14:20:33 -0700
+Message-ID: <201007302120.o6ULKXFL000999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754789Ab0G3VVZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754901Ab0G3VVZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 30 Jul 2010 17:21:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jic23@cam.ac.uk
 
 
 The patch titled
-     staging:iio:ring_sw: add select of triggers to avoid build issue
+     staging:iio:lis3l02dq add a thresh_timestamp field to state for no ring case
 has been added to the -mm tree.  Its filename is
-     staging-iio-ring_sw-add-select-of-triggers-to-avoid-build-issue.patch
+     staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging:iio:ring_sw: add select of triggers to avoid build issue
+Subject: staging:iio:lis3l02dq add a thresh_timestamp field to state for no ring case
 From: Jonathan Cameron <jic23@cam.ac.uk>
-
-Currently all drivers that use ring_sw use triggers and I am yet
-to see a good reason for any driver not doing so.
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/staging/iio/accel/lis3l02dq.h      |    2 ++
+ drivers/staging/iio/accel/lis3l02dq_core.c |   14 +++++++-------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/staging/iio/Kconfig~staging-iio-ring_sw-add-select-of-triggers-to-avoid-build-issue drivers/staging/iio/Kconfig
---- a/drivers/staging/iio/Kconfig~staging-iio-ring_sw-add-select-of-triggers-to-avoid-build-issue
-+++ a/drivers/staging/iio/Kconfig
-@@ -21,6 +21,7 @@ config IIO_RING_BUFFER
- if IIO_RING_BUFFER
+diff -puN drivers/staging/iio/accel/lis3l02dq.h~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case drivers/staging/iio/accel/lis3l02dq.h
+--- a/drivers/staging/iio/accel/lis3l02dq.h~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case
++++ a/drivers/staging/iio/accel/lis3l02dq.h
+@@ -151,6 +151,7 @@ Form of high byte dependant on justifica
+  * @helper:		data and func pointer allowing generic functions
+  * @us:			actual spi_device
+  * @work_thresh:	bh for threshold events
++ * @thresh_timestamp:	timestamp for threshold interrupts.
+  * @inter:		used to check if new interrupt has been triggered
+  * @trig:		data ready trigger registered with iio
+  * @tx:			transmit buffer
+@@ -161,6 +162,7 @@ struct lis3l02dq_state {
+ 	struct iio_sw_ring_helper_state	help;
+ 	struct spi_device		*us;
+ 	struct work_struct		work_thresh;
++	s64				thresh_timestamp;
+ 	bool				inter;
+ 	struct iio_trigger		*trig;
+ 	u8				*tx;
+diff -puN drivers/staging/iio/accel/lis3l02dq_core.c~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case drivers/staging/iio/accel/lis3l02dq_core.c
+--- a/drivers/staging/iio/accel/lis3l02dq_core.c~staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case
++++ a/drivers/staging/iio/accel/lis3l02dq_core.c
+@@ -615,7 +615,7 @@ static int lis3l02dq_thresh_handler_th(s
+ 	struct lis3l02dq_state *st = lis3l02dq_h_to_s(h);
  
- config IIO_SW_RING
-+       select IIO_TRIGGER
- 	tristate "Industrial I/O lock free software ring"
- 	help
- 	  Example software ring buffer implementation.  The design aim
+ 	/* Stash the timestamp somewhere convenient for the bh */
+-	h->last_timestamp = timestamp;
++	st->thresh_timestamp = timestamp;
+ 	schedule_work(&st->work_thresh);
+ 
+ 	return 0;
+@@ -640,32 +640,32 @@ static void lis3l02dq_thresh_handler_bh_
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Z_HIGH)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Z_HIGH,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Z_LOW)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Z_LOW,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Y_HIGH)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Y_HIGH,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_Y_LOW)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_Y_LOW,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_X_HIGH)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_X_HIGH,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 
+ 	if (t & LIS3L02DQ_REG_WAKE_UP_SRC_INTERRUPT_X_LOW)
+ 		iio_push_event(st->help.indio_dev, 0,
+ 			       IIO_EVENT_CODE_ACCEL_X_LOW,
+-			       st->help.last_timestamp);
++			       st->thresh_timestamp);
+ 	/* reenable the irq */
+ 	enable_irq(st->us->irq);
+ 	/* Ack and allow for new interrupts */
 _
 
 Patches currently in -mm which might be from jic23@cam.ac.uk are
