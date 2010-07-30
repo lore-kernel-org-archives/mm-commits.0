@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch added to -mm tree
-Date: Fri, 30 Jul 2010 15:06:53 -0700
-Message-ID: <201007302206.o6UM6rnB003483@imap1.linux-foundation.org>
+Subject: + vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch added to -mm tree
+Date: Fri, 30 Jul 2010 15:06:56 -0700
+Message-ID: <201007302206.o6UM6ump003486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751997Ab0G3WHx (ORCPT
+	by vger.kernel.org with ESMTP id S1751997Ab0G3WIK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jul 2010 18:07:53 -0400
+	Fri, 30 Jul 2010 18:08:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, aarcange@redhat.com, chris.mason@oracle.com, david@fromorbit.
 
 
 The patch titled
-     vmscan: do not writeback filesystem pages in direct reclaim
+     vmscan: kick flusher threads to clean pages when reclaim is encountering dirty pages
 has been added to the -mm tree.  Its filename is
-     vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+     vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: do not writeback filesystem pages in direct reclaim
+Subject: vmscan: kick flusher threads to clean pages when reclaim is encountering dirty pages
 From: Mel Gorman <mel@csn.ul.ie>
 
-When memory is under enough pressure, a process may enter direct reclaim
-to free pages in the same manner kswapd does.  If a dirty page is
-encountered during the scan, this page is written to backing storage using
-mapping->writepage.  This can result in very deep call stacks,
-particularly if the target storage or filesystem are complex.  It has
-already been observed on XFS that the stack overflows but the problem is
-not XFS-specific.
+There are a number of cases where pages get cleaned but two of concern
+to this patch are:
 
-This patch prevents direct reclaim writing back filesystem pages by
-checking if current is kswapd or the page is anonymous before writing
-back.  If the dirty pages cannot be written back, they are placed back on
-the LRU lists for either background writing by the BDI threads or kswapd. 
-If in direct lumpy reclaim and dirty pages are encountered, the process
-will stall for the background flusher before trying to reclaim the pages
-again.
+- When dirtying pages, processes may be throttled to clean pages if
+  dirty_ratio is exceeded.
 
-As the call-chain for writing anonymous pages is not expected to be deep
-and they are not cleaned by flusher threads, anonymous pages are still
-written back in direct reclaim.
+- Pages belonging to inodes dirtied longer than
+  dirty_writeback_centisecs get cleaned.
+
+The problem for reclaim is that dirty pages can reach the end of the LRU
+if pages are being dirtied slowly so that neither the throttling or a
+flusher thread waking periodically cleans them.
+
+Background flush is already cleaning old or expired inodes first but the
+expire time is too far in the future at the time of page reclaim.  To
+mitigate future problems, this patch wakes flusher threads to clean 4M of
+data - an amount that should be manageable without causing congestion in
+many cases.
+
+Ideally, the background flushers would only be cleaning pages belonging to
+the zone being scanned but it's not clear if this would be of benefit
+(less IO) or not (potentially less efficient IO if an inode is scattered
+across multiple zones).
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -74,141 +76,93 @@ Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   69 +++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 54 insertions(+), 15 deletions(-)
+ mm/vmscan.c |   33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim mm/vmscan.c
---- a/mm/vmscan.c~vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
+diff -puN mm/vmscan.c~vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages
 +++ a/mm/vmscan.c
-@@ -139,6 +139,9 @@ static DECLARE_RWSEM(shrinker_rwsem);
- #define scanning_global_lru(sc)	(1)
- #endif
+@@ -142,6 +142,18 @@ static DECLARE_RWSEM(shrinker_rwsem);
+ /* Direct lumpy reclaim waits up to five seconds for background cleaning */
+ #define MAX_SWAP_CLEAN_WAIT 50
  
-+/* Direct lumpy reclaim waits up to five seconds for background cleaning */
-+#define MAX_SWAP_CLEAN_WAIT 50
++/*
++ * When reclaim encounters dirty data, wakeup flusher threads to clean
++ * a maximum of 4M of data.
++ */
++#define MAX_WRITEBACK (4194304UL >> PAGE_SHIFT)
++#define WRITEBACK_FACTOR (MAX_WRITEBACK / SWAP_CLUSTER_MAX)
++static inline long nr_writeback_pages(unsigned long nr_dirty)
++{
++	return laptop_mode ? 0 :
++			min(MAX_WRITEBACK, (nr_dirty * WRITEBACK_FACTOR));
++}
 +
  static struct zone_reclaim_stat *get_reclaim_stat(struct zone *zone,
  						  struct scan_control *sc)
  {
-@@ -645,11 +648,13 @@ static noinline_for_stack void free_page
-  */
+@@ -649,12 +661,14 @@ static noinline_for_stack void free_page
  static unsigned long shrink_page_list(struct list_head *page_list,
  					struct scan_control *sc,
--					enum pageout_io sync_writeback)
-+					enum pageout_io sync_writeback,
-+					unsigned long *nr_still_dirty)
+ 					enum pageout_io sync_writeback,
++					int file,
+ 					unsigned long *nr_still_dirty)
  {
  	LIST_HEAD(ret_pages);
  	LIST_HEAD(free_pages);
  	int pgactivate = 0;
-+	unsigned long nr_dirty = 0;
+ 	unsigned long nr_dirty = 0;
++	unsigned long nr_dirty_seen = 0;
  	unsigned long nr_reclaimed = 0;
  
  	cond_resched();
-@@ -743,6 +748,15 @@ static unsigned long shrink_page_list(st
+@@ -748,6 +762,8 @@ static unsigned long shrink_page_list(st
  		}
  
  		if (PageDirty(page)) {
-+			/*
-+			 * Only kswapd can writeback filesystem pages to
-+			 * avoid risk of stack overflow
-+			 */
-+			if (page_is_file_cache(page) && !current_is_kswapd()) {
-+				nr_dirty++;
-+				goto keep_locked;
-+			}
++			nr_dirty_seen++;
 +
- 			if (references == PAGEREF_RECLAIM_CLEAN)
- 				goto keep_locked;
- 			if (!may_enter_fs)
-@@ -860,6 +874,8 @@ keep:
- 	free_page_list(&free_pages);
+ 			/*
+ 			 * Only kswapd can writeback filesystem pages to
+ 			 * avoid risk of stack overflow
+@@ -875,6 +891,18 @@ keep:
  
  	list_splice(&ret_pages, page_list);
+ 
++	/*
++	 * If reclaim is encountering dirty pages, it may be because
++	 * dirty pages are reaching the end of the LRU even though the
++	 * dirty_ratio may be satisified. In this case, wake flusher
++	 * threads to pro-actively clean up to a maximum of
++	 * 4 * SWAP_CLUSTER_MAX amount of data (usually 1/2MB) unless
++	 * !may_writepage indicates that this is a direct reclaimer in
++	 * laptop mode avoiding disk spin-ups
++	 */
++	if (file && nr_dirty_seen && sc->may_writepage)
++		wakeup_flusher_threads(nr_writeback_pages(nr_dirty));
 +
-+	*nr_still_dirty = nr_dirty;
+ 	*nr_still_dirty = nr_dirty;
  	count_vm_events(PGACTIVATE, pgactivate);
  	return nr_reclaimed;
- }
-@@ -1242,12 +1258,14 @@ shrink_inactive_list(unsigned long nr_to
- 			struct scan_control *sc, int priority, int file)
- {
- 	LIST_HEAD(page_list);
-+	LIST_HEAD(putback_list);
- 	unsigned long nr_scanned;
- 	unsigned long nr_reclaimed = 0;
- 	unsigned long nr_taken;
- 	unsigned long nr_active;
- 	unsigned long nr_anon;
- 	unsigned long nr_file;
-+	unsigned long nr_dirty;
- 
- 	while (unlikely(too_many_isolated(zone, file, sc))) {
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
-@@ -1296,28 +1314,49 @@ shrink_inactive_list(unsigned long nr_to
- 
+@@ -1315,7 +1343,7 @@ shrink_inactive_list(unsigned long nr_to
  	spin_unlock_irq(&zone->lru_lock);
  
--	nr_reclaimed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC);
-+	nr_reclaimed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC,
-+								&nr_dirty);
+ 	nr_reclaimed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC,
+-								&nr_dirty);
++							file, &nr_dirty);
  
  	/*
--	 * If we are direct reclaiming for contiguous pages and we do
-+	 * If specific pages are needed such as with direct reclaiming
-+	 * for contiguous pages or for memory containers and we do
- 	 * not reclaim everything in the list, try again and wait
--	 * for IO to complete. This will stall high-order allocations
--	 * but that should be acceptable to the caller
-+	 * for IO to complete. This will stall callers that require
-+	 * specific pages but it should be acceptable to the caller
- 	 */
--	if (nr_reclaimed < nr_taken && !current_is_kswapd() &&
--			sc->lumpy_reclaim_mode) {
--		congestion_wait(BLK_RW_ASYNC, HZ/10);
-+	if (sc->may_writepage && !current_is_kswapd() &&
-+			(sc->lumpy_reclaim_mode || sc->mem_cgroup)) {
-+		int dirty_retry = MAX_SWAP_CLEAN_WAIT;
+ 	 * If specific pages are needed such as with direct reclaiming
+@@ -1351,7 +1379,8 @@ shrink_inactive_list(unsigned long nr_to
+ 			count_vm_events(PGDEACTIVATE, nr_active);
  
--		/*
--		 * The attempt at page out may have made some
--		 * of the pages active, mark them inactive again.
--		 */
--		nr_active = clear_active_flags(&page_list, NULL);
--		count_vm_events(PGDEACTIVATE, nr_active);
-+		while (nr_reclaimed < nr_taken && nr_dirty && dirty_retry--) {
-+			struct page *page, *tmp;
-+
-+			/* Take off the clean pages marked for activation */
-+			list_for_each_entry_safe(page, tmp, &page_list, lru) {
-+				if (PageDirty(page) || PageWriteback(page))
-+					continue;
-+
-+				list_del(&page->lru);
-+				list_add(&page->lru, &putback_list);
-+			}
-+
-+			wakeup_flusher_threads(laptop_mode ? 0 : nr_dirty);
-+			congestion_wait(BLK_RW_ASYNC, HZ/10);
- 
--		nr_reclaimed += shrink_page_list(&page_list, sc, PAGEOUT_IO_SYNC);
-+			/*
-+			 * The attempt at page out may have made some
-+			 * of the pages active, mark them inactive again.
-+			 */
-+			nr_active = clear_active_flags(&page_list, NULL);
-+			count_vm_events(PGDEACTIVATE, nr_active);
-+
-+			nr_reclaimed += shrink_page_list(&page_list, sc,
-+						PAGEOUT_IO_SYNC, &nr_dirty);
-+		}
+ 			nr_reclaimed += shrink_page_list(&page_list, sc,
+-						PAGEOUT_IO_SYNC, &nr_dirty);
++						PAGEOUT_IO_SYNC, file,
++						&nr_dirty);
+ 		}
  	}
  
-+	list_splice(&putback_list, &page_list);
-+
- 	local_irq_disable();
- 	if (current_is_kswapd())
- 		__count_vm_events(KSWAPD_STEAL, nr_reclaimed);
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
