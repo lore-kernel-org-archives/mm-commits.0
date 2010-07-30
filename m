@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update.patch added to -mm tree
-Date: Fri, 30 Jul 2010 15:39:10 -0700
-Message-ID: <201007302239.o6UMdA6C005145__48851.1354117238$1280529591$gmane$org@imap1.linux-foundation.org>
+Subject: + mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 30 Jul 2010 15:39:35 -0700
+Message-ID: <201007302239.o6UMdZBJ005156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751910Ab0G3Wjq (ORCPT
+	by vger.kernel.org with ESMTP id S1751910Ab0G3WkH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jul 2010 18:39:46 -0400
+	Fri, 30 Jul 2010 18:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maximlevitsky@gmail.com, david-b@pacbell.net, linux-mmc@vger.kernel.org, stern@rowland.harvard.edu
+Cc: akpm@linux-foundation.org, maximlevitsky@gmail.com
 
 
 The patch titled
-     mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update
+     mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update.patch
+     mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,187 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If you don't use CONFIG_MMC_UNSAFE_RESUME, as soon as you attempt to
-suspend, the card will be removed, therefore this patch doesn't change
-the behavior of this option.
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#124: FILE: drivers/mmc/core/core.c:1373:
++EXPORT_SYMBOL(mmc_resume_host);
 
-However the removal will be done by pm notifier, which runs while
-userspace is still not frozen and thus can freely use del_gendisk,
-without the risk of deadlock which would happen otherwise.
+total: 0 errors, 1 warnings, 128 lines checked
 
-Card detect workqueue is now disabled while userspace is frozen,
-Therefore if you do use CONFIG_MMC_UNSAFE_RESUME,
-and remove the card during suspend, the removal will be
-detected as soon as userspace is unfrozen, again at the moment
-it is safe to call del_gendisk.
+./patches/mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Tested with and without CONFIG_MMC_UNSAFE_RESUME with suspend and hibernate.
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: <linux-mmc@vger.kernel.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c  |   45 +++++++++++++++++++++++++++----------
- drivers/mmc/core/host.c  |    1 
- include/linux/mmc/host.h |    9 ++-----
- 3 files changed, 37 insertions(+), 18 deletions(-)
+ drivers/mmc/core/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update
+diff -puN drivers/mmc/core/core.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes
 +++ a/drivers/mmc/core/core.c
-@@ -1057,6 +1057,17 @@ void mmc_rescan(struct work_struct *work
- 		container_of(work, struct mmc_host, detect.work);
- 	u32 ocr;
- 	int err;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&host->lock, flags);
-+
-+	if (host->rescan_disable) {
-+		spin_unlock_irqrestore(&host->lock, flags);
-+		return;
-+	}
-+
-+	spin_unlock_irqrestore(&host->lock, flags);
-+
- 
- 	mmc_bus_get(host);
- 
-@@ -1267,6 +1278,8 @@ int mmc_suspend_host(struct mmc_host *ho
- 
- 	if (host->caps & MMC_CAP_DISABLE)
- 		cancel_delayed_work(&host->disable);
-+	cancel_delayed_work(&host->detect);
-+	mmc_flush_scheduled_work();
- 
- 	mmc_bus_get(host);
- 	if (host->bus_ops && !host->bus_dead) {
-@@ -1308,54 +1321,64 @@ int mmc_resume_host(struct mmc_host *hos
- 	}
- 	mmc_bus_put(host);
- 
--	/*
--	 * We add a slight delay here so that resume can progress
--	 * in parallel.
--	 */
--	mmc_detect_change(host, 1);
--
- 	return err;
- }
--EXPORT_SYMBOL(mmc_resume_host);
- 
- /* Do the card removal on suspend if card is assumed removeable
-  * Do that in pm notifier while userspace isn't yet frozen, so we will be able
-- * to sync the card.
-- */
-+   to sync the card.
-+*/
- int mmc_pm_notify(struct notifier_block *notify_block,
- 					unsigned long mode, void *unused)
- {
- 	struct mmc_host *host = container_of(
- 		notify_block, struct mmc_host, pm_notify);
-+	unsigned long flags;
- 
- 
- 	switch (mode) {
- 	case PM_HIBERNATION_PREPARE:
- 	case PM_SUSPEND_PREPARE:
- 
-+		spin_lock_irqsave(&host->lock, flags);
-+		host->rescan_disable = 1;
-+		spin_unlock_irqrestore(&host->lock, flags);
-+
- 		if (!host->bus_ops || host->bus_ops->suspend)
- 			break;
- 
-+		mmc_claim_host(host);
-+
- 		if (host->bus_ops->remove)
- 			host->bus_ops->remove(host);
--		mmc_claim_host(host);
-+
- 		mmc_detach_bus(host);
- 		mmc_release_host(host);
- 		host->pm_flags = 0;
- 		break;
- 
-+	case PM_POST_SUSPEND:
-+	case PM_POST_HIBERNATION:
-+
-+		spin_lock_irqsave(&host->lock, flags);
-+		host->rescan_disable = 0;
-+		spin_unlock_irqrestore(&host->lock, flags);
-+		mmc_detect_change(host, 0);
-+
- 	}
+@@ -1369,7 +1369,6 @@ int mmc_pm_notify(struct notifier_block 
  
  	return 0;
  }
- 
-+EXPORT_SYMBOL(mmc_resume_host);
-+
- #endif
- 
- static int __init mmc_init(void)
- {
- 	int ret;
- 
--	workqueue = create_freezeable_workqueue("kmmcd");
-+	workqueue = create_singlethread_workqueue("kmmcd");
- 	if (!workqueue)
- 		return -ENOMEM;
- 
-diff -puN drivers/mmc/core/host.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update drivers/mmc/core/host.c
---- a/drivers/mmc/core/host.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update
-+++ a/drivers/mmc/core/host.c
-@@ -163,7 +163,6 @@ void mmc_remove_host(struct mmc_host *ho
- 	device_del(&host->class_dev);
- 
- 	led_trigger_unregister_simple(host->led);
 -
- }
+ EXPORT_SYMBOL(mmc_resume_host);
  
- EXPORT_SYMBOL(mmc_remove_host);
-diff -puN include/linux/mmc/host.h~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update
-+++ a/include/linux/mmc/host.h
-@@ -184,6 +184,7 @@ struct mmc_host {
- 
- 	/* Only used with MMC_CAP_DISABLE */
- 	int			enabled;	/* host is enabled */
-+	int			rescan_disable;	/* disable card detection */
- 	int			nesting_cnt;	/* "enable" nesting count */
- 	int			en_dis_recurs;	/* detect recursion */
- 	unsigned int		disable_delay;	/* disable delay in msecs */
-@@ -258,12 +259,8 @@ int mmc_card_can_sleep(struct mmc_host *
- int mmc_host_enable(struct mmc_host *host);
- int mmc_host_disable(struct mmc_host *host);
- int mmc_host_lazy_disable(struct mmc_host *host);
--#ifdef CONFIG_PM
--int mmc_pm_notify(struct notifier_block *notify_block, unsigned long mode,
--		  void *unused);
--#else
--#define mmc_pm_notify NULL
--#endif
-+int mmc_pm_notify(struct notifier_block *notify_block, unsigned long, void *);
-+
- 
- static inline void mmc_set_disable_delay(struct mmc_host *host,
- 					 unsigned int disable_delay)
+ #endif
 _
 
-Patches currently in -mm which might be from maximlevitsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+mm-vmap-area-cache.patch
+acpi-fix-bogus-preemption-logic.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+scsi-remove-private-bit-macros.patch
+fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
+rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch
+vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
+vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
+vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
+oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
+vmscan-shrink_slab-require-number-of-lru_pages-not-page-order-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
+mmc-recognize-csd-structure-fix.patch
 mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
-mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update.patch
-mmc-make-sdhci-work-with-ricoh-mmc-controller.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-checkpatch-fixes.patch
+hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
+drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+rtc-add-support-for-ds3232-rtc-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+fs-sysv-v7-adjust-sanity-checks-for-some-volumes-checkpatch-fixes.patch
+fs-sysv-superc-add-support-for-non-pdp11-v7-filesystems-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
