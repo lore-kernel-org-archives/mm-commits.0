@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-um-kernel-ptracec-remove-dead-proc_mm.patch added to -mm tree
-Date: Fri, 30 Jul 2010 14:06:37 -0700
-Message-ID: <201007302106.o6UL6bUh032708@imap1.linux-foundation.org>
+Subject: + cpqarray-check-put_user-result.patch added to -mm tree
+Date: Fri, 30 Jul 2010 14:11:22 -0700
+Message-ID: <201007302111.o6ULBMZA000503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752211Ab0G3VHR (ORCPT
+	by vger.kernel.org with ESMTP id S1752211Ab0G3VLp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jul 2010 17:07:17 -0400
+	Fri, 30 Jul 2010 17:11:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: siccegge@cs.fau.de, jdike@addtoit.com
+Cc: segooon@gmail.com, chirag.kantharia@hp.com, jaxboe@fusionio.com
 
 
 The patch titled
-     arch/um/kernel/ptrace.c: remove dead PROC_MM
+     cpqarray: check put_user() result
 has been added to the -mm tree.  Its filename is
-     arch-um-kernel-ptracec-remove-dead-proc_mm.patch
+     cpqarray-check-put_user-result.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/um/kernel/ptrace.c: remove dead PROC_MM
-From: Christoph Egger <siccegge@cs.fau.de>
+Subject: cpqarray: check put_user() result
+From: Kulikov Vasiliy <segooon@gmail.com>
 
-PROC_MM doesn't exist in Kconfig.  Looking around it looks like a
-left-over from 2.6.0 or even 2.4 times, last mentioned in a fedora patch
-for 2.6.10.  I believe it's time to get rid of that last tiny parts here
-that are still around.
+put_user() may fail, if so return -EFAULT.
 
-Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Kulikov Vasiliy <segooon@gmail.com>
+Cc: Chirag Kantharia <chirag.kantharia@hp.com>
+Cc: Jens Axboe <jaxboe@fusionio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ptrace.c |   21 ---------------------
- 1 file changed, 21 deletions(-)
+ drivers/block/cpqarray.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/ptrace.c~arch-um-kernel-ptracec-remove-dead-proc_mm arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~arch-um-kernel-ptracec-remove-dead-proc_mm
-+++ a/arch/um/kernel/ptrace.c
-@@ -7,9 +7,6 @@
- #include "linux/ptrace.h"
- #include "linux/sched.h"
- #include "asm/uaccess.h"
--#ifdef CONFIG_PROC_MM
--#include "proc_mm.h"
--#endif
- #include "skas_ptrace.h"
- 
- 
-@@ -158,24 +155,6 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 	}
- #endif
--#ifdef CONFIG_PROC_MM
--	case PTRACE_SWITCH_MM: {
--		struct mm_struct *old = child->mm;
--		struct mm_struct *new = proc_mm_get_mm(data);
--
--		if (IS_ERR(new)) {
--			ret = PTR_ERR(new);
--			break;
--		}
+diff -puN drivers/block/cpqarray.c~cpqarray-check-put_user-result drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~cpqarray-check-put_user-result
++++ a/drivers/block/cpqarray.c
+@@ -1179,7 +1179,8 @@ out_passthru:
+ 		return error;
+ 	case IDAGETCTLRSIG:
+ 		if (!arg) return -EINVAL;
+-		put_user(host->ctlr_sig, (int __user *)arg);
++		if (put_user(host->ctlr_sig, (int __user *)arg))
++			return -EFAULT;
+ 		return 0;
+ 	case IDAREVALIDATEVOLS:
+ 		if (MINOR(bdev->bd_dev) != 0)
+@@ -1187,7 +1188,8 @@ out_passthru:
+ 		return revalidate_allvol(host);
+ 	case IDADRIVERVERSION:
+ 		if (!arg) return -EINVAL;
+-		put_user(DRIVER_VERSION, (unsigned long __user *)arg);
++		if (put_user(DRIVER_VERSION, (unsigned long __user *)arg))
++			return -EFAULT;
+ 		return 0;
+ 	case IDAGETPCIINFO:
+ 	{
+_
+
+Patches currently in -mm which might be from segooon@gmail.com are
+
+linux-next.patch
+cpqarray-check-put_user-result.patch
+mm-vmallocc-check-kmalloc-return-value.patch
+i2o-fix-overflow-of-copy_to_user.patch
+i2o-check-return-code-from-put_user.patch
+edac-i5000-improve-handling-of-pci_enable_device-return-value.patch
+edac-i5400-improve-handling-of-pci_enable_device-return-value.patch
+
