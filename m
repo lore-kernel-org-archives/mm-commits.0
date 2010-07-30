@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpqarray-check-put_user-result.patch added to -mm tree
-Date: Fri, 30 Jul 2010 14:11:22 -0700
-Message-ID: <201007302111.o6ULBMZA000503@imap1.linux-foundation.org>
+Subject: + staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch added to -mm tree
+Date: Fri, 30 Jul 2010 14:20:31 -0700
+Message-ID: <201007302120.o6ULKV7x000996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752211Ab0G3VLp (ORCPT
+	by vger.kernel.org with ESMTP id S1752240Ab0G3VVY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jul 2010 17:11:45 -0400
+	Fri, 30 Jul 2010 17:21:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segooon@gmail.com, chirag.kantharia@hp.com, jaxboe@fusionio.com
+Cc: jic23@cam.ac.uk
 
 
 The patch titled
-     cpqarray: check put_user() result
+     staging:iio: iio_sw_ring_helper_state - add dummy case for no buffer builds
 has been added to the -mm tree.  Its filename is
-     cpqarray-check-put_user-result.patch
+     staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpqarray: check put_user() result
-From: Kulikov Vasiliy <segooon@gmail.com>
+Subject: staging:iio: iio_sw_ring_helper_state - add dummy case for no buffer builds
+From: Jonathan Cameron <jic23@cam.ac.uk>
 
-put_user() may fail, if so return -EFAULT.
-
-Signed-off-by: Kulikov Vasiliy <segooon@gmail.com>
-Cc: Chirag Kantharia <chirag.kantharia@hp.com>
-Cc: Jens Axboe <jaxboe@fusionio.com>
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cpqarray.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/staging/iio/ring_sw.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/block/cpqarray.c~cpqarray-check-put_user-result drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~cpqarray-check-put_user-result
-+++ a/drivers/block/cpqarray.c
-@@ -1179,7 +1179,8 @@ out_passthru:
- 		return error;
- 	case IDAGETCTLRSIG:
- 		if (!arg) return -EINVAL;
--		put_user(host->ctlr_sig, (int __user *)arg);
-+		if (put_user(host->ctlr_sig, (int __user *)arg))
-+			return -EFAULT;
- 		return 0;
- 	case IDAREVALIDATEVOLS:
- 		if (MINOR(bdev->bd_dev) != 0)
-@@ -1187,7 +1188,8 @@ out_passthru:
- 		return revalidate_allvol(host);
- 	case IDADRIVERVERSION:
- 		if (!arg) return -EINVAL;
--		put_user(DRIVER_VERSION, (unsigned long __user *)arg);
-+		if (put_user(DRIVER_VERSION, (unsigned long __user *)arg))
-+			return -EFAULT;
- 		return 0;
- 	case IDAGETPCIINFO:
- 	{
+diff -puN drivers/staging/iio/ring_sw.h~staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds drivers/staging/iio/ring_sw.h
+--- a/drivers/staging/iio/ring_sw.h~staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds
++++ a/drivers/staging/iio/ring_sw.h
+@@ -222,5 +222,8 @@ void iio_sw_trigger_bh_to_ring(struct wo
+ #else /* CONFIG_IIO_RING_BUFFER*/
+ static inline void iio_ring_sw_register_funcs(struct iio_ring_access_funcs *ra)
+ {};
++struct iio_sw_ring_helper_state {
++	struct iio_dev			*indio_dev;
++};
+ #endif /* !CONFIG_IIO_RING_BUFFER */
+ #endif /* _IIO_RING_SW_H_ */
 _
 
-Patches currently in -mm which might be from segooon@gmail.com are
+Patches currently in -mm which might be from jic23@cam.ac.uk are
 
 linux-next.patch
-cpqarray-check-put_user-result.patch
-mm-vmallocc-check-kmalloc-return-value.patch
-i2o-fix-overflow-of-copy_to_user.patch
-i2o-check-return-code-from-put_user.patch
-edac-i5000-improve-handling-of-pci_enable_device-return-value.patch
-edac-i5400-improve-handling-of-pci_enable_device-return-value.patch
+staging-iio-iio_sw_ring_helper_state-add-dummy-case-for-no-buffer-builds.patch
+staging-iio-lis3l02dq-add-a-thresh_timestamp-field-to-state-for-no-ring-case.patch
+staging-iio-adis16350-add-dummy-ring-functions-for-no-ring-build-case.patch
+staging-iio-ring_sw-add-select-of-triggers-to-avoid-build-issue.patch
+staging-iio-ring_sw-remove-unnecessary-function-stub.patch
+staging-iio-ring_sw-fix-pointer-arithmetic-for-64bit-arches-by-using-phys_addr_t.patch
+misc-rohm-bh1780gli-ambient-light-sensor-driver.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update.patch
+add-abi-documentation-for-the-bmp085-digital-pressure-sensor.patch
+bmp085-add-interface-documentation-and-link-to-datasheet.patch
+hmc6352-add-driver-for-the-hmc6352-compass.patch
+hwmon-driver-for-smm665-six-channel-active-dc-output-controller-monitor.patch
+hwmon-smm665-driver-documentation.patch
 
