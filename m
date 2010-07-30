@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-optimize-exit_ptrace-for-the-likely-case.patch added to -mm tree
-Date: Thu, 29 Jul 2010 13:58:13 -0700
-Message-ID: <201007292058.o6TKwDiF000884@imap1.linux-foundation.org>
+Subject: + cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update.patch added to -mm tree
+Date: Fri, 30 Jul 2010 12:49:48 -0700
+Message-ID: <201007301949.o6UJnnL6028250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755034Ab0G2U60 (ORCPT
+	by vger.kernel.org with ESMTP id S1756096Ab0G3Tvg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Jul 2010 16:58:26 -0400
+	Fri, 30 Jul 2010 15:51:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, roland@redhat.com, yanmin_zhang@linux.intel.com
+Cc: aili@codeaurora.org, arjan@linux.intel.com, len.brown@intel.com, mingo@elte.hu, venki@google.com
 
 
 The patch titled
-     ptrace: optimize exit_ptrace() for the likely case
+     cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update
 has been added to the -mm tree.  Its filename is
-     ptrace-optimize-exit_ptrace-for-the-likely-case.patch
+     cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: optimize exit_ptrace() for the likely case
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update
+From: Ai Li <aili@codeaurora.org>
 
-exit_ptrace() takes tasklist_lock unconditionally.  We need this lock to
-avoid the race with ptrace_traceme(), it acts as a barrier.
-
-Change its caller, forget_original_parent(), to call exit_ptrace() under
-tasklist_lock.  Change exit_ptrace() to drop and reacquire this lock if
-needed.
-
-This allows us to add the fastpath list_empty(ptraced) check.  In the
-likely no-tracees case exit_ptrace() just returns and we avoid the lock()
-+ unlock() sequence.
-
-"Zhang, Yanmin" <yanmin_zhang@linux.intel.com> suggested to add this
-check, and he reports that this change adds about 11% improvement in some
-tests.
-
-Suggested-and-tested-by: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Ai Li <aili@codeaurora.org>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venki@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |    7 +++++--
- kernel/ptrace.c |   12 +++++++++---
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ drivers/cpuidle/cpuidle.c        |   24 +++++++++++++++++++++---
+ drivers/cpuidle/governors/menu.c |    7 ++++---
+ 2 files changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN kernel/exit.c~ptrace-optimize-exit_ptrace-for-the-likely-case kernel/exit.c
---- a/kernel/exit.c~ptrace-optimize-exit_ptrace-for-the-likely-case
-+++ a/kernel/exit.c
-@@ -771,9 +771,12 @@ static void forget_original_parent(struc
- 	struct task_struct *p, *n, *reaper;
- 	LIST_HEAD(dead_children);
+diff -puN drivers/cpuidle/cpuidle.c~cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update
++++ a/drivers/cpuidle/cpuidle.c
+@@ -75,6 +75,13 @@ static void cpuidle_idle_call(void)
+ 	hrtimer_peek_ahead_timers();
+ #endif
  
--	exit_ptrace(father);
--
- 	write_lock_irq(&tasklist_lock);
 +	/*
-+	 * Note that exit_ptrace() and find_new_reaper() might
-+	 * drop tasklist_lock and reacquire it.
++	 * Call the device's prepare function before calling the
++	 * governor's select function.  ->prepare gives the device's
++	 * cpuidle driver a chance to update any dynamic information
++	 * of its cpuidle states for the current idle period, e.g.
++	 * state availability, latencies, residencies, etc.
 +	 */
-+	exit_ptrace(father);
- 	reaper = find_new_reaper(father);
+ 	if (dev->prepare)
+ 		dev->prepare(dev);
  
- 	list_for_each_entry_safe(p, n, &father->children, sibling) {
-diff -puN kernel/ptrace.c~ptrace-optimize-exit_ptrace-for-the-likely-case kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-optimize-exit_ptrace-for-the-likely-case
-+++ a/kernel/ptrace.c
-@@ -324,26 +324,32 @@ int ptrace_detach(struct task_struct *ch
- }
+@@ -286,13 +293,24 @@ static int __cpuidle_register_device(str
  
- /*
-- * Detach all tasks we were using ptrace on.
-+ * Detach all tasks we were using ptrace on. Called with tasklist held
-+ * for writing, and returns with it held too. But note it can release
-+ * and reacquire the lock.
-  */
- void exit_ptrace(struct task_struct *tracer)
+ 	poll_idle_init(dev);
+ 
+-	/* fake out the power numbers of the device states if the driver
+-	 * does not specify them
++	/*
++	 * cpuidle driver should set the dev->power_specified bit
++	 * before registering the device if the driver provides
++	 * power_usage numbers.
++	 *
++	 * For those devices whose ->power_specified is not set,
++	 * we fill in power_usage with decreasing values as the
++	 * cpuidle code has an implicit assumption that state Cn
++	 * uses less power than C(n-1).
++	 *
++	 * With CONFIG_ARCH_HAS_CPU_RELAX, C0 is already assigned
++	 * an power value of -1.  So we use -2, -3, etc, for other
++	 * c-states.
+ 	 */
+ 	if (!dev->power_specified) {
+ 		int i;
+ 		for (i = CPUIDLE_DRIVER_STATE_START; i < dev->state_count; i++)
+-			dev->states[i].power_usage = ~0U - i;
++			dev->states[i].power_usage = -1 - i;
+ 	}
+ 
+ 	per_cpu(cpuidle_devices, dev->cpu) = dev;
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update
++++ a/drivers/cpuidle/governors/menu.c
+@@ -234,7 +234,7 @@ static int menu_select(struct cpuidle_de
  {
- 	struct task_struct *p, *n;
- 	LIST_HEAD(ptrace_dead);
+ 	struct menu_device *data = &__get_cpu_var(menu_devices);
+ 	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
+-	unsigned int power_usage = ~0U;
++	unsigned int power_usage = -1;
+ 	int i;
+ 	int multiplier;
  
--	write_lock_irq(&tasklist_lock);
-+	if (likely(list_empty(&tracer->ptraced)))
-+		return;
-+
- 	list_for_each_entry_safe(p, n, &tracer->ptraced, ptrace_entry) {
- 		if (__ptrace_detach(tracer, p))
- 			list_add(&p->ptrace_entry, &ptrace_dead);
- 	}
--	write_unlock_irq(&tasklist_lock);
+@@ -279,8 +279,9 @@ static int menu_select(struct cpuidle_de
+ 	if (data->expected_us > 5)
+ 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
  
-+	write_unlock_irq(&tasklist_lock);
- 	BUG_ON(!list_empty(&tracer->ptraced));
- 
- 	list_for_each_entry_safe(p, n, &ptrace_dead, ptrace_entry) {
- 		list_del_init(&p->ptrace_entry);
- 		release_task(p);
- 	}
-+
-+	write_lock_irq(&tasklist_lock);
- }
- 
- int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len)
+-	/* find the idle state with the lowest power while satisfying
+-	 * our constraints
++	/*
++	 * Find the idle state with the lowest power while satisfying
++	 * our constraints.
+ 	 */
+ 	for (i = CPUIDLE_DRIVER_STATE_START; i < dev->state_count; i++) {
+ 		struct cpuidle_state *s = &dev->states[i];
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from aili@codeaurora.org are
 
-linux-next.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-dont-try-to-kill-oom_unkillable-child.patch
-oom-oom_kill_process-doesnt-select-kthread-child.patch
-oom-make-oom_unkillable_task-helper-function.patch
-oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
-oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
-oom-kill-duplicate-oom_disable-check.patch
-oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
-oom-cleanup-has_intersects_mems_allowed.patch
-oom-remove-child-mm-check-from-oom_kill_process.patch
-oom-give-the-dying-task-a-higher-priority.patch
-oom-multi-threaded-process-coredump-dont-make-deadlock.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
-memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
-ptrace-optimize-exit_ptrace-for-the-likely-case.patch
-pids-alloc_pidmap-remove-the-unnecessary-boundary-checks.patch
-aio-do-not-return-erestartsys-and-friends-from-aio.patch
+cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states.patch
+cpuidle-extend-cpuidle-and-menu-governor-to-handle-dynamic-states-update.patch
 
