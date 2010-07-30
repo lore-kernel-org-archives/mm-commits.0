@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + staging-iio-adis16350-add-dummy-ring-functions-for-no-ring-build-case.patch added to -mm tree
-Date: Fri, 30 Jul 2010 14:20:35 -0700
-Message-ID: <201007302120.o6ULKZQG001002@imap1.linux-foundation.org>
+Subject: + staging-iio-ring_sw-remove-unnecessary-function-stub.patch added to -mm tree
+Date: Fri, 30 Jul 2010 14:20:39 -0700
+Message-ID: <201007302120.o6ULKdx9001009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754901Ab0G3VVb (ORCPT
+	by vger.kernel.org with ESMTP id S1755037Ab0G3VVd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Jul 2010 17:21:31 -0400
+	Fri, 30 Jul 2010 17:21:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jic23@cam.ac.uk
 
 
 The patch titled
-     staging:iio:adis16350: add dummy ring functions for no ring build case
+     staging:iio:ring_sw: remove unnecessary function stub
 has been added to the -mm tree.  Its filename is
-     staging-iio-adis16350-add-dummy-ring-functions-for-no-ring-build-case.patch
+     staging-iio-ring_sw-remove-unnecessary-function-stub.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging:iio:adis16350: add dummy ring functions for no ring build case
+Subject: staging:iio:ring_sw: remove unnecessary function stub
 From: Jonathan Cameron <jic23@cam.ac.uk>
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/imu/adis16350.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/staging/iio/ring_sw.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/staging/iio/imu/adis16350.h~staging-iio-adis16350-add-dummy-ring-functions-for-no-ring-build-case drivers/staging/iio/imu/adis16350.h
---- a/drivers/staging/iio/imu/adis16350.h~staging-iio-adis16350-add-dummy-ring-functions-for-no-ring-build-case
-+++ a/drivers/staging/iio/imu/adis16350.h
-@@ -165,5 +165,13 @@ adis16350_read_data_from_ring(struct dev
- 	return 0;
- }
+diff -puN drivers/staging/iio/ring_sw.h~staging-iio-ring_sw-remove-unnecessary-function-stub drivers/staging/iio/ring_sw.h
+--- a/drivers/staging/iio/ring_sw.h~staging-iio-ring_sw-remove-unnecessary-function-stub
++++ a/drivers/staging/iio/ring_sw.h
+@@ -220,8 +220,6 @@ void iio_sw_poll_func_th(struct iio_dev 
+ void iio_sw_trigger_bh_to_ring(struct work_struct *work_s);
  
-+static inline int adis16350_configure_ring(struct iio_dev *indio_dev)
-+{
-+	return 0;
-+}
-+
-+static inline void adis16350_unconfigure_ring(struct iio_dev *indio_dev)
-+{
-+}
- #endif /* CONFIG_IIO_RING_BUFFER */
- #endif /* SPI_ADIS16350_H_ */
+ #else /* CONFIG_IIO_RING_BUFFER*/
+-static inline void iio_ring_sw_register_funcs(struct iio_ring_access_funcs *ra)
+-{};
+ struct iio_sw_ring_helper_state {
+ 	struct iio_dev			*indio_dev;
+ };
 _
 
 Patches currently in -mm which might be from jic23@cam.ac.uk are
