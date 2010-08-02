@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + console-flush-log-messages-for-more-cpu-hotplug-events.patch added to -mm tree
-Date: Mon, 02 Aug 2010 15:44:39 -0700
-Message-ID: <201008022244.o72MidQg015824@imap1.linux-foundation.org>
+Subject: + mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2.patch added to -mm tree
+Date: Mon, 02 Aug 2010 15:56:35 -0700
+Message-ID: <201008022256.o72MuZJh016384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754053Ab0HBWon (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Aug 2010 18:44:43 -0400
+	by vger.kernel.org with ESMTP id S1754370Ab0HBW5P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Aug 2010 18:57:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, cernekee@gmail.com
+Cc: maximlevitsky@gmail.com, david-b@pacbell.net, linux-mmc@vger.kernel.org, stern@rowland.harvard.edu
 
 
 The patch titled
-     console: flush log messages for more cpu-hotplug events
+     mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2
 has been added to the -mm tree.  Its filename is
-     console-flush-log-messages-for-more-cpu-hotplug-events.patch
+     mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: console: flush log messages for more cpu-hotplug events
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-When a secondary CPU is being brought up, it is not uncommon for printk()
-to be invoked when cpu_online(smp_processor_id()) == 0.  The case that I
-witnessed personally was on MIPS:
+If you don't use CONFIG_MMC_UNSAFE_RESUME, as soon as you attempt to
+suspend, the card will be removed, therefore this patch doesn't change the
+behavior of this option.
 
-http://lkml.org/lkml/2010/5/30/4
+However the removal will be done by pm notifier, which runs while
+userspace is still not frozen and thus can freely use del_gendisk, without
+the risk of deadlock which would happen otherwise.
 
-If (can_use_console() == 0), printk() will spool its output to log_buf and
-it will be visible in "dmesg", but that output will NOT be echoed to the
-console until somebody calls release_console_sem() from a CPU that is
-online.  Therefore, the boot time messages from the new CPU can get stuck
-in "limbo" for a long time, and might suddenly appear on the screen when a
-completely unrelated event (e.g.  "eth0: link is down") occurs.
+Card detect workqueue is now disabled while userspace is frozen, Therefore
+if you do use CONFIG_MMC_UNSAFE_RESUME, and remove the card during
+suspend, the removal will be detected as soon as userspace is unfrozen,
+again at the moment it is safe to call del_gendisk.
 
-This patch modifies the console code so that any pending messages are
-automatically flushed out to the console whenever a CPU hotplug operation
-completes successfully or aborts.
+Tested with and without CONFIG_MMC_UNSAFE_RESUME with suspend and hibernate.
 
-Cc: Kevin Cernekee <cernekee@gmail.com>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/mmc/core/core.c  |    4 ++--
+ drivers/mmc/core/host.c  |    1 -
+ include/linux/mmc/host.h |    1 -
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/printk.c~console-flush-log-messages-for-more-cpu-hotplug-events kernel/printk.c
---- a/kernel/printk.c~console-flush-log-messages-for-more-cpu-hotplug-events
-+++ a/kernel/printk.c
-@@ -1003,6 +1003,9 @@ static int __cpuinit console_cpu_notify(
- 	switch (action) {
- 	case CPU_ONLINE:
- 	case CPU_UP_CANCELED:
-+	case CPU_DEAD:
-+	case CPU_DYING:
-+	case CPU_DOWN_FAILED:
- 		acquire_console_sem();
- 		release_console_sem();
- 	}
-_
-
-Patches currently in -mm which might be from santosh.shilimkar@ti.com are
-
-linux-next.patch
-console-flush-log-messages-for-more-cpu-hotplug-events.patch
-
+diff -puN drivers/mmc/core/core.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2 drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2
++++ a/drivers/mmc/core/core.c
+@@ -1323,6 +1323,7 @@ int mmc_resume_host(struct mmc_host *hos
+ 
+ 	return err;
+ }
++EXPORT_SYMBOL(mmc_resume_host);
+ 
+ /* Do the card removal on suspend if card is assumed removeable
+  * Do that in pm notifier while userspace isn't yet frozen, so we will be able
+@@ -1343,6 +1344,7 @@ int mmc_pm_notify(struct notifier_block 
+ 		spin_lock_irqsave(&host->lock, flags);
+ 		host->rescan_disable = 1;
+ 		spin_unlock_irqrestore(&host->lock, flags);
++		cancel_delayed_work_sync(&host->detect);
+ 
+ 		if (!host->bus_ops || host->bus_ops->suspend)
+ 			break;
+@@ -1369,8 +1371,6 @@ int mmc_pm_notify(struct notifier_block 
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(mmc_resume_host);
+-
+ #endif
+ 
+ static int __init mmc_init(void)
+diff -puN drivers/mmc/core/host.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2 drivers/mmc/core/host.c
+--- a/drivers/mmc/core/host.c~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2
++++ a/drivers/mmc/core/host.c
+@@ -88,7 +88,6 @@ struct mmc_host *mmc_alloc_host(int extr
+ 	INIT_DELAYED_WORK_DEFERRABLE(&host->disable, mmc_host_deeper_disable);
+ 	host->pm_notify.notifier_call = mmc_pm_notify;
+ 
+-
+ 	/*
+ 	 * By default, hosts do not support SGIO or large requests.
+ 	 * They have to set these according to their abilities.
+diff -puN include/linux/mmc/host.h~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2 include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2
++++ a/include/linux/mmc/host.h
+@@ -261,7 +261,6 @@ int mmc_host_disable(struct mmc_host *ho
+ int mmc_host_lazy_disable(struct mmc_host *host);
+ int mmc_pm_notify(struct notifier_block *notify_block, unsigned long, void *);
+ 
