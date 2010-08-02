@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch added to -mm tree
-Date: Mon, 02 Aug 2010 15:30:29 -0700
-Message-ID: <201008022230.o72MUTMk015115@imap1.linux-foundation.org>
+Subject: + console-flush-log-messages-for-more-cpu-hotplug-events.patch added to -mm tree
+Date: Mon, 02 Aug 2010 15:44:39 -0700
+Message-ID: <201008022244.o72MidQg015824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976Ab0HBWbT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Aug 2010 18:31:19 -0400
+	by vger.kernel.org with ESMTP id S1754053Ab0HBWon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Aug 2010 18:44:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, hpa@zytor.com, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com
+Cc: santosh.shilimkar@ti.com, cernekee@gmail.com
 
 
 The patch titled
-     x86, ia64, smp: use workqueues unconditionally during do_boot_cpu()
+     console: flush log messages for more cpu-hotplug events
 has been added to the -mm tree.  Its filename is
-     x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch
+     console-flush-log-messages-for-more-cpu-hotplug-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, ia64, smp: use workqueues unconditionally during do_boot_cpu()
-From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: console: flush log messages for more cpu-hotplug events
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Workqueues are now initialized as part of the early_initcall().  So they
-are available for use during cold boot process aswell.
+When a secondary CPU is being brought up, it is not uncommon for printk()
+to be invoked when cpu_online(smp_processor_id()) == 0.  The case that I
+witnessed personally was on MIPS:
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tony Luck <tony.luck@intel.com>
+http://lkml.org/lkml/2010/5/30/4
+
+If (can_use_console() == 0), printk() will spool its output to log_buf and
+it will be visible in "dmesg", but that output will NOT be echoed to the
+console until somebody calls release_console_sem() from a CPU that is
+online.  Therefore, the boot time messages from the new CPU can get stuck
+in "limbo" for a long time, and might suddenly appear on the screen when a
+completely unrelated event (e.g.  "eth0: link is down") occurs.
+
+This patch modifies the console code so that any pending messages are
+automatically flushed out to the console whenever a CPU hotplug operation
+completes successfully or aborts.
+
+Cc: Kevin Cernekee <cernekee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/smpboot.c |   15 ++++++---------
- arch/x86/kernel/smpboot.c  |    8 ++------
- 2 files changed, 8 insertions(+), 15 deletions(-)
+ kernel/printk.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/ia64/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu arch/ia64/kernel/smpboot.c
---- a/arch/ia64/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu
-+++ a/arch/ia64/kernel/smpboot.c
-@@ -508,21 +508,18 @@ do_boot_cpu (int sapicid, int cpu)
- 		.done	= COMPLETION_INITIALIZER(c_idle.done),
- 	};
- 
-+	/*
-+	 * We can't use kernel_thread since we must avoid to
-+	 * reschedule the child.
-+	 */
-  	c_idle.idle = get_idle_for_cpu(cpu);
-  	if (c_idle.idle) {
- 		init_idle(c_idle.idle, cpu);
-  		goto do_rest;
+diff -puN kernel/printk.c~console-flush-log-messages-for-more-cpu-hotplug-events kernel/printk.c
+--- a/kernel/printk.c~console-flush-log-messages-for-more-cpu-hotplug-events
++++ a/kernel/printk.c
+@@ -1003,6 +1003,9 @@ static int __cpuinit console_cpu_notify(
+ 	switch (action) {
+ 	case CPU_ONLINE:
+ 	case CPU_UP_CANCELED:
++	case CPU_DEAD:
++	case CPU_DYING:
++	case CPU_DOWN_FAILED:
+ 		acquire_console_sem();
+ 		release_console_sem();
  	}
- 
--	/*
--	 * We can't use kernel_thread since we must avoid to reschedule the child.
--	 */
--	if (!keventd_up())
--		c_idle.work.func(&c_idle.work);
--	else {
--		schedule_work(&c_idle.work);
--		wait_for_completion(&c_idle.done);
--	}
-+	schedule_work(&c_idle.work);
-+	wait_for_completion(&c_idle.done);
- 
- 	if (IS_ERR(c_idle.idle))
- 		panic("failed fork for CPU %d", cpu);
-diff -puN arch/x86/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu arch/x86/kernel/smpboot.c
---- a/arch/x86/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu
-+++ a/arch/x86/kernel/smpboot.c
-@@ -735,12 +735,8 @@ static int __cpuinit do_boot_cpu(int api
- 		goto do_rest;
- 	}
- 
--	if (!keventd_up())
--		c_idle.work.func(&c_idle.work);
--	else {
--		schedule_work(&c_idle.work);
--		wait_for_completion(&c_idle.done);
--	}
-+	schedule_work(&c_idle.work);
-+	wait_for_completion(&c_idle.done);
- 
- 	if (IS_ERR(c_idle.idle)) {
- 		printk("failed fork for CPU %d\n", cpu);
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from santosh.shilimkar@ti.com are
 
 linux-next.patch
-x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch
+console-flush-log-messages-for-more-cpu-hotplug-events.patch
 
