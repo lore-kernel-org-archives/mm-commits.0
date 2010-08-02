@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ips-driver-make-it-less-chatty.patch added to -mm tree
-Date: Mon, 02 Aug 2010 15:06:21 -0700
-Message-ID: <201008022206.o72M6L8b014052@imap1.linux-foundation.org>
+Subject: + x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch added to -mm tree
+Date: Mon, 02 Aug 2010 15:30:29 -0700
+Message-ID: <201008022230.o72MUTMk015115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143Ab0HBWQ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Aug 2010 18:16:27 -0400
+	by vger.kernel.org with ESMTP id S1753976Ab0HBWbT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Aug 2010 18:31:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbarnes@virtuousgeek.org, mjg@redhat.com
+Cc: suresh.b.siddha@intel.com, hpa@zytor.com, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     ips driver: make it less chatty
+     x86, ia64, smp: use workqueues unconditionally during do_boot_cpu()
 has been added to the -mm tree.  Its filename is
-     ips-driver-make-it-less-chatty.patch
+     x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ips driver: make it less chatty
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: x86, ia64, smp: use workqueues unconditionally during do_boot_cpu()
+From: Suresh Siddha <suresh.b.siddha@intel.com>
 
-We don't need a dev_warn when we exceed a thermal or power limit as we'll
-handle it appropriately by clamping down on the CPU, GPU or both as
-needed.
+Workqueues are now initialized as part of the early_initcall().  So they
+are available for use during cold boot process aswell.
 
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/intel_ips.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/smpboot.c |   15 ++++++---------
+ arch/x86/kernel/smpboot.c  |    8 ++------
+ 2 files changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN drivers/platform/x86/intel_ips.c~ips-driver-make-it-less-chatty drivers/platform/x86/intel_ips.c
---- a/drivers/platform/x86/intel_ips.c~ips-driver-make-it-less-chatty
-+++ a/drivers/platform/x86/intel_ips.c
-@@ -607,7 +607,7 @@ static bool mcp_exceeded(struct ips_driv
- 	spin_unlock_irqrestore(&ips->turbo_status_lock, flags);
+diff -puN arch/ia64/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu
++++ a/arch/ia64/kernel/smpboot.c
+@@ -508,21 +508,18 @@ do_boot_cpu (int sapicid, int cpu)
+ 		.done	= COMPLETION_INITIALIZER(c_idle.done),
+ 	};
  
- 	if (ret)
--		dev_warn(&ips->dev->dev,
-+		dev_info(&ips->dev->dev,
- 			 "MCP power or thermal limit exceeded\n");
++	/*
++	 * We can't use kernel_thread since we must avoid to
++	 * reschedule the child.
++	 */
+  	c_idle.idle = get_idle_for_cpu(cpu);
+  	if (c_idle.idle) {
+ 		init_idle(c_idle.idle, cpu);
+  		goto do_rest;
+ 	}
  
- 	return ret;
-@@ -635,7 +635,7 @@ static bool cpu_exceeded(struct ips_driv
- 	spin_unlock_irqrestore(&ips->turbo_status_lock, flags);
+-	/*
+-	 * We can't use kernel_thread since we must avoid to reschedule the child.
+-	 */
+-	if (!keventd_up())
+-		c_idle.work.func(&c_idle.work);
+-	else {
+-		schedule_work(&c_idle.work);
+-		wait_for_completion(&c_idle.done);
+-	}
++	schedule_work(&c_idle.work);
++	wait_for_completion(&c_idle.done);
  
- 	if (ret)
--		dev_warn(&ips->dev->dev,
-+		dev_info(&ips->dev->dev,
- 			 "CPU power or thermal limit exceeded\n");
+ 	if (IS_ERR(c_idle.idle))
+ 		panic("failed fork for CPU %d", cpu);
+diff -puN arch/x86/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu arch/x86/kernel/smpboot.c
+--- a/arch/x86/kernel/smpboot.c~x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu
++++ a/arch/x86/kernel/smpboot.c
+@@ -735,12 +735,8 @@ static int __cpuinit do_boot_cpu(int api
+ 		goto do_rest;
+ 	}
  
- 	return ret;
+-	if (!keventd_up())
+-		c_idle.work.func(&c_idle.work);
+-	else {
+-		schedule_work(&c_idle.work);
+-		wait_for_completion(&c_idle.done);
+-	}
++	schedule_work(&c_idle.work);
++	wait_for_completion(&c_idle.done);
+ 
+ 	if (IS_ERR(c_idle.idle)) {
+ 		printk("failed fork for CPU %d\n", cpu);
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
 linux-next.patch
-ips-driver-make-it-less-chatty.patch
-pci-add-pci-dma-unamp-state-api-to-feature-removal-scheduletxt.patch
+x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch
 
