@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch added to -mm tree
-Date: Tue, 03 Aug 2010 15:29:08 -0700
-Message-ID: <201008032229.o73MT8dP014829@imap1.linux-foundation.org>
+Subject: + drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch added to -mm tree
+Date: Tue, 03 Aug 2010 15:37:33 -0700
+Message-ID: <201008032237.o73MbXKO015211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753993Ab0HCW3p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:29:45 -0400
+	by vger.kernel.org with ESMTP id S1753482Ab0HCWi0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:38:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, jeremy@goop.org, mgrondona@llnl.gov
+Cc: stefani@seibold.net, Artem.Bityutskiy@nokia.com, David.Woodhouse@intel.com, arnd@arndb.de, segooon@gmail.com
 
 
 The patch titled
-     lib/div64.c: document that div64_u64() is not precise on 32bit platforms
+     drivers/mtd/chips/cfi_cmdset_0001.c: change struct flchip_shared spinlock into mutex
 has been added to the -mm tree.  Its filename is
-     lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch
+     drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/div64.c: document that div64_u64() is not precise on 32bit platforms
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: drivers/mtd/chips/cfi_cmdset_0001.c: change struct flchip_shared spinlock into mutex
+From: Stefani Seibold <stefani@seibold.net>
 
-We have a bug report which blames div64_u64() on 32bit platforms.
+Prevent a schedule-while-atomic by changing the flchip_shared spinlock
+into a mutex.  This should be safe since no atomic path will use this
+lock.
 
-However, the code obviously doesn't even try to pretend it can do the
-64bit division precisely.  If there is something in the high word of
-divisor, div64_u64() just shifts both arguments and throws out the low
-bits.
-
-Add a small comment to avoid the confusion.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ben Woodard <bwoodard@llnl.gov>
-Cc: Brian Behlendorf <behlendorf1@llnl.gov>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Mark Grondona <mgrondona@llnl.gov>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Vasiliy Kulikov <segooon@gmail.com>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: David Woodhouse <David.Woodhouse@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/div64.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |   20 ++++++++++----------
+ include/linux/mtd/flashchip.h       |    2 +-
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN lib/div64.c~lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms lib/div64.c
---- a/lib/div64.c~lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms
-+++ a/lib/div64.c
-@@ -77,7 +77,10 @@ s64 div_s64_rem(s64 dividend, s32 diviso
- EXPORT_SYMBOL(div_s64_rem);
- #endif
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -717,7 +717,7 @@ static int cfi_intelext_partition_fixup(
+ 		chip = &newcfi->chips[0];
+ 		for (i = 0; i < cfi->numchips; i++) {
+ 			shared[i].writing = shared[i].erasing = NULL;
+-			spin_lock_init(&shared[i].lock);
++			mutex_init(&shared[i].lock);
+ 			for (j = 0; j < numparts; j++) {
+ 				*chip = cfi->chips[i];
+ 				chip->start += j << partshift;
+@@ -886,7 +886,7 @@ static int get_chip(struct map_info *map
+ 		 */
+ 		struct flchip_shared *shared = chip->priv;
+ 		struct flchip *contender;
+-		spin_lock(&shared->lock);
++		mutex_lock(&shared->lock);
+ 		contender = shared->writing;
+ 		if (contender && contender != chip) {
+ 			/*
+@@ -899,7 +899,7 @@ static int get_chip(struct map_info *map
+ 			 * get_chip returns success we're clear to go ahead.
+ 			 */
+ 			ret = mutex_trylock(&contender->mutex);
+-			spin_unlock(&shared->lock);
++			mutex_unlock(&shared->lock);
+ 			if (!ret)
+ 				goto retry;
+ 			mutex_unlock(&chip->mutex);
+@@ -914,7 +914,7 @@ static int get_chip(struct map_info *map
+ 				mutex_unlock(&contender->mutex);
+ 				return ret;
+ 			}
+-			spin_lock(&shared->lock);
++			mutex_lock(&shared->lock);
  
--/* 64bit divisor, dividend and result. dynamic precision */
-+/*
-+ * 64bit divisor, dividend and result. Dynamic precision, unless
-+ * divisor fits in u32 result is not exactly correct.
-+ */
- #ifndef div64_u64
- u64 div64_u64(u64 dividend, u64 divisor)
- {
+ 			/* We should not own chip if it is already
+ 			 * in FL_SYNCING state. Put contender and retry. */
+@@ -930,7 +930,7 @@ static int get_chip(struct map_info *map
+ 		 * on this chip. Sleep. */
+ 		if (mode == FL_ERASING && shared->erasing
+ 		    && shared->erasing->oldstate == FL_ERASING) {
+-			spin_unlock(&shared->lock);
++			mutex_unlock(&shared->lock);
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			add_wait_queue(&chip->wq, &wait);
+ 			mutex_unlock(&chip->mutex);
+@@ -944,7 +944,7 @@ static int get_chip(struct map_info *map
+ 		shared->writing = chip;
+ 		if (mode == FL_ERASING)
+ 			shared->erasing = chip;
+-		spin_unlock(&shared->lock);
++		mutex_unlock(&shared->lock);
+ 	}
+ 	ret = chip_ready(map, chip, adr, mode);
+ 	if (ret == -EAGAIN)
+@@ -959,7 +959,7 @@ static void put_chip(struct map_info *ma
+ 
+ 	if (chip->priv) {
+ 		struct flchip_shared *shared = chip->priv;
+-		spin_lock(&shared->lock);
++		mutex_lock(&shared->lock);
+ 		if (shared->writing == chip && chip->oldstate == FL_READY) {
+ 			/* We own the ability to write, but we're done */
+ 			shared->writing = shared->erasing;
+@@ -967,7 +967,7 @@ static void put_chip(struct map_info *ma
+ 				/* give back ownership to who we loaned it from */
+ 				struct flchip *loaner = shared->writing;
+ 				mutex_lock(&loaner->mutex);
+-				spin_unlock(&shared->lock);
++				mutex_unlock(&shared->lock);
+ 				mutex_unlock(&chip->mutex);
+ 				put_chip(map, loaner, loaner->start);
+ 				mutex_lock(&chip->mutex);
+@@ -985,11 +985,11 @@ static void put_chip(struct map_info *ma
+ 			 * Don't let the switch below mess things up since
+ 			 * we don't have ownership to resume anything.
+ 			 */
+-			spin_unlock(&shared->lock);
++			mutex_unlock(&shared->lock);
+ 			wake_up(&chip->wq);
+ 			return;
+ 		}
+-		spin_unlock(&shared->lock);
++		mutex_unlock(&shared->lock);
+ 	}
+ 
+ 	switch(chip->oldstate) {
+diff -puN include/linux/mtd/flashchip.h~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex include/linux/mtd/flashchip.h
+--- a/include/linux/mtd/flashchip.h~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex
++++ a/include/linux/mtd/flashchip.h
+@@ -92,7 +92,7 @@ struct flchip {
+ /* This is used to handle contention on write/erase operations
+    between partitions of the same physical chip. */
+ struct flchip_shared {
+-	spinlock_t lock;
++	struct mutex lock;
+ 	struct flchip *writing;
+ 	struct flchip *erasing;
+ };
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-linux-next.patch
-oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
-oom-pf_exiting-check-should-take-mm-into-account.patch
-oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
-oom-dump_tasks-use-find_lock_task_mm-too.patch
-oom-improve-commentary-in-dump_tasks.patch
-oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
-oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
-oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
-oom-dont-try-to-kill-oom_unkillable-child.patch
-oom-oom_kill_process-doesnt-select-kthread-child.patch
-oom-make-oom_unkillable_task-helper-function.patch
-oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
-oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
-oom-kill-duplicate-oom_disable-check.patch
-oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
-oom-cleanup-has_intersects_mems_allowed.patch
-oom-remove-child-mm-check-from-oom_kill_process.patch
-oom-give-the-dying-task-a-higher-priority.patch
-oom-multi-threaded-process-coredump-dont-make-deadlock.patch
-oom-move-badness-declaration-into-oomh.patch
-oom-move-badness-declaration-into-oomh-fix.patch
-oom-badness-heuristic-rewrite.patch
-oom-deprecate-oom_adj-tunable.patch
-sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
-x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch
-lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch
-memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
-ptrace-optimize-exit_ptrace-for-the-likely-case.patch
-pids-alloc_pidmap-remove-the-unnecessary-boundary-checks.patch
-aio-do-not-return-erestartsys-and-friends-from-aio.patch
+drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch
+kfifo-kfifo_is_fullempty-should-return-bools-not-ints.patch
+kfifo-fix-kfifo-miss-use-of-nozamic.patch
+kfifo-add-the-new-generic-kfifo-api.patch
+kfifo-replace-the-old-non-generic-api.patch
+kfifo-add-example-files-to-the-kernel-sample-directory.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
 
