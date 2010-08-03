@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + revert-old-timer-added-usleep_range-timer.patch added to -mm tree
-Date: Tue, 03 Aug 2010 15:51:45 -0700
-Message-ID: <201008032251.o73Mpjv2015793@imap1.linux-foundation.org>
+Subject: + checkpatch-prefer-usleep_range-over-udelay-fix.patch added to -mm tree
+Date: Tue, 03 Aug 2010 15:56:26 -0700
+Message-ID: <201008032256.o73MuQXK015993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756234Ab0HCW5A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:57:00 -0400
+	by vger.kernel.org with ESMTP id S1756234Ab0HCW5I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, ppannuto@codeaurora.org, tglx@linu
 
 
 The patch titled
-     revert old "timer: Added usleep_range timer"
+     checkpatch-prefer-usleep_range-over-udelay-fix
 has been added to the -mm tree.  Its filename is
-     revert-old-timer-added-usleep_range-timer.patch
+     checkpatch-prefer-usleep_range-over-udelay-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert old "timer: Added usleep_range timer"
+Subject: checkpatch-prefer-usleep_range-over-udelay-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+syntax error at scripts/checkpatch.pl line 2598, near "/\budelay\s*\(\s*(\w+)\s*\)/ {"
+
+mismatched parentheses?
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Patrick Pannuto <ppannuto@codeaurora.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delay.h |    1 -
- kernel/timer.c        |   22 ----------------------
- 2 files changed, 23 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/delay.h~revert-old-timer-added-usleep_range-timer include/linux/delay.h
---- a/include/linux/delay.h~revert-old-timer-added-usleep_range-timer
-+++ a/include/linux/delay.h
-@@ -45,7 +45,6 @@ extern unsigned long lpj_fine;
- void calibrate_delay(void);
- void msleep(unsigned int msecs);
- unsigned long msleep_interruptible(unsigned int msecs);
--void usleep_range(unsigned long min, unsigned long max);
+diff -puN scripts/checkpatch.pl~checkpatch-prefer-usleep_range-over-udelay-fix scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-prefer-usleep_range-over-udelay-fix
++++ a/scripts/checkpatch.pl
+@@ -2595,7 +2595,7 @@ sub process {
+ 		}
  
- static inline void usleep(unsigned long usecs)
- {
-diff -puN kernel/timer.c~revert-old-timer-added-usleep_range-timer kernel/timer.c
---- a/kernel/timer.c~revert-old-timer-added-usleep_range-timer
-+++ a/kernel/timer.c
-@@ -1763,25 +1763,3 @@ unsigned long msleep_interruptible(unsig
- }
- 
- EXPORT_SYMBOL(msleep_interruptible);
--
--static int __sched do_usleep_range(unsigned long min, unsigned long max)
--{
--	ktime_t kmin;
--	unsigned long delta;
--
--	kmin = ktime_set(0, min * NSEC_PER_USEC);
--	delta = max - min;
--	return schedule_hrtimeout_range(&kmin, delta, HRTIMER_MODE_REL);
--}
--
--/**
-- * usleep_range - Drop in replacement for udelay where wakeup is flexible
-- * @min: Minimum time in usecs to sleep
-- * @max: Maximum time in usecs to sleep
-- */
--void usleep_range(unsigned long min, unsigned long max)
--{
--	__set_current_state(TASK_UNINTERRUPTIBLE);
--	do_usleep_range(min, max);
--}
--EXPORT_SYMBOL(usleep_range);
+ # prefer usleep_range over udelay
+-		if (($line =~ /\budelay\s*\(\s*(\w+)\s*\)/ {
++		if ($line =~ /\budelay\s*\(\s*(\w+)\s*\)/) {
+ 			# ignore udelay's < 10, however
+ 			if (! (($1 =~ /(\d+)/) && ($1 < 10)) ) {
+ 				CHK("usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $line);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +106,7 @@ drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-
 edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
 mmc-recognize-csd-structure-fix.patch
 mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+checkpatch-prefer-usleep_range-over-udelay-fix.patch
 hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
 drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
 fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
