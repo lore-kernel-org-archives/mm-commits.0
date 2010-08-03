@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-isl12022-properly-handle-military-hour-format-fix.patch added to -mm tree
-Date: Tue, 03 Aug 2010 14:51:15 -0700
-Message-ID: <201008032151.o73LpFsl013195@imap1.linux-foundation.org>
+Subject: + lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch added to -mm tree
+Date: Tue, 03 Aug 2010 15:29:08 -0700
+Message-ID: <201008032229.o73MT8dP014829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757797Ab0HCVwG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 17:52:06 -0400
+	by vger.kernel.org with ESMTP id S1753993Ab0HCW3p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:29:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roman.fietze@telemotive.de, a.zummo@towertech.it, mcuos.com@gmail.com
+Cc: oleg@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, jeremy@goop.org, mgrondona@llnl.gov
 
 
 The patch titled
-     rtc-isl12022-properly-handle-military-hour-format-fix.txt
+     lib/div64.c: document that div64_u64() is not precise on 32bit platforms
 has been added to the -mm tree.  Its filename is
-     rtc-isl12022-properly-handle-military-hour-format-fix.patch
+     lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-isl12022-properly-handle-military-hour-format-fix.txt
-From: Roman Fietze <roman.fietze@telemotive.de>
+Subject: lib/div64.c: document that div64_u64() is not precise on 32bit platforms
+From: Oleg Nesterov <oleg@redhat.com>
 
-The patch corrects a bug that could only be found after some testing,
-because it happens only when reading the time between 20:00 and
-24:00UTC.
+We have a bug report which blames div64_u64() on 32bit platforms.
 
-Accidently my previous patch for this driver masks out the highest bit
-of the BCD hour, which is also the AM/PM indicator if not in MIL mode,
-always resulting in hours below 20. The error was not detected when
-reviewing the patch, because the fact was missed, that ISL register
-values are all BCD and not binary, and therefore a mask of 0x1F cannot
-hold all values from 0..23.
+However, the code obviously doesn't even try to pretend it can do the
+64bit division precisely.  If there is something in the high word of
+divisor, div64_u64() just shifts both arguments and throws out the low
+bits.
 
-The proper solution is to always set the MIL bit when writing the
-hour, and of course masking with 0x3F, properly keeping both hour BCD
-digits.
+Add a small comment to avoid the confusion.
 
-Signed-off-by: Roman Fietze <roman.fietze@telemotive.de>
-Cc: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Ben Woodard <bwoodard@llnl.gov>
+Cc: Brian Behlendorf <behlendorf1@llnl.gov>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Mark Grondona <mgrondona@llnl.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12022.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/div64.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-isl12022.c~rtc-isl12022-properly-handle-military-hour-format-fix drivers/rtc/rtc-isl12022.c
---- a/drivers/rtc/rtc-isl12022.c~rtc-isl12022-properly-handle-military-hour-format-fix
-+++ a/drivers/rtc/rtc-isl12022.c
-@@ -135,7 +135,7 @@ static int isl12022_get_datetime(struct 
+diff -puN lib/div64.c~lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms lib/div64.c
+--- a/lib/div64.c~lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms
++++ a/lib/div64.c
+@@ -77,7 +77,10 @@ s64 div_s64_rem(s64 dividend, s32 diviso
+ EXPORT_SYMBOL(div_s64_rem);
+ #endif
  
- 	tm->tm_sec = bcd2bin(buf[ISL12022_REG_SC] & 0x7F);
- 	tm->tm_min = bcd2bin(buf[ISL12022_REG_MN] & 0x7F);
--	tm->tm_hour = bcd2bin(buf[ISL12022_REG_HR] & 0x1F);
-+	tm->tm_hour = bcd2bin(buf[ISL12022_REG_HR] & 0x3F);
- 	tm->tm_mday = bcd2bin(buf[ISL12022_REG_DT] & 0x3F);
- 	tm->tm_wday = buf[ISL12022_REG_DW] & 0x07;
- 	tm->tm_mon = bcd2bin(buf[ISL12022_REG_MO] & 0x1F) - 1;
+-/* 64bit divisor, dividend and result. dynamic precision */
++/*
++ * 64bit divisor, dividend and result. Dynamic precision, unless
++ * divisor fits in u32 result is not exactly correct.
++ */
+ #ifndef div64_u64
+ u64 div64_u64(u64 dividend, u64 divisor)
+ {
 _
 
-Patches currently in -mm which might be from roman.fietze@telemotive.de are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-rtc-add-intersil-isl12022-rtc-driver.patch
-rtc-isl12022-properly-handle-military-hour-format.patch
-rtc-isl12022-properly-handle-military-hour-format-fix.patch
+linux-next.patch
+oom-check-pf_kthread-instead-of-mm-to-skip-kthreads.patch
+oom-pf_exiting-check-should-take-mm-into-account.patch
+oom-introduce-find_lock_task_mm-to-fix-mm-false-positives.patch
+oom-dump_tasks-use-find_lock_task_mm-too.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-dump_tasks-use-find_lock_task_mm-too-dump_tasks-use-find_lock_task_mm-too-fix.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-fix.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-introduce-find_lock_task_mm-to-fix-mm-false-positives-fix.patch
+oom-dont-try-to-kill-oom_unkillable-child.patch
+oom-oom_kill_process-doesnt-select-kthread-child.patch
+oom-make-oom_unkillable_task-helper-function.patch
+oom-oom_kill_process-needs-to-check-that-p-is-unkillable.patch
+oom-proc-pid-oom_score-treat-kernel-thread-honestly.patch
+oom-kill-duplicate-oom_disable-check.patch
+oom-move-oom_disable-check-from-oom_kill_task-to-out_of_memory.patch
+oom-cleanup-has_intersects_mems_allowed.patch
+oom-remove-child-mm-check-from-oom_kill_process.patch
+oom-give-the-dying-task-a-higher-priority.patch
+oom-multi-threaded-process-coredump-dont-make-deadlock.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
+oom-badness-heuristic-rewrite.patch
+oom-deprecate-oom_adj-tunable.patch
+sys_personality-remove-the-bogus-checks-in-sys_personality-__set_personality-path.patch
+x86-ia64-smp-use-workqueues-unconditionally-during-do_boot_cpu.patch
+lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch
+memcg-use-find_lock_task_mm-in-memory-cgroups-oom.patch
+ptrace-optimize-exit_ptrace-for-the-likely-case.patch
+pids-alloc_pidmap-remove-the-unnecessary-boundary-checks.patch
+aio-do-not-return-erestartsys-and-friends-from-aio.patch
 
