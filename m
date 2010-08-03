@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch added to -mm tree
-Date: Tue, 03 Aug 2010 15:37:45 -0700
-Message-ID: <201008032237.o73Mbk63015217@imap1.linux-foundation.org>
+Subject: + parisc-ledc-fix-potential-stack-overflow-in-led_proc_write.patch added to -mm tree
+Date: Tue, 03 Aug 2010 15:40:02 -0700
+Message-ID: <201008032240.o73Me2Hr015284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753482Ab0HCWig (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:38:36 -0400
+	by vger.kernel.org with ESMTP id S1756415Ab0HCWk1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, Artem.Bityutskiy@nokia.com, David.Woodhouse@intel.com, arnd@arndb.de, segooon@gmail.com, stable@kernel.org
+Cc: deller@gmx.de, ilja@netric.org, kyle@mcmartin.ca, stable@kernel.org
 
 
 The patch titled
-     drivers/mtd/chips/cfi_cmdset_0001.c: change struct flchip_shared spinlock into mutex
+     parisc: led.c: fix potential stack overflow in led_proc_write()
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch
+     parisc-ledc-fix-potential-stack-overflow-in-led_proc_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,136 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/chips/cfi_cmdset_0001.c: change struct flchip_shared spinlock into mutex
-From: Stefani Seibold <stefani@seibold.net>
+Subject: parisc: led.c: fix potential stack overflow in led_proc_write()
+From: Helge Deller <deller@gmx.de>
 
-Prevent a schedule-while-atomic by changing the flchip_shared spinlock
-into a mutex.  This should be safe since no atomic path will use this
-lock.
+Avoid potential stack overflow by correctly checking count parameter.
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Vasiliy Kulikov <segooon@gmail.com>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Cc: David Woodhouse <David.Woodhouse@intel.com>
+Signed-off-by: Helge Deller <deller@gmx.de>
+Reported-by: Ilja <ilja@netric.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/cfi_cmdset_0001.c |   20 ++++++++++----------
- include/linux/mtd/flashchip.h       |    2 +-
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/parisc/led.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex drivers/mtd/chips/cfi_cmdset_0001.c
---- a/drivers/mtd/chips/cfi_cmdset_0001.c~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex
-+++ a/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -717,7 +717,7 @@ static int cfi_intelext_partition_fixup(
- 		chip = &newcfi->chips[0];
- 		for (i = 0; i < cfi->numchips; i++) {
- 			shared[i].writing = shared[i].erasing = NULL;
--			spin_lock_init(&shared[i].lock);
-+			mutex_init(&shared[i].lock);
- 			for (j = 0; j < numparts; j++) {
- 				*chip = cfi->chips[i];
- 				chip->start += j << partshift;
-@@ -886,7 +886,7 @@ static int get_chip(struct map_info *map
- 		 */
- 		struct flchip_shared *shared = chip->priv;
- 		struct flchip *contender;
--		spin_lock(&shared->lock);
-+		mutex_lock(&shared->lock);
- 		contender = shared->writing;
- 		if (contender && contender != chip) {
- 			/*
-@@ -899,7 +899,7 @@ static int get_chip(struct map_info *map
- 			 * get_chip returns success we're clear to go ahead.
- 			 */
- 			ret = mutex_trylock(&contender->mutex);
--			spin_unlock(&shared->lock);
-+			mutex_unlock(&shared->lock);
- 			if (!ret)
- 				goto retry;
- 			mutex_unlock(&chip->mutex);
-@@ -914,7 +914,7 @@ static int get_chip(struct map_info *map
- 				mutex_unlock(&contender->mutex);
- 				return ret;
- 			}
--			spin_lock(&shared->lock);
-+			mutex_lock(&shared->lock);
+diff -puN drivers/parisc/led.c~parisc-ledc-fix-potential-stack-overflow-in-led_proc_write drivers/parisc/led.c
+--- a/drivers/parisc/led.c~parisc-ledc-fix-potential-stack-overflow-in-led_proc_write
++++ a/drivers/parisc/led.c
+@@ -176,16 +176,18 @@ static ssize_t led_proc_write(struct fil
+ 	size_t count, loff_t *pos)
+ {
+ 	void *data = PDE(file->f_path.dentry->d_inode)->data;
+-	char *cur, lbuf[count + 1];
++	char *cur, lbuf[32];
+ 	int d;
  
- 			/* We should not own chip if it is already
- 			 * in FL_SYNCING state. Put contender and retry. */
-@@ -930,7 +930,7 @@ static int get_chip(struct map_info *map
- 		 * on this chip. Sleep. */
- 		if (mode == FL_ERASING && shared->erasing
- 		    && shared->erasing->oldstate == FL_ERASING) {
--			spin_unlock(&shared->lock);
-+			mutex_unlock(&shared->lock);
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 			add_wait_queue(&chip->wq, &wait);
- 			mutex_unlock(&chip->mutex);
-@@ -944,7 +944,7 @@ static int get_chip(struct map_info *map
- 		shared->writing = chip;
- 		if (mode == FL_ERASING)
- 			shared->erasing = chip;
--		spin_unlock(&shared->lock);
-+		mutex_unlock(&shared->lock);
- 	}
- 	ret = chip_ready(map, chip, adr, mode);
- 	if (ret == -EAGAIN)
-@@ -959,7 +959,7 @@ static void put_chip(struct map_info *ma
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EACCES;
  
- 	if (chip->priv) {
- 		struct flchip_shared *shared = chip->priv;
--		spin_lock(&shared->lock);
-+		mutex_lock(&shared->lock);
- 		if (shared->writing == chip && chip->oldstate == FL_READY) {
- 			/* We own the ability to write, but we're done */
- 			shared->writing = shared->erasing;
-@@ -967,7 +967,7 @@ static void put_chip(struct map_info *ma
- 				/* give back ownership to who we loaned it from */
- 				struct flchip *loaner = shared->writing;
- 				mutex_lock(&loaner->mutex);
--				spin_unlock(&shared->lock);
-+				mutex_unlock(&shared->lock);
- 				mutex_unlock(&chip->mutex);
- 				put_chip(map, loaner, loaner->start);
- 				mutex_lock(&chip->mutex);
-@@ -985,11 +985,11 @@ static void put_chip(struct map_info *ma
- 			 * Don't let the switch below mess things up since
- 			 * we don't have ownership to resume anything.
- 			 */
--			spin_unlock(&shared->lock);
-+			mutex_unlock(&shared->lock);
- 			wake_up(&chip->wq);
- 			return;
- 		}
--		spin_unlock(&shared->lock);
-+		mutex_unlock(&shared->lock);
- 	}
+-	memset(lbuf, 0, count + 1);
++	if (count >= sizeof(lbuf))
++		count = sizeof(lbuf)-1;
  
- 	switch(chip->oldstate) {
-diff -puN include/linux/mtd/flashchip.h~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex include/linux/mtd/flashchip.h
---- a/include/linux/mtd/flashchip.h~drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex
-+++ a/include/linux/mtd/flashchip.h
-@@ -92,7 +92,7 @@ struct flchip {
- /* This is used to handle contention on write/erase operations
-    between partitions of the same physical chip. */
- struct flchip_shared {
--	spinlock_t lock;
-+	struct mutex lock;
- 	struct flchip *writing;
- 	struct flchip *erasing;
- };
+ 	if (copy_from_user(lbuf, buf, count))
+ 		return -EFAULT;
++	lbuf[count] = 0;
+ 
+ 	cur = lbuf;
+ 
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from deller@gmx.de are
 
-drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch
-kfifo-kfifo_is_fullempty-should-return-bools-not-ints.patch
-kfifo-fix-kfifo-miss-use-of-nozamic.patch
-kfifo-add-the-new-generic-kfifo-api.patch
-kfifo-replace-the-old-non-generic-api.patch
-kfifo-add-example-files-to-the-kernel-sample-directory.patch
-kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+parisc-fix-wrong-page-aligned-size-calculation-in-ioremapping-code.patch
+kmap_atomic-make-kunmap_atomic-harder-to-misuse.patch
+parisc-ledc-fix-potential-stack-overflow-in-led_proc_write.patch
+dma-mapping-parisc-set-arch_dma_minalign.patch
 
