@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-mtd-chips-cfi_cmdset_0001c-change-struct-flchip_shared-spinlock-into-mutex.patch added to -mm tree
-Date: Tue, 03 Aug 2010 15:37:33 -0700
-Message-ID: <201008032237.o73MbXKO015211@imap1.linux-foundation.org>
+Date: Tue, 03 Aug 2010 15:37:45 -0700
+Message-ID: <201008032237.o73Mbk63015217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49626 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753482Ab0HCWi0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:38:26 -0400
+	by vger.kernel.org with ESMTP id S1753482Ab0HCWig (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:38:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, Artem.Bityutskiy@nokia.com, David.Woodhouse@intel.com, arnd@arndb.de, segooon@gmail.com
+Cc: stefani@seibold.net, Artem.Bityutskiy@nokia.com, David.Woodhouse@intel.com, arnd@arndb.de, segooon@gmail.com, stable@kernel.org
 
 
 The patch titled
@@ -45,6 +45,7 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Vasiliy Kulikov <segooon@gmail.com>
 Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Cc: David Woodhouse <David.Woodhouse@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
