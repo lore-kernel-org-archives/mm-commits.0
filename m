@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + timer-added-usleep_range-timer.patch added to -mm tree
-Date: Tue, 03 Aug 2010 15:51:53 -0700
-Message-ID: <201008032251.o73Mpr8q015800@imap1.linux-foundation.org>
+Subject: + revert-old-timer-added-usleep_range-timer.patch added to -mm tree
+Date: Tue, 03 Aug 2010 15:51:45 -0700
+Message-ID: <201008032251.o73Mpjv2015793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756799Ab0HCWwY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:52:24 -0400
+	by vger.kernel.org with ESMTP id S1756234Ab0HCW5A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2010 18:57:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ppannuto@codeaurora.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mingo@elte.hu, ppannuto@codeaurora.org, tglx@linutronix.de
 
 
 The patch titled
-     timer: add usleep_range timer
+     revert old "timer: Added usleep_range timer"
 has been added to the -mm tree.  Its filename is
-     timer-added-usleep_range-timer.patch
+     revert-old-timer-added-usleep_range-timer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,181 +33,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timer: add usleep_range timer
-From: Patrick Pannuto <ppannuto@codeaurora.org>
+Subject: revert old "timer: Added usleep_range timer"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-usleep_range is a finer precision implementations of msleep and is
-designed to be a drop-in replacement for udelay where a precise sleep /
-busy-wait is unnecessary.
-
-Since an easy interface to hrtimers could lead to an undesired
-proliferation of interrupts, we provide only a "range" API, forcing the
-caller to think about an acceptable tolerance on both ends and hopefully
-avoiding introducing another interrupt.
-
-*** INTRO ***
-
-As discussed here ( http://lkml.org/lkml/2007/8/3/250 ), msleep(1) is not
-precise enough for many drivers (yes, sleep precision is an unfair notion,
-but consistently sleeping for ~an order of magnitude greater than
-requested is worth fixing).  This patch adds a usleep API so that udelay
-does not have to be used.  Obviously not every udelay can be replaced
-(those in atomic contexts or being used for simple bitbanging come to
-mind), but there are many, many examples of
-
-mydriver_write(...)
-/* Wait for hardware to latch */
-udelay(100)
-
-in various drivers where a busy-wait loop is neither beneficial nor
-necessary, but msleep simply does not provide enough precision and people
-are using a busy-wait loop instead.
-
-*** CONCERNS FROM THE RFC ***
-
-Why is udelay a problem / necessary? Most callers of udelay are in device/
-driver initialization code, which is serial...
-
-	As I see it, there is only benefit to sleeping over a delay; the
-	notion of "refactoring" areas that use udelay was presented, but
-	I see usleep as the refactoring. Consider i2c, if the bus is busy,
-	you need to wait a bit (say 100us) before trying again, your
-	current options are:
-
-		* udelay(100)
-		* msleep(1) <-- As noted above, actually as high as ~20ms
-				on some platforms, so not really an option
-		* Manually set up an hrtimer to try again in 100us (which
-		  is what usleep does anyway...)
-
-	People choose the udelay route because it is EASY; we need to
-	provide a better easy route.
-
-	Device / driver / boot code is *currently* serial, but every few
-	months someone makes noise about parallelizing boot, and IMHO, a
-	little forward-thinking now is one less thing to worry about
-	if/when that ever happens
-
-udelay's could be preempted
-
-	Sure, but if udelay plans on looping 1000 times, and it gets
-	preempted on loop 200, whenever it's scheduled again, it is
-	going to do the next 800 loops.
-
-Is the interruptible case needed?
-
-	Probably not, but I see usleep as a very logical parallel to msleep,
-	so it made sense to include the "full" API. Processors are getting
-	faster (albeit not as quickly as they are becoming more parallel),
-	so if someone wanted to be interruptible for a few usecs, why not
-	let them? If this is a contentious point, I'm happy to remove it.
-
-*** OTHER THOUGHTS ***
-
-I believe there is also value in exposing the usleep_range option; it gives
-the scheduler a lot more flexibility and allows the programmer to express
-his intent much more clearly; it's something I would hope future driver
-writers will take advantage of.
-
-To get the results in the NUMBERS section below, I literally s/udelay/usleep
-the kernel tree; I had to go in and undo the changes to the USB drivers, but
-everything else booted successfully; I find that extremely telling in and
-of itself -- many people are using a delay API where a sleep will suit them
-just fine.
-
-*** SOME ATTEMPTS AT NUMBERS ***
-
-It turns out that calculating quantifiable benefit on this is challenging,
-so instead I will simply present the current state of things, and I hope
-this to be sufficient:
-
-How many udelay calls are there in 2.6.35-rc5?
-
-	udealy(ARG) >=	| COUNT
-	1000		| 319
-	500		| 414
-	100		| 1146
-	20		| 1832
-
-I am working on Android, so that is my focus for this. The following table
-is a modified usleep that simply printk's the amount of time requested to
-sleep; these tests were run on a kernel with udelay >= 20 --> usleep
-
-"boot" is power-on to lock screen
-"power collapse" is when the power button is pushed and the device suspends
-"resume" is when the power button is pushed and the lock screen is displayed
-         (no touchscreen events or anything, just turning on the display)
-"use device" is from the unlock swipe to clicking around a bit; there is no
-	sd card in this phone, so fail loading music, video, camera
-
-	ACTION		| TOTAL NUMBER OF USLEEP CALLS	| NET TIME (us)
-	boot		| 22				| 1250
-	power-collapse	| 9				| 1200
-	resume		| 5				| 500
-	use device	| 59				| 7700
-
-The most interesting category to me is the "use device" field; 7700us of
-busy-wait time that could be put towards better responsiveness, or at the
-least less power usage.
-
-Signed-off-by: Patrick Pannuto <ppannuto@codeaurora.org>
+Cc: Patrick Pannuto <ppannuto@codeaurora.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delay.h |    1 +
- kernel/timer.c        |   22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ include/linux/delay.h |    1 -
+ kernel/timer.c        |   22 ----------------------
+ 2 files changed, 23 deletions(-)
 
-diff -puN include/linux/delay.h~timer-added-usleep_range-timer include/linux/delay.h
---- a/include/linux/delay.h~timer-added-usleep_range-timer
+diff -puN include/linux/delay.h~revert-old-timer-added-usleep_range-timer include/linux/delay.h
+--- a/include/linux/delay.h~revert-old-timer-added-usleep_range-timer
 +++ a/include/linux/delay.h
-@@ -45,6 +45,7 @@ extern unsigned long lpj_fine;
+@@ -45,7 +45,6 @@ extern unsigned long lpj_fine;
  void calibrate_delay(void);
  void msleep(unsigned int msecs);
  unsigned long msleep_interruptible(unsigned int msecs);
-+void usleep_range(unsigned long min, unsigned long max);
+-void usleep_range(unsigned long min, unsigned long max);
  
  static inline void usleep(unsigned long usecs)
  {
-diff -puN kernel/timer.c~timer-added-usleep_range-timer kernel/timer.c
---- a/kernel/timer.c~timer-added-usleep_range-timer
+diff -puN kernel/timer.c~revert-old-timer-added-usleep_range-timer kernel/timer.c
+--- a/kernel/timer.c~revert-old-timer-added-usleep_range-timer
 +++ a/kernel/timer.c
-@@ -1763,3 +1763,25 @@ unsigned long msleep_interruptible(unsig
+@@ -1763,25 +1763,3 @@ unsigned long msleep_interruptible(unsig
  }
  
  EXPORT_SYMBOL(msleep_interruptible);
-+
-+static int __sched do_usleep_range(unsigned long min, unsigned long max)
-+{
-+	ktime_t kmin;
-+	unsigned long delta;
-+
-+	kmin = ktime_set(0, min * NSEC_PER_USEC);
-+	delta = (max - min) * NSEC_PER_USEC;
-+	return schedule_hrtimeout_range(&kmin, delta, HRTIMER_MODE_REL);
-+}
-+
-+/**
-+ * usleep_range - Drop in replacement for udelay where wakeup is flexible
-+ * @min: Minimum time in usecs to sleep
-+ * @max: Maximum time in usecs to sleep
-+ */
-+void usleep_range(unsigned long min, unsigned long max)
-+{
-+	__set_current_state(TASK_UNINTERRUPTIBLE);
-+	do_usleep_range(min, max);
-+}
-+EXPORT_SYMBOL(usleep_range);
+-
+-static int __sched do_usleep_range(unsigned long min, unsigned long max)
+-{
+-	ktime_t kmin;
+-	unsigned long delta;
+-
+-	kmin = ktime_set(0, min * NSEC_PER_USEC);
+-	delta = max - min;
+-	return schedule_hrtimeout_range(&kmin, delta, HRTIMER_MODE_REL);
+-}
+-
+-/**
+- * usleep_range - Drop in replacement for udelay where wakeup is flexible
+- * @min: Minimum time in usecs to sleep
+- * @max: Maximum time in usecs to sleep
+- */
+-void usleep_range(unsigned long min, unsigned long max)
+-{
+-	__set_current_state(TASK_UNINTERRUPTIBLE);
+-	do_usleep_range(min, max);
+-}
+-EXPORT_SYMBOL(usleep_range);
 _
 
-Patches currently in -mm which might be from ppannuto@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+mm-vmap-area-cache.patch
+acpi-fix-bogus-preemption-logic.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
 revert-old-timer-added-usleep_range-timer.patch
-timer-added-usleep_range-timer.patch
-documentation-add-timers-timers-howtotxt.patch
-checkpatch-prefer-usleep_range-over-udelay.patch
-checkpatch-warn-about-unexpectedly-long-msleeps.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+scsi-remove-private-bit-macros.patch
+fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
+mm-track-the-root-oldest-anon_vma-fix.patch
+oom-improve-commentary-in-dump_tasks.patch
+oom-sacrifice-child-with-highest-badness-score-for-parent-protect-dereferencing-of-tasks-comm.patch
+oom-select-task-from-tasklist-for-mempolicy-ooms-add-has_intersects_mems_allowed-uma-variant.patch
+mempolicy-reduce-stack-size-of-migrate_pages-fix.patch
+shmem-reduce-one-time-of-locking-in-pagefault-fix.patch
+rmap-always-use-anon_vma-root-pointer-fix-false-positive-bug_on-in-__page_set_anon_rmap-checkpatch-fixes.patch
+vmscan-tracing-add-trace-events-for-lru-page-isolation-checkpatch-fixes.patch
+vmscan-simplify-shrink_inactive_list-checkpatch-fixes.patch
+vmscan-remove-unnecessary-temporary-vars-in-do_try_to_free_pages-checkpatch-fixes.patch
+oom-dont-try-to-kill-oom_unkillable-child-checkpatch-fixes.patch
+oom-move-badness-declaration-into-oomh.patch
+oom-move-badness-declaration-into-oomh-fix.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-fix.patch
+vmscan-shrink_slab-require-number-of-lru_pages-not-page-order-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+include-linux-compiler-gcch-use-__same_type-in-__must_be_array.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-fix.patch
+drivers-misc-support-for-the-pressure-sensor-bmp085-from-bosch-sensortec-update-checkpatch-fixes.patch
+edd-fix-possible-memory-leak-in-edd_init-error-path-fix.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+hwmon-add-support-for-jedec-jc-424-compliant-temperature-sensors.patch
+drivers-hwmon-coretempc-remove-unneeded-ifdef-config_hotplug_cpu.patch
+fix-vc-vc_origin-on-take_over_console-checkpatch-fixes.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+rtc-add-support-for-ds3232-rtc-fix.patch
+drivers-video-via-via-gpioc-fix-warning.patch
+drivers-video-igafbc-make-igafb_setup-and-igafb_init-static.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+fs-sysv-v7-adjust-sanity-checks-for-some-volumes-checkpatch-fixes.patch
+fs-sysv-superc-add-support-for-non-pdp11-v7-filesystems-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
