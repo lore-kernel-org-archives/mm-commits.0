@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hibernation-freeze-swap-at-hibernation-v2.patch added to -mm tree
-Date: Wed, 04 Aug 2010 15:22:18 -0700
-Message-ID: <201008042222.o74MMIj8013492@imap1.linux-foundation.org>
+Subject: + mm-fix-corruption-of-hibernation-caused-by-reusing-swap-during-image-saving.patch added to -mm tree
+Date: Wed, 04 Aug 2010 15:30:32 -0700
+Message-ID: <201008042230.o74MUWfe013851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751831Ab0HDWXn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 18:23:43 -0400
+	by vger.kernel.org with ESMTP id S1757837Ab0HDWaq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 18:30:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, balbir@in.ibm.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, linux@rainbow-software.org, rjw@sisk.pl
+Cc: kamezawa.hiroyu@jp.fujitsu.com, andrea.gelmini@gmail.com, hughd@google.com, linux@rainbow-software.org, rjw@sisk.pl, stable@kernel.org
 
 
 The patch titled
-     hibernation: freeze swap at hibernation
+     mm: fix corruption of hibernation caused by reusing swap during image saving
 has been added to the -mm tree.  Its filename is
-     hibernation-freeze-swap-at-hibernation-v2.patch
+     mm-fix-corruption-of-hibernation-caused-by-reusing-swap-during-image-saving.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,238 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hibernation: freeze swap at hibernation
+Subject: mm: fix corruption of hibernation caused by reusing swap during image saving
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-When taking a memory snapshot in hibernate_snapshot(), all (directly
-called) memory allocations use GFP_ATOMIC.  Hence swap misusage during
-hibernation never occurs.
+Since 2.6.31, swap_map[]'s refcounting was changed to show that a used
+swap entry is just for swap-cache, can be reused.  Then, while scanning
+free entry in swap_map[], a swap entry may be able to be reclaimed and
+reused.  It was caused by commit c9e444103b5e7a5 ("mm: reuse unused swap
+entry if necessary").
 
-But from a pessimistic point of view, there is no guarantee that no page
-allcation has __GFP_WAIT.  It is better to have a global indication "we
-enter hibernation, don't use swap!".
+But this caused deta corruption at resume. The scenario is
 
-This patch tries to freeze new-swap-allocation during hibernation.  (All
-user processes are frozenm so swapin is not a concern).
+- Assume a clean-swap cache, but mapped.
 
-This way, no updates will happen to swap_map[] between
-hibernate_snapshot() and save_image().  Swap is thawed when swsusp_free()
-is called.  We can be assured that swap corruption will not occur.
+- at hibernation_snapshot[], clean-swap-cache is saved as
+  clean-swap-cache and swap_map[] is marked as SWAP_HAS_CACHE.
+
+- then, save_image() is called.  And reuse SWAP_HAS_CACHE entry to save
+  image, and break the contents.
+
+After resume:
+
+- the memory reclaim runs and finds clean-not-referenced-swap-cache and
+  discards it because it's marked as clean.  But here, the contents on
+  disk and swap-cache is inconsistent.
+
+Hance memory is corrupted.
+
+This patch avoids the bug by not reclaiming swap-entry during hibernation.
+This is a quick fix for backporting.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ondrej Zary <linux@rainbow-software.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Ondreg Zary <linux@rainbow-software.org>
+Tested-by: Andrea Gelmini <andrea.gelmini@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h     |    8 ++-
- kernel/power/hibernate.c |    1 
- kernel/power/snapshot.c  |    1 
- kernel/power/swap.c      |    6 +-
- mm/swapfile.c            |   94 ++++++++++++++++++++++++++++---------
- 5 files changed, 84 insertions(+), 26 deletions(-)
+ mm/swapfile.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~hibernation-freeze-swap-at-hibernation-v2 include/linux/swap.h
---- a/include/linux/swap.h~hibernation-freeze-swap-at-hibernation-v2
-+++ a/include/linux/swap.h
-@@ -316,7 +316,6 @@ extern long nr_swap_pages;
- extern long total_swap_pages;
- extern void si_swapinfo(struct sysinfo *);
- extern swp_entry_t get_swap_page(void);
--extern swp_entry_t get_swap_page_of_type(int);
- extern int valid_swaphandles(swp_entry_t, unsigned long *);
- extern int add_swap_count_continuation(swp_entry_t, gfp_t);
- extern void swap_shmem_alloc(swp_entry_t);
-@@ -333,6 +332,13 @@ extern int reuse_swap_page(struct page *
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- 
-+#ifdef CONFIG_HIBERNATION
-+void hibernation_freeze_swap(void);
-+void hibernation_thaw_swap(void);
-+swp_entry_t get_swap_for_hibernation(int type);
-+void swap_free_for_hibernation(swp_entry_t val);
-+#endif
-+
- /* linux/mm/thrash.c */
- extern struct mm_struct *swap_token_mm;
- extern void grab_swap_token(struct mm_struct *);
-diff -puN kernel/power/hibernate.c~hibernation-freeze-swap-at-hibernation-v2 kernel/power/hibernate.c
---- a/kernel/power/hibernate.c~hibernation-freeze-swap-at-hibernation-v2
-+++ a/kernel/power/hibernate.c
-@@ -338,6 +338,7 @@ int hibernation_snapshot(int platform_mo
- 		goto Close;
- 
- 	suspend_console();
-+	hibernation_freeze_swap();
- 	saved_mask = clear_gfp_allowed_mask(GFP_IOFS);
- 	error = dpm_suspend_start(PMSG_FREEZE);
- 	if (error)
-diff -puN kernel/power/snapshot.c~hibernation-freeze-swap-at-hibernation-v2 kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~hibernation-freeze-swap-at-hibernation-v2
-+++ a/kernel/power/snapshot.c
-@@ -1086,6 +1086,7 @@ void swsusp_free(void)
- 	buffer = NULL;
- 	alloc_normal = 0;
- 	alloc_highmem = 0;
-+	hibernation_thaw_swap();
- }
- 
- /* Helper functions used for the shrinking of memory. */
-diff -puN kernel/power/swap.c~hibernation-freeze-swap-at-hibernation-v2 kernel/power/swap.c
---- a/kernel/power/swap.c~hibernation-freeze-swap-at-hibernation-v2
-+++ a/kernel/power/swap.c
-@@ -135,10 +135,10 @@ sector_t alloc_swapdev_block(int swap)
- {
- 	unsigned long offset;
- 
--	offset = swp_offset(get_swap_page_of_type(swap));
-+	offset = swp_offset(get_swap_for_hibernation(swap));
- 	if (offset) {
- 		if (swsusp_extents_insert(offset))
--			swap_free(swp_entry(swap, offset));
-+			swap_free_for_hibernation(swp_entry(swap, offset));
- 		else
- 			return swapdev_block(swap, offset);
- 	}
-@@ -162,7 +162,7 @@ void free_all_swap_pages(int swap)
- 		ext = container_of(node, struct swsusp_extent, node);
- 		rb_erase(node, &swsusp_extents);
- 		for (offset = ext->start; offset <= ext->end; offset++)
--			swap_free(swp_entry(swap, offset));
-+			swap_free_for_hibernation(swp_entry(swap, offset));
- 
- 		kfree(ext);
- 	}
-diff -puN mm/swapfile.c~hibernation-freeze-swap-at-hibernation-v2 mm/swapfile.c
---- a/mm/swapfile.c~hibernation-freeze-swap-at-hibernation-v2
+diff -puN mm/swapfile.c~mm-fix-corruption-of-hibernation-caused-by-reusing-swap-during-image-saving mm/swapfile.c
+--- a/mm/swapfile.c~mm-fix-corruption-of-hibernation-caused-by-reusing-swap-during-image-saving
 +++ a/mm/swapfile.c
-@@ -47,6 +47,8 @@ long nr_swap_pages;
- long total_swap_pages;
- static int least_priority;
+@@ -318,8 +318,10 @@ checks:
+ 	if (offset > si->highest_bit)
+ 		scan_base = offset = si->lowest_bit;
  
-+static bool swap_for_hibernation;
-+
- static const char Bad_file[] = "Bad swap file entry ";
- static const char Unused_file[] = "Unused swap file entry ";
- static const char Bad_offset[] = "Bad swap offset entry ";
-@@ -449,6 +451,8 @@ swp_entry_t get_swap_page(void)
- 	spin_lock(&swap_lock);
- 	if (nr_swap_pages <= 0)
- 		goto noswap;
-+	if (swap_for_hibernation)
-+		goto noswap;
- 	nr_swap_pages--;
- 
- 	for (type = swap_list.next; type >= 0 && wrapped < 2; type = next) {
-@@ -481,28 +485,6 @@ noswap:
- 	return (swp_entry_t) {0};
- }
- 
--/* The only caller of this function is now susupend routine */
--swp_entry_t get_swap_page_of_type(int type)
--{
--	struct swap_info_struct *si;
--	pgoff_t offset;
--
--	spin_lock(&swap_lock);
--	si = swap_info[type];
--	if (si && (si->flags & SWP_WRITEOK)) {
--		nr_swap_pages--;
--		/* This is called for allocating swap entry, not cache */
--		offset = scan_swap_map(si, 1);
--		if (offset) {
--			spin_unlock(&swap_lock);
--			return swp_entry(type, offset);
--		}
--		nr_swap_pages++;
--	}
--	spin_unlock(&swap_lock);
--	return (swp_entry_t) {0};
--}
--
- static struct swap_info_struct *swap_info_get(swp_entry_t entry)
- {
- 	struct swap_info_struct *p;
-@@ -762,6 +744,74 @@ int mem_cgroup_count_swap_user(swp_entry
- #endif
- 
- #ifdef CONFIG_HIBERNATION
-+
-+static pgoff_t hibernation_offset[MAX_SWAPFILES];
-+/*
-+ * Once hibernation starts to use swap, we freeze swap_map[]. Otherwise,
-+ * saved swap_map[] image to the disk will be an incomplete because it's
-+ * changing without synchronization with hibernation snap shot.
-+ * At resume, we just make swap_for_hibernation=false. We can forget
-+ * used maps easily.
-+ */
-+void hibernation_freeze_swap(void)
-+{
-+	int i;
-+
-+	spin_lock(&swap_lock);
-+
-+	printk(KERN_INFO "PM: Freeze Swap\n");
-+	swap_for_hibernation = true;
-+	for (i = 0; i < MAX_SWAPFILES; i++)
-+		hibernation_offset[i] = 1;
-+	spin_unlock(&swap_lock);
-+}
-+
-+void hibernation_thaw_swap(void)
-+{
-+	spin_lock(&swap_lock);
-+	if (swap_for_hibernation) {
-+		printk(KERN_INFO "PM: Thaw Swap\n");
-+		swap_for_hibernation = false;
-+	}
-+	spin_unlock(&swap_lock);
-+}
-+
-+/*
-+ * Because updateing swap_map[] can make not-saved-status-change,
-+ * we use our own easy allocator.
-+ * Please see kernel/power/swap.c, Used swaps are recorded into
-+ * RB-tree.
-+ */
-+swp_entry_t get_swap_for_hibernation(int type)
-+{
-+	pgoff_t off;
-+	swp_entry_t val = {0};
-+	struct swap_info_struct *si;
-+
-+	spin_lock(&swap_lock);
-+
-+	si = swap_info[type];
-+	if (!si || !(si->flags & SWP_WRITEOK))
-+		goto done;
-+
-+	for (off = hibernation_offset[type]; off < si->max; ++off) {
-+		if (!si->swap_map[off])
-+			break;
-+	}
-+	if (off < si->max) {
-+		val = swp_entry(type, off);
-+		hibernation_offset[type] = off + 1;
-+	}
-+done:
-+	spin_unlock(&swap_lock);
-+	return val;
-+}
-+
-+void swap_free_for_hibernation(swp_entry_t ent)
-+{
-+	/* Nothing to do */
-+}
-+
- /*
-  * Find the swap type that corresponds to given device (if any).
-  *
+-	/* reuse swap entry of cache-only swap if not busy. */
+-	if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
++	/* reuse swap entry of cache-only swap if not hibernation. */
++	if (vm_swap_full()
++		&& usage == SWAP_HAS_CACHE
++		&& si->swap_map[offset] == SWAP_HAS_CACHE) {
+ 		int swap_was_freed;
+ 		spin_unlock(&swap_lock);
+ 		swap_was_freed = __try_to_reclaim_swap(si, offset);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -331,6 +157,7 @@ vmscan-convert-mm_vmscan_lru_isolate-to-define_event.patch
 memcg-add-mm_vmscan_memcg_isolate-tracepoint.patch
 vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
 vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
+mm-fix-corruption-of-hibernation-caused-by-reusing-swap-during-image-saving.patch
 hibernation-freeze-swap-at-hibernation-v2.patch
 cgroups-save-space-for-the-terminator.patch
 memcg-remove-experimental-from-swap-account-config.patch
