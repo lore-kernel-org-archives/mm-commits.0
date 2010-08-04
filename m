@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pps-fix-race-in-pps_fetch-handler.patch added to -mm tree
-Date: Wed, 04 Aug 2010 16:38:19 -0700
-Message-ID: <201008042338.o74NcKmX016990@imap1.linux-foundation.org>
+Subject: + pps-capture-monotonic_raw-timestamps-as-well.patch added to -mm tree
+Date: Wed, 04 Aug 2010 16:38:40 -0700
+Message-ID: <201008042338.o74Nce5D017023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752620Ab0HEAAG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:00:06 -0400
+	by vger.kernel.org with ESMTP id S1752620Ab0HEAA5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:00:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, joonwpark
 
 
 The patch titled
-     pps: fix race in PPS_FETCH handler
+     pps: capture MONOTONIC_RAW timestamps as well
 has been added to the -mm tree.  Its filename is
-     pps-fix-race-in-pps_fetch-handler.patch
+     pps-capture-monotonic_raw-timestamps-as-well.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,22 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: fix race in PPS_FETCH handler
+Subject: pps: capture MONOTONIC_RAW timestamps as well
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-There was a race in PPS_FETCH ioctl handler when several processes want to
-obtain PPS data simultaneously using sleeping PPS_FETCH.  They all sleep
-most of the time in the system call.
+MONOTONIC_RAW clock timestamps are ideally suited for frequency
+calculation and also fit well into the original NTP hardpps design.  Now
+phase and frequency can be adjusted separately: the former based on
 
-With the old approach when the first process waiting on the pps queue is
-waken up it makes new system call right away and zeroes pps->go.  So other
-processes continue to sleep.  This is a clear race condition because of
-the global 'go' variable.
-
-With the new approach pps->last_ev holds some value increasing at each PPS
-event.  PPS_FETCH ioctl handler saves current value to the local variable
-at the very beginning so it can safely check that there is a new event by
-just comparing both variables.
+REALTIME clock and the latter based on MONOTONIC_RAW clock.  A new
+function getnstime_raw_and_real is added to timekeeping subsystem to
+capture both timestamps at the same time and atomically.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -59,74 +53,87 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c         |    4 ++--
- drivers/pps/pps.c          |   10 +++++++---
- include/linux/pps_kernel.h |    2 +-
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ include/linux/pps_kernel.h |    3 ++-
+ include/linux/time.h       |    2 ++
+ kernel/time/timekeeping.c  |   34 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler
-+++ a/drivers/pps/kapi.c
-@@ -326,8 +326,8 @@ void pps_event(int source, struct pps_kt
- 
- 	/* Wake up if captured something */
- 	if (captured) {
--		pps->go = ~0;
--		wake_up_interruptible(&pps->queue);
-+		pps->last_ev++;
-+		wake_up_interruptible_all(&pps->queue);
- 
- 		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
- 	}
-diff -puN drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler
-+++ a/drivers/pps/pps.c
-@@ -136,6 +136,7 @@ static long pps_cdev_ioctl(struct file *
- 
- 	case PPS_FETCH: {
- 		struct pps_fdata fdata;
-+		unsigned int ev;
- 
- 		pr_debug("PPS_FETCH: source %d\n", pps->id);
- 
-@@ -143,11 +144,12 @@ static long pps_cdev_ioctl(struct file *
- 		if (err)
- 			return -EFAULT;
- 
--		pps->go = 0;
-+		ev = pps->last_ev;
- 
- 		/* Manage the timeout */
- 		if (fdata.timeout.flags & PPS_TIME_INVALID)
--			err = wait_event_interruptible(pps->queue, pps->go);
-+			err = wait_event_interruptible(pps->queue,
-+					ev < pps->last_ev);
- 		else {
- 			unsigned long ticks;
- 
-@@ -159,7 +161,9 @@ static long pps_cdev_ioctl(struct file *
- 
- 			if (ticks != 0) {
- 				err = wait_event_interruptible_timeout(
--						pps->queue, pps->go, ticks);
-+						pps->queue,
-+						ev < pps->last_ev,
-+						ticks);
- 				if (err == 0)
- 					return -ETIMEDOUT;
- 			}
-diff -puN include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler
+diff -puN include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/pps_kernel.h
+--- a/include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well
 +++ a/include/linux/pps_kernel.h
-@@ -55,7 +55,7 @@ struct pps_device {
- 	struct pps_ktime clear_tu;
- 	int current_mode;			/* PPS mode at event time */
+@@ -48,6 +48,7 @@ struct pps_source_info {
+ };
  
--	int go;					/* PPS event is arrived? */
-+	unsigned int last_ev;			/* last PPS event id */
- 	wait_queue_head_t queue;		/* PPS event queue */
+ struct pps_event_time {
++	struct timespec ts_raw;
+ 	struct timespec ts_real;
+ };
  
- 	unsigned int id;			/* PPS source unique ID */
+@@ -111,7 +112,7 @@ static inline void timespec_to_pps_ktime
+ 
+ static inline void pps_get_ts(struct pps_event_time *ts)
+ {
+-	getnstimeofday(&ts->ts_real);
++	getnstime_raw_and_real(&ts->ts_raw, &ts->ts_real);
+ }
+ 
+ #endif /* LINUX_PPS_KERNEL_H */
+diff -puN include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/time.h
+--- a/include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well
++++ a/include/linux/time.h
+@@ -158,6 +158,8 @@ extern unsigned int alarm_setitimer(unsi
+ extern int do_getitimer(int which, struct itimerval *value);
+ extern void getnstimeofday(struct timespec *tv);
+ extern void getrawmonotonic(struct timespec *ts);
++extern void getnstime_raw_and_real(struct timespec *ts_raw,
++		struct timespec *ts_real);
+ extern void getboottime(struct timespec *ts);
+ extern void monotonic_to_bootbased(struct timespec *ts);
+ 
+diff -puN kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well
++++ a/kernel/time/timekeeping.c
+@@ -285,6 +285,40 @@ void ktime_get_ts(struct timespec *ts)
+ EXPORT_SYMBOL_GPL(ktime_get_ts);
+ 
+ /**
++ * getnstime_raw_and_real - Returns both the time of day an raw
++ * monotonic time in a timespec format
++ * @ts_mono_raw:	pointer to the timespec to be set to raw
++ *			monotonic time
++ * @ts_real:		pointer to the timespec to be set to the time
++ *			of day
++ */
++void getnstime_raw_and_real(struct timespec *ts_raw, struct timespec *ts_real)
++{
++	unsigned long seq;
++	s64 nsecs_raw, nsecs_real;
++
++	WARN_ON(timekeeping_suspended);
++
++	do {
++		seq = read_seqbegin(&xtime_lock);
++
++		*ts_raw = raw_time;
++		*ts_real = xtime;
++
++		nsecs_raw = timekeeping_get_ns_raw();
++		nsecs_real = timekeeping_get_ns();
++
++		/* If arch requires, add in gettimeoffset() */
++		nsecs_real += arch_gettimeoffset();
++
++	} while (read_seqretry(&xtime_lock, seq));
++
++	timespec_add_ns(ts_raw, nsecs_raw);
++	timespec_add_ns(ts_real, nsecs_real);
++}
++EXPORT_SYMBOL(getnstime_raw_and_real);
++
++/**
+  * do_gettimeofday - Returns the time of day in a timeval
+  * @tv:		pointer to the timeval to be set
+  *
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
