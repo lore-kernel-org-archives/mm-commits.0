@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pps-move-idr-stuff-to-ppsc.patch added to -mm tree
-Date: Wed, 04 Aug 2010 16:38:27 -0700
-Message-ID: <201008042338.o74NcRi0017005@imap1.linux-foundation.org>
+Subject: + pps-convert-printk-pr_-to-dev_.patch added to -mm tree
+Date: Wed, 04 Aug 2010 16:38:25 -0700
+Message-ID: <201008042338.o74NcPY5017002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752620Ab0HEACM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:02:12 -0400
+	by vger.kernel.org with ESMTP id S1752620Ab0HEACm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:02:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, joonwpark
 
 
 The patch titled
-     pps: move idr stuff to pps.c
+     pps: convert printk/pr_* to dev_*
 has been added to the -mm tree.  Its filename is
-     pps-move-idr-stuff-to-ppsc.patch
+     pps-convert-printk-pr_-to-dev_.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: move idr stuff to pps.c
+Subject: pps: convert printk/pr_* to dev_*
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-Since now idr is only used to manage char device id's and not used in
-kernel API anymore it should be moved to pps.c.  This also makes it
-possible to release id only at actual device freeing so nobody can
-register a pps device with the same id while our device is not freed yet.
+Since we now have direct pointers to struct pps_device everywhere it's
+easy to use dev_* functions to print messages instead of plain printks. 
+Where dev_* cannot be used printks are converted to pr_*.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -50,208 +49,200 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c |   53 -------------------------------------------
- drivers/pps/pps.c  |   49 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 49 insertions(+), 53 deletions(-)
+ drivers/pps/clients/pps-ktimer.c |    4 ++--
+ drivers/pps/kapi.c               |   14 +++++++-------
+ drivers/pps/pps.c                |   24 ++++++++++++------------
+ 3 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/pps/kapi.c~pps-move-idr-stuff-to-ppsc drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-move-idr-stuff-to-ppsc
+diff -puN drivers/pps/clients/pps-ktimer.c~pps-convert-printk-pr_-to-dev_ drivers/pps/clients/pps-ktimer.c
+--- a/drivers/pps/clients/pps-ktimer.c~pps-convert-printk-pr_-to-dev_
++++ a/drivers/pps/clients/pps-ktimer.c
+@@ -45,7 +45,7 @@ static void pps_ktimer_event(unsigned lo
+ 	/* First of all we get the time stamp... */
+ 	pps_get_ts(&ts);
+ 
+-	pr_info("PPS event at %lu\n", jiffies);
++	dev_info(pps->dev, "PPS event at %lu\n", jiffies);
+ 
+ 	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
+ 
+@@ -94,7 +94,7 @@ static int __init pps_ktimer_init(void)
+ 	pps = pps_register_source(&pps_ktimer_info,
+ 				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
+ 	if (pps == NULL) {
+-		printk(KERN_ERR "cannot register ktimer source\n");
++		pr_err("cannot register ktimer source\n");
+ 		return -ENOMEM;
+ 	}
+ 
+diff -puN drivers/pps/kapi.c~pps-convert-printk-pr_-to-dev_ drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-convert-printk-pr_-to-dev_
 +++ a/drivers/pps/kapi.c
-@@ -26,19 +26,11 @@
- #include <linux/sched.h>
- #include <linux/time.h>
- #include <linux/spinlock.h>
--#include <linux/idr.h>
- #include <linux/fs.h>
- #include <linux/pps_kernel.h>
- #include <linux/slab.h>
- 
- /*
-- * Local variables
-- */
--
--static DEFINE_SPINLOCK(pps_idr_lock);
--static DEFINE_IDR(pps_idr);
--
--/*
-  * Local functions
-  */
- 
-@@ -75,7 +67,6 @@ struct pps_device *pps_register_source(s
- 		int default_params)
- {
- 	struct pps_device *pps;
--	int id;
- 	int err;
+@@ -80,20 +80,20 @@ struct pps_device *pps_register_source(s
  
  	/* Sanity checks */
-@@ -116,54 +107,18 @@ struct pps_device *pps_register_source(s
- 	init_waitqueue_head(&pps->queue);
- 	spin_lock_init(&pps->lock);
+ 	if ((info->mode & default_params) != default_params) {
+-		printk(KERN_ERR "pps: %s: unsupported default parameters\n",
++		pr_err("pps: %s: unsupported default parameters\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+ 	}
+ 	if ((info->mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) != 0 &&
+ 			info->echo == NULL) {
+-		printk(KERN_ERR "pps: %s: echo function is not defined\n",
++		pr_err("pps: %s: echo function is not defined\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+ 	}
+ 	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+-		printk(KERN_ERR "pps: %s: unspecified time format\n",
++		pr_err("pps: %s: unspecified time format\n",
+ 					info->name);
+ 		err = -EINVAL;
+ 		goto pps_register_source_exit;
+@@ -138,7 +138,7 @@ struct pps_device *pps_register_source(s
+ 	if (id >= PPS_MAX_SOURCES) {
+ 		spin_unlock_irq(&pps_idr_lock);
  
--	/* Get new ID for the new PPS source */
--	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
--		err = -ENOMEM;
--		goto kfree_pps;
--	}
--
--	spin_lock_irq(&pps_idr_lock);
--
--	/* Now really allocate the PPS source.
--	 * After idr_get_new() calling the new source will be freely available
--	 * into the kernel.
--	 */
--	err = idr_get_new(&pps_idr, pps, &id);
--	if (err < 0) {
--		spin_unlock_irq(&pps_idr_lock);
--		goto kfree_pps;
--	}
--
--	id = id & MAX_ID_MASK;
--	if (id >= PPS_MAX_SOURCES) {
--		spin_unlock_irq(&pps_idr_lock);
--
--		pr_err("pps: %s: too many PPS sources in the system\n",
--					info->name);
--		err = -EBUSY;
--		goto free_idr;
--	}
--	pps->id = id;
--
--	spin_unlock_irq(&pps_idr_lock);
--
+-		printk(KERN_ERR "pps: %s: too many PPS sources in the system\n",
++		pr_err("pps: %s: too many PPS sources in the system\n",
+ 					info->name);
+ 		err = -EBUSY;
+ 		goto free_idr;
+@@ -150,12 +150,12 @@ struct pps_device *pps_register_source(s
  	/* Create the char device */
  	err = pps_register_cdev(pps);
  	if (err < 0) {
- 		pr_err("pps: %s: unable to create char device\n",
+-		printk(KERN_ERR "pps: %s: unable to create char device\n",
++		pr_err("pps: %s: unable to create char device\n",
  					info->name);
--		goto free_idr;
-+		goto kfree_pps;
+ 		goto free_idr;
  	}
  
- 	dev_info(pps->dev, "new PPS source %s\n", info->name);
+-	pr_info("new PPS source %s at ID %d\n", info->name, id);
++	dev_info(pps->dev, "new PPS source %s\n", info->name);
  
  	return pps;
  
--free_idr:
--	spin_lock_irq(&pps_idr_lock);
--	idr_remove(&pps_idr, id);
--	spin_unlock_irq(&pps_idr_lock);
--
- kfree_pps:
+@@ -168,7 +168,7 @@ kfree_pps:
  	kfree(pps);
  
-@@ -183,13 +138,7 @@ EXPORT_SYMBOL(pps_register_source);
+ pps_register_source_exit:
+-	printk(KERN_ERR "pps: %s: unable to register source\n", info->name);
++	pr_err("pps: %s: unable to register source\n", info->name);
  
- void pps_unregister_source(struct pps_device *pps)
- {
--	unsigned int id = pps->id;
--
- 	pps_unregister_cdev(pps);
--
--	spin_lock_irq(&pps_idr_lock);
--	idr_remove(&pps_idr, pps->id);
--	spin_unlock_irq(&pps_idr_lock);
+ 	return NULL;
  }
- EXPORT_SYMBOL(pps_unregister_source);
- 
-diff -puN drivers/pps/pps.c~pps-move-idr-stuff-to-ppsc drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-move-idr-stuff-to-ppsc
+diff -puN drivers/pps/pps.c~pps-convert-printk-pr_-to-dev_ drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-convert-printk-pr_-to-dev_
 +++ a/drivers/pps/pps.c
-@@ -29,6 +29,7 @@
- #include <linux/cdev.h>
- #include <linux/poll.h>
- #include <linux/pps_kernel.h>
-+#include <linux/slab.h>
+@@ -67,7 +67,7 @@ static long pps_cdev_ioctl(struct file *
  
- /*
-  * Local variables
-@@ -37,6 +38,9 @@
- static dev_t pps_devt;
- static struct class *pps_class;
+ 	switch (cmd) {
+ 	case PPS_GETPARAMS:
+-		pr_debug("PPS_GETPARAMS: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_GETPARAMS\n");
  
-+static DEFINE_SPINLOCK(pps_idr_lock);
-+static DEFINE_IDR(pps_idr);
-+
- /*
-  * Char device methods
-  */
-@@ -228,11 +232,47 @@ static const struct file_operations pps_
- 	.release	= pps_cdev_release,
- };
+ 		spin_lock_irq(&pps->lock);
  
-+static void pps_device_destruct(struct device *dev)
-+{
-+	struct pps_device *pps = dev_get_drvdata(dev);
-+
-+	/* release id here to protect others from using it while it's
-+	 * still in use */
-+	spin_lock_irq(&pps_idr_lock);
-+	idr_remove(&pps_idr, pps->id);
-+	spin_unlock_irq(&pps_idr_lock);
-+
-+	kfree(dev);
-+}
-+
- int pps_register_cdev(struct pps_device *pps)
- {
- 	int err;
- 	dev_t devt;
+@@ -83,7 +83,7 @@ static long pps_cdev_ioctl(struct file *
+ 		break;
  
-+	/* Get new ID for the new PPS source */
-+	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0)
-+		return -ENOMEM;
-+
-+	/* Now really allocate the PPS source.
-+	 * After idr_get_new() calling the new source will be freely available
-+	 * into the kernel.
-+	 */
-+	spin_lock_irq(&pps_idr_lock);
-+	err = idr_get_new(&pps_idr, pps, &pps->id);
-+	spin_unlock_irq(&pps_idr_lock);
-+
-+	if (err < 0)
-+		return err;
-+
-+	pps->id &= MAX_ID_MASK;
-+	if (pps->id >= PPS_MAX_SOURCES) {
-+		pr_err("pps: %s: too many PPS sources in the system\n",
-+					pps->info.name);
-+		err = -EBUSY;
-+		goto free_idr;
-+	}
-+
- 	devt = MKDEV(MAJOR(pps_devt), pps->id);
+ 	case PPS_SETPARAMS:
+-		pr_debug("PPS_SETPARAMS: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_SETPARAMS\n");
  
- 	cdev_init(&pps->cdev, &pps_cdev_fops);
-@@ -242,13 +282,15 @@ int pps_register_cdev(struct pps_device 
+ 		/* Check the capabilities */
+ 		if (!capable(CAP_SYS_TIME))
+@@ -93,14 +93,14 @@ static long pps_cdev_ioctl(struct file *
+ 		if (err)
+ 			return -EFAULT;
+ 		if (!(params.mode & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR))) {
+-			pr_debug("capture mode unspecified (%x)\n",
++			dev_dbg(pps->dev, "capture mode unspecified (%x)\n",
+ 								params.mode);
+ 			return -EINVAL;
+ 		}
+ 
+ 		/* Check for supported capabilities */
+ 		if ((params.mode & ~pps->info.mode) != 0) {
+-			pr_debug("unsupported capabilities (%x)\n",
++			dev_dbg(pps->dev, "unsupported capabilities (%x)\n",
+ 								params.mode);
+ 			return -EINVAL;
+ 		}
+@@ -113,7 +113,7 @@ static long pps_cdev_ioctl(struct file *
+ 		/* Restore the read only parameters */
+ 		if ((params.mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
+ 			/* section 3.3 of RFC 2783 interpreted */
+-			pr_debug("time format unspecified (%x)\n",
++			dev_dbg(pps->dev, "time format unspecified (%x)\n",
+ 								params.mode);
+ 			pps->params.mode |= PPS_TSFMT_TSPEC;
+ 		}
+@@ -126,7 +126,7 @@ static long pps_cdev_ioctl(struct file *
+ 		break;
+ 
+ 	case PPS_GETCAP:
+-		pr_debug("PPS_GETCAP: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_GETCAP\n");
+ 
+ 		err = put_user(pps->info.mode, iuarg);
+ 		if (err)
+@@ -138,7 +138,7 @@ static long pps_cdev_ioctl(struct file *
+ 		struct pps_fdata fdata;
+ 		unsigned int ev;
+ 
+-		pr_debug("PPS_FETCH: source %d\n", pps->id);
++		dev_dbg(pps->dev, "PPS_FETCH\n");
+ 
+ 		err = copy_from_user(&fdata, uarg, sizeof(struct pps_fdata));
+ 		if (err)
+@@ -153,7 +153,7 @@ static long pps_cdev_ioctl(struct file *
+ 		else {
+ 			unsigned long ticks;
+ 
+-			pr_debug("timeout %lld.%09d\n",
++			dev_dbg(pps->dev, "timeout %lld.%09d\n",
+ 					(long long) fdata.timeout.sec,
+ 					fdata.timeout.nsec);
+ 			ticks = fdata.timeout.sec * HZ;
+@@ -171,7 +171,7 @@ static long pps_cdev_ioctl(struct file *
+ 
+ 		/* Check for pending signals */
+ 		if (err == -ERESTARTSYS) {
+-			pr_debug("pending signal caught\n");
++			dev_dbg(pps->dev, "pending signal caught\n");
+ 			return -EINTR;
+ 		}
+ 
+@@ -240,7 +240,7 @@ int pps_register_cdev(struct pps_device 
+ 
+ 	err = cdev_add(&pps->cdev, devt, 1);
  	if (err) {
- 		pr_err("pps: %s: failed to add char device %d:%d\n",
+-		printk(KERN_ERR "pps: %s: failed to add char device %d:%d\n",
++		pr_err("pps: %s: failed to add char device %d:%d\n",
  				pps->info.name, MAJOR(pps_devt), pps->id);
--		return err;
-+		goto free_idr;
+ 		return err;
  	}
- 	pps->dev = device_create(pps_class, pps->info.dev, devt, pps,
- 							"pps%d", pps->id);
- 	if (IS_ERR(pps->dev))
- 		goto del_cdev;
+@@ -282,14 +282,14 @@ static int __init pps_init(void)
  
-+	pps->dev->release = pps_device_destruct;
-+
- 	pr_debug("source %s got cdev (%d:%d)\n", pps->info.name,
- 			MAJOR(pps_devt), pps->id);
+ 	pps_class = class_create(THIS_MODULE, "pps");
+ 	if (!pps_class) {
+-		printk(KERN_ERR "pps: failed to allocate class\n");
++		pr_err("pps: failed to allocate class\n");
+ 		return -ENOMEM;
+ 	}
+ 	pps_class->dev_attrs = pps_attrs;
  
-@@ -257,6 +299,11 @@ int pps_register_cdev(struct pps_device 
- del_cdev:
- 	cdev_del(&pps->cdev);
- 
-+free_idr:
-+	spin_lock_irq(&pps_idr_lock);
-+	idr_remove(&pps_idr, pps->id);
-+	spin_unlock_irq(&pps_idr_lock);
-+
- 	return err;
- }
+ 	err = alloc_chrdev_region(&pps_devt, 0, PPS_MAX_SOURCES, "pps");
+ 	if (err < 0) {
+-		printk(KERN_ERR "pps: failed to allocate char device region\n");
++		pr_err("pps: failed to allocate char device region\n");
+ 		goto remove_class;
+ 	}
  
 _
 
