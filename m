@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-pm-traverse-video_device_list-for-backlight-restoration.patch added to -mm tree
-Date: Wed, 04 Aug 2010 12:57:29 -0700
-Message-ID: <201008041957.o74JvUfv006459@imap1.linux-foundation.org>
+Subject: + flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use.patch added to -mm tree
+Date: Wed, 04 Aug 2010 14:38:14 -0700
+Message-ID: <201008042138.o74LcEX5011403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756958Ab0HDT57 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 15:57:59 -0400
+	by vger.kernel.org with ESMTP id S1752047Ab0HDVjX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 17:39:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhopf@suse.de, julia@diku.dk, lenb@kernel.org, mjg@redhat.com, oneukum@suse.de, rui.zhang@intel.com
+Cc: eparis@redhat.com, dave@linux.vnet.ibm.com, jmorris@namei.org, joe@perches.com, rientjes@google.com
 
 
 The patch titled
-     acpi/pm: traverse video_device_list for backlight restoration
+     flex_array: add helpers to get and put to make pointers easy to use
 has been added to the -mm tree.  Its filename is
-     acpi-pm-traverse-video_device_list-for-backlight-restoration.patch
+     flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi/pm: traverse video_device_list for backlight restoration
-From: Matthias Hopf <mhopf@suse.de>
+Subject: flex_array: add helpers to get and put to make pointers easy to use
+From: Eric Paris <eparis@redhat.com>
 
-acpi_video_bus_get_devices() explicitly calls
-acpi_video_device_enumerate() before acpi_video_bus_get_one_device(),
-which does acpi_video_device_bind().
+Getting and putting arrays of pointers with flex arrays is a PITA.  You
+have to remember to pass &ptr to the _put and you have to do weird and
+wacky casting to get the ptr back from the _get.  Add two functions
+flex_array_get_ptr() and flex_array_put_ptr() to handle all of the magic.
 
-In _enumerate(), active_list[] is created, with .bind_info explicitly set
-to NULL, while the related .bind_info entry in video_device_list is set to
-the acpi_video_device ptr in _bind().
-
-The .bind_info is later used in acpi_video_resume() to re-set the
-backlight - but it's only evaluated on the active_list[], on which all
-.bind_info are NULL by construction.  This results in backlight not being
-restored, if the BIOS doesn't do this by itself already.
-
-
-The patch resolves this by replacing the active_list[] traversal by a
-video_device_list traversal, but due to the nature of the issue I'm unsure
-whether the original issue isn't of more principal quality.  I don't understand
-why the list is (partially) transformed into an array in the first place,
-especially as both the array *and* the list are used in the code...
-
-
-.bind_info in active_list[] is NULL by construction - and used to
-determine the acpi_video_device pointer during backlight restoration
-during resume.
-
-Using the list instead fixes backlight restoration for systems where the
-BIOS doesn't do this by itself already.
-
-Signed-off-by: Matthias Hopf <mhopf@suse.de>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Oliver Neukum <oneukum@suse.de>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/flex_array.h |    6 ++++++
+ lib/flex_array.c           |   25 ++++++++++++++++++++++++-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/video.c~acpi-pm-traverse-video_device_list-for-backlight-restoration drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-pm-traverse-video_device_list-for-backlight-restoration
-+++ a/drivers/acpi/video.c
-@@ -2346,7 +2346,6 @@ static int acpi_video_resume(struct noti
- {
- 	struct acpi_video_bus *video;
- 	struct acpi_video_device *video_device;
--	int i;
+diff -puN include/linux/flex_array.h~flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use
++++ a/include/linux/flex_array.h
+@@ -70,4 +70,10 @@ int flex_array_clear(struct flex_array *
+ void *flex_array_get(struct flex_array *fa, unsigned int element_nr);
+ int flex_array_shrink(struct flex_array *fa);
  
- 	switch (val) {
- 	case PM_HIBERNATION_PREPARE:
-@@ -2359,11 +2358,12 @@ static int acpi_video_resume(struct noti
- 
- 	dev_info(&video->device->dev, "Restoring backlight state\n");
- 
--	for (i = 0; i < video->attached_count; i++) {
--		video_device = video->attached_array[i].bind_info;
-+	mutex_lock(&video->device_list_lock);
-+	list_for_each_entry(video_device, &video->video_device_list, entry) {
- 		if (video_device && video_device->backlight)
- 			acpi_video_set_brightness(video_device->backlight);
- 	}
-+	mutex_unlock(&video->device_list_lock);
- 
- 	return NOTIFY_OK;
++#define flex_array_put_ptr(fa, nr, src, gfp)	({						\
++						 void *_src = (src);				\
++						 flex_array_put((fa), (nr), &_src, (gfp));	\
++						})
++void *flex_array_get_ptr(struct flex_array *fa, unsigned int element_nr);
++
+ #endif /* _FLEX_ARRAY_H */
+diff -puN lib/flex_array.c~flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use
++++ a/lib/flex_array.c
+@@ -171,6 +171,8 @@ __fa_get_part(struct flex_array *fa, int
+  * Note that this *copies* the contents of @src into
+  * the array.  If you are trying to store an array of
+  * pointers, make sure to pass in &ptr instead of ptr.
++ * You may instead wish to use the flex_array_put_ptr()
++ * helper function.
+  *
+  * Locking must be provided by the caller.
+  */
+@@ -265,7 +267,8 @@ int flex_array_prealloc(struct flex_arra
+  *
+  * Returns a pointer to the data at index @element_nr.  Note
+  * that this is a copy of the data that was passed in.  If you
+- * are using this to store pointers, you'll get back &ptr.
++ * are using this to store pointers, you'll get back &ptr.  You
++ * may instead wish to use the flex_array_get_ptr helper.
+  *
+  * Locking must be provided by the caller.
+  */
+@@ -286,6 +289,26 @@ void *flex_array_get(struct flex_array *
+ 	return &part->elements[index_inside_part(fa, element_nr)];
  }
+ 
++/**
++ * flex_array_get_ptr - pull a ptr back out of the array
++ * @fa:		the flex array from which to extract data
++ * @element_nr:	index of the element to fetch from the array
++ *
++ * Returns the pointer placed in the flex array at element_nr using
++ * flex_array_put_ptr().  This function should not be called if the
++ * element in question was not set using the _put_ptr() helper.
++ */
++void *flex_array_get_ptr(struct flex_array *fa, unsigned int element_nr)
++{
++	void **tmp;
++
++	tmp = flex_array_get(fa, element_nr);
++	if (!tmp)
++		return NULL;
++
++	return *tmp;
++}
++
+ static int part_is_free(struct flex_array_part *part)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from mhopf@suse.de are
+Patches currently in -mm which might be from eparis@redhat.com are
 
-acpi-pm-traverse-video_device_list-for-backlight-restoration.patch
+origin.patch
+linux-next.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+flex_array-add-helpers-to-get-and-put-to-make-pointers-easy-to-use.patch
 
