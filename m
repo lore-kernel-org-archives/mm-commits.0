@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pps-use-bug_on-for-kernel-api-safety-checks.patch added to -mm tree
-Date: Wed, 04 Aug 2010 16:38:33 -0700
-Message-ID: <201008042338.o74NcXhe017014@imap1.linux-foundation.org>
+Subject: + pps-fix-race-in-pps_fetch-handler.patch added to -mm tree
+Date: Wed, 04 Aug 2010 16:38:19 -0700
+Message-ID: <201008042338.o74NcKmX016990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752620Ab0HDX7U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 19:59:20 -0400
+	by vger.kernel.org with ESMTP id S1752620Ab0HEAAG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:00:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, joonwpark
 
 
 The patch titled
-     pps: use BUG_ON for kernel API safety checks
+     pps: fix race in PPS_FETCH handler
 has been added to the -mm tree.  Its filename is
-     pps-use-bug_on-for-kernel-api-safety-checks.patch
+     pps-fix-race-in-pps_fetch-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: use BUG_ON for kernel API safety checks
+Subject: pps: fix race in PPS_FETCH handler
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-This way less overhead is involved when running production kernel.  If you
-want to debug a pps client module please define DEBUG to enable the
-checks.
+There was a race in PPS_FETCH ioctl handler when several processes want to
+obtain PPS data simultaneously using sleeping PPS_FETCH.  They all sleep
+most of the time in the system call.
+
+With the old approach when the first process waiting on the pps queue is
+waken up it makes new system call right away and zeroes pps->go.  So other
+processes continue to sleep.  This is a clear race condition because of
+the global 'go' variable.
+
+With the new approach pps->last_ev holds some value increasing at each PPS
+event.  PPS_FETCH ioctl handler saves current value to the local variable
+at the very beginning so it can safely check that there is a new event by
+just comparing both variables.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -49,59 +59,74 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c |   33 ++++++++++-----------------------
- 1 file changed, 10 insertions(+), 23 deletions(-)
+ drivers/pps/kapi.c         |    4 ++--
+ drivers/pps/pps.c          |   10 +++++++---
+ include/linux/pps_kernel.h |    2 +-
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pps/kapi.c~pps-use-bug_on-for-kernel-api-safety-checks drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-use-bug_on-for-kernel-api-safety-checks
+diff -puN drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-fix-race-in-pps_fetch-handler
 +++ a/drivers/pps/kapi.c
-@@ -80,25 +80,14 @@ struct pps_device *pps_register_source(s
- 	int err;
+@@ -326,8 +326,8 @@ void pps_event(int source, struct pps_kt
  
- 	/* Sanity checks */
--	if ((info->mode & default_params) != default_params) {
--		pr_err("pps: %s: unsupported default parameters\n",
--					info->name);
--		err = -EINVAL;
--		goto pps_register_source_exit;
--	}
--	if ((info->mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) != 0 &&
--			info->echo == NULL) {
--		pr_err("pps: %s: echo function is not defined\n",
--					info->name);
--		err = -EINVAL;
--		goto pps_register_source_exit;
--	}
--	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
--		pr_err("pps: %s: unspecified time format\n",
--					info->name);
--		err = -EINVAL;
--		goto pps_register_source_exit;
--	}
-+
-+	/* default_params should be supported */
-+	BUG_ON((info->mode & default_params) != default_params);
-+	/* echo function should be defined if we are asked to call it */
-+	BUG_ON((info->mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) != 0 &&
-+			info->echo == NULL);
-+	/* time format should be specified */
-+	BUG_ON((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0);
+ 	/* Wake up if captured something */
+ 	if (captured) {
+-		pps->go = ~0;
+-		wake_up_interruptible(&pps->queue);
++		pps->last_ev++;
++		wake_up_interruptible_all(&pps->queue);
  
- 	/* Allocate memory for the new PPS source struct */
- 	pps = kzalloc(sizeof(struct pps_device), GFP_KERNEL);
-@@ -175,10 +164,8 @@ void pps_event(struct pps_device *pps, s
- 	int captured = 0;
- 	struct pps_ktime ts_real;
+ 		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
+ 	}
+diff -puN drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-fix-race-in-pps_fetch-handler
++++ a/drivers/pps/pps.c
+@@ -136,6 +136,7 @@ static long pps_cdev_ioctl(struct file *
  
--	if ((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0) {
--		dev_err(pps->dev, "unknown event (%x)\n", event);
--		return;
--	}
-+	/* check event type */
-+	BUG_ON((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0);
+ 	case PPS_FETCH: {
+ 		struct pps_fdata fdata;
++		unsigned int ev;
  
- 	dev_dbg(pps->dev, "PPS event at %ld.%09ld\n",
- 			ts->ts_real.tv_sec, ts->ts_real.tv_nsec);
+ 		pr_debug("PPS_FETCH: source %d\n", pps->id);
+ 
+@@ -143,11 +144,12 @@ static long pps_cdev_ioctl(struct file *
+ 		if (err)
+ 			return -EFAULT;
+ 
+-		pps->go = 0;
++		ev = pps->last_ev;
+ 
+ 		/* Manage the timeout */
+ 		if (fdata.timeout.flags & PPS_TIME_INVALID)
+-			err = wait_event_interruptible(pps->queue, pps->go);
++			err = wait_event_interruptible(pps->queue,
++					ev < pps->last_ev);
+ 		else {
+ 			unsigned long ticks;
+ 
+@@ -159,7 +161,9 @@ static long pps_cdev_ioctl(struct file *
+ 
+ 			if (ticks != 0) {
+ 				err = wait_event_interruptible_timeout(
+-						pps->queue, pps->go, ticks);
++						pps->queue,
++						ev < pps->last_ev,
++						ticks);
+ 				if (err == 0)
+ 					return -ETIMEDOUT;
+ 			}
+diff -puN include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler include/linux/pps_kernel.h
+--- a/include/linux/pps_kernel.h~pps-fix-race-in-pps_fetch-handler
++++ a/include/linux/pps_kernel.h
+@@ -55,7 +55,7 @@ struct pps_device {
+ 	struct pps_ktime clear_tu;
+ 	int current_mode;			/* PPS mode at event time */
+ 
+-	int go;					/* PPS event is arrived? */
++	unsigned int last_ev;			/* last PPS event id */
+ 	wait_queue_head_t queue;		/* PPS event queue */
+ 
+ 	unsigned int id;			/* PPS source unique ID */
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
