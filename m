@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pps-capture-monotonic_raw-timestamps-as-well.patch added to -mm tree
-Date: Wed, 04 Aug 2010 16:38:40 -0700
-Message-ID: <201008042338.o74Nce5D017023@imap1.linux-foundation.org>
+Subject: + pps-dont-disable-interrupts-when-using-spin-locks.patch added to -mm tree
+Date: Wed, 04 Aug 2010 16:38:31 -0700
+Message-ID: <201008042338.o74NcVr8017011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752620Ab0HEAA5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:00:57 -0400
+	by vger.kernel.org with ESMTP id S1752620Ab0HEABl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:01:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, joonwpark
 
 
 The patch titled
-     pps: capture MONOTONIC_RAW timestamps as well
+     pps: don't disable interrupts when using spin locks
 has been added to the -mm tree.  Its filename is
-     pps-capture-monotonic_raw-timestamps-as-well.patch
+     pps-dont-disable-interrupts-when-using-spin-locks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: capture MONOTONIC_RAW timestamps as well
+Subject: pps: don't disable interrupts when using spin locks
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-MONOTONIC_RAW clock timestamps are ideally suited for frequency
-calculation and also fit well into the original NTP hardpps design.  Now
-phase and frequency can be adjusted separately: the former based on
-
-REALTIME clock and the latter based on MONOTONIC_RAW clock.  A new
-function getnstime_raw_and_real is added to timekeeping subsystem to
-capture both timestamps at the same time and atomically.
+Now all PPS spin locks are never used in interrupt context so we can
+safely replace spin_lock_irq*/spin_unlock_irq* with plain
+spin_lock/spin_unlock.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -53,87 +49,129 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pps_kernel.h |    3 ++-
- include/linux/time.h       |    2 ++
- kernel/time/timekeeping.c  |   34 ++++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 1 deletion(-)
+ drivers/pps/kapi.c |    5 ++---
+ drivers/pps/pps.c  |   24 ++++++++++++------------
+ 2 files changed, 14 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/include/linux/pps_kernel.h
-@@ -48,6 +48,7 @@ struct pps_source_info {
- };
- 
- struct pps_event_time {
-+	struct timespec ts_raw;
- 	struct timespec ts_real;
- };
- 
-@@ -111,7 +112,7 @@ static inline void timespec_to_pps_ktime
- 
- static inline void pps_get_ts(struct pps_event_time *ts)
+diff -puN drivers/pps/kapi.c~pps-dont-disable-interrupts-when-using-spin-locks drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-dont-disable-interrupts-when-using-spin-locks
++++ a/drivers/pps/kapi.c
+@@ -172,7 +172,6 @@ EXPORT_SYMBOL(pps_unregister_source);
+ void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
+ 		void *data)
  {
--	getnstimeofday(&ts->ts_real);
-+	getnstime_raw_and_real(&ts->ts_raw, &ts->ts_real);
+-	unsigned long flags;
+ 	int captured = 0;
+ 	struct pps_ktime ts_real;
+ 
+@@ -186,7 +185,7 @@ void pps_event(struct pps_device *pps, s
+ 
+ 	timespec_to_pps_ktime(&ts_real, ts->ts_real);
+ 
+-	spin_lock_irqsave(&pps->lock, flags);
++	spin_lock(&pps->lock);
+ 
+ 	/* Must call the echo function? */
+ 	if ((pps->params.mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)))
+@@ -233,7 +232,7 @@ void pps_event(struct pps_device *pps, s
+ 		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
+ 	}
+ 
+-	spin_unlock_irqrestore(&pps->lock, flags);
++	spin_unlock(&pps->lock);
  }
+ EXPORT_SYMBOL(pps_event);
  
- #endif /* LINUX_PPS_KERNEL_H */
-diff -puN include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well include/linux/time.h
---- a/include/linux/time.h~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/include/linux/time.h
-@@ -158,6 +158,8 @@ extern unsigned int alarm_setitimer(unsi
- extern int do_getitimer(int which, struct itimerval *value);
- extern void getnstimeofday(struct timespec *tv);
- extern void getrawmonotonic(struct timespec *ts);
-+extern void getnstime_raw_and_real(struct timespec *ts_raw,
-+		struct timespec *ts_real);
- extern void getboottime(struct timespec *ts);
- extern void monotonic_to_bootbased(struct timespec *ts);
+diff -puN drivers/pps/pps.c~pps-dont-disable-interrupts-when-using-spin-locks drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-dont-disable-interrupts-when-using-spin-locks
++++ a/drivers/pps/pps.c
+@@ -73,12 +73,12 @@ static long pps_cdev_ioctl(struct file *
+ 	case PPS_GETPARAMS:
+ 		dev_dbg(pps->dev, "PPS_GETPARAMS\n");
  
-diff -puN kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~pps-capture-monotonic_raw-timestamps-as-well
-+++ a/kernel/time/timekeeping.c
-@@ -285,6 +285,40 @@ void ktime_get_ts(struct timespec *ts)
- EXPORT_SYMBOL_GPL(ktime_get_ts);
+-		spin_lock_irq(&pps->lock);
++		spin_lock(&pps->lock);
  
- /**
-+ * getnstime_raw_and_real - Returns both the time of day an raw
-+ * monotonic time in a timespec format
-+ * @ts_mono_raw:	pointer to the timespec to be set to raw
-+ *			monotonic time
-+ * @ts_real:		pointer to the timespec to be set to the time
-+ *			of day
-+ */
-+void getnstime_raw_and_real(struct timespec *ts_raw, struct timespec *ts_real)
-+{
-+	unsigned long seq;
-+	s64 nsecs_raw, nsecs_real;
-+
-+	WARN_ON(timekeeping_suspended);
-+
-+	do {
-+		seq = read_seqbegin(&xtime_lock);
-+
-+		*ts_raw = raw_time;
-+		*ts_real = xtime;
-+
-+		nsecs_raw = timekeeping_get_ns_raw();
-+		nsecs_real = timekeeping_get_ns();
-+
-+		/* If arch requires, add in gettimeoffset() */
-+		nsecs_real += arch_gettimeoffset();
-+
-+	} while (read_seqretry(&xtime_lock, seq));
-+
-+	timespec_add_ns(ts_raw, nsecs_raw);
-+	timespec_add_ns(ts_real, nsecs_real);
-+}
-+EXPORT_SYMBOL(getnstime_raw_and_real);
-+
-+/**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
-  *
+ 		/* Get the current parameters */
+ 		params = pps->params;
+ 
+-		spin_unlock_irq(&pps->lock);
++		spin_unlock(&pps->lock);
+ 
+ 		err = copy_to_user(uarg, &params, sizeof(struct pps_kparams));
+ 		if (err)
+@@ -109,7 +109,7 @@ static long pps_cdev_ioctl(struct file *
+ 			return -EINVAL;
+ 		}
+ 
+-		spin_lock_irq(&pps->lock);
++		spin_lock(&pps->lock);
+ 
+ 		/* Save the new parameters */
+ 		pps->params = params;
+@@ -125,7 +125,7 @@ static long pps_cdev_ioctl(struct file *
+ 			pps->params.mode |= PPS_CANWAIT;
+ 		pps->params.api_version = PPS_API_VERS;
+ 
+-		spin_unlock_irq(&pps->lock);
++		spin_unlock(&pps->lock);
+ 
+ 		break;
+ 
+@@ -180,7 +180,7 @@ static long pps_cdev_ioctl(struct file *
+ 		}
+ 
+ 		/* Return the fetched timestamp */
+-		spin_lock_irq(&pps->lock);
++		spin_lock(&pps->lock);
+ 
+ 		fdata.info.assert_sequence = pps->assert_sequence;
+ 		fdata.info.clear_sequence = pps->clear_sequence;
+@@ -188,7 +188,7 @@ static long pps_cdev_ioctl(struct file *
+ 		fdata.info.clear_tu = pps->clear_tu;
+ 		fdata.info.current_mode = pps->current_mode;
+ 
+-		spin_unlock_irq(&pps->lock);
++		spin_unlock(&pps->lock);
+ 
+ 		err = copy_to_user(uarg, &fdata, sizeof(struct pps_fdata));
+ 		if (err)
+@@ -238,9 +238,9 @@ static void pps_device_destruct(struct d
+ 
+ 	/* release id here to protect others from using it while it's
+ 	 * still in use */
+-	spin_lock_irq(&pps_idr_lock);
++	spin_lock(&pps_idr_lock);
+ 	idr_remove(&pps_idr, pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
++	spin_unlock(&pps_idr_lock);
+ 
+ 	kfree(dev);
+ }
+@@ -258,9 +258,9 @@ int pps_register_cdev(struct pps_device 
+ 	 * After idr_get_new() calling the new source will be freely available
+ 	 * into the kernel.
+ 	 */
+-	spin_lock_irq(&pps_idr_lock);
++	spin_lock(&pps_idr_lock);
+ 	err = idr_get_new(&pps_idr, pps, &pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
++	spin_unlock(&pps_idr_lock);
+ 
+ 	if (err < 0)
+ 		return err;
+@@ -300,9 +300,9 @@ del_cdev:
+ 	cdev_del(&pps->cdev);
+ 
+ free_idr:
+-	spin_lock_irq(&pps_idr_lock);
++	spin_lock(&pps_idr_lock);
+ 	idr_remove(&pps_idr, pps->id);
+-	spin_unlock_irq(&pps_idr_lock);
++	spin_unlock(&pps_idr_lock);
+ 
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
