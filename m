@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pps-add-async-pps-event-handler.patch added to -mm tree
-Date: Wed, 04 Aug 2010 16:38:29 -0700
-Message-ID: <201008042338.o74NcTgg017008@imap1.linux-foundation.org>
+Subject: + pps-add-parallel-port-pps-client.patch added to -mm tree
+Date: Wed, 04 Aug 2010 16:38:44 -0700
+Message-ID: <201008042338.o74Ncimv017029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756811Ab0HEADi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:03:38 -0400
+	by vger.kernel.org with ESMTP id S1756811Ab0HEAEK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Aug 2010 20:04:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lasaine@lvk.cs.msu.su, giometti@enneenne.com, johnstul@us.ibm.com, joonwpark
 
 
 The patch titled
-     pps: add async PPS event handler
+     pps: add parallel port PPS client
 has been added to the -mm tree.  Its filename is
-     pps-add-async-pps-event-handler.patch
+     pps-add-parallel-port-pps-client.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: add async PPS event handler
+Subject: pps: add parallel port PPS client
 From: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 
-This handler should be called from an IRQ handler.  It uses per-device
-workqueue internally.
+Add parallel port PPS client.  It uses a standard method for capturing
+timestamps for assert edge transitions: getting a timestamp soon after an
+interrupt has happened.  This is not a very precise source of time
+information due to interrupt handling delays.  However, timestamps for
+clear edge transitions are much more precise because the interrupt handler
+continuously polls hardware port until the transition is done.
+
+Hardware port operations require only about 1us so the maximum error
+should not exceed this value.  This was my primary goal when developing
+this client.
+
+Clear edge capture could be disabled using clear_wait parameter.
 
 Signed-off-by: Alexander Gordeev <lasaine@lvk.cs.msu.su>
 Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
@@ -48,252 +58,285 @@ Cc: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ktimer.c |    2 
- drivers/pps/clients/pps-ldisc.c  |    2 
- drivers/pps/kapi.c               |   95 +++++++++++++++++++++++++++--
- drivers/pps/pps.c                |   14 +++-
- include/linux/pps_kernel.h       |   16 ++++
- 5 files changed, 119 insertions(+), 10 deletions(-)
+ drivers/pps/clients/Kconfig       |    7 
+ drivers/pps/clients/Makefile      |    1 
+ drivers/pps/clients/pps_parport.c |  244 ++++++++++++++++++++++++++++
+ 3 files changed, 252 insertions(+)
 
-diff -puN drivers/pps/clients/pps-ktimer.c~pps-add-async-pps-event-handler drivers/pps/clients/pps-ktimer.c
---- a/drivers/pps/clients/pps-ktimer.c~pps-add-async-pps-event-handler
-+++ a/drivers/pps/clients/pps-ktimer.c
-@@ -47,7 +47,7 @@ static void pps_ktimer_event(unsigned lo
+diff -puN drivers/pps/clients/Kconfig~pps-add-parallel-port-pps-client drivers/pps/clients/Kconfig
+--- a/drivers/pps/clients/Kconfig~pps-add-parallel-port-pps-client
++++ a/drivers/pps/clients/Kconfig
+@@ -22,4 +22,11 @@ config PPS_CLIENT_LDISC
+ 	  If you say yes here you get support for a PPS source connected
+ 	  with the CD (Carrier Detect) pin of your serial port.
  
- 	dev_info(pps->dev, "PPS event at %lu\n", jiffies);
++config PPS_CLIENT_PARPORT
++	tristate "Parallel port PPS client"
++	depends on PPS && PARPORT
++	help
++	  If you say yes here you get support for a PPS source connected
++	  with the interrupt pin of your parallel port.
++
+ endif
+diff -puN drivers/pps/clients/Makefile~pps-add-parallel-port-pps-client drivers/pps/clients/Makefile
+--- a/drivers/pps/clients/Makefile~pps-add-parallel-port-pps-client
++++ a/drivers/pps/clients/Makefile
+@@ -4,6 +4,7 @@
  
--	pps_event(pps, &ts, PPS_CAPTUREASSERT, NULL);
-+	pps_event_irq(pps, &ts, PPS_CAPTUREASSERT, NULL);
+ obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= pps-ktimer.o
+ obj-$(CONFIG_PPS_CLIENT_LDISC)	+= pps-ldisc.o
++obj-$(CONFIG_PPS_CLIENT_PARPORT) += pps_parport.o
  
- 	mod_timer(&ktimer, jiffies + HZ);
- }
-diff -puN drivers/pps/clients/pps-ldisc.c~pps-add-async-pps-event-handler drivers/pps/clients/pps-ldisc.c
---- a/drivers/pps/clients/pps-ldisc.c~pps-add-async-pps-event-handler
-+++ a/drivers/pps/clients/pps-ldisc.c
-@@ -40,7 +40,7 @@ static void pps_tty_dcd_change(struct tt
- 		ts = &__ts;
- 
- 	/* Now do the PPS event report */
--	pps_event(pps, ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
-+	pps_event_irq(pps, ts, status ? PPS_CAPTUREASSERT : PPS_CAPTURECLEAR,
- 			NULL);
- 
- 	dev_dbg(pps->dev, "PPS %s at %lu\n", status ? "assert" : "clear",
-diff -puN drivers/pps/kapi.c~pps-add-async-pps-event-handler drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-add-async-pps-event-handler
-+++ a/drivers/pps/kapi.c
-@@ -31,9 +31,19 @@
- #include <linux/slab.h>
- 
- /*
-+ * Global variables
+ ifeq ($(CONFIG_PPS_DEBUG),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff -puN /dev/null drivers/pps/clients/pps_parport.c
+--- /dev/null
++++ a/drivers/pps/clients/pps_parport.c
+@@ -0,0 +1,244 @@
++/*
++ * pps_parport.c -- kernel parallel port PPS client
++ *
++ *
++ * Copyright (C) 2009   Alexander Gordeev <lasaine@lvk.cs.msu.su>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+/* PPS event workqueue */
-+struct workqueue_struct *pps_event_workqueue;
 +
 +/*
-  * Local functions
-  */
- 
-+static void assert_work_func(struct work_struct *work);
-+static void clear_work_func(struct work_struct *work);
-+
- static void pps_add_offset(struct pps_ktime *ts, struct pps_ktime *offset)
- {
- 	ts->nsec += offset->nsec;
-@@ -107,6 +117,9 @@ struct pps_device *pps_register_source(s
- 	init_waitqueue_head(&pps->queue);
- 	spin_lock_init(&pps->lock);
- 
-+	INIT_WORK(&pps->assert_work, assert_work_func);
-+	INIT_WORK(&pps->clear_work, clear_work_func);
-+
- 	/* Create the char device */
- 	err = pps_register_cdev(pps);
- 	if (err < 0) {
-@@ -148,11 +161,12 @@ EXPORT_SYMBOL(pps_unregister_source);
-  * @event: the event type
-  * @data: userdef pointer
-  *
-- * This function is used by each PPS client in order to register a new
-- * PPS event into the system (it's usually called inside an IRQ handler).
-+ * This function is used by PPS clients in order to register a new
-+ * PPS event into the system. It should not be called from an IRQ
-+ * handler. Use pps_event_irq instead.
-  *
-- * If an echo function is associated with the PPS device it will be called
-- * as:
-+ * If an echo function is associated with the PPS device it will be
-+ * called as:
-  *	pps->info.echo(pps, event, data);
-  */
- void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
-@@ -222,3 +236,76 @@ void pps_event(struct pps_device *pps, s
- 	spin_unlock_irqrestore(&pps->lock, flags);
- }
- EXPORT_SYMBOL(pps_event);
-+
-+/* Async event handlers */
-+
-+static void assert_work_func(struct work_struct *work)
-+{
-+	struct pps_device *pps = container_of(work,
-+			struct pps_device, assert_work);
-+
-+	pps_event(pps, &pps->assert_work_ts, PPS_CAPTUREASSERT,
-+			pps->assert_work_data);
-+}
-+
-+static void clear_work_func(struct work_struct *work)
-+{
-+	struct pps_device *pps = container_of(work,
-+			struct pps_device, clear_work);
-+
-+	pps_event(pps, &pps->clear_work_ts, PPS_CAPTURECLEAR,
-+			pps->clear_work_data);
-+}
-+
-+/* pps_event_irq - register a PPS event for deffered handling using
-+ * workqueue
-+ *
-+ * @pps: the PPS device
-+ * @ts: the event timestamp
-+ * @event: the event type
-+ * @data: userdef pointer
-+ *
-+ * This function is used by PPS clients in order to register a new
-+ * PPS event into the system. It should be called from an IRQ handler
-+ * only.
-+ *
-+ * If an echo function is associated with the PPS device it will be
-+ * called as:
-+ *	pps->info.echo(pps, event, data);
++ * TODO:
++ * implement echo over SEL pin
 + */
-+void pps_event_irq(struct pps_device *pps, struct pps_event_time *ts,
-+		int event, void *data)
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/irqnr.h>
++#include <linux/time.h>
++#include <linux/parport.h>
++#include <linux/pps_kernel.h>
++
++#define DRVNAME "pps_parport"
++#define DRVDESC "parallel port PPS client"
++
++/* module parameters */
++
++#define CLEAR_WAIT_MAX		100
++#define CLEAR_WAIT_MAX_ERRORS	5
++
++static unsigned int clear_wait = 100;
++MODULE_PARM_DESC(clear_wait,
++	"Maximum number of port reads when polling for signal clear,"
++	" zero turns clear edge capture off entirely");
++module_param(clear_wait, uint, 0);
++
++
++/* internal per port structure */
++struct pps_client_pp {
++	struct pardevice *pardev;	/* parport device */
++	struct pps_device *pps;		/* PPS device */
++	unsigned int cw;		/* port clear timeout */
++	unsigned int cw_err;		/* number of timeouts */
++};
++
++#define SIGNAL_IS_SET(port) \
++	((port->ops->read_status(port) & PARPORT_STATUS_ACK) != 0)
++
++/* parport interrupt handler */
++static void parport_irq(void *handle)
 +{
-+	/* check event type */
-+	BUG_ON((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0);
++	struct pps_event_time ts_assert, ts_clear;
++	struct pps_client_pp *dev = handle;
++	struct parport *port = dev->pardev->port;
++	unsigned int i;
++	unsigned long flags;
 +
-+	if (event & PPS_CAPTUREASSERT) {
-+		if (work_pending(&pps->assert_work)) {
-+			dev_err(pps->dev, "deferred assert edge work haven't"
-+					" been handled within a second\n");
-+			/* FIXME: do something more intelligent
-+			 * then just exit */
-+		} else {
-+			/* now we can copy data safely */
-+			pps->assert_work_ts = *ts;
-+			pps->assert_work_data = data;
++	/* first of all we get the time stamp... */
++	pps_get_ts(&ts_assert);
 +
-+			queue_work(pps_event_workqueue, &pps->assert_work);
-+		}
++	if (dev->cw == 0)
++		/* clear edge capture disabled */
++		goto out_assert;
++
++	/* try capture the clear edge */
++	local_irq_save(flags);
++	/* check the signal (no signal means the pulse is lost this time) */
++	if (!SIGNAL_IS_SET(port)) {
++		local_irq_restore(flags);
++		dev_err(dev->pps->dev, "lost the signal\n");
++		goto out_assert;
 +	}
-+	if (event & PPS_CAPTURECLEAR) {
-+		if (work_pending(&pps->clear_work)) {
-+			dev_err(pps->dev, "deferred clear edge work haven't"
-+					" been handled within a second\n");
-+			/* FIXME: do something more intelligent
-+			 * then just exit */
-+		} else {
-+			/* now we can copy data safely */
-+			pps->clear_work_ts = *ts;
-+			pps->clear_work_data = data;
 +
-+			queue_work(pps_event_workqueue, &pps->clear_work);
++	/* poll the port until the signal is unset */
++	for (i = dev->cw; i; i--)
++		if (!SIGNAL_IS_SET(port)) {
++			pps_get_ts(&ts_clear);
++			local_irq_restore(flags);
++			dev->cw_err = 0;
++			goto out_both;
 +		}
++	local_irq_restore(flags);
++
++	/* timeout */
++	dev->cw_err++;
++	if (dev->cw_err >= CLEAR_WAIT_MAX_ERRORS) {
++		dev_err(dev->pps->dev, "disabled clear edge capture after %d"
++				" timeouts\n", dev->cw_err);
++		dev->cw = 0;
++		dev->cw_err = 0;
 +	}
++
++out_assert:
++	/* fire assert event */
++	pps_event_irq(dev->pps, &ts_assert,
++			PPS_CAPTUREASSERT, NULL);
++	return;
++
++out_both:
++	/* fire assert event */
++	pps_event_irq(dev->pps, &ts_assert,
++			PPS_CAPTUREASSERT, NULL);
++	/* fire clear event */
++	pps_event_irq(dev->pps, &ts_clear,
++			PPS_CAPTURECLEAR, NULL);
++	return;
 +}
-+EXPORT_SYMBOL(pps_event_irq);
-diff -puN drivers/pps/pps.c~pps-add-async-pps-event-handler drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-add-async-pps-event-handler
-+++ a/drivers/pps/pps.c
-@@ -319,18 +319,26 @@ void pps_unregister_cdev(struct pps_devi
- 
- static void __exit pps_exit(void)
- {
--	class_destroy(pps_class);
- 	unregister_chrdev_region(pps_devt, PPS_MAX_SOURCES);
-+	class_destroy(pps_class);
-+	destroy_workqueue(pps_event_workqueue);
- }
- 
- static int __init pps_init(void)
- {
- 	int err;
- 
-+	pps_event_workqueue = create_rt_workqueue("pps");
-+	if (!pps_event_workqueue) {
-+		pr_err("pps: failed to create workqueue\n");
-+		return -ENOMEM;
++
++/* the PPS echo function */
++static void pps_echo(struct pps_device *pps, int event, void *data)
++{
++	dev_info(pps->dev, "echo %s %s\n",
++		event & PPS_CAPTUREASSERT ? "assert" : "",
++		event & PPS_CAPTURECLEAR ? "clear" : "");
++}
++
++static void parport_attach(struct parport *port)
++{
++	struct pps_client_pp *device;
++	struct pps_source_info info = {
++		.name		= DRVNAME,
++		.path		= "",
++		.mode		= PPS_CAPTUREBOTH | \
++				  PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
++				  PPS_ECHOASSERT | PPS_ECHOCLEAR | \
++				  PPS_CANWAIT | PPS_TSFMT_TSPEC,
++		.echo		= pps_echo,
++		.owner		= THIS_MODULE,
++		.dev		= NULL
++	};
++
++	device = kzalloc(sizeof(struct pps_client_pp), GFP_KERNEL);
++	if (!device) {
++		pr_err(DRVNAME ": memory allocation failed, not attaching\n");
++		return;
 +	}
 +
- 	pps_class = class_create(THIS_MODULE, "pps");
- 	if (!pps_class) {
- 		pr_err("pps: failed to allocate class\n");
--		return -ENOMEM;
-+		err = -ENOMEM;
-+		goto destroy_workqueue;
- 	}
- 	pps_class->dev_attrs = pps_attrs;
- 
-@@ -348,6 +356,8 @@ static int __init pps_init(void)
- 
- remove_class:
- 	class_destroy(pps_class);
-+destroy_workqueue:
-+	destroy_workqueue(pps_event_workqueue);
- 
- 	return err;
- }
-diff -puN include/linux/pps_kernel.h~pps-add-async-pps-event-handler include/linux/pps_kernel.h
---- a/include/linux/pps_kernel.h~pps-add-async-pps-event-handler
-+++ a/include/linux/pps_kernel.h
-@@ -26,6 +26,7 @@
- #include <linux/cdev.h>
- #include <linux/device.h>
- #include <linux/time.h>
-+#include <linux/workqueue.h>
- 
- /*
-  * Global defines
-@@ -70,6 +71,13 @@ struct pps_device {
- 	struct device *dev;
- 	struct fasync_struct *async_queue;	/* fasync method */
- 	spinlock_t lock;
++	device->pardev = parport_register_device(port, DRVNAME,
++			NULL, NULL, parport_irq, 0, device);
++	if (!device->pardev) {
++		pr_err(DRVNAME ": couldn't register with %s\n", port->name);
++		goto err_free;
++	}
 +
-+	struct work_struct assert_work;
-+	struct work_struct clear_work;
-+	struct pps_event_time assert_work_ts;
-+	struct pps_event_time clear_work_ts;
-+	void *assert_work_data;
-+	void *clear_work_data;
- };
- 
- /*
-@@ -78,6 +86,8 @@ struct pps_device {
- 
- extern struct device_attribute pps_attrs[];
- 
-+extern struct workqueue_struct *pps_event_workqueue;
++	if (parport_claim_or_block(device->pardev) < 0) {
++		pr_err(DRVNAME ": couldn't claim %s\n", port->name);
++		goto err_unregister_dev;
++	}
 +
- /*
-  * Exported functions
-  */
-@@ -87,8 +97,10 @@ extern struct pps_device *pps_register_s
- extern void pps_unregister_source(struct pps_device *pps);
- extern int pps_register_cdev(struct pps_device *pps);
- extern void pps_unregister_cdev(struct pps_device *pps);
--extern void pps_event(struct pps_device *pps, struct pps_event_time *ts, int event,
--		void *data);
-+extern void pps_event(struct pps_device *pps,
-+		struct pps_event_time *ts, int event, void *data);
-+extern void pps_event_irq(struct pps_device *pps,
-+		struct pps_event_time *ts, int event, void *data);
- 
- static inline void timespec_to_pps_ktime(struct pps_ktime *kt,
- 		struct timespec ts)
++	device->pps = pps_register_source(&info,
++			PPS_CAPTUREBOTH | PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
++	if (device->pps == NULL) {
++		pr_err(DRVNAME ": couldn't register PPS source\n");
++		goto err_release_dev;
++	}
++
++	device->cw = clear_wait;
++
++	port->ops->enable_irq(port);
++
++	pr_info(DRVNAME ": attached to %s\n", port->name);
++
++	return;
++
++err_release_dev:
++	parport_release(device->pardev);
++err_unregister_dev:
++	parport_unregister_device(device->pardev);
++err_free:
++	kfree(device);
++}
++
++static void parport_detach(struct parport *port)
++{
++	struct pardevice *pardev = port->cad;
++	struct pps_client_pp *device;
++
++	/* FIXME: oooh, this is ugly! */
++	if (strcmp(pardev->name, DRVNAME))
++		/* not our port */
++		return;
++
++	device = pardev->private;
++
++	port->ops->disable_irq(port);
++	pps_unregister_source(device->pps);
++	parport_release(pardev);
++	parport_unregister_device(pardev);
++	kfree(device);
++}
++
++static struct parport_driver pps_parport_driver = {
++	.name = DRVNAME,
++	.attach = parport_attach,
++	.detach = parport_detach,
++};
++
++/* module staff */
++
++static int __init pps_parport_init(void)
++{
++	int ret;
++
++	pr_info(DRVNAME ": " DRVDESC "\n");
++
++	if (clear_wait > CLEAR_WAIT_MAX) {
++		pr_err(DRVNAME ": clear_wait value should be not"
++				" greater then %d\n", CLEAR_WAIT_MAX);
++		return -EINVAL;
++	}
++
++	ret = parport_register_driver(&pps_parport_driver);
++	if (ret) {
++		pr_err(DRVNAME ": unable to register with parport\n");
++		return ret;
++	}
++
++	return  0;
++}
++
++static void __exit pps_parport_exit(void)
++{
++	parport_unregister_driver(&pps_parport_driver);
++}
++
++module_init(pps_parport_init);
++module_exit(pps_parport_exit);
++
++MODULE_AUTHOR("Alexander Gordeev <lasaine@lvk.cs.msu.su>");
++MODULE_DESCRIPTION(DRVDESC);
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from lasaine@lvk.cs.msu.su are
