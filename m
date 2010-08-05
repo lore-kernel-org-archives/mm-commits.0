@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update.patch added to -mm tree
-Date: Thu, 05 Aug 2010 16:25:02 -0700
-Message-ID: <201008052325.o75NP2le011797@imap1.linux-foundation.org>
+Subject: + writeback-add-comment-to-the-dirty-limit-functions-update.patch added to -mm tree
+Date: Thu, 05 Aug 2010 16:26:11 -0700
+Message-ID: <201008052326.o75NQBOB011965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758898Ab0HEXZn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 19:25:43 -0400
+	by vger.kernel.org with ESMTP id S1759077Ab0HEX0W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 19:26:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fengguang.wu@intel.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromo
 
 
 The patch titled
-     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update
+     writeback-add-comment-to-the-dirty-limit-functions-update
 has been added to the -mm tree.  Its filename is
-     writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update.patch
+     writeback-add-comment-to-the-dirty-limit-functions-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update
+Subject: writeback-add-comment-to-the-dirty-limit-functions-update
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Split get_dirty_limits() into global_dirty_limits()+bdi_dirty_limit(),
-so that the latter can be avoided when under global dirty background
-threshold (which is the normal state for most systems).
+Document global_dirty_limits(), bdi_dirty_limit() and task_dirty_limit().
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update
+diff -puN mm/page-writeback.c~writeback-add-comment-to-the-dirty-limit-functions-update mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-add-comment-to-the-dirty-limit-functions-update
 +++ a/mm/page-writeback.c
-@@ -443,7 +443,7 @@ unsigned long bdi_dirty_limit(struct bac
- 	if (bdi_dirty > (dirty * bdi->max_ratio) / 100)
- 		bdi_dirty = dirty * bdi->max_ratio / 100;
- 
--	return task_dirty_limit(current, bdi_dirty);
-+	return bdi_dirty;
+@@ -261,11 +261,18 @@ static inline void task_dirties_fraction
  }
  
  /*
-@@ -477,6 +477,7 @@ static void balance_dirty_pages(struct a
- 		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
- 					global_page_state(NR_UNSTABLE_NFS);
- 		nr_writeback = global_page_state(NR_WRITEBACK);
-+
- 		global_dirty_limits(&background_thresh, &dirty_thresh);
+- * scale the dirty limit
++ * task_dirty_limit - scale down dirty throttling threshold for one task
+  *
+  * task specific dirty limit:
+  *
+  *   dirty -= (dirty/8) * p_{t}
++ *
++ * To protect light/slow dirtying tasks from heavier/fast ones, we start
++ * throttling individual tasks before reaching the bdi dirty limit.
++ * Relatively low thresholds will be allocated to heavy dirtiers. So when
++ * dirty pages grow large, heavy dirtiers will be throttled first, which will
++ * effectively curb the growth of dirty pages. Light dirtiers with high enough
++ * dirty threshold may never get throttled.
+  */
+ static unsigned long task_dirty_limit(struct task_struct *tsk,
+ 				       unsigned long bdi_dirty)
+@@ -391,7 +398,7 @@ unsigned long determine_dirtyable_memory
+ }
  
- 		/*
-@@ -489,6 +490,7 @@ static void balance_dirty_pages(struct a
- 			break;
+ /**
+- * global_dirty_limits - background writeback and dirty throttling thresholds
++ * global_dirty_limits - background-writeback and dirty-throttling thresholds
+  *
+  * Calculate the dirty thresholds based on sysctl parameters
+  * - vm.dirty_background_ratio  or  vm.dirty_background_bytes
+@@ -434,15 +441,14 @@ void global_dirty_limits(unsigned long *
+ }
  
- 		bdi_thresh = bdi_dirty_limit(bdi, dirty_thresh);
-+		bdi_thresh = task_dirty_limit(current, bdi_thresh);
- 
- 		/*
- 		 * In order to avoid the stacked BDI deadlock we need
+ /**
+- * bdi_dirty_limit - current task's share of dirty throttling threshold on @bdi
++ * bdi_dirty_limit - @bdi's share of dirty throttling threshold
++ *
++ * Allocate high/low dirty limits to fast/slow devices, in order to prevent
++ * - starving fast devices
++ * - piling up dirty pages (that will take long time to sync) on slow devices
+  *
+- * Once the global dirty limit is _exceeded_, all dirtiers will be throttled.
+- * To avoid starving fast devices (which can sync dirty pages in short time) or
+- * throttling light dirtiers, we start throttling individual tasks on a per-bdi
+- * basis when _approaching_ the global dirty limit. Relative high limits will
+- * be allocated to fast devices and/or light dirtiers. The bdi's dirty share is
+- * evaluated adapting to its throughput and bounded if the bdi->min_ratio
+- * and/or bdi->max_ratio parameters are set.
++ * The bdi's share of dirty limit will be adapting to its throughput and
++ * bounded by the bdi->min_ratio and/or bdi->max_ratio parameters, if set.
+  */
+ unsigned long bdi_dirty_limit(struct backing_dev_info *bdi, unsigned long dirty)
+ {
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -94,6 +119,7 @@ writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages-update.patch
 writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
 writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update.patch
 writeback-add-comment-to-the-dirty-limit-functions.patch
+writeback-add-comment-to-the-dirty-limit-functions-update.patch
 writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
 writeback-fix-queue_io-ordering.patch
 writeback-merge-for_kupdate-and-for_kupdate-cases.patch
