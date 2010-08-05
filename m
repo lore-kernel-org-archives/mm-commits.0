@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-init-sysfs-attributes.patch added to -mm tree
-Date: Thu, 05 Aug 2010 15:37:09 -0700
-Message-ID: <201008052237.o75Mb9mg009393@imap1.linux-foundation.org>
+Subject: + memstick-fix-hangs-on-unexpected-device-removal-in-mspro_blk.patch added to -mm tree
+Date: Thu, 05 Aug 2010 15:37:11 -0700
+Message-ID: <201008052237.o75MbBNT009396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932167Ab0HEWqc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 18:46:32 -0400
+	by vger.kernel.org with ESMTP id S933169Ab0HEWrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 18:47:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: maximlevitsky@gmail.com, oakad@yahoo.com, stable@kernel.org
 
 
 The patch titled
-     memstick: init sysfs attributes
+     memstick: fix hangs on unexpected device removal in mspro_blk
 has been added to the -mm tree.  Its filename is
-     memstick-init-sysfs-attributes.patch
+     memstick-fix-hangs-on-unexpected-device-removal-in-mspro_blk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: init sysfs attributes
+Subject: memstick: fix hangs on unexpected device removal in mspro_blk
 From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-Otherwise lockdep complains.
+mspro_block_remove() is called from detect thread that first calls the
+mspro_block_stop(), which stops the request queue.  If we call
+del_gendisk() with the queue stopped we get a deadlock.
 
 Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 Cc: Alex Dubov <oakad@yahoo.com>
@@ -44,20 +46,29 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/memstick/core/mspro_block.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-init-sysfs-attributes drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-init-sysfs-attributes
+diff -puN drivers/memstick/core/mspro_block.c~memstick-fix-hangs-on-unexpected-device-removal-in-mspro_blk drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-fix-hangs-on-unexpected-device-removal-in-mspro_blk
 +++ a/drivers/memstick/core/mspro_block.c
-@@ -1048,6 +1048,7 @@ static int mspro_block_read_attributes(s
- 			snprintf(s_attr->name, sizeof(s_attr->name),
- 				 "attr_x%02x", attr->entries[cnt].id);
+@@ -1339,13 +1339,14 @@ static void mspro_block_remove(struct me
+ 	struct mspro_block_data *msb = memstick_get_drvdata(card);
+ 	unsigned long flags;
  
-+		sysfs_attr_init(&s_attr->dev_attr.attr);
- 		s_attr->dev_attr.attr.name = s_attr->name;
- 		s_attr->dev_attr.attr.mode = S_IRUGO;
- 		s_attr->dev_attr.show = mspro_block_attr_show(s_attr->id);
+-	del_gendisk(msb->disk);
+-	dev_dbg(&card->dev, "mspro block remove\n");
+ 	spin_lock_irqsave(&msb->q_lock, flags);
+ 	msb->eject = 1;
+ 	blk_start_queue(msb->queue);
+ 	spin_unlock_irqrestore(&msb->q_lock, flags);
+ 
++	del_gendisk(msb->disk);
++	dev_dbg(&card->dev, "mspro block remove\n");
++
+ 	blk_cleanup_queue(msb->queue);
+ 	msb->queue = NULL;
+ 
 _
 
 Patches currently in -mm which might be from maximlevitsky@gmail.com are
