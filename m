@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-queue_io-ordering-update.patch added to -mm tree
-Date: Thu, 05 Aug 2010 16:27:36 -0700
-Message-ID: <201008052327.o75NRaRG012023@imap1.linux-foundation.org>
+Subject: + writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch added to -mm tree
+Date: Thu, 05 Aug 2010 16:28:57 -0700
+Message-ID: <201008052328.o75NSvvp012064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756769Ab0HEX2I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 19:28:08 -0400
+	by vger.kernel.org with ESMTP id S1756769Ab0HEX3b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 19:29:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hch@infradead.
 
 
 The patch titled
-     writeback-fix-queue_io-ordering-update
+     writeback-merge-for_kupdate-and-for_kupdate-cases-update
 has been added to the -mm tree.  Its filename is
-     writeback-fix-queue_io-ordering-update.patch
+     writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-fix-queue_io-ordering-update
+Subject: writeback-merge-for_kupdate-and-for_kupdate-cases-update
 From: Wu Fengguang <fengguang.wu@intel.com>
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
@@ -46,32 +46,25 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-queue_io-ordering-update fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-queue_io-ordering-update
+diff -puN fs/fs-writeback.c~writeback-merge-for_kupdate-and-for_kupdate-cases-update fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-merge-for_kupdate-and-for_kupdate-cases-update
 +++ a/fs/fs-writeback.c
-@@ -251,10 +251,15 @@ static void move_expired_inodes(struct l
- }
- 
- /*
-- * Queue all expired dirty inodes for io, eldest first:
-- * (newly dirtied) => b_dirty inodes
-- *                 => b_more_io inodes
-- *                 => remaining inodes in b_io => (dequeue for sync)
-+ * Queue all expired dirty inodes for io, eldest first.
-+ * Before
-+ *         newly dirtied     b_dirty    b_io    b_more_io
-+ *         =============>    gf         edc     BA
-+ * After
-+ *         newly dirtied     b_dirty    b_io    b_more_io
-+ *         =============>    g          fBAedc
-+ *                                           |
-+ *                                           +--> dequeue for IO
-  */
- static void queue_io(struct bdi_writeback *wb, unsigned long *older_than_this)
- {
+@@ -387,7 +387,11 @@ writeback_single_inode(struct inode *ino
+ 				requeue_io(inode);
+ 			} else {
+ 				/*
+-				 * somehow blocked: retry later
++				 * Writeback blocked by something other than
++				 * congestion. Delay the inode for some time to
++				 * avoid spinning on the CPU (100% iowait)
++				 * retrying writeback of the dirty page/inode
++				 * that cannot be performed immediately.
+ 				 */
+ 				redirty_tail(inode);
+ 			}
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -92,5 +85,6 @@ writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
 writeback-fix-queue_io-ordering.patch
 writeback-fix-queue_io-ordering-update.patch
 writeback-merge-for_kupdate-and-for_kupdate-cases.patch
+writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch
 vfs-add-super-operation-writeback_inodes.patch
 
