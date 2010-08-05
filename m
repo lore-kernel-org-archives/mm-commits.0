@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch added to -mm tree
-Date: Thu, 05 Aug 2010 16:28:57 -0700
-Message-ID: <201008052328.o75NSvvp012064@imap1.linux-foundation.org>
+Subject: + scsi-remove-fake-address-of-expression.patch added to -mm tree
+Date: Thu, 05 Aug 2010 16:35:12 -0700
+Message-ID: <201008052335.o75NZC5P012350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756769Ab0HEX3b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 19:29:31 -0400
+	by vger.kernel.org with ESMTP id S1758196Ab0HEXgE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 19:36:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, axboe@kernel.dk, david@fromorbit.com, hch@infradead.org, mbligh@google.com, mrubin@google.com, peterz@infradead.org
+Cc: stern@rowland.harvard.edu
 
 
 The patch titled
-     writeback-merge-for_kupdate-and-for_kupdate-cases-update
+     scsi: remove fake "address-of" expression
 has been added to the -mm tree.  Its filename is
-     writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch
+     scsi-remove-fake-address-of-expression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-merge-for_kupdate-and-for_kupdate-cases-update
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: scsi: remove fake "address-of" expression
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Martin Bligh <mbligh@google.com>
-Cc: Michael Rubin <mrubin@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Fake "address-of" expressions that evaluate to NULL generally confuse
+readers and can provoke compiler warnings.  This patch (as1411) removes
+one such fake expression, using an "#ifdef" in its place.
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/scsi/scsi_priv.h  |    2 --
+ drivers/scsi/scsi_sysfs.c |    2 ++
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-merge-for_kupdate-and-for_kupdate-cases-update fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-merge-for_kupdate-and-for_kupdate-cases-update
-+++ a/fs/fs-writeback.c
-@@ -387,7 +387,11 @@ writeback_single_inode(struct inode *ino
- 				requeue_io(inode);
- 			} else {
- 				/*
--				 * somehow blocked: retry later
-+				 * Writeback blocked by something other than
-+				 * congestion. Delay the inode for some time to
-+				 * avoid spinning on the CPU (100% iowait)
-+				 * retrying writeback of the dirty page/inode
-+				 * that cannot be performed immediately.
- 				 */
- 				redirty_tail(inode);
- 			}
+diff -puN drivers/scsi/scsi_priv.h~scsi-remove-fake-address-of-expression drivers/scsi/scsi_priv.h
+--- a/drivers/scsi/scsi_priv.h~scsi-remove-fake-address-of-expression
++++ a/drivers/scsi/scsi_priv.h
+@@ -148,8 +148,6 @@ static inline void scsi_netlink_exit(voi
+ /* scsi_pm.c */
+ #ifdef CONFIG_PM_OPS
+ extern const struct dev_pm_ops scsi_bus_pm_ops;
+-#else /* CONFIG_PM_OPS */
+-#define scsi_bus_pm_ops		(*NULL)
+ #endif
+ #ifdef CONFIG_PM_RUNTIME
+ extern void scsi_autopm_get_target(struct scsi_target *);
+diff -puN drivers/scsi/scsi_sysfs.c~scsi-remove-fake-address-of-expression drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~scsi-remove-fake-address-of-expression
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -381,7 +381,9 @@ struct bus_type scsi_bus_type = {
+         .name		= "scsi",
+         .match		= scsi_bus_match,
+ 	.uevent		= scsi_bus_uevent,
++#ifdef CONFIG_PM_OPS
+ 	.pm		= &scsi_bus_pm_ops,
++#endif
+ };
+ EXPORT_SYMBOL_GPL(scsi_bus_type);
+ 
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
 linux-next.patch
-fs-inodec-work-around-bug.patch
-include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
-writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages-update.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update.patch
-writeback-add-comment-to-the-dirty-limit-functions.patch
-writeback-add-comment-to-the-dirty-limit-functions-update.patch
-writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
-writeback-fix-queue_io-ordering.patch
-writeback-fix-queue_io-ordering-update.patch
-writeback-merge-for_kupdate-and-for_kupdate-cases.patch
-writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch
-vfs-add-super-operation-writeback_inodes.patch
+scsi-remove-fake-address-of-expression.patch
+scsi-sr-add-no_read_disc_info-scsi_device-flag.patch
+usb-storage-add-new-no_read_disc_info-quirk.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch
+usb-storage-add-new-no_read_capacity_16-quirk.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2.patch
 
