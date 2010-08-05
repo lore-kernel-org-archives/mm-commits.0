@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-mod-modpostc-fix-memory-leak.patch added to -mm tree
-Date: Thu, 05 Aug 2010 15:10:53 -0700
-Message-ID: <201008052210.o75MArAR007920@imap1.linux-foundation.org>
+Subject: + memstick-init-sysfs-attributes.patch added to -mm tree
+Date: Thu, 05 Aug 2010 15:37:09 -0700
+Message-ID: <201008052237.o75Mb9mg009393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934513Ab0HEWLG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 18:11:06 -0400
+	by vger.kernel.org with ESMTP id S932167Ab0HEWqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 18:46:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-alexey.fomenko@nokia.com, mmarek@suse.cz, rusty@rustcorp.com.au, tsrk@tsrk.net
+Cc: maximlevitsky@gmail.com, oakad@yahoo.com, stable@kernel.org
 
 
 The patch titled
-     scripts/mod/modpost.c: fix memory leak
+     memstick: init sysfs attributes
 has been added to the -mm tree.  Its filename is
-     scripts-mod-modpostc-fix-memory-leak.patch
+     memstick-init-sysfs-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,167 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/mod/modpost.c: fix memory leak
-From: Alexey Fomenko <ext-alexey.fomenko@nokia.com>
+Subject: memstick: init sysfs attributes
+From: Maxim Levitsky <maximlevitsky@gmail.com>
 
-sec2annotation returns malloc'ed buffer directly to printf as an argument.
- Free this buffer after printing.
+Otherwise lockdep complains.
 
-Signed-off-by: Alexey Fomenko <ext-alexey.fomenko@nokia.com>
-Cc: Trevor Keith <tsrk@tsrk.net>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   54 +++++++++++++++++++++++++++++-----------
- 1 file changed, 40 insertions(+), 14 deletions(-)
+ drivers/memstick/core/mspro_block.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-fix-memory-leak scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-fix-memory-leak
-+++ a/scripts/mod/modpost.c
-@@ -1258,6 +1258,8 @@ static void report_sec_mismatch(const ch
- {
- 	const char *from, *from_p;
- 	const char *to, *to_p;
-+	char *prl_from;
-+	char *prl_to;
+diff -puN drivers/memstick/core/mspro_block.c~memstick-init-sysfs-attributes drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-init-sysfs-attributes
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1048,6 +1048,7 @@ static int mspro_block_read_attributes(s
+ 			snprintf(s_attr->name, sizeof(s_attr->name),
+ 				 "attr_x%02x", attr->entries[cnt].id);
  
- 	switch (from_is_func) {
- 	case 0: from = "variable"; from_p = "";   break;
-@@ -1281,16 +1283,21 @@ static void report_sec_mismatch(const ch
- 
- 	switch (mismatch->mismatch) {
- 	case TEXT_TO_ANY_INIT:
-+		prl_from = sec2annotation(fromsec);
-+		prl_to = sec2annotation(tosec);
- 		fprintf(stderr,
- 		"The function %s%s() references\n"
- 		"the %s %s%s%s.\n"
- 		"This is often because %s lacks a %s\n"
- 		"annotation or the annotation of %s is wrong.\n",
--		sec2annotation(fromsec), fromsym,
--		to, sec2annotation(tosec), tosym, to_p,
--		fromsym, sec2annotation(tosec), tosym);
-+		prl_from, fromsym,
-+		to, prl_to, tosym, to_p,
-+		fromsym, prl_to, tosym);
-+		free(prl_from);
-+		free(prl_to);
- 		break;
- 	case DATA_TO_ANY_INIT: {
-+		prl_to = sec2annotation(tosec);
- 		const char *const *s = mismatch->symbol_white_list;
- 		fprintf(stderr,
- 		"The variable %s references\n"
-@@ -1298,20 +1305,24 @@ static void report_sec_mismatch(const ch
- 		"If the reference is valid then annotate the\n"
- 		"variable with __init* or __refdata (see linux/init.h) "
- 		"or name the variable:\n",
--		fromsym, to, sec2annotation(tosec), tosym, to_p);
-+		fromsym, to, prl_to, tosym, to_p);
- 		while (*s)
- 			fprintf(stderr, "%s, ", *s++);
- 		fprintf(stderr, "\n");
-+		free(prl_to);
- 		break;
- 	}
- 	case TEXT_TO_ANY_EXIT:
-+		prl_to = sec2annotation(tosec);
- 		fprintf(stderr,
- 		"The function %s() references a %s in an exit section.\n"
- 		"Often the %s %s%s has valid usage outside the exit section\n"
- 		"and the fix is to remove the %sannotation of %s.\n",
--		fromsym, to, to, tosym, to_p, sec2annotation(tosec), tosym);
-+		fromsym, to, to, tosym, to_p, prl_to, tosym);
-+		free(prl_to);
- 		break;
- 	case DATA_TO_ANY_EXIT: {
-+		prl_to = sec2annotation(tosec);
- 		const char *const *s = mismatch->symbol_white_list;
- 		fprintf(stderr,
- 		"The variable %s references\n"
-@@ -1319,24 +1330,31 @@ static void report_sec_mismatch(const ch
- 		"If the reference is valid then annotate the\n"
- 		"variable with __exit* (see linux/init.h) or "
- 		"name the variable:\n",
--		fromsym, to, sec2annotation(tosec), tosym, to_p);
-+		fromsym, to, prl_to, tosym, to_p);
- 		while (*s)
- 			fprintf(stderr, "%s, ", *s++);
- 		fprintf(stderr, "\n");
-+		free(prl_to);
- 		break;
- 	}
- 	case XXXINIT_TO_SOME_INIT:
- 	case XXXEXIT_TO_SOME_EXIT:
-+		prl_from = sec2annotation(fromsec);
-+		prl_to = sec2annotation(tosec);
- 		fprintf(stderr,
- 		"The %s %s%s%s references\n"
- 		"a %s %s%s%s.\n"
- 		"If %s is only used by %s then\n"
- 		"annotate %s with a matching annotation.\n",
--		from, sec2annotation(fromsec), fromsym, from_p,
--		to, sec2annotation(tosec), tosym, to_p,
-+		from, prl_from, fromsym, from_p,
-+		to, prl_to, tosym, to_p,
- 		tosym, fromsym, tosym);
-+		free(prl_from);
-+		free(prl_to);
- 		break;
- 	case ANY_INIT_TO_ANY_EXIT:
-+		prl_from = sec2annotation(fromsec);
-+		prl_to = sec2annotation(tosec);
- 		fprintf(stderr,
- 		"The %s %s%s%s references\n"
- 		"a %s %s%s%s.\n"
-@@ -1345,11 +1363,15 @@ static void report_sec_mismatch(const ch
- 		"uses functionality in the exit path.\n"
- 		"The fix is often to remove the %sannotation of\n"
- 		"%s%s so it may be used outside an exit section.\n",
--		from, sec2annotation(fromsec), fromsym, from_p,
--		to, sec2annotation(tosec), tosym, to_p,
-+		from, prl_from, fromsym, from_p,
-+		to, prl_to, tosym, to_p,
- 		sec2annotation(tosec), tosym, to_p);
-+		free(prl_from);
-+		free(prl_to);
- 		break;
- 	case ANY_EXIT_TO_ANY_INIT:
-+		prl_from = sec2annotation(fromsec);
-+		prl_to = sec2annotation(tosec);
- 		fprintf(stderr,
- 		"The %s %s%s%s references\n"
- 		"a %s %s%s%s.\n"
-@@ -1358,16 +1380,20 @@ static void report_sec_mismatch(const ch
- 		"uses functionality in the init path.\n"
- 		"The fix is often to remove the %sannotation of\n"
- 		"%s%s so it may be used outside an init section.\n",
--		from, sec2annotation(fromsec), fromsym, from_p,
--		to, sec2annotation(tosec), tosym, to_p,
--		sec2annotation(tosec), tosym, to_p);
-+		from, prl_from, fromsym, from_p,
-+		to, prl_to, tosym, to_p,
-+		prl_to, tosym, to_p);
-+		free(prl_from);
-+		free(prl_to);
- 		break;
- 	case EXPORT_TO_INIT_EXIT:
-+		prl_to = sec2annotation(tosec);
- 		fprintf(stderr,
- 		"The symbol %s is exported and annotated %s\n"
- 		"Fix this by removing the %sannotation of %s "
- 		"or drop the export.\n",
--		tosym, sec2annotation(tosec), sec2annotation(tosec), tosym);
-+		tosym, prl_to, prl_to, tosym);
-+		free(prl_to);
- 		break;
- 	}
- 	fprintf(stderr, "\n");
++		sysfs_attr_init(&s_attr->dev_attr.attr);
+ 		s_attr->dev_attr.attr.name = s_attr->name;
+ 		s_attr->dev_attr.attr.mode = S_IRUGO;
+ 		s_attr->dev_attr.show = mspro_block_attr_show(s_attr->id);
 _
 
-Patches currently in -mm which might be from ext-alexey.fomenko@nokia.com are
+Patches currently in -mm which might be from maximlevitsky@gmail.com are
 
-scripts-mod-modpostc-fix-memory-leak.patch
+linux-next.patch
+maintainers-update-ricoh-smartmedia-xd-driver-file-patterns.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume-update-2.patch
+mmc-make-sdhci-work-with-ricoh-mmc-controller.patch
+mmc-add-ricoh-e822-pci-id.patch
+memstick-init-sysfs-attributes.patch
+memstick-fix-hangs-on-unexpected-device-removal-in-mspro_blk.patch
 
