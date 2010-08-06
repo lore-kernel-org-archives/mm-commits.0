@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-resetting-wb_start-after-each-writeback-round.patch added to -mm tree
-Date: Thu, 05 Aug 2010 17:21:51 -0700
-Message-ID: <201008060021.o760LpSl014748@imap1.linux-foundation.org>
+Subject: + mm-fix-writeback_in_progress.patch added to -mm tree
+Date: Thu, 05 Aug 2010 17:27:37 -0700
+Message-ID: <201008060027.o760Rbhq014966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48672 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934047Ab0HFAWx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 20:22:53 -0400
+	by vger.kernel.org with ESMTP id S934222Ab0HFA2f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 20:28:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, axboe@kernel.dk, fengguang.wu@intel.com, hch@lst.de
+Cc: jack@suse.cz, fengguang.wu@intel.com, hch@lst.de, jaxboe@fusionio.com
 
 
 The patch titled
-     mm: avoid resetting wb_start after each writeback round
+     mm: fix writeback_in_progress()
 has been added to the -mm tree.  Its filename is
-     mm-avoid-resetting-wb_start-after-each-writeback-round.patch
+     mm-fix-writeback_in_progress.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: avoid resetting wb_start after each writeback round
+Subject: mm: fix writeback_in_progress()
 From: Jan Kara <jack@suse.cz>
 
-WB_SYNC_NONE writeback is done in rounds of 1024 pages so that we don't
-write out some huge inode for too long while starving writeout of other
-inodes.  To avoid livelocks, we record time we started writeback in
-wbc->wb_start and do not write out inodes which were dirtied after this
-time.  But currently, writeback_inodes_wb() resets wb_start each time it
-is called thus effectively invalidating this logic and making any
-WB_SYNC_NONE writeback prone to livelocks.
+Commit 83ba7b071f3 ("writeback: simplify the write back thread queue")
+broke writeback_in_progress() as in that commit we started to remove work
+items from the list at the moment we start working on them and not at the
+moment they are finished.  Thus if the flusher thread was doing some work
+but there was no other work queued, writeback_in_progress() returned
+false.  This could in particular cause unnecessary queueing of background
+writeback from balance_dirty_pages() or writeout work from
+writeback_sb_if_idle().
 
-This patch makes sure wb_start is set only once when we start writeback.
+This patch fixes the problem by introducing a bit in the bdi state which
+indicates that the flusher thread is processing some work and uses this
+bit for writeback_in_progress() test.
+
+NOTE: Both callsites of writeback_in_progress() (namely,
+writeback_inodes_sb_if_idle() and balance_dirty_pages()) would actually
+need a different information than what writeback_in_progress() provides. 
+They would need to know whether *the kind of writeback they are going to
+submit* is already queued.  But this information isn't that simple to
+provide so let's fix writeback_in_progress() for the time being.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Jens Axboe <jaxboe@fusionio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c           |    4 +++-
+ include/linux/backing-dev.h |    1 +
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~mm-avoid-resetting-wb_start-after-each-writeback-round fs/fs-writeback.c
---- a/fs/fs-writeback.c~mm-avoid-resetting-wb_start-after-each-writeback-round
+diff -puN fs/fs-writeback.c~mm-fix-writeback_in_progress fs/fs-writeback.c
+--- a/fs/fs-writeback.c~mm-fix-writeback_in_progress
 +++ a/fs/fs-writeback.c
-@@ -524,7 +524,8 @@ void writeback_inodes_wb(struct bdi_writ
+@@ -67,7 +67,7 @@ int nr_pdflush_threads;
+  */
+ int writeback_in_progress(struct backing_dev_info *bdi)
  {
- 	int ret = 0;
+-	return !list_empty(&bdi->work_list);
++	return test_bit(BDI_writeback_running, &bdi->state);
+ }
  
--	wbc->wb_start = jiffies; /* livelock avoidance */
-+	if (!wbc->wb_start)
-+		wbc->wb_start = jiffies; /* livelock avoidance */
- 	spin_lock(&inode_lock);
- 	if (!wbc->for_kupdate || list_empty(&wb->b_io))
- 		queue_io(wb, wbc->older_than_this);
-@@ -553,7 +554,6 @@ static void __writeback_inodes_sb(struct
- {
- 	WARN_ON(!rwsem_is_locked(&sb->s_umount));
+ static void bdi_queue_work(struct backing_dev_info *bdi,
+@@ -742,6 +742,7 @@ long wb_do_writeback(struct bdi_writebac
+ 	struct wb_writeback_work *work;
+ 	long wrote = 0;
  
--	wbc->wb_start = jiffies; /* livelock avoidance */
- 	spin_lock(&inode_lock);
- 	if (!wbc->for_kupdate || list_empty(&wb->b_io))
- 		queue_io(wb, wbc->older_than_this);
-@@ -619,6 +619,7 @@ static long wb_writeback(struct bdi_writ
- 		wbc.range_end = LLONG_MAX;
- 	}
- 
-+	wbc.wb_start = jiffies; /* livelock avoidance */
- 	for (;;) {
++	set_bit(BDI_writeback_running, &wb->bdi->state);
+ 	while ((work = get_next_work_item(bdi, wb)) != NULL) {
  		/*
- 		 * Stop writeback when nr_pages has been consumed
+ 		 * Override sync mode, in case we must wait for completion
+@@ -768,6 +769,7 @@ long wb_do_writeback(struct bdi_writebac
+ 	 * Check for periodic writeback, kupdated() style
+ 	 */
+ 	wrote += wb_check_old_data_flush(wb);
++	clear_bit(BDI_writeback_running, &wb->bdi->state);
+ 
+ 	return wrote;
+ }
+diff -puN include/linux/backing-dev.h~mm-fix-writeback_in_progress include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-fix-writeback_in_progress
++++ a/include/linux/backing-dev.h
+@@ -31,6 +31,7 @@ enum bdi_state {
+ 	BDI_async_congested,	/* The async (write) queue is getting full */
+ 	BDI_sync_congested,	/* The sync queue is getting full */
+ 	BDI_registered,		/* bdi_register() was done */
++	BDI_writeback_running,	/* Writeback is in progress */
+ 	BDI_unused,		/* Available bits start here */
+ };
+ 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
