@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-writeback_in_progress.patch added to -mm tree
-Date: Thu, 05 Aug 2010 17:27:37 -0700
-Message-ID: <201008060027.o760Rbhq014966@imap1.linux-foundation.org>
+Subject: + vmscan-raise-the-bar-to-pageout_io_sync-stalls.patch added to -mm tree
+Date: Mon, 09 Aug 2010 12:58:16 -0700
+Message-ID: <201008091958.o79JwHmo015468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934222Ab0HFA2f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Aug 2010 20:28:35 -0400
+	by vger.kernel.org with ESMTP id S1752713Ab0HIT7e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Aug 2010 15:59:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, fengguang.wu@intel.com, hch@lst.de, jaxboe@fusionio.com
+Cc: fengguang.wu@intel.com, andi@lisas.de, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     mm: fix writeback_in_progress()
+     vmscan: raise the bar to PAGEOUT_IO_SYNC stalls
 has been added to the -mm tree.  Its filename is
-     mm-fix-writeback_in_progress.patch
+     vmscan-raise-the-bar-to-pageout_io_sync-stalls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,180 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix writeback_in_progress()
-From: Jan Kara <jack@suse.cz>
+Subject: vmscan: raise the bar to PAGEOUT_IO_SYNC stalls
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Commit 83ba7b071f3 ("writeback: simplify the write back thread queue")
-broke writeback_in_progress() as in that commit we started to remove work
-items from the list at the moment we start working on them and not at the
-moment they are finished.  Thus if the flusher thread was doing some work
-but there was no other work queued, writeback_in_progress() returned
-false.  This could in particular cause unnecessary queueing of background
-writeback from balance_dirty_pages() or writeout work from
-writeback_sb_if_idle().
+Fix "system goes unresponsive under memory pressure and lots of
+dirty/writeback pages" bug.
 
-This patch fixes the problem by introducing a bit in the bdi state which
-indicates that the flusher thread is processing some work and uses this
-bit for writeback_in_progress() test.
+	http://lkml.org/lkml/2010/4/4/86
 
-NOTE: Both callsites of writeback_in_progress() (namely,
-writeback_inodes_sb_if_idle() and balance_dirty_pages()) would actually
-need a different information than what writeback_in_progress() provides. 
-They would need to know whether *the kind of writeback they are going to
-submit* is already queued.  But this information isn't that simple to
-provide so let's fix writeback_in_progress() for the time being.
+In the above thread, Andreas Mohr described that
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Jens Axboe <jaxboe@fusionio.com>
+	Invoking any command locked up for minutes (note that I'm
+	talking about attempted additional I/O to the _other_,
+	_unaffected_ main system HDD - such as loading some shell
+	binaries -, NOT the external SSD18M!!).
+
+This happens when the two conditions are both meet:
+- under memory pressure
+- writing heavily to a slow device
+
+OOM also happens in Andreas' system.  The OOM trace shows that 3 processes
+are stuck in wait_on_page_writeback() in the direct reclaim path.  One in
+do_fork() and the other two in unix_stream_sendmsg().  They are blocked on
+this condition:
+
+	(sc->order && priority < DEF_PRIORITY - 2)
+
+which was introduced in commit 78dc583d (vmscan: low order lumpy reclaim
+also should use PAGEOUT_IO_SYNC) one year ago.  That condition may be too
+permissive.  In Andreas' case, 512MB/1024 = 512KB.  If the direct reclaim
+for the order-1 fork() allocation runs into a range of 512KB
+hard-to-reclaim LRU pages, it will be stalled.
+
+It's a severe problem in three ways.
+
+Firstly, it can easily happen in daily desktop usage.  vmscan priority can
+easily go below (DEF_PRIORITY - 2) on _local_ memory pressure.  Even if
+the system has 50% globally reclaimable pages, it still has good
+opportunity to have 0.1% sized hard-to-reclaim ranges.  For example, a
+simple dd can easily create a big range (up to 20%) of dirty pages in the
+LRU lists.  And order-1 to order-3 allocations are more than common with
+SLUB.  Try "grep -v '1 :' /proc/slabinfo" to get the list of high order
+slab caches.  For example, the order-1 radix_tree_node slab cache may
+stall applications at swap-in time; the order-3 inode cache on most
+filesystems may stall applications when trying to read some file; the
+order-2 proc_inode_cache may stall applications when trying to open a
+/proc file.
+
+Secondly, once triggered, it will stall unrelated processes (not doing IO
+at all) in the system.  This "one slow USB device stalls the whole system"
+avalanching effect is very bad.
+
+Thirdly, once stalled, the stall time could be intolerable long for the
+users.  When there are 20MB queued writeback pages and USB 1.1 is writing
+them in 1MB/s, wait_on_page_writeback() will stuck for up to 20 seconds. 
+Not to mention it may be called multiple times.
+
+So raise the bar to only enable PAGEOUT_IO_SYNC when priority goes below
+DEF_PRIORITY/3, or 6.25% LRU size.  As the default dirty throttle ratio is
+20%, it will hardly be triggered by pure dirty pages.  We'd better treat
+PAGEOUT_IO_SYNC as some last resort workaround -- its stall time is so
+uncomfortably long (easily goes beyond 1s).
+
+The bar is only raised for (order < PAGE_ALLOC_COSTLY_ORDER) allocations,
+which are easy to satisfy in 1TB memory boxes.  So, although 6.25% of
+memory could be an awful lot of pages to scan on a system with 1TB of
+memory, it won't really have to busy scan that much.
+
+Andreas tested an older version of this patch and reported that it mostly
+fixed his problem.  Mel Gorman helped improve it and KOSAKI Motohiro will
+fix it further in the next patch.
+
+Reported-by: Andreas Mohr <andi@lisas.de>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c           |    4 +++-
- include/linux/backing-dev.h |    1 +
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   51 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 43 insertions(+), 8 deletions(-)
 
-diff -puN fs/fs-writeback.c~mm-fix-writeback_in_progress fs/fs-writeback.c
---- a/fs/fs-writeback.c~mm-fix-writeback_in_progress
-+++ a/fs/fs-writeback.c
-@@ -67,7 +67,7 @@ int nr_pdflush_threads;
+diff -puN mm/vmscan.c~vmscan-raise-the-bar-to-pageout_io_sync-stalls mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-raise-the-bar-to-pageout_io_sync-stalls
++++ a/mm/vmscan.c
+@@ -1234,6 +1234,47 @@ static noinline_for_stack void update_is
+ }
+ 
+ /*
++ * Returns true if the caller should wait to clean dirty/writeback pages.
++ *
++ * If we are direct reclaiming for contiguous pages and we do not reclaim
++ * everything in the list, try again and wait for writeback IO to complete.
++ * This will stall high-order allocations noticeably. Only do that when really
++ * need to free the pages under high memory pressure.
++ */
++static inline bool should_reclaim_stall(unsigned long nr_taken,
++					unsigned long nr_freed,
++					int priority,
++					struct scan_control *sc)
++{
++	int lumpy_stall_priority;
++
++	/* kswapd should not stall on sync IO */
++	if (current_is_kswapd())
++		return false;
++
++	/* Only stall on lumpy reclaim */
++	if (!sc->lumpy_reclaim_mode)
++		return false;
++
++	/* If we have relaimed everything on the isolated list, no stall */
++	if (nr_freed == nr_taken)
++		return false;
++
++	/*
++	 * For high-order allocations, there are two stall thresholds.
++	 * High-cost allocations stall immediately where as lower
++	 * order allocations such as stacks require the scanning
++	 * priority to be much higher before stalling.
++	 */
++	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
++		lumpy_stall_priority = DEF_PRIORITY;
++	else
++		lumpy_stall_priority = DEF_PRIORITY / 3;
++
++	return priority <= lumpy_stall_priority;
++}
++
++/*
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
   */
- int writeback_in_progress(struct backing_dev_info *bdi)
- {
--	return !list_empty(&bdi->work_list);
-+	return test_bit(BDI_writeback_running, &bdi->state);
- }
+@@ -1298,14 +1339,8 @@ shrink_inactive_list(unsigned long nr_to
  
- static void bdi_queue_work(struct backing_dev_info *bdi,
-@@ -742,6 +742,7 @@ long wb_do_writeback(struct bdi_writebac
- 	struct wb_writeback_work *work;
- 	long wrote = 0;
+ 	nr_reclaimed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC);
  
-+	set_bit(BDI_writeback_running, &wb->bdi->state);
- 	while ((work = get_next_work_item(bdi, wb)) != NULL) {
+-	/*
+-	 * If we are direct reclaiming for contiguous pages and we do
+-	 * not reclaim everything in the list, try again and wait
+-	 * for IO to complete. This will stall high-order allocations
+-	 * but that should be acceptable to the caller
+-	 */
+-	if (nr_reclaimed < nr_taken && !current_is_kswapd() &&
+-			sc->lumpy_reclaim_mode) {
++	/* Check if we should syncronously wait for writeback */
++	if (should_reclaim_stall(nr_taken, nr_reclaimed, priority, sc)) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
  		/*
- 		 * Override sync mode, in case we must wait for completion
-@@ -768,6 +769,7 @@ long wb_do_writeback(struct bdi_writebac
- 	 * Check for periodic writeback, kupdated() style
- 	 */
- 	wrote += wb_check_old_data_flush(wb);
-+	clear_bit(BDI_writeback_running, &wb->bdi->state);
- 
- 	return wrote;
- }
-diff -puN include/linux/backing-dev.h~mm-fix-writeback_in_progress include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-fix-writeback_in_progress
-+++ a/include/linux/backing-dev.h
-@@ -31,6 +31,7 @@ enum bdi_state {
- 	BDI_async_congested,	/* The async (write) queue is getting full */
- 	BDI_sync_congested,	/* The sync queue is getting full */
- 	BDI_registered,		/* bdi_register() was done */
-+	BDI_writeback_running,	/* Writeback is in progress */
- 	BDI_unused,		/* Available bits start here */
- };
- 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
-radix-tree-implement-function-radix_tree_range_tag_if_tagged.patch
-mm-implement-writeback-livelock-avoidance-using-page-tagging.patch
+fs-inodec-work-around-bug.patch
+include-linux-fsh-complete-hexification-of-fmode_-constants.patch
+vfs-o_-bit-numbers-uniqueness-check.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
 writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
 writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages-update.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
+writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update.patch
+writeback-add-comment-to-the-dirty-limit-functions.patch
+writeback-add-comment-to-the-dirty-limit-functions-update.patch
 writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
+writeback-fix-queue_io-ordering.patch
+writeback-fix-queue_io-ordering-update.patch
+writeback-merge-for_kupdate-and-for_kupdate-cases.patch
+writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch
+vmscan-raise-the-bar-to-pageout_io_sync-stalls.patch
 mm-fix-writeback_in_progress.patch
 mm-avoid-resetting-wb_start-after-each-writeback-round.patch
-aio-do-not-return-erestartsys-and-friends-from-aio.patch
-reiser4.patch
+vfs-add-super-operation-writeback_inodes.patch
 
