@@ -1,23 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-raise-the-bar-to-pageout_io_sync-stalls.patch added to -mm tree
-Date: Mon, 09 Aug 2010 12:58:16 -0700
-Message-ID: <201008091958.o79JwHmo015468@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 10 Aug 2010 12:44:15 -0700
+Message-ID: <201008101942.o7AJgYCd012402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752713Ab0HIT7e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Aug 2010 15:59:34 -0400
+	by vger.kernel.org with ESMTP id S1752043Ab0HJTmg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Aug 2010 15:42:36 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o7AJgYPE015816
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 10 Aug 2010 12:42:35 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, andi@lisas.de, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     vmscan: raise the bar to PAGEOUT_IO_SYNC stalls
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     vmscan-raise-the-bar-to-pageout_io_sync-stalls.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +38,180 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: raise the bar to PAGEOUT_IO_SYNC stalls
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix "system goes unresponsive under memory pressure and lots of
-dirty/writeback pages" bug.
-
-	http://lkml.org/lkml/2010/4/4/86
-
-In the above thread, Andreas Mohr described that
-
-	Invoking any command locked up for minutes (note that I'm
-	talking about attempted additional I/O to the _other_,
-	_unaffected_ main system HDD - such as loading some shell
-	binaries -, NOT the external SSD18M!!).
-
-This happens when the two conditions are both meet:
-- under memory pressure
-- writing heavily to a slow device
-
-OOM also happens in Andreas' system.  The OOM trace shows that 3 processes
-are stuck in wait_on_page_writeback() in the direct reclaim path.  One in
-do_fork() and the other two in unix_stream_sendmsg().  They are blocked on
-this condition:
-
-	(sc->order && priority < DEF_PRIORITY - 2)
-
-which was introduced in commit 78dc583d (vmscan: low order lumpy reclaim
-also should use PAGEOUT_IO_SYNC) one year ago.  That condition may be too
-permissive.  In Andreas' case, 512MB/1024 = 512KB.  If the direct reclaim
-for the order-1 fork() allocation runs into a range of 512KB
-hard-to-reclaim LRU pages, it will be stalled.
-
-It's a severe problem in three ways.
-
-Firstly, it can easily happen in daily desktop usage.  vmscan priority can
-easily go below (DEF_PRIORITY - 2) on _local_ memory pressure.  Even if
-the system has 50% globally reclaimable pages, it still has good
-opportunity to have 0.1% sized hard-to-reclaim ranges.  For example, a
-simple dd can easily create a big range (up to 20%) of dirty pages in the
-LRU lists.  And order-1 to order-3 allocations are more than common with
-SLUB.  Try "grep -v '1 :' /proc/slabinfo" to get the list of high order
-slab caches.  For example, the order-1 radix_tree_node slab cache may
-stall applications at swap-in time; the order-3 inode cache on most
-filesystems may stall applications when trying to read some file; the
-order-2 proc_inode_cache may stall applications when trying to open a
-/proc file.
-
-Secondly, once triggered, it will stall unrelated processes (not doing IO
-at all) in the system.  This "one slow USB device stalls the whole system"
-avalanching effect is very bad.
-
-Thirdly, once stalled, the stall time could be intolerable long for the
-users.  When there are 20MB queued writeback pages and USB 1.1 is writing
-them in 1MB/s, wait_on_page_writeback() will stuck for up to 20 seconds. 
-Not to mention it may be called multiple times.
-
-So raise the bar to only enable PAGEOUT_IO_SYNC when priority goes below
-DEF_PRIORITY/3, or 6.25% LRU size.  As the default dirty throttle ratio is
-20%, it will hardly be triggered by pure dirty pages.  We'd better treat
-PAGEOUT_IO_SYNC as some last resort workaround -- its stall time is so
-uncomfortably long (easily goes beyond 1s).
-
-The bar is only raised for (order < PAGE_ALLOC_COSTLY_ORDER) allocations,
-which are easy to satisfy in 1TB memory boxes.  So, although 6.25% of
-memory could be an awful lot of pages to scan on a system with 1TB of
-memory, it won't really have to busy scan that much.
-
-Andreas tested an older version of this patch and reported that it mostly
-fixed his problem.  Mel Gorman helped improve it and KOSAKI Motohiro will
-fix it further in the next patch.
-
-Reported-by: Andreas Mohr <andi@lisas.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   51 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 43 insertions(+), 8 deletions(-)
+ MAINTAINERS                        |    4 +---
+ arch/x86/kernel/syscall_table_32.S |    5 +----
+ fs/exofs/inode.c                   |    4 ----
+ fs/xfs/linux-2.6/xfs_aops.c        |   17 -----------------
+ include/asm-generic/unistd.h       |    4 ----
+ 5 files changed, 2 insertions(+), 32 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-raise-the-bar-to-pageout_io_sync-stalls mm/vmscan.c
---- a/mm/vmscan.c~vmscan-raise-the-bar-to-pageout_io_sync-stalls
-+++ a/mm/vmscan.c
-@@ -1234,6 +1234,47 @@ static noinline_for_stack void update_is
- }
+diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
+--- a/MAINTAINERS~linux-next-git-rejects
++++ a/MAINTAINERS
+@@ -5284,21 +5284,19 @@ M:	Nicolas Pitre <nico@fluxnic.net>
+ S:	Odd Fixes
+ F:	drivers/net/smc91x.*
+ 
+-<<<<<<< HEAD
+ SMM665 HARDWARE MONITOR DRIVER
+ M:	Guenter Roeck <linux@roeck-us.net>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/smm665
+ F:	drivers/hwmon/smm665.c
+-=======
++
+ SMSC EMC2103 HARDWARE MONITOR DRIVER
+ M:	Steve Glendinning <steve.glendinning@smsc.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Supported
+ F:	Documentation/hwmon/emc2103
+ F:	drivers/hwmon/emc2103.c
+->>>>>>> FETCH_HEAD
+ 
+ SMSC47B397 HARDWARE MONITOR DRIVER
+ M:	"Mark M. Hoffman" <mhoffman@lightlink.com>
+diff -puN arch/x86/kernel/syscall_table_32.S~linux-next-git-rejects arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~linux-next-git-rejects
++++ a/arch/x86/kernel/syscall_table_32.S
+@@ -339,8 +339,5 @@ ENTRY(sys_call_table)
+ 	.long sys_recvmmsg
+ 	.long sys_fanotify_init
+ 	.long sys_fanotify_mark
+-<<<<<<< HEAD
+-	.long sys_prlimit64
+-=======
+ 	.long sys_prlimit64		/* 340 */
+->>>>>>> FETCH_HEAD
++
+diff -puN fs/exofs/inode.c~linux-next-git-rejects fs/exofs/inode.c
+--- a/fs/exofs/inode.c~linux-next-git-rejects
++++ a/fs/exofs/inode.c
+@@ -713,11 +713,7 @@ int exofs_write_begin(struct file *file,
+ 		ret = simple_write_begin(file, mapping, pos, len, flags, pagep,
+ 					 fsdata);
+ 		if (ret) {
+-<<<<<<< HEAD
+-			EXOFS_DBGMSG("simple_write_begin faild\n");
+-=======
+ 			EXOFS_DBGMSG("simple_write_begin failed\n");
+->>>>>>> FETCH_HEAD
+ 			goto out;
+ 		}
+ 
+diff -puN fs/xfs/linux-2.6/xfs_aops.c~linux-next-git-rejects fs/xfs/linux-2.6/xfs_aops.c
+--- a/fs/xfs/linux-2.6/xfs_aops.c~linux-next-git-rejects
++++ a/fs/xfs/linux-2.6/xfs_aops.c
+@@ -1479,28 +1479,16 @@ xfs_vm_direct_IO(
+ 		iocb->private = xfs_alloc_ioend(inode, IO_NEW);
+ 
+ 		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iov,
+-<<<<<<< HEAD
+-					    offset, nr_segs,
+-					    xfs_get_blocks_direct,
+-					    xfs_end_io_direct_write, NULL, 0);
+-=======
+ 					   offset, nr_segs,
+ 					   xfs_get_blocks_direct,
+ 					   xfs_end_io_direct_write, NULL, 0);
+->>>>>>> FETCH_HEAD
+ 		if (ret != -EIOCBQUEUED && iocb->private)
+ 			xfs_destroy_ioend(iocb->private);
+ 	} else {
+ 		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iov,
+-<<<<<<< HEAD
+-					    offset, nr_segs,
+-					    xfs_get_blocks_direct,
+-					    NULL, NULL, 0);
+-=======
+ 					   offset, nr_segs,
+ 					   xfs_get_blocks_direct,
+ 					   NULL, NULL, 0);
+->>>>>>> FETCH_HEAD
+ 	}
+ 
+ 	return ret;
+@@ -1534,13 +1522,8 @@ xfs_vm_write_begin(
+ {
+ 	int			ret;
+ 
+-<<<<<<< HEAD
+-	ret = block_write_begin(mapping, pos, len, flags | AOP_FLAG_NOFS,
+-				pagep, xfs_get_blocks);
+-=======
+ 	ret = block_write_begin(mapping, pos, len, flags | AOP_FLAG_NOFS, pagep,
+ 				xfs_get_blocks);
+->>>>>>> FETCH_HEAD
+ 	if (unlikely(ret))
+ 		xfs_vm_write_failed(mapping, pos + len);
+ 	return ret;
+diff -puN include/asm-generic/unistd.h~linux-next-git-rejects include/asm-generic/unistd.h
+--- a/include/asm-generic/unistd.h~linux-next-git-rejects
++++ a/include/asm-generic/unistd.h
+@@ -644,11 +644,7 @@ __SYSCALL(__NR_wait4, sys_wait4)
+ __SYSCALL(__NR_prlimit64, sys_prlimit64)
+ 
+ #undef __NR_syscalls
+-<<<<<<< HEAD
+ #define __NR_syscalls 262
+-=======
+-#define __NR_syscalls 261
+->>>>>>> FETCH_HEAD
  
  /*
-+ * Returns true if the caller should wait to clean dirty/writeback pages.
-+ *
-+ * If we are direct reclaiming for contiguous pages and we do not reclaim
-+ * everything in the list, try again and wait for writeback IO to complete.
-+ * This will stall high-order allocations noticeably. Only do that when really
-+ * need to free the pages under high memory pressure.
-+ */
-+static inline bool should_reclaim_stall(unsigned long nr_taken,
-+					unsigned long nr_freed,
-+					int priority,
-+					struct scan_control *sc)
-+{
-+	int lumpy_stall_priority;
-+
-+	/* kswapd should not stall on sync IO */
-+	if (current_is_kswapd())
-+		return false;
-+
-+	/* Only stall on lumpy reclaim */
-+	if (!sc->lumpy_reclaim_mode)
-+		return false;
-+
-+	/* If we have relaimed everything on the isolated list, no stall */
-+	if (nr_freed == nr_taken)
-+		return false;
-+
-+	/*
-+	 * For high-order allocations, there are two stall thresholds.
-+	 * High-cost allocations stall immediately where as lower
-+	 * order allocations such as stacks require the scanning
-+	 * priority to be much higher before stalling.
-+	 */
-+	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
-+		lumpy_stall_priority = DEF_PRIORITY;
-+	else
-+		lumpy_stall_priority = DEF_PRIORITY / 3;
-+
-+	return priority <= lumpy_stall_priority;
-+}
-+
-+/*
-  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
-  * of reclaimed pages
-  */
-@@ -1298,14 +1339,8 @@ shrink_inactive_list(unsigned long nr_to
- 
- 	nr_reclaimed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC);
- 
--	/*
--	 * If we are direct reclaiming for contiguous pages and we do
--	 * not reclaim everything in the list, try again and wait
--	 * for IO to complete. This will stall high-order allocations
--	 * but that should be acceptable to the caller
--	 */
--	if (nr_reclaimed < nr_taken && !current_is_kswapd() &&
--			sc->lumpy_reclaim_mode) {
-+	/* Check if we should syncronously wait for writeback */
-+	if (should_reclaim_stall(nr_taken, nr_reclaimed, priority, sc)) {
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
- 
- 		/*
+  * All syscalls below here should go away really,
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
 fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
 include-linux-fsh-complete-hexification-of-fmode_-constants.patch
-vfs-o_-bit-numbers-uniqueness-check.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages.patch
+mm-vmap-area-cache.patch
+acpi-fix-bogus-preemption-logic.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+scsi-remove-private-bit-macros.patch
+fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+vfs-use-kmalloc-to-allocate-fdmem-if-possible.patch
+mm.patch
 writeback-reduce-calls-to-global_page_state-in-balance_dirty_pages-update.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds.patch
-writeback-avoid-unnecessary-calculation-of-bdi-dirty-thresholds-update.patch
-writeback-add-comment-to-the-dirty-limit-functions.patch
-writeback-add-comment-to-the-dirty-limit-functions-update.patch
-writeback-dont-redirty-tail-an-inode-with-dirty-pages.patch
-writeback-fix-queue_io-ordering.patch
-writeback-fix-queue_io-ordering-update.patch
-writeback-merge-for_kupdate-and-for_kupdate-cases.patch
-writeback-merge-for_kupdate-and-for_kupdate-cases-update.patch
-vmscan-raise-the-bar-to-pageout_io_sync-stalls.patch
-mm-fix-writeback_in_progress.patch
-mm-avoid-resetting-wb_start-after-each-writeback-round.patch
-vfs-add-super-operation-writeback_inodes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+mmc-recognize-csd-structure-fix.patch
+mmc-fix-all-hangs-related-to-mmc-sd-card-insert-removal-during-suspend-resume.patch
+rtc-fixes-and-new-functionality-for-fm3130-fix.patch
+rtc-add-support-for-ds3232-rtc-fix.patch
+drivers-video-igafbc-make-igafb_setup-and-igafb_init-static.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+lib-bugc-make-warn-implementation-match-the-kernel-panicc-one-checkpatch-fixes.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
+fs-sysv-v7-adjust-sanity-checks-for-some-volumes-checkpatch-fixes.patch
+fs-sysv-superc-add-support-for-non-pdp11-v7-filesystems-checkpatch-fixes.patch
+kfifo-add-example-files-to-the-kernel-sample-directory-checkpatch-fixes.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
