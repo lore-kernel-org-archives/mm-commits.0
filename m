@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 10 Aug 2010 12:44:15 -0700
-Message-ID: <201008101942.o7AJgYCd012402@imap1.linux-foundation.org>
+Subject: + fix-hwmon-coretemp-update-hotplug-condition-check.patch added to -mm tree
+Date: Tue, 10 Aug 2010 14:14:45 -0700
+Message-ID: <201008102114.o7ALEltw016513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752043Ab0HJTmg (ORCPT
+	by vger.kernel.org with ESMTP id S932210Ab0HJVQC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Aug 2010 15:42:36 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o7AJgYPE015816
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 10 Aug 2010 12:42:35 -0700
+	Tue, 10 Aug 2010 17:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, gong.chen@linux.intel.com, guenter.roeck@ericsson.com, huaxu.wan@intel.com, khali@linux-fr.org, r.marek@assembler.cz, rjw@sisk.pl
 
 
 The patch titled
-     linux-next-git-rejects
+     fix "hwmon: coretemp: update hotplug condition check"
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     fix-hwmon-coretemp-update-hotplug-condition-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,139 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: fix "hwmon: coretemp: update hotplug condition check"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+With
+
+: commit 0dca94baeab4a1a514841b0a4c8e3a51dfb4d5ae
+: Author: Chen Gong <gong.chen@linux.intel.com>
+: Date:   Mon Aug 9 17:21:09 2010 -0700
+:
+:    hwmon: coretemp: update hotplug condition check
+
+we merged v2 of this patch.  Update that to v3.
+
+The difference is to remove the new and unnecesary references to
+CPU_*_FROZEN.
+
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Cc: Huaxu Wan <huaxu.wan@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                        |    4 +---
- arch/x86/kernel/syscall_table_32.S |    5 +----
- fs/exofs/inode.c                   |    4 ----
- fs/xfs/linux-2.6/xfs_aops.c        |   17 -----------------
- include/asm-generic/unistd.h       |    4 ----
- 5 files changed, 2 insertions(+), 32 deletions(-)
+ drivers/hwmon/coretemp.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -5284,21 +5284,19 @@ M:	Nicolas Pitre <nico@fluxnic.net>
- S:	Odd Fixes
- F:	drivers/net/smc91x.*
+diff -puN drivers/hwmon/coretemp.c~fix-hwmon-coretemp-update-hotplug-condition-check drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~fix-hwmon-coretemp-update-hotplug-condition-check
++++ a/drivers/hwmon/coretemp.c
+@@ -501,13 +501,10 @@ static int __cpuinit coretemp_cpu_callba
  
--<<<<<<< HEAD
- SMM665 HARDWARE MONITOR DRIVER
- M:	Guenter Roeck <linux@roeck-us.net>
- L:	lm-sensors@lm-sensors.org
- S:	Maintained
- F:	Documentation/hwmon/smm665
- F:	drivers/hwmon/smm665.c
--=======
-+
- SMSC EMC2103 HARDWARE MONITOR DRIVER
- M:	Steve Glendinning <steve.glendinning@smsc.com>
- L:	lm-sensors@lm-sensors.org
- S:	Supported
- F:	Documentation/hwmon/emc2103
- F:	drivers/hwmon/emc2103.c
-->>>>>>> FETCH_HEAD
- 
- SMSC47B397 HARDWARE MONITOR DRIVER
- M:	"Mark M. Hoffman" <mhoffman@lightlink.com>
-diff -puN arch/x86/kernel/syscall_table_32.S~linux-next-git-rejects arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~linux-next-git-rejects
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -339,8 +339,5 @@ ENTRY(sys_call_table)
- 	.long sys_recvmmsg
- 	.long sys_fanotify_init
- 	.long sys_fanotify_mark
--<<<<<<< HEAD
--	.long sys_prlimit64
--=======
- 	.long sys_prlimit64		/* 340 */
-->>>>>>> FETCH_HEAD
-+
-diff -puN fs/exofs/inode.c~linux-next-git-rejects fs/exofs/inode.c
---- a/fs/exofs/inode.c~linux-next-git-rejects
-+++ a/fs/exofs/inode.c
-@@ -713,11 +713,7 @@ int exofs_write_begin(struct file *file,
- 		ret = simple_write_begin(file, mapping, pos, len, flags, pagep,
- 					 fsdata);
- 		if (ret) {
--<<<<<<< HEAD
--			EXOFS_DBGMSG("simple_write_begin faild\n");
--=======
- 			EXOFS_DBGMSG("simple_write_begin failed\n");
-->>>>>>> FETCH_HEAD
- 			goto out;
- 		}
- 
-diff -puN fs/xfs/linux-2.6/xfs_aops.c~linux-next-git-rejects fs/xfs/linux-2.6/xfs_aops.c
---- a/fs/xfs/linux-2.6/xfs_aops.c~linux-next-git-rejects
-+++ a/fs/xfs/linux-2.6/xfs_aops.c
-@@ -1479,28 +1479,16 @@ xfs_vm_direct_IO(
- 		iocb->private = xfs_alloc_ioend(inode, IO_NEW);
- 
- 		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iov,
--<<<<<<< HEAD
--					    offset, nr_segs,
--					    xfs_get_blocks_direct,
--					    xfs_end_io_direct_write, NULL, 0);
--=======
- 					   offset, nr_segs,
- 					   xfs_get_blocks_direct,
- 					   xfs_end_io_direct_write, NULL, 0);
-->>>>>>> FETCH_HEAD
- 		if (ret != -EIOCBQUEUED && iocb->private)
- 			xfs_destroy_ioend(iocb->private);
- 	} else {
- 		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iov,
--<<<<<<< HEAD
--					    offset, nr_segs,
--					    xfs_get_blocks_direct,
--					    NULL, NULL, 0);
--=======
- 					   offset, nr_segs,
- 					   xfs_get_blocks_direct,
- 					   NULL, NULL, 0);
-->>>>>>> FETCH_HEAD
+ 	switch (action) {
+ 	case CPU_ONLINE:
+-	case CPU_ONLINE_FROZEN:
+ 	case CPU_DOWN_FAILED:
+-	case CPU_DOWN_FAILED_FROZEN:
+ 		coretemp_device_add(cpu);
+ 		break;
+ 	case CPU_DOWN_PREPARE:
+-	case CPU_DOWN_PREPARE_FROZEN:
+ 		coretemp_device_remove(cpu);
+ 		break;
  	}
- 
- 	return ret;
-@@ -1534,13 +1522,8 @@ xfs_vm_write_begin(
- {
- 	int			ret;
- 
--<<<<<<< HEAD
--	ret = block_write_begin(mapping, pos, len, flags | AOP_FLAG_NOFS,
--				pagep, xfs_get_blocks);
--=======
- 	ret = block_write_begin(mapping, pos, len, flags | AOP_FLAG_NOFS, pagep,
- 				xfs_get_blocks);
-->>>>>>> FETCH_HEAD
- 	if (unlikely(ret))
- 		xfs_vm_write_failed(mapping, pos + len);
- 	return ret;
-diff -puN include/asm-generic/unistd.h~linux-next-git-rejects include/asm-generic/unistd.h
---- a/include/asm-generic/unistd.h~linux-next-git-rejects
-+++ a/include/asm-generic/unistd.h
-@@ -644,11 +644,7 @@ __SYSCALL(__NR_wait4, sys_wait4)
- __SYSCALL(__NR_prlimit64, sys_prlimit64)
- 
- #undef __NR_syscalls
--<<<<<<< HEAD
- #define __NR_syscalls 262
--=======
--#define __NR_syscalls 261
-->>>>>>> FETCH_HEAD
- 
- /*
-  * All syscalls below here should go away really,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+fix-hwmon-coretemp-update-hotplug-condition-check.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
