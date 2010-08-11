@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-kfifoc-add-handling-of-chained-scatterlists.patch added to -mm tree
-Date: Wed, 11 Aug 2010 13:37:14 -0700
-Message-ID: <201008112037.o7BKbEEq013281@imap1.linux-foundation.org>
+Subject: + matroxfb-fix-incorrect-use-of-memcpy_toio.patch added to -mm tree
+Date: Wed, 11 Aug 2010 14:21:44 -0700
+Message-ID: <201008112121.o7BLLiwc015260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48721 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757210Ab0HKUhp (ORCPT
+	by vger.kernel.org with ESMTP id S1751392Ab0HKVWb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Aug 2010 16:37:45 -0400
+	Wed, 11 Aug 2010 17:22:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net
+Cc: linux@rainbow-software.org, brgerst@gmail.com, hpa@zytor.com, khali@linux-fr.org, stable@kernel.org, vandrove@vc.cvut.cz
 
 
 The patch titled
-     kernel/kfifo.c: add handling of chained scatterlists
+     matroxfb: fix incorrect use of memcpy_toio()
 has been added to the -mm tree.  Its filename is
-     kernel-kfifoc-add-handling-of-chained-scatterlists.patch
+     matroxfb-fix-incorrect-use-of-memcpy_toio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/kfifo.c: add handling of chained scatterlists
-From: Stefani Seibold <stefani@seibold.net>
+Subject: matroxfb: fix incorrect use of memcpy_toio()
+From: Ondrej Zary <linux@rainbow-software.org>
 
-The current kfifo scatterlist implementation will not work with chained
-scatterlists.  It assumes that struct scatterlist arrays are allocated
-contiguously, which is not the case when chained scatterlists (struct
-sg_table) are in use.
+Screen is completely corrupted since 2.6.34.  Bisection revealed that it's
+caused by commit 6175ddf06b61720 ("x86: Clean up mem*io functions.").
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
+H.  Peter Anvin explained that memcpy_toio() does not copy data in 32bit
+chunks anymore on x86.
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Petr Vandrovec <vandrove@vc.cvut.cz>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: <stable@kernel.org>		[2.6.34.x, 2.6.35.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kfifo.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/video/matrox/matroxfb_base.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kfifo.c~kernel-kfifoc-add-handling-of-chained-scatterlists kernel/kfifo.c
---- a/kernel/kfifo.c~kernel-kfifoc-add-handling-of-chained-scatterlists
-+++ a/kernel/kfifo.c
-@@ -10,7 +10,7 @@
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-@@ -333,17 +333,16 @@ static int setup_sgl_buf(struct scatterl
- 		buf += PAGE_SIZE;
- 		npage = virt_to_page(buf);
- 		if (page_to_phys(page) != page_to_phys(npage) - l) {
--			sgl->page_link = 0;
--			sg_set_page(sgl++, page, l - off, off);
--			if (++n == nents)
-+			sg_set_page(sgl, page, l - off, off);
-+			sgl = sg_next(sgl);
-+			if (++n == nents || sgl == NULL)
- 				return n;
- 			page = npage;
- 			len -= l - off;
- 			l = off = 0;
- 		}
- 	}
--	sgl->page_link = 0;
--	sg_set_page(sgl++, page, len, off);
-+	sg_set_page(sgl, page, len, off);
- 	return n + 1;
- }
+diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-fix-incorrect-use-of-memcpy_toio drivers/video/matrox/matroxfb_base.h
+--- a/drivers/video/matrox/matroxfb_base.h~matroxfb-fix-incorrect-use-of-memcpy_toio
++++ a/drivers/video/matrox/matroxfb_base.h
+@@ -151,13 +151,13 @@ static inline void mga_writel(vaddr_t va
+ static inline void mga_memcpy_toio(vaddr_t va, const void* src, int len) {
+ #if defined(__alpha__) || defined(__i386__) || defined(__x86_64__)
+ 	/*
+-	 * memcpy_toio works for us if:
++	 * iowrite32_rep works for us if:
+ 	 *  (1) Copies data as 32bit quantities, not byte after byte,
+ 	 *  (2) Performs LE ordered stores, and
+ 	 *  (3) It copes with unaligned source (destination is guaranteed to be page
+ 	 *      aligned and length is guaranteed to be multiple of 4).
+ 	 */
+-	memcpy_toio(va.vaddr, src, len);
++	iowrite32_rep(va.vaddr, src, len >> 2);
+ #else
+         u_int32_t __iomem* addr = va.vaddr;
  
-@@ -363,7 +362,7 @@ static unsigned int setup_sgl(struct __k
- 	}
- 	l = min(len, size - off);
- 
--	n  = setup_sgl_buf(sgl, fifo->data + off, nents, l);
-+	n = setup_sgl_buf(sgl, fifo->data + off, nents, l);
- 	n += setup_sgl_buf(sgl + n, fifo->data, nents - n, len - l);
- 
- 	if (n)
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
 origin.patch
-kernel-kfifoc-add-handling-of-chained-scatterlists.patch
+matroxfb-fix-incorrect-use-of-memcpy_toio.patch
 
