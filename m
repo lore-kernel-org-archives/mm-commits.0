@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-debugfsc-needs-uaccessh.patch added to -mm tree
-Date: Wed, 11 Aug 2010 14:13:46 -0700
-Message-ID: <201008112143.o7BLhkZg016120@imap1.linux-foundation.org>
+Subject: + sdhci-get-rid-of-card-detect-work-fix.patch added to -mm tree
+Date: Wed, 11 Aug 2010 14:23:12 -0700
+Message-ID: <201008112153.o7BLrBut016484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60558 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753717Ab0HKVnv (ORCPT
+	by vger.kernel.org with ESMTP id S1751392Ab0HKVxy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Aug 2010 17:43:51 -0400
+	Wed, 11 Aug 2010 17:53:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, rui.zhang@intel.com
+Cc: akpm@linux-foundation.org, albert_herranz@yahoo.es, avorontsov@mvista.com, ben-linux@fluff.org, matt@console-pimps.org, pierre@ossman.eu, w.sang@pengutronix.de
 
 
 The patch titled
-     drivers/acpi/debugfs.c needs uaccess.h
+     sdhci-get-rid-of-card-detect-work-fix
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-debugfsc-needs-uaccessh.patch
+     sdhci-get-rid-of-card-detect-work-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi/debugfs.c needs uaccess.h
+Subject: sdhci-get-rid-of-card-detect-work-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 akpmconfig:
+sdhci_card_detect() is now used in drivers/mmc/host/sdhci-s3c.c.
 
-drivers/acpi/debugfs.c: In function 'cm_write':
-drivers/acpi/debugfs.c:36: error: implicit declaration of function 'copy_from_user'
-
-Please fold this into the base patch to prevent bisection holes.
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Albert Herranz <albert_herranz@yahoo.es>
+Cc: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/debugfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/sdhci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/debugfs.c~drivers-acpi-debugfsc-needs-uaccessh drivers/acpi/debugfs.c
---- a/drivers/acpi/debugfs.c~drivers-acpi-debugfsc-needs-uaccessh
-+++ a/drivers/acpi/debugfs.c
-@@ -5,6 +5,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
-+#include <linux/uaccess.h>
- #include <linux/debugfs.h>
- #include <acpi/acpi_drivers.h>
+diff -puN drivers/mmc/host/sdhci.c~sdhci-get-rid-of-card-detect-work-fix drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-get-rid-of-card-detect-work-fix
++++ a/drivers/mmc/host/sdhci.c
+@@ -1256,7 +1256,7 @@ static const struct mmc_host_ops sdhci_o
+  *                                                                           *
+ \*****************************************************************************/
  
+-static void sdhci_card_detect(struct sdhci_host *host)
++void sdhci_card_detect(struct sdhci_host *host)
+ {
+ 	if (!(sdhci_readl(host, SDHCI_PRESENT_STATE) & SDHCI_CARD_PRESENT)) {
+ 		if (host->mrq) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +87,7 @@ fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
 usb-storage-add-new-no_read_disc_info-quirk-fix.patch
 mm.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+sdhci-get-rid-of-card-detect-work-fix.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
 vfs-add-super-operation-writeback_inodes-fix.patch
