@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-add-async-pps-event-handler-fix.patch added to -mm tree
-Date: Wed, 11 Aug 2010 15:12:20 -0700
-Message-ID: <201008112242.o7BMgK5a018553@imap1.linux-foundation.org>
+Subject: + drivers-acpi-apei-erst-dbgc-get_useru64-doesnt-work-on-i386.patch added to -mm tree
+Date: Wed, 11 Aug 2010 16:06:24 -0700
+Message-ID: <201008112336.o7BNaNEj020805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753219Ab0HKWmv (ORCPT
+	by vger.kernel.org with ESMTP id S1757391Ab0HKXg5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Aug 2010 18:42:51 -0400
+	Wed, 11 Aug 2010 19:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, giometti@linux.it, johnstul@us.ibm.com, joonwpark81@gmail.com, lasaine@lvk.cs.msu.su, tj@kernel.org, yoush@cs.msu.su
+Cc: akpm@linux-foundation.org, gcosta@redhat.com, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, ying.huang@intel.com
 
 
 The patch titled
-     pps-add-async-pps-event-handler-fix
+     drivers/acpi/apei/erst-dbg.c: get_user(u64) doesn't work on i386
 has been added to the -mm tree.  Its filename is
-     pps-add-async-pps-event-handler-fix.patch
+     drivers-acpi-apei-erst-dbgc-get_useru64-doesnt-work-on-i386.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps-add-async-pps-event-handler-fix
+Subject: drivers/acpi/apei/erst-dbg.c: get_user(u64) doesn't work on i386
 From: Andrew Morton <akpm@linux-foundation.org>
 
-create_rt_workqueue() got nuked.
+Might be an x86 bug?  A get_user() on a u64 on i386 expands to
 
-Cc: "Nikita V. Youshchenko" <yoush@cs.msu.su>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Joonwoo Park <joonwpark81@gmail.com>
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: john stultz <johnstul@us.ibm.com>
+#define __get_user_8(__ret_gu, __val_gu, ptr)				\
+		__get_user_x(X, __ret_gu, __val_gu, ptr)
+
+which emits a call to __get_user_X(), which doesn't exist.
+
+Kludge around it with copy_from_user().
+
+
+
+While we're there, teach it how to print size_t's:
+
+drivers/acpi/apei/erst-dbg.c: In function 'erst_dbg_read':
+drivers/acpi/apei/erst-dbg.c:106: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'ssize_t'
+
+Cc: Glauber Costa <gcosta@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/pps.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/apei/erst-dbg.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pps/pps.c~pps-add-async-pps-event-handler-fix drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-add-async-pps-event-handler-fix
-+++ a/drivers/pps/pps.c
-@@ -328,7 +328,7 @@ static int __init pps_init(void)
- {
- 	int err;
+diff -puN drivers/acpi/apei/erst-dbg.c~drivers-acpi-apei-erst-dbgc-get_useru64-doesnt-work-on-i386 drivers/acpi/apei/erst-dbg.c
+--- a/drivers/acpi/apei/erst-dbg.c~drivers-acpi-apei-erst-dbgc-get_useru64-doesnt-work-on-i386
++++ a/drivers/acpi/apei/erst-dbg.c
+@@ -57,9 +57,10 @@ static long erst_dbg_ioctl(struct file *
  
--	pps_event_workqueue = create_rt_workqueue("pps");
-+	pps_event_workqueue = create_workqueue("pps");
- 	if (!pps_event_workqueue) {
- 		pr_err("pps: failed to create workqueue\n");
- 		return -ENOMEM;
+ 	switch (cmd) {
+ 	case APEI_ERST_CLEAR_RECORD:
+-		rc = get_user(record_id, (u64 __user *)arg);
++		rc = copy_from_user(&record_id, (const void __user *)arg,
++					sizeof(record_id));
+ 		if (rc)
+-			return rc;
++			return -EFAULT;
+ 		return erst_clear(record_id);
+ 	case APEI_ERST_GET_RECORD_COUNT:
+ 		rc = erst_get_record_count();
+@@ -104,7 +105,7 @@ retry:
+ 		goto out;
+ 	if (len > ERST_DBG_RECORD_LEN_MAX) {
+ 		pr_warning(ERST_DBG_PFX
+-			   "Record (ID: 0x%llx) length is too long: 0x%lx\n",
++			   "Record (ID: 0x%llx) length is too long: 0x%zx\n",
+ 			   id, len);
+ 		rc = -EIO;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +104,7 @@ fs-inodec-work-around-bug.patch
 i-need-old-gcc.patch
 mm-vmap-area-cache.patch
 drivers-acpi-debugfsc-needs-uaccessh.patch
+drivers-acpi-apei-erst-dbgc-get_useru64-doesnt-work-on-i386.patch
 parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
 gcc-46-btrfs-clean-up-unused-variables-bugs.patch
 hpet-factor-timer-allocate-from-open.patch
