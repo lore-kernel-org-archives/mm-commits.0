@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-fatal-kernel-doc-error.patch added to -mm tree
-Date: Wed, 11 Aug 2010 12:37:15 -0700
-Message-ID: <201008111937.o7BJbHZ8010509@imap1.linux-foundation.org>
+Subject: + pc8736x_gpio-depends-on-x86_32.patch added to -mm tree
+Date: Wed, 11 Aug 2010 12:37:18 -0700
+Message-ID: <201008111937.o7BJbIqk010512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756391Ab0HKThv (ORCPT
+	by vger.kernel.org with ESMTP id S1758522Ab0HKThx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Aug 2010 15:37:51 -0400
+	Wed, 11 Aug 2010 15:37:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, jim.cromie@gmail.com, jordan.crouse@amd.com
 
 
 The patch titled
-     mm: fix fatal kernel-doc error
+     pc8736x_gpio: depends on X86_32
 has been added to the -mm tree.  Its filename is
-     mm-fix-fatal-kernel-doc-error.patch
+     pc8736x_gpio-depends-on-x86_32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix fatal kernel-doc error
+Subject: pc8736x_gpio: depends on X86_32
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix a fatal kernel-doc error due to a #define coming between a function's
-kernel-doc notation and the function signature.  (kernel-doc cannot handle
-this)
+Fix kconfig dependency warning for PC8736x_GPIO by restricting it to
+X86_32.
+
+warning: (SCx200_GPIO && SCx200 || PC8736x_GPIO && X86) selects NSC_GPIO which has unmet direct dependencies (X86_32)
+
+NSC_GPIO is X86_32 only.  The other driver (SCx200_GPIO) that selects
+NSC_GPIO is X86_32 only (indirectly, since SCx200 depends on X86_32),
+so limit this driver also.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Jim Cromie <jim.cromie@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
+ drivers/char/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-fix-fatal-kernel-doc-error mm/page-writeback.c
---- a/mm/page-writeback.c~mm-fix-fatal-kernel-doc-error
-+++ a/mm/page-writeback.c
-@@ -825,10 +825,10 @@ void __init page_writeback_init(void)
- /*
-  * We tag pages in batches of WRITEBACK_TAG_BATCH to reduce tree_lock latency.
-  */
--#define WRITEBACK_TAG_BATCH 4096
- void tag_pages_for_writeback(struct address_space *mapping,
- 			     pgoff_t start, pgoff_t end)
- {
-+#define WRITEBACK_TAG_BATCH 4096
- 	unsigned long tagged;
+diff -puN drivers/char/Kconfig~pc8736x_gpio-depends-on-x86_32 drivers/char/Kconfig
+--- a/drivers/char/Kconfig~pc8736x_gpio-depends-on-x86_32
++++ a/drivers/char/Kconfig
+@@ -1002,7 +1002,7 @@ config SCx200_GPIO
  
- 	do {
+ config PC8736x_GPIO
+ 	tristate "NatSemi PC8736x GPIO Support"
+-	depends on X86
++	depends on X86_32
+ 	default SCx200_GPIO	# mostly N
+ 	select NSC_GPIO		# needed for support routines
+ 	help
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
