@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-add-kfifo_skip-testcase.patch added to -mm tree
-Date: Thu, 12 Aug 2010 14:22:20 -0700
-Message-ID: <201008122122.o7CLMKV9013453@imap1.linux-foundation.org>
+Subject: + drivers-media-video-v4l2-ctrlsc-fix-build.patch added to -mm tree
+Date: Thu, 12 Aug 2010 14:24:49 -0700
+Message-ID: <201008122124.o7CLOnCK013513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753114Ab0HLVWk (ORCPT
+	by vger.kernel.org with ESMTP id S1760718Ab0HLVY7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Aug 2010 17:22:40 -0400
+	Thu, 12 Aug 2010 17:24:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arighi@develer.com, greg@kroah.com, stefani@seibold.net
+Cc: mroos@linux.ee, mchehab@infradead.org
 
 
 The patch titled
-     kfifo: add kfifo_skip() testcase
+     drivers/media/video/v4l2-ctrls.c: fix build
 has been added to the -mm tree.  Its filename is
-     kfifo-add-kfifo_skip-testcase.patch
+     drivers-media-video-v4l2-ctrlsc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: add kfifo_skip() testcase
-From: Andrea Righi <arighi@develer.com>
+Subject: drivers/media/video/v4l2-ctrls.c: fix build
+From: Meelis Roos <mroos@linux.ee>
 
-Add a testcase for kfifo_skip() to the byte stream fifo example.
+Current git has broken v4l2-ctrls compilation - kzalloc et al are missing
+prototypes.  Fix it by including linux/slab.h that contains the
+definitions.
 
-Signed-off-by: Andrea Righi <arighi@develer.com>
-Cc: Greg KH <greg@kroah.com>
-Acked-by: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Meelis Roos <mroos@linux.ee>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kfifo/bytestream-example.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN samples/kfifo/bytestream-example.c~kfifo-add-kfifo_skip-testcase samples/kfifo/bytestream-example.c
---- a/samples/kfifo/bytestream-example.c~kfifo-add-kfifo_skip-testcase
-+++ a/samples/kfifo/bytestream-example.c
-@@ -73,6 +73,10 @@ static int __init testfunc(void)
- 	ret = kfifo_in(&test, buf, ret);
- 	printk(KERN_INFO "ret: %d\n", ret);
+diff -puN drivers/media/video/v4l2-ctrls.c~drivers-media-video-v4l2-ctrlsc-fix-build drivers/media/video/v4l2-ctrls.c
+--- a/drivers/media/video/v4l2-ctrls.c~drivers-media-video-v4l2-ctrlsc-fix-build
++++ a/drivers/media/video/v4l2-ctrls.c
+@@ -19,6 +19,7 @@
+  */
  
-+	/* skip first element of the fifo */
-+	printk(KERN_INFO "skip 1st element\n");
-+	kfifo_skip(&test);
-+
- 	/* put values into the fifo until is full */
- 	for (i = 20; kfifo_put(&test, &i); i++)
- 		;
+ #include <linux/ctype.h>
++#include <linux/slab.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
 _
 
-Patches currently in -mm which might be from arighi@develer.com are
+Patches currently in -mm which might be from mroos@linux.ee are
 
-origin.patch
-kfifo-implement-missing-__kfifo_skip_r.patch
-kfifo-add-kfifo_skip-testcase.patch
+drivers-media-video-v4l2-ctrlsc-fix-build.patch
 
