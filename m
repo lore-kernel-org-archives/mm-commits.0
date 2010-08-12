@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ip2-remove-unneeded-null-check.patch added to -mm tree
-Date: Thu, 12 Aug 2010 13:48:57 -0700
-Message-ID: <201008122048.o7CKmvB4011929@imap1.linux-foundation.org>
+Subject: + o_direct-fix-the-splitting-up-of-contiguous-i-o.patch added to -mm tree
+Date: Thu, 12 Aug 2010 14:04:51 -0700
+Message-ID: <201008122104.o7CL4qAQ012632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754962Ab0HLUtB (ORCPT
+	by vger.kernel.org with ESMTP id S1754904Ab0HLVFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Aug 2010 16:49:01 -0400
+	Thu, 12 Aug 2010 17:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, greg@kroah.com, mhw@wittsend.com
+Cc: jmoyer@redhat.com, chris.mason@oracle.com, jbacik@redhat.com, stable@kernel.org
 
 
 The patch titled
-     ip2: remove unneeded NULL check
+     O_DIRECT: fix the splitting up of contiguous I/O
 has been added to the -mm tree.  Its filename is
-     ip2-remove-unneeded-null-check.patch
+     o_direct-fix-the-splitting-up-of-contiguous-i-o.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ip2: remove unneeded NULL check
-From: Dan Carpenter <error27@gmail.com>
+Subject: O_DIRECT: fix the splitting up of contiguous I/O
+From: Jeff Moyer <jmoyer@redhat.com>
 
-We don't pass NULL tty pointers to the close function, and anyway we
-already dereferenced it at this point.  This check can be removed.
+commit c2c6ca4 (direct-io: do not merge logically non-contiguous requests)
+introduced a bug whereby all O_DIRECT I/Os were submitted a page at a time
+to the block layer.  The problem is that the code expected
+dio->block_in_file to correspond to the current page in the dio.  In fact,
+it corresponds to the previous page submitted via submit_page_section. 
+This was purely an oversight, as the dio->cur_page_fs_offset field was
+introduced for just this purpose.  This patch simply uses the correct
+variable when calculating whether there is a mismatch between contiguous
+logical blocks and contiguous physical blocks (as described in the
+comments).
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: "Michael H. Warfield" <mhw@wittsend.com>
-Cc: Greg KH <greg@kroah.com>
+I also switched the if conditional following this check to an else if, to
+ensure that we never call dio_bio_submit twice for the same dio (in
+theory, this should not happen, anyway).
+
+I've tested this by running blktrace and verifying that a 64KB I/O was
+submitted as a single I/O.  I also ran the patched kernel through
+xfstests' aio tests using xfs, ext4 (with 1k and 4k block sizes) and btrfs
+and verified that there were no regressions as compared to an unpatched
+kernel.
+
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Josef Bacik <jbacik@redhat.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: <stable@kernel.org>		[2.6.35.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/direct-io.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2-remove-unneeded-null-check drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2-remove-unneeded-null-check
-+++ a/drivers/char/ip2/ip2main.c
-@@ -1650,7 +1650,7 @@ ip2_close( PTTY tty, struct file *pFile 
- 	/* disable DSS reporting */
- 	i2QueueCommands(PTYPE_INLINE, pCh, 100, 4,
- 				CMD_DCD_NREP, CMD_CTS_NREP, CMD_DSR_NREP, CMD_RI_NREP);
--	if ( !tty || (tty->termios->c_cflag & HUPCL) ) {
-+	if (tty->termios->c_cflag & HUPCL) {
- 		i2QueueCommands(PTYPE_INLINE, pCh, 100, 2, CMD_RTSDN, CMD_DTRDN);
- 		pCh->dataSetOut &= ~(I2_DTR | I2_RTS);
- 		i2QueueCommands( PTYPE_INLINE, pCh, 100, 1, CMD_PAUSE(25));
+diff -puN fs/direct-io.c~o_direct-fix-the-splitting-up-of-contiguous-i-o fs/direct-io.c
+--- a/fs/direct-io.c~o_direct-fix-the-splitting-up-of-contiguous-i-o
++++ a/fs/direct-io.c
+@@ -634,7 +634,7 @@ static int dio_send_cur_page(struct dio 
+ 	int ret = 0;
+ 
+ 	if (dio->bio) {
+-		loff_t cur_offset = dio->block_in_file << dio->blkbits;
++		loff_t cur_offset = dio->cur_page_fs_offset;
+ 		loff_t bio_next_offset = dio->logical_offset_in_bio +
+ 			dio->bio->bi_size;
+ 
+@@ -659,7 +659,7 @@ static int dio_send_cur_page(struct dio 
+ 		 * Submit now if the underlying fs is about to perform a
+ 		 * metadata read
+ 		 */
+-		if (dio->boundary)
++		else if (dio->boundary)
+ 			dio_bio_submit(dio);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
 origin.patch
-linux-next.patch
-ip2-remove-unneeded-null-check.patch
-ip2-return-efault-on-copy_to_user-errors.patch
+o_direct-fix-the-splitting-up-of-contiguous-i-o.patch
+aio-do-not-return-erestartsys-and-friends-from-aio.patch
 
