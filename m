@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + o_direct-fix-the-splitting-up-of-contiguous-i-o.patch added to -mm tree
-Date: Thu, 12 Aug 2010 14:04:51 -0700
-Message-ID: <201008122104.o7CL4qAQ012632@imap1.linux-foundation.org>
+Subject: + kfifo-implement-missing-__kfifo_skip_r.patch added to -mm tree
+Date: Thu, 12 Aug 2010 14:22:18 -0700
+Message-ID: <201008122122.o7CLMIbM013450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754904Ab0HLVFF (ORCPT
+	by vger.kernel.org with ESMTP id S1753114Ab0HLVWh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Aug 2010 17:05:05 -0400
+	Thu, 12 Aug 2010 17:22:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, chris.mason@oracle.com, jbacik@redhat.com, stable@kernel.org
+Cc: arighi@develer.com, greg@kroah.com, stefani@seibold.net
 
 
 The patch titled
-     O_DIRECT: fix the splitting up of contiguous I/O
+     kfifo: implement missing __kfifo_skip_r()
 has been added to the -mm tree.  Its filename is
-     o_direct-fix-the-splitting-up-of-contiguous-i-o.patch
+     kfifo-implement-missing-__kfifo_skip_r.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: O_DIRECT: fix the splitting up of contiguous I/O
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: kfifo: implement missing __kfifo_skip_r()
+From: Andrea Righi <arighi@develer.com>
 
-commit c2c6ca4 (direct-io: do not merge logically non-contiguous requests)
-introduced a bug whereby all O_DIRECT I/Os were submitted a page at a time
-to the block layer.  The problem is that the code expected
-dio->block_in_file to correspond to the current page in the dio.  In fact,
-it corresponds to the previous page submitted via submit_page_section. 
-This was purely an oversight, as the dio->cur_page_fs_offset field was
-introduced for just this purpose.  This patch simply uses the correct
-variable when calculating whether there is a mismatch between contiguous
-logical blocks and contiguous physical blocks (as described in the
-comments).
+kfifo_skip() is currently broken, due to the missing of the internal
+helper function.  Add it.
 
-I also switched the if conditional following this check to an else if, to
-ensure that we never call dio_bio_submit twice for the same dio (in
-theory, this should not happen, anyway).
-
-I've tested this by running blktrace and verifying that a 64KB I/O was
-submitted as a single I/O.  I also ran the patched kernel through
-xfstests' aio tests using xfs, ext4 (with 1k and 4k block sizes) and btrfs
-and verified that there were no regressions as compared to an unpatched
-kernel.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Josef Bacik <jbacik@redhat.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: <stable@kernel.org>		[2.6.35.x]
+Signed-off-by: Andrea Righi <arighi@develer.com>
+Cc: Greg KH <greg@kroah.com>
+Acked-by: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kfifo.h |    2 ++
+ kernel/kfifo.c        |    9 +++++++++
+ 2 files changed, 11 insertions(+)
 
-diff -puN fs/direct-io.c~o_direct-fix-the-splitting-up-of-contiguous-i-o fs/direct-io.c
---- a/fs/direct-io.c~o_direct-fix-the-splitting-up-of-contiguous-i-o
-+++ a/fs/direct-io.c
-@@ -634,7 +634,7 @@ static int dio_send_cur_page(struct dio 
- 	int ret = 0;
+diff -puN include/linux/kfifo.h~kfifo-implement-missing-__kfifo_skip_r include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-implement-missing-__kfifo_skip_r
++++ a/include/linux/kfifo.h
+@@ -836,6 +836,8 @@ extern void __kfifo_dma_out_finish_r(str
  
- 	if (dio->bio) {
--		loff_t cur_offset = dio->block_in_file << dio->blkbits;
-+		loff_t cur_offset = dio->cur_page_fs_offset;
- 		loff_t bio_next_offset = dio->logical_offset_in_bio +
- 			dio->bio->bi_size;
+ extern unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize);
  
-@@ -659,7 +659,7 @@ static int dio_send_cur_page(struct dio 
- 		 * Submit now if the underlying fs is about to perform a
- 		 * metadata read
- 		 */
--		if (dio->boundary)
-+		else if (dio->boundary)
- 			dio_bio_submit(dio);
- 	}
++extern void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize);
++
+ extern unsigned int __kfifo_out_peek_r(struct __kfifo *fifo,
+ 	void *buf, unsigned int len, size_t recsize);
  
+diff -puN kernel/kfifo.c~kfifo-implement-missing-__kfifo_skip_r kernel/kfifo.c
+--- a/kernel/kfifo.c~kfifo-implement-missing-__kfifo_skip_r
++++ a/kernel/kfifo.c
+@@ -503,6 +503,15 @@ unsigned int __kfifo_out_r(struct __kfif
+ }
+ EXPORT_SYMBOL(__kfifo_out_r);
+ 
++void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize)
++{
++	unsigned int n;
++
++	n = __kfifo_peek_n(fifo, recsize);
++	fifo->out += n + recsize;
++}
++EXPORT_SYMBOL(__kfifo_skip_r);
++
+ int __kfifo_from_user_r(struct __kfifo *fifo, const void __user *from,
+ 	unsigned long len, unsigned int *copied, size_t recsize)
+ {
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from arighi@develer.com are
 
 origin.patch
-o_direct-fix-the-splitting-up-of-contiguous-i-o.patch
-aio-do-not-return-erestartsys-and-friends-from-aio.patch
+kfifo-implement-missing-__kfifo_skip_r.patch
+kfifo-add-kfifo_skip-testcase.patch
 
