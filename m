@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-check-for-incorrect-permissions.patch added to -mm tree
-Date: Thu, 12 Aug 2010 13:36:10 -0700
-Message-ID: <201008122036.o7CKaAn6011386@imap1.linux-foundation.org>
+Subject: + kconfig-fix-warnings-in-fgets-fwrite-usage.patch added to -mm tree
+Date: Thu, 12 Aug 2010 13:36:52 -0700
+Message-ID: <201008122036.o7CKaqqZ011399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755044Ab0HLUgs (ORCPT
+	by vger.kernel.org with ESMTP id S1755164Ab0HLUhc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Aug 2010 16:36:48 -0400
+	Thu, 12 Aug 2010 16:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rabin.vincent@stericsson.com, apw@canonical.com, linus.walleij@stericsson.com
+Cc: vapier@gentoo.org, mmarek@suse.cz
 
 
 The patch titled
-     checkpatch: check for incorrect permissions
+     kconfig: fix warnings in fgets/fwrite usage
 has been added to the -mm tree.  Its filename is
-     checkpatch-check-for-incorrect-permissions.patch
+     kconfig-fix-warnings-in-fgets-fwrite-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: check for incorrect permissions
-From: Rabin Vincent <rabin.vincent@stericsson.com>
+Subject: kconfig: fix warnings in fgets/fwrite usage
+From: Mike Frysinger <vapier@gentoo.org>
 
-Throw an error when a source file has been given execute permissions using
-the mode change line present in git diffs.  Also alow the filename
-matching to use the "diff" line in addition to the "+++" line, since the
-mode change lines appear before any "+++" lines.
+Add some helper functions that abort on failure, and change the fwrite and
+fget calls to use those.  This should kill off all the ugly gcc warnings
+that some distros emit about ignoring return values due to usage of
+warn_unused_result attributes.
 
-Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ scripts/kconfig/conf.c     |    4 ++--
+ scripts/kconfig/confdata.c |    2 +-
+ scripts/kconfig/expr.c     |    2 +-
+ scripts/kconfig/lkc.h      |   24 ++++++++++++++++++++++++
+ 4 files changed, 28 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-for-incorrect-permissions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-for-incorrect-permissions
-+++ a/scripts/checkpatch.pl
-@@ -1308,7 +1308,7 @@ sub process {
- 		$here = "#$realline: " if ($file);
+diff -puN scripts/kconfig/conf.c~kconfig-fix-warnings-in-fgets-fwrite-usage scripts/kconfig/conf.c
+--- a/scripts/kconfig/conf.c~kconfig-fix-warnings-in-fgets-fwrite-usage
++++ a/scripts/kconfig/conf.c
+@@ -108,7 +108,7 @@ static int conf_askvalue(struct symbol *
+ 		check_stdin();
+ 	case oldaskconfig:
+ 		fflush(stdout);
+-		fgets(line, 128, stdin);
++		xfgets(line, 128, stdin);
+ 		return 1;
+ 	default:
+ 		break;
+@@ -306,7 +306,7 @@ static int conf_choice(struct menu *menu
+ 			check_stdin();
+ 		case oldaskconfig:
+ 			fflush(stdout);
+-			fgets(line, 128, stdin);
++			xfgets(line, 128, stdin);
+ 			strip(line);
+ 			if (line[0] == '?') {
+ 				print_help(menu);
+diff -puN scripts/kconfig/confdata.c~kconfig-fix-warnings-in-fgets-fwrite-usage scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kconfig-fix-warnings-in-fgets-fwrite-usage
++++ a/scripts/kconfig/confdata.c
+@@ -412,7 +412,7 @@ static void conf_write_string(bool heade
+ 	while (1) {
+ 		l = strcspn(str, "\"\\");
+ 		if (l) {
+-			fwrite(str, l, 1, out);
++			xfwrite(str, l, 1, out);
+ 			str += l;
+ 		}
+ 		if (!*str)
+diff -puN scripts/kconfig/expr.c~kconfig-fix-warnings-in-fgets-fwrite-usage scripts/kconfig/expr.c
+--- a/scripts/kconfig/expr.c~kconfig-fix-warnings-in-fgets-fwrite-usage
++++ a/scripts/kconfig/expr.c
+@@ -1087,7 +1087,7 @@ void expr_print(struct expr *e, void (*f
  
- 		# extract the filename as it passes
--		if ($line=~/^\+\+\+\s+(\S+)/) {
-+		if ($line=~/^\+\+\+\s+(\S+)/ || $line=~/^diff\s.*?(\S+)$/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
+ static void expr_print_file_helper(void *data, struct symbol *sym, const char *str)
+ {
+-	fwrite(str, strlen(str), 1, data);
++	xfwrite(str, strlen(str), 1, data);
+ }
  
-@@ -1332,6 +1332,14 @@ sub process {
+ void expr_fprint(struct expr *e, FILE *out)
+diff -puN scripts/kconfig/lkc.h~kconfig-fix-warnings-in-fgets-fwrite-usage scripts/kconfig/lkc.h
+--- a/scripts/kconfig/lkc.h~kconfig-fix-warnings-in-fgets-fwrite-usage
++++ a/scripts/kconfig/lkc.h
+@@ -169,6 +169,30 @@ static inline bool sym_has_value(struct 
+ 	return sym->flags & SYMBOL_DEF_USER ? true : false;
+ }
  
- 		$cnt_lines++ if ($realcnt != 0);
- 
-+# Check for incorrect file permissions
-+		if ($line=~/^new (file )?mode.*[7531]\d{0,2}$/) {
-+			my $permhere = $here . "FILE: $realfile\n";
-+			if ($realfile=~/(Makefile|Kconfig|\.c|\.h|\.S|\.tmpl)$/) {
-+				ERROR("do not set execute permissions for source files\n" . $permhere);
-+			}
-+		}
++#define internal_error(fmt, args...) \
++do { \
++	fprintf(stderr, "%s:%s:%i: %s: " fmt "\n", __FILE__, \
++		__func__, __LINE__, _("internal error"), ## args); \
++	exit(1); \
++} while (0)
 +
- #check the patch for a signoff:
- 		if ($line =~ /^\s*signed-off-by:/i) {
- 			# This is a signoff, if ugly, so do not double report.
++#define xfwrite(ptr, size, nmemb, stream) \
++({ \
++	size_t _nmemb = (nmemb); \
++	size_t ret = fwrite(ptr, size, _nmemb, stream); \
++	if (ret != _nmemb) \
++		internal_error("%s", _("fwrite() came up short")); \
++	ret; \
++})
++
++#define xfgets(s, size, stream) \
++({ \
++	char *ret = fgets(s, size, stream); \
++	if (ret == NULL) \
++		internal_error("%s", _("fgets() came up short")); \
++	ret; \
++})
++
+ #ifdef __cplusplus
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from rabin.vincent@stericsson.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
 linux-next.patch
-checkpatch-check-for-incorrect-permissions.patch
+kconfig-fix-warnings-in-fgets-fwrite-usage.patch
 
