@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-8250_earlyc-print-early-console-device-address-in-hex.patch added to -mm tree
-Date: Thu, 12 Aug 2010 12:22:57 -0700
-Message-ID: <201008121922.o7CJMvqB008155@imap1.linux-foundation.org>
+Subject: + cgroup_freezer-unnecessary-test-in-cgroup_freezing_or_frozen.patch added to -mm tree
+Date: Thu, 12 Aug 2010 12:32:29 -0700
+Message-ID: <201008121932.o7CJWTSn008580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760813Ab0HLTXA (ORCPT
+	by vger.kernel.org with ESMTP id S1753158Ab0HLTcm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Aug 2010 15:23:00 -0400
+	Thu, 12 Aug 2010 15:32:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tony.luck@intel.com, greg@kroah.com
+Cc: tomasz.buchert@inria.fr, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com
 
 
 The patch titled
-     drivers/serial/8250_early.c: print early console device address in hex
+     cgroup_freezer: unnecessary test in cgroup_freezing_or_frozen()
 has been added to the -mm tree.  Its filename is
-     drivers-serial-8250_earlyc-print-early-console-device-address-in-hex.patch
+     cgroup_freezer-unnecessary-test-in-cgroup_freezing_or_frozen.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/8250_early.c: print early console device address in hex
-From: "Luck, Tony" <tony.luck@intel.com>
+Subject: cgroup_freezer: unnecessary test in cgroup_freezing_or_frozen()
+From: Tomasz Buchert <tomasz.buchert@inria.fr>
 
-Device addresses are usually printed in hex.
+The root freezer_state is always CGROUP_THAWED so we can remove the
+special case from the code.  The test itself can be handy and is extracted
+to static function.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Tomasz Buchert <tomasz.buchert@inria.fr>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_early.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cgroup_freezer.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/8250_early.c~drivers-serial-8250_earlyc-print-early-console-device-address-in-hex drivers/serial/8250_early.c
---- a/drivers/serial/8250_early.c~drivers-serial-8250_earlyc-print-early-console-device-address-in-hex
-+++ a/drivers/serial/8250_early.c
-@@ -203,13 +203,13 @@ static int __init parse_options(struct e
+diff -puN kernel/cgroup_freezer.c~cgroup_freezer-unnecessary-test-in-cgroup_freezing_or_frozen kernel/cgroup_freezer.c
+--- a/kernel/cgroup_freezer.c~cgroup_freezer-unnecessary-test-in-cgroup_freezing_or_frozen
++++ a/kernel/cgroup_freezer.c
+@@ -48,20 +48,19 @@ static inline struct freezer *task_freez
+ 			    struct freezer, css);
+ }
  
- 	if (mmio || mmio32)
- 		printk(KERN_INFO
--		       "Early serial console at MMIO%s 0x%llu (options '%s')\n",
-+		       "Early serial console at MMIO%s 0x%llx (options '%s')\n",
- 			mmio32 ? "32" : "",
- 			(unsigned long long)port->mapbase,
- 			device->options);
- 	else
- 		printk(KERN_INFO
--		      "Early serial console at I/O port 0x%lu (options '%s')\n",
-+		      "Early serial console at I/O port 0x%lx (options '%s')\n",
- 			port->iobase,
- 			device->options);
+-int cgroup_freezing_or_frozen(struct task_struct *task)
++static inline int __cgroup_freezing_or_frozen(struct task_struct *task)
+ {
+-	struct freezer *freezer;
+-	enum freezer_state state;
++	enum freezer_state state = task_freezer(task)->state;
++	return (state == CGROUP_FREEZING) || (state == CGROUP_FROZEN);
++}
  
-_
-
-Patches currently in -mm which might be from tony.luck@intel.com are
-
-origin.patch
-linux-next.patch
-drivers-serial-8250_earlyc-print-early-console-device-address-in-hex.patch
-
++int cgroup_freezing_or_frozen(struct task_struct *task)
++{
++	int result;
+ 	task_lock(task);
+-	freezer = task_freezer(task);
+-	if (!freezer->css.cgroup->parent)
+-		state = CGROUP_THAWED; /* root cgroup can't be frozen */
+-	else
+-		state = freezer->state;
++	result = __cgroup_freezing_or_frozen(task);
+ 	task_unlock(task);
