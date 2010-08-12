@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-uv-make-kdump-avoid-stack-dumps.patch added to -mm tree
-Date: Thu, 12 Aug 2010 12:10:36 -0700
-Message-ID: <201008121910.o7CJAc6j007655@imap1.linux-foundation.org>
+Subject: + drivers-serial-8250_earlyc-print-early-console-device-address-in-hex.patch added to -mm tree
+Date: Thu, 12 Aug 2010 12:22:57 -0700
+Message-ID: <201008121922.o7CJMvqB008155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754427Ab0HLTLA (ORCPT
+	by vger.kernel.org with ESMTP id S1760813Ab0HLTXA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Aug 2010 15:11:00 -0400
+	Thu, 12 Aug 2010 15:23:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cpw@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: tony.luck@intel.com, greg@kroah.com
 
 
 The patch titled
-     x86/uv:  make kdump avoid stack dumps
+     drivers/serial/8250_early.c: print early console device address in hex
 has been added to the -mm tree.  Its filename is
-     x86-uv-make-kdump-avoid-stack-dumps.patch
+     drivers-serial-8250_earlyc-print-early-console-device-address-in-hex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/uv:  make kdump avoid stack dumps
-From: Cliff Wickman <cpw@sgi.com>
+Subject: drivers/serial/8250_early.c: print early console device address in hex
+From: "Luck, Tony" <tony.luck@intel.com>
 
-UV NMI callback's should not write stack dumps when a kdump is to be written.
+Device addresses are usually printed in hex.
 
-When invoking the crash kernel to write a dump, kdump_nmi_shootdown_cpus()
-uses NMI's to get all the cpu's to save their register context and halt.
-
-But the NMI interrupt handler runs a callback list.  This patch sets a
-flag to prevent any of those callbacks from interfering with the halt of
-the cpu.
-
-For UV, which currently has the only callback to which this is relevant,
-the uv_handle_nmi() callback should not do dumping of stacks.
-
-The 'in_crash_kexec' flag is defined as an extern in kdebug.h firstly
-because x2apic_uv_x.c includes it.  Secondly because some future callback
-might need the flag to know that it should not enter the debugger.  (Such
-a scenario was in fact present in the 2.6.32 kernel, SuSE distribution,
-where a call to kdb needed to be avoided.)
-
-Signed-off-by: Cliff Wickman <cpw@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kdebug.h      |    6 ++++++
- arch/x86/kernel/apic/x2apic_uv_x.c |    4 ++++
- arch/x86/kernel/crash.c            |    3 +++
- 3 files changed, 13 insertions(+)
+ drivers/serial/8250_early.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/kdebug.h~x86-uv-make-kdump-avoid-stack-dumps arch/x86/include/asm/kdebug.h
---- a/arch/x86/include/asm/kdebug.h~x86-uv-make-kdump-avoid-stack-dumps
-+++ a/arch/x86/include/asm/kdebug.h
-@@ -33,5 +33,11 @@ extern void __show_regs(struct pt_regs *
- extern void show_regs(struct pt_regs *regs);
- extern unsigned long oops_begin(void);
- extern void oops_end(unsigned long, struct pt_regs *, int signr);
-+#ifdef CONFIG_KEXEC
-+extern int in_crash_kexec;
-+#else
-+/* no crash dump is ever in progress if no crash kernel can be kexec'd */
-+#define in_crash_kexec 0
-+#endif
+diff -puN drivers/serial/8250_early.c~drivers-serial-8250_earlyc-print-early-console-device-address-in-hex drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~drivers-serial-8250_earlyc-print-early-console-device-address-in-hex
++++ a/drivers/serial/8250_early.c
+@@ -203,13 +203,13 @@ static int __init parse_options(struct e
  
- #endif /* _ASM_X86_KDEBUG_H */
-diff -puN arch/x86/kernel/apic/x2apic_uv_x.c~x86-uv-make-kdump-avoid-stack-dumps arch/x86/kernel/apic/x2apic_uv_x.c
---- a/arch/x86/kernel/apic/x2apic_uv_x.c~x86-uv-make-kdump-avoid-stack-dumps
-+++ a/arch/x86/kernel/apic/x2apic_uv_x.c
-@@ -604,6 +604,10 @@ int uv_handle_nmi(struct notifier_block 
- {
- 	if (reason != DIE_NMI_IPI)
- 		return NOTIFY_OK;
-+
-+	if (in_crash_kexec)
-+		/* do nothing if entering the crash kernel */
-+		return NOTIFY_OK;
- 	/*
- 	 * Use a lock so only one cpu prints at a time
- 	 * to prevent intermixed output.
-diff -puN arch/x86/kernel/crash.c~x86-uv-make-kdump-avoid-stack-dumps arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~x86-uv-make-kdump-avoid-stack-dumps
-+++ a/arch/x86/kernel/crash.c
-@@ -28,6 +28,8 @@
- #include <asm/reboot.h>
- #include <asm/virtext.h>
+ 	if (mmio || mmio32)
+ 		printk(KERN_INFO
+-		       "Early serial console at MMIO%s 0x%llu (options '%s')\n",
++		       "Early serial console at MMIO%s 0x%llx (options '%s')\n",
+ 			mmio32 ? "32" : "",
+ 			(unsigned long long)port->mapbase,
+ 			device->options);
+ 	else
+ 		printk(KERN_INFO
+-		      "Early serial console at I/O port 0x%lu (options '%s')\n",
++		      "Early serial console at I/O port 0x%lx (options '%s')\n",
+ 			port->iobase,
+ 			device->options);
  
-+int in_crash_kexec;
-+
- #if defined(CONFIG_SMP) && defined(CONFIG_X86_LOCAL_APIC)
- 
- static void kdump_nmi_callback(int cpu, struct die_args *args)
-@@ -61,6 +63,7 @@ static void kdump_nmi_callback(int cpu, 
- 
- static void kdump_nmi_shootdown_cpus(void)
- {
-+	in_crash_kexec = 1;
- 	nmi_shootdown_cpus(kdump_nmi_callback);
- 
- 	disable_local_APIC();
 _
 
-Patches currently in -mm which might be from cpw@sgi.com are
+Patches currently in -mm which might be from tony.luck@intel.com are
 
+origin.patch
 linux-next.patch
-x86-uv-make-kdump-avoid-stack-dumps.patch
+drivers-serial-8250_earlyc-print-early-console-device-address-in-hex.patch
 
