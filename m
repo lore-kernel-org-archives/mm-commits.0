@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-ensure-we-do-not-collapse-bracketed-sections-into-constants.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:16 -0700
-Message-ID: <201008182025.o7IKPGZY010328@imap1.linux-foundation.org>
+Subject: + checkpatch-returning-errno-typically-should-be-negative.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:21 -0700
+Message-ID: <201008182025.o7IKPLQ7010339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751539Ab0HRUZv (ORCPT
+	by vger.kernel.org with ESMTP id S1751539Ab0HRUZz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:25:51 -0400
+	Wed, 18 Aug 2010 16:25:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, mitake@dcl.info.waseda.ac.jp
+Cc: apw@canonical.com, akpm@linux-foundation.org
 
 
 The patch titled
-     checkpatch: ensure we do not collapse bracketed sections into constants
+     checkpatch: returning errno typically should be negative
 has been added to the -mm tree.  Its filename is
-     checkpatch-ensure-we-do-not-collapse-bracketed-sections-into-constants.patch
+     checkpatch-returning-errno-typically-should-be-negative.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: ensure we do not collapse bracketed sections into constants
+Subject: checkpatch: returning errno typically should be negative
 From: Andy Whitcroft <apw@canonical.com>
 
-When determining if a return () sequence is a function style bracketing we
-simplify the expression one bracket at a time replacing each with a
-constant.  However this can trigger a false merge with expressions as
-below:
+Add a (strict mode only) test to check for non-negative returns of what
+appear to be errno values as the majority case these should indeed be
+negative.
 
-	return (foo)0;
-
-Prevent this false merging.
-
-Reported-by: Hitoshi Mitake <mitake@dcl.info.waseda.ac.jp>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-ensure-we-do-not-collapse-bracketed-sections-into-constants scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-ensure-we-do-not-collapse-bracketed-sections-into-constants
+diff -puN scripts/checkpatch.pl~checkpatch-returning-errno-typically-should-be-negative scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-returning-errno-typically-should-be-negative
 +++ a/scripts/checkpatch.pl
-@@ -2183,15 +2183,16 @@ sub process {
- 			my $value = $2;
- 
- 			# Flatten any parentheses
--			$value =~ s/\)\(/\) \(/g;
-+			$value =~ s/\(/ \(/g;
-+			$value =~ s/\)/\) /g;
- 			while ($value =~ s/\[[^\{\}]*\]/1/ ||
- 			       $value !~ /(?:$Ident|-?$Constant)\s*
- 					     $Compare\s*
- 					     (?:$Ident|-?$Constant)/x &&
- 			       $value =~ s/\([^\(\)]*\)/1/) {
+@@ -2204,6 +2204,13 @@ sub process {
+ 				ERROR("space required before the open parenthesis '('\n" . $herecurr);
  			}
--
--			if ($value =~ /^(?:$Ident|-?$Constant)$/) {
-+#print "value<$value>\n";
-+			if ($value =~ /^\s*(?:$Ident|-?$Constant)\s*$/) {
- 				ERROR("return is not a function, parentheses are not required\n" . $herecurr);
+ 		}
++# Return of what appears to be an errno should normally be -'ve
++		if ($line =~ /^.\s*return\s*(E[A-Z]*)\s*;/) {
++			my $name = $1;
++			if ($name ne 'EOF' && $name ne 'ERROR') {
++				WARN("return of an errno should typically be -ve (return -$1)\n" . $herecurr);
++			}
++		}
  
- 			} elsif ($spacing !~ /\s+/) {
+ # Need a space before open parenthesis after if, while etc
+ 		if ($line=~/\b(if|while|for|switch)\(/) {
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
