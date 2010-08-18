@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-types-may-sit-on-a-line-on-their-own.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:12 -0700
-Message-ID: <201008182025.o7IKPCsp010319@imap1.linux-foundation.org>
+Subject: + checkpatch-suggest-cleanpatch-and-cleanfile-when-appropriate.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:14 -0700
+Message-ID: <201008182025.o7IKPE0w010322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750963Ab0HRUZp (ORCPT
+	by vger.kernel.org with ESMTP id S1751539Ab0HRUZt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:25:45 -0400
+	Wed, 18 Aug 2010 16:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, dwalker@fifo99.com
+Cc: apw@canonical.com, bzolnier@gmail.com
 
 
 The patch titled
-     checkpatch: types may sit on a line on their own
+     checkpatch: suggest cleanpatch and cleanfile when appropriate
 has been added to the -mm tree.  Its filename is
-     checkpatch-types-may-sit-on-a-line-on-their-own.patch
+     checkpatch-suggest-cleanpatch-and-cleanfile-when-appropriate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: types may sit on a line on their own
+Subject: checkpatch: suggest cleanpatch and cleanfile when appropriate
 From: Andy Whitcroft <apw@canonical.com>
 
-When the following form is used we have a type which fully fills a line. 
-This means that a type may end at the end of line as well as at the
-following identifier.
+When we hit types of whitespace which may be fixed by scripts/cleanpatch
+and scripts/cleanfile suggest their use in our report.
 
-	int **
-	foo;
-
-Reported-by: Daniel Walker <dwalker@fifo99.com>
+Suggested-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-types-may-sit-on-a-line-on-their-own scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-types-may-sit-on-a-line-on-their-own
+diff -puN scripts/checkpatch.pl~checkpatch-suggest-cleanpatch-and-cleanfile-when-appropriate scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suggest-cleanpatch-and-cleanfile-when-appropriate
 +++ a/scripts/checkpatch.pl
-@@ -843,7 +843,7 @@ sub annotate_values {
- 				$av_preprocessor = 0;
- 			}
+@@ -103,6 +103,8 @@ for my $key (keys %debug) {
+ 	die "$@" if ($@);
+ }
  
--		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\()/) {
-+		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\(|\s*$)/) {
- 			print "DECLARE($1)\n" if ($dbg_values > 1);
- 			$type = 'T';
++my $rpt_cleaners = 0;
++
+ if ($terse) {
+ 	$emacs = 1;
+ 	$quiet++;
+@@ -1389,6 +1391,7 @@ sub process {
+ 		} elsif ($rawline =~ /^\+.*\S\s+$/ || $rawline =~ /^\+\s+$/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ 			ERROR("trailing whitespace\n" . $herevet);
++			$rpt_cleaners = 1;
+ 		}
  
+ # check for Kconfig help text having a real description
+@@ -1450,6 +1453,7 @@ sub process {
+ 		    $rawline =~ /^\+\s*        \s*/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ 			ERROR("code indent should use tabs where possible\n" . $herevet);
++			$rpt_cleaners = 1;
+ 		}
+ 
+ # check for space before tabs.
+@@ -2842,6 +2846,15 @@ sub process {
+ 		print "\n" if ($quiet == 0);
+ 	}
+ 
++	if ($quiet == 0) {
++		# If there were whitespace errors which cleanpatch can fix
++		# then suggest that.
++		if ($rpt_cleaners) {
++			print "NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or\n";
++			print "      scripts/cleanfile\n\n";
++		}
++	}
++
+ 	if ($clean == 1 && $quiet == 0) {
+ 		print "$vname has no obvious style problems and is ready for submission.\n"
+ 	}
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
