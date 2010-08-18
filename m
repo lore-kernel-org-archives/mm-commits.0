@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-avoid-getting-cid-on-sdio-only-cards.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:36:09 -0700
-Message-ID: <201008182036.o7IKa9R8010886__19660.4389850565$1282163794$gmane$org@imap1.linux-foundation.org>
+Subject: + asm-generic-syscallsh-fix-the-declaration-of-sys_execve.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:44:40 -0700
+Message-ID: <201008182044.o7IKieeI011276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753277Ab0HRUgX (ORCPT
+	by vger.kernel.org with ESMTP id S1754171Ab0HRUpS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:36:23 -0400
+	Wed, 18 Aug 2010 16:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david.vrabel@csr.com, linux-mmc@vger.kernel.org, mirq-linux@rere.qmqm.pl
+Cc: dhowells@redhat.com, tony.luck@intel.com
 
 
 The patch titled
-     mmc: avoid getting CID on SDIO-only cards
+     asm-generic/syscalls.h: fix the declaration of sys_execve()
 has been added to the -mm tree.  Its filename is
-     mmc-avoid-getting-cid-on-sdio-only-cards.patch
+     asm-generic-syscallsh-fix-the-declaration-of-sys_execve.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: avoid getting CID on SDIO-only cards
-From: David Vrabel <david.vrabel@csr.com>
+Subject: asm-generic/syscalls.h: fix the declaration of sys_execve()
+From: David Howells <dhowells@redhat.com>
 
-The introduction of support for SD combo cards breaks the initialization
-of all CSR SDIO chips.  The GO_IDLE (CMD0) in mmc_sd_get_cid() causes CSR
-chips to be reset (this is non-standard behavior).
+Fix the declaration of sys_execve() in asm-generic/syscalls.h to have
+various consts applied to its pointers.
 
-When initializing an SDIO card check for a combo card by using the memory
-present bit in the R4 response to IO_SEND_OP_COND (CMD5).  This avoids the
-call to mmc_sd_get_cid() on an SDIO-only card.
-
-Signed-off-by: David Vrabel <david.vrabel@csr.com>
-Cc: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c  |    8 +++++---
- include/linux/mmc/sdio.h |    2 ++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ include/asm-generic/syscalls.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/sdio.c~mmc-avoid-getting-cid-on-sdio-only-cards drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~mmc-avoid-getting-cid-on-sdio-only-cards
-+++ a/drivers/mmc/core/sdio.c
-@@ -362,11 +362,13 @@ static int mmc_sdio_init_card(struct mmc
- 		goto err;
- 	}
+diff -puN include/asm-generic/syscalls.h~asm-generic-syscallsh-fix-the-declaration-of-sys_execve include/asm-generic/syscalls.h
+--- a/include/asm-generic/syscalls.h~asm-generic-syscallsh-fix-the-declaration-of-sys_execve
++++ a/include/asm-generic/syscalls.h
+@@ -23,8 +23,10 @@ asmlinkage long sys_vfork(struct pt_regs
+ #endif
  
--	err = mmc_sd_get_cid(host, host->ocr & ocr, card->raw_cid);
--
--	if (!err) {
-+	if (ocr & R4_MEMORY_PRESENT) {
- 		card->type = MMC_TYPE_SD_COMBO;
+ #ifndef sys_execve
+-asmlinkage long sys_execve(char __user *filename, char __user * __user *argv,
+-			char __user * __user *envp, struct pt_regs *regs);
++asmlinkage long sys_execve(const char __user *filename,
++			   const char __user *const __user *argv,
++			   const char __user *const __user *envp,
++			   struct pt_regs *regs);
+ #endif
  
-+		err = mmc_sd_get_cid(host, host->ocr & ocr, card->raw_cid);
-+		if (err)
-+			goto remove;
-+
- 		if (oldcard && (oldcard->type != MMC_TYPE_SD_COMBO ||
- 		    memcmp(card->raw_cid, oldcard->raw_cid, sizeof(card->raw_cid)) != 0)) {
- 			mmc_remove_card(card);
-diff -puN include/linux/mmc/sdio.h~mmc-avoid-getting-cid-on-sdio-only-cards include/linux/mmc/sdio.h
---- a/include/linux/mmc/sdio.h~mmc-avoid-getting-cid-on-sdio-only-cards
-+++ a/include/linux/mmc/sdio.h
-@@ -38,6 +38,8 @@
-  *      [8:0] Byte/block count
-  */
- 
-+#define R4_MEMORY_PRESENT (1 << 27)
-+
- /*
-   SDIO status in R5
-   Type
+ #ifndef sys_mmap2
 _
 
-Patches currently in -mm which might be from david.vrabel@csr.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mmc-avoid-getting-cid-on-sdio-only-cards.patch
+origin.patch
 linux-next.patch
+asm-generic-syscallsh-fix-the-declaration-of-sys_execve.patch
+frv-duplicate-output_buffer-of-e03.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
