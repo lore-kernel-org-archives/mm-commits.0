@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-update-copyright-dates.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:34 -0700
-Message-ID: <201008182025.o7IKPYgn010359@imap1.linux-foundation.org>
+Subject: + checkpatch-clean-up-structure-definition-macro-handline.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:36 -0700
+Message-ID: <201008182025.o7IKPaI8010362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754089Ab0HRUbo (ORCPT
+	by vger.kernel.org with ESMTP id S1754145Ab0HRUbo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 18 Aug 2010 16:31:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: update copyright dates
+     checkpatch: clean up structure definition macro handline
 has been added to the -mm tree.  Its filename is
-     checkpatch-update-copyright-dates.patch
+     checkpatch-clean-up-structure-definition-macro-handline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: update copyright dates
+Subject: checkpatch: clean up structure definition macro handline
 From: Andy Whitcroft <apw@canonical.com>
+
+Handle definitions such as the following correctly, it is not
+a complex statement:
+
+    #define PREALLOC(NAME, START, END, FLAGS) {     \
+		    .name = (NAME),                 \
+		    .start = (START),               \
+		    .end = (END),                   \
+		    .flags = (FLAGS)                \
+	    },
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-copyright-dates scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-copyright-dates
+diff -puN scripts/checkpatch.pl~checkpatch-clean-up-structure-definition-macro-handline scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-clean-up-structure-definition-macro-handline
 +++ a/scripts/checkpatch.pl
-@@ -2,7 +2,7 @@
- # (c) 2001, Dave Jones. (the file handling bit)
- # (c) 2005, Joel Schopp <jschopp@austin.ibm.com> (the ugly bit)
- # (c) 2007,2008, Andy Whitcroft <apw@uk.ibm.com> (new conditions, test suite)
--# (c) 2008,2009, Andy Whitcroft <apw@canonical.com>
-+# (c) 2008-2010 Andy Whitcroft <apw@canonical.com>
- # Licensed under the terms of the GNU GPL License version 2
- 
- use strict;
+@@ -2476,8 +2476,8 @@ sub process {
+ 				\.$Ident\s*=\s*|
+ 				^\"|\"$
+ 			}x;
+-			#print "REST<$rest> dstat<$dstat>\n";
+-			if ($rest ne '') {
++			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
++			if ($rest ne '' && $rest ne ',') {
+ 				if ($rest !~ /while\s*\(/ &&
+ 				    $dstat !~ /$exceptions/)
+ 				{
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
