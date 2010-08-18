@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-regressions-in-fix-handling-of-leading-spaces.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:09 -0700
-Message-ID: <201008182025.o7IKP9jM010315@imap1.linux-foundation.org>
+Subject: + checkpatch-types-may-sit-on-a-line-on-their-own.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:12 -0700
+Message-ID: <201008182025.o7IKPCsp010319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750944Ab0HRUZn (ORCPT
+	by vger.kernel.org with ESMTP id S1750963Ab0HRUZp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:25:43 -0400
+	Wed, 18 Aug 2010 16:25:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com
+Cc: apw@canonical.com, dwalker@fifo99.com
 
 
 The patch titled
-     checkpatch: fix regressions in "fix handling of leading spaces"
+     checkpatch: types may sit on a line on their own
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-regressions-in-fix-handling-of-leading-spaces.patch
+     checkpatch-types-may-sit-on-a-line-on-their-own.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: fix regressions in "fix handling of leading spaces"
+Subject: checkpatch: types may sit on a line on their own
 From: Andy Whitcroft <apw@canonical.com>
 
-The patch "checkpatch: fix handling of leading spaces" added checks for
-leading spaces on lines, but this introduces regressions.  Firstly it does
-not correctly detect when we are in a comment.  Secondly it does not allow
-for preprocessor command spacing.  Finally it does not allow for label
-indentation which is required to be less than one tab.  Fix these up:
+When the following form is used we have a type which fully fills a line. 
+This means that a type may end at the end of line as well as at the
+following identifier.
 
+	int **
+	foo;
+
+Reported-by: Daniel Walker <dwalker@fifo99.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-regressions-in-fix-handling-of-leading-spaces scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-regressions-in-fix-handling-of-leading-spaces
+diff -puN scripts/checkpatch.pl~checkpatch-types-may-sit-on-a-line-on-their-own scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-types-may-sit-on-a-line-on-their-own
 +++ a/scripts/checkpatch.pl
-@@ -1459,10 +1459,13 @@ sub process {
- 		}
+@@ -843,7 +843,7 @@ sub annotate_values {
+ 				$av_preprocessor = 0;
+ 			}
  
- # check for spaces at the beginning of a line.
--		if ($rawline =~ /^\+ / && $rawline !~ /\+ +\*/)  {
-+# Exceptions:
-+#  1) within comments
-+#  2) indented preprocessor commands
-+#  3) hanging labels
-+		if ($rawline =~ /^\+ / && $line !~ /\+ *(?:$;|#|$Ident:)/)  {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
--			WARN("please, no space for starting a line, \
--				excluding comments\n" . $herevet);
-+			WARN("please, no spaces at the start of a line\n" . $herevet);
- 		}
+-		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\()/) {
++		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\(|\s*$)/) {
+ 			print "DECLARE($1)\n" if ($dbg_values > 1);
+ 			$type = 'T';
  
- # check we are in a valid C source file if not then ignore this hunk
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
