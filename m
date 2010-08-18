@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-check-for-space-after-struct-union-and-enum.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:23 -0700
-Message-ID: <201008182025.o7IKPNC3010342@imap1.linux-foundation.org>
+Subject: + checkpatch-check-for-incorrect-permissions.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:29 -0700
+Message-ID: <201008182025.o7IKPTCl010351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754145Ab0HRUbs (ORCPT
+	by vger.kernel.org with ESMTP id S1754171Ab0HRUby (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:31:48 -0400
+	Wed, 18 Aug 2010 16:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, joe@perches.com
+Cc: rabin.vincent@stericsson.com, apw@canonical.com, linus.walleij@stericsson.com
 
 
 The patch titled
-     checkpatch: add check for space after struct, union, and enum
+     checkpatch: check for incorrect permissions
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-check-for-space-after-struct-union-and-enum.patch
+     checkpatch-check-for-incorrect-permissions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: add check for space after struct, union, and enum
-From: Andy Whitcroft <apw@canonical.com>
+Subject: checkpatch: check for incorrect permissions
+From: Rabin Vincent <rabin.vincent@stericsson.com>
 
-Add spacing checks for struct, union, and enum definitions.  Check the
-spacing after type and before the equals (=) and open brace ({).
+Throw an error when a source file has been given execute permissions using
+the mode change line present in git diffs.  Also alow the filename
+matching to use the "diff" line in addition to the "+++" line, since the
+mode change lines appear before any "+++" lines.
 
-Based on a patch by Joe Perches.
-
-Cc: Joe Perches <joe@perches.com>
+[apw@canonical.com: simplified filename logic slightly, added tests]
+Cc: Andy Whitcroft <apw@canonical.com>
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/checkpatch.pl |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-space-after-struct-union-and-enum scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-check-for-space-after-struct-union-and-enum
+diff -puN scripts/checkpatch.pl~checkpatch-check-for-incorrect-permissions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-for-incorrect-permissions
 +++ a/scripts/checkpatch.pl
-@@ -1905,6 +1905,16 @@ sub process {
- 			ERROR("open brace '{' following function declarations go on the next line\n" . $herecurr);
- 		}
+@@ -1315,7 +1315,11 @@ sub process {
+ 		$here = "#$realline: " if ($file);
  
-+# missing space after union or struct definition
-+		if ($rawline =~ /^\+\s*(union|struct)\s+$Ident[=\{]/) {
-+		    WARN("Missing space after struct or union definition\n" . $herecurr);
+ 		# extract the filename as it passes
+-		if ($line=~/^\+\+\+\s+(\S+)/) {
++		if ($line =~ /^diff --git.*?(\S+)$/) {
++			$realfile = $1;
++			$realfile =~ s@^([^/]*)/@@;
++
++		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@;
+ 
+@@ -1339,6 +1343,14 @@ sub process {
+ 
+ 		$cnt_lines++ if ($realcnt != 0);
+ 
++# Check for incorrect file permissions
++		if ($line =~ /^new (file )?mode.*[7531]\d{0,2}$/) {
++			my $permhere = $here . "FILE: $realfile\n";
++			if ($realfile =~ /(Makefile|Kconfig|\.c|\.h|\.S|\.tmpl)$/) {
++				ERROR("do not set execute permissions for source files\n" . $permhere);
++			}
 +		}
 +
-+# missing space after enum definition
-+		if ($rawline =~ /^\+\s*enum\{/) {
-+		    WARN("Missing space after enum definition\n" . $herecurr);
-+		}
-+
- # open braces for enum, union and struct go on the same line.
- 		if ($line =~ /^.\s*{/ &&
- 		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
+ #check the patch for a signoff:
+ 		if ($line =~ /^\s*signed-off-by:/i) {
+ 			# This is a signoff, if ugly, so do not double report.
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from rabin.vincent@stericsson.com are
 
-checkpatch-fix-regressions-in-fix-handling-of-leading-spaces.patch
-checkpatch-types-may-sit-on-a-line-on-their-own.patch
-checkpatch-suggest-cleanpatch-and-cleanfile-when-appropriate.patch
-checkpatch-ensure-we-do-not-collapse-bracketed-sections-into-constants.patch
-checkpatch-handle-casts-better-fixing-false-categorisation-of-as-binary.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-checkpatch-add-check-for-space-after-struct-union-and-enum.patch
-checkpatch-simplify-and-consolidate-missing-space-after-checks.patch
-checkpatch-ensure-kconfig-help-checks-only-apply-when-we-are-adding-help.patch
+linux-next.patch
 checkpatch-check-for-incorrect-permissions.patch
-checkpatch-add-additional-attribute-defines.patch
-checkpatch-update-copyright-dates.patch
-checkpatch-clean-up-structure-definition-macro-handline.patch
-checkpatch-handle-export_symbol-for-device_attr-and-similar.patch
-checkpatch-statement-block-context-analyser-should-look-at-sanitised-lines.patch
-checkpatch-version-031.patch
 
