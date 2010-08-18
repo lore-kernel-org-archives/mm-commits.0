@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-simplify-and-consolidate-missing-space-after-checks.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:25 -0700
-Message-ID: <201008182025.o7IKPP9r010345@imap1.linux-foundation.org>
+Subject: + checkpatch-add-check-for-space-after-struct-union-and-enum.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:23 -0700
+Message-ID: <201008182025.o7IKPNC3010342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489Ab0HRUbp (ORCPT
+	by vger.kernel.org with ESMTP id S1754145Ab0HRUbs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:31:45 -0400
+	Wed, 18 Aug 2010 16:31:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com
+Cc: apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     checkpatch: simplify and consolidate "missing space after" checks
+     checkpatch: add check for space after struct, union, and enum
 has been added to the -mm tree.  Its filename is
-     checkpatch-simplify-and-consolidate-missing-space-after-checks.patch
+     checkpatch-add-check-for-space-after-struct-union-and-enum.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: simplify and consolidate "missing space after" checks
+Subject: checkpatch: add check for space after struct, union, and enum
 From: Andy Whitcroft <apw@canonical.com>
 
-Commonise the code for missing spaces after struct, union, and enum such
-that they share the same code.  Ensure we cover all the common cases in
-each case.  Check against the sanitised line to ensure we do not report on
-comments and strings.
+Add spacing checks for struct, union, and enum definitions.  Check the
+spacing after type and before the equals (=) and open brace ({).
 
+Based on a patch by Joe Perches.
+
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-simplify-and-consolidate-missing-space-after-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-simplify-and-consolidate-missing-space-after-checks
+diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-space-after-struct-union-and-enum scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-check-for-space-after-struct-union-and-enum
 +++ a/scripts/checkpatch.pl
-@@ -1905,22 +1905,17 @@ sub process {
+@@ -1905,6 +1905,16 @@ sub process {
  			ERROR("open brace '{' following function declarations go on the next line\n" . $herecurr);
  		}
  
--# missing space after union or struct definition
--		if ($rawline =~ /^\+\s*(union|struct)\s+$Ident[=\{]/) {
--		    WARN("Missing space after struct or union definition\n" . $herecurr);
--		}
--
--# missing space after enum definition
--		if ($rawline =~ /^\+\s*enum\{/) {
--		    WARN("Missing space after enum definition\n" . $herecurr);
--		}
--
++# missing space after union or struct definition
++		if ($rawline =~ /^\+\s*(union|struct)\s+$Ident[=\{]/) {
++		    WARN("Missing space after struct or union definition\n" . $herecurr);
++		}
++
++# missing space after enum definition
++		if ($rawline =~ /^\+\s*enum\{/) {
++		    WARN("Missing space after enum definition\n" . $herecurr);
++		}
++
  # open braces for enum, union and struct go on the same line.
  		if ($line =~ /^.\s*{/ &&
  		    $prevline =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?\s*$/) {
- 			ERROR("open brace '{' following $1 go on the same line\n" . $hereprev);
- 		}
- 
-+# missing space after union, struct or enum definition
-+		if ($line =~ /^.\s*(?:typedef\s+)?(enum|union|struct)(?:\s+$Ident)?(?:\s+$Ident)?[=\{]/) {
-+		    WARN("missing space after $1 definition\n" . $herecurr);
-+		}
-+
- # check for spacing round square brackets; allowed:
- #  1. with a type on the left -- int [] a;
- #  2. at the beginning of a line for slice initialisers -- [0...10] = 5,
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
