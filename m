@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-handle-casts-better-fixing-false-categorisation-of-as-binary.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:19 -0700
-Message-ID: <201008182025.o7IKPJ3g010334@imap1.linux-foundation.org>
+Subject: + checkpatch-statement-block-context-analyser-should-look-at-sanitised-lines.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:40 -0700
+Message-ID: <201008182025.o7IKPebT010370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751539Ab0HRU0B (ORCPT
+	by vger.kernel.org with ESMTP id S1751539Ab0HRU0O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 16:26:01 -0400
+	Wed, 18 Aug 2010 16:26:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, khali@linux-fr.org
+Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: handle casts better fixing false categorisation of : as binary
+     checkpatch: statement/block context analyser should look at sanitised lines
 has been added to the -mm tree.  Its filename is
-     checkpatch-handle-casts-better-fixing-false-categorisation-of-as-binary.patch
+     checkpatch-statement-block-context-analyser-should-look-at-sanitised-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: handle casts better fixing false categorisation of : as binary
+Subject: checkpatch: statement/block context analyser should look at sanitised lines
 From: Andy Whitcroft <apw@canonical.com>
 
-The following incantation is triggering categorisation of its colon (:) as
-a binary form, which it is not:
+When tracking context to find a block or statement we need to use the
+sanitised lines, else perentheses '(' & ')' and braces '{' & '}' can throw
+the scanner out.  Also fix up a couple of error outputs which include
+those sanitised lines incorrectly.
 
-	return foo ? (s8)bar : baz;
-
-Handle casts differently from types in the categoriser, allowing us to
-better track (s8)bar as a value and not a declaration.
-
-Reported-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++++
- 1 file changed, 5 insertions(+)
+ scripts/checkpatch.pl |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-handle-casts-better-fixing-false-categorisation-of-as-binary scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-handle-casts-better-fixing-false-categorisation-of-as-binary
+diff -puN scripts/checkpatch.pl~checkpatch-statement-block-context-analyser-should-look-at-sanitised-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-statement-block-context-analyser-should-look-at-sanitised-lines
 +++ a/scripts/checkpatch.pl
-@@ -845,6 +845,11 @@ sub annotate_values {
- 				$av_preprocessor = 0;
- 			}
+@@ -691,15 +691,15 @@ sub ctx_block_get {
+ 		$blk .= $rawlines[$line];
  
-+		} elsif ($cur =~ /^(\(\s*$Type\s*)\)/) {
-+			print "CAST($1)\n" if ($dbg_values > 1);
-+			push(@av_paren_type, $type);
-+			$type = 'C';
-+
- 		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\(|\s*$)/) {
- 			print "DECLARE($1)\n" if ($dbg_values > 1);
- 			$type = 'T';
+ 		# Handle nested #if/#else.
+-		if ($rawlines[$line] =~ /^.\s*#\s*(?:ifndef|ifdef|if)\s/) {
++		if ($lines[$line] =~ /^.\s*#\s*(?:ifndef|ifdef|if)\s/) {
+ 			push(@stack, $level);
+-		} elsif ($rawlines[$line] =~ /^.\s*#\s*(?:else|elif)\b/) {
++		} elsif ($lines[$line] =~ /^.\s*#\s*(?:else|elif)\b/) {
+ 			$level = $stack[$#stack - 1];
+-		} elsif ($rawlines[$line] =~ /^.\s*#\s*endif\b/) {
++		} elsif ($lines[$line] =~ /^.\s*#\s*endif\b/) {
+ 			$level = pop(@stack);
+ 		}
+ 
+-		foreach my $c (split(//, $rawlines[$line])) {
++		foreach my $c (split(//, $lines[$line])) {
+ 			##print "C<$c>L<$level><$open$close>O<$off>\n";
+ 			if ($off > 0) {
+ 				$off--;
+@@ -1652,7 +1652,7 @@ sub process {
+ 
+ 			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
+ 				ERROR("that open brace { should be on the previous line\n" .
+-					"$here\n$ctx\n$lines[$ctx_ln - 1]\n");
++					"$here\n$ctx\n$rawlines[$ctx_ln - 1]\n");
+ 			}
+ 			if ($level == 0 && $pre_ctx !~ /}\s*while\s*\($/ &&
+ 			    $ctx =~ /\)\s*\;\s*$/ &&
+@@ -1661,7 +1661,7 @@ sub process {
+ 				my ($nlength, $nindent) = line_stats($lines[$ctx_ln - 1]);
+ 				if ($nindent > $indent) {
+ 					WARN("trailing semicolon indicates no statements, indent implies otherwise\n" .
+-						"$here\n$ctx\n$lines[$ctx_ln - 1]\n");
++						"$here\n$ctx\n$rawlines[$ctx_ln - 1]\n");
+ 				}
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
