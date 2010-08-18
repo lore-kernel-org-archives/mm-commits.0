@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-clean-up-structure-definition-macro-handline.patch added to -mm tree
-Date: Wed, 18 Aug 2010 13:25:36 -0700
-Message-ID: <201008182025.o7IKPaI8010362@imap1.linux-foundation.org>
+Subject: + checkpatch-version-031.patch added to -mm tree
+Date: Wed, 18 Aug 2010 13:25:42 -0700
+Message-ID: <201008182025.o7IKPg87010374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754145Ab0HRUbo (ORCPT
+	by vger.kernel.org with ESMTP id S1751069Ab0HRUbo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 18 Aug 2010 16:31:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: clean up structure definition macro handline
+     checkpatch: version 0.31
 has been added to the -mm tree.  Its filename is
-     checkpatch-clean-up-structure-definition-macro-handline.patch
+     checkpatch-version-031.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: clean up structure definition macro handline
+Subject: checkpatch: version 0.31
 From: Andy Whitcroft <apw@canonical.com>
-
-Handle definitions such as the following correctly, it is not
-a complex statement:
-
-    #define PREALLOC(NAME, START, END, FLAGS) {     \
-		    .name = (NAME),                 \
-		    .start = (START),               \
-		    .end = (END),                   \
-		    .flags = (FLAGS)                \
-	    },
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-clean-up-structure-definition-macro-handline scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-clean-up-structure-definition-macro-handline
+diff -puN scripts/checkpatch.pl~checkpatch-version-031 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-version-031
 +++ a/scripts/checkpatch.pl
-@@ -2476,8 +2476,8 @@ sub process {
- 				\.$Ident\s*=\s*|
- 				^\"|\"$
- 			}x;
--			#print "REST<$rest> dstat<$dstat>\n";
--			if ($rest ne '') {
-+			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
-+			if ($rest ne '' && $rest ne ',') {
- 				if ($rest !~ /while\s*\(/ &&
- 				    $dstat !~ /$exceptions/)
- 				{
+@@ -10,7 +10,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
+ 
+-my $V = '0.30';
++my $V = '0.31';
+ 
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
