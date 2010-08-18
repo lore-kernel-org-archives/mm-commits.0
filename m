@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-disable-doorbell-reset-on-reset_devices.patch added to -mm tree
-Date: Wed, 18 Aug 2010 15:50:59 -0700
-Message-ID: <201008182250.o7IMoxVL016550@imap1.linux-foundation.org>
+Subject: + maintainers-kexec-tools-has-moved.patch added to -mm tree
+Date: Wed, 18 Aug 2010 15:57:56 -0700
+Message-ID: <201008182257.o7IMvuE1016846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751208Ab0HRWvL (ORCPT
+	by vger.kernel.org with ESMTP id S1751760Ab0HRW6F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Aug 2010 18:51:11 -0400
+	Wed, 18 Aug 2010 18:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cce.hp.com, axboe@kernel.dk, brace@beardog.cce.hp.com, mikem@beardog.cce.hp.com
+Cc: horms@verge.net.au, ebiederm@xmission.com, hpa@zytor.com
 
 
 The patch titled
-     cciss: disable doorbell reset on reset_devices
+     MAINTAINERS: kexec-tools has moved
 has been added to the -mm tree.  Its filename is
-     cciss-disable-doorbell-reset-on-reset_devices.patch
+     maintainers-kexec-tools-has-moved.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: disable doorbell reset on reset_devices
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: MAINTAINERS: kexec-tools has moved
+From: Simon Horman <horms@verge.net.au>
 
-The doorbell reset initially appears to work correctly, the controller
-resets, comes up, some i/o can even be done, but on at least some Smart
-Arrays in some servers, it eventually causes a subsequent controller
-lockup due to some kind of PCIe error, and kdump can end up leaving the
-root filesystem in an unbootable state.  For this reason, until the
-problem is fixed, or at least isolated to certain hardware enough to be
-avoided, the doorbell reset should not be used at all.
+Kexec tools has been moved to http://kernel.org/pub/linux/utils/kernel/kexec/
+as user-space code shouldn't be in /pub/linux/kernel
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mike Miller <mikem@beardog.cce.hp.com>
-Cc: <brace@beardog.cce.hp.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-disable-doorbell-reset-on-reset_devices drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-disable-doorbell-reset-on-reset_devices
-+++ a/drivers/block/cciss.c
-@@ -4519,6 +4519,12 @@ static __devinit int cciss_kdump_hard_re
- 	misc_fw_support = readl(&cfgtable->misc_fw_support);
- 	use_doorbell = misc_fw_support & MISC_FW_DOORBELL_RESET;
+diff -puN MAINTAINERS~maintainers-kexec-tools-has-moved MAINTAINERS
+--- a/MAINTAINERS~maintainers-kexec-tools-has-moved
++++ a/MAINTAINERS
+@@ -3401,7 +3401,7 @@ F:	drivers/s390/kvm/
  
-+	/* The doorbell reset seems to cause lockups on some Smart
-+	 * Arrays (e.g. P410, P410i, maybe others).  Until this is
-+	 * fixed or at least isolated, avoid the doorbell reset.
-+	 */
-+	use_doorbell = 0;
-+
- 	rc = cciss_controller_hard_reset(pdev, vaddr, use_doorbell);
- 	if (rc)
- 		goto unmap_cfgtable;
+ KEXEC
+ M:	Eric Biederman <ebiederm@xmission.com>
+-W:	http://ftp.kernel.org/pub/linux/kernel/people/horms/kexec-tools/
++W:	http://kernel.org/pub/linux/utils/kernel/kexec/
+ L:	kexec@lists.infradead.org
+ S:	Maintained
+ F:	include/linux/kexec.h
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-cciss-disable-doorbell-reset-on-reset_devices.patch
+maintainers-kexec-tools-has-moved.patch
 
