@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + init-mark-__user-address-space-on-string-literals.patch added to -mm tree
-Date: Thu, 19 Aug 2010 15:11:08 -0700
-Message-ID: <201008192211.o7JMB8l9011291@imap1.linux-foundation.org>
+Date: Thu, 19 Aug 2010 15:11:51 -0700
+Message-ID: <201008192211.o7JMBpDU011313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751191Ab0HSWLL (ORCPT
+	by vger.kernel.org with ESMTP id S1753630Ab0HSWMQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 18:11:11 -0400
+	Thu, 19 Aug 2010 18:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com
+Cc: namhyung@gmail.com, phillip@lougher.demon.co.uk
 
 
 The patch titled
-     From: Namhyung Kim <namhyung@gmail.com>
+     init: mark __user address space on string literals
 has been added to the -mm tree.  Its filename is
      init-mark-__user-address-space-on-string-literals.patch
 
@@ -34,18 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Namhyung Kim <namhyung@gmail.com>
+Subject: init: mark __user address space on string literals
+From: Namhyung Kim <namhyung@gmail.com>
 
-
-When calling syscall service routines in kernel, some of arguments should be
-user pointers but were missing __user markup on string literals. Add it.
-
-Impact: remove sparse warnings
+When calling syscall service routines in kernel, some of arguments should
+be user pointers but were missing __user markup on string literals.  Add
+it.  Removes some sparse warnings.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
----
-
-index 8eabff6..91fc443 100644
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
