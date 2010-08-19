@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-avoid-getting-cid-on-sdio-only-cards.patch added to -mm tree
-Date: Thu, 19 Aug 2010 15:59:08 -0700
-Message-ID: <201008192259.o7JMx8xn013449@imap1.linux-foundation.org>
+Subject: + kernelh-add-minmax3-macros.patch added to -mm tree
+Date: Thu, 19 Aug 2010 16:14:31 -0700
+Message-ID: <201008192314.o7JNEVvk014123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751446Ab0HSW7O (ORCPT
+	by vger.kernel.org with ESMTP id S1751267Ab0HSXPQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 18:59:14 -0400
+	Thu, 19 Aug 2010 19:15:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david.vrabel@csr.com, linux-mmc@vger.kernel.org, mirq-linux@rere.qmqm.pl
+Cc: hagen@jauu.net, benh@kernel.crashing.org, herbert@gondor.hengli.com.au, hsweeten@visionengravers.com, joe@perches.com, linux@arm.linux.org.uk, mingo@elte.hu, penberg@cs.helsinki.fi, rolandd@cisco.com, sean.hefty@intel.com, tglx@linutronix.de
 
 
 The patch titled
-     mmc: avoid getting CID on SDIO-only cards
+     kernel.h: add {min,max}3 macros
 has been added to the -mm tree.  Its filename is
-     mmc-avoid-getting-cid-on-sdio-only-cards.patch
+     kernelh-add-minmax3-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: avoid getting CID on SDIO-only cards
-From: David Vrabel <david.vrabel@csr.com>
+Subject: kernel.h: add {min,max}3 macros
+From: Hagen Paul Pfeifer <hagen@jauu.net>
 
-The introduction of support for SD combo cards breaks the initialization
-of all CSR SDIO chips.  The GO_IDLE (CMD0) in mmc_sd_get_cid() causes CSR
-chips to be reset (this is non-standard behavior).
+Introduce two additional min/max macros to compare three operands.  This
+will save some cycles as well as some bytes on the stack and last but not
+least more pleasing as macro nesting.
 
-When initializing an SDIO card check for a combo card by using the memory
-present bit in the R4 response to IO_SEND_OP_COND (CMD5).  This avoids the
-call to mmc_sd_get_cid() on an SDIO-only card.
-
-Signed-off-by: David Vrabel <david.vrabel@csr.com>
-Acked-by: Michal Mirolaw <mirq-linux@rere.qmqm.pl>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Hagen Paul Pfeifer <hagen@jauu.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c  |    5 ++---
- include/linux/mmc/sdio.h |    2 ++
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/kernel.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN drivers/mmc/core/sdio.c~mmc-avoid-getting-cid-on-sdio-only-cards drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~mmc-avoid-getting-cid-on-sdio-only-cards
-+++ a/drivers/mmc/core/sdio.c
-@@ -362,9 +362,8 @@ static int mmc_sdio_init_card(struct mmc
- 		goto err;
- 	}
+diff -puN include/linux/kernel.h~kernelh-add-minmax3-macros include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-add-minmax3-macros
++++ a/include/linux/kernel.h
+@@ -640,6 +640,22 @@ static inline void ftrace_dump(enum ftra
+ 	(void) (&_max1 == &_max2);		\
+ 	_max1 > _max2 ? _max1 : _max2; })
  
--	err = mmc_sd_get_cid(host, host->ocr & ocr, card->raw_cid);
--
--	if (!err) {
-+	if (ocr & R4_MEMORY_PRESENT
-+	    && mmc_sd_get_cid(host, host->ocr & ocr, card->raw_cid) == 0) {
- 		card->type = MMC_TYPE_SD_COMBO;
- 
- 		if (oldcard && (oldcard->type != MMC_TYPE_SD_COMBO ||
-diff -puN include/linux/mmc/sdio.h~mmc-avoid-getting-cid-on-sdio-only-cards include/linux/mmc/sdio.h
---- a/include/linux/mmc/sdio.h~mmc-avoid-getting-cid-on-sdio-only-cards
-+++ a/include/linux/mmc/sdio.h
-@@ -38,6 +38,8 @@
-  *      [8:0] Byte/block count
-  */
- 
-+#define R4_MEMORY_PRESENT (1 << 27)
++#define min3(x, y, z) ({			\
++	typeof(x) _min1 = (x);			\
++	typeof(y) _min2 = (y);			\
++	typeof(z) _min3 = (z);			\
++	(void) (&_min1 == &_min2 == &_min3);	\
++	_min1 < _min2 ? (_min1 < _min3 ? _min1 : _min3) : \
++		(_min2 < _min3 ? _min2 : _min3); })
 +
- /*
-   SDIO status in R5
-   Type
++#define max3(x, y, z) ({			\
++	typeof(x) _max1 = (x);			\
++	typeof(y) _max2 = (y);			\
++	typeof(z) _max3 = (z);			\
++	(void) (&_max1 == &_max2 == &_max3);	\
++	_max1 > _max2 ? (_max1 > _max3 ? _max1 : _max3) : \
++		(_max2 > _max3 ? _max2 : _max3); })
++
+ /**
+  * clamp - return a value clamped to a given range with strict typechecking
+  * @val: current value
 _
 
-Patches currently in -mm which might be from david.vrabel@csr.com are
+Patches currently in -mm which might be from hagen@jauu.net are
 
-mmc-avoid-getting-cid-on-sdio-only-cards.patch
-linux-next.patch
+kernelh-add-minmax3-macros.patch
+replace-nested-max-min-macros-with-maxmin3-macro.patch
 
