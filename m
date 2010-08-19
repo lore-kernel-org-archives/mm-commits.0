@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-pm8001-pm8001_hwic-handle-allocation-failures.patch added to -mm tree
-Date: Thu, 19 Aug 2010 16:25:50 -0700
-Message-ID: <201008192325.o7JNPojL014600@imap1.linux-foundation.org>
+Subject: + scripts-mod-modpostc-fix-commentary-accordingly-to-last-changes.patch added to -mm tree
+Date: Thu, 19 Aug 2010 16:27:48 -0700
+Message-ID: <201008192327.o7JNRmcD014729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080Ab0HSXZ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751080Ab0HSX1z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 19:25:57 -0400
+	Thu, 19 Aug 2010 19:27:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, James.Bottomley@HansenPartnership.com, jack_wang@usish.com
+Cc: andy.shevchenko@gmail.com, ext-andriy.shevchenko@nokia.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     drivers/scsi/pm8001/pm8001_hwi.c: handle allocation failures
+     scripts/mod/modpost.c: fix commentary accordingly to last changes
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-pm8001-pm8001_hwic-handle-allocation-failures.patch
+     scripts-mod-modpostc-fix-commentary-accordingly-to-last-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/pm8001/pm8001_hwi.c: handle allocation failures
-From: Dan Carpenter <error27@gmail.com>
+Subject: scripts/mod/modpost.c: fix commentary accordingly to last changes
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-Return -ENOMEM if the allocations fail.
+The commits 37ed19d5cce ("scripts/mod/modpost.c: fix memory leak") and
+5003bab82d ("fix "scripts/mod/modpost.c: fix memory leak"") introduced new
+behaviour of sec2annotation() method.  However, the commentary inside the
+method was left as before.  Let's fix it accordingly.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Jack Wang <jack_wang@usish.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/pm8001/pm8001_hwi.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/mod/modpost.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/pm8001/pm8001_hwi.c~drivers-scsi-pm8001-pm8001_hwic-handle-allocation-failures drivers/scsi/pm8001/pm8001_hwi.c
---- a/drivers/scsi/pm8001/pm8001_hwi.c~drivers-scsi-pm8001-pm8001_hwic-handle-allocation-failures
-+++ a/drivers/scsi/pm8001/pm8001_hwi.c
-@@ -4194,6 +4194,8 @@ static int pm8001_chip_get_nvmd_req(stru
- 
- 	nvmd_type = ioctl_payload->minor_function;
- 	fw_control_context = kzalloc(sizeof(struct fw_control_ex), GFP_KERNEL);
-+	if (!fw_control_context)
-+		return -ENOMEM;
- 	fw_control_context->usrAddr = (u8 *)&ioctl_payload->func_specific[0];
- 	fw_control_context->len = ioctl_payload->length;
- 	circularQ = &pm8001_ha->inbnd_q_tbl[0];
-@@ -4272,6 +4274,8 @@ static int pm8001_chip_set_nvmd_req(stru
- 
- 	nvmd_type = ioctl_payload->minor_function;
- 	fw_control_context = kzalloc(sizeof(struct fw_control_ex), GFP_KERNEL);
-+	if (!fw_control_context)
-+		return -ENOMEM;
- 	circularQ = &pm8001_ha->inbnd_q_tbl[0];
- 	memcpy(pm8001_ha->memoryMap.region[NVMD].virt_ptr,
- 		ioctl_payload->func_specific,
-@@ -4381,6 +4385,8 @@ pm8001_chip_fw_flash_update_req(struct p
- 	struct pm8001_ioctl_payload *ioctl_payload = payload;
- 
- 	fw_control_context = kzalloc(sizeof(struct fw_control_ex), GFP_KERNEL);
-+	if (!fw_control_context)
-+		return -ENOMEM;
- 	fw_control = (struct fw_control_info *)&ioctl_payload->func_specific[0];
- 	if (fw_control->len != 0) {
- 		if (pm8001_mem_alloc(pm8001_ha->pdev,
+diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-fix-commentary-accordingly-to-last-changes scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~scripts-mod-modpostc-fix-commentary-accordingly-to-last-changes
++++ a/scripts/mod/modpost.c
+@@ -1208,6 +1208,9 @@ static Elf_Sym *find_elf_symbol2(struct 
+  * .cpuinit.data => __cpudata
+  * .memexitconst => __memconst
+  * etc.
++ *
++ * The memory of returned value has been allocated on a heap. The user of this
++ * method should free it after usage.
+ */
+ static char *sec2annotation(const char *s)
+ {
+@@ -1230,7 +1233,7 @@ static char *sec2annotation(const char *
+ 			strcat(p, "data ");
+ 		else
+ 			strcat(p, " ");
+-		return r; /* we leak her but we do not care */
++		return r;
+ 	} else {
+ 		return strdup("");
+ 	}
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from andy.shevchenko@gmail.com are
 
-origin.patch
 linux-next.patch
-drivers-scsi-pm8001-pm8001_hwic-handle-allocation-failures.patch
-ip2-remove-unneeded-null-check.patch
-ip2-return-efault-on-copy_to_user-errors.patch
+scripts-mod-modpostc-fix-commentary-accordingly-to-last-changes.patch
+mmc-make-dev_to_mmc_card-macro-public.patch
 
