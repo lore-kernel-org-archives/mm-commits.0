@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init-mark-__user-address-space-on-string-literals.patch added to -mm tree
-Date: Thu, 19 Aug 2010 15:11:51 -0700
-Message-ID: <201008192211.o7JMBpDU011313@imap1.linux-foundation.org>
+Subject: + mmc-avoid-getting-cid-on-sdio-only-cards.patch added to -mm tree
+Date: Thu, 19 Aug 2010 15:59:08 -0700
+Message-ID: <201008192259.o7JMx8xn013449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753630Ab0HSWMQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751446Ab0HSW7O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 18:12:16 -0400
+	Thu, 19 Aug 2010 18:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, phillip@lougher.demon.co.uk
+Cc: david.vrabel@csr.com, linux-mmc@vger.kernel.org, mirq-linux@rere.qmqm.pl
 
 
 The patch titled
-     init: mark __user address space on string literals
+     mmc: avoid getting CID on SDIO-only cards
 has been added to the -mm tree.  Its filename is
-     init-mark-__user-address-space-on-string-literals.patch
+     mmc-avoid-getting-cid-on-sdio-only-cards.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init: mark __user address space on string literals
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: mmc: avoid getting CID on SDIO-only cards
+From: David Vrabel <david.vrabel@csr.com>
 
-When calling syscall service routines in kernel, some of arguments should
-be user pointers but were missing __user markup on string literals.  Add
-it.  Removes some sparse warnings.
+The introduction of support for SD combo cards breaks the initialization
+of all CSR SDIO chips.  The GO_IDLE (CMD0) in mmc_sd_get_cid() causes CSR
+chips to be reset (this is non-standard behavior).
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+When initializing an SDIO card check for a combo card by using the memory
+present bit in the R4 response to IO_SEND_OP_COND (CMD5).  This avoids the
+call to mmc_sd_get_cid() on an SDIO-only card.
+
+Signed-off-by: David Vrabel <david.vrabel@csr.com>
+Acked-by: Michal Mirolaw <mirq-linux@rere.qmqm.pl>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c    |    4 ++--
- init/do_mounts_md.c |    2 +-
- init/do_mounts_rd.c |    4 ++--
- init/initramfs.c    |    5 +++--
- init/noinitramfs.c  |    6 +++---
- 5 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/mmc/core/sdio.c  |    5 ++---
+ include/linux/mmc/sdio.h |    2 ++
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN init/do_mounts.c~init-mark-__user-address-space-on-string-literals init/do_mounts.c
---- a/init/do_mounts.c~init-mark-__user-address-space-on-string-literals
-+++ a/init/do_mounts.c
-@@ -221,7 +221,7 @@ static int __init do_mount_root(char *na
- 	if (err)
- 		return err;
+diff -puN drivers/mmc/core/sdio.c~mmc-avoid-getting-cid-on-sdio-only-cards drivers/mmc/core/sdio.c
+--- a/drivers/mmc/core/sdio.c~mmc-avoid-getting-cid-on-sdio-only-cards
++++ a/drivers/mmc/core/sdio.c
+@@ -362,9 +362,8 @@ static int mmc_sdio_init_card(struct mmc
+ 		goto err;
+ 	}
  
--	sys_chdir("/root");
-+	sys_chdir((const char __user __force *)"/root");
- 	ROOT_DEV = current->fs->pwd.mnt->mnt_sb->s_dev;
- 	printk("VFS: Mounted root (%s filesystem)%s on device %u:%u.\n",
- 	       current->fs->pwd.mnt->mnt_sb->s_type->name,
-@@ -418,5 +418,5 @@ void __init prepare_namespace(void)
- out:
- 	devtmpfs_mount("dev");
- 	sys_mount(".", "/", NULL, MS_MOVE, NULL);
--	sys_chroot(".");
-+	sys_chroot((const char __user __force *)".");
- }
-diff -puN init/do_mounts_md.c~init-mark-__user-address-space-on-string-literals init/do_mounts_md.c
---- a/init/do_mounts_md.c~init-mark-__user-address-space-on-string-literals
-+++ a/init/do_mounts_md.c
-@@ -283,7 +283,7 @@ static void __init autodetect_raid(void)
+-	err = mmc_sd_get_cid(host, host->ocr & ocr, card->raw_cid);
+-
+-	if (!err) {
++	if (ocr & R4_MEMORY_PRESENT
++	    && mmc_sd_get_cid(host, host->ocr & ocr, card->raw_cid) == 0) {
+ 		card->type = MMC_TYPE_SD_COMBO;
  
- 	wait_for_device_probe();
+ 		if (oldcard && (oldcard->type != MMC_TYPE_SD_COMBO ||
+diff -puN include/linux/mmc/sdio.h~mmc-avoid-getting-cid-on-sdio-only-cards include/linux/mmc/sdio.h
+--- a/include/linux/mmc/sdio.h~mmc-avoid-getting-cid-on-sdio-only-cards
++++ a/include/linux/mmc/sdio.h
+@@ -38,6 +38,8 @@
+  *      [8:0] Byte/block count
+  */
  
--	fd = sys_open("/dev/md0", 0, 0);
-+	fd = sys_open((const char __user __force *) "/dev/md0", 0, 0);
- 	if (fd >= 0) {
- 		sys_ioctl(fd, RAID_AUTORUN, raid_autopart);
- 		sys_close(fd);
-diff -puN init/do_mounts_rd.c~init-mark-__user-address-space-on-string-literals init/do_mounts_rd.c
---- a/init/do_mounts_rd.c~init-mark-__user-address-space-on-string-literals
-+++ a/init/do_mounts_rd.c
-@@ -168,7 +168,7 @@ int __init rd_load_image(char *from)
- 	char rotator[4] = { '|' , '/' , '-' , '\\' };
- #endif
- 
--	out_fd = sys_open("/dev/ram", O_RDWR, 0);
-+	out_fd = sys_open((const char __user __force *) "/dev/ram", O_RDWR, 0);
- 	if (out_fd < 0)
- 		goto out;
- 
-@@ -267,7 +267,7 @@ noclose_input:
- 	sys_close(out_fd);
- out:
- 	kfree(buf);
--	sys_unlink("/dev/ram");
-+	sys_unlink((const char __user __force *) "/dev/ram");
- 	return res;
- }
- 
-diff -puN init/initramfs.c~init-mark-__user-address-space-on-string-literals init/initramfs.c
---- a/init/initramfs.c~init-mark-__user-address-space-on-string-literals
-+++ a/init/initramfs.c
-@@ -528,7 +528,7 @@ static void __init clean_rootfs(void)
- 	struct linux_dirent64 *dirp;
- 	int num;
- 
--	fd = sys_open("/", O_RDONLY, 0);
-+	fd = sys_open((const char __user __force *) "/", O_RDONLY, 0);
- 	WARN_ON(fd < 0);
- 	if (fd < 0)
- 		return;
-@@ -590,7 +590,8 @@ static int __init populate_rootfs(void)
- 		}
- 		printk(KERN_INFO "rootfs image is not initramfs (%s)"
- 				"; looks like an initrd\n", err);
--		fd = sys_open("/initrd.image", O_WRONLY|O_CREAT, 0700);
-+		fd = sys_open((const char __user __force *) "/initrd.image",
-+			      O_WRONLY|O_CREAT, 0700);
- 		if (fd >= 0) {
- 			sys_write(fd, (char *)initrd_start,
- 					initrd_end - initrd_start);
-diff -puN init/noinitramfs.c~init-mark-__user-address-space-on-string-literals init/noinitramfs.c
---- a/init/noinitramfs.c~init-mark-__user-address-space-on-string-literals
-+++ a/init/noinitramfs.c
-@@ -29,17 +29,17 @@ static int __init default_rootfs(void)
- {
- 	int err;
- 
--	err = sys_mkdir("/dev", 0755);
-+	err = sys_mkdir((const char __user __force *) "/dev", 0755);
- 	if (err < 0)
- 		goto out;
- 
--	err = sys_mknod((const char __user *) "/dev/console",
-+	err = sys_mknod((const char __user __force *) "/dev/console",
- 			S_IFCHR | S_IRUSR | S_IWUSR,
- 			new_encode_dev(MKDEV(5, 1)));
- 	if (err < 0)
- 		goto out;
- 
--	err = sys_mkdir("/root", 0700);
-+	err = sys_mkdir((const char __user __force *) "/root", 0700);
- 	if (err < 0)
- 		goto out;
- 
++#define R4_MEMORY_PRESENT (1 << 27)
++
+ /*
+   SDIO status in R5
+   Type
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from david.vrabel@csr.com are
 
-origin.patch
+mmc-avoid-getting-cid-on-sdio-only-cards.patch
 linux-next.patch
-init-mark-__user-address-space-on-string-literals.patch
 
