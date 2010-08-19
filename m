@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-__task_cred-need-rcu_read_lock.patch added to -mm tree
-Date: Thu, 19 Aug 2010 09:28:34 -0700
-Message-ID: <201008191625.o7JGPmvO028435@imap1.linux-foundation.org>
+Subject: + documentation-kernel-locking-mutex_trylock-cannot-be-used-in-interrupt-context.patch added to -mm tree
+Date: Thu, 19 Aug 2010 14:06:19 -0700
+Message-ID: <201008192106.o7JL6J5n008309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751150Ab0HSQ0H (ORCPT
+	by vger.kernel.org with ESMTP id S1750817Ab0HSVHF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 12:26:07 -0400
+	Thu, 19 Aug 2010 17:07:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, dhowells@redhat.com, paulmck@linux.vnet.ibm.com, rientjes@google.com
+Cc: stefanr@s5r6.in-berlin.de, matthew@wil.cx, rdunlap@xenotime.net, rusty@rustcorp.com.au
 
 
 The patch titled
-     oom: __task_cred() need rcu_read_lock()
+     Documentation: kernel-locking: mutex_trylock cannot be used in interrupt context
 has been added to the -mm tree.  Its filename is
-     oom-__task_cred-need-rcu_read_lock.patch
+     documentation-kernel-locking-mutex_trylock-cannot-be-used-in-interrupt-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: __task_cred() need rcu_read_lock()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Documentation: kernel-locking: mutex_trylock cannot be used in interrupt context
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-dump_tasks() needs to hold the RCU read lock around its access of the
-target task's UID.  To this end it should use task_uid() as it only needs
-that one thing from the creds.
+Chapter 6 is right about mutex_trylock, but chapter 10 wasn't.  This error
+was introduced during semaphore-to-mutex conversion of the Unreliable
+guide.  :-)
 
-The fact that dump_tasks() holds tasklist_lock is insufficient to prevent the
-target process replacing its credentials on another CPU.
+If user context which performs mutex_lock() or mutex_trylock() is
+preempted by interrupt context which performs mutex_trylock() on the same
+mutex instance, a deadlock occurs.  This is because these functions do not
+disable local IRQs when they operate on mutex->wait_lock.
 
-Then, this patch change to call rcu_read_lock() explicitly.
-
-	===================================================
-	[ INFO: suspicious rcu_dereference_check() usage. ]
-	---------------------------------------------------
-	mm/oom_kill.c:410 invoked rcu_dereference_check() without protection!
-
-	other info that might help us debug this:
-
-	rcu_scheduler_active = 1, debug_locks = 1
-	4 locks held by kworker/1:2/651:
-	 #0:  (events){+.+.+.}, at: [<ffffffff8106aae7>]
-	process_one_work+0x137/0x4a0
-	 #1:  (moom_work){+.+...}, at: [<ffffffff8106aae7>]
-	process_one_work+0x137/0x4a0
-	 #2:  (tasklist_lock){.+.+..}, at: [<ffffffff810fafd4>]
-	out_of_memory+0x164/0x3f0
-	 #3:  (&(&p->alloc_lock)->rlock){+.+...}, at: [<ffffffff810fa48e>]
-	find_lock_task_mm+0x2e/0x70
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/kernel-locking.tmpl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-__task_cred-need-rcu_read_lock mm/oom_kill.c
---- a/mm/oom_kill.c~oom-__task_cred-need-rcu_read_lock
-+++ a/mm/oom_kill.c
-@@ -372,7 +372,7 @@ static void dump_tasks(const struct mem_
- 		}
- 
- 		pr_info("[%5d] %5d %5d %8lu %8lu %3u     %3d         %5d %s\n",
--			task->pid, __task_cred(task)->uid, task->tgid,
-+			task->pid, task_uid(task), task->tgid,
- 			task->mm->total_vm, get_mm_rss(task->mm),
- 			task_cpu(task), task->signal->oom_adj,
- 			task->signal->oom_score_adj, task->comm);
+diff -puN Documentation/DocBook/kernel-locking.tmpl~documentation-kernel-locking-mutex_trylock-cannot-be-used-in-interrupt-context Documentation/DocBook/kernel-locking.tmpl
+--- a/Documentation/DocBook/kernel-locking.tmpl~documentation-kernel-locking-mutex_trylock-cannot-be-used-in-interrupt-context
++++ a/Documentation/DocBook/kernel-locking.tmpl
+@@ -1922,9 +1922,12 @@ machines due to caching.
+       <function>mutex_lock()</function>
+       </para>
+       <para>
+-       There is a <function>mutex_trylock()</function> which can be
+-       used inside interrupt context, as it will not sleep.
++       There is a <function>mutex_trylock()</function> which does not
++       sleep.  Still, it must not be used inside interrupt context since
++       its implementation is not safe for that.
+        <function>mutex_unlock()</function> will also never sleep.
++       It cannot be used in interrupt context either since a mutex
++       must be released by the same task that acquired it.
+       </para>
+      </listitem>
+     </itemizedlist>
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
 
-oom-fix-null-pointer-dereference.patch
-oom-fix-tasklist_lock-leak.patch
-oom-__task_cred-need-rcu_read_lock.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-reiser4.patch
+documentation-kernel-locking-mutex_trylock-cannot-be-used-in-interrupt-context.patch
+linux-next.patch
 
