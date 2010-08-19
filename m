@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arm-plat-omap-iovmmc-fix-end-address-of-vm-area-comparation-in-alloc_iovm_area.patch added to -mm tree
-Date: Thu, 19 Aug 2010 16:23:17 -0700
-Message-ID: <201008192323.o7JNNHAX014542@imap1.linux-foundation.org>
+Subject: + proc-export-uncached-bit-properly-in-proc-kpageflags.patch added to -mm tree
+Date: Thu, 19 Aug 2010 16:24:24 -0700
+Message-ID: <201008192324.o7JNOOOV014567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080Ab0HSXXa (ORCPT
+	by vger.kernel.org with ESMTP id S1751080Ab0HSXY1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 19:23:30 -0400
+	Thu, 19 Aug 2010 19:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: x0095840@ti.com, Hiroshi.DOYU@nokia.com, linux@arm.linux.org.uk, tony@atomide.com
+Cc: tiwai@suse.de, fengguang.wu@intel.com
 
 
 The patch titled
-     arch/arm/plat-omap/iovmm.c: fix end address of vm area comparation in alloc_iovm_area
+     proc: export uncached bit properly in /proc/kpageflags
 has been added to the -mm tree.  Its filename is
-     arch-arm-plat-omap-iovmmc-fix-end-address-of-vm-area-comparation-in-alloc_iovm_area.patch
+     proc-export-uncached-bit-properly-in-proc-kpageflags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/arm/plat-omap/iovmm.c: fix end address of vm area comparation in alloc_iovm_area
-From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: proc: export uncached bit properly in /proc/kpageflags
+From: Takashi Iwai <tiwai@suse.de>
 
-End address of the vm area is .start + bytes -1., not start + byte.  This
-patch fixes that issue by doing an inclusive comparison with
-tmp->da_start.  This issue was preventing allocate an area of size exactly
-the same than the free area.  I did no change the value of da_end of each
-vm area because it is used to get area size in several places.
+Fix the left-over old ifdef for PG_uncached in /proc/kpageflags.  Now it's
+used by x86, too.
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-omap/iovmm.c |    2 +-
+ fs/proc/page.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/plat-omap/iovmm.c~arch-arm-plat-omap-iovmmc-fix-end-address-of-vm-area-comparation-in-alloc_iovm_area arch/arm/plat-omap/iovmm.c
---- a/arch/arm/plat-omap/iovmm.c~arch-arm-plat-omap-iovmmc-fix-end-address-of-vm-area-comparation-in-alloc_iovm_area
-+++ a/arch/arm/plat-omap/iovmm.c
-@@ -292,7 +292,7 @@ static struct iovm_struct *alloc_iovm_ar
- 		if (prev_end >= start)
- 			break;
+diff -puN fs/proc/page.c~proc-export-uncached-bit-properly-in-proc-kpageflags fs/proc/page.c
+--- a/fs/proc/page.c~proc-export-uncached-bit-properly-in-proc-kpageflags
++++ a/fs/proc/page.c
+@@ -146,7 +146,7 @@ u64 stable_page_flags(struct page *page)
+ 	u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
+ #endif
  
--		if (start + bytes < tmp->da_start)
-+		if (start + bytes <= tmp->da_start)
- 			goto found;
+-#ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
++#ifdef CONFIG_ARCH_USES_PG_UNCACHED
+ 	u |= kpf_copy_bit(k, KPF_UNCACHED,	PG_uncached);
+ #endif
  
- 		if (flags & IOVMF_DA_ANON)
 _
 
-Patches currently in -mm which might be from x0095840@ti.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
-arch-arm-plat-omap-iovmmc-fix-end-address-of-vm-area-comparation-in-alloc_iovm_area.patch
+origin.patch
+linux-next.patch
+hp_accel-add-quirks-for-hp-probook-532x-and-hp-mini-5102.patch
+proc-export-uncached-bit-properly-in-proc-kpageflags.patch
 
