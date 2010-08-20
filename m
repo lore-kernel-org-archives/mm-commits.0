@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timer-initialize-the-field-slack-of-timer_list.patch added to -mm tree
-Date: Thu, 19 Aug 2010 16:55:55 -0700
-Message-ID: <201008192355.o7JNttZR015943@imap1.linux-foundation.org>
+Subject: + mm-smaps-export-mlock-information.patch added to -mm tree
+Date: Thu, 19 Aug 2010 17:25:15 -0700
+Message-ID: <201008200025.o7K0PFDK017327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751646Ab0HSX4Y (ORCPT
+	by vger.kernel.org with ESMTP id S1752331Ab0HTAZw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 19:56:24 -0400
+	Thu, 19 Aug 2010 20:25:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaosuo@gmail.com, arjan@infradead.org, tglx@linutronix.de
+Cc: knikanth@suse.de, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, mpm@selenic.com
 
 
 The patch titled
-     timer: initialize the field slack of timer_list
+     mm: smaps: export mlock information
 has been added to the -mm tree.  Its filename is
-     timer-initialize-the-field-slack-of-timer_list.patch
+     mm-smaps-export-mlock-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timer: initialize the field slack of timer_list
-From: Changli Gao <xiaosuo@gmail.com>
+Subject: mm: smaps: export mlock information
+From: Nikanth Karthikesan <knikanth@suse.de>
 
-TIMER_INITIALIZER() should initialize the field slack of timer_list as
-__init_timer() does.
+Currently there is no way to find whether a process has locked its pages
+in memory or not.  And which of the memory regions are locked in memory.
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Add a new field "Locked" to export this information via the smaps file.
+
+Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/filesystems/proc.txt |    3 +++
+ fs/proc/task_mmu.c                 |    7 +++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/timer.h~timer-initialize-the-field-slack-of-timer_list include/linux/timer.h
---- a/include/linux/timer.h~timer-initialize-the-field-slack-of-timer_list
-+++ a/include/linux/timer.h
-@@ -54,6 +54,7 @@ extern struct tvec_base boot_tvec_bases;
- 		.expires = (_expires),				\
- 		.data = (_data),				\
- 		.base = &boot_tvec_bases,			\
-+		.slack = -1,					\
- 		__TIMER_LOCKDEP_MAP_INITIALIZER(		\
- 			__FILE__ ":" __stringify(__LINE__))	\
- 	}
+diff -puN Documentation/filesystems/proc.txt~mm-smaps-export-mlock-information Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-smaps-export-mlock-information
++++ a/Documentation/filesystems/proc.txt
+@@ -373,6 +373,7 @@ Referenced:          892 kB
+ Swap:                  0 kB
+ KernelPageSize:        4 kB
+ MMUPageSize:           4 kB
++Locked:              374 kB
+ 
+ The first  of these lines shows  the same information  as is displayed for the
+ mapping in /proc/PID/maps.  The remaining lines show  the size of the mapping,
+@@ -397,6 +398,8 @@ To clear the bits for the file mapped pa
+     > echo 3 > /proc/PID/clear_refs
+ Any other value written to /proc/PID/clear_refs will have no effect.
+ 
++The "Locked" indicates whether the mapping is locked in memory or not.
++
+ 
+ 1.2 Kernel data
+ ---------------
+diff -puN fs/proc/task_mmu.c~mm-smaps-export-mlock-information fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-smaps-export-mlock-information
++++ a/fs/proc/task_mmu.c
+@@ -411,7 +411,8 @@ static int show_smap(struct seq_file *m,
+ 		   "Referenced:     %8lu kB\n"
+ 		   "Swap:           %8lu kB\n"
+ 		   "KernelPageSize: %8lu kB\n"
+-		   "MMUPageSize:    %8lu kB\n",
++		   "MMUPageSize:    %8lu kB\n"
++		   "Locked:         %8lu kB\n",
+ 		   (vma->vm_end - vma->vm_start) >> 10,
+ 		   mss.resident >> 10,
+ 		   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
+@@ -422,7 +423,9 @@ static int show_smap(struct seq_file *m,
+ 		   mss.referenced >> 10,
+ 		   mss.swap >> 10,
+ 		   vma_kernel_pagesize(vma) >> 10,
+-		   vma_mmu_pagesize(vma) >> 10);
++		   vma_mmu_pagesize(vma) >> 10,
++		   (vma->vm_flags & VM_LOCKED) ?
++			(unsigned long)(mss.pss >> (10 + PSS_SHIFT)) : 0);
+ 
+ 	if (m->count < m->size)  /* vma is copied successfully */
+ 		m->version = (vma != get_gate_vma(task)) ? vma->vm_start : 0;
 _
 
-Patches currently in -mm which might be from xiaosuo@gmail.com are
+Patches currently in -mm which might be from knikanth@suse.de are
 
-timer-initialize-the-field-slack-of-timer_list.patch
+linux-next.patch
+mm-smaps-export-mlock-information.patch
 
