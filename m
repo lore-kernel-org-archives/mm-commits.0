@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-add-per-mm-oom-disable-count.patch added to -mm tree
-Date: Mon, 23 Aug 2010 16:16:29 -0700
-Message-ID: <201008232316.o7NNGUc9020390@imap1.linux-foundation.org>
+Subject: + oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch added to -mm tree
+Date: Mon, 23 Aug 2010 16:16:34 -0700
+Message-ID: <201008232316.o7NNGYLr020402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751318Ab0HWXQr (ORCPT
+	by vger.kernel.org with ESMTP id S1752110Ab0HWXQs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Aug 2010 19:16:47 -0400
+	Mon, 23 Aug 2010 19:16:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghan@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, yinghan@google.com
 
 
 The patch titled
-     oom: add per-mm oom disable count
+     oom: kill all threads sharing oom killed task's mm
 has been added to the -mm tree.  Its filename is
-     oom-add-per-mm-oom-disable-count.patch
+     oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,213 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: add per-mm oom disable count
-From: Ying Han <yinghan@google.com>
+Subject: oom: kill all threads sharing oom killed task's mm
+From: David Rientjes <rientjes@google.com>
 
-It's pointless to kill a task if another thread sharing its mm cannot be
-killed to allow future memory freeing.  A subsequent patch will prevent
-kills in such cases, but first it's necessary to have a way to flag a task
-that shares memory with an OOM_DISABLE task that doesn't incur an
-additional tasklist scan, which would make select_bad_process() an O(n^2)
-function.
+It's necessary to kill all threads that share an oom killed task's mm if
+the goal is to lead to future memory freeing.
 
-This patch adds an atomic counter to struct mm_struct that follows how
-many threads attached to it have an oom_score_adj of OOM_SCORE_ADJ_MIN. 
-They cannot be killed by the kernel, so their memory cannot be freed in
-oom conditions.
+This patch reintroduces the code removed in 8c5cd6f3 (oom: oom_kill
+doesn't kill vfork parent (or child)) since it is obsoleted.
 
-This only requires task_lock() on the task that we're operating on, it
-does not require mm->mmap_sem since task_lock() pins the mm and the
-operation is atomic.
+It's now guaranteed that any task passed to oom_kill_task() does not share
+an mm with any thread that is unkillable.  Thus, we're safe to issue a
+SIGKILL to any thread sharing the same mm.
 
-[rientjes@google.com: changelog and sys_unshare() code]
-Signed-off-by: Ying Han <yinghan@google.com>
+This is especially necessary to solve an mm->mmap_sem livelock issue
+whereas an oom killed thread must acquire the lock in the exit path while
+another thread is holding it in the page allocator while trying to
+allocate memory itself (and will preempt the oom killer since a task was
+already killed).  Since tasks with pending fatal signals are now granted
+access to memory reserves, the thread holding the lock may quickly
+allocate and release the lock so that the oom killed task may exit.
+
+This mainly is for threads that are cloned with CLONE_VM but not
+CLONE_THREAD, so they are in a different thread group.  Non-NPTL threads
+exist in the wild and this change is necessary to prevent the livelock in
+such cases.  We care more about preventing the livelock than incurring the
+additional tasklist in the oom killer when a task has been killed. 
+Systems that are sufficiently large to not want the tasklist scan in the
+oom killer in the first place already have the option of enabling
+/proc/sys/vm/oom_kill_allocating_task, which was designed specifically for
+that purpose.
+
+This code had existed in the oom killer for over eight years dating back
+to the 2.4 kernel.
+
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                |    5 +++++
- fs/proc/base.c           |   30 ++++++++++++++++++++++++++++++
- include/linux/mm_types.h |    2 ++
- kernel/exit.c            |    3 +++
- kernel/fork.c            |   13 ++++++++++++-
- 5 files changed, 52 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN fs/exec.c~oom-add-per-mm-oom-disable-count fs/exec.c
---- a/fs/exec.c~oom-add-per-mm-oom-disable-count
-+++ a/fs/exec.c
-@@ -54,6 +54,7 @@
- #include <linux/fsnotify.h>
- #include <linux/fs_struct.h>
- #include <linux/pipe_fs_i.h>
-+#include <linux/oom.h>
- 
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -745,6 +746,10 @@ static int exec_mmap(struct mm_struct *m
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
- 	activate_mm(active_mm, mm);
-+	if (tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-+		atomic_dec(&active_mm->oom_disable_count);
-+		atomic_inc(&tsk->mm->oom_disable_count);
-+	}
- 	task_unlock(tsk);
- 	arch_pick_mmap_layout(mm);
- 	if (old_mm) {
-diff -puN fs/proc/base.c~oom-add-per-mm-oom-disable-count fs/proc/base.c
---- a/fs/proc/base.c~oom-add-per-mm-oom-disable-count
-+++ a/fs/proc/base.c
-@@ -1049,6 +1049,21 @@ static ssize_t oom_adjust_write(struct f
- 		return -EACCES;
- 	}
- 
-+	task_lock(task);
-+	if (!task->mm) {
-+		task_unlock(task);
-+		unlock_task_sighand(task, &flags);
-+		put_task_struct(task);
-+		return -EINVAL;
-+	}
+diff -puN mm/oom_kill.c~oom-kill-all-threads-sharing-oom-killed-tasks-mm mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-kill-all-threads-sharing-oom-killed-tasks-mm
++++ a/mm/oom_kill.c
+@@ -401,16 +401,38 @@ static void dump_header(struct task_stru
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+ static int oom_kill_task(struct task_struct *p, struct mem_cgroup *mem)
+ {
++	struct task_struct *q;
++	struct mm_struct *mm;
 +
-+	if (oom_adjust != task->signal->oom_adj) {
-+		if (oom_adjust == OOM_DISABLE)
-+			atomic_inc(&task->mm->oom_disable_count);
-+		if (task->signal->oom_adj == OOM_DISABLE)
-+			atomic_dec(&task->mm->oom_disable_count);
-+	}
+ 	p = find_lock_task_mm(p);
+ 	if (!p)
+ 		return 1;
+ 
++	/* mm cannot be safely dereferenced after task_unlock(p) */
++	mm = p->mm;
 +
- 	/*
- 	 * Warn that /proc/pid/oom_adj is deprecated, see
- 	 * Documentation/feature-removal-schedule.txt.
-@@ -1067,6 +1082,7 @@ static ssize_t oom_adjust_write(struct f
- 	else
- 		task->signal->oom_score_adj = (oom_adjust * OOM_SCORE_ADJ_MAX) /
- 								-OOM_DISABLE;
-+	task_unlock(task);
- 	unlock_task_sighand(task, &flags);
- 	put_task_struct(task);
+ 	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
+ 		task_pid_nr(p), p->comm, K(p->mm->total_vm),
+ 		K(get_mm_counter(p->mm, MM_ANONPAGES)),
+ 		K(get_mm_counter(p->mm, MM_FILEPAGES)));
+ 	task_unlock(p);
  
-@@ -1135,6 +1151,19 @@ static ssize_t oom_score_adj_write(struc
- 		return -EACCES;
- 	}
++	/*
++	 * Kill all processes sharing p->mm in other thread groups, if any.
++	 * They don't get access to memory reserves or a higher scheduler
++	 * priority, though, to avoid depletion of all memory or task
++	 * starvation.  This prevents mm->mmap_sem livelock when an oom killed
++	 * task cannot exit because it requires the semaphore and its contended
++	 * by another thread trying to allocate memory itself.  That thread will
++	 * now get access to memory reserves since it has a pending fatal
++	 * signal.
++	 */
++	for_each_process(q)
++		if (q->mm == mm && !same_thread_group(q, p)) {
++			pr_err("Kill process %d (%s) sharing same memory\n",
++				task_pid_nr(q), q->comm);
++			force_sig(SIGKILL, q);
++		}
  
-+	task_lock(task);
-+	if (!task->mm) {
-+		task_unlock(task);
-+		unlock_task_sighand(task, &flags);
-+		put_task_struct(task);
-+		return -EINVAL;
-+	}
-+	if (oom_score_adj != task->signal->oom_score_adj) {
-+		if (oom_score_adj == OOM_SCORE_ADJ_MIN)
-+			atomic_inc(&task->mm->oom_disable_count);
-+		if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
-+			atomic_dec(&task->mm->oom_disable_count);
-+	}
- 	task->signal->oom_score_adj = oom_score_adj;
- 	/*
- 	 * Scale /proc/pid/oom_adj appropriately ensuring that OOM_DISABLE is
-@@ -1145,6 +1174,7 @@ static ssize_t oom_score_adj_write(struc
- 	else
- 		task->signal->oom_adj = (oom_score_adj * OOM_ADJUST_MAX) /
- 							OOM_SCORE_ADJ_MAX;
-+	task_unlock(task);
- 	unlock_task_sighand(task, &flags);
- 	put_task_struct(task);
- 	return count;
-diff -puN include/linux/mm_types.h~oom-add-per-mm-oom-disable-count include/linux/mm_types.h
---- a/include/linux/mm_types.h~oom-add-per-mm-oom-disable-count
-+++ a/include/linux/mm_types.h
-@@ -310,6 +310,8 @@ struct mm_struct {
- #ifdef CONFIG_MMU_NOTIFIER
- 	struct mmu_notifier_mm *mmu_notifier_mm;
- #endif
-+	/* How many tasks sharing this mm are OOM_DISABLE */
-+	atomic_t oom_disable_count;
- };
- 
- /* Future-safe accessor for struct mm_struct's cpu_vm_mask. */
-diff -puN kernel/exit.c~oom-add-per-mm-oom-disable-count kernel/exit.c
---- a/kernel/exit.c~oom-add-per-mm-oom-disable-count
-+++ a/kernel/exit.c
-@@ -50,6 +50,7 @@
- #include <linux/perf_event.h>
- #include <trace/events/sched.h>
- #include <linux/hw_breakpoint.h>
-+#include <linux/oom.h>
- 
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
-@@ -689,6 +690,8 @@ static void exit_mm(struct task_struct *
- 	enter_lazy_tlb(mm, current);
- 	/* We don't want this task to be frozen prematurely */
- 	clear_freeze_flag(tsk);
-+	if (tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
-+		atomic_dec(&mm->oom_disable_count);
- 	task_unlock(tsk);
- 	mm_update_next_owner(mm);
- 	mmput(mm);
-diff -puN kernel/fork.c~oom-add-per-mm-oom-disable-count kernel/fork.c
---- a/kernel/fork.c~oom-add-per-mm-oom-disable-count
-+++ a/kernel/fork.c
-@@ -65,6 +65,7 @@
- #include <linux/perf_event.h>
- #include <linux/posix-timers.h>
- #include <linux/user-return-notifier.h>
-+#include <linux/oom.h>
- 
- #include <asm/pgtable.h>
- #include <asm/pgalloc.h>
-@@ -488,6 +489,7 @@ static struct mm_struct * mm_init(struct
- 	mm->cached_hole_size = ~0UL;
- 	mm_init_aio(mm);
- 	mm_init_owner(mm, p);
-+	atomic_set(&mm->oom_disable_count, 0);
- 
- 	if (likely(!mm_alloc_pgd(mm))) {
- 		mm->def_flags = 0;
-@@ -741,6 +743,8 @@ good_mm:
- 	/* Initializing for Swap token stuff */
- 	mm->token_priority = 0;
- 	mm->last_interval = 0;
-+	if (tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
-+		atomic_inc(&mm->oom_disable_count);
- 
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
-@@ -1299,8 +1303,11 @@ bad_fork_cleanup_io:
- bad_fork_cleanup_namespaces:
- 	exit_task_namespaces(p);
- bad_fork_cleanup_mm:
--	if (p->mm)
-+	if (p->mm) {
-+		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
-+			atomic_dec(&p->mm->oom_disable_count);
- 		mmput(p->mm);
-+	}
- bad_fork_cleanup_signal:
- 	if (!(clone_flags & CLONE_THREAD))
- 		free_signal_struct(p->signal);
-@@ -1693,6 +1700,10 @@ SYSCALL_DEFINE1(unshare, unsigned long, 
- 			active_mm = current->active_mm;
- 			current->mm = new_mm;
- 			current->active_mm = new_mm;
-+			if (current->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-+				atomic_dec(&mm->oom_disable_count);
-+				atomic_inc(&new_mm->oom_disable_count);
-+			}
- 			activate_mm(active_mm, new_mm);
- 			new_mm = mm;
- 		}
+ 	set_tsk_thread_flag(p, TIF_MEMDIE);
+ 	force_sig(SIGKILL, p);
 _
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+fs-bio-integrityc-remove-dependency-on-__gfp_nofail.patch
+fs-bio-integrityc-return-enomem-on-kmalloc-failure.patch
 oom-add-per-mm-oom-disable-count.patch
 oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
+jbd-remove-dependency-on-__gfp_nofail.patch
 
