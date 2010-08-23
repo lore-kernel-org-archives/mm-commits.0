@@ -1,29 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-filesystems-proctxt-improve-smaps-field-documentation.patch added to -mm tree
-Date: Mon, 23 Aug 2010 15:55:35 -0700
-Message-ID: <201008232255.o7NMtZv8019531@imap1.linux-foundation.org>
+Subject: + mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update.patch added to -mm tree
+Date: Mon, 23 Aug 2010 15:58:49 -0700
+Message-ID: <201008232258.o7NMwnKE019659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753173Ab0HWWzn (ORCPT
+	by vger.kernel.org with ESMTP id S1751270Ab0HWW6w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Aug 2010 18:55:43 -0400
+	Mon, 23 Aug 2010 18:58:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, balbir@linux.vnet.ibm.com, fengguang.wu@intel.com, knikanth@suse.de
+Cc: olof@lixom.net, linux-mmc@vger.kernel.org, msb@chromium.org
 
 
 The patch titled
-     Documentation/filesystems/proc.txt: improve smaps field documentat=
-ion
+     mmc: add config and runtime option for number of mmcblk minors
 has been added to the -mm tree.  Its filename is
-     documentation-filesystems-proctxt-improve-smaps-field-documentatio=
-n.patch
+     mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,75 +26,96 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/filesystems/proc.txt: improve smaps field docume=
-ntation
-=46rom: Matt Mackall <mpm@selenic.com>
+Subject: mmc: add config and runtime option for number of mmcblk minors
+From: Olof Johansson <olof@lixom.net>
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Nikanth Karthikesan <knikanth@suse.de>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Changes since v1:
+	* Runtime override of config default
+	* Better help text
+	* DIV_ROUND_UP for max_devices calculation
+	* Clarify mmcblk device count limitations
+
+Changes since v2 based on feedback from Mandeep Baines:
+	* DIV_ROUND_UP is doing the wrong thing, we'll end up using
+	  the last fractional range of minors which we shouldn't.
+	* Documentation/devices.txt update
+	* No need to compute max_devices twice, just do it at runtime.
+	* Permission fix for the module_param -- it's readonly.
+									
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Mandeep Baines <msb@chromium.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ Documentation/devices.txt |    6 ++++++
+ drivers/mmc/card/block.c  |   10 +++++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~documentation-filesystems-=
-proctxt-improve-smaps-field-documentation Documentation/filesystems/pro=
-c.txt
---- a/Documentation/filesystems/proc.txt~documentation-filesystems-proc=
-txt-improve-smaps-field-documentation
-+++ a/Documentation/filesystems/proc.txt
-@@ -374,13 +374,14 @@ Swap:                  0 kB
- KernelPageSize:        4 kB
- MMUPageSize:           4 kB
-=20
--The first  of these lines shows  the same information  as is displayed=
- for the
--mapping in /proc/PID/maps.  The remaining lines show  the size of the =
-mapping,
--the amount of the mapping that is currently resident in RAM, the "prop=
-ortional
--set size=E2=80=9D (divide each shared page by the number of processes =
-sharing it), the
--number of clean and dirty shared pages in the mapping, and the number =
-of clean
--and dirty private pages in the mapping.  The "Referenced" indicates th=
-e amount
--of memory currently marked as referenced or accessed.
-+The first of these lines shows the same information as is displayed
-+for the mapping in /proc/PID/maps. The remaining lines show the size
-+of the mapping (size), the amount of the mapping that is currently
-+resident in RAM (RSS), the process' proportional share of this mapping
-+(PSS), the number of clean and dirty shared pages in the mapping, and
-+the number of clean and dirty private pages in the mapping. The
-+"Referenced" indicates the amount of memory currently marked as
-+referenced or accessed.
-=20
- This file is only present if the CONFIG_MMU kernel configuration optio=
-n is
- enabled.
+diff -puN Documentation/devices.txt~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update Documentation/devices.txt
+--- a/Documentation/devices.txt~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update
++++ a/Documentation/devices.txt
+@@ -2519,6 +2519,12 @@ Your cooperation is appreciated.
+ 		  8 = /dev/mmcblk1      Second SD/MMC card
+ 		    ...
+ 
++		The start of next SD/MMC card can be configured with
++		CONFIG_MMC_BLOCK_MINORS, or overridden at boot/modprobe
++		time using the mmcblk.perdev_minors option. That would
++		bump the offset between each card to be the configured
++		value instead of the default 8.
++
+ 179 char	CCube DVXChip-based PCI products
+ 		  0 = /dev/dvxirq0	First DVX device
+ 		  1 = /dev/dvxirq1	Second DVX device
+diff -puN drivers/mmc/card/block.c~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update
++++ a/drivers/mmc/card/block.c
+@@ -60,7 +60,7 @@ static int perdev_minors = CONFIG_MMC_BL
+  * We've only got one major, so number of mmcblk devices is
+  * limited to 256 / number of minors per device.
+  */
+-static int max_devices = DIV_ROUND_UP(256, CONFIG_MMC_BLOCK_MINORS);
++static int max_devices;
+ 
+ /* 256 minors, so at most 256 separate devices */
+ static DECLARE_BITMAP(dev_use, 256);
+@@ -79,7 +79,7 @@ struct mmc_blk_data {
+ 
+ static DEFINE_MUTEX(open_lock);
+ 
+-module_param(perdev_minors, int, 0644);
++module_param(perdev_minors, int, 0444);
+ MODULE_PARM_DESC(perdev_minors, "Minors numbers to allocate per device");
+ 
+ static struct mmc_blk_data *mmc_blk_get(struct gendisk *disk)
+@@ -782,10 +782,10 @@ static int __init mmc_blk_init(void)
+ {
+ 	int res;
+ 
+-	if (perdev_minors != CONFIG_MMC_BLOCK_MINORS) {
++	if (perdev_minors != CONFIG_MMC_BLOCK_MINORS)
+ 		pr_info("mmcblk: using %d minors per device\n", perdev_minors);
+-		max_devices = DIV_ROUND_UP(256, perdev_minors);
+-	}
++
++	max_devices = 256 / perdev_minors;
+ 
+ 	res = register_blkdev(MMC_BLOCK_MAJOR, "mmc");
+ 	if (res)
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from olof@lixom.net are
 
-documentation-filesystems-proctxt-improve-smaps-field-documentation.pat=
-ch
-mm-smaps-export-mlock-information.patch
+linux-next.patch
+mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors.patch
+mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
