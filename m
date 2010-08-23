@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch added to -mm tree
-Date: Mon, 23 Aug 2010 14:19:03 -0700
-Message-ID: <201008232119.o7NLJ3O9015278@imap1.linux-foundation.org>
+Subject: + mmc-mmc-44-ddr-support.patch added to -mm tree
+Date: Mon, 23 Aug 2010 14:28:33 -0700
+Message-ID: <201008232128.o7NLSXrd015715__49101.2870953002$1282598935$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754065Ab0HWVTZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754770Ab0HWV2l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Aug 2010 17:19:25 -0400
+	Mon, 23 Aug 2010 17:28:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dfeng@redhat.com, kosaki.motohiro@jp.fujitsu.com, nhorman@tuxdriver.com, oleg@redhat.com, roland@redhat.com, viro@zeniv.linux.org.uk
+Cc: hanumath.prasad@stericsson.com, cjb@laptop.org, linus.walleij@stericsson.com, linux-mmc@vger.kernel.org, matt@console-pimps.org
 
 
 The patch titled
-     core_pattern: fix truncation by core_pattern handler with long parameters
+     mmc: MMC 4.4 DDR support
 has been added to the -mm tree.  Its filename is
-     core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
+     mmc-mmc-44-ddr-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,342 +34,204 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: core_pattern: fix truncation by core_pattern handler with long parameters
-From: Xiaotian Feng <dfeng@redhat.com>
+Subject: mmc: MMC 4.4 DDR support
+From: Hanumath Prasad <hanumath.prasad@stericsson.com>
 
-We met a parameter truncated issue, consider following:
-> echo "|/root/core_pattern_pipe_test %p /usr/libexec/blah-blah-blah \
-%s %c %p %u %g 11 12345678901234567890123456789012345678 %t" > \
-/proc/sys/kernel/core_pattern
+Add support for Dual Data Rate MMC cards as defined in the 4.4
+specification.
 
-This is okay because the strings is less than CORENAME_MAX_SIZE.  "cat
-/proc/sys/kernel/core_pattern" shows the whole string.  but after we run
-core_pattern_pipe_test in man page, we found last parameter was truncated
-like below:
-
-        argc[10]=<12807486>
-
-The root cause is core_pattern allows % specifiers, which need to be
-replaced during parse time, but the replace may expand the strings to
-larger than CORENAME_MAX_SIZE.  So if the last parameter is % specifiers,
-the replace code is using snprintf(out_ptr, out_end - out_ptr, ...), this
-will write out of corename array.
-
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Neil Horman <nhorman@tuxdriver.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Hanumath Prasad <hanumath.prasad@stericsson.com>
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Cc: <linux-mmc@vger.kernel.org>
+Cc: Chris Ball <cjb@laptop.org>
+Cc: Matt Fleming <matt@console-pimps.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |  180 ++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 120 insertions(+), 60 deletions(-)
+ drivers/mmc/card/block.c |   10 +++++++---
+ drivers/mmc/core/mmc.c   |   37 +++++++++++++++++++++++++++++++++++--
+ include/linux/mmc/card.h |    5 +++++
+ include/linux/mmc/core.h |    1 +
+ include/linux/mmc/host.h |    4 ++++
+ include/linux/mmc/mmc.h  |   11 +++++++++--
+ 6 files changed, 61 insertions(+), 7 deletions(-)
 
-diff -puN fs/exec.c~core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler fs/exec.c
---- a/fs/exec.c~core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler
-+++ a/fs/exec.c
-@@ -65,6 +65,12 @@ char core_pattern[CORENAME_MAX_SIZE] = "
- unsigned int core_pipe_limit;
- int suid_dumpable = 0;
+diff -puN drivers/mmc/card/block.c~mmc-mmc-44-ddr-support drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc-mmc-44-ddr-support
++++ a/drivers/mmc/card/block.c
+@@ -388,7 +388,8 @@ static int mmc_blk_issue_rw_rq(struct mm
+ 			readcmd = MMC_READ_SINGLE_BLOCK;
+ 			writecmd = MMC_WRITE_BLOCK;
+ 		}
+-
++		if (mmc_card_ddr_mode(card))
++			brq.data.flags |= MMC_DDR_MODE;
+ 		if (rq_data_dir(req) == READ) {
+ 			brq.cmd.opcode = readcmd;
+ 			brq.data.flags |= MMC_DATA_READ;
+@@ -669,8 +670,11 @@ mmc_blk_set_blksize(struct mmc_blk_data 
+ 	struct mmc_command cmd;
+ 	int err;
  
-+struct core_name {
-+	char *corename;
-+	int used, size;
-+};
-+static atomic_t call_count = ATOMIC_INIT(1);
-+
- /* The maximal length of core_pattern is also specified in sysctl.c */
+-	/* Block-addressed cards ignore MMC_SET_BLOCKLEN. */
+-	if (mmc_card_blockaddr(card))
++	/*
++	 * Block-addressed and ddr mode supported cards
++	 * ignore MMC_SET_BLOCKLEN.
++	 */
++	if (mmc_card_blockaddr(card) || mmc_card_ddr_mode(card))
+ 		return 0;
  
- static LIST_HEAD(formats);
-@@ -1440,106 +1446,146 @@ void set_binfmt(struct linux_binfmt *new
- 
- EXPORT_SYMBOL(set_binfmt);
- 
-+static int expand_corename(struct core_name *cn)
-+{
-+	char *old_corename = cn->corename;
-+
-+	cn->size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
-+	cn->corename = krealloc(old_corename, cn->size, GFP_KERNEL);
-+
-+	if (!cn->corename) {
-+		kfree(old_corename);
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cn_printf(struct core_name *cn, const char *fmt, ...)
-+{
-+	char *cur;
-+	int need;
-+	int ret;
-+	va_list arg;
-+
-+	cur = cn->corename + cn->used;
-+
-+	va_start(arg, fmt);
-+	need = vsnprintf(NULL, 0, fmt, arg);
-+	va_end(arg);
-+
-+	if (likely(need < cn->size - cn->used))
-+		goto out_printf;
-+
-+	ret = expand_corename(cn);
-+	if (ret)
-+		goto expand_fail;
-+
-+out_printf:
-+	va_start(arg, fmt);
-+	vsnprintf(cur, need + 1, fmt, arg);
-+	va_end(arg);
-+	cn->used += need;
-+	return 0;
-+
-+expand_fail:
-+	return ret;
-+}
-+
- /* format_corename will inspect the pattern parameter, and output a
-  * name into corename, which must have space for at least
-  * CORENAME_MAX_SIZE bytes plus one byte for the zero terminator.
-  */
--static int format_corename(char *corename, long signr)
-+static int format_corename(struct core_name *cn, long signr)
- {
- 	const struct cred *cred = current_cred();
- 	const char *pat_ptr = core_pattern;
- 	int ispipe = (*pat_ptr == '|');
--	char *out_ptr = corename;
--	char *const out_end = corename + CORENAME_MAX_SIZE;
--	int rc;
-+	char *out_ptr;
- 	int pid_in_pattern = 0;
- 
-+	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
-+	cn->corename = kmalloc(cn->size, GFP_KERNEL);
-+	cn->used = 0;
-+
-+	if (!cn->corename)
-+		goto out_fail;
-+
- 	/* Repeat as long as we have more pattern to process and more output
- 	   space */
- 	while (*pat_ptr) {
- 		if (*pat_ptr != '%') {
--			if (out_ptr == out_end)
--				goto out;
--			*out_ptr++ = *pat_ptr++;
-+			if (cn->used == cn->size)
-+				if (expand_corename(cn))
-+					goto out_fail;
-+
-+			out_ptr = cn->corename + cn->used;
-+			*out_ptr = *pat_ptr++;
-+			cn->used++;
- 		} else {
- 			switch (*++pat_ptr) {
- 			case 0:
- 				goto out;
- 			/* Double percent, output one percent */
- 			case '%':
--				if (out_ptr == out_end)
--					goto out;
--				*out_ptr++ = '%';
-+				if (cn->used == cn->size)
-+					if (expand_corename(cn))
-+						goto out_fail;
-+
-+				out_ptr = cn->corename + cn->used;
-+				*out_ptr = '%';
-+				cn->used++;
- 				break;
- 			/* pid */
- 			case 'p':
- 				pid_in_pattern = 1;
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%d", task_tgid_vnr(current));
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%d",
-+					      task_tgid_vnr(current)))
-+					goto out_fail;
- 				break;
- 			/* uid */
- 			case 'u':
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%d", cred->uid);
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%d", cred->uid))
-+					goto out_fail;
- 				break;
- 			/* gid */
- 			case 'g':
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%d", cred->gid);
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%d", cred->gid))
-+					goto out_fail;
- 				break;
- 			/* signal that caused the coredump */
- 			case 's':
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%ld", signr);
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%ld", signr))
-+					goto out_fail;
- 				break;
- 			/* UNIX time of coredump */
- 			case 't': {
- 				struct timeval tv;
- 				do_gettimeofday(&tv);
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%lu", tv.tv_sec);
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%lu", tv.tv_sec))
-+					goto out_fail;
- 				break;
- 			}
- 			/* hostname */
- 			case 'h':
- 				down_read(&uts_sem);
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%s", utsname()->nodename);
-+				if (cn_printf(cn, "%s",
-+					      utsname()->nodename)) {
-+					up_read(&uts_sem);
-+					goto out_fail;
-+				}
- 				up_read(&uts_sem);
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
- 				break;
- 			/* executable */
- 			case 'e':
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%s", current->comm);
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%s", current->comm))
-+					goto out_fail;
- 				break;
- 			/* core limit size */
- 			case 'c':
--				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%lu", rlimit(RLIMIT_CORE));
--				if (rc > out_end - out_ptr)
--					goto out;
--				out_ptr += rc;
-+				if (cn_printf(cn, "%lu",
-+					      rlimit(RLIMIT_CORE)))
-+					goto out_fail;
- 				break;
- 			default:
- 				break;
-@@ -1553,15 +1599,21 @@ static int format_corename(char *corenam
- 	 * and core_uses_pid is set, then .%pid will be appended to
- 	 * the filename. Do not do this for piped commands. */
- 	if (!ispipe && !pid_in_pattern && core_uses_pid) {
--		rc = snprintf(out_ptr, out_end - out_ptr,
--			      ".%d", task_tgid_vnr(current));
--		if (rc > out_end - out_ptr)
--			goto out;
--		out_ptr += rc;
-+		if (cn_printf(cn, ".%d", task_tgid_vnr(current)))
-+			goto out_fail;
+ 	mmc_claim_host(card->host);
+diff -puN drivers/mmc/core/mmc.c~mmc-mmc-44-ddr-support drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-mmc-44-ddr-support
++++ a/drivers/mmc/core/mmc.c
+@@ -258,6 +258,21 @@ static int mmc_read_ext_csd(struct mmc_c
  	}
- out:
-+	out_ptr = cn->corename + cn->used;
-+	if (cn->used == cn->size)
-+		if (expand_corename(cn))
-+			goto out_fail;
-+
-+	out_ptr = cn->corename + cn->used;
- 	*out_ptr = 0;
- 	return ispipe;
-+
-+out_fail:
-+	return -ENOMEM;
- }
  
- static int zap_process(struct task_struct *start, int exit_code)
-@@ -1837,7 +1889,7 @@ static int umh_pipe_setup(struct subproc
- void do_coredump(long signr, int exit_code, struct pt_regs *regs)
- {
- 	struct core_state core_state;
--	char corename[CORENAME_MAX_SIZE + 1];
-+	struct core_name cn;
- 	struct mm_struct *mm = current->mm;
- 	struct linux_binfmt * binfmt;
- 	const struct cred *old_cred;
-@@ -1892,7 +1944,13 @@ void do_coredump(long signr, int exit_co
- 	 */
- 	clear_thread_flag(TIF_SIGPENDING);
+ 	switch (ext_csd[EXT_CSD_CARD_TYPE] & EXT_CSD_CARD_TYPE_MASK) {
++	case EXT_CSD_CARD_TYPE_DDR_52 | EXT_CSD_CARD_TYPE_52 |
++	     EXT_CSD_CARD_TYPE_26:
++		card->ext_csd.hs_max_dtr = 52000000;
++		card->ext_csd.card_type = EXT_CSD_CARD_TYPE_DDR_52;
++		break;
++	case EXT_CSD_CARD_TYPE_DDR_1_2V | EXT_CSD_CARD_TYPE_52 |
++	     EXT_CSD_CARD_TYPE_26:
++		card->ext_csd.hs_max_dtr = 52000000;
++		card->ext_csd.card_type = EXT_CSD_CARD_TYPE_DDR_1_2V;
++		break;
++	case EXT_CSD_CARD_TYPE_DDR_1_8V | EXT_CSD_CARD_TYPE_52 |
++	     EXT_CSD_CARD_TYPE_26:
++		card->ext_csd.hs_max_dtr = 52000000;
++		card->ext_csd.card_type = EXT_CSD_CARD_TYPE_DDR_1_8V;
++		break;
+ 	case EXT_CSD_CARD_TYPE_52 | EXT_CSD_CARD_TYPE_26:
+ 		card->ext_csd.hs_max_dtr = 52000000;
+ 		break;
+@@ -503,6 +518,18 @@ static int mmc_init_card(struct mmc_host
+ 	mmc_set_clock(host, max_dtr);
  
--	ispipe = format_corename(corename, signr);
-+	ispipe = format_corename(&cn, signr);
-+
-+	if (ispipe == -ENOMEM) {
-+		printk(KERN_WARNING "format_corename failed\n");
-+		printk(KERN_WARNING "Aborting core\n");
-+		goto fail_corename;
+ 	/*
++	 * Activate DDR50 mode (if supported).
++	 */
++	if (mmc_card_highspeed(card)) {
++		if ((card->ext_csd.card_type & EXT_CSD_CARD_TYPE_DDR_1_8V)
++			&& (host->caps & (MMC_CAP_1_8V_DDR)))
++				mmc_card_set_ddr_mode(card);
++		else if ((card->ext_csd.card_type & EXT_CSD_CARD_TYPE_DDR_1_2V)
++			&& (host->caps & (MMC_CAP_1_2V_DDR)))
++				mmc_card_set_ddr_mode(card);
 +	}
++
++	/*
+ 	 * Activate wide bus (if supported).
+ 	 */
+ 	if ((card->csd.mmca_vsn >= CSD_SPEC_VER_4) &&
+@@ -510,10 +537,16 @@ static int mmc_init_card(struct mmc_host
+ 		unsigned ext_csd_bit, bus_width;
  
-  	if (ispipe) {
- 		int dump_count;
-@@ -1929,7 +1987,7 @@ void do_coredump(long signr, int exit_co
- 			goto fail_dropcount;
+ 		if (host->caps & MMC_CAP_8_BIT_DATA) {
+-			ext_csd_bit = EXT_CSD_BUS_WIDTH_8;
++			if (mmc_card_ddr_mode(card))
++				ext_csd_bit = EXT_CSD_DDR_BUS_WIDTH_8;
++			else
++				ext_csd_bit = EXT_CSD_BUS_WIDTH_8;
+ 			bus_width = MMC_BUS_WIDTH_8;
+ 		} else {
+-			ext_csd_bit = EXT_CSD_BUS_WIDTH_4;
++			if (mmc_card_ddr_mode(card))
++				ext_csd_bit = EXT_CSD_DDR_BUS_WIDTH_4;
++			else
++				ext_csd_bit = EXT_CSD_BUS_WIDTH_4;
+ 			bus_width = MMC_BUS_WIDTH_4;
  		}
  
--		helper_argv = argv_split(GFP_KERNEL, corename+1, NULL);
-+		helper_argv = argv_split(GFP_KERNEL, cn.corename+1, NULL);
- 		if (!helper_argv) {
- 			printk(KERN_WARNING "%s failed to allocate memory\n",
- 			       __func__);
-@@ -1942,7 +2000,7 @@ void do_coredump(long signr, int exit_co
- 		argv_free(helper_argv);
- 		if (retval) {
-  			printk(KERN_INFO "Core dump to %s pipe failed\n",
--			       corename);
-+			       cn.corename);
- 			goto close_fail;
-  		}
- 	} else {
-@@ -1951,7 +2009,7 @@ void do_coredump(long signr, int exit_co
- 		if (cprm.limit < binfmt->min_coredump)
- 			goto fail_unlock;
+diff -puN include/linux/mmc/card.h~mmc-mmc-44-ddr-support include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-mmc-44-ddr-support
++++ a/include/linux/mmc/card.h
+@@ -48,6 +48,7 @@ struct mmc_ext_csd {
+ 	unsigned int		sa_timeout;		/* Units: 100ns */
+ 	unsigned int		hs_max_dtr;
+ 	unsigned int		sectors;
++	unsigned int            card_type;
+ 	unsigned int		hc_erase_size;		/* In sectors */
+ 	unsigned int		hc_erase_timeout;	/* In milliseconds */
+ 	unsigned int		sec_trim_mult;	/* Secure trim multiplier  */
+@@ -113,6 +114,8 @@ struct mmc_card {
+ #define MMC_STATE_READONLY	(1<<1)		/* card is read-only */
+ #define MMC_STATE_HIGHSPEED	(1<<2)		/* card is in high speed mode */
+ #define MMC_STATE_BLOCKADDR	(1<<3)		/* card uses block-addressing */
++#define MMC_STATE_HIGHSPEED_DDR (1<<4)          /* card is in high speed */
++						/* dual data rate mode */
+ 	unsigned int		quirks; 	/* card quirks */
+ #define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
+ #define MMC_QUIRK_BLKSZ_FOR_BYTE_MODE (1<<1)	/* use func->cur_blksize */
+@@ -153,11 +156,13 @@ struct mmc_card {
+ #define mmc_card_present(c)	((c)->state & MMC_STATE_PRESENT)
+ #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
+ #define mmc_card_highspeed(c)	((c)->state & MMC_STATE_HIGHSPEED)
++#define mmc_card_ddr_mode(c)   ((c)->state & MMC_STATE_HIGHSPEED_DDR)
+ #define mmc_card_blockaddr(c)	((c)->state & MMC_STATE_BLOCKADDR)
  
--		cprm.file = filp_open(corename,
-+		cprm.file = filp_open(cn.corename,
- 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
- 				 0600);
- 		if (IS_ERR(cprm.file))
-@@ -1993,6 +2051,8 @@ fail_dropcount:
- 	if (ispipe)
- 		atomic_dec(&core_dump_count);
- fail_unlock:
-+	kfree(cn.corename);
-+fail_corename:
- 	coredump_finish(mm);
- 	revert_creds(old_cred);
- fail_creds:
+ #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
+ #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
+ #define mmc_card_set_highspeed(c) ((c)->state |= MMC_STATE_HIGHSPEED)
++#define mmc_card_set_ddr_mode(c) ((c)->state |= MMC_STATE_HIGHSPEED_DDR)
+ #define mmc_card_set_blockaddr(c) ((c)->state |= MMC_STATE_BLOCKADDR)
+ 
+ static inline int mmc_card_lenient_fn0(const struct mmc_card *c)
+diff -puN include/linux/mmc/core.h~mmc-mmc-44-ddr-support include/linux/mmc/core.h
+--- a/include/linux/mmc/core.h~mmc-mmc-44-ddr-support
++++ a/include/linux/mmc/core.h
+@@ -109,6 +109,7 @@ struct mmc_data {
+ #define MMC_DATA_WRITE	(1 << 8)
+ #define MMC_DATA_READ	(1 << 9)
+ #define MMC_DATA_STREAM	(1 << 10)
++#define MMC_DDR_MODE    (1 << 11)
+ 
+ 	unsigned int		bytes_xfered;
+ 
+diff -puN include/linux/mmc/host.h~mmc-mmc-44-ddr-support include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-mmc-44-ddr-support
++++ a/include/linux/mmc/host.h
+@@ -157,6 +157,10 @@ struct mmc_host {
+ #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
+ #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
+ #define MMC_CAP_ERASE		(1 << 10)	/* Allow erase/trim commands */
++#define MMC_CAP_1_8V_DDR	(1 << 10)	/* can support */
++						/* DDR mode at 1.8V */
++#define MMC_CAP_1_2V_DDR	(1 << 11)	/* can support */
++						/* DDR mode at 1.2V */
+ 
+ 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
+ 
+diff -puN include/linux/mmc/mmc.h~mmc-mmc-44-ddr-support include/linux/mmc/mmc.h
+--- a/include/linux/mmc/mmc.h~mmc-mmc-44-ddr-support
++++ a/include/linux/mmc/mmc.h
+@@ -277,11 +277,18 @@ struct _mmc_csd {
+ 
+ #define EXT_CSD_CARD_TYPE_26	(1<<0)	/* Card can run at 26MHz */
+ #define EXT_CSD_CARD_TYPE_52	(1<<1)	/* Card can run at 52MHz */
+-#define EXT_CSD_CARD_TYPE_MASK	0x3	/* Mask out reserved and DDR bits */
++#define EXT_CSD_CARD_TYPE_MASK	0xF     /* Mask out reserved bits */
++#define EXT_CSD_CARD_TYPE_DDR_1_8V  (1<<2)   /* Card can run at 52MHz */
++					     /* DDR mode @1.8V or 3V I/O */
++#define EXT_CSD_CARD_TYPE_DDR_1_2V  (1<<3)   /* Card can run at 52MHz */
++					     /* DDR mode @1.2V I/O */
++#define EXT_CSD_CARD_TYPE_DDR_52       (EXT_CSD_CARD_TYPE_DDR_1_8V  \
++					| EXT_CSD_CARD_TYPE_DDR_1_2V)
+ 
+-#define EXT_CSD_BUS_WIDTH_1	0	/* Card is in 1 bit mode */
+ #define EXT_CSD_BUS_WIDTH_4	1	/* Card is in 4 bit mode */
+ #define EXT_CSD_BUS_WIDTH_8	2	/* Card is in 8 bit mode */
++#define EXT_CSD_DDR_BUS_WIDTH_4    5    /* Card is in 4 bit DDR mode */
++#define EXT_CSD_DDR_BUS_WIDTH_8    6    /* Card is in 8 bit DDR mode */
+ 
+ #define EXT_CSD_SEC_ER_EN	BIT(0)
+ #define EXT_CSD_SEC_BD_BLK_EN	BIT(2)
 _
 
-Patches currently in -mm which might be from dfeng@redhat.com are
+Patches currently in -mm which might be from hanumath.prasad@stericsson.com are
 
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
+mmc-mmc-44-ddr-support.patch
 
