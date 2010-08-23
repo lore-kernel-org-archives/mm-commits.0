@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch added to -mm tree
-Date: Mon, 23 Aug 2010 12:33:19 -0700
-Message-ID: <201008231933.o7NJXJ9R010514@imap1.linux-foundation.org>
+Subject: + sdhci-support-mmc_cap_mmc_highspeed.patch added to -mm tree
+Date: Mon, 23 Aug 2010 13:09:21 -0700
+Message-ID: <201008232009.o7NK9LIf012151__33194.0703829334$1282594203$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752509Ab0HWTd1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753630Ab0HWUJ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Aug 2010 15:33:27 -0400
+	Mon, 23 Aug 2010 16:09:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, rmk@arm.linux.org.uk
+Cc: zhangfei.gao@gmail.com, linux-mmc@vger.kernel.org, matt@console-pimps.org, zgao6@marvell.com
 
 
 The patch titled
-     cyber2000fb: avoid palette corruption at higher clocks
+     sdhci: support MMC_CAP_MMC_HIGHSPEED
 has been added to the -mm tree.  Its filename is
-     cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
+     sdhci-support-mmc_cap_mmc_highspeed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cyber2000fb: avoid palette corruption at higher clocks
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: sdhci: support MMC_CAP_MMC_HIGHSPEED
+From: zhangfei gao <zhangfei.gao@gmail.com>
 
-When 1280x1024@75Hz mode is set, console palette is not set properly -
-sometimes the background is white, sometimes yellow and text colors are
-also messed up.  This does not happen at 1280x1024@60Hz and below.
+With MMC_CAP_MMC_HIGHSPEED, mmc & emmc could negotiate up to 50M,
+otherwise only 25M could be reached.
 
-It seems that the HW needs some time before setting the palette - maybe
-the PLL needs more time to lock at higher speeds.  This patch fixes the
-problem but without knowing what register to check for PLL lock(?), the
-delay might be excessive.
-
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Zhangfei Gao <zgao6@marvell.com>
+Acked-by: Matt Fleming <matt@console-pimps.org> 
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cyber2000fb.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/mmc/host/sdhci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cyber2000fb.c~cyber2000fb-avoid-palette-corruption-at-higher-clocks drivers/video/cyber2000fb.c
---- a/drivers/video/cyber2000fb.c~cyber2000fb-avoid-palette-corruption-at-higher-clocks
-+++ a/drivers/video/cyber2000fb.c
-@@ -502,6 +502,9 @@ static void cyber2000fb_set_timing(struc
- 	cyber2000_grphw(0xb9, 0x80, cfb);
- 	cyber2000_grphw(0xb9, 0x00, cfb);
+diff -puN drivers/mmc/host/sdhci.c~sdhci-support-mmc_cap_mmc_highspeed drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-support-mmc_cap_mmc_highspeed
++++ a/drivers/mmc/host/sdhci.c
+@@ -1824,7 +1824,7 @@ int sdhci_add_host(struct sdhci_host *ho
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
  
-+	/* wait (for the PLL?) to avoid palette corruption at higher clocks */
-+	msleep(1000);
-+
- 	cfb->ramdac_ctrl = hw->ramdac;
- 	cyber2000fb_write_ramdac_ctrl(cfb);
+ 	if (caps & SDHCI_CAN_DO_HISPD)
+-		mmc->caps |= MMC_CAP_SD_HIGHSPEED;
++		mmc->caps |= MMC_CAP_SD_HIGHSPEED | MMC_CAP_MMC_HIGHSPEED;
  
+ 	if (host->quirks & SDHCI_QUIRK_BROKEN_CARD_DETECTION)
+ 		mmc->caps |= MMC_CAP_NEEDS_POLL;
 _
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from zhangfei.gao@gmail.com are
 
-cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
+sdhci-support-mmc_cap_mmc_highspeed.patch
 
