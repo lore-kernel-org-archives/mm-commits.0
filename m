@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors.patch added to -mm tree
-Date: Thu, 19 Aug 2010 18:15:05 -0700
-Message-ID: <201008200112.o7K1CHWw019281__1739.84785001284$1282266745$gmane$org@imap1.linux-foundation.org>
+Subject: + rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4.patch added to -mm tree
+Date: Mon, 23 Aug 2010 12:10:15 -0700
+Message-ID: <201008231910.o7NJAGV4009437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467Ab0HTBMU (ORCPT
+	by vger.kernel.org with ESMTP id S1752877Ab0HWTLQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Aug 2010 21:12:20 -0400
+	Mon, 23 Aug 2010 15:11:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olof@lixom.net, linux-mmc@vger.kernel.org
+Cc: wellsk40@gmail.com, a.zummo@towertech.it, durgesh.pattamatta@nxp.com, w.sang@pengutronix.de
 
 
 The patch titled
-     mmc: add config and runtime option for number of mmcblk minors
+     rtc: rtc-lpc32xx: introduce RTC driver for the LPC32XX SoC
 has been added to the -mm tree.  Its filename is
-     mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors.patch
+     rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,143 +34,475 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add config and runtime option for number of mmcblk minors
-From: Olof Johansson <olof@lixom.net>
+Subject: rtc: rtc-lpc32xx: introduce RTC driver for the LPC32XX SoC
+From: Kevin Wells <wellsk40@gmail.com>
 
-The old limit of number of minor numbers per mmcblk device was hardcoded
-at 8.  This isn't enough for some of the more elaborate partitioning
-schemes, for example those used by Chrome OS.
+Add an RTC driver for the built-in RTC in the LPC32XX SoC.  This patch
+includes updates from the initial review comments and updates from the v3
+review.
 
-Since there might be a bunch of systems out there with static /dev
-contents that relies on the old numbering scheme, let's make it a
-build-time option with the default set to the previous 8.
-
-Also provide a boot/modprobe-time parameter to override the config
-default: mmcblk.perdev_minors.
-
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Kevin Wells <wellsk40@gmail.com>
+Signed-off-by: Durgesh Pattamatta <durgesh.pattamatta@nxp.com>
+Reviewed-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/Kconfig |   17 +++++++++++++++
- drivers/mmc/card/block.c |   41 +++++++++++++++++++++++++++----------
- 2 files changed, 47 insertions(+), 11 deletions(-)
+ drivers/rtc/Kconfig       |    9 
+ drivers/rtc/Makefile      |    1 
+ drivers/rtc/rtc-lpc32xx.c |  414 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 424 insertions(+)
 
-diff -puN drivers/mmc/card/Kconfig~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors drivers/mmc/card/Kconfig
---- a/drivers/mmc/card/Kconfig~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors
-+++ a/drivers/mmc/card/Kconfig
-@@ -14,6 +14,23 @@ config MMC_BLOCK
- 	  mount the filesystem. Almost everyone wishing MMC support
- 	  should say Y or M here.
+diff -puN drivers/rtc/Kconfig~rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4
++++ a/drivers/rtc/Kconfig
+@@ -952,4 +952,13 @@ config RTC_DRV_JZ4740
+ 	  This driver can also be buillt as a module. If so, the module
+ 	  will be called rtc-jz4740.
  
-+config MMC_BLOCK_MINORS
-+	int "Number of minors per block device"
-+	range 4 256
-+	default 8
++config RTC_DRV_LPC32XX
++	depends on ARCH_LPC32XX
++	tristate "NXP LPC32XX RTC"
 +	help
-+	  Number of minors per block device. One is needed for every
-+	  partition on the disk (plus one for the whole disk).
++	  This enables support for the NXP RTC in the LPC32XX
 +
-+	  Number of total MMC minors available is 256, so your number
-+	  of supported block devices will be limited to 256 divided
-+	  by this number.
++	  This driver can also be buillt as a module. If so, the module
++	  will be called rtc-lpc32xx.
 +
-+	  Default is 8 to be backwards compatible with previous
-+	  hardwired device numbering.
+ endif # RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4
++++ a/drivers/rtc/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_RTC_DRV_IMXDI)	+= rtc-imxdi
+ obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
+ obj-$(CONFIG_RTC_DRV_ISL12022)	+= rtc-isl12022.o
+ obj-$(CONFIG_RTC_DRV_JZ4740)	+= rtc-jz4740.o
++obj-$(CONFIG_RTC_DRV_LPC32XX)	+= rtc-lpc32xx.o
+ obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
+ obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
+ obj-$(CONFIG_RTC_DRV_M48T35)	+= rtc-m48t35.o
+diff -puN /dev/null drivers/rtc/rtc-lpc32xx.c
+--- /dev/null
++++ a/drivers/rtc/rtc-lpc32xx.c
+@@ -0,0 +1,414 @@
++/*
++ * Copyright (C) 2010 NXP Semiconductors
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  675 Mass Ave, Cambridge, MA 02139, USA.
++ */
 +
-+	  If unsure, say 8 here.
-+
- config MMC_BLOCK_BOUNCE
- 	bool "Use bounce buffer for simple hosts"
- 	depends on MMC_BLOCK
-diff -puN drivers/mmc/card/block.c~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors
-+++ a/drivers/mmc/card/block.c
-@@ -44,14 +44,26 @@
- #include "queue.h"
- 
- MODULE_ALIAS("mmc:block");
-+#ifdef MODULE_PARAM_PREFIX
-+#undef MODULE_PARAM_PREFIX
-+#endif
-+#define MODULE_PARAM_PREFIX "mmcblk."
-+
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock.h>
++#include <linux/rtc.h>
++#include <linux/slab.h>
++#include <linux/io.h>
 +
 +/*
-+ * The defaults come from config options but can be overriden by module
-+ * or bootarg options.
++ * Clock and Power control register offsets
 + */
-+static int perdev_minors = CONFIG_MMC_BLOCK_MINORS;
- 
- /*
-- * max 8 partitions per card
-+ * We've only got one major, so number of mmcblk devices is
-+ * limited to 256 / number of minors per device.
-  */
--#define MMC_SHIFT	3
--#define MMC_NUM_MINORS	(256 >> MMC_SHIFT)
-+static int max_devices = DIV_ROUND_UP(256, CONFIG_MMC_BLOCK_MINORS);
- 
--static DECLARE_BITMAP(dev_use, MMC_NUM_MINORS);
-+/* 256 minors, so at most 256 separate devices */
-+static DECLARE_BITMAP(dev_use, 256);
- 
- /*
-  * There is one mmc_blk_data per slot.
-@@ -67,6 +79,9 @@ struct mmc_blk_data {
- 
- static DEFINE_MUTEX(open_lock);
- 
-+module_param(perdev_minors, int, 0644);
-+MODULE_PARM_DESC(perdev_minors, "Minors numbers to allocate per device");
++#define LPC32XX_RTC_UCOUNT		0x00
++#define LPC32XX_RTC_DCOUNT		0x04
++#define LPC32XX_RTC_MATCH0		0x08
++#define LPC32XX_RTC_MATCH1		0x0C
++#define LPC32XX_RTC_CTRL		0x10
++#define LPC32XX_RTC_INTSTAT		0x14
++#define LPC32XX_RTC_KEY			0x18
++#define LPC32XX_RTC_SRAM		0x80
 +
- static struct mmc_blk_data *mmc_blk_get(struct gendisk *disk)
- {
- 	struct mmc_blk_data *md;
-@@ -88,10 +103,10 @@ static void mmc_blk_put(struct mmc_blk_d
- 	md->usage--;
- 	if (md->usage == 0) {
- 		int devmaj = MAJOR(disk_devt(md->disk));
--		int devidx = MINOR(disk_devt(md->disk)) >> MMC_SHIFT;
-+		int devidx = MINOR(disk_devt(md->disk)) / perdev_minors;
- 
- 		if (!devmaj)
--			devidx = md->disk->first_minor >> MMC_SHIFT;
-+			devidx = md->disk->first_minor / perdev_minors;
- 
- 		blk_cleanup_queue(md->queue.queue);
- 
-@@ -567,8 +582,8 @@ static struct mmc_blk_data *mmc_blk_allo
- 	struct mmc_blk_data *md;
- 	int devidx, ret;
- 
--	devidx = find_first_zero_bit(dev_use, MMC_NUM_MINORS);
--	if (devidx >= MMC_NUM_MINORS)
-+	devidx = find_first_zero_bit(dev_use, max_devices);
-+	if (devidx >= max_devices)
- 		return ERR_PTR(-ENOSPC);
- 	__set_bit(devidx, dev_use);
- 
-@@ -585,7 +600,7 @@ static struct mmc_blk_data *mmc_blk_allo
- 	 */
- 	md->read_only = mmc_blk_readonly(card);
- 
--	md->disk = alloc_disk(1 << MMC_SHIFT);
-+	md->disk = alloc_disk(perdev_minors);
- 	if (md->disk == NULL) {
- 		ret = -ENOMEM;
- 		goto err_kfree;
-@@ -602,7 +617,7 @@ static struct mmc_blk_data *mmc_blk_allo
- 	md->queue.data = md;
- 
- 	md->disk->major	= MMC_BLOCK_MAJOR;
--	md->disk->first_minor = devidx << MMC_SHIFT;
-+	md->disk->first_minor = devidx * perdev_minors;
- 	md->disk->fops = &mmc_bdops;
- 	md->disk->private_data = md;
- 	md->disk->queue = md->queue.queue;
-@@ -678,7 +693,6 @@ static int mmc_blk_probe(struct mmc_card
- {
- 	struct mmc_blk_data *md;
- 	int err;
++#define LPC32XX_RTC_CTRL_MATCH0		(1 << 0)
++#define LPC32XX_RTC_CTRL_MATCH1		(1 << 1)
++#define LPC32XX_RTC_CTRL_ONSW_MATCH0	(1 << 2)
++#define LPC32XX_RTC_CTRL_ONSW_MATCH1	(1 << 3)
++#define LPC32XX_RTC_CTRL_SW_RESET	(1 << 4)
++#define LPC32XX_RTC_CTRL_CNTR_DIS	(1 << 6)
++#define LPC32XX_RTC_CTRL_ONSW_FORCE_HI	(1 << 7)
++
++#define LPC32XX_RTC_INTSTAT_MATCH0	(1 << 0)
++#define LPC32XX_RTC_INTSTAT_MATCH1	(1 << 1)
++#define LPC32XX_RTC_INTSTAT_ONSW	(1 << 2)
++
++#define LPC32XX_RTC_KEY_ONSW_LOADVAL	0xB5C13F27
++
++#define RTC_NAME "rtc-lpc32xx"
++
++#define rtc_readl(dev, reg) \
++	__raw_readl((dev)->rtc_base + (reg))
++#define rtc_writel(dev, reg, val) \
++	__raw_writel((val), (dev)->rtc_base + (reg))
++
++struct lpc32xx_rtc {
++	void __iomem *rtc_base;
++	int irq;
++	unsigned char alarm_enabled;
++	struct rtc_device *rtc;
++	spinlock_t lock;
++};
++
++static int lpc32xx_rtc_read_time(struct device *dev, struct rtc_time *time)
++{
++	unsigned long elapsed_sec;
++	struct lpc32xx_rtc *rtc = dev_get_drvdata(dev);
++
++	elapsed_sec = rtc_readl(rtc, LPC32XX_RTC_UCOUNT);
++	rtc_time_to_tm(elapsed_sec, time);
++
++	return rtc_valid_tm(time);
++}
++
++static int lpc32xx_rtc_set_mmss(struct device *dev, unsigned long secs)
++{
++	struct lpc32xx_rtc *rtc = dev_get_drvdata(dev);
++	u32 tmp;
++
++	spin_lock_irq(&rtc->lock);
++
++	/* RTC must be disabled during count update */
++	tmp = rtc_readl(rtc, LPC32XX_RTC_CTRL);
++	rtc_writel(rtc, LPC32XX_RTC_CTRL, tmp | LPC32XX_RTC_CTRL_CNTR_DIS);
++	rtc_writel(rtc, LPC32XX_RTC_UCOUNT, secs);
++	rtc_writel(rtc, LPC32XX_RTC_DCOUNT, 0xFFFFFFFF - secs);
++	rtc_writel(rtc, LPC32XX_RTC_CTRL, tmp &= ~LPC32XX_RTC_CTRL_CNTR_DIS);
++
++	spin_unlock_irq(&rtc->lock);
++
++	return 0;
++}
++
++static int lpc32xx_rtc_read_alarm(struct device *dev,
++	struct rtc_wkalrm *wkalrm)
++{
++	struct lpc32xx_rtc *rtc = dev_get_drvdata(dev);
++
++	rtc_time_to_tm(rtc_readl(rtc, LPC32XX_RTC_MATCH0), &wkalrm->time);
++	wkalrm->enabled = rtc->alarm_enabled;
++	wkalrm->pending = !!(rtc_readl(rtc, LPC32XX_RTC_INTSTAT) &
++		LPC32XX_RTC_INTSTAT_MATCH0);
++
++	return rtc_valid_tm(&wkalrm->time);
++}
++
++static int lpc32xx_rtc_set_alarm(struct device *dev,
++	struct rtc_wkalrm *wkalrm)
++{
++	struct lpc32xx_rtc *rtc = dev_get_drvdata(dev);
++	unsigned long alarmsecs;
++	u32 tmp;
++	int ret;
++
++	ret = rtc_tm_to_time(&wkalrm->time, &alarmsecs);
++	if (ret < 0) {
++		dev_warn(dev, "Failed to convert time: %d\n", ret);
++		return ret;
++	}
++
++	spin_lock_irq(&rtc->lock);
++
++	/* Disable alarm during update */
++	tmp = rtc_readl(rtc, LPC32XX_RTC_CTRL);
++	rtc_writel(rtc, LPC32XX_RTC_CTRL, tmp & ~LPC32XX_RTC_CTRL_MATCH0);
++
++	rtc_writel(rtc, LPC32XX_RTC_MATCH0, alarmsecs);
++
++	rtc->alarm_enabled = wkalrm->enabled;
++	if (wkalrm->enabled) {
++		rtc_writel(rtc, LPC32XX_RTC_INTSTAT,
++			   LPC32XX_RTC_INTSTAT_MATCH0);
++		rtc_writel(rtc, LPC32XX_RTC_CTRL, tmp |
++			   LPC32XX_RTC_CTRL_MATCH0);
++	}
++
++	spin_unlock_irq(&rtc->lock);
++
++	return 0;
++}
++
++static int lpc32xx_rtc_alarm_irq_enable(struct device *dev,
++	unsigned int enabled)
++{
++	struct lpc32xx_rtc *rtc = dev_get_drvdata(dev);
++	u32 tmp;
++
++	spin_lock_irq(&rtc->lock);
++	tmp = rtc_readl(rtc, LPC32XX_RTC_CTRL);
++
++	if (enabled) {
++		rtc->alarm_enabled = 1;
++		tmp |= LPC32XX_RTC_CTRL_MATCH0;
++	} else {
++		rtc->alarm_enabled = 0;
++		tmp &= ~LPC32XX_RTC_CTRL_MATCH0;
++	}
++
++	rtc_writel(rtc, LPC32XX_RTC_CTRL, tmp);
++	spin_unlock_irq(&rtc->lock);
++
++	return 0;
++}
++
++static irqreturn_t lpc32xx_rtc_alarm_interrupt(int irq, void *dev)
++{
++	struct lpc32xx_rtc *rtc = dev;
++
++	spin_lock(&rtc->lock);
++
++	/* Disable alarm interrupt */
++	rtc_writel(rtc, LPC32XX_RTC_CTRL,
++		rtc_readl(rtc, LPC32XX_RTC_CTRL) &
++			  ~LPC32XX_RTC_CTRL_MATCH0);
++	rtc->alarm_enabled = 0;
++
++	/*
++	 * Write a large value to the match value so the RTC won't
++	 * keep firing the match status
++	 */
++	rtc_writel(rtc, LPC32XX_RTC_MATCH0, 0xFFFFFFFF);
++	rtc_writel(rtc, LPC32XX_RTC_INTSTAT, LPC32XX_RTC_INTSTAT_MATCH0);
++
++	spin_unlock(&rtc->lock);
++
++	rtc_update_irq(rtc->rtc, 1, RTC_IRQF | RTC_AF);
++
++	return IRQ_HANDLED;
++}
++
++static const struct rtc_class_ops lpc32xx_rtc_ops = {
++	.read_time		= lpc32xx_rtc_read_time,
++	.set_mmss		= lpc32xx_rtc_set_mmss,
++	.read_alarm		= lpc32xx_rtc_read_alarm,
++	.set_alarm		= lpc32xx_rtc_set_alarm,
++	.alarm_irq_enable	= lpc32xx_rtc_alarm_irq_enable,
++};
++
++static int __devinit lpc32xx_rtc_probe(struct platform_device *pdev)
++{
++	struct resource *res;
++	struct lpc32xx_rtc *rtc;
++	resource_size_t size;
++	int rtcirq;
++	u32 tmp;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(&pdev->dev, "Can't get memory resource\n");
++		return -ENOENT;
++	}
++
++	rtcirq = platform_get_irq(pdev, 0);
++	if (rtcirq < 0 || rtcirq >= NR_IRQS) {
++		dev_warn(&pdev->dev, "Can't get interrupt resource\n");
++		rtcirq = -1;
++	}
++
++	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
++	if (unlikely(!rtc)) {
++		dev_err(&pdev->dev, "Can't allocate memory\n");
++		return -ENOMEM;
++	}
++	rtc->irq = rtcirq;
++
++	size = resource_size(res);
++
++	if (!devm_request_mem_region(&pdev->dev, res->start, size,
++				     pdev->name)) {
++		dev_err(&pdev->dev, "RTC registers are not free\n");
++		return -EBUSY;
++	}
++
++	rtc->rtc_base = devm_ioremap(&pdev->dev, res->start, size);
++	if (!rtc->rtc_base) {
++		dev_err(&pdev->dev, "Can't map memory\n");
++		return -ENOMEM;
++	}
++
++	spin_lock_init(&rtc->lock);
++
++	/*
++	 * The RTC is on a seperate power domain and can keep it's state
++	 * across a chip power cycle. If the RTC has never been previously
++	 * setup, then set it up now for the first time.
++	 */
++	tmp = rtc_readl(rtc, LPC32XX_RTC_CTRL);
++	if (rtc_readl(rtc, LPC32XX_RTC_KEY) != LPC32XX_RTC_KEY_ONSW_LOADVAL) {
++		tmp &= ~(LPC32XX_RTC_CTRL_SW_RESET |
++			LPC32XX_RTC_CTRL_CNTR_DIS |
++			LPC32XX_RTC_CTRL_MATCH0 |
++			LPC32XX_RTC_CTRL_MATCH1 |
++			LPC32XX_RTC_CTRL_ONSW_MATCH0 |
++			LPC32XX_RTC_CTRL_ONSW_MATCH1 |
++			LPC32XX_RTC_CTRL_ONSW_FORCE_HI);
++		rtc_writel(rtc, LPC32XX_RTC_CTRL, tmp);
++
++		/* Clear latched interrupt states */
++		rtc_writel(rtc, LPC32XX_RTC_MATCH0, 0xFFFFFFFF);
++		rtc_writel(rtc, LPC32XX_RTC_INTSTAT,
++			   LPC32XX_RTC_INTSTAT_MATCH0 |
++			   LPC32XX_RTC_INTSTAT_MATCH1 |
++			   LPC32XX_RTC_INTSTAT_ONSW);
++
++		/* Write key value to RTC so it won't reload on reset */
++		rtc_writel(rtc, LPC32XX_RTC_KEY,
++			   LPC32XX_RTC_KEY_ONSW_LOADVAL);
++	} else {
++		rtc_writel(rtc, LPC32XX_RTC_CTRL,
++			   tmp & ~LPC32XX_RTC_CTRL_MATCH0);
++	}
++
++	platform_set_drvdata(pdev, rtc);
++
++	rtc->rtc = rtc_device_register(RTC_NAME, &pdev->dev, &lpc32xx_rtc_ops,
++		THIS_MODULE);
++	if (IS_ERR(rtc->rtc)) {
++		dev_err(&pdev->dev, "Can't get RTC\n");
++		platform_set_drvdata(pdev, NULL);
++		return PTR_ERR(rtc->rtc);
++	}
++
++	/*
++	 * IRQ is enabled after device registration in case alarm IRQ
++	 * is pending upon suspend exit.
++	 */
++	if (rtc->irq >= 0) {
++		if (devm_request_irq(&pdev->dev, rtc->irq,
++				     lpc32xx_rtc_alarm_interrupt,
++				     IRQF_DISABLED, pdev->name, rtc) < 0) {
++			dev_warn(&pdev->dev, "Can't request interrupt.\n");
++			rtc->irq = -1;
++		} else {
++			device_init_wakeup(&pdev->dev, 1);
++		}
++	}
++
++	return 0;
++}
++
++static int __devexit lpc32xx_rtc_remove(struct platform_device *pdev)
++{
++	struct lpc32xx_rtc *rtc = platform_get_drvdata(pdev);
++
++	if (rtc->irq >= 0)
++		device_init_wakeup(&pdev->dev, 0);
++
++	platform_set_drvdata(pdev, NULL);
++	rtc_device_unregister(rtc->rtc);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int lpc32xx_rtc_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct lpc32xx_rtc *rtc = platform_get_drvdata(pdev);
++
++	if (rtc->irq >= 0) {
++		if (device_may_wakeup(&pdev->dev))
++			enable_irq_wake(rtc->irq);
++		else
++			disable_irq_wake(rtc->irq);
++	}
++
++	return 0;
++}
++
++static int lpc32xx_rtc_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct lpc32xx_rtc *rtc = platform_get_drvdata(pdev);
++
++	if (rtc->irq >= 0 && device_may_wakeup(&pdev->dev))
++		disable_irq_wake(rtc->irq);
++
++	return 0;
++}
++
++/* Unconditionally disable the alarm */
++static int lpc32xx_rtc_freeze(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct lpc32xx_rtc *rtc = platform_get_drvdata(pdev);
++
++	spin_lock_irq(&rtc->lock);
++
++	rtc_writel(rtc, LPC32XX_RTC_CTRL,
++		rtc_readl(rtc, LPC32XX_RTC_CTRL) &
++			  ~LPC32XX_RTC_CTRL_MATCH0);
++
++	spin_unlock_irq(&rtc->lock);
++
++	return 0;
++}
++
++static int lpc32xx_rtc_thaw(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct lpc32xx_rtc *rtc = platform_get_drvdata(pdev);
++
++	if (rtc->alarm_enabled) {
++		spin_lock_irq(&rtc->lock);
++
++		rtc_writel(rtc, LPC32XX_RTC_CTRL,
++			   rtc_readl(rtc, LPC32XX_RTC_CTRL) |
++			   LPC32XX_RTC_CTRL_MATCH0);
++
++		spin_unlock_irq(&rtc->lock);
++	}
++
++	return 0;
++}
++
++static const struct dev_pm_ops lpc32xx_rtc_pm_ops = {
++	.suspend = lpc32xx_rtc_suspend,
++	.resume = lpc32xx_rtc_resume,
++	.freeze = lpc32xx_rtc_freeze,
++	.thaw = lpc32xx_rtc_thaw,
++	.restore = lpc32xx_rtc_resume
++};
++
++#define LPC32XX_RTC_PM_OPS (&lpc32xx_rtc_pm_ops)
++#else
++#define LPC32XX_RTC_PM_OPS NULL
++#endif
++
++static struct platform_driver lpc32xx_rtc_driver = {
++	.probe		= lpc32xx_rtc_probe,
++	.remove		= __devexit_p(lpc32xx_rtc_remove),
++	.driver = {
++		.name	= RTC_NAME,
++		.owner	= THIS_MODULE,
++		.pm	= LPC32XX_RTC_PM_OPS
++	},
++};
++
++static int __init lpc32xx_rtc_init(void)
++{
++	return platform_driver_register(&lpc32xx_rtc_driver);
++}
++module_init(lpc32xx_rtc_init);
++
++static void __exit lpc32xx_rtc_exit(void)
++{
++	platform_driver_unregister(&lpc32xx_rtc_driver);
++}
++module_exit(lpc32xx_rtc_exit);
++
++MODULE_AUTHOR("Kevin Wells <wellsk40@gmail.com");
++MODULE_DESCRIPTION("RTC driver for the LPC32xx SoC");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:rtc-lpc32xx");
+_
+
+Patches currently in -mm which might be from wellsk40@gmail.com are
+
+origin.patch
+rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4.patch
+
