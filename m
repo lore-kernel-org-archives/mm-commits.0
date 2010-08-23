@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-bfin-add-debug-markers-to-suspend-resume-paths.patch added to -mm tree
-Date: Mon, 23 Aug 2010 12:15:42 -0700
-Message-ID: <201008231915.o7NJFgEx009667@imap1.linux-foundation.org>
+Subject: + cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch added to -mm tree
+Date: Mon, 23 Aug 2010 12:33:19 -0700
+Message-ID: <201008231933.o7NJXJ9R010514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754346Ab0HWTQF (ORCPT
+	by vger.kernel.org with ESMTP id S1752509Ab0HWTd1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Aug 2010 15:16:05 -0400
+	Mon, 23 Aug 2010 15:33:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, a.zummo@towertech.it
+Cc: linux@rainbow-software.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     rtc-bfin: add debug markers to suspend/resume paths
+     cyber2000fb: avoid palette corruption at higher clocks
 has been added to the -mm tree.  Its filename is
-     rtc-bfin-add-debug-markers-to-suspend-resume-paths.patch
+     cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-bfin: add debug markers to suspend/resume paths
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: cyber2000fb: avoid palette corruption at higher clocks
+From: Ondrej Zary <linux@rainbow-software.org>
 
-The rest of the driver had debug markings already.  This also standardizes
-the usage of "dev" a bit.
+When 1280x1024@75Hz mode is set, console palette is not set properly -
+sometimes the background is white, sometimes yellow and text colors are
+also messed up.  This does not happen at 1280x1024@60Hz and below.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+It seems that the HW needs some time before setting the palette - maybe
+the PLL needs more time to lock at higher speeds.  This patch fixes the
+problem but without knowing what register to check for PLL lock(?), the
+delay might be excessive.
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/video/cyber2000fb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/rtc/rtc-bfin.c~rtc-bfin-add-debug-markers-to-suspend-resume-paths drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~rtc-bfin-add-debug-markers-to-suspend-resume-paths
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -2,7 +2,7 @@
-  * Blackfin On-Chip Real Time Clock Driver
-  *  Supports BF51x/BF52x/BF53[123]/BF53[467]/BF54x
-  *
-- * Copyright 2004-2009 Analog Devices Inc.
-+ * Copyright 2004-2010 Analog Devices Inc.
-  *
-  * Enter bugs at http://blackfin.uclinux.org/
-  *
-@@ -427,9 +427,13 @@ static int __devexit bfin_rtc_remove(str
- #ifdef CONFIG_PM
- static int bfin_rtc_suspend(struct platform_device *pdev, pm_message_t state)
- {
--	if (device_may_wakeup(&pdev->dev)) {
-+	struct device *dev = &pdev->dev;
-+
-+	dev_dbg_stamp(dev);
-+
-+	if (device_may_wakeup(dev)) {
- 		enable_irq_wake(IRQ_RTC);
--		bfin_rtc_sync_pending(&pdev->dev);
-+		bfin_rtc_sync_pending(dev);
- 	} else
- 		bfin_rtc_int_clear(0);
+diff -puN drivers/video/cyber2000fb.c~cyber2000fb-avoid-palette-corruption-at-higher-clocks drivers/video/cyber2000fb.c
+--- a/drivers/video/cyber2000fb.c~cyber2000fb-avoid-palette-corruption-at-higher-clocks
++++ a/drivers/video/cyber2000fb.c
+@@ -502,6 +502,9 @@ static void cyber2000fb_set_timing(struc
+ 	cyber2000_grphw(0xb9, 0x80, cfb);
+ 	cyber2000_grphw(0xb9, 0x00, cfb);
  
-@@ -438,7 +442,11 @@ static int bfin_rtc_suspend(struct platf
- 
- static int bfin_rtc_resume(struct platform_device *pdev)
- {
--	if (device_may_wakeup(&pdev->dev))
-+	struct device *dev = &pdev->dev;
++	/* wait (for the PLL?) to avoid palette corruption at higher clocks */
++	msleep(1000);
 +
-+	dev_dbg_stamp(dev);
-+
-+	if (device_may_wakeup(dev))
- 		disable_irq_wake(IRQ_RTC);
+ 	cfb->ramdac_ctrl = hw->ramdac;
+ 	cyber2000fb_write_ramdac_ctrl(cfb);
  
- 	/*
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-rtc-bfin-fix-inverted-logic-in-suspend-path.patch
-rtc-bfin-fix-state-restoration-when-resuming.patch
-linux-next.patch
-m68knommu-blackfin-remove-old-assembler-only-flags-bit-definitions.patch
-rtc-bfin-shrink-optimize-interrupt-handler-a-bit.patch
-rtc-bfin-add-debug-markers-to-suspend-resume-paths.patch
+cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
 
