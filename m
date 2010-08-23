@@ -1,123 +1,72 @@
-From: akpm@linux-foundation.org
-Subject: + sdhci-support-10-bit-divided-clock-mode-for-spec-30.patch added to -mm tree
-Date: Mon, 23 Aug 2010 13:19:56 -0700
-Message-ID: <201008232019.o7NKJuXY012653@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: + sdhci-support-mmc_cap_mmc_highspeed.patch added to -mm tree
+Date: Mon, 23 Aug 2010 13:25:23 -0700
+Message-ID: <20100823132523.3436cc6c.akpm__20285.5543386706$1282595138$gmane$org@linux-foundation.org>
+References: <201008232009.o7NK9LIf012151@imap1.linux-foundation.org>
+	<20100823202258.GA6510@console-pimps.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753950Ab0HWUUL (ORCPT
+	by vger.kernel.org with ESMTP id S1752155Ab0HWUZ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Aug 2010 16:20:11 -0400
+	Mon, 23 Aug 2010 16:25:29 -0400
+In-Reply-To: <20100823202258.GA6510@console-pimps.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: zgao6@marvell.com, david.vrabel@csr.com, matt@console-pimps.org, mirqus@gmail.com
+To: Matt Fleming <matt@console-pimps.org>
+Cc: mm-commits@vger.kernel.org, zhangfei.gao@gmail.com, linux-mmc@vger.kernel.org, zgao6@marvell.com, Kyungmin Park <kyungmin.park@samsung.com>
 
+On Mon, 23 Aug 2010 21:22:58 +0100
+Matt Fleming <matt@console-pimps.org> wrote:
 
-The patch titled
-     sdhci: support 10 bit divided clock Mode for spec 3.0
-has been added to the -mm tree.  Its filename is
-     sdhci-support-10-bit-divided-clock-mode-for-spec-30.patch
+> On Mon, Aug 23, 2010 at 01:09:21PM -0700, Andrew Morton wrote:
+> > 
+> > The patch titled
+> >      sdhci: support MMC_CAP_MMC_HIGHSPEED
+> > has been added to the -mm tree.  Its filename is
+> >      sdhci-support-mmc_cap_mmc_highspeed.patch
+> > 
+> > Before you just go and hit "reply", please:
+> >    a) Consider who else should be cc'ed
+> >    b) Prefer to cc a suitable mailing list as well
+> >    c) Ideally: find the original patch on the mailing list and do a
+> >       reply-to-all to that, adding suitable additional cc's
+> > 
+> > *** Remember to use Documentation/SubmitChecklist when testing your code ***
+> > 
+> > See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+> > out what to do about this
+> > 
+> > The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+> > 
+> > ------------------------------------------------------
+> > Subject: sdhci: support MMC_CAP_MMC_HIGHSPEED
+> > From: zhangfei gao <zhangfei.gao@gmail.com>
+> > 
+> > With MMC_CAP_MMC_HIGHSPEED, mmc & emmc could negotiate up to 50M,
+> > otherwise only 25M could be reached.
+> > 
+> > Signed-off-by: Zhangfei Gao <zgao6@marvell.com>
+> > Acked-by: Matt Fleming <matt@console-pimps.org> 
+> > Cc: <linux-mmc@vger.kernel.org>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> 
+> Andrew, Kyungmin Park also ACK'd this.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Cool, thanks.
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+I'd scheduled these patches for 2.6.37 but if you guys have reasons why
+you think they should go in earlier, please let me know.
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: sdhci: support 10 bit divided clock Mode for spec 3.0
-From: Zhangfei Gao <zgao6@marvell.com>
-
-Signed-off-by: Zhangfei Gao <zgao6@marvell.com>
-Reviewed-by: Matt Fleming <matt@console-pimps.org>
-Cc: Michal Miroslaw <mirqus@gmail.com>
-Acked-by: David Vrabel <david.vrabel@csr.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/mmc/host/sdhci.c |   22 +++++++++++++++++-----
- drivers/mmc/host/sdhci.h |    5 +++++
- 2 files changed, 22 insertions(+), 5 deletions(-)
-
-diff -puN drivers/mmc/host/sdhci.c~sdhci-support-10-bit-divided-clock-mode-for-spec-30 drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-support-10-bit-divided-clock-mode-for-spec-30
-+++ a/drivers/mmc/host/sdhci.c
-@@ -1001,13 +1001,25 @@ static void sdhci_set_clock(struct sdhci
- 	if (clock == 0)
- 		goto out;
- 
--	for (div = 1;div < 256;div *= 2) {
--		if ((host->max_clk / div) <= clock)
--			break;
-+	if (host->version >= SDHCI_SPEC_300) {
-+		if(host->max_clk <= clock)
-+			div = 1;
-+		else {
-+			for (div = 2; div < 2046; div += 2) {
-+				if ((host->max_clk / div) <= clock)
-+					break;
-+			}
-+		}
-+	} else {
-+		for (div = 1;div < 256;div *= 2) {
-+			if ((host->max_clk / div) <= clock)
-+				break;
-+		}
- 	}
- 	div >>= 1;
- 
--	clk = div << SDHCI_DIVIDER_SHIFT;
-+	clk = (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
-+	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN) << SDHCI_DIVIDER_HI_SHIFT;
- 	clk |= SDHCI_CLOCK_INT_EN;
- 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
- 
-@@ -1708,7 +1720,7 @@ int sdhci_add_host(struct sdhci_host *ho
- 	host->version = sdhci_readw(host, SDHCI_HOST_VERSION);
- 	host->version = (host->version & SDHCI_SPEC_VER_MASK)
- 				>> SDHCI_SPEC_VER_SHIFT;
--	if (host->version > SDHCI_SPEC_200) {
-+	if (host->version > SDHCI_SPEC_300) {
- 		printk(KERN_ERR "%s: Unknown controller version (%d). "
- 			"You may experience problems.\n", mmc_hostname(mmc),
- 			host->version);
-diff -puN drivers/mmc/host/sdhci.h~sdhci-support-10-bit-divided-clock-mode-for-spec-30 drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~sdhci-support-10-bit-divided-clock-mode-for-spec-30
-+++ a/drivers/mmc/host/sdhci.h
-@@ -86,6 +86,10 @@
- 
- #define SDHCI_CLOCK_CONTROL	0x2C
- #define  SDHCI_DIVIDER_SHIFT	8
-+#define  SDHCI_DIVIDER_HI_SHIFT	6
-+#define  SDHCI_DIV_MASK	0xFF
-+#define  SDHCI_DIV_MASK_LEN	8
-+#define  SDHCI_DIV_HI_MASK	0x300
- #define  SDHCI_CLOCK_CARD_EN	0x0004
- #define  SDHCI_CLOCK_INT_STABLE	0x0002
- #define  SDHCI_CLOCK_INT_EN	0x0001
-@@ -178,6 +182,7 @@
- #define  SDHCI_SPEC_VER_SHIFT	0
- #define   SDHCI_SPEC_100	0
- #define   SDHCI_SPEC_200	1
-+#define   SDHCI_SPEC_300	2
- 
- struct sdhci_ops;
- 
-_
-
-Patches currently in -mm which might be from zgao6@marvell.com are
+These:
 
 sdhci-support-mmc_cap_mmc_highspeed.patch
 sdhci-support-10-bit-divided-clock-mode-for-spec-30.patch
 sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
 sdhci-base-clock-freqency-change-in-spec-30.patch
+
 
