@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch added to -mm tree
-Date: Tue, 24 Aug 2010 16:46:42 -0700
-Message-ID: <201008242346.o7ONkgAf023360@imap1.linux-foundation.org>
+Subject: + include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch added to -mm tree
+Date: Tue, 24 Aug 2010 16:48:24 -0700
+Message-ID: <201008242348.o7ONmODv023476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934375Ab0HXXrO (ORCPT
+	by vger.kernel.org with ESMTP id S932841Ab0HXXtU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Aug 2010 19:47:14 -0400
+	Tue, 24 Aug 2010 19:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shijie8@gmail.com, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org
+Cc: zealcook@gmail.com, mel@csn.ul.ie
 
 
 The patch titled
-     kernel/resource.c: handle reinsertion of an already-inserted resource
+     include/linux/pageblock-flags.h: fix set_pageblock_flags() macro definiton
 has been added to the -mm tree.  Its filename is
-     kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+     include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/resource.c: handle reinsertion of an already-inserted resource
-From: Huang Shijie <shijie8@gmail.com>
+Subject: include/linux/pageblock-flags.h: fix set_pageblock_flags() macro definiton
+From: zeal <zealcook@gmail.com>
 
-If the same resource is inserted to the resource tree (maybe not on
-purpose), a dead loop will be created.  In this situation, The kernel does
-not report any warning or error :(
+The presently-unused macro was missing one parameter.
 
-  The command below will show a endless print.
-  #cat /proc/iomem
-
-[akpm@linux-foundation.org: add WARN_ON()]
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: zeal <zealcook@gmail.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/pageblock-flags.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/resource.c~kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource kernel/resource.c
---- a/kernel/resource.c~kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource
-+++ a/kernel/resource.c
-@@ -453,6 +453,8 @@ static struct resource * __insert_resour
+diff -puN include/linux/pageblock-flags.h~include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton include/linux/pageblock-flags.h
+--- a/include/linux/pageblock-flags.h~include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton
++++ a/include/linux/pageblock-flags.h
+@@ -67,7 +67,8 @@ void set_pageblock_flags_group(struct pa
  
- 		if (first == parent)
- 			return first;
-+		if (WARN_ON(first == new))	/* duplicated insertion */
-+			return first;
+ #define get_pageblock_flags(page) \
+ 			get_pageblock_flags_group(page, 0, NR_PAGEBLOCK_BITS-1)
+-#define set_pageblock_flags(page) \
+-			set_pageblock_flags_group(page, 0, NR_PAGEBLOCK_BITS-1)
++#define set_pageblock_flags(page, flags) \
++			set_pageblock_flags_group(page, flags,	\
++						  0, NR_PAGEBLOCK_BITS-1)
  
- 		if ((first->start > new->start) || (first->end < new->end))
- 			break;
+ #endif	/* PAGEBLOCK_FLAGS_H */
 _
 
-Patches currently in -mm which might be from shijie8@gmail.com are
+Patches currently in -mm which might be from zealcook@gmail.com are
 
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch
 
