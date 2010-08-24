@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch added to -mm tree
-Date: Tue, 24 Aug 2010 15:50:30 -0700
-Message-ID: <201008242250.o7OMoUHo019463@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch added to -mm tree
+Date: Tue, 24 Aug 2010 16:35:52 -0700
+Message-ID: <201008242335.o7ONZqWZ022649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755708Ab0HXWvN (ORCPT
+	by vger.kernel.org with ESMTP id S932830Ab0HXXix (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Aug 2010 18:51:13 -0400
+	Tue, 24 Aug 2010 19:38:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, yinghan@google.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie, andremuellerster@gmail.com, chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, eric@anholt.net, ziegler@uni-freiburg.de
 
 
 The patch titled
-     oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix
+     drivers/gpu/drm/i915/intel_overlay.c needs seq_file.h
 has been added to the -mm tree.  Its filename is
-     oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+     drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix
+Subject: drivers/gpu/drm/i915/intel_overlay.c needs seq_file.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-add nice comment
+drivers/gpu/drm/i915/intel_overlay.c: In function 'intel_overlay_print_error_state':
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
+drivers/gpu/drm/i915/intel_overlay.c:1467: error: implicit declaration of function 'seq_printf'
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=16811
+
+Reported-by: Martin Ziegler <ziegler@uni-freiburg.de>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Andre Muller <andremuellerster@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/intel_overlay.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix
-+++ a/mm/oom_kill.c
-@@ -429,7 +429,7 @@ static int oom_kill_task(struct task_str
- 	 */
- 	for_each_process(q)
- 		if (q->mm == mm && !same_thread_group(q, p)) {
--			task_lock(q);
-+			task_lock(q);	/* Protect ->comm from prctl() */
- 			pr_err("Kill process %d (%s) sharing same memory\n",
- 				task_pid_nr(q), q->comm);
- 			task_unlock(q);
+diff -puN drivers/gpu/drm/i915/intel_overlay.c~drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh drivers/gpu/drm/i915/intel_overlay.c
+--- a/drivers/gpu/drm/i915/intel_overlay.c~drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh
++++ a/drivers/gpu/drm/i915/intel_overlay.c
+@@ -25,6 +25,8 @@
+  *
+  * Derived from Xorg ddx, xf86-video-intel, src/i830_video.c
+  */
++
++#include <linux/seq_file.h>
+ #include "drmP.h"
+ #include "drm.h"
+ #include "i915_drm.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +78,7 @@ next-remove-localversion.patch
 fs-inodec-work-around-bug.patch
 i-need-old-gcc.patch
 mm-vmap-area-cache.patch
+drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
 parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
 gcc-46-btrfs-clean-up-unused-variables-bugs.patch
 hpet-factor-timer-allocate-from-open.patch
