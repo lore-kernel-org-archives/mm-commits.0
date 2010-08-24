@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch added to -mm tree
-Date: Tue, 24 Aug 2010 15:50:32 -0700
-Message-ID: <201008242250.o7OMoWn6019467@imap1.linux-foundation.org>
+Subject: + oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch added to -mm tree
+Date: Tue, 24 Aug 2010 15:50:28 -0700
+Message-ID: <201008242250.o7OMoSgd019457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756283Ab0HXWvX (ORCPT
+	by vger.kernel.org with ESMTP id S1755708Ab0HXWvM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Aug 2010 18:51:23 -0400
+	Tue, 24 Aug 2010 18:51:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.c
 
 
 The patch titled
-     oom: rewrite error handling for oom_adj and oom_score_adj tunables
+     oom: protect task name when killing threads sharing memory
 has been added to the -mm tree.  Its filename is
-     oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+     oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: rewrite error handling for oom_adj and oom_score_adj tunables
+Subject: oom: protect task name when killing threads sharing memory
 From: David Rientjes <rientjes@google.com>
 
-It's better to use proper error handling in oom_adjust_write() and
-oom_score_adj_write() instead of duplicating the locking order on various
-exit paths.
+It's necessary to prevent dereferences of q->comm for a task q when q !=
+current because its name may change during prctl() with PR_SET_NAME.
+
+Unfortunately, we can't use get_task_comm() when killing other threads
+sharing the same memory as the oom killed task since it would require a
+string to be allocated on the stack which may be very deep, especially
+during failed page allocations.
+
+This patch protects the dereference with task_lock() instead.
 
 Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
@@ -50,157 +56,23 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   83 +++++++++++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 35 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/base.c~oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables fs/proc/base.c
---- a/fs/proc/base.c~oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables
-+++ a/fs/proc/base.c
-@@ -1025,36 +1025,39 @@ static ssize_t oom_adjust_write(struct f
- 	memset(buffer, 0, sizeof(buffer));
- 	if (count > sizeof(buffer) - 1)
- 		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count))
--		return -EFAULT;
-+	if (copy_from_user(buffer, buf, count)) {
-+		err = -EFAULT;
-+		goto out;
-+	}
+diff -puN mm/oom_kill.c~oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix
++++ a/mm/oom_kill.c
+@@ -429,8 +429,10 @@ static int oom_kill_task(struct task_str
+ 	 */
+ 	for_each_process(q)
+ 		if (q->mm == mm && !same_thread_group(q, p)) {
++			task_lock(q);
+ 			pr_err("Kill process %d (%s) sharing same memory\n",
+ 				task_pid_nr(q), q->comm);
++			task_unlock(q);
+ 			force_sig(SIGKILL, q);
+ 		}
  
- 	err = strict_strtol(strstrip(buffer), 0, &oom_adjust);
- 	if (err)
--		return -EINVAL;
-+		goto out;
- 	if ((oom_adjust < OOM_ADJUST_MIN || oom_adjust > OOM_ADJUST_MAX) &&
--	     oom_adjust != OOM_DISABLE)
--		return -EINVAL;
-+	     oom_adjust != OOM_DISABLE) {
-+		err = -EINVAL;
-+		goto out;
-+	}
- 
- 	task = get_proc_task(file->f_path.dentry->d_inode);
--	if (!task)
--		return -ESRCH;
-+	if (!task) {
-+		err = -ESRCH;
-+		goto out;
-+	}
- 	if (!lock_task_sighand(task, &flags)) {
--		put_task_struct(task);
--		return -ESRCH;
-+		err = -ESRCH;
-+		goto err_task_struct;
- 	}
- 
- 	if (oom_adjust < task->signal->oom_adj && !capable(CAP_SYS_RESOURCE)) {
--		unlock_task_sighand(task, &flags);
--		put_task_struct(task);
--		return -EACCES;
-+		err = -EACCES;
-+		goto err_sighand;
- 	}
- 
- 	task_lock(task);
- 	if (!task->mm) {
--		task_unlock(task);
--		unlock_task_sighand(task, &flags);
--		put_task_struct(task);
--		return -EINVAL;
-+		err = -EINVAL;
-+		goto err_task_lock;
- 	}
- 
- 	if (oom_adjust != task->signal->oom_adj) {
-@@ -1082,11 +1085,14 @@ static ssize_t oom_adjust_write(struct f
- 	else
- 		task->signal->oom_score_adj = (oom_adjust * OOM_SCORE_ADJ_MAX) /
- 								-OOM_DISABLE;
-+err_task_lock:
- 	task_unlock(task);
-+err_sighand:
- 	unlock_task_sighand(task, &flags);
-+err_task_struct:
- 	put_task_struct(task);
--
--	return count;
-+out:
-+	return err < 0 ? err : count;
- }
- 
- static const struct file_operations proc_oom_adjust_operations = {
-@@ -1127,36 +1133,39 @@ static ssize_t oom_score_adj_write(struc
- 	memset(buffer, 0, sizeof(buffer));
- 	if (count > sizeof(buffer) - 1)
- 		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count))
--		return -EFAULT;
-+	if (copy_from_user(buffer, buf, count)) {
-+		err = -EFAULT;
-+		goto out;
-+	}
- 
- 	err = strict_strtol(strstrip(buffer), 0, &oom_score_adj);
- 	if (err)
--		return -EINVAL;
-+		goto out;
- 	if (oom_score_adj < OOM_SCORE_ADJ_MIN ||
--			oom_score_adj > OOM_SCORE_ADJ_MAX)
--		return -EINVAL;
-+			oom_score_adj > OOM_SCORE_ADJ_MAX) {
-+		err = -EINVAL;
-+		goto out;
-+	}
- 
- 	task = get_proc_task(file->f_path.dentry->d_inode);
--	if (!task)
--		return -ESRCH;
-+	if (!task) {
-+		err = -ESRCH;
-+		goto out;
-+	}
- 	if (!lock_task_sighand(task, &flags)) {
--		put_task_struct(task);
--		return -ESRCH;
-+		err = -ESRCH;
-+		goto err_task_struct;
- 	}
- 	if (oom_score_adj < task->signal->oom_score_adj &&
- 			!capable(CAP_SYS_RESOURCE)) {
--		unlock_task_sighand(task, &flags);
--		put_task_struct(task);
--		return -EACCES;
-+		err = -EACCES;
-+		goto err_sighand;
- 	}
- 
- 	task_lock(task);
- 	if (!task->mm) {
--		task_unlock(task);
--		unlock_task_sighand(task, &flags);
--		put_task_struct(task);
--		return -EINVAL;
-+		err = -EINVAL;
-+		goto err_task_lock;
- 	}
- 	if (oom_score_adj != task->signal->oom_score_adj) {
- 		if (oom_score_adj == OOM_SCORE_ADJ_MIN)
-@@ -1174,10 +1183,14 @@ static ssize_t oom_score_adj_write(struc
- 	else
- 		task->signal->oom_adj = (oom_score_adj * OOM_ADJUST_MAX) /
- 							OOM_SCORE_ADJ_MAX;
-+err_task_lock:
- 	task_unlock(task);
-+err_sighand:
- 	unlock_task_sighand(task, &flags);
-+err_task_struct:
- 	put_task_struct(task);
--	return count;
-+out:
-+	return err < 0 ? err : count;
- }
- 
- static const struct file_operations proc_oom_score_adj_operations = {
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
