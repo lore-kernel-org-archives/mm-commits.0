@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch added to -mm tree
-Date: Wed, 25 Aug 2010 15:32:25 -0700
-Message-ID: <201008252232.o7PMWPgx019668@imap1.linux-foundation.org>
+Subject: + mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch added to -mm tree
+Date: Wed, 25 Aug 2010 15:46:12 -0700
+Message-ID: <201008252246.o7PMkC7Q020301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751626Ab0HYWce (ORCPT
+	by vger.kernel.org with ESMTP id S1753287Ab0HYWqQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Aug 2010 18:32:34 -0400
+	Wed, 25 Aug 2010 18:46:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cascardo@holoscopio.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com
+Cc: akpm@linux-foundation.org, cascardo@holoscopio.com
 
 
 The patch titled
-     mm: only build per-node scan_unevictable functions when NUMA is enabled
+     mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup
 has been added to the -mm tree.  Its filename is
-     mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
+     mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: only build per-node scan_unevictable functions when NUMA is enabled
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Non-NUMA systems do never create these files anyway, since they are only
-created by driver subsystem when NUMA is configured.
+grumble
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 +++++
- mm/vmscan.c          |    3 ++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/linux/swap.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled include/linux/swap.h
---- a/include/linux/swap.h~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled
+diff -puN include/linux/swap.h~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup include/linux/swap.h
+--- a/include/linux/swap.h~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup
 +++ a/include/linux/swap.h
-@@ -270,8 +270,13 @@ extern void scan_mapping_unevictable_pag
- extern unsigned long scan_unevictable_pages;
- extern int scan_unevictable_handler(struct ctl_table *, int,
- 					void __user *, size_t *, loff_t *);
-+#ifdef CONFIG_NUMA
+@@ -274,8 +274,13 @@ extern int scan_unevictable_handler(stru
  extern int scan_unevictable_register_node(struct node *node);
  extern void scan_unevictable_unregister_node(struct node *node);
-+#else
-+static inline int scan_unevictable_register_node(struct node *node) {return 0;}
-+static inline void scan_unevictable_unregister_node(struct node *node) {}
-+#endif
+ #else
+-static inline int scan_unevictable_register_node(struct node *node) {return 0;}
+-static inline void scan_unevictable_unregister_node(struct node *node) {}
++static inline int scan_unevictable_register_node(struct node *node)
++{
++	return 0;
++}
++static inline void scan_unevictable_unregister_node(struct node *node)
++{
++}
+ #endif
  
  extern int kswapd_run(int nid);
- extern void kswapd_stop(int nid);
-diff -puN mm/vmscan.c~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled mm/vmscan.c
---- a/mm/vmscan.c~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled
-+++ a/mm/vmscan.c
-@@ -3033,6 +3033,7 @@ int scan_unevictable_handler(struct ctl_
- 	return 0;
- }
- 
-+#ifdef CONFIG_NUMA
- /*
-  * per node 'scan_unevictable_pages' attribute.  On demand re-scan of
-  * a specified node's per zone unevictable lists for evictable pages.
-@@ -3079,4 +3080,4 @@ void scan_unevictable_unregister_node(st
- {
- 	sysdev_remove_file(&node->sysdev, &attr_scan_unevictable_pages);
- }
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+cgroups-fix-api-thinko-fix.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
+tmio_mmc-revise-a-limit-of-the-data-size-fix.patch
+sdhci-get-rid-of-card-detect-work-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+
