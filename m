@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch added to -mm tree
-Date: Wed, 25 Aug 2010 15:46:12 -0700
-Message-ID: <201008252246.o7PMkC7Q020301@imap1.linux-foundation.org>
+Subject: + procfs-fix-proc-softirqs-formatting.patch added to -mm tree
+Date: Wed, 25 Aug 2010 16:00:24 -0700
+Message-ID: <201008252300.o7PN0O8n020761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753287Ab0HYWqQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753490Ab0HYXAh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Aug 2010 18:46:16 -0400
+	Wed, 25 Aug 2010 19:00:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cascardo@holoscopio.com
+Cc: dave@gnu.org, kobayashi.kk@ncos.nec.co.jp
 
 
 The patch titled
-     mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup
+     procfs: fix /proc/softirqs formatting
 has been added to the -mm tree.  Its filename is
-     mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+     procfs-fix-proc-softirqs-formatting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs: fix /proc/softirqs formatting
+From: Davidlohr Bueso <dave@gnu.org>
 
-grumble
+The length of the BLOCK_IPOLL string is making i's value be printed too
+far to the right.  This patch fixes this and makes the output a bit
+neater.
 
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Currently:
+                CPU0
+      HI:          0
+   TIMER:     599792
+  NET_TX:          2
+  NET_RX:          6
+   BLOCK:      80807
+BLOCK_IOPOLL:          0
+ TASKLET:      20012
+   SCHED:          0
+ HRTIMER:         63
+     RCU:     619279
+
+With patch:
+                    CPU0
+          HI:          0
+       TIMER:     585582
+      NET_TX:          2
+      NET_RX:          6
+       BLOCK:      80320
+BLOCK_IOPOLL:          0
+     TASKLET:      19287
+       SCHED:          0
+     HRTIMER:         62
+         RCU:     604441
+
+Signed-off-by: Davidlohr Bueso <dave@gnu.org>
+Acked-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ fs/proc/softirqs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap.h~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup include/linux/swap.h
---- a/include/linux/swap.h~mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup
-+++ a/include/linux/swap.h
-@@ -274,8 +274,13 @@ extern int scan_unevictable_handler(stru
- extern int scan_unevictable_register_node(struct node *node);
- extern void scan_unevictable_unregister_node(struct node *node);
- #else
--static inline int scan_unevictable_register_node(struct node *node) {return 0;}
--static inline void scan_unevictable_unregister_node(struct node *node) {}
-+static inline int scan_unevictable_register_node(struct node *node)
-+{
-+	return 0;
-+}
-+static inline void scan_unevictable_unregister_node(struct node *node)
-+{
-+}
- #endif
+diff -puN fs/proc/softirqs.c~procfs-fix-proc-softirqs-formatting fs/proc/softirqs.c
+--- a/fs/proc/softirqs.c~procfs-fix-proc-softirqs-formatting
++++ a/fs/proc/softirqs.c
+@@ -10,13 +10,13 @@ static int show_softirqs(struct seq_file
+ {
+ 	int i, j;
  
- extern int kswapd_run(int nid);
+-	seq_printf(p, "                ");
++	seq_printf(p, "                    ");
+ 	for_each_possible_cpu(i)
+ 		seq_printf(p, "CPU%-8d", i);
+ 	seq_printf(p, "\n");
+ 
+ 	for (i = 0; i < NR_SOFTIRQS; i++) {
+-		seq_printf(p, "%8s:", softirq_to_name[i]);
++		seq_printf(p, "%12s:", softirq_to_name[i]);
+ 		for_each_possible_cpu(j)
+ 			seq_printf(p, " %10u", kstat_softirqs_cpu(i, j));
+ 		seq_printf(p, "\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave@gnu.org are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-cgroups-fix-api-thinko-fix.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
-tmio_mmc-revise-a-limit-of-the-data-size-fix.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+procfs-fix-proc-softirqs-formatting.patch
 
