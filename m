@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-api-thinko.patch added to -mm tree
-Date: Wed, 25 Aug 2010 14:35:34 -0700
-Message-ID: <201008252135.o7PLZZiO017115@imap1.linux-foundation.org>
+Subject: + cgroups-fix-api-thinko-fix.patch added to -mm tree
+Date: Wed, 25 Aug 2010 14:35:36 -0700
+Message-ID: <201008252135.o7PLZaJh017121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59550 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751997Ab0HYVfy (ORCPT
+	by vger.kernel.org with ESMTP id S1754627Ab0HYVfz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Aug 2010 17:35:54 -0400
+	Wed, 25 Aug 2010 17:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mst@redhat.com, alex.williamson@redhat.com, bblum@google.com, lizf@cn.fujitsu.com, menage@google.com, sri@us.ibm.com
+Cc: akpm@linux-foundation.org, alex.williamson@redhat.com, bblum@google.com, lizf@cn.fujitsu.com, menage@google.com, mst@redhat.com, sri@us.ibm.com
 
 
 The patch titled
-     cgroups: fix API thinko
+     cgroups-fix-api-thinko-fix
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-api-thinko.patch
+     cgroups-fix-api-thinko-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix API thinko
-From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: cgroups-fix-api-thinko-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The cgroup_attach_task_current_cg() API that we have is backwards: we
-really need an API to attach to the cgroups from another process A to the
-current one.
+address reviewer comments
 
-In our case (vhost), a priveledged user wants to attach it's task to
-cgroups from a less priveledged one, the API makes us run it in the other
-task's context, and this fails.
-
-So let's make the API generic and just pass in 'from' and 'to' tasks.  Add
-an inline wrapper for cgroup_attach_task_current_cg to avoid breaking
-bisect.
-
-When qemu uses vhost, inside the ioctl call it creates a thread, and tries
-to add this thread to the groups of current, and it fails.  But we control
-the thread, so to solve the problem, we really should tell it 'connect to
-out cgroups'.
-
-What this patch does is add an API for that.
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Tested-by: Alex Williamson <alex.williamson@redhat.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Ben Blum <bblum@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Paul Menage <menage@google.com>
 Cc: Sridhar Samudrala <sri@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   11 ++++++++++-
- kernel/cgroup.c        |    9 +++++----
- 2 files changed, 15 insertions(+), 5 deletions(-)
+ include/linux/cgroup.h |    1 +
+ kernel/cgroup.c        |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-fix-api-thinko include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-fix-api-thinko
+diff -puN include/linux/cgroup.h~cgroups-fix-api-thinko-fix include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-fix-api-thinko-fix
 +++ a/include/linux/cgroup.h
-@@ -578,7 +578,11 @@ struct task_struct *cgroup_iter_next(str
- void cgroup_iter_end(struct cgroup *cgrp, struct cgroup_iter *it);
+@@ -579,6 +579,7 @@ void cgroup_iter_end(struct cgroup *cgrp
  int cgroup_scan_tasks(struct cgroup_scanner *scan);
  int cgroup_attach_task(struct cgroup *, struct task_struct *);
--int cgroup_attach_task_current_cg(struct task_struct *);
-+int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
-+static inline int cgroup_attach_task_current_cg(struct task_struct *tsk)
-+{
-+	return cgroup_attach_task_all(current, tsk);
-+}
- 
- /*
-  * CSS ID is ID for cgroup_subsys_state structs under subsys. This only works
-@@ -636,6 +640,11 @@ static inline int cgroupstats_build(stru
- }
- 
- /* No cgroups - nothing to do */
-+static inline int cgroup_attach_task_all(struct task_struct *from,
-+					 struct task_struct *t)
-+{
-+	return 0;
-+}
- static inline int cgroup_attach_task_current_cg(struct task_struct *t)
+ int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
++
+ static inline int cgroup_attach_task_current_cg(struct task_struct *tsk)
  {
- 	return 0;
-diff -puN kernel/cgroup.c~cgroups-fix-api-thinko kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-api-thinko
+ 	return cgroup_attach_task_all(current, tsk);
+diff -puN kernel/cgroup.c~cgroups-fix-api-thinko-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-api-thinko-fix
 +++ a/kernel/cgroup.c
-@@ -1791,10 +1791,11 @@ out:
- }
- 
- /**
-- * cgroup_attach_task_current_cg - attach task 'tsk' to current task's cgroup
-+ * cgroup_attach_task_all - attach task 'tsk' to all cgroups of task 'from'
-+ * @from: attach to all cgroups of a given task
-  * @tsk: the task to be attached
-  */
--int cgroup_attach_task_current_cg(struct task_struct *tsk)
-+int cgroup_attach_task_all(struct task_struct *from, struct task_struct *tsk)
+@@ -1798,13 +1798,13 @@ out:
+ int cgroup_attach_task_all(struct task_struct *from, struct task_struct *tsk)
  {
  	struct cgroupfs_root *root;
- 	struct cgroup *cur_cg;
-@@ -1802,7 +1803,7 @@ int cgroup_attach_task_current_cg(struct
+-	struct cgroup *cur_cg;
+ 	int retval = 0;
  
  	cgroup_lock();
  	for_each_active_root(root) {
--		cur_cg = task_cgroup_from_root(current, root);
-+		cur_cg = task_cgroup_from_root(from, root);
- 		retval = cgroup_attach_task(cur_cg, tsk);
+-		cur_cg = task_cgroup_from_root(from, root);
+-		retval = cgroup_attach_task(cur_cg, tsk);
++		struct cgroup *from_cg = task_cgroup_from_root(from, root);
++
++		retval = cgroup_attach_task(from_cg, tsk);
  		if (retval)
  			break;
-@@ -1811,7 +1812,7 @@ int cgroup_attach_task_current_cg(struct
- 
- 	return retval;
- }
--EXPORT_SYMBOL_GPL(cgroup_attach_task_current_cg);
-+EXPORT_SYMBOL_GPL(cgroup_attach_task_all);
- 
- /*
-  * Attach task with pid 'pid' to cgroup 'cgrp'. Call with cgroup_mutex
+ 	}
 _
 
-Patches currently in -mm which might be from mst@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-cgroups-fix-api-thinko.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
 cgroups-fix-api-thinko-fix.patch
+mm-vmap-area-cache.patch
+drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
+sdhci-get-rid-of-card-detect-work-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
