@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + select-rename-estimate_accuracy-to-select_estimate_accuracy.patch added to -mm tree
-Date: Thu, 26 Aug 2010 15:32:10 -0700
-Message-ID: <201008262232.o7QMWAlj018542@imap1.linux-foundation.org>
+Subject: + mmc-fix-the-use-of-kunmap_atomic-in-tmio_mmch.patch added to -mm tree
+Date: Thu, 26 Aug 2010 16:05:31 -0700
+Message-ID: <201008262305.o7QN5VEj020023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754447Ab0HZWcR (ORCPT
+	by vger.kernel.org with ESMTP id S1751887Ab0HZXFk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Aug 2010 18:32:17 -0400
+	Thu, 26 Aug 2010 19:05:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, shawn.bohrer@gmail.com, tglx@linutronix.de, viro@zeniv.linux.org.uk
+Cc: g.liakhovetski@gmx.de, damm@opensource.se, eric.y.miao@gmail.com
 
 
 The patch titled
-     select: rename estimate_accuracy() to select_estimate_accuracy()
+     mmc: fix the use of kunmap_atomic() in tmio_mmc.h
 has been added to the -mm tree.  Its filename is
-     select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+     mmc-fix-the-use-of-kunmap_atomic-in-tmio_mmch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: select: rename estimate_accuracy() to select_estimate_accuracy()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: fix the use of kunmap_atomic() in tmio_mmc.h
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Make it a subsystem-specific identifier because we wish to amke it
-non-static in the next patch ("epoll: make epoll_wait() use the hrtimer
-range feature").  
-
-Cc: Shawn Bohrer <shawn.bohrer@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Eric Miao <eric.y.miao@gmail.com>
+Tested-by: Magnus Damm <damm@opensource.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/tmio_mmc.c |    7 ++++---
+ drivers/mmc/host/tmio_mmc.h |    8 +++-----
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/select.c~select-rename-estimate_accuracy-to-select_estimate_accuracy fs/select.c
---- a/fs/select.c~select-rename-estimate_accuracy-to-select_estimate_accuracy
-+++ a/fs/select.c
-@@ -67,7 +67,7 @@ static long __estimate_accuracy(struct t
- 	return slack;
+diff -puN drivers/mmc/host/tmio_mmc.c~mmc-fix-the-use-of-kunmap_atomic-in-tmio_mmch drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~mmc-fix-the-use-of-kunmap_atomic-in-tmio_mmch
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -164,6 +164,7 @@ tmio_mmc_start_command(struct tmio_mmc_h
+ static void tmio_mmc_pio_irq(struct tmio_mmc_host *host)
+ {
+ 	struct mmc_data *data = host->data;
++	void *sg_virt;
+ 	unsigned short *buf;
+ 	unsigned int count;
+ 	unsigned long flags;
+@@ -173,8 +174,8 @@ static void tmio_mmc_pio_irq(struct tmio
+ 		return;
+ 	}
+ 
+-	buf = (unsigned short *)(tmio_mmc_kmap_atomic(host, &flags) +
+-	      host->sg_off);
++	sg_virt = tmio_mmc_kmap_atomic(host->sg_ptr, &flags);
++	buf = (unsigned short *)(sg_virt + host->sg_off);
+ 
+ 	count = host->sg_ptr->length - host->sg_off;
+ 	if (count > data->blksz)
+@@ -191,7 +192,7 @@ static void tmio_mmc_pio_irq(struct tmio
+ 
+ 	host->sg_off += count;
+ 
+-	tmio_mmc_kunmap_atomic(host, &flags);
++	tmio_mmc_kunmap_atomic(sg_virt, &flags);
+ 
+ 	if (host->sg_off == host->sg_ptr->length)
+ 		tmio_mmc_next_sg(host);
+diff -puN drivers/mmc/host/tmio_mmc.h~mmc-fix-the-use-of-kunmap_atomic-in-tmio_mmch drivers/mmc/host/tmio_mmc.h
+--- a/drivers/mmc/host/tmio_mmc.h~mmc-fix-the-use-of-kunmap_atomic-in-tmio_mmch
++++ a/drivers/mmc/host/tmio_mmc.h
+@@ -174,19 +174,17 @@ static inline int tmio_mmc_next_sg(struc
+ 	return --host->sg_len;
  }
  
--static long estimate_accuracy(struct timespec *tv)
-+static long select_estimate_accuracy(struct timespec *tv)
+-static inline char *tmio_mmc_kmap_atomic(struct tmio_mmc_host *host,
++static inline char *tmio_mmc_kmap_atomic(struct scatterlist *sg,
+ 	unsigned long *flags)
  {
- 	unsigned long ret;
- 	struct timespec now;
-@@ -417,7 +417,7 @@ int do_select(int n, fd_set_bits *fds, s
- 	}
- 
- 	if (end_time && !timed_out)
--		slack = estimate_accuracy(end_time);
-+		slack = select_estimate_accuracy(end_time);
- 
- 	retval = 0;
- 	for (;;) {
-@@ -769,7 +769,7 @@ static int do_poll(unsigned int nfds,  s
- 	}
- 
- 	if (end_time && !timed_out)
--		slack = estimate_accuracy(end_time);
-+		slack = select_estimate_accuracy(end_time);
- 
- 	for (;;) {
- 		struct poll_list *walk;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-cgroups-fix-api-thinko-fix.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-
+-	struct scatterlist *sg = host->sg_ptr;
