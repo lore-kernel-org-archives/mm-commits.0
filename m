@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-support-for-the-marvell-platform-sdhci-controller.patch added to -mm tree
-Date: Wed, 25 Aug 2010 16:16:25 -0700
-Message-ID: <201008252316.o7PNGPhl021552@imap1.linux-foundation.org>
+Subject: + mm-fix-hang-on-anon_vma-root-lock.patch added to -mm tree
+Date: Thu, 26 Aug 2010 14:31:58 -0700
+Message-ID: <201008262131.o7QLVwDd015700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753066Ab0HYXQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752267Ab0HZVck (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Aug 2010 19:16:29 -0400
+	Thu, 26 Aug 2010 17:32:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: saeed@marvell.com, linux-mmc@vger.kernel.org, matt@console-pimps.org
+Cc: hughd@google.com, aarcange@redhat.com, davem@davemloft.net, riel@redhat.com
 
 
 The patch titled
-     mmx: add support for the Marvell platform SDHCI controller
+     mm: fix hang on anon_vma->root->lock
 has been added to the -mm tree.  Its filename is
-     mmc-add-support-for-the-marvell-platform-sdhci-controller.patch
+     mm-fix-hang-on-anon_vma-root-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,307 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmx: add support for the Marvell platform SDHCI controller
-From: Saeed Bishara <saeed@marvell.com>
+Subject: mm: fix hang on anon_vma->root->lock
+From: Hugh Dickins <hughd@google.com>
 
-Implement a driver for the platfrom SDHCI controllers that is found on
-some of Marvell's SoC's.
+After several hours, kbuild tests hang with anon_vma_prepare() spinning on
+a newly allocated anon_vma's lock - on a box with
+CONFIG_TREE_PREEMPT_RCU=y (which makes this very much more likely, but it
+could happen without).
 
-Signed-off-by: Saeed Bishara <saeed@marvell.com>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: <linux-mmc@vger.kernel.org>
+The ever-subtle page_lock_anon_vma() now needs a further twist: since
+anon_vma_prepare() and anon_vma_fork() are liable to change the ->root of
+a reused anon_vma structure at any moment, page_lock_anon_vma() needs to
+check page_mapped() again before succeeding, otherwise
+page_unlock_anon_vma() might address a different root->lock.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/Kconfig    |   12 +
- drivers/mmc/host/Makefile   |    1 
- drivers/mmc/host/sdhci-mv.c |  243 ++++++++++++++++++++++++++++++++++
- 3 files changed, 256 insertions(+)
+ mm/rmap.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mmc/host/Kconfig~mmc-add-support-for-the-marvell-platform-sdhci-controller drivers/mmc/host/Kconfig
---- a/drivers/mmc/host/Kconfig~mmc-add-support-for-the-marvell-platform-sdhci-controller
-+++ a/drivers/mmc/host/Kconfig
-@@ -130,6 +130,18 @@ config MMC_SDHCI_CNS3XXX
+diff -puN mm/rmap.c~mm-fix-hang-on-anon_vma-root-lock mm/rmap.c
+--- a/mm/rmap.c~mm-fix-hang-on-anon_vma-root-lock
++++ a/mm/rmap.c
+@@ -316,7 +316,7 @@ void __init anon_vma_init(void)
+  */
+ struct anon_vma *page_lock_anon_vma(struct page *page)
+ {
+-	struct anon_vma *anon_vma;
++	struct anon_vma *anon_vma, *root_anon_vma;
+ 	unsigned long anon_mapping;
  
- 	  If unsure, say N.
+ 	rcu_read_lock();
+@@ -327,8 +327,21 @@ struct anon_vma *page_lock_anon_vma(stru
+ 		goto out;
  
-+config MMC_SDHCI_MV
-+	tristate "SDHCI support on Marvell's soc"
-+	depends on MMC_SDHCI
-+	select MMC_SDHCI_IO_ACCESSORS
-+	help
-+	  This selects the Secure Digital Host Controller Interface in
-+	  Marvell's SoC controllers.
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+-	anon_vma_lock(anon_vma);
+-	return anon_vma;
++	root_anon_vma = ACCESS_ONCE(anon_vma->root);
++	spin_lock(&root_anon_vma->lock);
 +
-+	  If you have a controller with this interface, say Y or M here.
++	/*
++	 * If this page is still mapped, then its anon_vma cannot have been
++	 * freed.  But if it has been unmapped, we have no security against
++	 * the anon_vma structure being freed and reused (for another anon_vma:
++	 * SLAB_DESTROY_BY_RCU guarantees that - so the spin_lock above cannot
++	 * corrupt): with anon_vma_prepare() or anon_vma_fork() redirecting
++	 * anon_vma->root before page_unlock_anon_vma() is called to unlock.
++	 */
++	if (page_mapped(page))
++		return anon_vma;
 +
-+	  If unsure, say N.
-+
- config MMC_SDHCI_S3C
- 	tristate "SDHCI support on Samsung S3C SoC"
- 	depends on MMC_SDHCI && PLAT_SAMSUNG
-diff -puN drivers/mmc/host/Makefile~mmc-add-support-for-the-marvell-platform-sdhci-controller drivers/mmc/host/Makefile
---- a/drivers/mmc/host/Makefile~mmc-add-support-for-the-marvell-platform-sdhci-controller
-+++ a/drivers/mmc/host/Makefile
-@@ -11,6 +11,7 @@ obj-$(CONFIG_MMC_PXA)		+= pxamci.o
- obj-$(CONFIG_MMC_IMX)		+= imxmmc.o
- obj-$(CONFIG_MMC_MXC)		+= mxcmmc.o
- obj-$(CONFIG_MMC_SDHCI)		+= sdhci.o
-+obj-$(CONFIG_MMC_SDHCI_MV)	+= sdhci-mv.o
- obj-$(CONFIG_MMC_SDHCI_PCI)	+= sdhci-pci.o
- obj-$(CONFIG_MMC_SDHCI_S3C)	+= sdhci-s3c.o
- obj-$(CONFIG_MMC_SDHCI_SPEAR)	+= sdhci-spear.o
-diff -puN /dev/null drivers/mmc/host/sdhci-mv.c
---- /dev/null
-+++ a/drivers/mmc/host/sdhci-mv.c
-@@ -0,0 +1,243 @@
-+/*
-+ * sdhci-mv.c Support for SDHCI platform devices
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* Supports:
-+ * SDHCI platform devices found on Marvell SoC's
-+ *
-+ * Based on  sdhci-pltfm.c
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+#include <linux/mmc/host.h>
-+#include "sdhci.h"
-+
-+struct sdhci_mv_host {
-+#if defined(CONFIG_HAVE_CLK)
-+	struct clk		*clk;
-+#endif
-+};
-+
-+/*****************************************************************************\
-+ *                                                                           *
-+ * SDHCI core callbacks                                                      *
-+ *                                                                           *
-+\*****************************************************************************/
-+static u16 mv_readw(struct sdhci_host *host, int reg)
-+{
-+	u16 ret;
-+
-+	switch (reg) {
-+	case SDHCI_HOST_VERSION:
-+	case SDHCI_SLOT_INT_STATUS:
-+		/* those registers don't exist */
-+		return 0;
-+	default:
-+		ret = readw(host->ioaddr + reg);
-+	}
-+	return ret;
-+}
-+
-+static u32 mv_readl(struct sdhci_host *host, int reg)
-+{
-+	u32 ret;
-+
-+	switch (reg) {
-+	case SDHCI_CAPABILITIES:
-+		ret = readl(host->ioaddr + reg);
-+		/* Mask the support for 3.0V */
-+		ret &= ~SDHCI_CAN_VDD_300;
-+		break;
-+	default:
-+		ret = readl(host->ioaddr + reg);
-+	}
-+	return ret;
-+}
-+
-+static struct sdhci_ops sdhci_mv_ops = {
-+	.read_w	= mv_readw,
-+	.read_l	= mv_readl,
-+};
-+
-+/*****************************************************************************\
-+ *                                                                           *
-+ * Device probing/removal                                                    *
-+ *                                                                           *
-+\*****************************************************************************/
-+
-+static int __devinit sdhci_mv_probe(struct platform_device *pdev)
-+{
-+	struct sdhci_host *host;
-+	struct sdhci_mv_host *mv_host;
-+	struct resource *iomem;
-+	int ret;
-+
-+	BUG_ON(pdev == NULL);
-+
-+	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!iomem) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	if (resource_size(iomem) != 0x100)
-+		dev_err(&pdev->dev, "Invalid iomem size. You may "
-+			"experience problems.\n");
-+
-+	if (pdev->dev.parent)
-+		host = sdhci_alloc_host(pdev->dev.parent, sizeof(*mv_host));
-+	else
-+		host = sdhci_alloc_host(&pdev->dev, sizeof(*mv_host));
-+
-+	if (IS_ERR(host)) {
-+		ret = PTR_ERR(host);
-+		goto err;
-+	}
-+
-+	mv_host = sdhci_priv(host);
-+	host->hw_name = "marvell-sdhci";
-+	host->ops = &sdhci_mv_ops;
-+	host->irq = platform_get_irq(pdev, 0);
-+	host->quirks =  SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER |
-+			SDHCI_QUIRK_NO_BUSY_IRQ |
-+			SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
-+			SDHCI_QUIRK_FORCE_DMA;
-+
-+	if (!devm_request_mem_region(&pdev->dev, iomem->start,
-+				     resource_size(iomem),
-+				     mmc_hostname(host->mmc))) {
-+		dev_err(&pdev->dev, "cannot request region\n");
-+		ret = -EBUSY;
-+		goto err_request;
-+	}
-+
-+	host->ioaddr = devm_ioremap(&pdev->dev, iomem->start,
-+				    resource_size(iomem));
-+	if (!host->ioaddr) {
-+		dev_err(&pdev->dev, "failed to remap registers\n");
-+		ret = -ENOMEM;
-+		goto err_request;
-+	}
-+
-+#if defined(CONFIG_HAVE_CLK)
-+	mv_host->clk = clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(mv_host->clk))
-+		dev_notice(&pdev->dev, "cannot get clkdev\n");
-+	else
-+		clk_enable(mv_host->clk);
-+#endif
-+
-+	ret = sdhci_add_host(host);
-+	if (ret)
-+		goto err_request;
-+
-+	platform_set_drvdata(pdev, host);
-+
-+	return 0;
-+
-+err_request:
-+	sdhci_free_host(host);
-+err:
-+	printk(KERN_ERR"Probing of sdhci-mv failed: %d\n", ret);
-+	return ret;
-+}
-+
-+static int __devexit sdhci_mv_remove(struct platform_device *pdev)
-+{
-+	struct sdhci_host *host = platform_get_drvdata(pdev);
-+#if defined(CONFIG_HAVE_CLK)
-+	struct sdhci_mv_host *mv_host = sdhci_priv(host);
-+	struct clk *clk = mv_host->clk;
-+#endif
-+	int dead;
-+	u32 scratch;
-+
-+	dead = 0;
-+	scratch = readl(host->ioaddr + SDHCI_INT_STATUS);
-+	if (scratch == (u32)-1)
-+		dead = 1;
-+
-+	sdhci_remove_host(host, dead);
-+	sdhci_free_host(host);
-+	platform_set_drvdata(pdev, NULL);
-+#if defined(CONFIG_HAVE_CLK)
-+	if (!IS_ERR(clk)) {
-+		clk_disable(clk);
-+		clk_put(clk);
-+	}
-+#endif
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int sdhci_mv_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct sdhci_host *host = dev_get_drvdata(&pdev->dev);
-+
-+	return sdhci_suspend_host(host, state);
-+}
-+
-+static int sdhci_mv_resume(struct platform_device *pdev)
-+{
-+	struct sdhci_host *host = dev_get_drvdata(&pdev->dev);
-+
-+	return sdhci_resume_host(host);
-+}
-+#else
-+#define sdhci_mv_suspend NULL
-+#define sdhci_mv_resume NULL
-+#endif
-+
-+static struct platform_driver sdhci_mv_driver = {
-+	.driver = {
-+		.name	= "sdhci-mv",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= sdhci_mv_probe,
-+	.remove		= __devexit_p(sdhci_mv_remove),
-+	.suspend	= sdhci_mv_suspend,
-+	.resume		= sdhci_mv_resume,
-+};
-+
-+/*****************************************************************************\
-+ *                                                                           *
-+ * Driver init/exit                                                          *
-+ *                                                                           *
-+\*****************************************************************************/
-+
-+static int __init sdhci_mv_init(void)
-+{
-+	return platform_driver_register(&sdhci_mv_driver);
-+}
-+
-+static void __exit sdhci_mv_exit(void)
-+{
-+	platform_driver_unregister(&sdhci_mv_driver);
-+}
-+
-+module_init(sdhci_mv_init);
-+module_exit(sdhci_mv_exit);
-+
-+MODULE_DESCRIPTION("Marvell SDHCI platform driver");
-+MODULE_AUTHOR("Saeed Bishara <saeed@marvell.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:sdhci-mv");
-+
++	spin_unlock(&root_anon_vma->lock);
+ out:
+ 	rcu_read_unlock();
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from saeed@marvell.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-fix-hang-on-anon_vma-root-lock.patch
 linux-next.patch
-mmc-add-support-for-the-marvell-platform-sdhci-controller.patch
+ipc-shmc-add-rss-and-swap-size-information-to-proc-sysvipc-shm.patch
+ipc-shmc-add-rss-and-swap-size-information-to-proc-sysvipc-shm-v2.patch
+prio_tree-debugging-patch.patch
 
