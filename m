@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging.patch added to -mm tree
-Date: Fri, 27 Aug 2010 12:29:59 -0700
-Message-ID: <201008271929.o7RJTxFF011390__29692.5838375047$1282937430$gmane$org@imap1.linux-foundation.org>
+Subject: + arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch added to -mm tree
+Date: Fri, 27 Aug 2010 13:03:39 -0700
+Message-ID: <201008272003.o7RK3d33013124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338Ab0H0TaZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752758Ab0H0UD4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Aug 2010 15:30:25 -0400
+	Fri, 27 Aug 2010 16:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gdavis@mvista.com, ben-linux@fluff.org, cjb@laptop.org, linux-mmc@vger.kernel.org
+Cc: jiri.pinkava@vscht.cz, cjb@laptop.org, linux-mmc@vger.kernel.org, matt@console-pimps.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     mmc: sdhci: make consistent use of CONFIG_MMC_DEBUG for "DEBUG"ging
+     ARM: SAMSUNG: MMC: fix build error when both DMA and PIO mode selected
 has been added to the -mm tree.  Its filename is
-     mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging.patch
+     arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: sdhci: make consistent use of CONFIG_MMC_DEBUG for "DEBUG"ging
-From: "George G. Davis" <gdavis@mvista.com>
+Subject: ARM: SAMSUNG: MMC: fix build error when both DMA and PIO mode selected
+From: Jiri Pinkava <jiri.pinkava@vscht.cz>
 
-The "6882a8c sdhci: Add better ADMA error reporting" commit added
-sdhci_show_adma_error() which is built when DEBUG is defined.  Since we
-already have CONFIG_MMC_DEBUG used elsewhere in this driver, may as well
-make consistent use of that config knob instead.
+Date: Tue, 25 May 2010 09:48:58 +0200
 
-Signed-off-by: George G. Davis <gdavis@mvista.com>
+[cjb: fix line-wrapped patch]
+Signed-off-by: Jiri Pinkava <jiri.pinkava@vscht.cz>
 Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |    2 +-
+ drivers/mmc/host/s3cmci.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci.c~mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging
-+++ a/drivers/mmc/host/sdhci.c
-@@ -1440,7 +1440,7 @@ static void sdhci_cmd_irq(struct sdhci_h
- 		sdhci_finish_command(host);
- }
+diff -puN drivers/mmc/host/s3cmci.c~arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected
++++ a/drivers/mmc/host/s3cmci.c
+@@ -1600,7 +1600,7 @@ static int __devinit s3cmci_probe(struct
+ 	host->pio_active 	= XFER_NONE;
  
--#ifdef DEBUG
-+#ifdef CONFIG_MMC_DEBUG
- static void sdhci_show_adma_error(struct sdhci_host *host)
- {
- 	const char *name = mmc_hostname(host->mmc);
+ #ifdef CONFIG_MMC_S3C_PIODMA
+-	host->dodma		= host->pdata->dma;
++	host->dodma		= host->pdata->use_dma;
+ #endif
+ 
+ 	host->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 _
 
-Patches currently in -mm which might be from gdavis@mvista.com are
+Patches currently in -mm which might be from jiri.pinkava@vscht.cz are
 
-mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging.patch
+arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch
 
