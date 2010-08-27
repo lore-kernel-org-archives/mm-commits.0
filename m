@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mmc-host-omap_hsmmcc-use-resource_size.patch added to -mm tree
-Date: Fri, 27 Aug 2010 13:53:47 -0700
-Message-ID: <201008272053.o7RKrl0J015452@imap1.linux-foundation.org>
+Subject: + omap-hsmmc-fix-a-racing-case-between-kmmcd-and-omap_hsmmc_suspend.patch added to -mm tree
+Date: Fri, 27 Aug 2010 13:58:40 -0700
+Message-ID: <201008272058.o7RKweAH015685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751947Ab0H0UyF (ORCPT
+	by vger.kernel.org with ESMTP id S1751034Ab0H0U6q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Aug 2010 16:54:05 -0400
+	Fri, 27 Aug 2010 16:58:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cjb@laptop.org, linux-mmc@vger.kernel.org, madhu.cr@ti.com
+Cc: ethan.too@gmail.com, adrian.hunter@nokia.com, cjb@laptop.org, linux-mmc@vger.kernel.org, madhu.cr@ti.com
 
 
 The patch titled
-     drivers/mmc/host/omap_hsmmc.c: use resource_size()
+     omap hsmmc: fix a racing case between kmmcd and omap_hsmmc_suspend
 has been added to the -mm tree.  Its filename is
-     drivers-mmc-host-omap_hsmmcc-use-resource_size.patch
+     omap-hsmmc-fix-a-racing-case-between-kmmcd-and-omap_hsmmc_suspend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mmc/host/omap_hsmmc.c: use resource_size()
-From: Chris Ball <cjb@laptop.org>
+Subject: omap hsmmc: fix a racing case between kmmcd and omap_hsmmc_suspend
+From: Ethan Du <ethan.too@gmail.com>
 
-Use resource_size().
+If suspend called when kmmcd is doing host->ops->disable, as kmmcd already
+increased host->en_dis_recurs to 1, the mmc_host_enable in suspend
+function will return directly without increase the nesting_cnt, which will
+cause the followed register access carried out to the disabled host.
 
+mmc_suspend_host will enable host itself.  No need to enable host before
+it.  Also works on kmmcd will get flushed in mmc_suspend_host, enable host
+after it will be safe.  So make the mmc_host_enable after it.
+
+[cjb: rebase against current Linus]
+Signed-off-by: Ethan <ethan.too@gmail.com>
 Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+Acked-by: Adrian Hunter <adrian.hunter@nokia.com>
+Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~drivers-mmc-host-omap_hsmmcc-use-resource_size drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~drivers-mmc-host-omap_hsmmcc-use-resource_size
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap-hsmmc-fix-a-racing-case-between-kmmcd-and-omap_hsmmc_suspend drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap-hsmmc-fix-a-racing-case-between-kmmcd-and-omap_hsmmc_suspend
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -2003,7 +2003,7 @@ static int __init omap_hsmmc_probe(struc
- 	if (res == NULL || irq < 0)
- 		return -ENXIO;
- 
--	res = request_mem_region(res->start, res->end - res->start + 1,
-+	res = request_mem_region(res->start, resource_size(res),
- 							pdev->name);
- 	if (res == NULL)
- 		return -EBUSY;
-@@ -2256,7 +2256,7 @@ err1:
- err_alloc:
- 	omap_hsmmc_gpio_free(pdata);
- err:
--	release_mem_region(res->start, res->end - res->start + 1);
-+	release_mem_region(res->start, resource_size(res));
- 	return ret;
- }
- 
-@@ -2293,7 +2293,7 @@ static int omap_hsmmc_remove(struct plat
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res)
--		release_mem_region(res->start, res->end - res->start + 1);
-+		release_mem_region(res->start, resource_size(res));
- 	platform_set_drvdata(pdev, NULL);
- 
- 	return 0;
+@@ -2323,8 +2323,8 @@ static int omap_hsmmc_suspend(struct dev
+ 			}
+ 		}
+ 		cancel_work_sync(&host->mmc_carddetect_work);
+-		mmc_host_enable(host->mmc);
+ 		ret = mmc_suspend_host(host->mmc);
++		mmc_host_enable(host->mmc);
+ 		if (ret == 0) {
+ 			omap_hsmmc_disable_irq(host);
+ 			OMAP_HSMMC_WRITE(host->base, HCTL,
 _
 
-Patches currently in -mm which might be from cjb@laptop.org are
+Patches currently in -mm which might be from ethan.too@gmail.com are
 
-linux-next.patch
-arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch
-omap_hsmmc-remove-unused-state-variable.patch
-mmc-at91_mci-add-missing-linux-highmemh-include.patch
-mmc-mmc-44-ddr-support.patch
-mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging.patch
-mmc-at91_mcic-use-resource_size.patch
-mmc-atmel-mcic-use-resource-size.patch
-mmc-au1xmmcc-use-resource_size.patch
-mmc-use-snprintf-not-sprintf.patch
-drivers-mmc-host-omapc-use-resource_size.patch
-drivers-mmc-host-omap_hsmmcc-use-resource_size.patch
+omap-hsmmc-fix-a-racing-case-between-kmmcd-and-omap_hsmmc_suspend.patch
 
