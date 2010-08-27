@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-at91_mcic-use-resource_size.patch added to -mm tree
-Date: Fri, 27 Aug 2010 12:30:02 -0700
-Message-ID: <201008271930.o7RJU2wk011396__7020.8779573024$1282937411$gmane$org@imap1.linux-foundation.org>
+Subject: + mmc-au1xmmcc-use-resource_size.patch added to -mm tree
+Date: Fri, 27 Aug 2010 12:30:06 -0700
+Message-ID: <201008271930.o7RJU6Vh011405__17740.4350405142$1282937418$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752774Ab0H0TaG (ORCPT
+	by vger.kernel.org with ESMTP id S1753474Ab0H0TaK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Aug 2010 15:30:06 -0400
+	Fri, 27 Aug 2010 15:30:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hsweeten@visionengravers.com, cjb@laptop.org, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     mmc: at91_mci.c: use resource_size()
+     mmc: au1xmmc.c: use resource_size()
 has been added to the -mm tree.  Its filename is
-     mmc-at91_mcic-use-resource_size.patch
+     mmc-au1xmmcc-use-resource_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci.c: use resource_size()
+Subject: mmc: au1xmmc.c: use resource_size()
 From: H Hartley Sweeten <hsweeten@visionengravers.com>
 
 Use resource_size().
@@ -46,48 +46,21 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/mmc/host/au1xmmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mcic-use-resource_size drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mcic-use-resource_size
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -927,7 +927,7 @@ static int __init at91_mci_probe(struct 
- 	if (!res)
- 		return -ENXIO;
+diff -puN drivers/mmc/host/au1xmmc.c~mmc-au1xmmcc-use-resource_size drivers/mmc/host/au1xmmc.c
+--- a/drivers/mmc/host/au1xmmc.c~mmc-au1xmmcc-use-resource_size
++++ a/drivers/mmc/host/au1xmmc.c
+@@ -964,7 +964,7 @@ static int __devinit au1xmmc_probe(struc
+ 		goto out1;
+ 	}
  
--	if (!request_mem_region(res->start, res->end - res->start + 1, DRIVER_NAME))
-+	if (!request_mem_region(res->start, resource_size(res), DRIVER_NAME))
- 		return -EBUSY;
- 
- 	mmc = mmc_alloc_host(sizeof(struct at91mci_host), &pdev->dev);
-@@ -1016,7 +1016,7 @@ static int __init at91_mci_probe(struct 
- 	/*
- 	 * Map I/O region
- 	 */
--	host->baseaddr = ioremap(res->start, res->end - res->start + 1);
-+	host->baseaddr = ioremap(res->start, resource_size(res));
- 	if (!host->baseaddr) {
- 		ret = -ENOMEM;
- 		goto fail1;
-@@ -1092,7 +1092,7 @@ fail4b:
- fail5:
- 	mmc_free_host(mmc);
- fail6:
--	release_mem_region(res->start, res->end - res->start + 1);
-+	release_mem_region(res->start, resource_size(res));
- 	dev_err(&pdev->dev, "probe failed, err %d\n", ret);
- 	return ret;
- }
-@@ -1137,7 +1137,7 @@ static int __exit at91_mci_remove(struct
- 
- 	iounmap(host->baseaddr);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, res->end - res->start + 1);
-+	release_mem_region(res->start, resource_size(res));
- 
- 	mmc_free_host(mmc);
- 	platform_set_drvdata(pdev, NULL);
+-	host->ioarea = request_mem_region(r->start, r->end - r->start + 1,
++	host->ioarea = request_mem_region(r->start, resource_size(r),
+ 					   pdev->name);
+ 	if (!host->ioarea) {
+ 		dev_err(&pdev->dev, "mmio already in use\n");
 _
 
 Patches currently in -mm which might be from hsweeten@visionengravers.com are
