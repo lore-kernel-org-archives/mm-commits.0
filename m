@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch added to -mm tree
-Date: Fri, 27 Aug 2010 13:03:39 -0700
-Message-ID: <201008272003.o7RK3d33013124@imap1.linux-foundation.org>
+Subject: + omap_hsmmc-remove-unused-state-variable.patch added to -mm tree
+Date: Fri, 27 Aug 2010 13:04:40 -0700
+Message-ID: <201008272004.o7RK4ewY013150__1185.39458276263$1282939490$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752758Ab0H0UD4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751999Ab0H0UEq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Aug 2010 16:03:56 -0400
+	Fri, 27 Aug 2010 16:04:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jiri.pinkava@vscht.cz, cjb@laptop.org, linux-mmc@vger.kernel.org, matt@console-pimps.org, rmk@arm.linux.org.uk
+Cc: saaguirre@ti.com, cjb@laptop.org, linux-mmc@vger.kernel.org, matt@console-pimps.org
 
 
 The patch titled
-     ARM: SAMSUNG: MMC: fix build error when both DMA and PIO mode selected
+     omap_hsmmc: remove unused local `state'
 has been added to the -mm tree.  Its filename is
-     arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch
+     omap_hsmmc-remove-unused-state-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ARM: SAMSUNG: MMC: fix build error when both DMA and PIO mode selected
-From: Jiri Pinkava <jiri.pinkava@vscht.cz>
+Subject: omap_hsmmc: remove unused local `state'
+From: Sergio Aguirre <saaguirre@ti.com>
 
-Date: Tue, 25 May 2010 09:48:58 +0200
+This fixes the following warning:
 
-[cjb: fix line-wrapped patch]
-Signed-off-by: Jiri Pinkava <jiri.pinkava@vscht.cz>
+drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_suspend':
+drivers/mmc/host/omap_hsmmc.c:2275: warning: unused variable 'state'
+
+Introduced by commit ID:
+
+  commit 1a13f8fa76c880be41d6b1e6a2b44404bcbfdf9e
+  Author: Matt Fleming <matt@console-pimps.org>
+  Date:   Wed May 26 14:42:08 2010 -0700
+
+      mmc: remove the "state" argument to mmc_suspend_host()
+
+The unique usage of this var was removed there, and missed
+removing the respective declaration aswell.
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Matt Fleming <matt@console-pimps.org>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/s3cmci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/omap_hsmmc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/mmc/host/s3cmci.c~arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected drivers/mmc/host/s3cmci.c
---- a/drivers/mmc/host/s3cmci.c~arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected
-+++ a/drivers/mmc/host/s3cmci.c
-@@ -1600,7 +1600,7 @@ static int __devinit s3cmci_probe(struct
- 	host->pio_active 	= XFER_NONE;
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-remove-unused-state-variable drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-remove-unused-state-variable
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -2305,7 +2305,6 @@ static int omap_hsmmc_suspend(struct dev
+ 	int ret = 0;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
+-	pm_message_t state = PMSG_SUSPEND; /* unused by MMC core */
  
- #ifdef CONFIG_MMC_S3C_PIODMA
--	host->dodma		= host->pdata->dma;
-+	host->dodma		= host->pdata->use_dma;
- #endif
- 
- 	host->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (host && host->suspended)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from jiri.pinkava@vscht.cz are
+Patches currently in -mm which might be from saaguirre@ti.com are
 
-arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch
+omap_hsmmc-remove-unused-state-variable.patch
 
