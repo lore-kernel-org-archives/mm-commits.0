@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-at91_mci-add-missing-linux-highmemh-include.patch added to -mm tree
-Date: Fri, 27 Aug 2010 13:15:28 -0700
-Message-ID: <201008272015.o7RKFSYK013640@imap1.linux-foundation.org>
+Subject: + drivers-mmc-host-omapc-use-resource_size.patch added to -mm tree
+Date: Fri, 27 Aug 2010 13:53:45 -0700
+Message-ID: <201008272053.o7RKrjth015449__12431.8728609525$1282942442$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753358Ab0H0UP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751947Ab0H0Ux5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Aug 2010 16:15:57 -0400
+	Fri, 27 Aug 2010 16:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mkl@pengutronix.de, avictor.za@gmail.com, cjb@laptop.org, nicolas.ferre@atmel.com, wolfgang.mues@auerswald.de
+Cc: cjb@laptop.org, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, tony@atomide.com
 
 
 The patch titled
-     mmc: at91_mci: add missing linux/highmem.h include
+     drivers/mmc/host/omap.c: use resource_size()
 has been added to the -mm tree.  Its filename is
-     mmc-at91_mci-add-missing-linux-highmemh-include.patch
+     drivers-mmc-host-omapc-use-resource_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: at91_mci: add missing linux/highmem.h include
-From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: drivers/mmc/host/omap.c: use resource_size()
+From: Chris Ball <cjb@laptop.org>
 
-Fix the following error:
-
-at91_mci.c: In function 'at91_mci_sg_to_dma':
-at91_mci.c:236: error: implicit declaration of function 'kmap_atomic'
-at91_mci.c:236: error: 'KM_BIO_SRC_IRQ' undeclared (first use in this function)
-at91_mci.c:236: error: (Each undeclared identifier is reported only once
-at91_mci.c:236: error: for each function it appears in.)
-at91_mci.c:236: warning: assignment makes pointer from integer without a cast
-at91_mci.c:252: error: implicit declaration of function 'kunmap_atomic'
-at91_mci.c: In function 'at91_mci_post_dma_read':
-at91_mci.c:302: error: 'KM_BIO_SRC_IRQ' undeclared (first use in this function)
-at91_mci.c:302: warning: assignment makes pointer from integer without a cast
-at91_mci.c:317: error: implicit declaration of function 'flush_kernel_dcache_page'
-
-Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
 Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/omap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-add-missing-linux-highmemh-include drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-add-missing-linux-highmemh-include
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -66,6 +66,7 @@
- #include <linux/clk.h>
- #include <linux/atmel_pdc.h>
- #include <linux/gfp.h>
-+#include <linux/highmem.h>
+diff -puN drivers/mmc/host/omap.c~drivers-mmc-host-omapc-use-resource_size drivers/mmc/host/omap.c
+--- a/drivers/mmc/host/omap.c~drivers-mmc-host-omapc-use-resource_size
++++ a/drivers/mmc/host/omap.c
+@@ -1416,7 +1416,7 @@ static int __init mmc_omap_probe(struct 
+ 	if (res == NULL || irq < 0)
+ 		return -ENXIO;
  
- #include <linux/mmc/host.h>
+-	res = request_mem_region(res->start, res->end - res->start + 1,
++	res = request_mem_region(res->start, resource_size(res),
+ 				 pdev->name);
+ 	if (res == NULL)
+ 		return -EBUSY;
+@@ -1456,7 +1456,7 @@ static int __init mmc_omap_probe(struct 
+ 
+ 	host->irq = irq;
+ 	host->phys_base = host->mem_res->start;
+-	host->virt_base = ioremap(res->start, res->end - res->start + 1);
++	host->virt_base = ioremap(res->start, resource_size(res));
+ 	if (!host->virt_base)
+ 		goto err_ioremap;
+ 
+@@ -1513,7 +1513,7 @@ err_free_mmc_host:
+ err_ioremap:
+ 	kfree(host);
+ err_free_mem_region:
+-	release_mem_region(res->start, res->end - res->start + 1);
++	release_mem_region(res->start, resource_size(res));
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from mkl@pengutronix.de are
+Patches currently in -mm which might be from cjb@laptop.org are
 
 linux-next.patch
+arm-samsung-mmc-fix-build-error-when-both-dma-and-pio-mode-selected.patch
+omap_hsmmc-remove-unused-state-variable.patch
 mmc-at91_mci-add-missing-linux-highmemh-include.patch
+mmc-mmc-44-ddr-support.patch
+mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging.patch
+mmc-at91_mcic-use-resource_size.patch
+mmc-atmel-mcic-use-resource-size.patch
+mmc-au1xmmcc-use-resource_size.patch
+mmc-use-snprintf-not-sprintf.patch
+drivers-mmc-host-omapc-use-resource_size.patch
+drivers-mmc-host-omap_hsmmcc-use-resource_size.patch
 
