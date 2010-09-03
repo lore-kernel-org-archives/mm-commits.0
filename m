@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-include-asm-fsldmah-needs-slabh.patch added to -mm tree
-Date: Fri, 03 Sep 2010 16:40:43 -0700
-Message-ID: <201009032340.o83NehWF019368@imap1.linux-foundation.org>
+Subject: + minix-fix-regression-in-minix_mkdir.patch added to -mm tree
+Date: Fri, 03 Sep 2010 16:44:24 -0700
+Message-ID: <201009032344.o83NiOmV019535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199Ab0ICXks (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 19:40:48 -0400
+	by vger.kernel.org with ESMTP id S1753034Ab0ICXoj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 19:44:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: iws@ovro.caltech.edu, benh@kernel.crashing.org, dan.j.williams@intel.com
+Cc: jorge@dti2.net, dmonakhov@openvz.org, stable@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     arch/powerpc/include/asm/fsldma.h needs slab.h
+     minix: fix regression in minix_mkdir()
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-include-asm-fsldmah-needs-slabh.patch
+     minix-fix-regression-in-minix_mkdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/include/asm/fsldma.h needs slab.h
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Subject: minix: fix regression in minix_mkdir()
+From: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
 
-The slab.h header is required to use the kmalloc() family of functions. 
-Due to recent kernel changes, this header must be directly included by
-code that calls into the memory allocator.
+Commit 9eed1fb721c ("minix: replace inode uid,gid,mode init with helper")
+broke directory creation on minix filesystems.
 
-Without this patch, any code which includes this header fails to build.
+Fix it by passing the needed mode flag to inode init helper.
 
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jorge Boncompte [DTI2] <jorge@dti2.net>
+Cc: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>		[2.6.35.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/fsldma.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/minix/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/include/asm/fsldma.h~arch-powerpc-include-asm-fsldmah-needs-slabh arch/powerpc/include/asm/fsldma.h
---- a/arch/powerpc/include/asm/fsldma.h~arch-powerpc-include-asm-fsldmah-needs-slabh
-+++ a/arch/powerpc/include/asm/fsldma.h
-@@ -11,6 +11,7 @@
- #ifndef __ARCH_POWERPC_ASM_FSLDMA_H__
- #define __ARCH_POWERPC_ASM_FSLDMA_H__
+diff -puN fs/minix/namei.c~minix-fix-regression-in-minix_mkdir fs/minix/namei.c
+--- a/fs/minix/namei.c~minix-fix-regression-in-minix_mkdir
++++ a/fs/minix/namei.c
+@@ -115,7 +115,7 @@ static int minix_mkdir(struct inode * di
  
-+#include <linux/slab.h>
- #include <linux/dmaengine.h>
+ 	inode_inc_link_count(dir);
  
- /*
+-	inode = minix_new_inode(dir, mode, &err);
++	inode = minix_new_inode(dir, S_IFDIR | mode, &err);
+ 	if (!inode)
+ 		goto out_dir;
+ 
 _
 
-Patches currently in -mm which might be from iws@ovro.caltech.edu are
+Patches currently in -mm which might be from jorge@dti2.net are
 
-linux-next.patch
-arch-powerpc-include-asm-fsldmah-needs-slabh.patch
-kfifo-fix-scatterlist-usage.patch
+minix-fix-regression-in-minix_mkdir.patch
 
