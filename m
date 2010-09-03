@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch added to -mm tree
-Date: Fri, 03 Sep 2010 15:10:10 -0700
-Message-ID: <201009032210.o83MAAqo015282@imap1.linux-foundation.org>
+Subject: + alpha-enable-arch_dma_addr_t_64bit.patch added to -mm tree
+Date: Fri, 03 Sep 2010 15:10:06 -0700
+Message-ID: <201009032210.o83MA6u9015269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757728Ab0ICWKx (ORCPT
+	by vger.kernel.org with ESMTP id S1757759Ab0ICWKx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 18:10:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, ralf@linux-mips.org
+Cc: fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     mips: enable ARCH_DMA_ADDR_T_64BIT with (HIGHMEM && 64BIT_PHYS_ADDR) || 64BIT
+     alpha: enable ARCH_DMA_ADDR_T_64BIT
 has been added to the -mm tree.  Its filename is
-     mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
+     alpha-enable-arch_dma_addr_t_64bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: enable ARCH_DMA_ADDR_T_64BIT with (HIGHMEM && 64BIT_PHYS_ADDR) || 64BIT
+Subject: alpha: enable ARCH_DMA_ADDR_T_64BIT
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig |    3 +++
+ arch/alpha/Kconfig |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN arch/mips/Kconfig~mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit arch/mips/Kconfig
---- a/arch/mips/Kconfig~mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit
-+++ a/arch/mips/Kconfig
-@@ -830,6 +830,9 @@ config GPIO_TXX9
- config CFE
+diff -puN arch/alpha/Kconfig~alpha-enable-arch_dma_addr_t_64bit arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-enable-arch_dma_addr_t_64bit
++++ a/arch/alpha/Kconfig
+@@ -54,6 +54,9 @@ config ZONE_DMA
  	bool
+ 	default y
  
 +config ARCH_DMA_ADDR_T_64BIT
-+	def_bool (HIGHMEM && 64BIT_PHYS_ADDR) || 64BIT
++	def_bool y
 +
- config DMA_COHERENT
- 	bool
+ config NEED_DMA_MAP_STATE
+        def_bool y
  
 _
 
