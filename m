@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-make-id-freq-configurable-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 03 Sep 2010 16:25:11 -0700
-Message-ID: <201009032325.o83NPCwt018719__38396.5463763618$1283556384$gmane$org@imap1.linux-foundation.org>
+Subject: + kfifo-fix-scatterlist-usage.patch added to -mm tree
+Date: Fri, 03 Sep 2010 16:36:45 -0700
+Message-ID: <201009032336.o83NajYC019205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754639Ab0ICXZy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 19:25:54 -0400
+	by vger.kernel.org with ESMTP id S1753458Ab0ICXhF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 19:37:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adrian.hunter@nokia.com, bn@niasdigital.com, cjb@laptop.org, hein_tibosch@yahoo.es, linux-mmc@vger.kernel.org, matt@console-pimps.org, pierre@ossman.eu, s.hauer@pengutronix.de
+Cc: iws@ovro.caltech.edu, stefani@seibold.net
 
 
 The patch titled
-     mmc-make-id-freq-configurable-checkpatch-fixes
+     kfifo: fix scatterlist usage
 has been added to the -mm tree.  Its filename is
-     mmc-make-id-freq-configurable-checkpatch-fixes.patch
+     kfifo-fix-scatterlist-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc-make-id-freq-configurable-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kfifo: fix scatterlist usage
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#76: FILE: drivers/mmc/core/core.c:1453:
-+		printk ("mmc_rescan: trying %u Hz\n", host->f_init);
+The kfifo_dma family of functions use sg_mark_end() on the last element in
+their scatterlist.  This forces use of a fresh scatterlist for each DMA
+operation, which makes recycling a single scatterlist impossible.
 
-WARNING: line over 80 characters
-#100: FILE: drivers/mmc/core/core.c:1467:
-+				/* try SDMEM (but not MMC) even if SDIO is broken */
+Change the behavior of the kfifo_dma functions to match the usage of the
+dma_map_sg function.  This means that users must respect the returned
+nents value.  The sample code is updated to reflect the change.
 
-total: 0 errors, 2 warnings, 131 lines checked
+This bug is trivial to cause: call kfifo_dma_in_prepare() such that it
+prepares a scatterlist with a single entry comprising the whole fifo. 
+This is the case when you map the entirety of a newly created empty fifo. 
+This causes the setup_sgl() function to mark the first scatterlist entry
+as the end of the chain, no matter what comes after it.
 
-./patches/mmc-make-id-freq-configurable.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Afterwards, add and remove some data from the fifo such that another call
+to kfifo_dma_in_prepare() will create two scatterlist entries.  It returns
+nents=2.  However, due to the previous sg_mark_end() call, sg_is_last()
+will now return true for the first scatterlist element.  This causes the
+sample code to print a single scatterlist element when it should print
+two.
 
-Please run checkpatch prior to sending patches
+By removing the call to sg_mark_end(), we make the API as similar as
+possible to the DMA mapping API.  All users are required to respect the
+returned nents.
 
-Cc: <linux-mmc@vger.kernel.org>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Ben Nizette <bn@niasdigital.com>
-Cc: Chris Ball <cjb@laptop.org>
-Cc: Hein Tibosch <hein_tibosch@yahoo.es>
-Cc: Matt Fleming <matt@console-pimps.org>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/kfifo.c              |    2 --
+ samples/kfifo/dma-example.c |   17 +++++++++--------
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-make-id-freq-configurable-checkpatch-fixes drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-make-id-freq-configurable-checkpatch-fixes
-+++ a/drivers/mmc/core/core.c
-@@ -1450,7 +1450,9 @@ void mmc_rescan(struct work_struct *work
- 		else
- 			host->f_init = host->f_min;
+diff -puN kernel/kfifo.c~kfifo-fix-scatterlist-usage kernel/kfifo.c
+--- a/kernel/kfifo.c~kfifo-fix-scatterlist-usage
++++ a/kernel/kfifo.c
+@@ -365,8 +365,6 @@ static unsigned int setup_sgl(struct __k
+ 	n = setup_sgl_buf(sgl, fifo->data + off, nents, l);
+ 	n += setup_sgl_buf(sgl + n, fifo->data, nents - n, len - l);
  
--		printk ("mmc_rescan: trying %u Hz\n", host->f_init);
-+		pr_info("%s: %s: trying to init card at %u Hz\n",
-+			mmc_hostname(host), __func__, host->f_init);
-+
- 		mmc_power_up(host);
- 		sdio_reset(host);
- 		mmc_go_idle(host);
-@@ -1464,7 +1466,10 @@ void mmc_rescan(struct work_struct *work
- 		if (!err) {
- 			if (mmc_attach_sdio(host, ocr)) {
- 				mmc_claim_host(host);
--				/* try SDMEM (but not MMC) even if SDIO is broken */
-+				/*
-+				 * Try SDMEM (but not MMC) even if SDIO is
-+				 * broken.
-+				 */
- 				if (mmc_send_app_op_cond(host, 0, &ocr))
- 					goto out_fail;
+-	if (n)
+-		sg_mark_end(sgl + n - 1);
+ 	return n;
+ }
  
+diff -puN samples/kfifo/dma-example.c~kfifo-fix-scatterlist-usage samples/kfifo/dma-example.c
+--- a/samples/kfifo/dma-example.c~kfifo-fix-scatterlist-usage
++++ a/samples/kfifo/dma-example.c
+@@ -24,6 +24,7 @@ static int __init example_init(void)
+ {
+ 	int			i;
+ 	unsigned int		ret;
++	unsigned int		nents;
+ 	struct scatterlist	sg[10];
+ 
+ 	printk(KERN_INFO "DMA fifo test start\n");
+@@ -61,9 +62,9 @@ static int __init example_init(void)
+ 	 * byte at the beginning, after the kfifo_skip().
+ 	 */
+ 	sg_init_table(sg, ARRAY_SIZE(sg));
+-	ret = kfifo_dma_in_prepare(&fifo, sg, ARRAY_SIZE(sg), FIFO_SIZE);
+-	printk(KERN_INFO "DMA sgl entries: %d\n", ret);
+-	if (!ret) {
++	nents = kfifo_dma_in_prepare(&fifo, sg, ARRAY_SIZE(sg), FIFO_SIZE);
++	printk(KERN_INFO "DMA sgl entries: %d\n", nents);
++	if (!nents) {
+ 		/* fifo is full and no sgl was created */
+ 		printk(KERN_WARNING "error kfifo_dma_in_prepare\n");
+ 		return -EIO;
+@@ -71,7 +72,7 @@ static int __init example_init(void)
+ 
+ 	/* receive data */
+ 	printk(KERN_INFO "scatterlist for receive:\n");
+-	for (i = 0; i < ARRAY_SIZE(sg); i++) {
++	for (i = 0; i < nents; i++) {
+ 		printk(KERN_INFO
+ 		"sg[%d] -> "
+ 		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
+@@ -91,16 +92,16 @@ static int __init example_init(void)
+ 	kfifo_dma_in_finish(&fifo, ret);
+ 
+ 	/* Prepare to transmit data, example: 8 bytes */
+-	ret = kfifo_dma_out_prepare(&fifo, sg, ARRAY_SIZE(sg), 8);
+-	printk(KERN_INFO "DMA sgl entries: %d\n", ret);
+-	if (!ret) {
++	nents = kfifo_dma_out_prepare(&fifo, sg, ARRAY_SIZE(sg), 8);
++	printk(KERN_INFO "DMA sgl entries: %d\n", nents);
++	if (!nents) {
+ 		/* no data was available and no sgl was created */
+ 		printk(KERN_WARNING "error kfifo_dma_out_prepare\n");
+ 		return -EIO;
+ 	}
+ 
+ 	printk(KERN_INFO "scatterlist for transmit:\n");
+-	for (i = 0; i < ARRAY_SIZE(sg); i++) {
++	for (i = 0; i < nents; i++) {
+ 		printk(KERN_INFO
+ 		"sg[%d] -> "
+ 		"page_link 0x%.8lx offset 0x%.8x length 0x%.8x\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iws@ovro.caltech.edu are
 
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-cgroups-fix-api-thinko-fix.patch
-vmstat-update-zone-stat-threshold-when-onlining-a-cpu.patch
-mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list-fix.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
-mmc-make-id-freq-configurable-checkpatch-fixes.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+kfifo-fix-scatterlist-usage.patch
 
