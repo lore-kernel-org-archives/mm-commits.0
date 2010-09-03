@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch added to -mm tree
-Date: Fri, 03 Sep 2010 15:10:19 -0700
-Message-ID: <201009032210.o83MAJZV015295@imap1.linux-foundation.org>
+Subject: + mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake.patch added to -mm tree
+Date: Fri, 03 Sep 2010 16:01:27 -0700
+Message-ID: <201009032301.o83N1RfE017721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753256Ab0ICWLp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 18:11:45 -0400
+	by vger.kernel.org with ESMTP id S1753251Ab0ICXBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 19:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@tilera.com, heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, mingo@elte.hu, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com
+Cc: cl@linux.com, mel@csn.ul.ie
 
 
 The patch titled
-     add the common dma_addr_t typedef to include/linux/types.h
+     mm: page allocator: calculate a better estimate of NR_FREE_PAGES when memory is low and kswapd is awake
 has been added to the -mm tree.  Its filename is
-     add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+     mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,367 +33,196 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add the common dma_addr_t typedef to include/linux/types.h
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: mm: page allocator: calculate a better estimate of NR_FREE_PAGES when memory is low and kswapd is awake
+From: Christoph Lameter <cl@linux.com>
 
-All architectures can use the common dma_addr_t typedef now. We can
-remove the arch specific dma_addr_t.
+Ordinarily watermark checks are based on the vmstat NR_FREE_PAGES as it is
+cheaper than scanning a number of lists.  To avoid synchronization
+overhead, counter deltas are maintained on a per-cpu basis and drained
+both periodically and when the delta is above a threshold.  On large CPU
+systems, the difference between the estimated and real value of
+NR_FREE_PAGES can be very high.  If NR_FREE_PAGES is much higher than
+number of real free page in buddy, the VM can allocate pages below min
+watermark, at worst reducing the real number of pages to zero.  Even if
+the OOM killer kills some victim for freeing memory, it may not free
+memory if the exit path requires a new page resulting in livelock.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+This patch introduces a zone_page_state_snapshot() function (courtesy of
+Christoph) that takes a slightly more accurate view of an arbitrary vmstat
+counter.  It is used to read NR_FREE_PAGES while kswapd is awake to avoid
+the watermark being accidentally broken.  The estimate is not perfect and
+may result in cache line bounces but is expected to be lighter than the
+IPI calls necessary to continually drain the per-cpu counters while kswapd
+is awake.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/types.h   |    1 -
- arch/arm/include/asm/types.h     |    3 ---
- arch/avr32/include/asm/types.h   |    8 --------
- arch/cris/include/asm/types.h    |    3 ---
- arch/frv/include/asm/types.h     |    8 --------
- arch/h8300/include/asm/types.h   |    4 ----
- arch/ia64/include/asm/types.h    |    3 ---
- arch/m32r/include/asm/types.h    |    3 ---
- arch/m68k/include/asm/types.h    |    3 ---
- arch/mips/include/asm/types.h    |    6 ------
- arch/mn10300/include/asm/types.h |    7 -------
- arch/parisc/include/asm/types.h  |    3 ---
- arch/powerpc/include/asm/types.h |    5 -----
- arch/s390/include/asm/types.h    |    6 ------
- arch/sparc/include/asm/types.h   |    4 ----
- arch/x86/include/asm/types.h     |    8 --------
- arch/xtensa/include/asm/types.h  |    4 ----
- include/asm-generic/types.h      |   27 ---------------------------
- include/linux/types.h            |    6 ++++++
- 19 files changed, 6 insertions(+), 106 deletions(-)
+ include/linux/mmzone.h |   13 +++++++++++++
+ include/linux/vmstat.h |   22 ++++++++++++++++++++++
+ mm/mmzone.c            |   21 +++++++++++++++++++++
+ mm/page_alloc.c        |    4 ++--
+ mm/vmstat.c            |   15 ++++++++++++++-
+ 5 files changed, 72 insertions(+), 3 deletions(-)
 
-diff -puN arch/alpha/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/alpha/include/asm/types.h
---- a/arch/alpha/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/alpha/include/asm/types.h
-@@ -27,7 +27,6 @@ typedef unsigned int umode_t;
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
+diff -puN include/linux/mmzone.h~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake
++++ a/include/linux/mmzone.h
+@@ -284,6 +284,13 @@ struct zone {
+ 	unsigned long watermark[NR_WMARK];
  
--typedef u64 dma_addr_t;
- typedef u64 dma64_addr_t;
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/arm/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/arm/include/asm/types.h
---- a/arch/arm/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/arm/include/asm/types.h
-@@ -18,9 +18,6 @@ typedef unsigned short umode_t;
- 
- #ifndef __ASSEMBLY__
- 
--/* Dma addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
- typedef u32 dma64_addr_t;
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/avr32/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/avr32/include/asm/types.h
---- a/arch/avr32/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/avr32/include/asm/types.h
-@@ -23,14 +23,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--/* Dma addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- 
-diff -puN arch/cris/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/cris/include/asm/types.h
---- a/arch/cris/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/cris/include/asm/types.h
-@@ -18,9 +18,6 @@ typedef unsigned short umode_t;
- 
- #ifndef __ASSEMBLY__
- 
--/* Dma addresses are 32-bits wide, just like our other addresses.  */
-- 
--typedef u32 dma_addr_t;
- typedef u32 dma64_addr_t;
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/frv/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/frv/include/asm/types.h
---- a/arch/frv/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/frv/include/asm/types.h
-@@ -27,14 +27,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--/* Dma addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_TYPES_H */
-diff -puN arch/h8300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/h8300/include/asm/types.h
---- a/arch/h8300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/h8300/include/asm/types.h
-@@ -22,10 +22,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--/* Dma addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
--
- #endif /* __KERNEL__ */
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/ia64/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/ia64/include/asm/types.h
---- a/arch/ia64/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/ia64/include/asm/types.h
-@@ -40,9 +40,6 @@ struct fnptr {
- 	unsigned long gp;
- };
- 
--/* DMA addresses are 64-bits wide, in general.  */
--typedef u64 dma_addr_t;
--
- # endif /* __KERNEL__ */
- #endif /* !__ASSEMBLY__ */
- 
-diff -puN arch/m32r/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/m32r/include/asm/types.h
---- a/arch/m32r/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/m32r/include/asm/types.h
-@@ -18,9 +18,6 @@ typedef unsigned short umode_t;
- 
- #ifndef __ASSEMBLY__
- 
--/* DMA addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
- typedef u64 dma64_addr_t;
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/m68k/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/m68k/include/asm/types.h
---- a/arch/m68k/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/m68k/include/asm/types.h
-@@ -25,9 +25,6 @@ typedef unsigned short umode_t;
- 
- #ifndef __ASSEMBLY__
- 
--/* DMA addresses are always 32-bits wide */
--
--typedef u32 dma_addr_t;
- typedef u32 dma64_addr_t;
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/mips/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/mips/include/asm/types.h
---- a/arch/mips/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/mips/include/asm/types.h
-@@ -33,12 +33,6 @@ typedef unsigned short umode_t;
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- 
--#if (defined(CONFIG_HIGHMEM) && defined(CONFIG_64BIT_PHYS_ADDR)) \
--    || defined(CONFIG_64BIT)
--typedef u64 dma_addr_t;
--#else
--typedef u32 dma_addr_t;
--#endif
- typedef u64 dma64_addr_t;
- 
- /*
-diff -puN arch/mn10300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/mn10300/include/asm/types.h
---- a/arch/mn10300/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/mn10300/include/asm/types.h
-@@ -26,13 +26,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--/* Dma addresses are 32-bits wide.  */
--typedef u32 dma_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_TYPES_H */
-diff -puN arch/parisc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/parisc/include/asm/types.h
---- a/arch/parisc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/parisc/include/asm/types.h
-@@ -16,9 +16,6 @@ typedef unsigned short umode_t;
- 
- #ifndef __ASSEMBLY__
- 
--/* Dma addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
- typedef u64 dma64_addr_t;
- 
- #endif /* __ASSEMBLY__ */
-diff -puN arch/powerpc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/powerpc/include/asm/types.h
---- a/arch/powerpc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/powerpc/include/asm/types.h
-@@ -44,11 +44,6 @@ typedef struct {
- 
- typedef __vector128 vector128;
- 
--#if defined(__powerpc64__) || defined(CONFIG_PHYS_64BIT)
--typedef u64 dma_addr_t;
--#else
--typedef u32 dma_addr_t;
--#endif
- typedef u64 dma64_addr_t;
- 
- typedef struct {
-diff -puN arch/s390/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/s390/include/asm/types.h
---- a/arch/s390/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/s390/include/asm/types.h
-@@ -31,12 +31,6 @@ typedef __signed__ long saddr_t;
- #ifndef __ASSEMBLY__
- 
- typedef u64 dma64_addr_t;
--#ifdef __s390x__
--/* DMA addresses come in 32-bit and 64-bit flavours. */
--typedef u64 dma_addr_t;
--#else
--typedef u32 dma_addr_t;
--#endif
- 
- #ifndef __s390x__
- typedef union {
-diff -puN arch/sparc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/sparc/include/asm/types.h
---- a/arch/sparc/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/sparc/include/asm/types.h
-@@ -22,10 +22,6 @@ typedef unsigned short umode_t;
- 
- #ifndef __ASSEMBLY__
- 
--/* Dma addresses come in generic and 64-bit flavours.  */
--
--typedef u32 dma_addr_t;
--
- #if defined(__arch64__)
- 
- /*** SPARC 64 bit ***/
-diff -puN arch/x86/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/x86/include/asm/types.h
---- a/arch/x86/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/x86/include/asm/types.h
-@@ -1,20 +1,12 @@
- #ifndef _ASM_X86_TYPES_H
- #define _ASM_X86_TYPES_H
- 
--#define dma_addr_t	dma_addr_t
--
- #include <asm-generic/types.h>
- 
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- 
- typedef u64 dma64_addr_t;
--#if defined(CONFIG_X86_64) || defined(CONFIG_HIGHMEM64G)
--/* DMA addresses come in 32-bit and 64-bit flavours. */
--typedef u64 dma_addr_t;
--#else
--typedef u32 dma_addr_t;
--#endif
- 
- #endif /* __ASSEMBLY__ */
- #endif /* __KERNEL__ */
-diff -puN arch/xtensa/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh arch/xtensa/include/asm/types.h
---- a/arch/xtensa/include/asm/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/arch/xtensa/include/asm/types.h
-@@ -32,10 +32,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--/* Dma addresses are 32-bits wide.  */
--
--typedef u32 dma_addr_t;
--
- #endif	/* __KERNEL__ */
- #endif
- 
-diff -puN include/asm-generic/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh include/asm-generic/types.h
---- a/include/asm-generic/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/include/asm-generic/types.h
-@@ -12,31 +12,4 @@ typedef unsigned short umode_t;
- 
- #endif /* __ASSEMBLY__ */
- 
--/*
-- * These aren't exported outside the kernel to avoid name space clashes
-- */
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--/*
-- * DMA addresses may be very different from physical addresses
-- * and pointers. i386 and powerpc may have 64 bit DMA on 32 bit
-- * systems, while sparc64 uses 32 bit DMA addresses for 64 bit
-- * physical addresses.
-- * This default defines dma_addr_t to have the same size as
-- * phys_addr_t, which is the most common way.
-- * Do not define the dma64_addr_t type, which never really
-- * worked.
-- */
--#ifndef dma_addr_t
--#ifdef CONFIG_PHYS_ADDR_T_64BIT
--typedef u64 dma_addr_t;
--#else
--typedef u32 dma_addr_t;
--#endif /* CONFIG_PHYS_ADDR_T_64BIT */
--#endif /* dma_addr_t */
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* __KERNEL__ */
--
- #endif /* _ASM_GENERIC_TYPES_H */
-diff -puN include/linux/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh include/linux/types.h
---- a/include/linux/types.h~add-the-common-dma_addr_t-typedef-to-include-linux-typesh
-+++ a/include/linux/types.h
-@@ -150,6 +150,12 @@ typedef unsigned long blkcnt_t;
- #define pgoff_t unsigned long
- #endif
- 
-+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
-+typedef u64 dma_addr_t;
-+#else
-+typedef u32 dma_addr_t;
-+#endif /* dma_addr_t */
+ 	/*
++	 * When free pages are below this point, additional steps are taken
++	 * when reading the number of free pages to avoid per-cpu counter
++	 * drift allowing watermarks to be breached
++	 */
++	unsigned long percpu_drift_mark;
 +
- #endif /* __KERNEL__ */
++	/*
+ 	 * We don't know if the memory that we're going to allocate will be freeable
+ 	 * or/and it will be released eventually, so to avoid totally wasting several
+ 	 * GB of ram we must reserve some of the lower zone memory (otherwise we risk
+@@ -441,6 +448,12 @@ static inline int zone_is_oom_locked(con
+ 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
+ }
  
++#ifdef CONFIG_SMP
++unsigned long zone_nr_free_pages(struct zone *zone);
++#else
++#define zone_nr_free_pages(zone) zone_page_state(zone, NR_FREE_PAGES)
++#endif /* CONFIG_SMP */
++
  /*
+  * The "priority" of VM scanning is how much of the queues we will scan in one
+  * go. A value of 12 for DEF_PRIORITY implies that we will scan 1/4096th of the
+diff -puN include/linux/vmstat.h~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake
++++ a/include/linux/vmstat.h
+@@ -170,6 +170,28 @@ static inline unsigned long zone_page_st
+ 	return x;
+ }
+ 
++/*
++ * More accurate version that also considers the currently pending
++ * deltas. For that we need to loop over all cpus to find the current
++ * deltas. There is no synchronization so the result cannot be
++ * exactly accurate either.
++ */
++static inline unsigned long zone_page_state_snapshot(struct zone *zone,
++					enum zone_stat_item item)
++{
++	long x = atomic_long_read(&zone->vm_stat[item]);
++
++#ifdef CONFIG_SMP
++	int cpu;
++	for_each_online_cpu(cpu)
++		x += per_cpu_ptr(zone->pageset, cpu)->vm_stat_diff[item];
++
++	if (x < 0)
++		x = 0;
++#endif
++	return x;
++}
++
+ extern unsigned long global_reclaimable_pages(void);
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ 
+diff -puN mm/mmzone.c~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake mm/mmzone.c
+--- a/mm/mmzone.c~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake
++++ a/mm/mmzone.c
+@@ -87,3 +87,24 @@ int memmap_valid_within(unsigned long pf
+ 	return 1;
+ }
+ #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
++
++#ifdef CONFIG_SMP
++/* Called when a more accurate view of NR_FREE_PAGES is needed */
++unsigned long zone_nr_free_pages(struct zone *zone)
++{
++	unsigned long nr_free_pages = zone_page_state(zone, NR_FREE_PAGES);
++
++	/*
++	 * While kswapd is awake, it is considered the zone is under some
++	 * memory pressure. Under pressure, there is a risk that
++	 * per-cpu-counter-drift will allow the min watermark to be breached
++	 * potentially causing a live-lock. While kswapd is awake and
++	 * free pages are low, get a better estimate for free pages
++	 */
++	if (nr_free_pages < zone->percpu_drift_mark &&
++			!waitqueue_active(&zone->zone_pgdat->kswapd_wait))
++		return zone_page_state_snapshot(zone, NR_FREE_PAGES);
++
++	return nr_free_pages;
++}
++#endif /* CONFIG_SMP */
+diff -puN mm/page_alloc.c~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake
++++ a/mm/page_alloc.c
+@@ -1462,7 +1462,7 @@ int zone_watermark_ok(struct zone *z, in
+ {
+ 	/* free_pages my go negative - that's OK */
+ 	long min = mark;
+-	long free_pages = zone_page_state(z, NR_FREE_PAGES) - (1 << order) + 1;
++	long free_pages = zone_nr_free_pages(z) - (1 << order) + 1;
+ 	int o;
+ 
+ 	if (alloc_flags & ALLOC_HIGH)
+@@ -2424,7 +2424,7 @@ void show_free_areas(void)
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			zone->name,
+-			K(zone_page_state(zone, NR_FREE_PAGES)),
++			K(zone_nr_free_pages(zone)),
+ 			K(min_wmark_pages(zone)),
+ 			K(low_wmark_pages(zone)),
+ 			K(high_wmark_pages(zone)),
+diff -puN mm/vmstat.c~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake mm/vmstat.c
+--- a/mm/vmstat.c~mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake
++++ a/mm/vmstat.c
+@@ -138,11 +138,24 @@ static void refresh_zone_stat_thresholds
+ 	int threshold;
+ 
+ 	for_each_populated_zone(zone) {
++		unsigned long max_drift, tolerate_drift;
++
+ 		threshold = calculate_threshold(zone);
+ 
+ 		for_each_online_cpu(cpu)
+ 			per_cpu_ptr(zone->pageset, cpu)->stat_threshold
+ 							= threshold;
++
++		/*
++		 * Only set percpu_drift_mark if there is a danger that
++		 * NR_FREE_PAGES reports the low watermark is ok when in fact
++		 * the min watermark could be breached by an allocation
++		 */
++		tolerate_drift = low_wmark_pages(zone) - min_wmark_pages(zone);
++		max_drift = num_online_cpus() * threshold;
++		if (max_drift > tolerate_drift)
++			zone->percpu_drift_mark = high_wmark_pages(zone) +
++					max_drift;
+ 	}
+ }
+ 
+@@ -813,7 +826,7 @@ static void zoneinfo_show_print(struct s
+ 		   "\n        scanned  %lu"
+ 		   "\n        spanned  %lu"
+ 		   "\n        present  %lu",
+-		   zone_page_state(zone, NR_FREE_PAGES),
++		   zone_nr_free_pages(zone),
+ 		   min_wmark_pages(zone),
+ 		   low_wmark_pages(zone),
+ 		   high_wmark_pages(zone),
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from cl@linux.com are
 
 linux-next.patch
-x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
-alpha-enable-arch_dma_addr_t_64bit.patch
-ia64-enable-arch_dma_addr_t_64bit.patch
-mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
-powerpc-enable-arch_dma_addr_t_64bit-with-arch_phys_addr_t_64bit.patch
-s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
-tile-enable-arch_dma_addr_t_64bit.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list.patch
+mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list-fix.patch
+mm-page-allocator-calculate-a-better-estimate-of-nr_free_pages-when-memory-is-low-and-kswapd-is-awake.patch
+mm-page-allocator-drain-per-cpu-lists-after-direct-reclaim-allocation-fails.patch
 
