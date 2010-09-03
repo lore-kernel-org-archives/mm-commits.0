@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-fix-missing-linker-segments.patch added to -mm tree
-Date: Fri, 03 Sep 2010 15:02:26 -0700
-Message-ID: <201009032202.o83M2QQw014910@imap1.linux-foundation.org>
+Subject: + ia64-enable-arch_dma_addr_t_64bit.patch added to -mm tree
+Date: Fri, 03 Sep 2010 15:10:08 -0700
+Message-ID: <201009032210.o83MA8vC015273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753251Ab0ICWCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 18:02:48 -0400
+	by vger.kernel.org with ESMTP id S1756219Ab0ICWKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 18:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gerg@snapgear.com, gerg@uclinux.org, tj@kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, tony.luck@intel.com
 
 
 The patch titled
-     m68knommu: fix missing linker segments
+     ia64: enable ARCH_DMA_ADDR_T_64BIT
 has been added to the -mm tree.  Its filename is
-     m68knommu-fix-missing-linker-segments.patch
+     ia64-enable-arch_dma_addr_t_64bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: fix missing linker segments
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: ia64: enable ARCH_DMA_ADDR_T_64BIT
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Recent changes to linker segments that hold per-cpu data broke linking for
-m68knommu targets:
-
-  LD      vmlinux
-/usr/local/bin/m68k-uclinux-ld.real: error: no memory region specified for loadable section `.data..shared_aligned'
-
-Add missing segments into the m68knommu linker script.
-
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/vmlinux.lds.S |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/ia64/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/m68knommu/kernel/vmlinux.lds.S~m68knommu-fix-missing-linker-segments arch/m68knommu/kernel/vmlinux.lds.S
---- a/arch/m68knommu/kernel/vmlinux.lds.S~m68knommu-fix-missing-linker-segments
-+++ a/arch/m68knommu/kernel/vmlinux.lds.S
-@@ -150,6 +150,8 @@ SECTIONS {
- 		_sdata = . ;
- 		DATA_DATA
- 		CACHELINE_ALIGNED_DATA(32)
-+		PAGE_ALIGNED_DATA(PAGE_SIZE)
-+		*(.data..shared_aligned)
- 		INIT_TASK_DATA(THREAD_SIZE)
- 		_edata = . ;
- 	} > DATA
+diff -puN arch/ia64/Kconfig~ia64-enable-arch_dma_addr_t_64bit arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-enable-arch_dma_addr_t_64bit
++++ a/arch/ia64/Kconfig
+@@ -53,6 +53,9 @@ config MMU
+ 	bool
+ 	default y
+ 
++config ARCH_DMA_ADDR_T_64BIT
++	def_bool y
++
+ config NEED_DMA_MAP_STATE
+ 	def_bool y
+ 
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-m68knommu-fix-missing-linker-segments.patch
+linux-next.patch
+x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
+alpha-enable-arch_dma_addr_t_64bit.patch
+ia64-enable-arch_dma_addr_t_64bit.patch
+mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
+powerpc-enable-arch_dma_addr_t_64bit-with-arch_phys_addr_t_64bit.patch
+s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
+tile-enable-arch_dma_addr_t_64bit.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
 
