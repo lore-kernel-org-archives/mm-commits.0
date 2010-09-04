@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-fix-compactpagefailed-counting.patch added to -mm tree
-Date: Fri, 03 Sep 2010 17:02:32 -0700
-Message-ID: <201009040002.o8402WPE020292@imap1.linux-foundation.org>
+Subject: + mm-fix-swapin-race-condition.patch added to -mm tree
+Date: Fri, 03 Sep 2010 17:03:42 -0700
+Message-ID: <201009040003.o8403gri020398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751091Ab0IDADK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 20:03:10 -0400
+	by vger.kernel.org with ESMTP id S1751091Ab0IDAD6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 20:03:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, andi@firstfloor.org, cl@linux.com, fengguang.wu@intel.com, hughd@google.com, mel@csn.ul.ie
+Cc: aarcange@redhat.com, hughd@google.com, riel@redhat.com, stable@kernel.org
 
 
 The patch titled
-     mm: compaction: fix COMPACTPAGEFAILED counting
+     mm: fix swapin race condition
 has been added to the -mm tree.  Its filename is
-     mm-compaction-fix-compactpagefailed-counting.patch
+     mm-fix-swapin-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,144 +33,182 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: fix COMPACTPAGEFAILED counting
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: mm: fix swapin race condition
+From: Andrea Arcangeli <aarcange@redhat.com>
 
-Presently update_nr_listpages() doesn't have a role.  That's because lists
-passed is always empty just after calling migrate_pages.  The
-migrate_pages cleans up page list which have failed to migrate before
-returning by aaa994b3.
+The pte_same check is reliable only if the swap entry remains pinned (by
+the page lock on swapcache).  We've also to ensure the swapcache isn't
+removed before we take the lock as try_to_free_swap won't care about the
+page pin.
 
- [PATCH] page migration: handle freeing of pages in migrate_pages()
+One of the possible impacts of this patch is that a KSM-shared page can
+point to the anon_vma of another process, which could exit before the page
+is freed.
 
- Do not leave pages on the lists passed to migrate_pages().  Seems that we will
- not need any postprocessing of pages.  This will simplify the handling of
- pages by the callers of migrate_pages().
+This can leave a page with a pointer to a recycled anon_vma object, or
+worse, a pointer to something that is no longer an anon_vma.
 
-At that time, we thought we don't need any postprocessing of pages.  But
-the situation is changed.  The compaction need to know the number of
-failed to migrate for COMPACTPAGEFAILED stat
-
-This patch makes new rule for caller of migrate_pages to call
-putback_lru_pages.  So caller need to clean up the lists so it has a
-chance to postprocess the pages.  [suggested by Christoph Lameter]
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+[riel@redhat.com: changelog help]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    1 +
- mm/memory_hotplug.c |    2 ++
- mm/mempolicy.c      |   10 ++++++++--
- mm/migrate.c        |   12 +++++++-----
- 4 files changed, 18 insertions(+), 7 deletions(-)
+ include/linux/ksm.h |   20 +++++++++-----------
+ mm/ksm.c            |    3 ---
+ mm/memory.c         |   39 ++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 43 insertions(+), 19 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-compaction-fix-compactpagefailed-counting mm/memory-failure.c
---- a/mm/memory-failure.c~mm-compaction-fix-compactpagefailed-counting
-+++ a/mm/memory-failure.c
-@@ -1339,6 +1339,7 @@ int soft_offline_page(struct page *page,
- 		list_add(&page->lru, &pagelist);
- 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0);
- 		if (ret) {
-+			putback_lru_pages(&pagelist);
- 			pr_debug("soft offline: %#lx: migration failed %d, type %lx\n",
- 				pfn, ret, page->flags);
- 			if (ret > 0)
-diff -puN mm/memory_hotplug.c~mm-compaction-fix-compactpagefailed-counting mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-compaction-fix-compactpagefailed-counting
-+++ a/mm/memory_hotplug.c
-@@ -731,6 +731,8 @@ do_migrate_range(unsigned long start_pfn
- 		goto out;
- 	/* this function returns # of failed pages */
- 	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
-+	if (ret)
-+		putback_lru_pages(&source);
+diff -puN include/linux/ksm.h~mm-fix-swapin-race-condition include/linux/ksm.h
+--- a/include/linux/ksm.h~mm-fix-swapin-race-condition
++++ a/include/linux/ksm.h
+@@ -16,6 +16,9 @@
+ struct stable_node;
+ struct mem_cgroup;
  
- out:
- 	return ret;
-diff -puN mm/mempolicy.c~mm-compaction-fix-compactpagefailed-counting mm/mempolicy.c
---- a/mm/mempolicy.c~mm-compaction-fix-compactpagefailed-counting
-+++ a/mm/mempolicy.c
-@@ -931,8 +931,11 @@ static int migrate_to_node(struct mm_str
- 	check_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
- 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
- 
--	if (!list_empty(&pagelist))
-+	if (!list_empty(&pagelist)) {
- 		err = migrate_pages(&pagelist, new_node_page, dest, 0);
-+		if (err)
-+			putback_lru_pages(&pagelist);
-+	}
- 
- 	return err;
- }
-@@ -1147,9 +1150,12 @@ static long do_mbind(unsigned long start
- 
- 		err = mbind_range(mm, start, end, new);
- 
--		if (!list_empty(&pagelist))
-+		if (!list_empty(&pagelist)) {
- 			nr_failed = migrate_pages(&pagelist, new_vma_page,
- 						(unsigned long)vma, 0);
-+			if (nr_failed)
-+				putback_lru_pages(&pagelist);
-+		}
- 
- 		if (!err && nr_failed && (flags & MPOL_MF_STRICT))
- 			err = -EIO;
-diff -puN mm/migrate.c~mm-compaction-fix-compactpagefailed-counting mm/migrate.c
---- a/mm/migrate.c~mm-compaction-fix-compactpagefailed-counting
-+++ a/mm/migrate.c
-@@ -731,8 +731,9 @@ move_newpage:
-  *
-  * The function returns after 10 attempts or if no pages
-  * are movable anymore because to has become empty
-- * or no retryable pages exist anymore. All pages will be
-- * returned to the LRU or freed.
-+ * or no retryable pages exist anymore.
-+ * Caller should call putback_lru_pages to return pages to the LRU
-+ * or free list.
-  *
-  * Return: Number of pages not migrated or error code.
++struct page *ksm_does_need_to_copy(struct page *page,
++			struct vm_area_struct *vma, unsigned long address);
++
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, unsigned long *vm_flags);
+@@ -70,19 +73,14 @@ static inline void set_page_stable_node(
+  * We'd like to make this conditional on vma->vm_flags & VM_MERGEABLE,
+  * but what if the vma was unmerged while the page was swapped out?
   */
-@@ -779,8 +780,6 @@ out:
- 	if (!swapwrite)
- 		current->flags &= ~PF_SWAPWRITE;
+-struct page *ksm_does_need_to_copy(struct page *page,
+-			struct vm_area_struct *vma, unsigned long address);
+-static inline struct page *ksm_might_need_to_copy(struct page *page,
++static inline int ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address)
+ {
+ 	struct anon_vma *anon_vma = page_anon_vma(page);
  
--	putback_lru_pages(from);
+-	if (!anon_vma ||
+-	    (anon_vma->root == vma->anon_vma->root &&
+-	     page->index == linear_page_index(vma, address)))
+-		return page;
 -
- 	if (rc)
- 		return rc;
+-	return ksm_does_need_to_copy(page, vma, address);
++	return anon_vma &&
++		(anon_vma->root != vma->anon_vma->root ||
++		 page->index != linear_page_index(vma, address));
+ }
  
-@@ -889,9 +888,12 @@ set_status:
+ int page_referenced_ksm(struct page *page,
+@@ -115,10 +113,10 @@ static inline int ksm_madvise(struct vm_
+ 	return 0;
+ }
+ 
+-static inline struct page *ksm_might_need_to_copy(struct page *page,
++static inline int ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address)
+ {
+-	return page;
++	return 0;
+ }
+ 
+ static inline int page_referenced_ksm(struct page *page,
+diff -puN mm/ksm.c~mm-fix-swapin-race-condition mm/ksm.c
+--- a/mm/ksm.c~mm-fix-swapin-race-condition
++++ a/mm/ksm.c
+@@ -1504,8 +1504,6 @@ struct page *ksm_does_need_to_copy(struc
+ {
+ 	struct page *new_page;
+ 
+-	unlock_page(page);	/* any racers will COW it, not modify it */
+-
+ 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 	if (new_page) {
+ 		copy_user_highpage(new_page, page, address, vma);
+@@ -1521,7 +1519,6 @@ struct page *ksm_does_need_to_copy(struc
+ 			add_page_to_unevictable_list(new_page);
  	}
  
- 	err = 0;
--	if (!list_empty(&pagelist))
-+	if (!list_empty(&pagelist)) {
- 		err = migrate_pages(&pagelist, new_page_node,
- 				(unsigned long)pm, 0);
-+		if (err)
-+			putback_lru_pages(&pagelist);
+-	page_cache_release(page);
+ 	return new_page;
+ }
+ 
+diff -puN mm/memory.c~mm-fix-swapin-race-condition mm/memory.c
+--- a/mm/memory.c~mm-fix-swapin-race-condition
++++ a/mm/memory.c
+@@ -2623,7 +2623,7 @@ static int do_swap_page(struct mm_struct
+ 		unsigned int flags, pte_t orig_pte)
+ {
+ 	spinlock_t *ptl;
+-	struct page *page;
++	struct page *page, *swapcache = NULL;
+ 	swp_entry_t entry;
+ 	pte_t pte;
+ 	struct mem_cgroup *ptr = NULL;
+@@ -2679,10 +2679,23 @@ static int do_swap_page(struct mm_struct
+ 	lock_page(page);
+ 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+ 
+-	page = ksm_might_need_to_copy(page, vma, address);
+-	if (!page) {
+-		ret = VM_FAULT_OOM;
+-		goto out;
++	/*
++	 * Make sure try_to_free_swap didn't release the swapcache
++	 * from under us. The page pin isn't enough to prevent that.
++	 */
++	if (unlikely(!PageSwapCache(page)))
++		goto out_page;
++
++	if (ksm_might_need_to_copy(page, vma, address)) {
++		swapcache = page;
++		page = ksm_does_need_to_copy(page, vma, address);
++
++		if (unlikely(!page)) {
++			ret = VM_FAULT_OOM;
++			page = swapcache;
++			swapcache = NULL;
++			goto out_page;
++		}
+ 	}
+ 
+ 	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
+@@ -2735,6 +2748,18 @@ static int do_swap_page(struct mm_struct
+ 	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
+ 		try_to_free_swap(page);
+ 	unlock_page(page);
++	if (swapcache) {
++		/*
++		 * Hold the lock to avoid the swap entry to be reused
++		 * until we take the PT lock for the pte_same() check
++		 * (to avoid false positives from pte_same). For
++		 * further safety release the lock after the swap_free
++		 * so that the swap count won't change under a
++		 * parallel locked swapcache.
++		 */
++		unlock_page(swapcache);
++		page_cache_release(swapcache);
 +	}
  
- 	up_read(&mm->mmap_sem);
- 	return err;
+ 	if (flags & FAULT_FLAG_WRITE) {
+ 		ret |= do_wp_page(mm, vma, address, page_table, pmd, ptl, pte);
+@@ -2756,6 +2781,10 @@ out_page:
+ 	unlock_page(page);
+ out_release:
+ 	page_cache_release(page);
++	if (swapcache) {
++		unlock_page(swapcache);
++		page_cache_release(swapcache);
++	}
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-compaction-handle-active-and-inactive-fairly-in-too_many_isolated.patch
-vmstat-update-zone-stat-threshold-when-onlining-a-cpu.patch
-mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list.patch
-mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list-fix.patch
-mm-page-allocator-drain-per-cpu-lists-after-direct-reclaim-allocation-fails.patch
-vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
-mm-vmap-area-cache.patch
-mm-compaction-fix-compactpagefailed-counting.patch
+linux-next.patch
+mm-fix-swapin-race-condition.patch
+mm-avoid-warning-when-compaction-is-selected.patch
+define-madv_hugepage.patch
+vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
 
