@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 07 Sep 2010 14:06:17 -0700
-Message-ID: <201009072106.o87L6HAG006180@imap1.linux-foundation.org>
+Subject: + vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch added to -mm tree
+Date: Tue, 07 Sep 2010 14:12:57 -0700
+Message-ID: <201009072112.o87LCvE8006416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751795Ab0IGVHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:07:06 -0400
+	by vger.kernel.org with ESMTP id S1752440Ab0IGVNG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:13:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, heiko.carstens@de.ibm.com, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes
+     vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+     vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,134 +33,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ERROR: code indent should use tabs where possible
-#91: FILE: mm/page_alloc.c:5290:
-+ ^I * If ZONE_MOVABLE, the zone never contains immobile pages$
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch adds
+"UNSIGINED" fpos support.  But it dones't handle llseek.  Fix it.
 
-WARNING: please, no space before tabs
-#91: FILE: mm/page_alloc.c:5290:
-+ ^I * If ZONE_MOVABLE, the zone never contains immobile pages$
-
-WARNING: please, no space for starting a line, 
-				excluding comments
-#91: FILE: mm/page_alloc.c:5290:
-+ ^I * If ZONE_MOVABLE, the zone never contains immobile pages$
-
-ERROR: code indent should use tabs where possible
-#92: FILE: mm/page_alloc.c:5291:
-+ ^I */$
-
-WARNING: please, no space before tabs
-#92: FILE: mm/page_alloc.c:5291:
-+ ^I */$
-
-WARNING: please, no space for starting a line, 
-				excluding comments
-#92: FILE: mm/page_alloc.c:5291:
-+ ^I */$
-
-ERROR: space required after that ',' (ctx:WxV)
-#183: FILE: mm/page_alloc.c:5377:
-+	if(__count_immobile_pages(zone ,page, arg.pages_found))
- 	                               ^
-
-ERROR: space required before the open parenthesis '('
-#183: FILE: mm/page_alloc.c:5377:
-+	if(__count_immobile_pages(zone ,page, arg.pages_found))
-
-total: 4 errors, 4 warnings, 149 lines checked
-
-./patches/memory-hotplug-unify-is_removable-and-offline-detection-code.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/read_write.c |   33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN mm/page_alloc.c~memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -5287,8 +5287,8 @@ __count_immobile_pages(struct zone *zone
- 	unsigned long pfn, iter, found;
- 	/*
- 	 * For avoiding noise data, lru_add_drain_all() should be called
-- 	 * If ZONE_MOVABLE, the zone never contains immobile pages
-- 	 */
-+	 * If ZONE_MOVABLE, the zone never contains immobile pages
+diff -puN fs/read_write.c~vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix fs/read_write.c
+--- a/fs/read_write.c~vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix
++++ a/fs/read_write.c
+@@ -31,6 +31,20 @@ const struct file_operations generic_ro_
+ 
+ EXPORT_SYMBOL(generic_ro_fops);
+ 
++static int
++__negative_fpos_check(struct file *file, loff_t pos, size_t count)
++{
++	/*
++	 * pos or pos+count is negative here, check overflow.
++	 * too big "count" will be caught in rw_verify_area().
 +	 */
- 	if (zone_idx(zone) == ZONE_MOVABLE)
- 		return true;
++	if ((pos < 0) && (pos + count < pos))
++		return -EOVERFLOW;
++	if (file->f_mode & FMODE_UNSIGNED_OFFSET)
++		return 0;
++	return -EINVAL;
++}
++
+ /**
+  * generic_file_llseek_unlocked - lockless generic llseek implementation
+  * @file:	file structure to seek on
+@@ -62,7 +76,9 @@ generic_file_llseek_unlocked(struct file
+ 		break;
+ 	}
  
-@@ -5374,7 +5374,7 @@ int set_migratetype_isolate(struct page 
- 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
- 	 * We just check MOVABLE pages.
- 	 */
--	if(__count_immobile_pages(zone ,page, arg.pages_found))
-+	if (__count_immobile_pages(zone, page, arg.pages_found))
- 		ret = 0;
+-	if (offset < 0 || offset > inode->i_sb->s_maxbytes)
++	if (offset < 0 && __negative_fpos_check(file, offset, 0))
++		return -EINVAL;
++	if (offset > inode->i_sb->s_maxbytes)
+ 		return -EINVAL;
  
- 	/*
+ 	/* Special lock needed here? */
+@@ -137,7 +153,7 @@ loff_t default_llseek(struct file *file,
+ 			offset += file->f_pos;
+ 	}
+ 	retval = -EINVAL;
+-	if (offset >= 0) {
++	if (offset >= 0 || !__negative_fpos_check(file, offset, 0)) {
+ 		if (offset != file->f_pos) {
+ 			file->f_pos = offset;
+ 			file->f_version = 0;
+@@ -222,19 +238,6 @@ bad:
+ }
+ #endif
+ 
+-static int
+-__negative_fpos_check(struct file *file, loff_t pos, size_t count)
+-{
+-	/*
+-	 * pos or pos+count is negative here, check overflow.
+-	 * too big "count" will be caught in rw_verify_area().
+-	 */
+-	if ((pos < 0) && (pos + count < pos))
+-		return -EOVERFLOW;
+-	if (file->f_mode & FMODE_UNSIGNED_OFFSET)
+-		return 0;
+-	return -EINVAL;
+-}
+ 
+ /*
+  * rw_verify_area doesn't like huge counts. We limit
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-cgroups-fix-api-thinko-fix.patch
+memory-hotplug-fix-next-block-calculation-in-is_removable.patch
+swap-revert-special-hibernation-allocation.patch
+swap-prevent-reuse-during-hibernation.patch
 vmstat-update-zone-stat-threshold-when-onlining-a-cpu.patch
+mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list.patch
 mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list-fix.patch
-mm-vmap-area-cache.patch
-drivers-gpu-drm-i915-intel_overlayc-needs-seq_fileh.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
+mm-page-allocator-drain-per-cpu-lists-after-direct-reclaim-allocation-fails.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch
+vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
+oom-add-per-mm-oom-disable-count.patch
+oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
 oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
 oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-fix-notifiers-return-value-check.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code.patch
 memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
-mmc-make-id-freq-configurable-checkpatch-fixes.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
