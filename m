@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-next-block-calculation-in-is_removable.patch added to -mm tree
-Date: Tue, 07 Sep 2010 14:03:33 -0700
-Message-ID: <201009072103.o87L3XMV006005@imap1.linux-foundation.org>
+Subject: + memory-hotplug-fix-notifiers-return-value-check.patch added to -mm tree
+Date: Tue, 07 Sep 2010 14:04:46 -0700
+Message-ID: <201009072104.o87L4kq7006042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751795Ab0IGVEp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:04:45 -0400
+	by vger.kernel.org with ESMTP id S1751795Ab0IGVGF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:06:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, mhocko@suse.cz, stable@kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, mhocko@suse.cz
 
 
 The patch titled
-     memory hotplug: fix next block calculation in is_removable
+     memory hotplug: fix notifier's return value check
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-next-block-calculation-in-is_removable.patch
+     memory-hotplug-fix-notifiers-return-value-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: fix next block calculation in is_removable
+Subject: memory hotplug: fix notifier's return value check
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-next_active_pageblock() is for finding next _used_ freeblock.  It skips
-several blocks when it finds there are a chunk of free pages lager than
-pageblock.  But it has 2 bugs.
+Even if notifier cannot find any pages, it doesn't mean no pages are
+available...And, if there are no notifiers registered, this condition will
+be always true and memory hotplug will show -EBUSY.
 
-  1. We have no lock. page_order(page) - pageblock_order can be minus.
-  2. pageblocks_stride += is wrong. it should skip page_order(p) of pages.
+This is a bug but not critical.
+
+In most case, a pageblock which will be offlined is MIGRATE_MOVABLE This
+"notifier" is called only when the pageblock is _not_ MIGRATE_MOVABLE. 
+But if not MIGRATE_MOVABLE, it's common case that memory hotplug will
+fail.  So, no one notice this bug.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-fix-next-block-calculation-in-is_removable mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-fix-next-block-calculation-in-is_removable
-+++ a/mm/memory_hotplug.c
-@@ -584,19 +584,19 @@ static inline int pageblock_free(struct 
- /* Return the start of the next active pageblock after a given page */
- static struct page *next_active_pageblock(struct page *page)
- {
--	int pageblocks_stride;
--
- 	/* Ensure the starting page is pageblock-aligned */
- 	BUG_ON(page_to_pfn(page) & (pageblock_nr_pages - 1));
+diff -puN mm/page_alloc.c~memory-hotplug-fix-notifiers-return-value-check mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-notifiers-return-value-check
++++ a/mm/page_alloc.c
+@@ -5320,7 +5320,7 @@ int set_migratetype_isolate(struct page 
+ 	 */
+ 	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
+ 	notifier_ret = notifier_to_errno(notifier_ret);
+-	if (notifier_ret || !arg.pages_found)
++	if (notifier_ret)
+ 		goto out;
  
--	/* Move forward by at least 1 * pageblock_nr_pages */
--	pageblocks_stride = 1;
--
- 	/* If the entire pageblock is free, move to the end of free page */
--	if (pageblock_free(page))
--		pageblocks_stride += page_order(page) - pageblock_order;
-+	if (pageblock_free(page)) {
-+		int order;
-+		/* be careful. we don't have locks, page_order can be changed.*/
-+		order = page_order(page);
-+		if ((order < MAX_ORDER) && (order >= pageblock_order))
-+			return page + (1 << order);
-+	}
- 
--	return page + (pageblocks_stride * pageblock_nr_pages);
-+	return page + pageblock_nr_pages;
- }
- 
- /* Checks if this range of memory is likely to be hot-removable. */
+ 	for (iter = pfn; iter < (pfn + pageblock_nr_pages); iter++) {
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
