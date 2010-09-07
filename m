@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fsldma-move-dma_slave-support-functions-to-the-driver.patch added to -mm tree
-Date: Tue, 07 Sep 2010 15:09:42 -0700
-Message-ID: <201009072209.o87M9g4h009244@imap1.linux-foundation.org>
+Subject: + gpio-doc-updates.patch added to -mm tree
+Date: Tue, 07 Sep 2010 15:12:00 -0700
+Message-ID: <201009072212.o87MC0v2009379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752750Ab0IGWKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:10:15 -0400
+	by vger.kernel.org with ESMTP id S1753578Ab0IGWMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:12:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: iws@ovro.caltech.edu, dan.j.williams@intel.com
+Cc: dbrownell@users.sourceforge.net, eric.y.miao@gmail.com, ryan@bluewatersys.com
 
 
 The patch titled
-     fsldma: move DMA_SLAVE support functions to the driver
+     gpio: doc updates:
 has been added to the -mm tree.  Its filename is
-     fsldma-move-dma_slave-support-functions-to-the-driver.patch
+     gpio-doc-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,211 +33,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: move DMA_SLAVE support functions to the driver
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Subject: gpio: doc updates:
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-The DMA_SLAVE support functions all existed as static inlines in the
-driver specific header arch/powerpc/include/asm/fsldma.h. Move the body
-of the functions to the driver itself, and EXPORT_SYMBOL_GPL() them.
+There's been some recent confusion about error checking GPIO numbers. 
+briefly, it should be handled mostly during setup, when gpio_request() is
+called, and NEVER by expectig gpio_is_valid to report more than
+never-usable GPIO numbers.
 
-At the same time, add the missing linux/list.h header.
-
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Eric Miao" <eric.y.miao@gmail.com>
+Cc: "Ryan Mallon" <ryan@bluewatersys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/fsldma.h |   70 ++-----------------------
- drivers/dma/fsldma.c              |   77 ++++++++++++++++++++++++++++
- 2 files changed, 83 insertions(+), 64 deletions(-)
+ Documentation/gpio.txt     |   22 ++++++++++++++--------
+ include/asm-generic/gpio.h |   12 +++++++++++-
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
-diff -puN arch/powerpc/include/asm/fsldma.h~fsldma-move-dma_slave-support-functions-to-the-driver arch/powerpc/include/asm/fsldma.h
---- a/arch/powerpc/include/asm/fsldma.h~fsldma-move-dma_slave-support-functions-to-the-driver
-+++ a/arch/powerpc/include/asm/fsldma.h
-@@ -1,7 +1,7 @@
- /*
-  * Freescale MPC83XX / MPC85XX DMA Controller
-  *
-- * Copyright (c) 2009 Ira W. Snyder <iws@ovro.caltech.edu>
-+ * Copyright (c) 2009-2010 Ira W. Snyder <iws@ovro.caltech.edu>
-  *
-  * This file is licensed under the terms of the GNU General Public License
-  * version 2. This program is licensed "as is" without any warranty of any
-@@ -11,6 +11,7 @@
- #ifndef __ARCH_POWERPC_ASM_FSLDMA_H__
- #define __ARCH_POWERPC_ASM_FSLDMA_H__
+diff -puN Documentation/gpio.txt~gpio-doc-updates Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpio-doc-updates
++++ a/Documentation/gpio.txt
+@@ -109,17 +109,19 @@ use numbers 2000-2063 to identify GPIOs 
  
-+#include <linux/list.h>
- #include <linux/slab.h>
- #include <linux/dmaengine.h>
+ If you want to initialize a structure with an invalid GPIO number, use
+ some negative number (perhaps "-EINVAL"); that will never be valid.  To
+-test if a number could reference a GPIO, you may use this predicate:
++test if such number from such a structure could reference a GPIO, you
++may use this predicate:
  
-@@ -69,69 +70,10 @@ struct fsl_dma_slave {
- 	bool external_pause;
- };
+ 	int gpio_is_valid(int number);
  
--/**
-- * fsl_dma_slave_append - add an address/length pair to a struct fsl_dma_slave
-- * @slave: the &struct fsl_dma_slave to add to
-- * @address: the hardware address to add
-- * @length: the length of bytes to transfer from @address
-- *
-- * Add a hardware address/length pair to a struct fsl_dma_slave. Returns 0 on
-- * success, -ERRNO otherwise.
-- */
--static inline int fsl_dma_slave_append(struct fsl_dma_slave *slave,
--				       dma_addr_t address, size_t length)
--{
--	struct fsl_dma_hw_addr *addr;
+ A number that's not valid will be rejected by calls which may request
+ or free GPIOs (see below).  Other numbers may also be rejected; for
+-example, a number might be valid but unused on a given board.
 -
--	addr = kzalloc(sizeof(*addr), GFP_ATOMIC);
--	if (!addr)
--		return -ENOMEM;
--
--	INIT_LIST_HEAD(&addr->entry);
--	addr->address = address;
--	addr->length = length;
--
--	list_add_tail(&addr->entry, &slave->addresses);
--	return 0;
--}
--
--/**
-- * fsl_dma_slave_free - free a struct fsl_dma_slave
-- * @slave: the struct fsl_dma_slave to free
-- *
-- * Free a struct fsl_dma_slave and all associated address/length pairs
-- */
--static inline void fsl_dma_slave_free(struct fsl_dma_slave *slave)
--{
--	struct fsl_dma_hw_addr *addr, *tmp;
--
--	if (slave) {
--		list_for_each_entry_safe(addr, tmp, &slave->addresses, entry) {
--			list_del(&addr->entry);
--			kfree(addr);
--		}
--
--		kfree(slave);
--	}
--}
-+struct fsl_dma_slave *fsl_dma_slave_alloc(gfp_t gfp);
-+void fsl_dma_slave_free(struct fsl_dma_slave *slave);
+-Whether a platform supports multiple GPIO controllers is currently a
+-platform-specific implementation issue.
++example, a number might be valid but temporarily unused on a given board.
  
--/**
-- * fsl_dma_slave_alloc - allocate a struct fsl_dma_slave
-- * @gfp: the flags to pass to kmalloc when allocating this structure
-- *
-- * Allocate a struct fsl_dma_slave for use by the DMA_SLAVE API. Returns a new
-- * struct fsl_dma_slave on success, or NULL on failure.
-- */
--static inline struct fsl_dma_slave *fsl_dma_slave_alloc(gfp_t gfp)
--{
--	struct fsl_dma_slave *slave;
--
--	slave = kzalloc(sizeof(*slave), gfp);
--	if (!slave)
--		return NULL;
--
--	INIT_LIST_HEAD(&slave->addresses);
--	return slave;
--}
-+int fsl_dma_slave_append(struct fsl_dma_slave *slave, dma_addr_t address,
-+			 size_t length, gfp_t gfp);
++Whether a platform supports multiple GPIO controllers is a platform-specific
++implementation issue, as are whether that support can leave "holes" in the space
++of GPIO numbers, and whether new controllers can be added at runtime.  Such issues
++can affect things including whether adjacent GPIO numbers are both valid.
  
- #endif /* __ARCH_POWERPC_ASM_FSLDMA_H__ */
-diff -puN drivers/dma/fsldma.c~fsldma-move-dma_slave-support-functions-to-the-driver drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-move-dma_slave-support-functions-to-the-driver
-+++ a/drivers/dma/fsldma.c
-@@ -38,6 +38,83 @@
- #include <asm/fsldma.h>
- #include "fsldma.h"
+ Using GPIOs
+ -----------
+@@ -480,12 +482,16 @@ To support this framework, a platform's 
+ ARCH_REQUIRE_GPIOLIB or ARCH_WANT_OPTIONAL_GPIOLIB
+ and arrange that its <asm/gpio.h> includes <asm-generic/gpio.h> and defines
+ three functions: gpio_get_value(), gpio_set_value(), and gpio_cansleep().
+-They may also want to provide a custom value for ARCH_NR_GPIOS.
  
-+/*
-+ * External API
-+ */
+-ARCH_REQUIRE_GPIOLIB means that the gpio-lib code will always get compiled
++It may also provide a custom value for ARCH_NR_GPIOS, so that it better
++reflects the number of GPIOs in actual use on that platform, without
++wasting static table space.  (It should count both built-in/SoC GPIOs and
++also ones on GPIO expanders.
 +
-+/**
-+ * fsl_dma_slave_append - add an address/length pair to a struct fsl_dma_slave
-+ * @slave: the &struct fsl_dma_slave to add to
-+ * @address: the hardware address to add
-+ * @length: the length of bytes to transfer from @address
-+ * @gfp: the flags to pass to kmalloc when allocating memory
++ARCH_REQUIRE_GPIOLIB means that the gpiolib code will always get compiled
+ into the kernel on that architecture.
+ 
+-ARCH_WANT_OPTIONAL_GPIOLIB means the gpio-lib code defaults to off and the user
++ARCH_WANT_OPTIONAL_GPIOLIB means the gpiolib code defaults to off and the user
+ can enable it and build it into the kernel optionally.
+ 
+ If neither of these options are selected, the platform does not support
+diff -puN include/asm-generic/gpio.h~gpio-doc-updates include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpio-doc-updates
++++ a/include/asm-generic/gpio.h
+@@ -16,15 +16,25 @@
+  * While the GPIO programming interface defines valid GPIO numbers
+  * to be in the range 0..MAX_INT, this library restricts them to the
+  * smaller range 0..ARCH_NR_GPIOS-1.
 + *
-+ * Add a hardware address/length pair to a struct fsl_dma_slave. Returns 0 on
-+ * success, -ERRNO otherwise.
-+ */
-+int fsl_dma_slave_append(struct fsl_dma_slave *slave, dma_addr_t address,
-+			 size_t length, gfp_t gfp)
-+{
-+	struct fsl_dma_hw_addr *addr;
-+
-+	addr = kzalloc(sizeof(*addr), gfp);
-+	if (!addr)
-+		return -ENOMEM;
-+
-+	INIT_LIST_HEAD(&addr->entry);
-+	addr->address = address;
-+	addr->length = length;
-+
-+	list_add_tail(&addr->entry, &slave->addresses);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(fsl_dma_slave_append);
-+
-+/**
-+ * fsl_dma_slave_free - free a struct fsl_dma_slave
-+ * @slave: the struct fsl_dma_slave to free
++ * ARCH_NR_GPIOS is somewhat arbitrary; it usually reflects the sum of
++ * builtin/SoC GPIOs plus a number of GPIOs on expanders; the latter is
++ * actually an estimate of a board-specific value.
+  */
+ 
+ #ifndef ARCH_NR_GPIOS
+ #define ARCH_NR_GPIOS		256
+ #endif
+ 
++/* "valid" GPIO numbers are nonnegative and may be passed to
++ * setup routines like gpio_request().  only some valid numbers
++ * can successfully be requested and used.
 + *
-+ * Free a struct fsl_dma_slave and all associated address/length pairs
-+ */
-+void fsl_dma_slave_free(struct fsl_dma_slave *slave)
-+{
-+	struct fsl_dma_hw_addr *addr, *tmp;
++ * Invalid GPIO numbers are useful for indicating no-such-GPIO in
++ * platform data and other tables.
 +
-+	if (slave) {
-+		list_for_each_entry_safe(addr, tmp, &slave->addresses, entry) {
-+			list_del(&addr->entry);
-+			kfree(addr);
-+		}
-+
-+		kfree(slave);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(fsl_dma_slave_free);
-+
-+/**
-+ * fsl_dma_slave_alloc - allocate a struct fsl_dma_slave
-+ * @gfp: the flags to pass to kmalloc when allocating this structure
-+ *
-+ * Allocate a struct fsl_dma_slave for use by the DMA_SLAVE API. Returns a new
-+ * struct fsl_dma_slave on success, or NULL on failure.
-+ */
-+struct fsl_dma_slave *fsl_dma_slave_alloc(gfp_t gfp)
-+{
-+	struct fsl_dma_slave *slave;
-+
-+	slave = kzalloc(sizeof(*slave), gfp);
-+	if (!slave)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&slave->addresses);
-+	return slave;
-+}
-+EXPORT_SYMBOL_GPL(fsl_dma_slave_alloc);
-+
-+/*
-+ * Driver Code
-+ */
-+
- static void dma_init(struct fsldma_chan *chan)
+ static inline int gpio_is_valid(int number)
  {
- 	/* Reset the channel */
+-	/* only some non-negative numbers are valid */
+ 	return ((unsigned)number) < ARCH_NR_GPIOS;
+ }
+ 
 _
 
-Patches currently in -mm which might be from iws@ovro.caltech.edu are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 linux-next.patch
-arch-powerpc-include-asm-fsldmah-needs-slabh.patch
-kfifo-fix-scatterlist-usage.patch
-fsldma-move-dma_slave-support-functions-to-the-driver.patch
+gpio-doc-updates.patch
 
