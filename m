@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-do-not-mark-pl031-irq-as-shared.patch added to -mm tree
-Date: Tue, 07 Sep 2010 15:57:16 -0700
-Message-ID: <201009072257.o87MvGRh011494@imap1.linux-foundation.org>
+Subject: + drivers-video-atafbc-remove-undead-ifdef-atafb_falcon.patch added to -mm tree
+Date: Tue, 07 Sep 2010 16:20:56 -0700
+Message-ID: <201009072320.o87NKuxY012624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753399Ab0IGW5y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:57:54 -0400
+	by vger.kernel.org with ESMTP id S1755505Ab0IGXVi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:21:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linus.walleij@stericsson.com, a.zummo@towertech.it, jonas.aberg@stericsson.com, mian.yousaf.kaukab@stericsson.com
+Cc: qy03fugy@stud.informatik.uni-erlangen.de
 
 
 The patch titled
-     drivers/rtc/rtc-pl031.c: do not mark PL031 IRQ as shared
+     drivers/video/atafb.c: remove undead ifdef ATAFB_FALCON
 has been added to the -mm tree.  Its filename is
-     rtc-do-not-mark-pl031-irq-as-shared.patch
+     drivers-video-atafbc-remove-undead-ifdef-atafb_falcon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-pl031.c: do not mark PL031 IRQ as shared
-From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: drivers/video/atafb.c: remove undead ifdef ATAFB_FALCON
+From: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
 
-It was a mistake to mark the PL031 IRQ as shared (for the U8500),
-we misread the datasheet. Get rid of this.
+The ATAFB_FALCON ifdef isn't necessary at this point, because it is
+checked in an outer ifdef level already and has no effect here.
 
-Signed-off-by: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Jonas Aberg <jonas.aberg@stericsson.com>
-Cc: Mian Yousaf Kaukab <mian.yousaf.kaukab@stericsson.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl031.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/atafb.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-pl031.c~rtc-do-not-mark-pl031-irq-as-shared drivers/rtc/rtc-pl031.c
---- a/drivers/rtc/rtc-pl031.c~rtc-do-not-mark-pl031-irq-as-shared
-+++ a/drivers/rtc/rtc-pl031.c
-@@ -403,7 +403,7 @@ static int pl031_probe(struct amba_devic
+diff -puN drivers/video/atafb.c~drivers-video-atafbc-remove-undead-ifdef-atafb_falcon drivers/video/atafb.c
+--- a/drivers/video/atafb.c~drivers-video-atafbc-remove-undead-ifdef-atafb_falcon
++++ a/drivers/video/atafb.c
+@@ -1718,11 +1718,9 @@ static int falcon_setcolreg(unsigned int
+ 			(((red & 0xe000) >> 13) | ((red & 0x1000) >> 12) << 8) |
+ 			(((green & 0xe000) >> 13) | ((green & 0x1000) >> 12) << 4) |
+ 			((blue & 0xe000) >> 13) | ((blue & 0x1000) >> 12);
+-#ifdef ATAFB_FALCON
+ 		((u32 *)info->pseudo_palette)[regno] = ((red & 0xf800) |
+ 						       ((green & 0xfc00) >> 5) |
+ 						       ((blue & 0xf800) >> 11));
+-#endif
  	}
- 
- 	if (request_irq(adev->irq[0], pl031_interrupt,
--			IRQF_DISABLED | IRQF_SHARED, "rtc-pl031", ldata)) {
-+			IRQF_DISABLED, "rtc-pl031", ldata)) {
- 		ret = -EIO;
- 		goto out_no_irq;
- 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from linus.walleij@stericsson.com are
+Patches currently in -mm which might be from qy03fugy@stud.informatik.uni-erlangen.de are
 
 linux-next.patch
-rtc-do-not-mark-pl031-irq-as-shared.patch
-mmc-mmc-44-ddr-support.patch
-checkpatch-check-for-incorrect-permissions.patch
+drivers-video-atafbc-remove-undead-ifdef-atafb_falcon.patch
+drivers-video-matrox-matroxfb_dac1064c-remove-undead-ifdef-config_fb_matrox_g.patch
 
