@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-9p-trans_fdc-fix-unsigned-return-type.patch added to -mm tree
-Date: Tue, 07 Sep 2010 16:47:23 -0700
-Message-ID: <201009072347.o87NlOH9013909@imap1.linux-foundation.org>
+Subject: + drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type.patch added to -mm tree
+Date: Tue, 07 Sep 2010 16:47:25 -0700
+Message-ID: <201009072347.o87NlQ7e013912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37216 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755714Ab0IGX6B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:58:01 -0400
+	by vger.kernel.org with ESMTP id S1755714Ab0IGX6i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, ericvh@gmail.com, jvrao@us.ibm.com
+Cc: julia@diku.dk, khali@linux-fr.org, olof@lixom.net
 
 
 The patch titled
-     net/9p/trans_fd.c: fix unsigned return type
+     drivers/i2c/busses/i2c-pasemi.c: fix unsigned return type
 has been added to the -mm tree.  Its filename is
-     net-9p-trans_fdc-fix-unsigned-return-type.patch
+     drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/9p/trans_fd.c: fix unsigned return type
+Subject: drivers/i2c/busses/i2c-pasemi.c: fix unsigned return type
 From: Julia Lawall <julia@diku.dk>
 
 The function has an unsigned return type, but returns a negative constant
@@ -57,26 +57,26 @@ constant C;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Venkateswararao Jujjuri <jvrao@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Acked-by: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_fd.c |    2 +-
+ drivers/i2c/busses/i2c-pasemi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/9p/trans_fd.c~net-9p-trans_fdc-fix-unsigned-return-type net/9p/trans_fd.c
---- a/net/9p/trans_fd.c~net-9p-trans_fdc-fix-unsigned-return-type
-+++ a/net/9p/trans_fd.c
-@@ -222,7 +222,7 @@ static void p9_conn_cancel(struct p9_con
- 	}
+diff -puN drivers/i2c/busses/i2c-pasemi.c~drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type drivers/i2c/busses/i2c-pasemi.c
+--- a/drivers/i2c/busses/i2c-pasemi.c~drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type
++++ a/drivers/i2c/busses/i2c-pasemi.c
+@@ -88,7 +88,7 @@ static void pasemi_smb_clear(struct pase
+ 	reg_write(smbus, REG_SMSTA, status);
  }
  
--static unsigned int
-+static int
- p9_fd_poll(struct p9_client *client, struct poll_table_struct *pt)
+-static unsigned int pasemi_smb_waitready(struct pasemi_smbus *smbus)
++static int pasemi_smb_waitready(struct pasemi_smbus *smbus)
  {
- 	int ret, n;
+ 	int timeout = 10;
+ 	unsigned int status;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
