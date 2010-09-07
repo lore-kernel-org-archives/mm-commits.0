@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + audit-use-rcu-for-task-lookup-protection.patch added to -mm tree
-Date: Tue, 07 Sep 2010 15:15:13 -0700
-Message-ID: <201009072215.o87MFDuo009495@imap1.linux-foundation.org>
+Subject: + mmc_test-use-api-to-check-card-type.patch added to -mm tree
+Date: Tue, 07 Sep 2010 15:30:01 -0700
+Message-ID: <201009072230.o87MU1lp010207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756343Ab0IGWRG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:17:06 -0400
+	by vger.kernel.org with ESMTP id S1751080Ab0IGWaF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:30:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, eparis@redhat.com, oleg@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk
+Cc: andy.shevchenko@gmail.com, ext-andriy.shevchenko@nokia.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     audit: use rcu for task lookup protection
+     mmc_test: use API to check card type
 has been added to the -mm tree.  Its filename is
-     audit-use-rcu-for-task-lookup-protection.patch
+     mmc_test-use-api-to-check-card-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: use rcu for task lookup protection
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mmc_test: use API to check card type
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-Protect the task lookups in audit_receive_msg() with rcu_read_lock()
-instead of tasklist_lock and use lock/unlock_sighand to protect against
-the exit race.
+There are methods to check card type. Let's use them instead of direct checking
+type bits.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ drivers/mmc/card/mmc_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/audit.c~audit-use-rcu-for-task-lookup-protection kernel/audit.c
---- a/kernel/audit.c~audit-use-rcu-for-task-lookup-protection
-+++ a/kernel/audit.c
-@@ -873,17 +873,16 @@ static int audit_receive_msg(struct sk_b
- 	case AUDIT_TTY_GET: {
- 		struct audit_tty_status s;
- 		struct task_struct *tsk;
-+		unsigned long flags;
+diff -puN drivers/mmc/card/mmc_test.c~mmc_test-use-api-to-check-card-type drivers/mmc/card/mmc_test.c
+--- a/drivers/mmc/card/mmc_test.c~mmc_test-use-api-to-check-card-type
++++ a/drivers/mmc/card/mmc_test.c
+@@ -1977,7 +1977,7 @@ static int mmc_test_probe(struct mmc_car
+ {
+ 	int ret;
  
--		read_lock(&tasklist_lock);
-+		rcu_read_lock();
- 		tsk = find_task_by_vpid(pid);
--		if (!tsk)
--			err = -ESRCH;
--		else {
--			spin_lock_irq(&tsk->sighand->siglock);
-+		if (tsk && lock_task_sighand(tsk, &flags)) {
- 			s.enabled = tsk->signal->audit_tty != 0;
--			spin_unlock_irq(&tsk->sighand->siglock);
--		}
--		read_unlock(&tasklist_lock);
-+			unlock_task_sighand(tsk, &flags);
-+		} else
-+			err = -ESRCH;
-+		rcu_read_unlock();
+-	if ((card->type != MMC_TYPE_MMC) && (card->type != MMC_TYPE_SD))
++	if (!mmc_card_mmc(card) && !mmc_card_sd(card))
+ 		return -ENODEV;
  
- 		if (!err)
- 			audit_send_reply(NETLINK_CB(skb).pid, seq,
-@@ -893,22 +892,21 @@ static int audit_receive_msg(struct sk_b
- 	case AUDIT_TTY_SET: {
- 		struct audit_tty_status *s;
- 		struct task_struct *tsk;
-+		unsigned long flags;
- 
- 		if (nlh->nlmsg_len < sizeof(struct audit_tty_status))
- 			return -EINVAL;
- 		s = data;
- 		if (s->enabled != 0 && s->enabled != 1)
- 			return -EINVAL;
--		read_lock(&tasklist_lock);
-+		rcu_read_lock();
- 		tsk = find_task_by_vpid(pid);
--		if (!tsk)
--			err = -ESRCH;
--		else {
--			spin_lock_irq(&tsk->sighand->siglock);
-+		if (tsk && lock_task_sighand(tsk, &flags)) {
- 			tsk->signal->audit_tty = s->enabled != 0;
--			spin_unlock_irq(&tsk->sighand->siglock);
--		}
--		read_unlock(&tasklist_lock);
-+			unlock_task_sighand(tsk, &flags);
-+		} else
-+			err = -ESRCH;
-+		rcu_read_unlock();
- 		break;
- 	}
- 	default:
+ 	ret = device_create_file(&card->dev, &dev_attr_test);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from andy.shevchenko@gmail.com are
 
 linux-next.patch
-audit-call-tty_audit_push_task-outside-preempt-disabled.patch
-audit-do-not-send-uninitialized-data-for-audit_tty_get.patch
-audit-use-rcu-for-task-lookup-protection.patch
-time-compensate-for-rounding-on-odd-frequency-clocksources.patch
-x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
-hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit.patch
-hpet-factor-timer-allocate-from-open.patch
-timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
-timer-initialize-the-field-slack-of-timer_list.patch
-kernel-time-use-array_size-macro-in-timecomparec.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-kernelh-add-minmax3-macros.patch
-kernelh-add-minmax3-macros-fix.patch
-replace-nested-max-min-macros-with-maxmin3-macro.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-epoll-make-epoll_wait-use-the-hrtimer-range-feature.patch
+lib-bitmapc-use-hex_to_bin.patch
+mmc-make-dev_to_mmc_card-macro-public.patch
+mmc-rename-dev_to_mmc_card-to-mmc_dev_to_card.patch
+mmc_test-use-api-to-check-card-type.patch
+mmc_test-change-simple_strtol-to-strict_strtol.patch
+mmc_test-collect-data-and-show-it-via-sysfs-by-demand.patch
 
