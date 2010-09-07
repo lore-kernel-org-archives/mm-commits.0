@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-work-around-for-rock-ridgejoliet-cds-with-empty-iso-root-directory.patch added to -mm tree
-Date: Tue, 07 Sep 2010 16:40:17 -0700
-Message-ID: <201009072340.o87NeHiI013515@imap1.linux-foundation.org>
+Subject: + savagefb-fix-ddc-for-savage-4.patch added to -mm tree
+Date: Tue, 07 Sep 2010 16:42:35 -0700
+Message-ID: <201009072342.o87NgZgl013666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755991Ab0IGXkw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:40:52 -0400
+	by vger.kernel.org with ESMTP id S1756897Ab0IGXnG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, viro@zeniv.linux.org.uk
+Cc: linux@rainbow-software.org
 
 
 The patch titled
-     isofs: work-around for Rock Ridge+Joliet CDs with empty ISO root directory
+     savagefb: fix DDC for Savage 4
 has been added to the -mm tree.  Its filename is
-     isofs-work-around-for-rock-ridgejoliet-cds-with-empty-iso-root-directory.patch
+     savagefb-fix-ddc-for-savage-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: work-around for Rock Ridge+Joliet CDs with empty ISO root directory
+Subject: savagefb: fix DDC for Savage 4
 From: Ondrej Zary <linux@rainbow-software.org>
 
-If a CD has both Rock Ridge and Joliet extensions and the ISO root
-directory is empty, no files are visible.  Disable Rock Ridge extensions
-in this case and use Joliet root directory instead.
+I tested savagefb on 3 different Savage 4 cards:
+Diamond Stealth III S520
+Number Nine SR9
+Datapath Horizon 2S (two savage chips on a PCI card)
+
+it worked except the DDC which did not work on any of them.
+
+Looking at the BIOS code, it does not use MMIO register 0xff20 but CRT
+register 0xa0 or 0xb1 - depending on the chip revision and something in
+register 0xa6.  With this patch, DDC works fine on all 3 cards (even on
+the second head of Horizon 2S - although it does not display anything as
+it's misconfigured because of missing BIOS).
 
 Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/video/savage/savagefb-i2c.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/isofs/inode.c~isofs-work-around-for-rock-ridgejoliet-cds-with-empty-iso-root-directory fs/isofs/inode.c
---- a/fs/isofs/inode.c~isofs-work-around-for-rock-ridgejoliet-cds-with-empty-iso-root-directory
-+++ a/fs/isofs/inode.c
-@@ -549,6 +549,34 @@ static unsigned int isofs_get_last_sessi
- }
- 
- /*
-+ * Check if root directory is empty (has less than 3 files).
-+ *
-+ * Used to detect broken CDs where ISO root directory is empty but Joliet root
-+ * directory is OK. If such CD has Rock Ridge extensions, they will be disabled
-+ * (and Joliet used instead) or else no files would be visible.
-+ */
-+static bool rootdir_empty(struct super_block *sb, unsigned long block)
-+{
-+	int offset = 0, files = 0, de_len;
-+	struct iso_directory_record *de;
-+	struct buffer_head *bh;
-+
-+	bh = sb_bread(sb, block);
-+	if (!bh)
-+		return true;
-+	while (files < 3) {
-+		de = (struct iso_directory_record *) (bh->b_data + offset);
-+		de_len = *(unsigned char *) de;
-+		if (de_len == 0)
-+			break;
-+		files++;
-+		offset += de_len;
-+	}
-+	brelse(bh);
-+	return files < 3;
-+}
-+
-+/*
-  * Initialize the superblock and read the root inode.
-  *
-  * Note: a check_disk_change() has been done immediately prior
-@@ -847,6 +875,18 @@ root_found:
- 		goto out_no_root;
- 
- 	/*
-+	 * Fix for broken CDs with Rock Ridge and empty ISO root directory but
-+	 * correct Joliet root directory.
-+	 */
-+	if (sbi->s_rock == 1 && joliet_level &&
-+				rootdir_empty(s, sbi->s_firstdatazone)) {
-+		printk(KERN_NOTICE
-+			"ISOFS: primary root directory is empty. "
-+			"Disabling Rock Ridge and switching to Joliet.");
-+		sbi->s_rock = 0;
-+	}
-+
-+	/*
- 	 * If this disk has both Rock Ridge and Joliet on it, then we
- 	 * want to use Rock Ridge by default.  This can be overridden
- 	 * by using the norock mount option.  There is still one other
+diff -puN drivers/video/savage/savagefb-i2c.c~savagefb-fix-ddc-for-savage-4 drivers/video/savage/savagefb-i2c.c
+--- a/drivers/video/savage/savagefb-i2c.c~savagefb-fix-ddc-for-savage-4
++++ a/drivers/video/savage/savagefb-i2c.c
+@@ -181,6 +181,15 @@ void savagefb_create_i2c_busses(struct f
+ 		par->chan.algo.getscl = prosavage_gpio_getscl;
+ 		break;
+ 	case FB_ACCEL_SAVAGE4:
++		par->chan.reg = CR_SERIAL1;
++		if (par->pcidev->revision > 1 && !(VGArCR(0xa6, par) & 0x40))
++			par->chan.reg = CR_SERIAL2;
++		par->chan.ioaddr      = par->mmio.vbase;
++		par->chan.algo.setsda = prosavage_gpio_setsda;
++		par->chan.algo.setscl = prosavage_gpio_setscl;
++		par->chan.algo.getsda = prosavage_gpio_getsda;
++		par->chan.algo.getscl = prosavage_gpio_getscl;
++		break;
+ 	case FB_ACCEL_SAVAGE2000:
+ 		par->chan.reg         = 0xff20;
+ 		par->chan.ioaddr      = par->mmio.vbase;
 _
 
 Patches currently in -mm which might be from linux@rainbow-software.org are
 
 swap-revert-special-hibernation-allocation.patch
 swap-prevent-reuse-during-hibernation.patch
+savagefb-fix-ddc-for-savage-4.patch
 cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
 isofs-work-around-for-rock-ridgejoliet-cds-with-empty-iso-root-directory.patch
 
