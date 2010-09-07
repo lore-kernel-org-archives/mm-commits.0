@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch added to -mm tree
-Date: Tue, 07 Sep 2010 14:12:57 -0700
-Message-ID: <201009072112.o87LCvE8006416@imap1.linux-foundation.org>
+Subject: + vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch added to -mm tree
+Date: Tue, 07 Sep 2010 14:24:31 -0700
+Message-ID: <201009072124.o87LOWAf006933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752440Ab0IGVNG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:13:06 -0400
+	by vger.kernel.org with ESMTP id S1756451Ab0IGVYw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, heiko.carstens@de.ibm.com, viro@ZenIV.linux.org.uk
+Cc: minchan.kim@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, yinghan@google.com
 
 
 The patch titled
-     vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix
+     vmscan: prevent background aging of anon page in no swap system
 has been added to the -mm tree.  Its filename is
-     vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch
+     vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: vmscan: prevent background aging of anon page in no swap system
+From: Minchan Kim <minchan.kim@gmail.com>
 
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch adds
-"UNSIGINED" fpos support.  But it dones't handle llseek.  Fix it.
+Ying Han reported that backing aging of anon pages in no swap system
+causes unnecessary TLB flush.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+When I sent a patch(69c8548175), I wanted this patch but Rik pointed out
+and allowed aging of anon pages to give a chance to promote from inactive
+to active LRU.
+
+It has a two problem.
+
+1) non-swap system
+
+Never make sense to age anon pages.
+
+2) swap configured but still doesn't swapon
+
+It doesn't make sense to age anon pages until swap-on time.  But it's
+arguable.  If we have aged anon pages by swapon, VM have moved anon pages
+from active to inactive.  And in the time swapon by admin, the VM can't
+reclaim hot pages so we can protect hot pages swapout.
+
+But let's think about it.  When does swap-on happen?  It depends on admin.
+ we can't expect it.  Nonetheless, we have done aging of anon pages to
+protect hot pages swapout.  It means we lost run time overhead when below
+high watermark but gain hot page swap-[in/out] overhead when VM decide
+swapout.  Is it true?  Let's think more detail.  We don't promote anon
+pages in case of non-swap system.  So even though VM does aging of anon
+pages, the pages would be in inactive LRU for a long time.  It means many
+of pages in there would mark access bit again.  So access bit hot/code
+separation would be pointless.
+
+This patch prevents unnecessary anon pages demotion in not-yet-swapon and
+non-configured swap system.  Even, in non-configuared swap system
+inactive_anon_is_low can be compiled out.
+
+It could make side effect that hot anon pages could swap out when admin
+does swap on.  But I think sooner or later it would be steady state.  So
+it's not a big problem.
+
+We could lose someting but gain more thing(TLB flush and unnecessary
+function call to demote anon pages).
+
+Signed-off-by: Ying Han <yinghan@google.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |   33 ++++++++++++++++++---------------
- 1 file changed, 18 insertions(+), 15 deletions(-)
+ mm/vmscan.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN fs/read_write.c~vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix fs/read_write.c
---- a/fs/read_write.c~vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix
-+++ a/fs/read_write.c
-@@ -31,6 +31,20 @@ const struct file_operations generic_ro_
- 
- EXPORT_SYMBOL(generic_ro_fops);
- 
-+static int
-+__negative_fpos_check(struct file *file, loff_t pos, size_t count)
-+{
-+	/*
-+	 * pos or pos+count is negative here, check overflow.
-+	 * too big "count" will be caught in rw_verify_area().
-+	 */
-+	if ((pos < 0) && (pos + count < pos))
-+		return -EOVERFLOW;
-+	if (file->f_mode & FMODE_UNSIGNED_OFFSET)
-+		return 0;
-+	return -EINVAL;
-+}
-+
- /**
-  * generic_file_llseek_unlocked - lockless generic llseek implementation
-  * @file:	file structure to seek on
-@@ -62,7 +76,9 @@ generic_file_llseek_unlocked(struct file
- 		break;
- 	}
- 
--	if (offset < 0 || offset > inode->i_sb->s_maxbytes)
-+	if (offset < 0 && __negative_fpos_check(file, offset, 0))
-+		return -EINVAL;
-+	if (offset > inode->i_sb->s_maxbytes)
- 		return -EINVAL;
- 
- 	/* Special lock needed here? */
-@@ -137,7 +153,7 @@ loff_t default_llseek(struct file *file,
- 			offset += file->f_pos;
- 	}
- 	retval = -EINVAL;
--	if (offset >= 0) {
-+	if (offset >= 0 || !__negative_fpos_check(file, offset, 0)) {
- 		if (offset != file->f_pos) {
- 			file->f_pos = offset;
- 			file->f_version = 0;
-@@ -222,19 +238,6 @@ bad:
+diff -puN mm/vmscan.c~vmscan-prevent-background-aging-of-anon-page-in-no-swap-system mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-prevent-background-aging-of-anon-page-in-no-swap-system
++++ a/mm/vmscan.c
+@@ -1579,6 +1579,7 @@ static void shrink_active_list(unsigned 
+ 	spin_unlock_irq(&zone->lru_lock);
  }
- #endif
  
--static int
--__negative_fpos_check(struct file *file, loff_t pos, size_t count)
--{
--	/*
--	 * pos or pos+count is negative here, check overflow.
--	 * too big "count" will be caught in rw_verify_area().
--	 */
--	if ((pos < 0) && (pos + count < pos))
--		return -EOVERFLOW;
--	if (file->f_mode & FMODE_UNSIGNED_OFFSET)
--		return 0;
--	return -EINVAL;
--}
++#ifdef CONFIG_SWAP
+ static int inactive_anon_is_low_global(struct zone *zone)
+ {
+ 	unsigned long active, inactive;
+@@ -1604,12 +1605,26 @@ static int inactive_anon_is_low(struct z
+ {
+ 	int low;
  
- /*
-  * rw_verify_area doesn't like huge counts. We limit
++	/*
++	 * If we don't have swap space, anonymous page deactivation
++	 * is pointless.
++	 */
++	if (!total_swap_pages)
++		return 0;
++
+ 	if (scanning_global_lru(sc))
+ 		low = inactive_anon_is_low_global(zone);
+ 	else
+ 		low = mem_cgroup_inactive_anon_is_low(sc->mem_cgroup);
+ 	return low;
+ }
++#else
++static inline int inactive_anon_is_low(struct zone *zone,
++					struct scan_control *sc)
++{
++	return 0;
++}
++#endif
+ 
+ static int inactive_file_is_low_global(struct zone *zone)
+ {
+@@ -1855,7 +1870,7 @@ static void shrink_zone(int priority, st
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
+ 	 */
+-	if (inactive_anon_is_low(zone, sc) && nr_swap_pages > 0)
++	if (inactive_anon_is_low(zone, sc))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, zone, sc, priority, 0);
+ 
+ 	throttle_vm_writeout(sc->gfp_mask);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-linux-next.patch
-memory-hotplug-fix-next-block-calculation-in-is_removable.patch
-swap-revert-special-hibernation-allocation.patch
-swap-prevent-reuse-during-hibernation.patch
+mm-compaction-handle-active-and-inactive-fairly-in-too_many_isolated.patch
 vmstat-update-zone-stat-threshold-when-onlining-a-cpu.patch
 mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list.patch
 mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list-fix.patch
 mm-page-allocator-drain-per-cpu-lists-after-direct-reclaim-allocation-fails.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-oom-add-per-mm-oom-disable-count.patch
-oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-memory-hotplug-fix-notifiers-return-value-check.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-vmap-area-cache.patch
+mm-compaction-fix-compactpagefailed-counting.patch
+vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
 
