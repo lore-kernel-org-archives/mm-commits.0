@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swap-do-not-send-discards-as-barriers.patch added to -mm tree
-Date: Tue, 07 Sep 2010 13:32:16 -0700
-Message-ID: <201009072032.o87KWGtL004438@imap1.linux-foundation.org>
+Subject: + memory-hotplug-fix-next-block-calculation-in-is_removable.patch added to -mm tree
+Date: Tue, 07 Sep 2010 14:03:33 -0700
+Message-ID: <201009072103.o87L3XMV006005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756829Ab0IGUcl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 16:32:41 -0400
+	by vger.kernel.org with ESMTP id S1751795Ab0IGVEp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 17:04:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@infradead.org, James.Bottomley@hansenpartnership.com, hch@lst.de, hughd@google.com, jaxboe@fusionio.com, martin.petersen@oracle.com, nigel@tuxonice.net, stable@kernel.org, tj@kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, mhocko@suse.cz, stable@kernel.org
 
 
 The patch titled
-     swap: do not send discards as barriers
+     memory hotplug: fix next block calculation in is_removable
 has been added to the -mm tree.  Its filename is
-     swap-do-not-send-discards-as-barriers.patch
+     memory-hotplug-fix-next-block-calculation-in-is_removable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap: do not send discards as barriers
-From: Christoph Hellwig <hch@infradead.org>
+Subject: memory hotplug: fix next block calculation in is_removable
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The swap code already uses synchronous discards, no need to add I/O
-barriers.
+next_active_pageblock() is for finding next _used_ freeblock.  It skips
+several blocks when it finds there are a chunk of free pages lager than
+pageblock.  But it has 2 bugs.
 
-This fixes the worst of the terrible slowdown in swap allocation for
-hibernation, reported on 2.6.35 by Nigel Cunningham; but does not entirely
-eliminate that regression.
+  1. We have no lock. page_order(page) - pageblock_order can be minus.
+  2. pageblocks_stride += is wrong. it should skip page_order(p) of pages.
 
-[tj@kernel.org: superflous newlines removed]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Nigel Cunningham <nigel@tuxonice.net>
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Jens Axboe <jaxboe@fusionio.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/swapfile.c~swap-do-not-send-discards-as-barriers mm/swapfile.c
---- a/mm/swapfile.c~swap-do-not-send-discards-as-barriers
-+++ a/mm/swapfile.c
-@@ -139,8 +139,7 @@ static int discard_swap(struct swap_info
- 	nr_blocks = ((sector_t)se->nr_pages - 1) << (PAGE_SHIFT - 9);
- 	if (nr_blocks) {
- 		err = blkdev_issue_discard(si->bdev, start_block,
--				nr_blocks, GFP_KERNEL,
--				BLKDEV_IFL_WAIT | BLKDEV_IFL_BARRIER);
-+				nr_blocks, GFP_KERNEL, BLKDEV_IFL_WAIT);
- 		if (err)
- 			return err;
- 		cond_resched();
-@@ -151,8 +150,7 @@ static int discard_swap(struct swap_info
- 		nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-next-block-calculation-in-is_removable mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-next-block-calculation-in-is_removable
++++ a/mm/memory_hotplug.c
+@@ -584,19 +584,19 @@ static inline int pageblock_free(struct 
+ /* Return the start of the next active pageblock after a given page */
+ static struct page *next_active_pageblock(struct page *page)
+ {
+-	int pageblocks_stride;
+-
+ 	/* Ensure the starting page is pageblock-aligned */
+ 	BUG_ON(page_to_pfn(page) & (pageblock_nr_pages - 1));
  
- 		err = blkdev_issue_discard(si->bdev, start_block,
--				nr_blocks, GFP_KERNEL,
--				BLKDEV_IFL_WAIT | BLKDEV_IFL_BARRIER);
-+				nr_blocks, GFP_KERNEL, BLKDEV_IFL_WAIT);
- 		if (err)
- 			break;
+-	/* Move forward by at least 1 * pageblock_nr_pages */
+-	pageblocks_stride = 1;
+-
+ 	/* If the entire pageblock is free, move to the end of free page */
+-	if (pageblock_free(page))
+-		pageblocks_stride += page_order(page) - pageblock_order;
++	if (pageblock_free(page)) {
++		int order;
++		/* be careful. we don't have locks, page_order can be changed.*/
++		order = page_order(page);
++		if ((order < MAX_ORDER) && (order >= pageblock_order))
++			return page + (1 << order);
++	}
  
-@@ -191,8 +189,7 @@ static void discard_swap_cluster(struct 
- 			start_block <<= PAGE_SHIFT - 9;
- 			nr_blocks <<= PAGE_SHIFT - 9;
- 			if (blkdev_issue_discard(si->bdev, start_block,
--				    nr_blocks, GFP_NOIO, BLKDEV_IFL_WAIT |
--							BLKDEV_IFL_BARRIER))
-+				    nr_blocks, GFP_NOIO, BLKDEV_IFL_WAIT))
- 				break;
- 		}
+-	return page + (pageblocks_stride * pageblock_nr_pages);
++	return page + pageblock_nr_pages;
+ }
  
+ /* Checks if this range of memory is likely to be hot-removable. */
 _
 
-Patches currently in -mm which might be from hch@infradead.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 linux-next.patch
-o_direct-fix-the-splitting-up-of-contiguous-i-o.patch
-swap-do-not-send-discards-as-barriers.patch
+memory-hotplug-fix-next-block-calculation-in-is_removable.patch
+swap-revert-special-hibernation-allocation.patch
+swap-prevent-reuse-during-hibernation.patch
+vmstat-update-zone-stat-threshold-when-onlining-a-cpu.patch
+mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list.patch
+mm-page-allocator-update-free-page-counters-after-pages-are-placed-on-the-free-list-fix.patch
+mm-page-allocator-drain-per-cpu-lists-after-direct-reclaim-allocation-fails.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
 vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
 vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-writeback-remove-nonblocking-encountered_congestion-references.patch
+oom-add-per-mm-oom-disable-count.patch
+oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+memory-hotplug-fix-notifiers-return-value-check.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code.patch
 
