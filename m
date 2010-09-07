@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + exit-add-lock-context-annotation-on-find_new_reaper.patch added to -mm tree
-Date: Tue, 07 Sep 2010 15:16:08 -0700
-Message-ID: <201009072216.o87MG8gP009651@imap1.linux-foundation.org>
+Subject: + audit-use-rcu-for-task-lookup-protection.patch added to -mm tree
+Date: Tue, 07 Sep 2010 15:15:13 -0700
+Message-ID: <201009072215.o87MFDuo009495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756049Ab0IGWQo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:16:44 -0400
+	by vger.kernel.org with ESMTP id S1756343Ab0IGWRG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 18:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, roland@redhat.com
+Cc: tglx@linutronix.de, eparis@redhat.com, oleg@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     exit: add lock context annotation on find_new_reaper()
+     audit: use rcu for task lookup protection
 has been added to the -mm tree.  Its filename is
-     exit-add-lock-context-annotation-on-find_new_reaper.patch
+     audit-use-rcu-for-task-lookup-protection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit: add lock context annotation on find_new_reaper()
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: audit: use rcu for task lookup protection
+From: Thomas Gleixner <tglx@linutronix.de>
 
-find_new_reaper() releases and regrabs tasklist_lock but was missing
-proper annotations.  Add it.  This remove following sparse warning:
+Protect the task lookups in audit_receive_msg() with rcu_read_lock()
+instead of tasklist_lock and use lock/unlock_sighand to protect against
+the exit race.
 
- warning: context imbalance in 'find_new_reaper' - unexpected unlock
-
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/audit.c |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN kernel/exit.c~exit-add-lock-context-annotation-on-find_new_reaper kernel/exit.c
---- a/kernel/exit.c~exit-add-lock-context-annotation-on-find_new_reaper
-+++ a/kernel/exit.c
-@@ -705,6 +705,8 @@ static void exit_mm(struct task_struct *
-  * space.
-  */
- static struct task_struct *find_new_reaper(struct task_struct *father)
-+	__releases(&tasklist_lock)
-+	__acquires(&tasklist_lock)
- {
- 	struct pid_namespace *pid_ns = task_active_pid_ns(father);
- 	struct task_struct *thread;
+diff -puN kernel/audit.c~audit-use-rcu-for-task-lookup-protection kernel/audit.c
+--- a/kernel/audit.c~audit-use-rcu-for-task-lookup-protection
++++ a/kernel/audit.c
+@@ -873,17 +873,16 @@ static int audit_receive_msg(struct sk_b
+ 	case AUDIT_TTY_GET: {
+ 		struct audit_tty_status s;
+ 		struct task_struct *tsk;
++		unsigned long flags;
+ 
+-		read_lock(&tasklist_lock);
++		rcu_read_lock();
+ 		tsk = find_task_by_vpid(pid);
+-		if (!tsk)
+-			err = -ESRCH;
+-		else {
+-			spin_lock_irq(&tsk->sighand->siglock);
++		if (tsk && lock_task_sighand(tsk, &flags)) {
+ 			s.enabled = tsk->signal->audit_tty != 0;
+-			spin_unlock_irq(&tsk->sighand->siglock);
+-		}
+-		read_unlock(&tasklist_lock);
++			unlock_task_sighand(tsk, &flags);
++		} else
++			err = -ESRCH;
++		rcu_read_unlock();
+ 
+ 		if (!err)
+ 			audit_send_reply(NETLINK_CB(skb).pid, seq,
+@@ -893,22 +892,21 @@ static int audit_receive_msg(struct sk_b
+ 	case AUDIT_TTY_SET: {
+ 		struct audit_tty_status *s;
+ 		struct task_struct *tsk;
++		unsigned long flags;
+ 
+ 		if (nlh->nlmsg_len < sizeof(struct audit_tty_status))
+ 			return -EINVAL;
+ 		s = data;
+ 		if (s->enabled != 0 && s->enabled != 1)
+ 			return -EINVAL;
+-		read_lock(&tasklist_lock);
++		rcu_read_lock();
+ 		tsk = find_task_by_vpid(pid);
+-		if (!tsk)
+-			err = -ESRCH;
+-		else {
+-			spin_lock_irq(&tsk->sighand->siglock);
++		if (tsk && lock_task_sighand(tsk, &flags)) {
+ 			tsk->signal->audit_tty = s->enabled != 0;
+-			spin_unlock_irq(&tsk->sighand->siglock);
+-		}
+-		read_unlock(&tasklist_lock);
++			unlock_task_sighand(tsk, &flags);
++		} else
++			err = -ESRCH;
++		rcu_read_unlock();
+ 		break;
+ 	}
+ 	default:
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 linux-next.patch
-init-mark-__user-address-space-on-string-literals.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
+audit-call-tty_audit_push_task-outside-preempt-disabled.patch
+audit-do-not-send-uninitialized-data-for-audit_tty_get.patch
+audit-use-rcu-for-task-lookup-protection.patch
+time-compensate-for-rounding-on-odd-frequency-clocksources.patch
+x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
+hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit.patch
+hpet-factor-timer-allocate-from-open.patch
+timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
+timer-initialize-the-field-slack-of-timer_list.patch
+kernel-time-use-array_size-macro-in-timecomparec.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+kernelh-add-minmax3-macros.patch
+kernelh-add-minmax3-macros-fix.patch
+replace-nested-max-min-macros-with-maxmin3-macro.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+epoll-make-epoll_wait-use-the-hrtimer-range-feature.patch
 
