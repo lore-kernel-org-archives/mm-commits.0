@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type.patch added to -mm tree
-Date: Tue, 07 Sep 2010 16:47:25 -0700
-Message-ID: <201009072347.o87NlQ7e013912@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function.patch added to -mm tree
+Date: Tue, 07 Sep 2010 16:47:29 -0700
+Message-ID: <201009072347.o87NlUUF013921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755714Ab0IGX6i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:58:38 -0400
+	by vger.kernel.org with ESMTP id S1758376Ab0IGX7O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, khali@linux-fr.org, olof@lixom.net
+Cc: julia@diku.dk, linville@tuxdriver.com, reinette.chatre@intel.com, wey-yi.w.guy@intel.com
 
 
 The patch titled
-     drivers/i2c/busses/i2c-pasemi.c: fix unsigned return type
+     drivers/net/wireless/iwlwifi/iwl-agn.c: fix return value from an unsigned function
 has been added to the -mm tree.  Its filename is
-     drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type.patch
+     drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/i2c/busses/i2c-pasemi.c: fix unsigned return type
+Subject: drivers/net/wireless/iwlwifi/iwl-agn.c: fix return value from an unsigned function
 From: Julia Lawall <julia@diku.dk>
 
 The function has an unsigned return type, but returns a negative constant
-to indicate an error condition.  The result of calling the function is
-always stored in a variable of type (signed) int, and thus unsigned can be
-dropped from the return type.
+to indicate an error condition.  Another error condition in the same
+function is indicated by returning 0, and indeed the only call to the
+function checks for 0 to detect errors, so the return of a negative value
+it converted to a return of 0.
 
 A sematic match that finds this problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -57,26 +58,27 @@ constant C;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jean Delvare <khali@linux-fr.org>
-Acked-by: Olof Johansson <olof@lixom.net>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Wey-Yi Guy <wey-yi.w.guy@intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-pasemi.c |    2 +-
+ drivers/net/wireless/iwlwifi/iwl-agn.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/i2c/busses/i2c-pasemi.c~drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type drivers/i2c/busses/i2c-pasemi.c
---- a/drivers/i2c/busses/i2c-pasemi.c~drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type
-+++ a/drivers/i2c/busses/i2c-pasemi.c
-@@ -88,7 +88,7 @@ static void pasemi_smb_clear(struct pase
- 	reg_write(smbus, REG_SMSTA, status);
- }
+diff -puN drivers/net/wireless/iwlwifi/iwl-agn.c~drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function drivers/net/wireless/iwlwifi/iwl-agn.c
+--- a/drivers/net/wireless/iwlwifi/iwl-agn.c~drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function
++++ a/drivers/net/wireless/iwlwifi/iwl-agn.c
+@@ -369,7 +369,7 @@ static unsigned int iwl_hw_get_beacon_cm
  
--static unsigned int pasemi_smb_waitready(struct pasemi_smbus *smbus)
-+static int pasemi_smb_waitready(struct pasemi_smbus *smbus)
- {
- 	int timeout = 10;
- 	unsigned int status;
+ 	if (!priv->beacon_ctx) {
+ 		IWL_ERR(priv, "trying to build beacon w/o beacon context!\n");
+-		return -EINVAL;
++		return 0;
+ 	}
+ 
+ 	/* Initialize memory */
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
