@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-swapin-race-condition.patch added to -mm tree
-Date: Fri, 03 Sep 2010 17:03:42 -0700
-Message-ID: <201009040003.o8403gri020398@imap1.linux-foundation.org>
+Subject: + hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit.patch added to -mm tree
+Date: Tue, 07 Sep 2010 13:00:41 -0700
+Message-ID: <201009072000.o87K0fVR002725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751091Ab0IDAD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2010 20:03:58 -0400
+	by vger.kernel.org with ESMTP id S1758181Ab0IGUJI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 16:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com, riel@redhat.com, stable@kernel.org
+Cc: clemens@ladisch.de, bpicco@redhat.com, jaswinderlinux@gmail.com, johnstul@us.ibm.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     mm: fix swapin race condition
+     hpet: fix unwanted interrupt due to stale irq status bit
 has been added to the -mm tree.  Its filename is
-     mm-fix-swapin-race-condition.patch
+     hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,182 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix swapin race condition
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: hpet: fix unwanted interrupt due to stale irq status bit
+From: Clemens Ladisch <clemens@ladisch.de>
 
-The pte_same check is reliable only if the swap entry remains pinned (by
-the page lock on swapcache).  We've also to ensure the swapcache isn't
-removed before we take the lock as try_to_free_swap won't care about the
-page pin.
+Jaswinder Singh Rajput wrote:
+> By executing Documentation/timers/hpet_example.c
+>
+> for polling, I requested for 3 iterations but it seems iteration work
+> for only 2 as first expired time is always very small.
+>
+> # ./hpet_example poll /dev/hpet 10 3
+> -hpet: executing poll
+> hpet_poll: info.hi_flags 0x0
+> hpet_poll: expired time = 0x13
+> hpet_poll: revents = 0x1
+> hpet_poll: data 0x1
+> hpet_poll: expired time = 0x1868c
+> hpet_poll: revents = 0x1
+> hpet_poll: data 0x1
+> hpet_poll: expired time = 0x18645
+> hpet_poll: revents = 0x1
+> hpet_poll: data 0x1
 
-One of the possible impacts of this patch is that a KSM-shared page can
-point to the anon_vma of another process, which could exit before the page
-is freed.
+Clearing the HPET interrupt enable bit disables interrupt generation
+but does not disable the timer, so the interrupt status bit will still
+be set when the timer elapses.  If another interrupt arrives before
+the timer has been correctly programmed (due to some other device on
+the same interrupt line, or CONFIG_DEBUG_SHIRQ), this results in an
+extra unwanted interrupt event because the status bit is likely to be
+set from comparator matches that happened before the device was opened.
 
-This can leave a page with a pointer to a recycled anon_vma object, or
-worse, a pointer to something that is no longer an anon_vma.
+Therefore, we have to ensure that the interrupt status bit is and
+stays cleared until we actually program the timer.
 
-[riel@redhat.com: changelog help]
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Reported-by: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Bob Picco <bpicco@redhat.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |   20 +++++++++-----------
- mm/ksm.c            |    3 ---
- mm/memory.c         |   39 ++++++++++++++++++++++++++++++++++-----
- 3 files changed, 43 insertions(+), 19 deletions(-)
+ drivers/char/hpet.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/linux/ksm.h~mm-fix-swapin-race-condition include/linux/ksm.h
---- a/include/linux/ksm.h~mm-fix-swapin-race-condition
-+++ a/include/linux/ksm.h
-@@ -16,6 +16,9 @@
- struct stable_node;
- struct mem_cgroup;
+diff -puN drivers/char/hpet.c~hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit
++++ a/drivers/char/hpet.c
+@@ -479,6 +479,21 @@ static int hpet_ioctl_ieon(struct hpet_d
+ 	if (irq) {
+ 		unsigned long irq_flags;
  
-+struct page *ksm_does_need_to_copy(struct page *page,
-+			struct vm_area_struct *vma, unsigned long address);
-+
- #ifdef CONFIG_KSM
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags);
-@@ -70,19 +73,14 @@ static inline void set_page_stable_node(
-  * We'd like to make this conditional on vma->vm_flags & VM_MERGEABLE,
-  * but what if the vma was unmerged while the page was swapped out?
-  */
--struct page *ksm_does_need_to_copy(struct page *page,
--			struct vm_area_struct *vma, unsigned long address);
--static inline struct page *ksm_might_need_to_copy(struct page *page,
-+static inline int ksm_might_need_to_copy(struct page *page,
- 			struct vm_area_struct *vma, unsigned long address)
- {
- 	struct anon_vma *anon_vma = page_anon_vma(page);
- 
--	if (!anon_vma ||
--	    (anon_vma->root == vma->anon_vma->root &&
--	     page->index == linear_page_index(vma, address)))
--		return page;
--
--	return ksm_does_need_to_copy(page, vma, address);
-+	return anon_vma &&
-+		(anon_vma->root != vma->anon_vma->root ||
-+		 page->index != linear_page_index(vma, address));
- }
- 
- int page_referenced_ksm(struct page *page,
-@@ -115,10 +113,10 @@ static inline int ksm_madvise(struct vm_
- 	return 0;
- }
- 
--static inline struct page *ksm_might_need_to_copy(struct page *page,
-+static inline int ksm_might_need_to_copy(struct page *page,
- 			struct vm_area_struct *vma, unsigned long address)
- {
--	return page;
-+	return 0;
- }
- 
- static inline int page_referenced_ksm(struct page *page,
-diff -puN mm/ksm.c~mm-fix-swapin-race-condition mm/ksm.c
---- a/mm/ksm.c~mm-fix-swapin-race-condition
-+++ a/mm/ksm.c
-@@ -1504,8 +1504,6 @@ struct page *ksm_does_need_to_copy(struc
- {
- 	struct page *new_page;
- 
--	unlock_page(page);	/* any racers will COW it, not modify it */
--
- 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
- 	if (new_page) {
- 		copy_user_highpage(new_page, page, address, vma);
-@@ -1521,7 +1519,6 @@ struct page *ksm_does_need_to_copy(struc
- 			add_page_to_unevictable_list(new_page);
- 	}
- 
--	page_cache_release(page);
- 	return new_page;
- }
- 
-diff -puN mm/memory.c~mm-fix-swapin-race-condition mm/memory.c
---- a/mm/memory.c~mm-fix-swapin-race-condition
-+++ a/mm/memory.c
-@@ -2623,7 +2623,7 @@ static int do_swap_page(struct mm_struct
- 		unsigned int flags, pte_t orig_pte)
- {
- 	spinlock_t *ptl;
--	struct page *page;
-+	struct page *page, *swapcache = NULL;
- 	swp_entry_t entry;
- 	pte_t pte;
- 	struct mem_cgroup *ptr = NULL;
-@@ -2679,10 +2679,23 @@ static int do_swap_page(struct mm_struct
- 	lock_page(page);
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 
--	page = ksm_might_need_to_copy(page, vma, address);
--	if (!page) {
--		ret = VM_FAULT_OOM;
--		goto out;
-+	/*
-+	 * Make sure try_to_free_swap didn't release the swapcache
-+	 * from under us. The page pin isn't enough to prevent that.
-+	 */
-+	if (unlikely(!PageSwapCache(page)))
-+		goto out_page;
-+
-+	if (ksm_might_need_to_copy(page, vma, address)) {
-+		swapcache = page;
-+		page = ksm_does_need_to_copy(page, vma, address);
-+
-+		if (unlikely(!page)) {
-+			ret = VM_FAULT_OOM;
-+			page = swapcache;
-+			swapcache = NULL;
-+			goto out_page;
++		if (devp->hd_flags & HPET_SHARED_IRQ) {
++			/*
++			 * To prevent the interrupt handler from seeing an
++			 * unwanted interrupt status bit, program the timer
++			 * so that it will not fire in the near future ...
++			 */
++			writel(readl(&timer->hpet_config) & ~Tn_TYPE_CNF_MASK,
++			       &timer->hpet_config);
++			write_counter(read_counter(&hpet->hpet_mc),
++				      &timer->hpet_compare);
++			/* ... and clear any left-over status. */
++			isr = 1 << (devp - devp->hd_hpets->hp_dev);
++			writel(isr, &hpet->hpet_isr);
 +		}
- 	}
- 
- 	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
-@@ -2735,6 +2748,18 @@ static int do_swap_page(struct mm_struct
- 	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
- 		try_to_free_swap(page);
- 	unlock_page(page);
-+	if (swapcache) {
-+		/*
-+		 * Hold the lock to avoid the swap entry to be reused
-+		 * until we take the PT lock for the pte_same() check
-+		 * (to avoid false positives from pte_same). For
-+		 * further safety release the lock after the swap_free
-+		 * so that the swap count won't change under a
-+		 * parallel locked swapcache.
-+		 */
-+		unlock_page(swapcache);
-+		page_cache_release(swapcache);
-+	}
- 
- 	if (flags & FAULT_FLAG_WRITE) {
- 		ret |= do_wp_page(mm, vma, address, page_table, pmd, ptl, pte);
-@@ -2756,6 +2781,10 @@ out_page:
- 	unlock_page(page);
- out_release:
- 	page_cache_release(page);
-+	if (swapcache) {
-+		unlock_page(swapcache);
-+		page_cache_release(swapcache);
-+	}
- 	return ret;
- }
- 
++
+ 		sprintf(devp->hd_name, "hpet%d", (int)(devp - hpetp->hp_dev));
+ 		irq_flags = devp->hd_flags & HPET_SHARED_IRQ
+ 						? IRQF_SHARED : IRQF_DISABLED;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from clemens@ladisch.de are
 
 linux-next.patch
-mm-fix-swapin-race-condition.patch
-mm-avoid-warning-when-compaction-is-selected.patch
-define-madv_hugepage.patch
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
+hpet-unmap-unused-i-o-space.patch
+hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit.patch
+hpet-factor-timer-allocate-from-open.patch
 
