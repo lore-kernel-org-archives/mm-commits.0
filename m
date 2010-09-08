@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function.patch added to -mm tree
-Date: Tue, 07 Sep 2010 16:47:29 -0700
-Message-ID: <201009072347.o87NlUUF013921@imap1.linux-foundation.org>
+Subject: + bounce-call-flush_dcache_page-after-bounce_copy_vec.patch added to -mm tree
+Date: Wed, 08 Sep 2010 12:47:24 -0700
+Message-ID: <201009081947.o88JlOk5005070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758376Ab0IGX7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Sep 2010 19:59:14 -0400
+	by vger.kernel.org with ESMTP id S1754002Ab0IHTrh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Sep 2010 15:47:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, linville@tuxdriver.com, reinette.chatre@intel.com, wey-yi.w.guy@intel.com
+Cc: gking@nvidia.com, axboe@kernel.dk, rmk@arm.linux.org.uk, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     drivers/net/wireless/iwlwifi/iwl-agn.c: fix return value from an unsigned function
+     bounce: call flush_dcache_page() after bounce_copy_vec()
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function.patch
+     bounce-call-flush_dcache_page-after-bounce_copy_vec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/iwlwifi/iwl-agn.c: fix return value from an unsigned function
-From: Julia Lawall <julia@diku.dk>
+Subject: bounce: call flush_dcache_page() after bounce_copy_vec()
+From: Gary King <gking@nvidia.com>
 
-The function has an unsigned return type, but returns a negative constant
-to indicate an error condition.  Another error condition in the same
-function is indicated by returning 0, and indeed the only call to the
-function checks for 0 to detect errors, so the return of a negative value
-it converted to a return of 0.
+I have been seeing problems on Tegra 2 (ARMv7 SMP) systems with HIGHMEM
+enabled on 2.6.35 (plus some patches targetted at 2.6.36 to perform cache
+maintenance lazily), and the root cause appears to be that the mm bouncing
+code is calling flush_dcache_page before it copies the bounce buffer into
+the bio.
 
-A sematic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+The bounced page needs to be flushed after data is copied into it, to
+ensure that architecture implementations can synchronize instruction and
+data caches if necessary.
 
-// <smpl>
-@exists@
-identifier f;
-constant C;
-@@
-
- unsigned f(...)
- { <+...
-*  return -C;
- ...+> }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Wey-Yi Guy <wey-yi.w.guy@intel.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Gary King <gking@nvidia.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-agn.c |    2 +-
+ mm/bounce.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-agn.c~drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function drivers/net/wireless/iwlwifi/iwl-agn.c
---- a/drivers/net/wireless/iwlwifi/iwl-agn.c~drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function
-+++ a/drivers/net/wireless/iwlwifi/iwl-agn.c
-@@ -369,7 +369,7 @@ static unsigned int iwl_hw_get_beacon_cm
+diff -puN mm/bounce.c~bounce-call-flush_dcache_page-after-bounce_copy_vec mm/bounce.c
+--- a/mm/bounce.c~bounce-call-flush_dcache_page-after-bounce_copy_vec
++++ a/mm/bounce.c
+@@ -116,8 +116,8 @@ static void copy_to_high_bio_irq(struct 
+ 		 */
+ 		vfrom = page_address(fromvec->bv_page) + tovec->bv_offset;
  
- 	if (!priv->beacon_ctx) {
- 		IWL_ERR(priv, "trying to build beacon w/o beacon context!\n");
--		return -EINVAL;
-+		return 0;
+-		flush_dcache_page(tovec->bv_page);
+ 		bounce_copy_vec(tovec, vfrom);
++		flush_dcache_page(tovec->bv_page);
  	}
+ }
  
- 	/* Initialize memory */
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from gking@nvidia.com are
 
 linux-next.patch
-drivers-mmc-host-imxmmcc-adjust-confusing-if-indentation.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-drivers-video-matrox-matroxfb_mavenc-fix-unsigned-return-type.patch
-arch-x86-kernel-cpu-cpufreq-fix-unsigned-return-type.patch
-net-9p-trans_fdc-fix-unsigned-return-type.patch
-drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type.patch
-drivers-atm-firestreamc-fix-unsigned-return-type.patch
-drivers-net-wireless-iwlwifi-iwl-agnc-fix-return-value-from-an-unsigned-function.patch
+bounce-call-flush_dcache_page-after-bounce_copy_vec.patch
 
