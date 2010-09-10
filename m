@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-fix-acpi-probe-print.patch added to -mm tree
-Date: Fri, 10 Sep 2010 16:43:08 -0700
-Message-ID: <201009102343.o8ANh8on009850@imap1.linux-foundation.org>
+Subject: + ipmi-fix-__init-and-__exit-attribute-locations.patch added to -mm tree
+Date: Fri, 10 Sep 2010 16:44:12 -0700
+Message-ID: <201009102344.o8ANiC8l009880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754986Ab0IJXnL (ORCPT
+	by vger.kernel.org with ESMTP id S1755362Ab0IJXoO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 19:43:11 -0400
+	Fri, 10 Sep 2010 19:44:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, cminyard@mvista.com
+Cc: cminyard@mvista.com
 
 
 The patch titled
-     ipmi: fix acpi probe print
+     ipmi: fix __init and __exit attribute locations
 has been added to the -mm tree.  Its filename is
-     ipmi-fix-acpi-probe-print.patch
+     ipmi-fix-__init-and-__exit-attribute-locations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: fix acpi probe print
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: ipmi: fix __init and __exit attribute locations
+From: Corey Minyard <cminyard@mvista.com>
 
-After
-|commit d9e1b6c45059ccfff647a120769ae86da78dfdc4
-|
-|    ipmi: fix ACPI detection with regspacing
+__init and __exit belong after the return type on functions, not
+before.
 
-got
-[   11.026326] ipmi_si: probing via ACPI
-[   11.030019] ipmi_si 00:09: (null) regsize 1 spacing 1 irq 0
-[   11.035594] ipmi_si: Adding ACPI-specified kcs state machine
-
-on old system with only one range for ipmi kcs range.
-
-Try to fix it by adding another res pointer.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/ipmi/ipmi_devintf.c    |    4 ++--
+ drivers/char/ipmi/ipmi_msghandler.c |    4 ++--
+ drivers/char/ipmi/ipmi_si_intf.c    |   14 +++++++-------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-acpi-probe-print drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-acpi-probe-print
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2126,7 +2126,7 @@ static int __devinit ipmi_pnp_probe(stru
- {
- 	struct acpi_device *acpi_dev;
- 	struct smi_info *info;
--	struct resource *res;
-+	struct resource *res, *res_second;
- 	acpi_handle handle;
- 	acpi_status status;
- 	unsigned long long tmp;
-@@ -2182,13 +2182,13 @@ static int __devinit ipmi_pnp_probe(stru
- 	info->io.addr_data = res->start;
+diff -puN drivers/char/ipmi/ipmi_devintf.c~ipmi-fix-__init-and-__exit-attribute-locations drivers/char/ipmi/ipmi_devintf.c
+--- a/drivers/char/ipmi/ipmi_devintf.c~ipmi-fix-__init-and-__exit-attribute-locations
++++ a/drivers/char/ipmi/ipmi_devintf.c
+@@ -915,7 +915,7 @@ static struct ipmi_smi_watcher smi_watch
+ 	.smi_gone = ipmi_smi_gone,
+ };
  
- 	info->io.regspacing = DEFAULT_REGSPACING;
--	res = pnp_get_resource(dev,
-+	res_second = pnp_get_resource(dev,
- 			       (info->io.addr_type == IPMI_IO_ADDR_SPACE) ?
- 					IORESOURCE_IO : IORESOURCE_MEM,
- 			       1);
--	if (res) {
--		if (res->start > info->io.addr_data)
--			info->io.regspacing = res->start - info->io.addr_data;
-+	if (res_second) {
-+		if (res_second->start > info->io.addr_data)
-+			info->io.regspacing = res_second->start - info->io.addr_data;
- 	}
- 	info->io.regsize = DEFAULT_REGSPACING;
- 	info->io.regshift = 0;
+-static __init int init_ipmi_devintf(void)
++static int __init init_ipmi_devintf(void)
+ {
+ 	int rv;
+ 
+@@ -953,7 +953,7 @@ static __init int init_ipmi_devintf(void
+ }
+ module_init(init_ipmi_devintf);
+ 
+-static __exit void cleanup_ipmi(void)
++static void __exit cleanup_ipmi(void)
+ {
+ 	struct ipmi_reg_list *entry, *entry2;
+ 	mutex_lock(&reg_list_mutex);
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-__init-and-__exit-attribute-locations drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-fix-__init-and-__exit-attribute-locations
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -4442,13 +4442,13 @@ static int ipmi_init_msghandler(void)
+ 	return 0;
+ }
+ 
+-static __init int ipmi_init_msghandler_mod(void)
++static int __init ipmi_init_msghandler_mod(void)
+ {
+ 	ipmi_init_msghandler();
+ 	return 0;
+ }
+ 
+-static __exit void cleanup_ipmi(void)
++static void __exit cleanup_ipmi(void)
+ {
+ 	int count;
+ 
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-__init-and-__exit-attribute-locations drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-__init-and-__exit-attribute-locations
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -1832,7 +1832,7 @@ static int hotmod_handler(const char *va
+ 	return rv;
+ }
+ 
+-static __devinit void hardcode_find_bmc(void)
++static void __devinit hardcode_find_bmc(void)
+ {
+ 	int             i;
+ 	struct smi_info *info;
+@@ -2016,7 +2016,7 @@ struct SPMITable {
+ 	s8      spmi_id[1]; /* A '\0' terminated array starts here. */
+ };
+ 
+-static __devinit int try_init_spmi(struct SPMITable *spmi)
++static int __devinit try_init_spmi(struct SPMITable *spmi)
+ {
+ 	struct smi_info  *info;
+ 
+@@ -2099,7 +2099,7 @@ static __devinit int try_init_spmi(struc
+ 	return 0;
+ }
+ 
+-static __devinit void spmi_find_bmc(void)
++static void __devinit spmi_find_bmc(void)
+ {
+ 	acpi_status      status;
+ 	struct SPMITable *spmi;
+@@ -2312,7 +2312,7 @@ static int __devinit decode_dmi(const st
+ 	return 0;
+ }
+ 
+-static __devinit void try_init_dmi(struct dmi_ipmi_data *ipmi_data)
++static void __devinit try_init_dmi(struct dmi_ipmi_data *ipmi_data)
+ {
+ 	struct smi_info *info;
+ 
+@@ -2999,7 +2999,7 @@ static __devinitdata struct ipmi_default
+ 	{ .port = 0 }
+ };
+ 
+-static __devinit void default_find_bmc(void)
++static void __devinit default_find_bmc(void)
+ {
+ 	struct smi_info *info;
+ 	int             i;
+@@ -3302,7 +3302,7 @@ static int try_smi_init(struct smi_info 
+ 	return rv;
+ }
+ 
+-static __devinit int init_ipmi_si(void)
++static int __devinit init_ipmi_si(void)
+ {
+ 	int  i;
+ 	char *str;
+@@ -3514,7 +3514,7 @@ static void cleanup_one_si(struct smi_in
+ 	kfree(to_clean);
+ }
+ 
+-static __exit void cleanup_ipmi_si(void)
++static void __exit cleanup_ipmi_si(void)
+ {
+ 	struct smi_info *e, *tmp_e;
+ 
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
 ipmi-fix-acpi-probe-print.patch
-linux-next.patch
+ipmi-fix-__init-and-__exit-attribute-locations.patch
 
