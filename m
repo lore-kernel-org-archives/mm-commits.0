@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + hpet-fix-style-problems.patch added to -mm tree
-Date: Fri, 10 Sep 2010 16:37:00 -0700
-Message-ID: <201009102337.o8ANb0JM009625@imap1.linux-foundation.org>
+Date: Fri, 10 Sep 2010 16:37:20 -0700
+Message-ID: <201009102337.o8ANbK4G009637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753172Ab0IJXhH (ORCPT
+	by vger.kernel.org with ESMTP id S1755006Ab0IJXhZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 19:37:07 -0400
+	Fri, 10 Sep 2010 19:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@infradead.org, akpm@linux-foundation.org, clemens@ladisch.de, jaswinderrajput@gmail.com
+Cc: jaswinder@infradead.org, clemens@ladisch.de, jaswinderrajput@gmail.com
 
 
 The patch titled
-     Subject: [PATCH] HPET: fix style problems
+     hpet: fix style problems
 has been added to the -mm tree.  Its filename is
      hpet-fix-style-problems.patch
 
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] HPET: fix style problems
+Subject: hpet: fix style problems
 From: Jaswinder Singh Rajput <jaswinder@infradead.org>
 
-Fixed following style problems:
+Fix the following style problems:
 
 WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
 WARNING: Use #include <linux/io.h> instead of <asm/io.h>
@@ -46,10 +46,6 @@ ERROR: do not initialise statics to 0 or NULL
 
 Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
 Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
----
-
-index a0a1829..ebea5c8 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
