@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 10 Sep 2010 16:36:32 -0700
-Message-ID: <201009102336.o8ANaW8A009598@imap1.linux-foundation.org>
+Subject: + hpet-fix-style-problems.patch added to -mm tree
+Date: Fri, 10 Sep 2010 16:37:00 -0700
+Message-ID: <201009102337.o8ANb0JM009625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753172Ab0IJXgl (ORCPT
+	by vger.kernel.org with ESMTP id S1753172Ab0IJXhH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 19:36:41 -0400
+	Fri, 10 Sep 2010 19:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adrian.hunter@nokia.com, andy.shevchenko@gmail.com, cjb@laptop.org, ext-andriy.shevchenko@nokia.com, greg@kroah.com
+Cc: jaswinder@infradead.org, akpm@linux-foundation.org, clemens@ladisch.de, jaswinderrajput@gmail.com
 
 
 The patch titled
-     mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes
+     Subject: [PATCH] HPET: fix style problems
 has been added to the -mm tree.  Its filename is
-     mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
+     hpet-fix-style-problems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Subject: [PATCH] HPET: fix style problems
+From: Jaswinder Singh Rajput <jaswinder@infradead.org>
+
+Fixed following style problems:
 
 WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
-#41: FILE: drivers/mmc/card/mmc_test.c:23:
-+#include <asm/uaccess.h>
+WARNING: Use #include <linux/io.h> instead of <asm/io.h>
+ERROR: code indent should use tabs where possible
+ERROR: do not initialise statics to 0 or NULL
 
-total: 0 errors, 1 warnings, 209 lines checked
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+---
 
-./patches/mmc_test-move-files-from-sysfs-to-debugfs.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
-Cc: Chris Ball <cjb@laptop.org>
-Cc: Greg KH <greg@kroah.com>
+index a0a1829..ebea5c8 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/mmc_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/hpet.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/card/mmc_test.c~mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes drivers/mmc/card/mmc_test.c
---- a/drivers/mmc/card/mmc_test.c~mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes
-+++ a/drivers/mmc/card/mmc_test.c
-@@ -20,7 +20,7 @@
- #include <linux/list.h>
- 
- #include <linux/debugfs.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+diff -puN drivers/char/hpet.c~hpet-fix-style-problems drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-fix-style-problems
++++ a/drivers/char/hpet.c
+@@ -31,12 +31,12 @@
  #include <linux/seq_file.h>
+ #include <linux/bitops.h>
+ #include <linux/clocksource.h>
++#include <linux/uaccess.h>
+ #include <linux/slab.h>
++#include <linux/io.h>
  
- #define RESULT_OK		0
+ #include <asm/current.h>
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/div64.h>
+ 
+@@ -79,13 +79,13 @@ static cycle_t read_hpet(struct clocksou
+ }
+ 
+ static struct clocksource clocksource_hpet = {
+-        .name           = "hpet",
+-        .rating         = 250,
+-        .read           = read_hpet,
+-        .mask           = CLOCKSOURCE_MASK(64),
+-	.mult		= 0, /* to be calculated */
+-        .shift          = 10,
+-        .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
++	.name		= "hpet",
++	.rating		= 250,
++	.read		= read_hpet,
++	.mask		= CLOCKSOURCE_MASK(64),
++	.mult		= 0,		/* to be calculated */
++	.shift		= 10,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ static struct clocksource *hpet_clocksource;
+ #endif
+@@ -796,7 +796,7 @@ int hpet_alloc(struct hpet_data *hdp)
+ 	struct hpets *hpetp;
+ 	size_t siz;
+ 	struct hpet __iomem *hpet;
+-	static struct hpets *last = NULL;
++	static struct hpets *last;
+ 	unsigned long period;
+ 	unsigned long long temp;
+ 	u32 remainder;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jaswinder@infradead.org are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-mm-vmap-area-cache.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
 hpet-fix-style-problems.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
-mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
