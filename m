@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-maintainers-entry.patch added to -mm tree
-Date: Fri, 10 Sep 2010 16:07:48 -0700
-Message-ID: <201009102307.o8AN7mBc008422@imap1.linux-foundation.org>
+Subject: + msi-laptop-change-driver-maintainer-to-lee-chun-yi.patch added to -mm tree
+Date: Fri, 10 Sep 2010 16:29:08 -0700
+Message-ID: <201009102329.o8ANT8ta009264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751991Ab0IJXH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751991Ab0IJX34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 19:07:58 -0400
+	Fri, 10 Sep 2010 19:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cjb@laptop.org, linux-mmc@vger.kernel.org, pierre-list@ossman.eu
+Cc: joeyli.kernel@gmail.com, jlee@novell.com, mjg@redhat.com, mzxreary@0pointer.de
 
 
 The patch titled
-     mmc: add MAINTAINERS entry
+     msi-laptop: change driver maintainer to Lee, Chun-Yi
 has been added to the -mm tree.  Its filename is
-     mmc-add-maintainers-entry.patch
+     msi-laptop-change-driver-maintainer-to-lee-chun-yi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add MAINTAINERS entry
-From: Chris Ball <cjb@laptop.org>
+Subject: msi-laptop: change driver maintainer to Lee, Chun-Yi
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
 
-Add myself as maintainer.
+Change MSI LAPTOP driver maintainer from Lennart Poettering to Lee, Chun-Yi.
 
-Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Pierre Ossman <pierre-list@ossman.eu>
-Cc: <linux-mmc@vger.kernel.org>
+MSI is a Taiwan OEM company, Lee, Chun-Yi can more easy to contact with
+MSI and maintain msi-laptop driver.  Thank's for Lennart Poettering's
+contribute, Lee, Chun-Yi will base on his article to continue maintain the
+msi-laptop driver.
+
+Signed-off-by: Lee, Chun-Yi <jlee@novell.com>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~mmc-add-maintainers-entry MAINTAINERS
---- a/MAINTAINERS~mmc-add-maintainers-entry
+diff -puN MAINTAINERS~msi-laptop-change-driver-maintainer-to-lee-chun-yi MAINTAINERS
+--- a/MAINTAINERS~msi-laptop-change-driver-maintainer-to-lee-chun-yi
 +++ a/MAINTAINERS
-@@ -3936,8 +3936,10 @@ S:	Supported
- F:	drivers/mfd/
+@@ -3916,10 +3916,8 @@ F:	Documentation/serial/moxa-smartio
+ F:	drivers/char/mxser.*
  
- MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND SDIO SUBSYSTEM
--S:	Orphan
-+M:	Chris Ball <cjb@laptop.org>
- L:	linux-mmc@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cjb/mmc.git
-+S:	Maintained
- F:	drivers/mmc/
- F:	include/linux/mmc/
+ MSI LAPTOP SUPPORT
+-M:	Lennart Poettering <mzxreary@0pointer.de>
++M:	Lee, Chun-Yi <jlee@novell.com>
+ L:	platform-driver-x86@vger.kernel.org
+-W:	https://tango.0pointer.de/mailman/listinfo/s270-linux
+-W:	http://0pointer.de/lennart/tchibo.html
+ S:	Maintained
+ F:	drivers/platform/x86/msi-laptop.c
  
-@@ -5123,8 +5125,10 @@ S:	Maintained
- F:	drivers/mmc/host/sdricoh_cs.c
- 
- SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) DRIVER
--S:	Orphan
-+M:	Chris Ball <cjb@laptop.org>
- L:	linux-mmc@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cjb/mmc.git
-+S:	Maintained
- F:	drivers/mmc/host/sdhci.*
- 
- SECURE DIGITAL HOST CONTROLLER INTERFACE, OPEN FIRMWARE BINDINGS (SDHCI-OF)
 _
 
-Patches currently in -mm which might be from cjb@laptop.org are
+Patches currently in -mm which might be from joeyli.kernel@gmail.com are
 
-origin.patch
-linux-next.patch
-mmc-add-maintainers-entry.patch
-mmc-mmc-44-ddr-support.patch
-mmc-sdhci-make-consistent-use-of-config_mmc_debug-for-debugging.patch
-mmc-at91_mcic-use-resource_size.patch
-mmc-atmel-mcic-use-resource-size.patch
-mmc-au1xmmcc-use-resource_size.patch
-mmc-use-snprintf-not-sprintf.patch
-drivers-mmc-host-omapc-use-resource_size.patch
-drivers-mmc-host-omap_hsmmcc-use-resource_size.patch
-mmc-make-id-freq-configurable.patch
-mmc-make-id-freq-configurable-v5.patch
-mmc_test-collect-data-and-show-it-via-sysfs-by-demand.patch
+msi-laptop-change-driver-maintainer-to-lee-chun-yi.patch
 
