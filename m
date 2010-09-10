@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-fix-style-problems.patch added to -mm tree
-Date: Fri, 10 Sep 2010 16:37:20 -0700
-Message-ID: <201009102337.o8ANbK4G009637@imap1.linux-foundation.org>
+Subject: + ipmi-fix-acpi-probe-print.patch added to -mm tree
+Date: Fri, 10 Sep 2010 16:43:08 -0700
+Message-ID: <201009102343.o8ANh8on009850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755006Ab0IJXhZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754986Ab0IJXnL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 19:37:25 -0400
+	Fri, 10 Sep 2010 19:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@infradead.org, clemens@ladisch.de, jaswinderrajput@gmail.com
+Cc: yinghai@kernel.org, cminyard@mvista.com
 
 
 The patch titled
-     hpet: fix style problems
+     ipmi: fix acpi probe print
 has been added to the -mm tree.  Its filename is
-     hpet-fix-style-problems.patch
+     ipmi-fix-acpi-probe-print.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpet: fix style problems
-From: Jaswinder Singh Rajput <jaswinder@infradead.org>
+Subject: ipmi: fix acpi probe print
+From: Yinghai Lu <yinghai@kernel.org>
 
-Fix the following style problems:
+After
+|commit d9e1b6c45059ccfff647a120769ae86da78dfdc4
+|
+|    ipmi: fix ACPI detection with regspacing
 
-WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
-WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-ERROR: code indent should use tabs where possible
-ERROR: do not initialise statics to 0 or NULL
+got
+[   11.026326] ipmi_si: probing via ACPI
+[   11.030019] ipmi_si 00:09: (null) regsize 1 spacing 1 irq 0
+[   11.035594] ipmi_si: Adding ACPI-specified kcs state machine
 
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>
+on old system with only one range for ipmi kcs range.
+
+Try to fix it by adding another res pointer.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/hpet.c~hpet-fix-style-problems drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-fix-style-problems
-+++ a/drivers/char/hpet.c
-@@ -31,12 +31,12 @@
- #include <linux/seq_file.h>
- #include <linux/bitops.h>
- #include <linux/clocksource.h>
-+#include <linux/uaccess.h>
- #include <linux/slab.h>
-+#include <linux/io.h>
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-acpi-probe-print drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-acpi-probe-print
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2126,7 +2126,7 @@ static int __devinit ipmi_pnp_probe(stru
+ {
+ 	struct acpi_device *acpi_dev;
+ 	struct smi_info *info;
+-	struct resource *res;
++	struct resource *res, *res_second;
+ 	acpi_handle handle;
+ 	acpi_status status;
+ 	unsigned long long tmp;
+@@ -2182,13 +2182,13 @@ static int __devinit ipmi_pnp_probe(stru
+ 	info->io.addr_data = res->start;
  
- #include <asm/current.h>
--#include <asm/uaccess.h>
- #include <asm/system.h>
--#include <asm/io.h>
- #include <asm/irq.h>
- #include <asm/div64.h>
- 
-@@ -79,13 +79,13 @@ static cycle_t read_hpet(struct clocksou
- }
- 
- static struct clocksource clocksource_hpet = {
--        .name           = "hpet",
--        .rating         = 250,
--        .read           = read_hpet,
--        .mask           = CLOCKSOURCE_MASK(64),
--	.mult		= 0, /* to be calculated */
--        .shift          = 10,
--        .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
-+	.name		= "hpet",
-+	.rating		= 250,
-+	.read		= read_hpet,
-+	.mask		= CLOCKSOURCE_MASK(64),
-+	.mult		= 0,		/* to be calculated */
-+	.shift		= 10,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- static struct clocksource *hpet_clocksource;
- #endif
-@@ -796,7 +796,7 @@ int hpet_alloc(struct hpet_data *hdp)
- 	struct hpets *hpetp;
- 	size_t siz;
- 	struct hpet __iomem *hpet;
--	static struct hpets *last = NULL;
-+	static struct hpets *last;
- 	unsigned long period;
- 	unsigned long long temp;
- 	u32 remainder;
+ 	info->io.regspacing = DEFAULT_REGSPACING;
+-	res = pnp_get_resource(dev,
++	res_second = pnp_get_resource(dev,
+ 			       (info->io.addr_type == IPMI_IO_ADDR_SPACE) ?
+ 					IORESOURCE_IO : IORESOURCE_MEM,
+ 			       1);
+-	if (res) {
+-		if (res->start > info->io.addr_data)
+-			info->io.regspacing = res->start - info->io.addr_data;
++	if (res_second) {
++		if (res_second->start > info->io.addr_data)
++			info->io.regspacing = res_second->start - info->io.addr_data;
+ 	}
+ 	info->io.regsize = DEFAULT_REGSPACING;
+ 	info->io.regshift = 0;
 _
 
-Patches currently in -mm which might be from jaswinder@infradead.org are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
+ipmi-fix-acpi-probe-print.patch
 linux-next.patch
-hpet-fix-style-problems.patch
 
