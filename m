@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + efifb-support-the-efi-framebuffer-on-more-apple-hardware.patch added to -mm tree
-Date: Fri, 10 Sep 2010 17:15:05 -0700
-Message-ID: <201009110015.o8B0F5fo011180@imap1.linux-foundation.org>
+Subject: + efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 10 Sep 2010 17:16:03 -0700
+Message-ID: <201009110016.o8B0G4Fx011308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56689 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038Ab0IKAPQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755038Ab0IKAQP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 20:15:16 -0400
+	Fri, 10 Sep 2010 20:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lmacken@redhat.com, pjones@redhat.com
+Cc: akpm@linux-foundation.org, lmacken@redhat.com, pjones@redhat.com
 
 
 The patch titled
-     efifb: support the EFI framebuffer on more Apple hardware
+     efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     efifb-support-the-efi-framebuffer-on-more-apple-hardware.patch
+     efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: efifb: support the EFI framebuffer on more Apple hardware
-From: Luke Macken <lmacken@redhat.com>
+Subject: efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Enable the EFI framebuffer on 14 more Macs, including the iMac11,1
-iMac10,1 iMac8,1 Macmini3,1 Macmini4,1 MacBook5,1 MacBook6,1 MacBook7,1
-MacBookPro2,2 MacBookPro5,2 MacBookPro5,3 MacBookPro6,1 MacBookPro6,2 and
-MacBookPro7,1
+ERROR: spaces required around that '=' (ctx:VxW)
+#64: FILE: drivers/video/efifb.c:85:
++	[M_MINI_3_1]= { "mini31", 0x40010000, 1024 * 4, 1024, 768 },
+ 	            ^
 
-Information gathered from various user submissions.
+ERROR: spaces required around that '=' (ctx:VxW)
+#65: FILE: drivers/video/efifb.c:86:
++	[M_MINI_4_1]= { "mini41", 0xc0010000, 2048 * 4, 1920, 1200 },
+ 	            ^
 
-    https://bugzilla.redhat.com/show_bug.cgi?id=528232
-    http://ubuntuforums.org/showthread.php?t=1557326
+total: 2 errors, 0 warnings, 94 lines checked
 
-Signed-off-by: Luke Macken <lmacken@redhat.com>
-Signed-off-by: Peter Jones <pjones@redhat.com>
+./patches/efifb-support-the-efi-framebuffer-on-more-apple-hardware.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Luke Macken <lmacken@redhat.com>
+Cc: Peter Jones <pjones@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/efifb.c |   42 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ drivers/video/efifb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/efifb.c~efifb-support-the-efi-framebuffer-on-more-apple-hardware drivers/video/efifb.c
---- a/drivers/video/efifb.c~efifb-support-the-efi-framebuffer-on-more-apple-hardware
+diff -puN drivers/video/efifb.c~efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes drivers/video/efifb.c
+--- a/drivers/video/efifb.c~efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes
 +++ a/drivers/video/efifb.c
-@@ -39,17 +39,31 @@ enum {
- 	M_I20,		/* 20-Inch iMac */
- 	M_I20_SR,	/* 20-Inch iMac (Santa Rosa) */
- 	M_I24,		/* 24-Inch iMac */
-+	M_I24_8_1,	/* 24-Inch iMac, 8,1th gen */
-+	M_I24_10_1,	/* 24-Inch iMac, 10,1th gen */
-+	M_I27_11_1,	/* 27-Inch iMac, 11,1th gen */
- 	M_MINI,		/* Mac Mini */
-+	M_MINI_3_1,	/* Mac Mini, 3,1th gen */
-+	M_MINI_4_1,	/* Mac Mini, 4,1th gen */
- 	M_MB,		/* MacBook */
- 	M_MB_2,		/* MacBook, 2nd rev. */
- 	M_MB_3,		/* MacBook, 3rd rev. */
-+	M_MB_5_1,	/* MacBook, 5th rev. */
-+	M_MB_6_1,	/* MacBook, 6th rev. */
-+	M_MB_7_1,	/* MacBook, 7th rev. */
- 	M_MB_SR,	/* MacBook, 2nd gen, (Santa Rosa) */
- 	M_MBA,		/* MacBook Air */
- 	M_MBP,		/* MacBook Pro */
- 	M_MBP_2,	/* MacBook Pro 2nd gen */
-+	M_MBP_2_2,	/* MacBook Pro 2,2nd gen */
- 	M_MBP_SR,	/* MacBook Pro (Santa Rosa) */
- 	M_MBP_4,	/* MacBook Pro, 4th gen */
- 	M_MBP_5_1,    /* MacBook Pro, 5,1th gen */
-+	M_MBP_5_2,	/* MacBook Pro, 5,2th gen */
-+	M_MBP_5_3,	/* MacBook Pro, 5,3rd gen */
-+	M_MBP_6_1,	/* MacBook Pro, 6,1th gen */
-+	M_MBP_6_2,	/* MacBook Pro, 6,2th gen */
-+	M_MBP_7_1,	/* MacBook Pro, 7,1th gen */
- 	M_UNKNOWN	/* placeholder */
- };
- 
-@@ -64,14 +78,28 @@ static struct efifb_dmi_info {
- 	[M_I20] = { "i20", 0x80010000, 1728 * 4, 1680, 1050 }, /* guess */
- 	[M_I20_SR] = { "imac7", 0x40010000, 1728 * 4, 1680, 1050 },
- 	[M_I24] = { "i24", 0x80010000, 2048 * 4, 1920, 1200 }, /* guess */
-+	[M_I24_8_1] = { "imac8", 0xc0060000, 2048 * 4, 1920, 1200 },
-+	[M_I24_10_1] = { "imac10", 0xc0010000, 2048 * 4, 1920, 1080 },
-+	[M_I27_11_1] = { "imac11", 0xc0010000, 2560 * 4, 2560, 1440 },
+@@ -82,8 +82,8 @@ static struct efifb_dmi_info {
+ 	[M_I24_10_1] = { "imac10", 0xc0010000, 2048 * 4, 1920, 1080 },
+ 	[M_I27_11_1] = { "imac11", 0xc0010000, 2560 * 4, 2560, 1440 },
  	[M_MINI]= { "mini", 0x80000000, 2048 * 4, 1024, 768 },
-+	[M_MINI_3_1]= { "mini31", 0x40010000, 1024 * 4, 1024, 768 },
-+	[M_MINI_4_1]= { "mini41", 0xc0010000, 2048 * 4, 1920, 1200 },
+-	[M_MINI_3_1]= { "mini31", 0x40010000, 1024 * 4, 1024, 768 },
+-	[M_MINI_4_1]= { "mini41", 0xc0010000, 2048 * 4, 1920, 1200 },
++	[M_MINI_3_1] = { "mini31", 0x40010000, 1024 * 4, 1024, 768 },
++	[M_MINI_4_1] = { "mini41", 0xc0010000, 2048 * 4, 1920, 1200 },
  	[M_MB] = { "macbook", 0x80000000, 2048 * 4, 1280, 800 },
-+	[M_MB_5_1] = { "macbook51", 0x80010000, 2048 * 4, 1280, 800 },
-+	[M_MB_6_1] = { "macbook61", 0x80010000, 2048 * 4, 1280, 800 },
-+	[M_MB_7_1] = { "macbook71", 0x80010000, 2048 * 4, 1280, 800 },
- 	[M_MBA] = { "mba", 0x80000000, 2048 * 4, 1280, 800 },
- 	[M_MBP] = { "mbp", 0x80010000, 1472 * 4, 1440, 900 },
- 	[M_MBP_2] = { "mbp2", 0, 0, 0, 0 }, /* placeholder */
-+	[M_MBP_2_2] = { "mbp22", 0x80010000, 1472 * 4, 1440, 900 },
- 	[M_MBP_SR] = { "mbp3", 0x80030000, 2048 * 4, 1440, 900 },
- 	[M_MBP_4] = { "mbp4", 0xc0060000, 2048 * 4, 1920, 1200 },
- 	[M_MBP_5_1] = { "mbp51", 0xc0010000, 2048 * 4, 1440, 900 },
-+	[M_MBP_5_2] = { "mbp52", 0xc0010000, 2048 * 4, 1920, 1200 },
-+	[M_MBP_5_3] = { "mbp53", 0xd0010000, 2048 * 4, 1440, 900 },
-+	[M_MBP_6_1] = { "mbp61", 0x90030000, 2048 * 4, 1920, 1200 },
-+	[M_MBP_6_2] = { "mbp62", 0x90030000, 2048 * 4, 1680, 1050 },
-+	[M_MBP_7_1] = { "mbp71", 0xc0010000, 2048 * 4, 1280, 800 },
- 	[M_UNKNOWN] = { NULL, 0, 0, 0, 0 }
- };
- 
-@@ -92,7 +120,12 @@ static const struct dmi_system_id dmi_sy
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "iMac6,1", M_I24),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac6,1", M_I24),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac7,1", M_I20_SR),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac8,1", M_I24_8_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac10,1", M_I24_10_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac11,1", M_I27_11_1),
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "Macmini1,1", M_MINI),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "Macmini3,1", M_MINI_3_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "Macmini4,1", M_MINI_4_1),
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBook1,1", M_MB),
- 	/* At least one of these two will be right; maybe both? */
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBook2,1", M_MB),
-@@ -101,14 +134,23 @@ static const struct dmi_system_id dmi_sy
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBook3,1", M_MB),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook3,1", M_MB),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook4,1", M_MB),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook5,1", M_MB_5_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook6,1", M_MB_6_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook7,1", M_MB_7_1),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookAir1,1", M_MBA),
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro1,1", M_MBP),
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro2,1", M_MBP_2),
-+	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro2,2", M_MBP_2_2),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro2,1", M_MBP_2),
- 	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro3,1", M_MBP_SR),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro3,1", M_MBP_SR),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro4,1", M_MBP_4),
- 	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro5,1", M_MBP_5_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro5,2", M_MBP_5_2),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro5,3", M_MBP_5_3),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro6,1", M_MBP_6_1),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro6,2", M_MBP_6_2),
-+	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro7,1", M_MBP_7_1),
- 	{},
- };
- 
+ 	[M_MB_5_1] = { "macbook51", 0x80010000, 2048 * 4, 1280, 800 },
+ 	[M_MB_6_1] = { "macbook61", 0x80010000, 2048 * 4, 1280, 800 },
 _
 
-Patches currently in -mm which might be from lmacken@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-efifb-support-the-efi-framebuffer-on-more-apple-hardware.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
+mm-vmap-area-cache.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
+mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
+mmc-move-regulator-handling-closer-to-core-v3-fix.patch
+sdhci-get-rid-of-card-detect-work-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
