@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-isp1362-hcd-removes-config_usb_otg-dependent-code-fix-build-breakage.patch added to -mm tree
-Date: Fri, 10 Sep 2010 17:05:03 -0700
-Message-ID: <201009110005.o8B05363010787@imap1.linux-foundation.org>
+Subject: + aio-do-not-return-erestartsys-as-a-result-of-aio-v2.patch added to -mm tree
+Date: Fri, 10 Sep 2010 17:08:33 -0700
+Message-ID: <201009110008.o8B08XNK010941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52495 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038Ab0IKAFk (ORCPT
+	by vger.kernel.org with ESMTP id S1755337Ab0IKAJU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Sep 2010 20:05:40 -0400
+	Fri, 10 Sep 2010 20:09:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: martinez.javier@gmail.com, greg@kroah.com, sfr@canb.auug.org.au, vapier@gentoo.org
+Cc: jack@suse.cz, hch@infradead.org, jmoyer@redhat.com, stable@kernel.org, zach.brown@oracle.com
 
 
 The patch titled
-     usb: isp1362-hcd: Removes CONFIG_USB_OTG dependent code, fix build breakage
+     aio: do not return ERESTARTSYS as a result of AIO
 has been added to the -mm tree.  Its filename is
-     usb-isp1362-hcd-removes-config_usb_otg-dependent-code-fix-build-breakage.patch
+     aio-do-not-return-erestartsys-as-a-result-of-aio-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: isp1362-hcd: Removes CONFIG_USB_OTG dependent code, fix build breakage
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: aio: do not return ERESTARTSYS as a result of AIO
+From: Jan Kara <jack@suse.cz>
 
-In today linux-next I got a compile error on usb/host/isp1362-hcd:
+OCFS2 can return ERESTARTSYS from its write function when the process is
+signalled while waiting for a cluster lock (and the filesystem is mounted
+with intr mount option).  Generally, it seems reasonable to allow
+filesystems to return this error code from its IO functions.  As we must
+not leak ERESTARTSYS (and similar error codes) to userspace as a result of
+an AIO operation, we have to properly convert it to EINTR inside AIO code
+(restarting the syscall isn't really an option because other AIO could
+have been already submitted by the same io_submit syscall).
 
-drivers/usb/host/isp1362-hcd.c: In function `isp1362_hub_control':
-drivers/usb/host/isp1362-hcd.c:1680: error: `ohci' undeclared (first use in this function)
-
-The problem is when the CONFIG_USB_OTG option is enabled.
-
-ohci variable is never declared and there isn't any CONFIG_USB_OTG
-dependent code besides the portion defined in isp1362_hub_control.
-
-So I think that maybe USB OTG support is not needed/supported.
-
-This patch removes the CONFIG_USB_OTG dependent block so the driver can
-compile cleanly.
-
-Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp1362-hcd.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/aio.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/isp1362-hcd.c~usb-isp1362-hcd-removes-config_usb_otg-dependent-code-fix-build-breakage drivers/usb/host/isp1362-hcd.c
---- a/drivers/usb/host/isp1362-hcd.c~usb-isp1362-hcd-removes-config_usb_otg-dependent-code-fix-build-breakage
-+++ a/drivers/usb/host/isp1362-hcd.c
-@@ -1676,13 +1676,6 @@ static int isp1362_hub_control(struct us
- 		switch (wValue) {
- 		case USB_PORT_FEAT_SUSPEND:
- 			_DBG(0, "USB_PORT_FEAT_SUSPEND\n");
--#ifdef	CONFIG_USB_OTG
--			if (ohci->hcd.self.otg_port == (wIndex + 1) &&
--			    ohci->hcd.self.b_hnp_enable) {
--				start_hnp(ohci);
--				break;
--			}
--#endif
- 			spin_lock_irqsave(&isp1362_hcd->lock, flags);
- 			isp1362_write_reg32(isp1362_hcd, HCRHPORT1 + wIndex, RH_PS_PSS);
- 			isp1362_hcd->rhport[wIndex] =
+diff -puN fs/aio.c~aio-do-not-return-erestartsys-as-a-result-of-aio-v2 fs/aio.c
+--- a/fs/aio.c~aio-do-not-return-erestartsys-as-a-result-of-aio-v2
++++ a/fs/aio.c
+@@ -712,8 +712,16 @@ static ssize_t aio_run_iocb(struct kiocb
+ 	 */
+ 	ret = retry(iocb);
+ 
+-	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED)
++	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
++		/*
++		 * There's no easy way to restart the syscall since other AIO's
++		 * may be already running. Just fail this IO with EINTR.
++		 */
++		if (unlikely(ret == -ERESTARTSYS || ret == -ERESTARTNOINTR ||
++			     ret == -ERESTARTNOHAND || ret == -ERESTART_RESTARTBLOCK))
++			ret = -EINTR;
+ 		aio_complete(iocb, ret, 0);
++	}
+ out:
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 
 _
 
-Patches currently in -mm which might be from martinez.javier@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
+origin.patch
 linux-next.patch
-usb-isp1362-hcd-removes-config_usb_otg-dependent-code-fix-build-breakage.patch
+aio-do-not-return-erestartsys-as-a-result-of-aio-v2.patch
+reiser4.patch
 
