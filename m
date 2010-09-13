@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch added to -mm tree
-Date: Mon, 13 Sep 2010 15:48:52 -0700
-Message-ID: <201009132248.o8DMmqRN025729@imap1.linux-foundation.org>
+Subject: + w1-dont-allow-arbitrary-users-to-remove-w1-devices.patch added to -mm tree
+Date: Mon, 13 Sep 2010 15:48:57 -0700
+Message-ID: <201009132248.o8DMmvB4025749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33411 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752141Ab0IMWtH (ORCPT
+	by vger.kernel.org with ESMTP id S1752103Ab0IMWtP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Sep 2010 18:49:07 -0400
+	Mon, 13 Sep 2010 18:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mrubin@google.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au
+Cc: swetland@google.com, johnpol@2ka.mipt.ru, linus.walleij@stericsson.com
 
 
 The patch titled
-     writeback: add nr_dirtied and nr_written to /proc/vmstat
+     w1: don't allow arbitrary users to remove w1 devices
 has been added to the -mm tree.  Its filename is
-     writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
+     w1-dont-allow-arbitrary-users-to-remove-w1-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: add nr_dirtied and nr_written to /proc/vmstat
-From: Michael Rubin <mrubin@google.com>
+Subject: w1: don't allow arbitrary users to remove w1 devices
+From: Brian Swetland <swetland@google.com>
 
-To help developers and applications gain visibility into writeback
-behaviour adding two entries to vm_stat_items and /proc/vmstat.  This will
-allow us to track the "written" and "dirtied" counts.
+The search/pullup/add/remove device attributes were 0666 which would allow
+arbitrary users to affect the 1 wire bus.  Change to 0664 to prevent that.
 
-   # grep nr_dirtied /proc/vmstat
-   nr_dirtied 3747
-   # grep nr_written /proc/vmstat
-   nr_written 3618
+I found this patch in the Android tree, apparently this has never been
+sent upstream so doing it now.
 
-Signed-off-by: Michael Rubin <mrubin@google.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Brian Swetland <swetland@google.com>
+Signed-off-by: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 ++
- mm/page-writeback.c    |    2 ++
- mm/vmstat.c            |    3 +++
- 3 files changed, 7 insertions(+)
+ drivers/w1/w1.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat include/linux/mmzone.h
---- a/include/linux/mmzone.h~writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat
-+++ a/include/linux/mmzone.h
-@@ -104,6 +104,8 @@ enum zone_stat_item {
- 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
- 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
- 	NR_SHMEM,		/* shmem pages (included tmpfs/GEM pages) */
-+	NR_FILE_DIRTIED,	/* accumulated dirty pages */
-+	NR_WRITTEN,		/* accumulated written pages */
- #ifdef CONFIG_NUMA
- 	NUMA_HIT,		/* allocated in intended node */
- 	NUMA_MISS,		/* allocated in non intended node */
-diff -puN mm/page-writeback.c~writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat
-+++ a/mm/page-writeback.c
-@@ -1122,6 +1122,7 @@ void account_page_dirtied(struct page *p
- {
- 	if (mapping_cap_account_dirty(mapping)) {
- 		__inc_zone_page_state(page, NR_FILE_DIRTY);
-+		__inc_zone_page_state(page, NR_FILE_DIRTIED);
- 		__inc_bdi_stat(mapping->backing_dev_info, BDI_RECLAIMABLE);
- 		task_dirty_inc(current);
- 		task_io_account_write(PAGE_CACHE_SIZE);
-@@ -1137,6 +1138,7 @@ EXPORT_SYMBOL(account_page_dirtied);
- void account_page_writeback(struct page *page)
- {
- 	inc_zone_page_state(page, NR_WRITEBACK);
-+	inc_zone_page_state(page, NR_WRITTEN);
- }
- EXPORT_SYMBOL(account_page_writeback);
+diff -puN drivers/w1/w1.c~w1-dont-allow-arbitrary-users-to-remove-w1-devices drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-dont-allow-arbitrary-users-to-remove-w1-devices
++++ a/drivers/w1/w1.c
+@@ -517,10 +517,10 @@ static W1_MASTER_ATTR_RO(max_slave_count
+ static W1_MASTER_ATTR_RO(attempts, S_IRUGO);
+ static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
+ static W1_MASTER_ATTR_RO(pointer, S_IRUGO);
+-static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUGO);
+-static W1_MASTER_ATTR_RW(pullup, S_IRUGO | S_IWUGO);
+-static W1_MASTER_ATTR_RW(add, S_IRUGO | S_IWUGO);
+-static W1_MASTER_ATTR_RW(remove, S_IRUGO | S_IWUGO);
++static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUSR | S_IWGRP);
++static W1_MASTER_ATTR_RW(pullup, S_IRUGO | S_IWUSR | S_IWGRP);
++static W1_MASTER_ATTR_RW(add, S_IRUGO | S_IWUSR | S_IWGRP);
++static W1_MASTER_ATTR_RW(remove, S_IRUGO | S_IWUSR | S_IWGRP);
  
-diff -puN mm/vmstat.c~writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat mm/vmstat.c
---- a/mm/vmstat.c~writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat
-+++ a/mm/vmstat.c
-@@ -745,6 +745,9 @@ static const char * const vmstat_text[] 
- 	"nr_isolated_anon",
- 	"nr_isolated_file",
- 	"nr_shmem",
-+	"nr_dirtied",
-+	"nr_written",
-+
- #ifdef CONFIG_NUMA
- 	"numa_hit",
- 	"numa_miss",
+ static struct attribute *w1_master_default_attrs[] = {
+ 	&w1_master_attribute_name.attr,
 _
 
-Patches currently in -mm which might be from mrubin@google.com are
+Patches currently in -mm which might be from swetland@google.com are
 
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-mm-export-account_page_dirty.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-fix.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
+w1-dont-allow-arbitrary-users-to-remove-w1-devices.patch
 
