@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-report-dirty-thresholds-in-proc-vmstat.patch added to -mm tree
+Subject: + writeback-add-sys-devices-system-node-node-vmstat.patch added to -mm tree
 Date: Mon, 13 Sep 2010 15:48:54 -0700
-Message-ID: <201009132248.o8DMmtPl025738@imap1.linux-foundation.org>
+Message-ID: <201009132248.o8DMms1P025735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54404 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232Ab0IMWtG (ORCPT
+	by vger.kernel.org with ESMTP id S1752191Ab0IMWtG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 13 Sep 2010 18:49:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mrubin@google.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.
 
 
 The patch titled
-     writeback: report dirty thresholds in /proc/vmstat
+     writeback: add /sys/devices/system/node/<node>/vmstat
 has been added to the -mm tree.  Its filename is
-     writeback-report-dirty-thresholds-in-proc-vmstat.patch
+     writeback-add-sys-devices-system-node-node-vmstat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: report dirty thresholds in /proc/vmstat
+Subject: writeback: add /sys/devices/system/node/<node>/vmstat
 From: Michael Rubin <mrubin@google.com>
 
-The kernel already exposes the user desired thresholds in /proc/sys/vm
-with dirty_background_ratio and background_ratio.  But the kernel may
-alter the number requested without giving the user any indication that is
-the case.
+For NUMA node systems it is important to have visibility in memory
+characteristics.  Two of the /proc/vmstat values "nr_written" and
+"nr_dirtied" are added here.
 
-Knowing the actual ratios the kernel is honoring can help app developers
-understand how their buffered IO will be sent to the disk.
-
-        $ grep threshold /proc/vmstat
-        nr_dirty_threshold 409111
-        nr_dirty_background_threshold 818223
+	# cat /sys/devices/system/node/node20/vmstat
+	nr_written 0
+	nr_dirtied 0
 
 Signed-off-by: Michael Rubin <mrubin@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -58,88 +54,47 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   39 +++++++++++++++++++++++++--------------
- 1 file changed, 25 insertions(+), 14 deletions(-)
+ drivers/base/node.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN mm/vmstat.c~writeback-report-dirty-thresholds-in-proc-vmstat mm/vmstat.c
---- a/mm/vmstat.c~writeback-report-dirty-thresholds-in-proc-vmstat
-+++ a/mm/vmstat.c
-@@ -17,6 +17,7 @@
- #include <linux/vmstat.h>
- #include <linux/sched.h>
- #include <linux/math64.h>
-+#include <linux/writeback.h>
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
-@@ -747,6 +748,8 @@ static const char * const vmstat_text[] 
- 	"nr_shmem",
- 	"nr_dirtied",
- 	"nr_written",
-+	"nr_dirty_threshold",
-+	"nr_dirty_background_threshold",
- 
- #ifdef CONFIG_NUMA
- 	"numa_hit",
-@@ -907,36 +910,44 @@ static const struct file_operations proc
- 	.release	= seq_release,
- };
- 
-+enum writeback_stat_item {
-+	NR_DIRTY_THRESHOLD,
-+	NR_DIRTY_BG_THRESHOLD,
-+	NR_VM_WRITEBACK_STAT_ITEMS,
-+};
-+
- static void *vmstat_start(struct seq_file *m, loff_t *pos)
- {
- 	unsigned long *v;
--#ifdef CONFIG_VM_EVENT_COUNTERS
--	unsigned long *e;
--#endif
--	int i;
-+	int i, stat_items_size;
- 
- 	if (*pos >= ARRAY_SIZE(vmstat_text))
- 		return NULL;
-+	stat_items_size = NR_VM_ZONE_STAT_ITEMS * sizeof(unsigned long) +
-+			  NR_VM_WRITEBACK_STAT_ITEMS * sizeof(unsigned long);
- 
- #ifdef CONFIG_VM_EVENT_COUNTERS
--	v = kmalloc(NR_VM_ZONE_STAT_ITEMS * sizeof(unsigned long)
--			+ sizeof(struct vm_event_state), GFP_KERNEL);
--#else
--	v = kmalloc(NR_VM_ZONE_STAT_ITEMS * sizeof(unsigned long),
--			GFP_KERNEL);
-+	stat_items_size += sizeof(struct vm_event_state);
- #endif
-+
-+	v = kmalloc(stat_items_size, GFP_KERNEL);
- 	m->private = v;
- 	if (!v)
- 		return ERR_PTR(-ENOMEM);
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 		v[i] = global_page_state(i);
-+	v += NR_VM_ZONE_STAT_ITEMS;
-+
-+	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
-+			    v + NR_DIRTY_THRESHOLD);
-+	v += NR_VM_WRITEBACK_STAT_ITEMS;
-+
- #ifdef CONFIG_VM_EVENT_COUNTERS
--	e = v + NR_VM_ZONE_STAT_ITEMS;
--	all_vm_events(e);
--	e[PGPGIN] /= 2;		/* sectors -> kbytes */
--	e[PGPGOUT] /= 2;
-+	all_vm_events(v);
-+	v[PGPGIN] /= 2;		/* sectors -> kbytes */
-+	v[PGPGOUT] /= 2;
- #endif
--	return v + *pos;
-+	return m->private + *pos;
+diff -puN drivers/base/node.c~writeback-add-sys-devices-system-node-node-vmstat drivers/base/node.c
+--- a/drivers/base/node.c~writeback-add-sys-devices-system-node-node-vmstat
++++ a/drivers/base/node.c
+@@ -160,6 +160,18 @@ static ssize_t node_read_numastat(struct
  }
+ static SYSDEV_ATTR(numastat, S_IRUGO, node_read_numastat, NULL);
  
- static void *vmstat_next(struct seq_file *m, void *arg, loff_t *pos)
++static ssize_t node_read_vmstat(struct sys_device *dev,
++				struct sysdev_attribute *attr, char *buf)
++{
++	int nid = dev->id;
++	return sprintf(buf,
++		"nr_written %lu\n"
++		"nr_dirtied %lu\n",
++		node_page_state(nid, NR_WRITTEN),
++		node_page_state(nid, NR_FILE_DIRTIED));
++}
++static SYSDEV_ATTR(vmstat, S_IRUGO, node_read_vmstat, NULL);
++
+ static ssize_t node_read_distance(struct sys_device * dev,
+ 			struct sysdev_attribute *attr, char * buf)
+ {
+@@ -243,6 +255,7 @@ int register_node(struct node *node, int
+ 		sysdev_create_file(&node->sysdev, &attr_meminfo);
+ 		sysdev_create_file(&node->sysdev, &attr_numastat);
+ 		sysdev_create_file(&node->sysdev, &attr_distance);
++		sysdev_create_file(&node->sysdev, &attr_vmstat);
+ 
+ 		scan_unevictable_register_node(node);
+ 
+@@ -267,6 +280,7 @@ void unregister_node(struct node *node)
+ 	sysdev_remove_file(&node->sysdev, &attr_meminfo);
+ 	sysdev_remove_file(&node->sysdev, &attr_numastat);
+ 	sysdev_remove_file(&node->sysdev, &attr_distance);
++	sysdev_remove_file(&node->sysdev, &attr_vmstat);
+ 
+ 	scan_unevictable_unregister_node(node);
+ 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
 _
 
 Patches currently in -mm which might be from mrubin@google.com are
