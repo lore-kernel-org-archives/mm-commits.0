@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-export-account_page_dirty.patch added to -mm tree
-Date: Mon, 13 Sep 2010 15:48:50 -0700
-Message-ID: <201009132248.o8DMmori025722@imap1.linux-foundation.org>
+Subject: + memcg-fix-race-in-file_mapped-accouting-flag-management.patch added to -mm tree
+Date: Mon, 13 Sep 2010 15:48:48 -0700
+Message-ID: <201009132248.o8DMmmgS025716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752049Ab0IMWtG (ORCPT
+	by vger.kernel.org with ESMTP id S1752266Ab0IMWtH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Sep 2010 18:49:06 -0400
+	Mon, 13 Sep 2010 18:49:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mrubin@google.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, gthelen@google.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     mm: export account_page_dirty()
+     memcg: fix race in file_mapped accouting flag management
 has been added to the -mm tree.  Its filename is
-     mm-export-account_page_dirty.patch
+     memcg-fix-race-in-file_mapped-accouting-flag-management.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: export account_page_dirty()
-From: Michael Rubin <mrubin@google.com>
+Subject: memcg: fix race in file_mapped accouting flag management
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-To help developers and applications gain visibility into writeback
-behaviour this patch adds two counters to /proc/vmstat.
+Presently memory cgroup accounts file-mapped by counter and flag.  counter
+is working in the same way with zone_stat but FileMapped flag only exists
+in memcg (for helping move_account).
 
-  # grep nr_dirtied /proc/vmstat
-  nr_dirtied 3747
-  # grep nr_written /proc/vmstat
-  nr_written 3618
+This flag can be updated wrongly in a case.  Assume CPU0 and CPU1 and a
+thread mapping a page on CPU0, another thread unmapping it on CPU1.
 
-These entries allow user apps to understand writeback behaviour over time
-and learn how it is impacting their performance.  Currently there is no
-way to inspect dirty and writeback speed over time.  It's not possible for
-nr_dirty/nr_writeback.
+    CPU0                   		CPU1
+				rmv rmap (mapcount 1->0)
+   add rmap (mapcount 0->1)
+   lock_page_cgroup()
+   memcg counter+1		(some delay)
+   set MAPPED FLAG.
+   unlock_page_cgroup()
+				lock_page_cgroup()
+				memcg counter-1
+				clear MAPPED flag
 
-These entries are necessary to give visibility into writeback behaviour. 
-We have /proc/diskstats which lets us understand the io in the block
-layer.  We have blktrace for more in depth understanding.  We have
-e2fsprogs and debugsfs to give insight into the file systems behaviour,
-but we don't offer our users the ability understand what writeback is
-doing.  There is no way to know how active it is over the whole system, if
-it's falling behind or to quantify it's efforts.  With these values
-exported users can easily see how much data applications are sending
-through writeback and also at what rates writeback is processing this
-data.  Comparing the rates of change between the two allow developers to
-see when writeback is not able to keep up with incoming traffic and the
-rate of dirty memory being sent to the IO back end.  This allows folks to
-understand their io workloads and track kernel issues.  Non kernel
-engineers at Google often use these counters to solve puzzling performance
-problems.
+In above sequence, counter is properly updated but FLAG is not.  This
+means that representing a state by a flag which is maintained by counter
+needs some specail care.
 
-Patch #4 adds a pernode vmstat file with nr_dirtied and nr_written
+To handle this, at claering a flag, this patch check mapcount directly and
+clear the flag only when mapcount == 0.  (if mapcount >0, someone will
+make it to zero later and flag will be cleared.)
 
-Patch #5 add writeback thresholds to /proc/vmstat
+Reverse case, dec-after-inc cannot be a problem because page_table_lock()
+works well for it.  (IOW, to make above sequence, 2 processes should touch
+the same page at once with map/unmap.)
 
-Currently these values are in debugfs. But they should be promoted to
-/proc since they are useful for developers who are writing databases
-and file servers and are not debugging the kernel.
-
-The output is as below:
-
- # grep threshold /proc/vmstat
- nr_pages_dirty_threshold 409111
- nr_pages_dirty_background_threshold 818223
-
-
-
-This patch:
-
-Export account_page_dirty().  This allows code outside of the mm core to
-safely manipulate page state and not worry about the other accounting. 
-Not using these routines means that some code will lose track of the
-accounting and we get bugs.  This has happened once already.
-
-Signed-off-by: Michael Rubin <mrubin@google.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-export-account_page_dirty mm/page-writeback.c
---- a/mm/page-writeback.c~mm-export-account_page_dirty
-+++ a/mm/page-writeback.c
-@@ -682,6 +682,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 			break;
-         }
- }
-+EXPORT_SYMBOL(account_page_dirtied);
+diff -puN mm/memcontrol.c~memcg-fix-race-in-file_mapped-accouting-flag-management mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-race-in-file_mapped-accouting-flag-management
++++ a/mm/memcontrol.c
+@@ -1485,7 +1485,8 @@ void mem_cgroup_update_file_mapped(struc
+ 		SetPageCgroupFileMapped(pc);
+ 	} else {
+ 		__this_cpu_dec(mem->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+-		ClearPageCgroupFileMapped(pc);
++		if (!page_mapped(page)) /* for race between dec->inc counter */
++			ClearPageCgroupFileMapped(pc);
+ 	}
  
- /*
-  * sysctl handler for /proc/sys/vm/dirty_writeback_centisecs
+ done:
 _
 
-Patches currently in -mm which might be from mrubin@google.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch
 vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
 vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-mm-export-account_page_dirty.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-fix.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
+oom-add-per-mm-oom-disable-count.patch
+oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+memory-hotplug-fix-notifiers-return-value-check.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+memcg-fix-race-in-file_mapped-accouting-flag-management.patch
+memcg-avoid-lock-in-updating-file_mapped-was-fix-race-in-file_mapped-accouting-flag-management.patch
 
