@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-account_page_writeback.patch added to -mm tree
-Date: Mon, 13 Sep 2010 15:48:51 -0700
-Message-ID: <201009132248.o8DMmpHC025726@imap1.linux-foundation.org>
+Subject: + x86-fix-cc1-options-to-disable-fpie-when-compiling-with-config_cc_stackprotector=y.patch added to -mm tree
+Date: Mon, 13 Sep 2010 15:48:46 -0700
+Message-ID: <201009132248.o8DMmkGI025713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708Ab0IMWtV (ORCPT
+	by vger.kernel.org with ESMTP id S1752141Ab0IMWtN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Sep 2010 18:49:21 -0400
+	Mon, 13 Sep 2010 18:49:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mrubin@google.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, jir@unicus.jp, konishi.ryusuke@lab.ntt.co.jp, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au
+Cc: basile@opensource.dyc.edu, anarchy@gentoo.org, hpa@zytor.com, mail@cleeus.de, mingo@elte.hu, mmarek@suse.cz, tglx@linutronix.de, zorry@gentoo.org
 
 
 The patch titled
-     mm: add account_page_writeback()
+     x86: fix cc1 options to disable -fPIE when compiling with CONFIG_CC_STACKPROTECTOR=y
 has been added to the -mm tree.  Its filename is
-     mm-add-account_page_writeback.patch
+     x86-fix-cc1-options-to-disable-fpie-when-compiling-with-config_cc_stackprotector=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add account_page_writeback()
-From: Michael Rubin <mrubin@google.com>
+Subject: x86: fix cc1 options to disable -fPIE when compiling with CONFIG_CC_STACKPROTECTOR=y
+From: Anthony G. Basile <basile@opensource.dyc.edu>
 
-This allows code outside of the mm core to safely manipulate page
-writeback state and not worry about the other accounting.  Not using these
-routines means that some code will lose track of the accounting and we get
-bugs.
+The arch/x86/Makefile uses scripts/gcc-x86_$(BITS)-has-stack-protector.sh
+to check if cc1 supports -fstack-protector.  When -fPIE is passed to cc1,
+these scripts fail causing stack protection to be disabled even when it
+is available.
 
-Modify nilfs2 to use interface.
+This fix is similar to commit c47efe5548abbf ("kbuild: fix cc1 options
+check to ensure we do not use -fPIC when compiling").
 
-Signed-off-by: Michael Rubin <mrubin@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: KONISHI Ryusuke <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Jiro SEKIBA <jir@unicus.jp>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Reported-by: Kai Dietrich <mail@cleeus.de>
+Signed-off-by: Magnus Granberg <zorry@gentoo.org>
+Signed-off-by: Anthony G. Basile <basile@opensource.dyc.edu>
+Cc: Jory A. Pratt <anarchy@gentoo.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    2 +-
- include/linux/mm.h  |    1 +
- mm/page-writeback.c |   13 ++++++++++++-
- 3 files changed, 14 insertions(+), 2 deletions(-)
+ arch/x86/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/segment.c~mm-add-account_page_writeback fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~mm-add-account_page_writeback
-+++ a/fs/nilfs2/segment.c
-@@ -1607,7 +1607,7 @@ nilfs_copy_replace_page_buffers(struct p
- 	kunmap_atomic(kaddr, KM_USER0);
+diff -puN arch/x86/Makefile~x86-fix-cc1-options-to-disable-fpie-when-compiling-with-config_cc_stackprotector=y arch/x86/Makefile
+--- a/arch/x86/Makefile~x86-fix-cc1-options-to-disable-fpie-when-compiling-with-config_cc_stackprotector=y
++++ a/arch/x86/Makefile
+@@ -74,7 +74,7 @@ endif
  
- 	if (!TestSetPageWriteback(clone_page))
--		inc_zone_page_state(clone_page, NR_WRITEBACK);
-+		account_page_writeback(clone_page);
- 	unlock_page(clone_page);
- 
- 	return 0;
-diff -puN include/linux/mm.h~mm-add-account_page_writeback include/linux/mm.h
---- a/include/linux/mm.h~mm-add-account_page_writeback
-+++ a/include/linux/mm.h
-@@ -860,6 +860,7 @@ int __set_page_dirty_no_writeback(struct
- int redirty_page_for_writepage(struct writeback_control *wbc,
- 				struct page *page);
- void account_page_dirtied(struct page *page, struct address_space *mapping);
-+void account_page_writeback(struct page *page);
- int set_page_dirty(struct page *page);
- int set_page_dirty_lock(struct page *page);
- int clear_page_dirty_for_io(struct page *page);
-diff -puN mm/page-writeback.c~mm-add-account_page_writeback mm/page-writeback.c
---- a/mm/page-writeback.c~mm-add-account_page_writeback
-+++ a/mm/page-writeback.c
-@@ -1130,6 +1130,17 @@ void account_page_dirtied(struct page *p
- EXPORT_SYMBOL(account_page_dirtied);
- 
- /*
-+ * Helper function for set_page_writeback family.
-+ * NOTE: Unlike account_page_dirtied this does not rely on being atomic
-+ * wrt interrupts.
-+ */
-+void account_page_writeback(struct page *page)
-+{
-+	inc_zone_page_state(page, NR_WRITEBACK);
-+}
-+EXPORT_SYMBOL(account_page_writeback);
-+
-+/*
-  * For address_spaces which do not use buffers.  Just tag the page as dirty in
-  * its radix tree.
-  *
-@@ -1367,7 +1378,7 @@ int test_set_page_writeback(struct page 
- 		ret = TestSetPageWriteback(page);
- 	}
- 	if (!ret)
--		inc_zone_page_state(page, NR_WRITEBACK);
-+		account_page_writeback(page);
- 	return ret;
- 
- }
+ ifdef CONFIG_CC_STACKPROTECTOR
+ 	cc_has_sp := $(srctree)/scripts/gcc-x86_$(BITS)-has-stack-protector.sh
+-        ifeq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(biarch)),y)
++        ifeq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
+                 stackp-y := -fstack-protector
+                 KBUILD_CFLAGS += $(stackp-y)
+         else
 _
 
-Patches currently in -mm which might be from mrubin@google.com are
+Patches currently in -mm which might be from basile@opensource.dyc.edu are
 
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-mm-export-account_page_dirty.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-fix.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
+x86-fix-cc1-options-to-disable-fpie-when-compiling-with-config_cc_stackprotector=y.patch
 
