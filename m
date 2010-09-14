@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch added to -mm tree
-Date: Tue, 14 Sep 2010 12:50:03 -0700
-Message-ID: <201009141950.o8EJo3pV014849@imap1.linux-foundation.org>
+Subject: + uml-fix-compile-warning.patch added to -mm tree
+Date: Tue, 14 Sep 2010 14:58:43 -0700
+Message-ID: <201009142158.o8ELwhXX020780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58707 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753648Ab0INTuq (ORCPT
+	by vger.kernel.org with ESMTP id S1752471Ab0INV7g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Sep 2010 15:50:46 -0400
+	Tue, 14 Sep 2010 17:59:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, bicave@superonline.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rjw@sisk.pl, stable@kernel.org
+Cc: richard@nod.at, dhowells@redhat.com, jdike@addtoit.com
 
 
 The patch titled
-     vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2
+     uml: fix compile warning
 has been added to the -mm tree.  Its filename is
-     vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch
+     uml-fix-compile-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: uml: fix compile warning
+From: Richard Weinberger <richard@nod.at>
 
-   * remove inline - suggested by Andrew
-   * add function desription - suggeseted by Adnrew
+This fixes:
+incompatible pointer type:  => 89
+       arch/um/kernel/exec.c: warning: passing argument 2 of 'execve1' from
+incompatible pointer type:  => 69, 85
+       arch/um/kernel/exec.c: warning: passing argument 3 of 'execve1' from
+incompatible pointer type:  => 69, 85
 
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: M. Vefa Bicakci <bicave@superonline.com>
-Cc: <stable@kernel.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+which was introduced by d7627467b7a8d ("Make do_execve() take a const
+filename pointer")
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/um/kernel/exec.c     |    6 +++---
+ arch/um/kernel/internal.h |    2 +-
+ arch/um/kernel/syscall.c  |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2
-+++ a/mm/vmscan.c
-@@ -1829,12 +1829,17 @@ static void shrink_zones(int priority, s
- 	}
+diff -puN arch/um/kernel/exec.c~uml-fix-compile-warning arch/um/kernel/exec.c
+--- a/arch/um/kernel/exec.c~uml-fix-compile-warning
++++ a/arch/um/kernel/exec.c
+@@ -62,7 +62,7 @@ static long execve1(const char *file,
+ 	return error;
  }
  
--static inline bool zone_reclaimable(struct zone *zone)
-+static bool zone_reclaimable(struct zone *zone)
+-long um_execve(const char *file, char __user *__user *argv, char __user *__user *env)
++long um_execve(const char *file, const char __user *const __user *argv, const char __user *const __user *env)
  {
- 	return zone->pages_scanned < zone_reclaimable_pages(zone) * 6;
+ 	long err;
+ 
+@@ -72,8 +72,8 @@ long um_execve(const char *file, char __
+ 	return err;
  }
  
--static inline bool all_unreclaimable(struct zonelist *zonelist,
-+/*
-+ * As hibernation is going on, kswapd is freezed so that it can't mark
-+ * the zone into all_unreclaimable. It can't handle OOM during hibernation.
-+ * So let's check zone's unreclaimable in direct reclaim as well as kswapd.
-+ */
-+static bool all_unreclaimable(struct zonelist *zonelist,
- 		struct scan_control *sc)
+-long sys_execve(const char __user *file, char __user *__user *argv,
+-		char __user *__user *env)
++long sys_execve(const char __user *file, const char __user *const __user *argv,
++		const char __user *const __user *env)
  {
- 	struct zoneref *z;
+ 	long error;
+ 	char *filename;
+diff -puN arch/um/kernel/internal.h~uml-fix-compile-warning arch/um/kernel/internal.h
+--- a/arch/um/kernel/internal.h~uml-fix-compile-warning
++++ a/arch/um/kernel/internal.h
+@@ -1 +1 @@
+-extern long um_execve(const char *file, char __user *__user *argv, char __user *__user *env);
++extern long um_execve(const char *file, const char __user *const __user *argv, const char __user *const __user *env);
+diff -puN arch/um/kernel/syscall.c~uml-fix-compile-warning arch/um/kernel/syscall.c
+--- a/arch/um/kernel/syscall.c~uml-fix-compile-warning
++++ a/arch/um/kernel/syscall.c
+@@ -60,8 +60,8 @@ int kernel_execve(const char *filename,
+ 
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+-	ret = um_execve(filename, (char __user *__user *)argv,
+-			(char __user *__user *) envp);
++	ret = um_execve(filename, (const char __user *const __user *)argv,
++			(const char __user *const __user *) envp);
+ 	set_fs(fs);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from richard@nod.at are
 
-oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch
-mm-vmap-area-cache.patch
-mm-compaction-fix-compactpagefailed-counting.patch
-vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
+uml-fix-compile-warning.patch
 
