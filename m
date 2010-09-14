@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages.patch added to -mm tree
-Date: Tue, 14 Sep 2010 15:57:21 -0700
-Message-ID: <201009142257.o8EMvLME023364@imap1.linux-foundation.org>
+Subject: + use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages.patch added to -mm tree
+Date: Tue, 14 Sep 2010 16:07:06 -0700
+Message-ID: <201009142307.o8EN760N023844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755718Ab0INW5j (ORCPT
+	by vger.kernel.org with ESMTP id S1755786Ab0INXHU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Sep 2010 18:57:39 -0400
+	Tue, 14 Sep 2010 19:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@novell.com, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de
+Cc: JBeulich@novell.com, ebiederm@xmission.com, jbeulich@novell.com, miklos@szeredi.hu, rjw@sisk.pl
 
 
 The patch titled
-     x86: use clear_page(), copy_page() and __GFP_ZERO in favor of memset()/memcpy() on whole pages
+     use clear_page()/copy_page() in favor of memset()/memcpy() on whole pages
 has been added to the -mm tree.  Its filename is
-     x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages.patch
+     use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,143 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: use clear_page(), copy_page() and __GFP_ZERO in favor of memset()/memcpy() on whole pages
+Subject: use clear_page()/copy_page() in favor of memset()/memcpy() on whole pages
 From: "Jan Beulich" <JBeulich@novell.com>
 
 After all that's what they are intended for.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    4 ++--
- arch/x86/kvm/lapic.c               |    3 +--
- arch/x86/mm/init_32.c              |    4 ++--
- arch/x86/mm/init_64.c              |    2 +-
- 4 files changed, 6 insertions(+), 7 deletions(-)
+ fs/fuse/dev.c           |    2 +-
+ kernel/kexec.c          |    2 +-
+ kernel/power/snapshot.c |   14 +++++++-------
+ kernel/power/swap.c     |    6 +++---
+ mm/memory.c             |    2 +-
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -36,7 +36,7 @@ static int init_one_level2_page(struct k
- 		if (!page)
+diff -puN fs/fuse/dev.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages fs/fuse/dev.c
+--- a/fs/fuse/dev.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages
++++ a/fs/fuse/dev.c
+@@ -811,7 +811,7 @@ static int fuse_copy_page(struct fuse_co
+ 
+ 	if (page && zeroing && count < PAGE_SIZE) {
+ 		void *mapaddr = kmap_atomic(page, KM_USER1);
+-		memset(mapaddr, 0, PAGE_SIZE);
++		clear_page(mapaddr);
+ 		kunmap_atomic(mapaddr, KM_USER1);
+ 	}
+ 	while (count) {
+diff -puN kernel/kexec.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages kernel/kexec.c
+--- a/kernel/kexec.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages
++++ a/kernel/kexec.c
+@@ -816,7 +816,7 @@ static int kimage_load_normal_segment(st
+ 
+ 		ptr = kmap(page);
+ 		/* Start with a clear page */
+-		memset(ptr, 0, PAGE_SIZE);
++		clear_page(ptr);
+ 		ptr += maddr & ~PAGE_MASK;
+ 		mchunk = PAGE_SIZE - (maddr & ~PAGE_MASK);
+ 		if (mchunk > mbytes)
+diff -puN kernel/power/snapshot.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages
++++ a/kernel/power/snapshot.c
+@@ -988,7 +988,7 @@ static void copy_data_page(unsigned long
+ 			 */
+ 			safe_copy_page(buffer, s_page);
+ 			dst = kmap_atomic(d_page, KM_USER0);
+-			memcpy(dst, buffer, PAGE_SIZE);
++			copy_page(dst, buffer);
+ 			kunmap_atomic(dst, KM_USER0);
+ 		} else {
+ 			safe_copy_page(page_address(d_page), s_page);
+@@ -1680,7 +1680,7 @@ int snapshot_read_next(struct snapshot_h
+ 		memory_bm_position_reset(&orig_bm);
+ 		memory_bm_position_reset(&copy_bm);
+ 	} else if (handle->cur <= nr_meta_pages) {
+-		memset(buffer, 0, PAGE_SIZE);
++		clear_page(buffer);
+ 		pack_pfns(buffer, &orig_bm);
+ 	} else {
+ 		struct page *page;
+@@ -1694,7 +1694,7 @@ int snapshot_read_next(struct snapshot_h
+ 			void *kaddr;
+ 
+ 			kaddr = kmap_atomic(page, KM_USER0);
+-			memcpy(buffer, kaddr, PAGE_SIZE);
++			copy_page(buffer, kaddr);
+ 			kunmap_atomic(kaddr, KM_USER0);
+ 			handle->buffer = buffer;
+ 		} else {
+@@ -1977,7 +1977,7 @@ static void copy_last_highmem_page(void)
+ 		void *dst;
+ 
+ 		dst = kmap_atomic(last_highmem_page, KM_USER0);
+-		memcpy(dst, buffer, PAGE_SIZE);
++		copy_page(dst, buffer);
+ 		kunmap_atomic(dst, KM_USER0);
+ 		last_highmem_page = NULL;
+ 	}
+@@ -2263,9 +2263,9 @@ swap_two_pages_data(struct page *p1, str
+ 
+ 	kaddr1 = kmap_atomic(p1, KM_USER0);
+ 	kaddr2 = kmap_atomic(p2, KM_USER1);
+-	memcpy(buf, kaddr1, PAGE_SIZE);
+-	memcpy(kaddr1, kaddr2, PAGE_SIZE);
+-	memcpy(kaddr2, buf, PAGE_SIZE);
++	copy_page(buf, kaddr1);
++	copy_page(kaddr1, kaddr2);
++	copy_page(kaddr2, buf);
+ 	kunmap_atomic(kaddr1, KM_USER0);
+ 	kunmap_atomic(kaddr2, KM_USER1);
+ }
+diff -puN kernel/power/swap.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages kernel/power/swap.c
+--- a/kernel/power/swap.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages
++++ a/kernel/power/swap.c
+@@ -251,7 +251,7 @@ static int write_page(void *buf, sector_
+ 	if (bio_chain) {
+ 		src = (void *)__get_free_page(__GFP_WAIT | __GFP_HIGH);
+ 		if (src) {
+-			memcpy(src, buf, PAGE_SIZE);
++			copy_page(src, buf);
+ 		} else {
+ 			WARN_ON_ONCE(1);
+ 			bio_chain = NULL;	/* Go synchronous */
+@@ -325,7 +325,7 @@ static int swap_write_page(struct swap_m
+ 		error = write_page(handle->cur, handle->cur_swap, NULL);
+ 		if (error)
  			goto out;
- 		pud = (pud_t *)page_address(page);
--		memset(pud, 0, PAGE_SIZE);
-+		clear_page(pud);
- 		set_pgd(pgd, __pgd(__pa(pud) | _KERNPG_TABLE));
+-		memset(handle->cur, 0, PAGE_SIZE);
++		clear_page(handle->cur);
+ 		handle->cur_swap = offset;
+ 		handle->k = 0;
  	}
- 	pud = pud_offset(pgd, addr);
-@@ -45,7 +45,7 @@ static int init_one_level2_page(struct k
- 		if (!page)
- 			goto out;
- 		pmd = (pmd_t *)page_address(page);
--		memset(pmd, 0, PAGE_SIZE);
-+		clear_page(pmd);
- 		set_pud(pud, __pud(__pa(pmd) | _KERNPG_TABLE));
- 	}
- 	pmd = pmd_offset(pud, addr);
-diff -puN arch/x86/kvm/lapic.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages arch/x86/kvm/lapic.c
---- a/arch/x86/kvm/lapic.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages
-+++ a/arch/x86/kvm/lapic.c
-@@ -1056,14 +1056,13 @@ int kvm_create_lapic(struct kvm_vcpu *vc
- 
- 	vcpu->arch.apic = apic;
- 
--	apic->regs_page = alloc_page(GFP_KERNEL);
-+	apic->regs_page = alloc_page(GFP_KERNEL|__GFP_ZERO);
- 	if (apic->regs_page == NULL) {
- 		printk(KERN_ERR "malloc apic regs error for vcpu %x\n",
- 		       vcpu->vcpu_id);
- 		goto nomem_free_apic;
- 	}
- 	apic->regs = page_address(apic->regs_page);
--	memset(apic->regs, 0, PAGE_SIZE);
- 	apic->vcpu = vcpu;
- 
- 	hrtimer_init(&apic->lapic_timer.timer, CLOCK_MONOTONIC,
-diff -puN arch/x86/mm/init_32.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages
-+++ a/arch/x86/mm/init_32.c
-@@ -67,7 +67,7 @@ static __init void *alloc_low_page(void)
- 		panic("alloc_low_page: ran out of memory");
- 
- 	adr = __va(pfn * PAGE_SIZE);
--	memset(adr, 0, PAGE_SIZE);
-+	clear_page(adr);
- 	return adr;
- }
- 
-@@ -558,7 +558,7 @@ char swsusp_pg_dir[PAGE_SIZE]
- 
- static inline void save_pg_dir(void)
- {
--	memcpy(swsusp_pg_dir, swapper_pg_dir, PAGE_SIZE);
-+	copy_page(swsusp_pg_dir, swapper_pg_dir);
- }
- #else /* !CONFIG_ACPI_SLEEP */
- static inline void save_pg_dir(void)
-diff -puN arch/x86/mm/init_64.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages
-+++ a/arch/x86/mm/init_64.c
-@@ -323,7 +323,7 @@ static __ref void *alloc_low_page(unsign
- 		panic("alloc_low_page: ran out of memory");
- 
- 	adr = early_memremap(pfn * PAGE_SIZE, PAGE_SIZE);
--	memset(adr, 0, PAGE_SIZE);
-+	clear_page(adr);
- 	*phys  = pfn * PAGE_SIZE;
- 	return adr;
- }
+@@ -910,7 +910,7 @@ int swsusp_check(void)
+ 	hib_resume_bdev = open_by_devnum(swsusp_resume_device, FMODE_READ);
+ 	if (!IS_ERR(hib_resume_bdev)) {
+ 		set_blocksize(hib_resume_bdev, PAGE_SIZE);
+-		memset(swsusp_header, 0, PAGE_SIZE);
++		clear_page(swsusp_header);
+ 		error = hib_bio_read_page(swsusp_resume_block,
+ 					swsusp_header, NULL);
+ 		if (error)
+diff -puN mm/memory.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages mm/memory.c
+--- a/mm/memory.c~use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages
++++ a/mm/memory.c
+@@ -2079,7 +2079,7 @@ static inline void cow_user_page(struct 
+ 		 * zeroes.
+ 		 */
+ 		if (__copy_from_user_inatomic(kaddr, uaddr, PAGE_SIZE))
+-			memset(kaddr, 0, PAGE_SIZE);
++			clear_page(kaddr);
+ 		kunmap_atomic(kaddr, KM_USER0);
+ 		flush_dcache_page(dst);
+ 	} else
 _
 
 Patches currently in -mm which might be from JBeulich@novell.com are
@@ -132,4 +178,5 @@ Patches currently in -mm which might be from JBeulich@novell.com are
 linux-next.patch
 x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages.patch
 modules-no-need-to-align-modinfo-strings.patch
+use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages.patch
 
