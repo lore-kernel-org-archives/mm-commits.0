@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler.patch added to -mm tree
-Date: Tue, 14 Sep 2010 15:21:15 -0700
-Message-ID: <201009142221.o8EMLF28021790@imap1.linux-foundation.org>
+Subject: + rapidio-fix-rapidio-sysfs-hierarchy.patch added to -mm tree
+Date: Tue, 14 Sep 2010 15:21:13 -0700
+Message-ID: <201009142221.o8EMLDKZ021787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755104Ab0INWVu (ORCPT
+	by vger.kernel.org with ESMTP id S1755020Ab0INWVq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Sep 2010 18:21:50 -0400
+	Tue, 14 Sep 2010 18:21:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, m
 
 
 The patch titled
-     rapidio:powerpc/85xx: modify RIO port-write interrupt handler
+     rapidio: fix RapidIO sysfs hierarchy
 has been added to the -mm tree.  Its filename is
-     rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler.patch
+     rapidio-fix-rapidio-sysfs-hierarchy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio:powerpc/85xx: modify RIO port-write interrupt handler
+Subject: rapidio: fix RapidIO sysfs hierarchy
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-- Rearrange RIO port-write interrupt handling to perform message
-  buffering as soon as possible.
+This set of RapidIO patches extends support for standard error recovery
+mechanism and adds new IDT Gen2 sRIO switch devices - CPS-1848 and
+CPS-1616.  Implementation of the standard error-stopped state recovery
+mechanism (as defined by the RapidIO specification) is required for the
+new switches.
 
-- Modify to disable port-write controller when clearing Transaction
-  Error (TE) bit.
+Version 2 of this set of patches addresses received comments and fixes an
+error notification setup issue found in the idt_gen2.c after the first
+version was released.
+
+
+This patch:
+
+Make RapidIO devices appear in /sys/devices/rapidio directory instead of
+top of /sys/devices directory.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Thomas Moll <thomas.moll@sysgo.com>
@@ -52,115 +62,45 @@ Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   68 ++++++++++++++++++--------------
- 1 file changed, 39 insertions(+), 29 deletions(-)
+ drivers/rapidio/rio-driver.c |    2 +-
+ drivers/rapidio/rio-scan.c   |    1 +
+ include/linux/rio.h          |    1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -87,6 +87,9 @@
- #define RIO_IPWSR_PWD		0x00000008
- #define RIO_IPWSR_PWB		0x00000004
+diff -puN drivers/rapidio/rio-driver.c~rapidio-fix-rapidio-sysfs-hierarchy drivers/rapidio/rio-driver.c
+--- a/drivers/rapidio/rio-driver.c~rapidio-fix-rapidio-sysfs-hierarchy
++++ a/drivers/rapidio/rio-driver.c
+@@ -192,7 +192,7 @@ static int rio_match_bus(struct device *
+       out:return 0;
+ }
  
-+#define RIO_EPWISR_PINT		0x80000000
-+#define RIO_EPWISR_PW		0x00000001
-+
- #define RIO_MSG_DESC_SIZE	32
- #define RIO_MSG_BUFFER_SIZE	4096
- #define RIO_MIN_TX_RING_SIZE	2
-@@ -1067,18 +1070,12 @@ fsl_rio_port_write_handler(int irq, void
- 	struct rio_priv *priv = port->priv;
- 	u32 epwisr, tmp;
+-static struct device rio_bus = {
++struct device rio_bus = {
+ 	.init_name = "rapidio",
+ };
  
--	ipwmr = in_be32(&priv->msg_regs->pwmr);
--	ipwsr = in_be32(&priv->msg_regs->pwsr);
--
- 	epwisr = in_be32(priv->regs_win + RIO_EPWISR);
--	if (epwisr & 0x80000000) {
--		tmp = in_be32(priv->regs_win + RIO_LTLEDCSR);
--		pr_info("RIO_LTLEDCSR = 0x%x\n", tmp);
--		out_be32(priv->regs_win + RIO_LTLEDCSR, 0);
--	}
-+	if (!(epwisr & RIO_EPWISR_PW))
-+		goto pw_done;
- 
--	if (!(epwisr & 0x00000001))
--		return IRQ_HANDLED;
-+	ipwmr = in_be32(&priv->msg_regs->pwmr);
-+	ipwsr = in_be32(&priv->msg_regs->pwsr);
- 
- #ifdef DEBUG_PW
- 	pr_debug("PW Int->IPWMR: 0x%08x IPWSR: 0x%08x (", ipwmr, ipwsr);
-@@ -1094,20 +1091,6 @@ fsl_rio_port_write_handler(int irq, void
- 		pr_debug(" PWB");
- 	pr_debug(" )\n");
- #endif
--	out_be32(&priv->msg_regs->pwsr,
--		 ipwsr & (RIO_IPWSR_TE | RIO_IPWSR_QFI | RIO_IPWSR_PWD));
--
--	if ((ipwmr & RIO_IPWMR_EIE) && (ipwsr & RIO_IPWSR_TE)) {
--		priv->port_write_msg.err_count++;
--		pr_info("RIO: Port-Write Transaction Err (%d)\n",
--			 priv->port_write_msg.err_count);
--	}
--	if (ipwsr & RIO_IPWSR_PWD) {
--		priv->port_write_msg.discard_count++;
--		pr_info("RIO: Port Discarded Port-Write Msg(s) (%d)\n",
--			 priv->port_write_msg.discard_count);
--	}
--
- 	/* Schedule deferred processing if PW was received */
- 	if (ipwsr & RIO_IPWSR_QFI) {
- 		/* Save PW message (if there is room in FIFO),
-@@ -1119,16 +1102,43 @@ fsl_rio_port_write_handler(int irq, void
- 				 RIO_PW_MSG_SIZE);
- 		} else {
- 			priv->port_write_msg.discard_count++;
--			pr_info("RIO: ISR Discarded Port-Write Msg(s) (%d)\n",
-+			pr_debug("RIO: ISR Discarded Port-Write Msg(s) (%d)\n",
- 				 priv->port_write_msg.discard_count);
- 		}
-+		/* Clear interrupt and issue Clear Queue command. This allows
-+		 * another port-write to be received.
-+		 */
-+		out_be32(&priv->msg_regs->pwsr,	RIO_IPWSR_QFI);
-+		out_be32(&priv->msg_regs->pwmr, ipwmr | RIO_IPWMR_CQ);
-+
- 		schedule_work(&priv->pw_work);
+diff -puN drivers/rapidio/rio-scan.c~rapidio-fix-rapidio-sysfs-hierarchy drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-fix-rapidio-sysfs-hierarchy
++++ a/drivers/rapidio/rio-scan.c
+@@ -478,6 +478,7 @@ static struct rio_dev __devinit *rio_set
  	}
  
--	/* Issue Clear Queue command. This allows another
--	 * port-write to be received.
--	 */
--	out_be32(&priv->msg_regs->pwmr, ipwmr | RIO_IPWMR_CQ);
-+	if ((ipwmr & RIO_IPWMR_EIE) && (ipwsr & RIO_IPWSR_TE)) {
-+		priv->port_write_msg.err_count++;
-+		pr_debug("RIO: Port-Write Transaction Err (%d)\n",
-+			 priv->port_write_msg.err_count);
-+		/* Clear Transaction Error: port-write controller should be
-+		 * disabled when clearing this error
-+		 */
-+		out_be32(&priv->msg_regs->pwmr, ipwmr & ~RIO_IPWMR_PWE);
-+		out_be32(&priv->msg_regs->pwsr,	RIO_IPWSR_TE);
-+		out_be32(&priv->msg_regs->pwmr, ipwmr);
-+	}
-+
-+	if (ipwsr & RIO_IPWSR_PWD) {
-+		priv->port_write_msg.discard_count++;
-+		pr_debug("RIO: Port Discarded Port-Write Msg(s) (%d)\n",
-+			 priv->port_write_msg.discard_count);
-+		out_be32(&priv->msg_regs->pwsr, RIO_IPWSR_PWD);
-+	}
-+
-+pw_done:
-+	if (epwisr & RIO_EPWISR_PINT) {
-+		tmp = in_be32(priv->regs_win + RIO_LTLEDCSR);
-+		pr_debug("RIO_LTLEDCSR = 0x%x\n", tmp);
-+		out_be32(priv->regs_win + RIO_LTLEDCSR, 0);
-+	}
+ 	rdev->dev.bus = &rio_bus_type;
++	rdev->dev.parent = &rio_bus;
  
- 	return IRQ_HANDLED;
- }
+ 	device_initialize(&rdev->dev);
+ 	rdev->dev.release = rio_release_dev;
+diff -puN include/linux/rio.h~rapidio-fix-rapidio-sysfs-hierarchy include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-fix-rapidio-sysfs-hierarchy
++++ a/include/linux/rio.h
+@@ -67,6 +67,7 @@
+ #define RIO_PW_MSG_SIZE		64
+ 
+ extern struct bus_type rio_bus_type;
++extern struct device rio_bus;
+ extern struct list_head rio_devices;	/* list of all devices */
+ 
+ struct rio_mport;
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
