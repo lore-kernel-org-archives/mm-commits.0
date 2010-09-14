@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-handling-of-orphan-port-write-message.patch added to -mm tree
-Date: Tue, 14 Sep 2010 15:21:25 -0700
-Message-ID: <201009142221.o8EMLP1D021813@imap1.linux-foundation.org>
+Subject: + rapidio-modify-sysfs-initialization-for-switches.patch added to -mm tree
+Date: Tue, 14 Sep 2010 15:21:23 -0700
+Message-ID: <201009142221.o8EMLNHI021810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754451Ab0INWWN (ORCPT
+	by vger.kernel.org with ESMTP id S1755178Ab0INWWA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Sep 2010 18:22:13 -0400
+	Tue, 14 Sep 2010 18:22:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, m
 
 
 The patch titled
-     rapidio: add handling of orphan port-write message
+     rapidio: modify sysfs initialization for switches
 has been added to the -mm tree.  Its filename is
-     rapidio-add-handling-of-orphan-port-write-message.patch
+     rapidio-modify-sysfs-initialization-for-switches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add handling of orphan port-write message
+Subject: rapidio: modify sysfs initialization for switches
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Add check for access to port-write (PW) message source device before
-processing the PW message.  If source RIO device is not available (power
-down or RIO link failure) trace back to a last available switch/port on
-the PW message route and service failure at that point.
+1. Change to create attribute "routes" only for switches.
+
+2. Add a switch-specific callback to create/remove proprietary attributes.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Thomas Moll <thomas.moll@sysgo.com>
@@ -51,166 +50,105 @@ Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |  113 ++++++++++++++++++++++++++++++++++++++--
- drivers/rapidio/rio.h |    2 
- 2 files changed, 110 insertions(+), 5 deletions(-)
+ drivers/rapidio/rio-sysfs.c |   26 +++++++++++++++++++-------
+ include/linux/rio.h         |    6 ++++++
+ 2 files changed, 25 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-handling-of-orphan-port-write-message drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-handling-of-orphan-port-write-message
-+++ a/drivers/rapidio/rio.c
-@@ -495,6 +495,92 @@ int rio_set_port_lockout(struct rio_dev 
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-modify-sysfs-initialization-for-switches drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-modify-sysfs-initialization-for-switches
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -40,9 +40,6 @@ static ssize_t routes_show(struct device
+ 	char *str = buf;
+ 	int i;
+ 
+-	if (!rdev->rswitch)
+-		goto out;
+-
+ 	for (i = 0; i < RIO_MAX_ROUTE_ENTRIES(rdev->net->hport->sys_size);
+ 			i++) {
+ 		if (rdev->rswitch->route_table[i] == RIO_INVALID_ROUTE)
+@@ -52,7 +49,6 @@ static ssize_t routes_show(struct device
+ 			    rdev->rswitch->route_table[i]);
+ 	}
+ 
+-      out:
+ 	return (str - buf);
  }
  
- /**
-+ * rio_chk_dev_route - Validate route to the specified device.
-+ * @rdev:  RIO device failed to respond
-+ * @nrdev: Last active device on the route to rdev
-+ * @npnum: nrdev's port number on the route to rdev
-+ *
-+ * Follows a route to the specified RIO device to determine the last available
-+ * device (and corresponding RIO port) on the route.
-+ */
-+static int
-+rio_chk_dev_route(struct rio_dev *rdev, struct rio_dev **nrdev, int *npnum)
-+{
-+	u32 result;
-+	int p_port, rc = -EIO;
-+	struct rio_dev *prev = NULL;
+@@ -63,10 +59,11 @@ struct device_attribute rio_dev_attrs[] 
+ 	__ATTR_RO(asm_did),
+ 	__ATTR_RO(asm_vid),
+ 	__ATTR_RO(asm_rev),
+-	__ATTR_RO(routes),
+ 	__ATTR_NULL,
+ };
+ 
++static DEVICE_ATTR(routes, S_IRUGO, routes_show, NULL);
 +
-+	/* Find switch with failed RIO link */
-+	while (rdev->prev && (rdev->prev->pef & RIO_PEF_SWITCH)) {
-+		if (!rio_read_config_32(rdev->prev, RIO_DEV_ID_CAR, &result)) {
-+			prev = rdev->prev;
-+			break;
-+		}
-+		rdev = rdev->prev;
+ static ssize_t
+ rio_read_config(struct file *filp, struct kobject *kobj,
+ 		struct bin_attribute *bin_attr,
+@@ -218,7 +215,17 @@ int rio_create_sysfs_dev_files(struct ri
+ {
+ 	int err = 0;
+ 
+-	err = sysfs_create_bin_file(&rdev->dev.kobj, &rio_config_attr);
++	err = device_create_bin_file(&rdev->dev, &rio_config_attr);
++
++	if (!err && rdev->rswitch) {
++		err = device_create_file(&rdev->dev, &dev_attr_routes);
++		if (!err && rdev->rswitch->sw_sysfs)
++			err = rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_CREATE);
 +	}
 +
-+	if (prev == NULL)
-+		goto err_out;
-+
-+	/* Find port with failed RIO link */
-+	for (p_port = 0;
-+	     p_port < RIO_GET_TOTAL_PORTS(prev->swpinfo); p_port++)
-+		if (prev->rswitch->nextdev[p_port] == rdev)
-+			break;
-+
-+	if (p_port < RIO_GET_TOTAL_PORTS(prev->swpinfo)) {
-+		pr_debug("RIO: link failed on [%s]-P%d\n",
-+			 rio_name(prev), p_port);
-+		*nrdev = prev;
-+		*npnum = p_port;
-+		rc = 0;
-+	} else
-+		pr_debug("RIO: failed to trace route to %s\n", rio_name(prev));
-+err_out:
-+	return rc;
-+}
-+
-+/**
-+ * rio_mport_chk_dev_access - Validate access to the specified device.
-+ * @mport: Master port to send transactions
-+ * @destid: Device destination ID in network
-+ * @hopcount: Number of hops into the network
-+ */
-+static int
-+rio_mport_chk_dev_access(struct rio_mport *mport, u16 destid, u8 hopcount)
-+{
-+	int i = 0;
-+	u32 tmp;
-+
-+	while (rio_mport_read_config_32(mport, destid, hopcount,
-+					RIO_DEV_ID_CAR, &tmp)) {
-+		i++;
-+		if (i == RIO_MAX_CHK_RETRY)
-+			return -EIO;
-+		mdelay(1);
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * rio_chk_dev_access - Validate access to the specified device.
-+ * @rdev: Pointer to RIO device control structure
-+ */
-+static int rio_chk_dev_access(struct rio_dev *rdev)
-+{
-+	u8 hopcount = 0xff;
-+	u16 destid = rdev->destid;
-+
++	if (err)
++		pr_warning("RIO: Failed to create attribute file(s) for %s\n",
++			   rio_name(rdev));
+ 
+ 	return err;
+ }
+@@ -231,5 +238,10 @@ int rio_create_sysfs_dev_files(struct ri
+  */
+ void rio_remove_sysfs_dev_files(struct rio_dev *rdev)
+ {
+-	sysfs_remove_bin_file(&rdev->dev.kobj, &rio_config_attr);
++	device_remove_bin_file(&rdev->dev, &rio_config_attr);
 +	if (rdev->rswitch) {
-+		destid = rdev->rswitch->destid;
-+		hopcount = rdev->rswitch->hopcount;
++		device_remove_file(&rdev->dev, &dev_attr_routes);
++		if (rdev->rswitch->sw_sysfs)
++			rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_REMOVE);
 +	}
-+
-+	return rio_mport_chk_dev_access(rdev->net->hport, destid, hopcount);
-+}
-+
-+/**
-  * rio_get_input_status - Sends a Link-Request/Input-Status control symbol and
-  *                        returns link-response (if requested).
-  * @rdev: RIO devive to issue Input-status command
-@@ -654,8 +740,8 @@ int rio_inb_pwrite_handler(union rio_pw_
+ }
+diff -puN include/linux/rio.h~rapidio-modify-sysfs-initialization-for-switches include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-modify-sysfs-initialization-for-switches
++++ a/include/linux/rio.h
+@@ -218,6 +218,10 @@ struct rio_net {
+ 	unsigned char id;	/* RIO network ID */
+ };
  
- 	rdev = rio_get_comptag(pw_msg->em.comptag, NULL);
- 	if (rdev == NULL) {
--		/* Someting bad here (probably enumeration error) */
--		pr_err("RIO: %s No matching device for CTag 0x%08x\n",
-+		/* Device removed or enumeration error */
-+		pr_debug("RIO: %s No matching device for CTag 0x%08x\n",
- 			__func__, pw_msg->em.comptag);
- 		return -EIO;
- 	}
-@@ -686,6 +772,26 @@ int rio_inb_pwrite_handler(union rio_pw_
- 			return 0;
- 	}
- 
-+	portnum = pw_msg->em.is_port & 0xFF;
++/* Definitions used by switch sysfs initialization callback */
++#define RIO_SW_SYSFS_CREATE	1	/* Create switch attributes */
++#define RIO_SW_SYSFS_REMOVE	0	/* Remove switch attributes */
 +
-+	/* Check if device and route to it are functional:
-+	 * Sometimes devices may send PW message(s) just before being
-+	 * powered down (or link being lost).
-+	 */
-+	if (rio_chk_dev_access(rdev)) {
-+		pr_debug("RIO: device access failed - get link partner\n");
-+		/* Scan route to the device and identify failed link.
-+		 * This will replace device and port reported in PW message.
-+		 * PW message should not be used after this point.
-+		 */
-+		if (rio_chk_dev_route(rdev, &rdev, &portnum)) {
-+			pr_err("RIO: Route trace for %s failed\n",
-+				rio_name(rdev));
-+			return -EIO;
-+		}
-+		pw_msg = NULL;
-+	}
-+
- 	/* For End-point devices processing stops here */
- 	if (!(rdev->pef & RIO_PEF_SWITCH))
- 		return 0;
-@@ -703,9 +809,6 @@ int rio_inb_pwrite_handler(union rio_pw_
- 	/*
- 	 * Process the port-write notification from switch
- 	 */
--
--	portnum = pw_msg->em.is_port & 0xFF;
--
- 	if (rdev->rswitch->em_handle)
- 		rdev->rswitch->em_handle(rdev, portnum);
+ /**
+  * struct rio_switch - RIO switch info
+  * @node: Node in global list of switches
+@@ -234,6 +238,7 @@ struct rio_net {
+  * @get_domain: Callback for switch-specific domain get function
+  * @em_init: Callback for switch-specific error management initialization function
+  * @em_handle: Callback for switch-specific error management handler function
++ * @sw_sysfs: Callback that initializes switch-specific sysfs attributes
+  * @nextdev: Array of per-port pointers to the next attached device
+  */
+ struct rio_switch {
+@@ -256,6 +261,7 @@ struct rio_switch {
+ 			   u8 *sw_domain);
+ 	int (*em_init) (struct rio_dev *dev);
+ 	int (*em_handle) (struct rio_dev *dev, u8 swport);
++	int (*sw_sysfs) (struct rio_dev *dev, int create);
+ 	struct rio_dev *nextdev[0];
+ };
  
-diff -puN drivers/rapidio/rio.h~rapidio-add-handling-of-orphan-port-write-message drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~rapidio-add-handling-of-orphan-port-write-message
-+++ a/drivers/rapidio/rio.h
-@@ -14,6 +14,8 @@
- #include <linux/list.h>
- #include <linux/rio.h>
- 
-+#define RIO_MAX_CHK_RETRY	3
-+
- /* Functions internal to the RIO core code */
- 
- extern u32 rio_mport_get_feature(struct rio_mport *mport, int local, u16 destid,
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
