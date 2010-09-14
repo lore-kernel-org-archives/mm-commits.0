@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-handling-of-redundant-routes.patch added to -mm tree
-Date: Tue, 14 Sep 2010 15:21:35 -0700
-Message-ID: <201009142221.o8EMLZZF021822@imap1.linux-foundation.org>
+Subject: + rapidio-add-support-for-idt-cps-gen2-switches.patch added to -mm tree
+Date: Tue, 14 Sep 2010 15:21:30 -0700
+Message-ID: <201009142221.o8EMLU4C021819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752281Ab0INWXE (ORCPT
+	by vger.kernel.org with ESMTP id S1752281Ab0INWXL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Sep 2010 18:23:04 -0400
+	Tue, 14 Sep 2010 18:23:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, m
 
 
 The patch titled
-     rapidio: add handling of redundant routes
+     rapidio: add support for IDT CPS Gen2 switches
 has been added to the -mm tree.  Its filename is
-     rapidio-add-handling-of-redundant-routes.patch
+     rapidio-add-support-for-idt-cps-gen2-switches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add handling of redundant routes
+Subject: rapidio: add support for IDT CPS Gen2 switches
 From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-Detects RIO link to the already enumerated device and properly sets links
-between device objects.  Changes to the enumeration/discovery logic:
-
-1. Use Master Enable bit to signal end of the enumeration - agents may
-   start their discovery process as soon as they see this bit set
-   (Component Tag register was used before for this purpose).
-
-2. Enumerator sets Component Tag (!= 0) immediately during device
-   setup.  This allows to identify the device if the redundant route
-   exists in a RIO system.
+Add the RIO switch driver and definitions for IDT CPS-1848 and CPS-1616
+Gen2 devices.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Thomas Moll <thomas.moll@sysgo.com>
@@ -57,285 +49,525 @@ Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    8 ++
- drivers/rapidio/rio-scan.c    |   88 ++++++++++++++++----------------
- drivers/rapidio/rio.c         |   16 ++---
- drivers/rapidio/rio.h         |    1 
- include/linux/rio.h           |    2 
- 5 files changed, 64 insertions(+), 51 deletions(-)
+ drivers/rapidio/switches/Kconfig    |    7 
+ drivers/rapidio/switches/Makefile   |    1 
+ drivers/rapidio/switches/idt_gen2.c |  447 ++++++++++++++++++++++++++
+ include/linux/rio_ids.h             |    2 
+ include/linux/rio_regs.h            |    5 
+ 5 files changed, 462 insertions(+)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-handling-of-redundant-routes arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-handling-of-redundant-routes
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -50,6 +50,7 @@
- #define RIO_ATMU_REGS_OFFSET	0x10c00
- #define RIO_P_MSG_REGS_OFFSET	0x11000
- #define RIO_S_MSG_REGS_OFFSET	0x13000
-+#define RIO_GCCSR		0x13c
- #define RIO_ESCSR		0x158
- #define RIO_CCSR		0x15c
- #define RIO_LTLEDCSR		0x0608
-@@ -1456,6 +1457,7 @@ int fsl_rio_setup(struct platform_device
- 	port->host_deviceid = fsl_rio_get_hdid(port->id);
+diff -puN drivers/rapidio/switches/Kconfig~rapidio-add-support-for-idt-cps-gen2-switches drivers/rapidio/switches/Kconfig
+--- a/drivers/rapidio/switches/Kconfig~rapidio-add-support-for-idt-cps-gen2-switches
++++ a/drivers/rapidio/switches/Kconfig
+@@ -20,6 +20,13 @@ config RAPIDIO_TSI568
+ 	---help---
+ 	  Includes support for IDT Tsi568 serial RapidIO switch.
  
- 	port->priv = priv;
-+	port->phys_efptr = 0x100;
- 	rio_register_mport(port);
++config RAPIDIO_CPS_GEN2
++	bool "IDT CPS Gen.2 SRIO switch support"
++	depends on RAPIDIO
++	default n
++	---help---
++	  Includes support for ITD CPS Gen.2 serial RapidIO switches.
++
+ config RAPIDIO_TSI500
+ 	bool "Tsi500 Parallel RapidIO switch support"
+ 	depends on RAPIDIO
+diff -puN drivers/rapidio/switches/Makefile~rapidio-add-support-for-idt-cps-gen2-switches drivers/rapidio/switches/Makefile
+--- a/drivers/rapidio/switches/Makefile~rapidio-add-support-for-idt-cps-gen2-switches
++++ a/drivers/rapidio/switches/Makefile
+@@ -6,6 +6,7 @@ obj-$(CONFIG_RAPIDIO_TSI57X)	+= tsi57x.o
+ obj-$(CONFIG_RAPIDIO_CPS_XX)	+= idtcps.o
+ obj-$(CONFIG_RAPIDIO_TSI568)	+= tsi568.o
+ obj-$(CONFIG_RAPIDIO_TSI500)	+= tsi500.o
++obj-$(CONFIG_RAPIDIO_CPS_GEN2)	+= idt_gen2.o
  
- 	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
-@@ -1503,6 +1505,12 @@ int fsl_rio_setup(struct platform_device
- 	dev_info(&dev->dev, "RapidIO Common Transport System size: %d\n",
- 			port->sys_size ? 65536 : 256);
- 
-+	if (port->host_deviceid >= 0)
-+		out_be32(priv->regs_win + RIO_GCCSR, RIO_PORT_GEN_HOST |
-+			RIO_PORT_GEN_MASTER | RIO_PORT_GEN_DISCOVERED);
+ ifeq ($(CONFIG_RAPIDIO_DEBUG),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff -puN /dev/null drivers/rapidio/switches/idt_gen2.c
+--- /dev/null
++++ a/drivers/rapidio/switches/idt_gen2.c
+@@ -0,0 +1,447 @@
++/*
++ * IDT CPS Gen.2 Serial RapidIO switch family support
++ *
++ * Copyright 2010 Integrated Device Technology, Inc.
++ * Alexandre Bounine <alexandre.bounine@idt.com>
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/rio.h>
++#include <linux/rio_drv.h>
++#include <linux/rio_ids.h>
++#include <linux/delay.h>
++#include "../rio.h"
++
++#define LOCAL_RTE_CONF_DESTID_SEL	0x010070
++#define LOCAL_RTE_CONF_DESTID_SEL_PSEL	0x0000001f
++
++#define IDT_LT_ERR_REPORT_EN	0x03100c
++
++#define IDT_PORT_ERR_REPORT_EN(n)	(0x031044 + (n)*0x40)
++#define IDT_PORT_ERR_REPORT_EN_BC	0x03ff04
++
++#define IDT_PORT_ISERR_REPORT_EN(n)	(0x03104C + (n)*0x40)
++#define IDT_PORT_ISERR_REPORT_EN_BC	0x03ff0c
++#define IDT_PORT_INIT_TX_ACQUIRED	0x00000020
++
++#define IDT_LANE_ERR_REPORT_EN(n)	(0x038010 + (n)*0x100)
++#define IDT_LANE_ERR_REPORT_EN_BC	0x03ff10
++
++#define IDT_DEV_CTRL_1		0xf2000c
++#define IDT_DEV_CTRL_1_GENPW		0x02000000
++#define IDT_DEV_CTRL_1_PRSTBEH		0x00000001
++
++#define IDT_CFGBLK_ERR_CAPTURE_EN	0x020008
++#define IDT_CFGBLK_ERR_REPORT		0xf20014
++#define IDT_CFGBLK_ERR_REPORT_GENPW		0x00000002
++
++#define IDT_AUX_PORT_ERR_CAP_EN	0x020000
++#define IDT_AUX_ERR_REPORT_EN	0xf20018
++#define IDT_AUX_PORT_ERR_LOG_I2C	0x00000002
++#define IDT_AUX_PORT_ERR_LOG_JTAG	0x00000001
++
++#define	IDT_ISLTL_ADDRESS_CAP	0x021014
++
++#define IDT_RIO_DOMAIN		0xf20020
++#define IDT_RIO_DOMAIN_MASK		0x000000ff
++
++#define IDT_PW_INFO_CSR		0xf20024
++
++#define IDT_SOFT_RESET		0xf20040
++#define IDT_SOFT_RESET_REQ		0x00030097
++
++#define IDT_I2C_MCTRL		0xf20050
++#define IDT_I2C_MCTRL_GENPW		0x04000000
++
++#define IDT_JTAG_CTRL		0xf2005c
++#define IDT_JTAG_CTRL_GENPW		0x00000002
++
++#define IDT_LANE_CTRL(n)	(0xff8000 + (n)*0x100)
++#define IDT_LANE_CTRL_BC	0xffff00
++#define IDT_LANE_CTRL_GENPW		0x00200000
++#define IDT_LANE_DFE_1_BC	0xffff18
++#define IDT_LANE_DFE_2_BC	0xffff1c
++
++#define IDT_PORT_OPS(n)		(0xf40004 + (n)*0x100)
++#define IDT_PORT_OPS_GENPW		0x08000000
++#define IDT_PORT_OPS_PL_ELOG		0x00000040
++#define IDT_PORT_OPS_LL_ELOG		0x00000020
++#define IDT_PORT_OPS_LT_ELOG		0x00000010
++#define IDT_PORT_OPS_BC		0xf4ff04
++
++#define IDT_PORT_ISERR_DET(n)	(0xf40008 + (n)*0x100)
++
++#define IDT_ERR_CAP		0xfd0000
++#define IDT_ERR_CAP_LOG_OVERWR		0x00000004
++
++#define IDT_ERR_RD		0xfd0004
++
++#define IDT_DEFAULT_ROUTE	0xde
++#define IDT_NO_ROUTE		0xdf
++
++static int
++idtg2_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
++		       u16 table, u16 route_destid, u8 route_port)
++{
++	/*
++	 * Select routing table to update
++	 */
++	if (table == RIO_GLOBAL_TABLE)
++		table = 0;
 +	else
-+		out_be32(priv->regs_win + RIO_GCCSR, 0x00000000);
++		table++;
 +
- 	priv->atmu_regs = (struct rio_atmu_regs *)(priv->regs_win
- 					+ RIO_ATMU_REGS_OFFSET);
- 	priv->maint_atmu_regs = priv->atmu_regs + 1;
-diff -puN drivers/rapidio/rio-scan.c~rapidio-add-handling-of-redundant-routes drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-add-handling-of-redundant-routes
-+++ a/drivers/rapidio/rio-scan.c
-@@ -48,7 +48,7 @@ DEFINE_SPINLOCK(rio_global_list_lock);
- static int next_destid = 0;
- static int next_switchid = 0;
- static int next_net = 0;
--static int next_comptag;
-+static int next_comptag = 1;
- 
- static struct timer_list rio_enum_timer =
- TIMER_INITIALIZER(rio_enum_timeout, 0, 0);
-@@ -121,27 +121,6 @@ static int rio_clear_locks(struct rio_mp
- 	u32 result;
- 	int ret = 0;
- 
--	/* Assign component tag to all devices */
--	next_comptag = 1;
--	rio_local_write_config_32(port, RIO_COMPONENT_TAG_CSR, next_comptag++);
--
--	list_for_each_entry(rdev, &rio_devices, global_list) {
--		/* Mark device as discovered */
--		rio_read_config_32(rdev,
--				   rdev->phys_efptr + RIO_PORT_GEN_CTL_CSR,
--				   &result);
--		rio_write_config_32(rdev,
--				    rdev->phys_efptr + RIO_PORT_GEN_CTL_CSR,
--				    result | RIO_PORT_GEN_DISCOVERED);
--
--		rio_write_config_32(rdev, RIO_COMPONENT_TAG_CSR, next_comptag);
--		rdev->comp_tag = next_comptag++;
--		if (next_comptag >= 0x10000) {
--			pr_err("RIO: Component Tag Counter Overflow\n");
--			break;
--		}
--	}
--
- 	/* Release host device id locks */
- 	rio_local_write_config_32(port, RIO_HOST_DID_LOCK_CSR,
- 				  port->host_deviceid);
-@@ -162,6 +141,15 @@ static int rio_clear_locks(struct rio_mp
- 			       rdev->vid, rdev->did);
- 			ret = -EINVAL;
- 		}
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  LOCAL_RTE_CONF_DESTID_SEL, table);
 +
-+		/* Mark device as discovered and enable master */
-+		rio_read_config_32(rdev,
-+				   rdev->phys_efptr + RIO_PORT_GEN_CTL_CSR,
-+				   &result);
-+		result |= RIO_PORT_GEN_DISCOVERED | RIO_PORT_GEN_MASTER;
-+		rio_write_config_32(rdev,
-+				    rdev->phys_efptr + RIO_PORT_GEN_CTL_CSR,
-+				    result);
- 	}
- 
- 	return ret;
-@@ -430,6 +418,17 @@ static struct rio_dev __devinit *rio_set
- 	rio_mport_read_config_32(port, destid, hopcount, RIO_DST_OPS_CAR,
- 				 &rdev->dst_ops);
- 
-+	if (do_enum) {
-+		/* Assign component tag to device */
-+		if (next_comptag >= 0x10000) {
-+			pr_err("RIO: Component Tag Counter Overflow\n");
-+			goto cleanup;
-+		}
-+		rio_mport_write_config_32(port, destid, hopcount,
-+					  RIO_COMPONENT_TAG_CSR, next_comptag);
-+		rdev->comp_tag = next_comptag++;
++	/*
++	 * Program destination port for the specified destID
++	 */
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  RIO_STD_RTE_CONF_DESTID_SEL_CSR,
++				  (u32)route_destid);
++
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  RIO_STD_RTE_CONF_PORT_SEL_CSR,
++				  (u32)route_port);
++	udelay(10);
++
++	return 0;
++}
++
++static int
++idtg2_route_get_entry(struct rio_mport *mport, u16 destid, u8 hopcount,
++		       u16 table, u16 route_destid, u8 *route_port)
++{
++	u32 result;
++
++	/*
++	 * Select routing table to read
++	 */
++	if (table == RIO_GLOBAL_TABLE)
++		table = 0;
++	else
++		table++;
++
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  LOCAL_RTE_CONF_DESTID_SEL, table);
++
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  RIO_STD_RTE_CONF_DESTID_SEL_CSR,
++				  route_destid);
++
++	rio_mport_read_config_32(mport, destid, hopcount,
++				 RIO_STD_RTE_CONF_PORT_SEL_CSR, &result);
++
++	if (IDT_DEFAULT_ROUTE == (u8)result || IDT_NO_ROUTE == (u8)result)
++		*route_port = RIO_INVALID_ROUTE;
++	else
++		*route_port = (u8)result;
++
++	return 0;
++}
++
++static int
++idtg2_route_clr_table(struct rio_mport *mport, u16 destid, u8 hopcount,
++		       u16 table)
++{
++	u32 i;
++
++	/*
++	 * Select routing table to read
++	 */
++	if (table == RIO_GLOBAL_TABLE)
++		table = 0;
++	else
++		table++;
++
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  LOCAL_RTE_CONF_DESTID_SEL, table);
++
++	for (i = RIO_STD_RTE_CONF_EXTCFGEN;
++	     i <= (RIO_STD_RTE_CONF_EXTCFGEN | 0xff);) {
++		rio_mport_write_config_32(mport, destid, hopcount,
++			RIO_STD_RTE_CONF_DESTID_SEL_CSR, i);
++		rio_mport_write_config_32(mport, destid, hopcount,
++			RIO_STD_RTE_CONF_PORT_SEL_CSR,
++			(IDT_DEFAULT_ROUTE << 24) | (IDT_DEFAULT_ROUTE << 16) |
++			(IDT_DEFAULT_ROUTE << 8) | IDT_DEFAULT_ROUTE);
++		i += 4;
 +	}
 +
- 	if (rio_device_has_destid(port, rdev->src_ops, rdev->dst_ops)) {
- 		if (do_enum) {
- 			rio_set_device_id(port, destid, hopcount, next_destid);
-@@ -726,21 +725,6 @@ static u16 rio_get_host_deviceid_lock(st
- }
- 
- /**
-- * rio_net_add_mport- Add a master port to a RIO network
-- * @net: RIO network
-- * @port: Master port to add
-- *
-- * Adds a master port to the network list of associated master
-- * ports..
-- */
--static void rio_net_add_mport(struct rio_net *net, struct rio_mport *port)
--{
--	spin_lock(&rio_global_list_lock);
--	list_add_tail(&port->nnode, &net->mports);
--	spin_unlock(&rio_global_list_lock);
--}
--
--/**
-  * rio_enum_peer- Recursively enumerate a RIO network through a master port
-  * @net: RIO network being enumerated
-  * @port: Master port to send transactions
-@@ -760,6 +744,7 @@ static int __devinit rio_enum_peer(struc
- 	int sw_inport;
- 	struct rio_dev *rdev;
- 	u16 destid;
++	return 0;
++}
++
++
++static int
++idtg2_set_domain(struct rio_mport *mport, u16 destid, u8 hopcount,
++		       u8 sw_domain)
++{
++	/*
++	 * Switch domain configuration operates only at global level
++	 */
++	rio_mport_write_config_32(mport, destid, hopcount,
++				  IDT_RIO_DOMAIN, (u32)sw_domain);
++	return 0;
++}
++
++static int
++idtg2_get_domain(struct rio_mport *mport, u16 destid, u8 hopcount,
++		       u8 *sw_domain)
++{
 +	u32 regval;
- 	int tmp;
- 
- 	if (rio_mport_chk_dev_access(port,
-@@ -772,9 +757,21 @@ static int __devinit rio_enum_peer(struc
- 		pr_debug("RIO: PE already discovered by this host\n");
- 		/*
- 		 * Already discovered by this host. Add it as another
--		 * master port for the current network.
-+		 * link to the existing device.
- 		 */
--		rio_net_add_mport(net, port);
-+		rio_mport_read_config_32(port, RIO_ANY_DESTID(port->sys_size),
-+				hopcount, RIO_COMPONENT_TAG_CSR, &regval);
 +
-+		if (regval) {
-+			rdev = rio_get_comptag((regval & 0xffff), NULL);
++	/*
++	 * Switch domain configuration operates only at global level
++	 */
++	rio_mport_read_config_32(mport, destid, hopcount,
++				IDT_RIO_DOMAIN, &regval);
 +
-+			if (rdev && prev && rio_is_switch(prev)) {
-+				pr_debug("RIO: redundant path to %s\n",
-+					 rio_name(rdev));
-+				prev->rswitch->nextdev[prev_port] = rdev;
-+			}
++	*sw_domain = (u8)(regval & 0xff);
++
++	return 0;
++}
++
++static int
++idtg2_em_init(struct rio_dev *rdev)
++{
++	struct rio_mport *mport = rdev->net->hport;
++	u16 destid = rdev->rswitch->destid;
++	u8 hopcount = rdev->rswitch->hopcount;
++	u32 regval;
++	int i, tmp;
++
++	/*
++	 * This routine performs device-specific initialization only.
++	 * All standard EM configuration should be performed at upper level.
++	 */
++
++	pr_debug("RIO: %s [%d:%d]\n", __func__, destid, hopcount);
++
++	/* Set Port-Write info CSR: PRIO=3 and CRF=1 */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_PW_INFO_CSR, 0x0000e000);
++
++	/*
++	 * Configure LT LAYER error reporting.
++	 */
++
++	/* Enable standard (RIO.p8) error reporting */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_LT_ERR_REPORT_EN,
++			REM_LTL_ERR_ILLTRAN | REM_LTL_ERR_UNSOLR |
++			REM_LTL_ERR_UNSUPTR);
++
++	/* Use Port-Writes for LT layer error reporting.
++	 * Enable per-port reset
++	 */
++	rio_mport_read_config_32(mport, destid, hopcount,
++			IDT_DEV_CTRL_1, &regval);
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_DEV_CTRL_1,
++			regval | IDT_DEV_CTRL_1_GENPW | IDT_DEV_CTRL_1_PRSTBEH);
++
++	/*
++	 * Configure PORT error reporting.
++	 */
++
++	/* Report all RIO.p8 errors supported by device */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_PORT_ERR_REPORT_EN_BC, 0x807e8037);
++
++	/* Configure reporting of implementation specific errors/events */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_PORT_ISERR_REPORT_EN_BC, IDT_PORT_INIT_TX_ACQUIRED);
++
++	/* Use Port-Writes for port error reporting and enable error logging */
++	tmp = RIO_GET_TOTAL_PORTS(rdev->swpinfo);
++	for (i = 0; i < tmp; i++) {
++		rio_mport_read_config_32(mport, destid, hopcount,
++				IDT_PORT_OPS(i), &regval);
++		rio_mport_write_config_32(mport, destid, hopcount,
++				IDT_PORT_OPS(i), regval | IDT_PORT_OPS_GENPW |
++				IDT_PORT_OPS_PL_ELOG |
++				IDT_PORT_OPS_LL_ELOG |
++				IDT_PORT_OPS_LT_ELOG);
++	}
++	/* Overwrite error log if full */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_ERR_CAP, IDT_ERR_CAP_LOG_OVERWR);
++
++	/*
++	 * Configure LANE error reporting.
++	 */
++
++	/* Disable line error reporting */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_LANE_ERR_REPORT_EN_BC, 0);
++
++	/* Use Port-Writes for lane error reporting (when enabled)
++	 * (do per-lane update because lanes may have different configuration)
++	 */
++	tmp = (rdev->did == RIO_DID_IDTCPS1848) ? 48 : 16;
++	for (i = 0; i < tmp; i++) {
++		rio_mport_read_config_32(mport, destid, hopcount,
++				IDT_LANE_CTRL(i), &regval);
++		rio_mport_write_config_32(mport, destid, hopcount,
++				IDT_LANE_CTRL(i), regval | IDT_LANE_CTRL_GENPW);
++	}
++
++	/*
++	 * Configure AUX error reporting.
++	 */
++
++	/* Disable JTAG and I2C Error capture */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_AUX_PORT_ERR_CAP_EN, 0);
++
++	/* Disable JTAG and I2C Error reporting/logging */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_AUX_ERR_REPORT_EN, 0);
++
++	/* Disable Port-Write notification from JTAG */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_JTAG_CTRL, 0);
++
++	/* Disable Port-Write notification from I2C */
++	rio_mport_read_config_32(mport, destid, hopcount,
++			IDT_I2C_MCTRL, &regval);
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_I2C_MCTRL,
++			regval & ~IDT_I2C_MCTRL_GENPW);
++
++	/*
++	 * Configure CFG_BLK error reporting.
++	 */
++
++	/* Disable Configuration Block error capture */
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_CFGBLK_ERR_CAPTURE_EN, 0);
++
++	/* Disable Port-Writes for Configuration Block error reporting */
++	rio_mport_read_config_32(mport, destid, hopcount,
++			IDT_CFGBLK_ERR_REPORT, &regval);
++	rio_mport_write_config_32(mport, destid, hopcount,
++			IDT_CFGBLK_ERR_REPORT,
++			regval & ~IDT_CFGBLK_ERR_REPORT_GENPW);
++
++	/* set TVAL = ~50us */
++	rio_mport_write_config_32(mport, destid, hopcount,
++		rdev->phys_efptr + RIO_PORT_LINKTO_CTL_CSR, 0x8e << 8);
++
++	return 0;
++}
++
++static int
++idtg2_em_handler(struct rio_dev *rdev, u8 portnum)
++{
++	struct rio_mport *mport = rdev->net->hport;
++	u16 destid = rdev->rswitch->destid;
++	u8 hopcount = rdev->rswitch->hopcount;
++	u32 regval, em_perrdet, em_ltlerrdet;
++
++	rio_mport_read_config_32(mport, destid, hopcount,
++		rdev->em_efptr + RIO_EM_LTL_ERR_DETECT, &em_ltlerrdet);
++	if (em_ltlerrdet) {
++		/* Service Logical/Transport Layer Error(s) */
++		if (em_ltlerrdet & REM_LTL_ERR_IMPSPEC) {
++			/* Implementation specific error reported */
++			rio_mport_read_config_32(mport, destid, hopcount,
++					IDT_ISLTL_ADDRESS_CAP, &regval);
++
++			pr_debug("RIO: %s Implementation Specific LTL errors" \
++				 " 0x%x @(0x%x)\n",
++				 rio_name(rdev), em_ltlerrdet, regval);
++
++			/* Clear implementation specific address capture CSR */
++			rio_mport_write_config_32(mport, destid, hopcount,
++					IDT_ISLTL_ADDRESS_CAP, 0);
++
 +		}
++	}
 +
- 		return 0;
- 	}
- 
-@@ -925,10 +922,11 @@ static int __devinit rio_enum_peer(struc
-  */
- static int rio_enum_complete(struct rio_mport *port)
- {
--	u32 tag_csr;
++	rio_mport_read_config_32(mport, destid, hopcount,
++		rdev->em_efptr + RIO_EM_PN_ERR_DETECT(portnum), &em_perrdet);
++	if (em_perrdet) {
++		/* Service Port-Level Error(s) */
++		if (em_perrdet & REM_PED_IMPL_SPEC) {
++			/* Implementation Specific port error reported */
++
++			/* Get IS errors reported */
++			rio_mport_read_config_32(mport, destid, hopcount,
++					IDT_PORT_ISERR_DET(portnum), &regval);
++
++			pr_debug("RIO: %s Implementation Specific Port" \
++				 " errors 0x%x\n", rio_name(rdev), regval);
++
++			/* Clear all implementation specific events */
++			rio_mport_write_config_32(mport, destid, hopcount,
++					IDT_PORT_ISERR_DET(portnum), 0);
++		}
++	}
++
++	return 0;
++}
++
++static ssize_t
++idtg2_show_errlog(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct rio_dev *rdev = to_rio_dev(dev);
++	struct rio_mport *mport = rdev->net->hport;
++	u16 destid = rdev->rswitch->destid;
++	u8 hopcount = rdev->rswitch->hopcount;
++	ssize_t len = 0;
 +	u32 regval;
- 
--	rio_local_read_config_32(port, RIO_COMPONENT_TAG_CSR, &tag_csr);
--	return (tag_csr & 0xffff) ? 1 : 0;
-+	rio_local_read_config_32(port, port->phys_efptr + RIO_PORT_GEN_CTL_CSR,
-+				 &regval);
-+	return (regval & RIO_PORT_GEN_MASTER) ? 1 : 0;
- }
- 
- /**
-@@ -991,6 +989,8 @@ rio_disc_peer(struct rio_net *net, struc
- 						break;
- 				}
- 
-+				if (ndestid == RIO_ANY_DESTID(port->sys_size))
-+					continue;
- 				rio_unlock_device(port, destid, hopcount);
- 				if (rio_disc_peer
- 				    (net, port, ndestid, hopcount + 1) < 0)
-@@ -1163,6 +1163,10 @@ int __devinit rio_enum_mport(struct rio_
- 		/* Enable Input Output Port (transmitter reviever) */
- 		rio_enable_rx_tx_port(mport, 1, 0, 0, 0);
- 
-+		/* Set component tag for host */
-+		rio_local_write_config_32(mport, RIO_COMPONENT_TAG_CSR,
-+					  next_comptag++);
 +
- 		if (rio_enum_peer(net, mport, 0, NULL, 0) < 0) {
- 			/* A higher priority host won enumeration, bail. */
- 			printk(KERN_INFO
-diff -puN drivers/rapidio/rio.c~rapidio-add-handling-of-redundant-routes drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-handling-of-redundant-routes
-+++ a/drivers/rapidio/rio.c
-@@ -443,7 +443,7 @@ rio_mport_get_physefb(struct rio_mport *
-  * @from is not %NULL, searches continue from next device on the global
-  * list.
-  */
--static struct rio_dev *rio_get_comptag(u32 comp_tag, struct rio_dev *from)
-+struct rio_dev *rio_get_comptag(u32 comp_tag, struct rio_dev *from)
- {
- 	struct list_head *n;
- 	struct rio_dev *rdev;
-@@ -507,7 +507,7 @@ static int
- rio_chk_dev_route(struct rio_dev *rdev, struct rio_dev **nrdev, int *npnum)
- {
- 	u32 result;
--	int p_port, rc = -EIO;
-+	int p_port, dstid, rc = -EIO;
- 	struct rio_dev *prev = NULL;
++	while (!rio_mport_read_config_32(mport, destid, hopcount,
++					 IDT_ERR_RD, &regval)) {
++		if (!regval)    /* 0 = end of log */
++			break;
++		len += snprintf(buf + len, PAGE_SIZE - len,
++					"%08x\n", regval);
++		if (len >= (PAGE_SIZE - 10))
++			break;
++	}
++
++	return len;
++}
++
++static DEVICE_ATTR(errlog, S_IRUGO, idtg2_show_errlog, NULL);
++
++static int idtg2_sysfs(struct rio_dev *rdev, int create)
++{
++	struct device *dev = &rdev->dev;
++	int err = 0;
++
++	if (create == RIO_SW_SYSFS_CREATE) {
++		/* Initialize sysfs entries */
++		err = device_create_file(dev, &dev_attr_errlog);
++		if (err)
++			dev_err(dev, "Unable create sysfs errlog file\n");
++	} else
++		device_remove_file(dev, &dev_attr_errlog);
++
++	return err;
++}
++
++static int idtg2_switch_init(struct rio_dev *rdev, int do_enum)
++{
++	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
++	rdev->rswitch->add_entry = idtg2_route_add_entry;
++	rdev->rswitch->get_entry = idtg2_route_get_entry;
++	rdev->rswitch->clr_table = idtg2_route_clr_table;
++	rdev->rswitch->set_domain = idtg2_set_domain;
++	rdev->rswitch->get_domain = idtg2_get_domain;
++	rdev->rswitch->em_init = idtg2_em_init;
++	rdev->rswitch->em_handle = idtg2_em_handler;
++	rdev->rswitch->sw_sysfs = idtg2_sysfs;
++
++	return 0;
++}
++
++DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS1848, idtg2_switch_init);
++DECLARE_RIO_SWITCH_INIT(RIO_VID_IDT, RIO_DID_IDTCPS1616, idtg2_switch_init);
+diff -puN include/linux/rio_ids.h~rapidio-add-support-for-idt-cps-gen2-switches include/linux/rio_ids.h
+--- a/include/linux/rio_ids.h~rapidio-add-support-for-idt-cps-gen2-switches
++++ a/include/linux/rio_ids.h
+@@ -34,5 +34,7 @@
+ #define RIO_DID_IDTCPS16		0x035b
+ #define RIO_DID_IDTCPS6Q		0x035f
+ #define RIO_DID_IDTCPS10Q		0x035e
++#define RIO_DID_IDTCPS1848		0x0374
++#define RIO_DID_IDTCPS1616		0x0379
  
- 	/* Find switch with failed RIO link */
-@@ -522,20 +522,18 @@ rio_chk_dev_route(struct rio_dev *rdev, 
- 	if (prev == NULL)
- 		goto err_out;
+ #endif				/* LINUX_RIO_IDS_H */
+diff -puN include/linux/rio_regs.h~rapidio-add-support-for-idt-cps-gen2-switches include/linux/rio_regs.h
+--- a/include/linux/rio_regs.h~rapidio-add-support-for-idt-cps-gen2-switches
++++ a/include/linux/rio_regs.h
+@@ -161,6 +161,7 @@
+ #define RIO_COMPONENT_TAG_CSR	0x6c	/* [III] Component Tag CSR */
  
--	/* Find port with failed RIO link */
--	for (p_port = 0;
--	     p_port < RIO_GET_TOTAL_PORTS(prev->swpinfo); p_port++)
--		if (prev->rswitch->nextdev[p_port] == rdev)
--			break;
-+	dstid = (rdev->pef & RIO_PEF_SWITCH) ?
-+			rdev->rswitch->destid : rdev->destid;
-+	p_port = prev->rswitch->route_table[dstid];
+ #define RIO_STD_RTE_CONF_DESTID_SEL_CSR	0x70
++#define  RIO_STD_RTE_CONF_EXTCFGEN		0x80000000
+ #define RIO_STD_RTE_CONF_PORT_SEL_CSR	0x74
+ #define RIO_STD_RTE_DEFAULT_PORT	0x78
  
--	if (p_port < RIO_GET_TOTAL_PORTS(prev->swpinfo)) {
-+	if (p_port != RIO_INVALID_ROUTE) {
- 		pr_debug("RIO: link failed on [%s]-P%d\n",
- 			 rio_name(prev), p_port);
- 		*nrdev = prev;
- 		*npnum = p_port;
- 		rc = 0;
- 	} else
--		pr_debug("RIO: failed to trace route to %s\n", rio_name(prev));
-+		pr_debug("RIO: failed to trace route to %s\n", rio_name(rdev));
- err_out:
- 	return rc;
- }
-diff -puN drivers/rapidio/rio.h~rapidio-add-handling-of-redundant-routes drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~rapidio-add-handling-of-redundant-routes
-+++ a/drivers/rapidio/rio.h
-@@ -38,6 +38,7 @@ extern int rio_std_route_get_entry(struc
- extern int rio_std_route_clr_table(struct rio_mport *mport, u16 destid,
- 				   u8 hopcount, u16 table);
- extern int rio_set_port_lockout(struct rio_dev *rdev, u32 pnum, int lock);
-+extern struct rio_dev *rio_get_comptag(u32 comp_tag, struct rio_dev *from);
- 
- /* Structures internal to the RIO core code */
- extern struct device_attribute rio_dev_attrs[];
-diff -puN include/linux/rio.h~rapidio-add-handling-of-redundant-routes include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-handling-of-redundant-routes
-+++ a/include/linux/rio.h
-@@ -177,6 +177,7 @@ enum rio_phy_type {
-  * @index: Port index, unique among all port interfaces of the same type
-  * @sys_size: RapidIO common transport system size
-  * @phy_type: RapidIO phy type
-+ * @phys_efptr: RIO port extended features pointer
-  * @name: Port name string
-  * @priv: Master port private data
-  */
-@@ -198,6 +199,7 @@ struct rio_mport {
- 				 * 1 - Large size, 65536 devices.
- 				 */
- 	enum rio_phy_type phy_type;	/* RapidIO phy type */
-+	u32 phys_efptr;
- 	unsigned char name[40];
- 	void *priv;		/* Master port private data */
- };
+@@ -265,6 +266,10 @@
+ #define RIO_EM_EFB_HEADER	0x000	/* Error Management Extensions Block Header */
+ #define RIO_EM_LTL_ERR_DETECT	0x008	/* Logical/Transport Layer Error Detect CSR */
+ #define RIO_EM_LTL_ERR_EN	0x00c	/* Logical/Transport Layer Error Enable CSR */
++#define  REM_LTL_ERR_ILLTRAN		0x08000000 /* Illegal Transaction decode */
++#define  REM_LTL_ERR_UNSOLR		0x00800000 /* Unsolicited Response */
++#define  REM_LTL_ERR_UNSUPTR		0x00400000 /* Unsupported Transaction */
++#define  REM_LTL_ERR_IMPSPEC		0x000000ff /* Implementation Specific */
+ #define RIO_EM_LTL_HIADDR_CAP	0x010	/* Logical/Transport Layer High Address Capture CSR */
+ #define RIO_EM_LTL_ADDR_CAP	0x014	/* Logical/Transport Layer Address Capture CSR */
+ #define RIO_EM_LTL_DEVID_CAP	0x018	/* Logical/Transport Layer Device ID Capture CSR */
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
