@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 14 Sep 2010 11:43:34 -0700
-Message-ID: <201009141843.o8EIhYnb011717@imap1.linux-foundation.org>
+Subject: + serial-add-sc16is7x2-driver-update-fix.patch added to -mm tree
+Date: Tue, 14 Sep 2010 11:57:52 -0700
+Message-ID: <201009141857.o8EIvqMN012361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752508Ab0INSoJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753115Ab0INS60 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Sep 2010 14:44:09 -0400
+	Tue, 14 Sep 2010 14:58:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, knikanth@suse.de, mpm@selenic.com
+Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca, greg@kroah.com, manuel.stahl@iis.fraunhofer.de
 
 
 The patch titled
-     proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes
+     serial-add-sc16is7x2-driver-update-fix
 has been added to the -mm tree.  Its filename is
-     proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes.patch
+     serial-add-sc16is7x2-driver-update-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes
+Subject: serial-add-sc16is7x2-driver-update-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#54: FILE: fs/proc/task_mmu.c:376:
-+			if (pte_dirty(ptent) || (vma->vm_file && PageAnon(page)))
+fix broken indenting
 
-total: 0 errors, 1 warnings, 12 lines checked
-
-./patches/proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Nikanth Karthikesan <knikanth@suse.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Greg KH <greg@kroah.com>
+Cc: Manuel Stahl <manuel.stahl@iis.fraunhofer.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/sc16is7x2.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -373,7 +373,7 @@ static int smaps_pte_range(pmd_t *pmd, u
- 			 * File-backed pages, now anonymous are dirty
- 			 * with respect to the file.
- 			 */
--			if (pte_dirty(ptent) || (vma->vm_file && PageAnon(page)))
-+			if (pte_dirty(ptent) || vma->vm_file && PageAnon(page))
- 				mss->private_dirty += PAGE_SIZE;
- 			else
- 				mss->private_clean += PAGE_SIZE;
+diff -puN drivers/serial/sc16is7x2.c~serial-add-sc16is7x2-driver-update-fix drivers/serial/sc16is7x2.c
+--- a/drivers/serial/sc16is7x2.c~serial-add-sc16is7x2-driver-update-fix
++++ a/drivers/serial/sc16is7x2.c
+@@ -1168,8 +1168,8 @@ static int sc16is7x2_register_uart_port(
+ 	chan->chip = ts;
+ 
+ 	chan->rx_buf = kzalloc(FIFO_SIZE+1, GFP_KERNEL);
+-		if (chan->rx_buf == NULL)
+-			return -ENOMEM;
++	if (chan->rx_buf == NULL)
++		return -ENOMEM;
+ 
+ 	chan->read_fifo_cmd = read_cmd(UART_RX, ch);
+ 	chan->fifo_rx.cs_change = true;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +78,7 @@ gcc-46-btrfs-clean-up-unused-variables-bugs.patch
 hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-serial-add-sc16is7x2-driver-checkpatch-fixes.patch
+serial-add-sc16is7x2-driver-update-fix.patch
 security-add-const-to-security_task_setscheduler.patch
 sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
 usb-storage-add-new-no_read_disc_info-quirk-fix.patch
@@ -101,7 +94,6 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 kernelh-add-minmax3-macros-fix.patch
 include-linux-kernelh-add-__must_check-to-strict_strto.patch
 scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-list-remove-explicit-list-prefetches-for-most-cases-checkpatch-fixes.patch
 sdhci-support-10-bit-divided-clock-mode-for-spec-30-checkpatch-fixes.patch
 mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
 mmc-move-regulator-handling-closer-to-core-v3-fix.patch
