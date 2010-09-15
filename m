@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-add-sys-devices-system-node-node-vmstat-update.patch added to -mm tree
-Date: Wed, 15 Sep 2010 12:10:42 -0700
-Message-ID: <201009151910.o8FJAgGB010263@imap1.linux-foundation.org>
+Subject: + fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch added to -mm tree
+Date: Wed, 15 Sep 2010 12:12:01 -0700
+Message-ID: <201009151912.o8FJC126010306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755132Ab0IOTK6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755215Ab0IOTMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 15:10:58 -0400
+	Wed, 15 Sep 2010 15:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mrubin@google.com, axboe@kernel.dk, david@fromorbit.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au
+Cc: mszeredi@suse.cz, jbeulich@novell.com
 
 
 The patch titled
-     writeback-add-sys-devices-system-node-node-vmstat-update
+     fuse: use clear_highpage() and KM_USER0 instead of KM_USER1
 has been added to the -mm tree.  Its filename is
-     writeback-add-sys-devices-system-node-node-vmstat-update.patch
+     fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback-add-sys-devices-system-node-node-vmstat-update
-From: Michael Rubin <mrubin@google.com>
+Subject: fuse: use clear_highpage() and KM_USER0 instead of KM_USER1
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-For NUMA node systems it is important to have visibility in memory
-characteristics. Two of the /proc/vmstat values "nr_written" and
-"nr_dirtied" are added here.
+Commit 7909b1c640 (fuse: don't use atomic kmap) removed KM_USER0 usage
+from fuse/dev.c.  Switch KM_USER1 uses to KM_USER0 for clarity.  Also
+replace open coded clear_highpage().
 
-	# cat /sys/devices/system/node/node20/vmstat
-	nr_written 0
-	nr_dirtied 0
-
-Signed-off-by: Michael Rubin <mrubin@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fuse/dev.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/base/node.c~writeback-add-sys-devices-system-node-node-vmstat-update drivers/base/node.c
---- a/drivers/base/node.c~writeback-add-sys-devices-system-node-node-vmstat-update
-+++ a/drivers/base/node.c
-@@ -168,7 +168,7 @@ static ssize_t node_read_vmstat(struct s
- 		"nr_written %lu\n"
- 		"nr_dirtied %lu\n",
- 		node_page_state(nid, NR_WRITTEN),
--		node_page_state(nid, NR_FILE_DIRTIED));
-+		node_page_state(nid, NR_DIRTIED));
- }
- static SYSDEV_ATTR(vmstat, S_IRUGO, node_read_vmstat, NULL);
+diff -puN fs/fuse/dev.c~fuse-use-clear_highpage-and-km_user0-instead-of-km_user1 fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-use-clear_highpage-and-km_user0-instead-of-km_user1
++++ a/fs/fuse/dev.c
+@@ -809,11 +809,9 @@ static int fuse_copy_page(struct fuse_co
+ 	int err;
+ 	struct page *page = *pagep;
  
+-	if (page && zeroing && count < PAGE_SIZE) {
+-		void *mapaddr = kmap_atomic(page, KM_USER1);
+-		clear_page(mapaddr);
+-		kunmap_atomic(mapaddr, KM_USER1);
+-	}
++	if (page && zeroing && count < PAGE_SIZE)
++		clear_highpage(page);
++
+ 	while (count) {
+ 		if (cs->write && cs->pipebufs && page) {
+ 			return fuse_ref_page(cs, page, offset, count);
+@@ -830,10 +828,10 @@ static int fuse_copy_page(struct fuse_co
+ 			}
+ 		}
+ 		if (page) {
+-			void *mapaddr = kmap_atomic(page, KM_USER1);
++			void *mapaddr = kmap_atomic(page, KM_USER0);
+ 			void *buf = mapaddr + offset;
+ 			offset += fuse_copy_do(cs, &buf, &count);
+-			kunmap_atomic(mapaddr, KM_USER1);
++			kunmap_atomic(mapaddr, KM_USER0);
+ 		} else
+ 			offset += fuse_copy_do(cs, NULL, &count);
+ 	}
 _
 
-Patches currently in -mm which might be from mrubin@google.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-mm-export-account_page_dirty.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-update.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-add-sys-devices-system-node-node-vmstat-update.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
+fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch
 
