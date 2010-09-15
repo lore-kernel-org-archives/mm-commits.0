@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-radeon-atomc-fix-warning.patch added to -mm tree
-Date: Wed, 15 Sep 2010 13:41:12 -0700
-Message-ID: <201009152112.o8FLC1Wx015697@imap1.linux-foundation.org>
+Subject: + fs-notify-fanotify-fanotify_userc-fix-warnings.patch added to -mm tree
+Date: Wed, 15 Sep 2010 13:43:10 -0700
+Message-ID: <201009152113.o8FLDx5c015734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754050Ab0IOVM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752091Ab0IOVOK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:12:26 -0400
+	Wed, 15 Sep 2010 17:14:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, mattst88@gmail.com
+Cc: akpm@linux-foundation.org, eparis@redhat.com
 
 
 The patch titled
-     drivers/gpu/drm/radeon/atom.c: fix warning
+     fs/notify/fanotify/fanotify_user.c: fix warnings
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-radeon-atomc-fix-warning.patch
+     fs-notify-fanotify-fanotify_userc-fix-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/radeon/atom.c: fix warning
+Subject: fs/notify/fanotify/fanotify_user.c: fix warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/gpu/drm/radeon/atom.c: In function 'atom_op_delay':
-drivers/gpu/drm/radeon/atom.c:653: warning: comparison is always false due to limited range of data type
+fs/notify/fanotify/fanotify_user.c: In function 'fanotify_release':
+fs/notify/fanotify/fanotify_user.c:375: warning: unused variable 'lre'
+fs/notify/fanotify/fanotify_user.c:375: warning: unused variable 're'
 
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Cc: Matt Turner <mattst88@gmail.com>
+this is really ugly.
+
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/radeon/atom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/fanotify/fanotify_user.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning drivers/gpu/drm/radeon/atom.c
---- a/drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning
-+++ a/drivers/gpu/drm/radeon/atom.c
-@@ -647,7 +647,7 @@ static void atom_op_compare(atom_exec_co
- 
- static void atom_op_delay(atom_exec_context *ctx, int *ptr, int arg)
+diff -puN fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-warnings fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-warnings
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -372,11 +372,10 @@ static ssize_t fanotify_write(struct fil
+ static int fanotify_release(struct inode *ignored, struct file *file)
  {
--	uint8_t count = U8((*ptr)++);
-+	unsigned count = U8((*ptr)++);
- 	SDEBUG("   count: %d\n", count);
- 	if (arg == ATOM_UNIT_MICROSEC)
- 		udelay(count);
+ 	struct fsnotify_group *group = file->private_data;
+-	struct fanotify_response_event *re, *lre;
+-
+-	pr_debug("%s: file=%p group=%p\n", __func__, file, group);
+ 
+ #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
++	struct fanotify_response_event *re, *lre;
++
+ 	mutex_lock(&group->fanotify_data.access_mutex);
+ 
+ 	group->fanotify_data.bypass_perm = true;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +82,7 @@ acpi-apei-fix-erst-move_data-instruction-implementation.patch
 arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
 gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
 hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
@@ -120,5 +127,5 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
 
