@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch added to -mm tree
-Date: Wed, 15 Sep 2010 13:39:29 -0700
-Message-ID: <201009152110.o8FLAJeJ015584@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-radeon-atomc-fix-warning.patch added to -mm tree
+Date: Wed, 15 Sep 2010 13:41:12 -0700
+Message-ID: <201009152112.o8FLC1Wx015697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752415Ab0IOVKj (ORCPT
+	by vger.kernel.org with ESMTP id S1754050Ab0IOVM0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:10:39 -0400
+	Wed, 15 Sep 2010 17:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, heukelum@fastmail.fm, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, airlied@linux.ie, alexdeucher@gmail.com, mattst88@gmail.com
 
 
 The patch titled
-     arch/x86/kernel/entry_64.S: fix build with gas 2.16.1
+     drivers/gpu/drm/radeon/atom.c: fix warning
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+     drivers-gpu-drm-radeon-atomc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/entry_64.S: fix build with gas 2.16.1
+Subject: drivers/gpu/drm/radeon/atom.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/entry_64.S: Assembler messages:
-arch/x86/kernel/entry_64.S:1181: Error: too many positional arguments
-arch/x86/kernel/entry_64.S:1181: Error: too many positional arguments
+drivers/gpu/drm/radeon/atom.c: In function 'atom_op_delay':
+drivers/gpu/drm/radeon/atom.c:653: warning: comparison is always false due to limited range of data type
 
-NFI what's happening here.
-
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Alexander van Heukelum <heukelum@fastmail.fm>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Alex Deucher <alexdeucher@gmail.com>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/entry_64.S |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/radeon/atom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/entry_64.S~arch-x86-kernel-entry_64s-fix-build-with-gas-2161 arch/x86/kernel/entry_64.S
---- a/arch/x86/kernel/entry_64.S~arch-x86-kernel-entry_64s-fix-build-with-gas-2161
-+++ a/arch/x86/kernel/entry_64.S
-@@ -213,13 +213,13 @@ ENDPROC(native_usergs_sysret64)
- 	.macro FAKE_STACK_FRAME child_rip
- 	/* push in order ss, rsp, eflags, cs, rip */
- 	xorl %eax, %eax
--	pushq_cfi $__KERNEL_DS /* ss */
-+	pushq $__KERNEL_DS /* ss */
- 	/*CFI_REL_OFFSET	ss,0*/
- 	pushq_cfi %rax /* rsp */
- 	CFI_REL_OFFSET	rsp,0
- 	pushq_cfi $X86_EFLAGS_IF /* eflags - interrupts on */
- 	/*CFI_REL_OFFSET	rflags,0*/
--	pushq_cfi $__KERNEL_CS /* cs */
-+	pushq $__KERNEL_CS /* cs */
- 	/*CFI_REL_OFFSET	cs,0*/
- 	pushq_cfi \child_rip /* rip */
- 	CFI_REL_OFFSET	rip,0
+diff -puN drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning drivers/gpu/drm/radeon/atom.c
+--- a/drivers/gpu/drm/radeon/atom.c~drivers-gpu-drm-radeon-atomc-fix-warning
++++ a/drivers/gpu/drm/radeon/atom.c
+@@ -647,7 +647,7 @@ static void atom_op_compare(atom_exec_co
+ 
+ static void atom_op_delay(atom_exec_context *ctx, int *ptr, int arg)
+ {
+-	uint8_t count = U8((*ptr)++);
++	unsigned count = U8((*ptr)++);
+ 	SDEBUG("   count: %d\n", count);
+ 	if (arg == ATOM_UNIT_MICROSEC)
+ 		udelay(count);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,4 +120,5 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
 
