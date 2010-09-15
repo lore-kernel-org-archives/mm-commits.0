@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch added to -mm tree
-Date: Wed, 15 Sep 2010 15:24:43 -0700
-Message-ID: <201009152255.o8FMtWBi020285@imap1.linux-foundation.org>
+Subject: + usb-otg-add-common-data-structure-for-intel-mid-platform-langwell-penwell.patch added to -mm tree
+Date: Wed, 15 Sep 2010 15:55:44 -0700
+Message-ID: <201009152326.o8FNQXWo021676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54694 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754939Ab0IOWzh (ORCPT
+	by vger.kernel.org with ESMTP id S1752690Ab0IOX1K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 18:55:37 -0400
+	Wed, 15 Sep 2010 19:27:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kyungmin.park@samsung.com, marco.stornelli@gmail.com
+Cc: hao.wu@intel.com, alan@linux.intel.com, greg@kroah.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     ramoops-use-the-platform-data-structure-instead-of-module-params-fix
+     USB OTG: Add common data structure for Intel MID Platform (Langwell/Penwell)
 has been added to the -mm tree.  Its filename is
-     ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+     usb-otg-add-common-data-structure-for-intel-mid-platform-langwell-penwell.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,216 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ramoops-use-the-platform-data-structure-instead-of-module-params-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: USB OTG: Add common data structure for Intel MID Platform (Langwell/Penwell)
+From: Hao Wu <hao.wu@intel.com>
 
-drivers/char/ramoops.c:165: warning: initialization from incompatible pointer type
+This patch adds one new header file for the common data structure used in
+Intel Penwell/Langwell MID Platform OTG Transceiver drivers.  After
+switched to the common data structure, Langwell/Penwell OTG Transceiver
+driver will provide an unified interface to host/client driver.
 
-well that wasn't very well tested.
+This patch also requires Host/Client/Transceiver driver related updated.
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marco Stornelli <marco.stornelli@gmail.com>
+ new file:   include/linux/usb/intel_mid_otg.h
+
+Signed-off-by: Hao Wu <hao.wu@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ramoops.c |    3 ++-
- linux/ramoops.h        |    0 
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ include/linux/usb/intel_mid_otg.h |  180 ++++++++++++++++++++++++++++
+ 1 file changed, 180 insertions(+)
 
-diff -puN drivers/char/ramoops.c~ramoops-use-the-platform-data-structure-instead-of-module-params-fix drivers/char/ramoops.c
---- a/drivers/char/ramoops.c~ramoops-use-the-platform-data-structure-instead-of-module-params-fix
-+++ a/drivers/char/ramoops.c
-@@ -150,7 +150,7 @@ fail3:
- 	return err;
- }
- 
--static void __exit ramoops_remove(void)
-+static int __exit ramoops_remove(struct platform_device *pdev)
- {
- 	struct ramoops_context *cxt = &oops_cxt;
- 
-@@ -159,6 +159,7 @@ static void __exit ramoops_remove(void)
- 
- 	iounmap(cxt->virt_addr);
- 	release_mem_region(cxt->phys_addr, cxt->size);
-+	return 0;
- }
- 
- static struct platform_driver ramoops_driver = {
-diff -puN include/linux/ramoops.h~ramoops-use-the-platform-data-structure-instead-of-module-params-fix include/linux/ramoops.h
+diff -puN /dev/null include/linux/usb/intel_mid_otg.h
+--- /dev/null
++++ a/include/linux/usb/intel_mid_otg.h
+@@ -0,0 +1,180 @@
++/*
++ * Intel MID (Langwell/Penwell) USB OTG Transceiver driver
++ * Copyright (C) 2008 - 2010, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ */
++
++#ifndef __INTEL_MID_OTG_H
++#define __INTEL_MID_OTG_H
++
++#include <linux/pm.h>
++#include <linux/usb/otg.h>
++#include <linux/notifier.h>
++
++struct intel_mid_otg_xceiv;
++
++/* This is a common data structure for Intel MID platform to
++ * save values of the OTG state machine */
++struct otg_hsm {
++	/* Input */
++	int a_bus_resume;
++	int a_bus_suspend;
++	int a_conn;
++	int a_sess_vld;
++	int a_srp_det;
++	int a_vbus_vld;
++	int b_bus_resume;
++	int b_bus_suspend;
++	int b_conn;
++	int b_se0_srp;
++	int b_ssend_srp;
++	int b_sess_end;
++	int b_sess_vld;
++	int id;
++/* id values */
++#define ID_B		0x05
++#define ID_A		0x04
++#define ID_ACA_C	0x03
++#define ID_ACA_B	0x02
++#define ID_ACA_A	0x01
++	int power_up;
++	int adp_change;
++	int test_device;
++
++	/* Internal variables */
++	int a_set_b_hnp_en;
++	int b_srp_done;
++	int b_hnp_enable;
++	int hnp_poll_enable;
++
++	/* Timeout indicator for timers */
++	int a_wait_vrise_tmout;
++	int a_wait_bcon_tmout;
++	int a_aidl_bdis_tmout;
++	int a_bidl_adis_tmout;
++	int a_bidl_adis_tmr;
++	int a_wait_vfall_tmout;
++	int b_ase0_brst_tmout;
++	int b_bus_suspend_tmout;
++	int b_srp_init_tmout;
++	int b_srp_fail_tmout;
++	int b_srp_fail_tmr;
++	int b_adp_sense_tmout;
++
++	/* Informative variables */
++	int a_bus_drop;
++	int a_bus_req;
++	int a_clr_err;
++	int b_bus_req;
++	int a_suspend_req;
++	int b_bus_suspend_vld;
++
++	/* Output */
++	int drv_vbus;
++	int loc_conn;
++	int loc_sof;
++
++	/* Others */
++	int vbus_srp_up;
++};
++
++/* must provide ULPI access function to read/write registers implemented in
++ * ULPI address space */
++struct iotg_ulpi_access_ops {
++	int	(*read)(struct intel_mid_otg_xceiv *iotg, u8 reg, u8 *val);
++	int	(*write)(struct intel_mid_otg_xceiv *iotg, u8 reg, u8 val);
++};
++
++#define OTG_A_DEVICE	0x0
++#define OTG_B_DEVICE	0x1
++
++/*
++ * the Intel MID (Langwell/Penwell) otg transceiver driver needs to interact
++ * with device and host drivers to implement the USB OTG related feature. More
++ * function members are added based on otg_transceiver data structure for this
++ * purpose.
++ */
++struct intel_mid_otg_xceiv {
++	struct otg_transceiver	otg;
++	struct otg_hsm		hsm;
++
++	/* base address */
++	void __iomem		*base;
++
++	/* ops to access ulpi */
++	struct iotg_ulpi_access_ops	ulpi_ops;
++
++	/* atomic notifier for interrupt context */
++	struct atomic_notifier_head	iotg_notifier;
++
++	/* start/stop USB Host function */
++	int	(*start_host)(struct intel_mid_otg_xceiv *iotg);
++	int	(*stop_host)(struct intel_mid_otg_xceiv *iotg);
++
++	/* start/stop USB Peripheral function */
++	int	(*start_peripheral)(struct intel_mid_otg_xceiv *iotg);
++	int	(*stop_peripheral)(struct intel_mid_otg_xceiv *iotg);
++
++	/* start/stop ADP sense/probe function */
++	int	(*set_adp_probe)(struct intel_mid_otg_xceiv *iotg,
++					bool enabled, int dev);
++	int	(*set_adp_sense)(struct intel_mid_otg_xceiv *iotg,
++					bool enabled);
++
++#ifdef CONFIG_PM
++	/* suspend/resume USB host function */
++	int	(*suspend_host)(struct intel_mid_otg_xceiv *iotg,
++					pm_message_t message);
++	int	(*resume_host)(struct intel_mid_otg_xceiv *iotg);
++
++	int	(*suspend_peripheral)(struct intel_mid_otg_xceiv *iotg,
++					pm_message_t message);
++	int	(*resume_peripheral)(struct intel_mid_otg_xceiv *iotg);
++#endif
++
++};
++static inline
++struct intel_mid_otg_xceiv *otg_to_mid_xceiv(struct otg_transceiver *otg)
++{
++	return container_of(otg, struct intel_mid_otg_xceiv, otg);
++}
++
++#define MID_OTG_NOTIFY_CONNECT		0x0001
++#define MID_OTG_NOTIFY_DISCONN		0x0002
++#define MID_OTG_NOTIFY_HSUSPEND		0x0003
++#define MID_OTG_NOTIFY_HRESUME		0x0004
++#define MID_OTG_NOTIFY_CSUSPEND		0x0005
++#define MID_OTG_NOTIFY_CRESUME		0x0006
++#define MID_OTG_NOTIFY_HOSTADD		0x0007
++#define MID_OTG_NOTIFY_HOSTREMOVE	0x0008
++#define MID_OTG_NOTIFY_CLIENTADD	0x0009
++#define MID_OTG_NOTIFY_CLIENTREMOVE	0x000a
++
++static inline int
++intel_mid_otg_register_notifier(struct intel_mid_otg_xceiv *iotg,
++				struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&iotg->iotg_notifier, nb);
++}
++
++static inline void
++intel_mid_otg_unregister_notifier(struct intel_mid_otg_xceiv *iotg,
++				struct notifier_block *nb)
++{
++	atomic_notifier_chain_unregister(&iotg->iotg_notifier, nb);
++}
++
++#endif /* __INTEL_MID_OTG_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hao.wu@intel.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-drivers-pnp-isapnp-procc-fix-build.patch
-i-need-old-gcc.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
-mm-vmap-area-cache.patch
-acpi-apei-fix-erst-move_data-instruction-implementation.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-serial-add-sc16is7x2-driver-update-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+usb-otg-add-common-data-structure-for-intel-mid-platform-langwell-penwell.patch
 
