@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 15 Sep 2010 12:53:22 -0700
-Message-ID: <201009151953.o8FJrM6O012207@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch added to -mm tree
+Date: Wed, 15 Sep 2010 13:39:29 -0700
+Message-ID: <201009152110.o8FLAJeJ015584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753922Ab0IOTxz (ORCPT
+	by vger.kernel.org with ESMTP id S1752415Ab0IOVKj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 15:53:55 -0400
+	Wed, 15 Sep 2010 17:10:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.rosenberg@gmail.com, grundler@parisc-linux.org, jeffm@suse.com
+Cc: akpm@linux-foundation.org, heukelum@fastmail.fm, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes
+     arch/x86/kernel/entry_64.S: fix build with gas 2.16.1
 has been added to the -mm tree.  Its filename is
-     drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
+     arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes
+Subject: arch/x86/kernel/entry_64.S: fix build with gas 2.16.1
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing statements should be on next line
-#23: FILE: drivers/net/tulip/de4x5.c:5477:
-+	if (copy_to_user(ioc->data, tmp.lval, ioc->len)) return -EFAULT;
+arch/x86/kernel/entry_64.S: Assembler messages:
+arch/x86/kernel/entry_64.S:1181: Error: too many positional arguments
+arch/x86/kernel/entry_64.S:1181: Error: too many positional arguments
 
-total: 1 errors, 0 warnings, 8 lines checked
+NFI what's happening here.
 
-./patches/drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dan Rosenberg <dan.j.rosenberg@gmail.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Alexander van Heukelum <heukelum@fastmail.fm>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/de4x5.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/entry_64.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/tulip/de4x5.c~drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes drivers/net/tulip/de4x5.c
---- a/drivers/net/tulip/de4x5.c~drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes
-+++ a/drivers/net/tulip/de4x5.c
-@@ -5474,7 +5474,8 @@ de4x5_ioctl(struct net_device *dev, stru
- 	tmp.lval[6] = inl(DE4X5_STRR); j+=4;
- 	tmp.lval[7] = inl(DE4X5_SIGR); j+=4;
- 	ioc->len = j;
--	if (copy_to_user(ioc->data, tmp.lval, ioc->len)) return -EFAULT;
-+	if (copy_to_user(ioc->data, tmp.lval, ioc->len))
-+		return -EFAULT;
- 	break;
- 
- #define DE4X5_DUMP              0x0f /* Dump the DE4X5 Status */
+diff -puN arch/x86/kernel/entry_64.S~arch-x86-kernel-entry_64s-fix-build-with-gas-2161 arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~arch-x86-kernel-entry_64s-fix-build-with-gas-2161
++++ a/arch/x86/kernel/entry_64.S
+@@ -213,13 +213,13 @@ ENDPROC(native_usergs_sysret64)
+ 	.macro FAKE_STACK_FRAME child_rip
+ 	/* push in order ss, rsp, eflags, cs, rip */
+ 	xorl %eax, %eax
+-	pushq_cfi $__KERNEL_DS /* ss */
++	pushq $__KERNEL_DS /* ss */
+ 	/*CFI_REL_OFFSET	ss,0*/
+ 	pushq_cfi %rax /* rsp */
+ 	CFI_REL_OFFSET	rsp,0
+ 	pushq_cfi $X86_EFLAGS_IF /* eflags - interrupts on */
+ 	/*CFI_REL_OFFSET	rflags,0*/
+-	pushq_cfi $__KERNEL_CS /* cs */
++	pushq $__KERNEL_CS /* cs */
+ 	/*CFI_REL_OFFSET	cs,0*/
+ 	pushq_cfi \child_rip /* rip */
+ 	CFI_REL_OFFSET	rip,0
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,14 +83,15 @@ next-remove-localversion.patch
 fs-inodec-work-around-bug.patch
 i-need-old-gcc.patch
 efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
-proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean-checkpatch-fixes.patch
 mm-vmap-area-cache.patch
 acpi-apei-fix-erst-move_data-instruction-implementation.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
 gcc-46-btrfs-clean-up-unused-variables-bugs.patch
 hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
+drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
 serial-add-sc16is7x2-driver-update-fix.patch
 security-add-const-to-security_task_setscheduler.patch
 sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
@@ -129,5 +132,4 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
 
