@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pnp-isapnp-procc-fix-build.patch added to -mm tree
-Date: Wed, 15 Sep 2010 15:19:11 -0700
-Message-ID: <201009152250.o8FMo02v019962@imap1.linux-foundation.org>
+Subject: + ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch added to -mm tree
+Date: Wed, 15 Sep 2010 15:24:43 -0700
+Message-ID: <201009152255.o8FMtWBi020285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754837Ab0IOWuc (ORCPT
+	by vger.kernel.org with ESMTP id S1754939Ab0IOWzh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 18:50:32 -0400
+	Wed, 15 Sep 2010 18:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arnd@arndb.de, geert@linux-m68k.org, perex@perex.cz, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, kyungmin.park@samsung.com, marco.stornelli@gmail.com
 
 
 The patch titled
-     drivers/pnp/isapnp/proc.c: fix build
+     ramoops-use-the-platform-data-structure-instead-of-module-params-fix
 has been added to the -mm tree.  Its filename is
-     drivers-pnp-isapnp-procc-fix-build.patch
+     ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pnp/isapnp/proc.c: fix build
+Subject: ramoops-use-the-platform-data-structure-instead-of-module-params-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Everyone busy busy typing, not enough time to compile...
+drivers/char/ramoops.c:165: warning: initialization from incompatible pointer type
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+well that wasn't very well tested.
+
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/isapnp/proc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ramoops.c |    3 ++-
+ linux/ramoops.h        |    0 
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pnp/isapnp/proc.c~drivers-pnp-isapnp-procc-fix-build drivers/pnp/isapnp/proc.c
---- a/drivers/pnp/isapnp/proc.c~drivers-pnp-isapnp-procc-fix-build
-+++ a/drivers/pnp/isapnp/proc.c
-@@ -45,7 +45,7 @@ static loff_t isapnp_proc_bus_lseek(stru
- 		new = 256 + off;
- 		break;
- 	}
--	if (new < 0 || new > 256) {
-+	if (new < 0 || new > 256)
- 		new = -EINVAL;
- 	else
- 		file->f_pos = new;
+diff -puN drivers/char/ramoops.c~ramoops-use-the-platform-data-structure-instead-of-module-params-fix drivers/char/ramoops.c
+--- a/drivers/char/ramoops.c~ramoops-use-the-platform-data-structure-instead-of-module-params-fix
++++ a/drivers/char/ramoops.c
+@@ -150,7 +150,7 @@ fail3:
+ 	return err;
+ }
+ 
+-static void __exit ramoops_remove(void)
++static int __exit ramoops_remove(struct platform_device *pdev)
+ {
+ 	struct ramoops_context *cxt = &oops_cxt;
+ 
+@@ -159,6 +159,7 @@ static void __exit ramoops_remove(void)
+ 
+ 	iounmap(cxt->virt_addr);
+ 	release_mem_region(cxt->phys_addr, cxt->size);
++	return 0;
+ }
+ 
+ static struct platform_driver ramoops_driver = {
+diff -puN include/linux/ramoops.h~ramoops-use-the-platform-data-structure-instead-of-module-params-fix include/linux/ramoops.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +124,7 @@ delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target
 pps-add-async-pps-event-handler-fix.patch
 memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
 kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
 vfs-add-super-operation-writeback_inodes-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
 reiser4-export-find_get_pages.patch
