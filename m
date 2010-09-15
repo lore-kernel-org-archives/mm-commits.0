@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-fanotify-fanotify_userc-fix-warnings.patch added to -mm tree
-Date: Wed, 15 Sep 2010 13:43:10 -0700
-Message-ID: <201009152113.o8FLDx5c015734@imap1.linux-foundation.org>
+Subject: + drivers-message-fusion-mptsasc-fix-warning.patch added to -mm tree
+Date: Wed, 15 Sep 2010 13:44:57 -0700
+Message-ID: <201009152115.o8FLFkY5015856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752091Ab0IOVOK (ORCPT
+	by vger.kernel.org with ESMTP id S1753186Ab0IOVPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:14:10 -0400
+	Wed, 15 Sep 2010 17:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eparis@redhat.com
+Cc: akpm@linux-foundation.org, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     fs/notify/fanotify/fanotify_user.c: fix warnings
+     drivers/message/fusion/mptsas.c: fix warning
 has been added to the -mm tree.  Its filename is
-     fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+     drivers-message-fusion-mptsasc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/notify/fanotify/fanotify_user.c: fix warnings
+Subject: drivers/message/fusion/mptsas.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/notify/fanotify/fanotify_user.c: In function 'fanotify_release':
-fs/notify/fanotify/fanotify_user.c:375: warning: unused variable 'lre'
-fs/notify/fanotify/fanotify_user.c:375: warning: unused variable 're'
+drivers/message/fusion/mptsas.c: In function 'mptsas_event_process':
+drivers/message/fusion/mptsas.c:5010: warning: unused variable 'log_info'
 
-this is really ugly.
-
-Cc: Eric Paris <eparis@redhat.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/message/fusion/mptsas.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-warnings fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fs-notify-fanotify-fanotify_userc-fix-warnings
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -372,11 +372,10 @@ static ssize_t fanotify_write(struct fil
- static int fanotify_release(struct inode *ignored, struct file *file)
- {
- 	struct fsnotify_group *group = file->private_data;
--	struct fanotify_response_event *re, *lre;
--
--	pr_debug("%s: file=%p group=%p\n", __func__, file, group);
+diff -puN drivers/message/fusion/mptsas.c~drivers-message-fusion-mptsasc-fix-warning drivers/message/fusion/mptsas.c
+--- a/drivers/message/fusion/mptsas.c~drivers-message-fusion-mptsasc-fix-warning
++++ a/drivers/message/fusion/mptsas.c
+@@ -5007,7 +5007,6 @@ mptsas_event_process(MPT_ADAPTER *ioc, E
+ 			(ioc_stat & MPI_IOCSTATUS_FLAG_LOG_INFO_AVAILABLE)) {
+ 			VirtTarget *vtarget = NULL;
+ 			u8		id, channel;
+-			u32	 log_info = le32_to_cpu(reply->IOCLogInfo);
  
- #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
-+	struct fanotify_response_event *re, *lre;
-+
- 	mutex_lock(&group->fanotify_data.access_mutex);
- 
- 	group->fanotify_data.bypass_perm = true;
+ 			id = sas_event_data->TargetID;
+ 			channel = sas_event_data->Bus;
+@@ -5018,7 +5017,8 @@ mptsas_event_process(MPT_ADAPTER *ioc, E
+ 				    "LogInfo (0x%x) available for "
+ 				   "INTERNAL_DEVICE_RESET"
+ 				   "fw_id %d fw_channel %d\n", ioc->name,
+-				   log_info, id, channel));
++				   le32_to_cpu(reply->IOCLogInfo), id,
++				   channel));
+ 				if (vtarget->raidVolume) {
+ 					devtprintk(ioc, printk(MYIOC_s_DEBUG_FMT
+ 					"Skipping Raid Volume for inDMD\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +85,7 @@ arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
 gcc-46-btrfs-clean-up-unused-variables-bugs.patch
 drivers-gpu-drm-radeon-atomc-fix-warning.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
 hpet-factor-timer-allocate-from-open.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
@@ -127,5 +130,5 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
 
