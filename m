@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch added to -mm tree
-Date: Thu, 16 Sep 2010 15:28:32 -0700
-Message-ID: <201009162228.o8GMSW88017339@imap1.linux-foundation.org>
+Subject: + vmscan-remove-dead-code-in-shrink_inactive_list.patch added to -mm tree
+Date: Thu, 16 Sep 2010 15:28:38 -0700
+Message-ID: <201009162228.o8GMScS4017347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752950Ab0IPWii (ORCPT
+	by vger.kernel.org with ESMTP id S1752950Ab0IPWin (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 18:38:38 -0400
+	Thu, 16 Sep 2010 18:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, 
 
 
 The patch titled
-     vmscan: synchronous lumpy reclaim should not call congestion_wait()
+     vmscan: remove dead code in shrink_inactive_list()
 has been added to the -mm tree.  Its filename is
-     vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
+     vmscan-remove-dead-code-in-shrink_inactive_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: synchronous lumpy reclaim should not call congestion_wait()
+Subject: vmscan: remove dead code in shrink_inactive_list()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-congestion_wait() means "wait until queue congestion is cleared". 
-However, synchronous lumpy reclaim does not need this congestion_wait() as
-shrink_page_list(PAGEOUT_IO_SYNC) uses wait_on_page_writeback() and it
-provides the necessary waiting.
+After synchrounous lumpy reclaim, the page_list is guaranteed to not have
+active pages as page activation in shrink_page_list() disables lumpy
+reclaim.  Remove the dead code.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmscan.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait mm/vmscan.c
---- a/mm/vmscan.c~vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait
+diff -puN mm/vmscan.c~vmscan-remove-dead-code-in-shrink_inactive_list mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-remove-dead-code-in-shrink_inactive_list
 +++ a/mm/vmscan.c
-@@ -1340,8 +1340,6 @@ shrink_inactive_list(unsigned long nr_to
+@@ -1331,7 +1331,6 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_scanned;
+ 	unsigned long nr_reclaimed = 0;
+ 	unsigned long nr_taken;
+-	unsigned long nr_active;
+ 	unsigned long nr_anon;
+ 	unsigned long nr_file;
+ 
+@@ -1386,13 +1385,6 @@ shrink_inactive_list(unsigned long nr_to
  
  	/* Check if we should syncronously wait for writeback */
  	if (should_reclaim_stall(nr_taken, nr_reclaimed, priority, sc)) {
--		congestion_wait(BLK_RW_ASYNC, HZ/10);
+-		/*
+-		 * The attempt at page out may have made some
+-		 * of the pages active, mark them inactive again.
+-		 */
+-		nr_active = clear_active_flags(&page_list, NULL);
+-		count_vm_events(PGDEACTIVATE, nr_active);
 -
- 		/*
- 		 * The attempt at page out may have made some
- 		 * of the pages active, mark them inactive again.
+ 		set_lumpy_reclaim_mode(priority, sc, true);
+ 		nr_reclaimed += shrink_page_list(&page_list, sc);
+ 	}
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
