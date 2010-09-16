@@ -1,135 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2010-09-15-16-21 uploaded
-Date: Wed, 15 Sep 2010 16:21:43 -0700
-Message-ID: <201009152352.o8FNqXGr022752@imap1.linux-foundation.org>
+Subject: + oom-filter-unkillable-tasks-from-tasklist-dump.patch added to -mm tree
+Date: Wed, 15 Sep 2010 19:16:36 -0700
+Message-ID: <201009160210.o8G2A5Oi028141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752604Ab0IOXwf (ORCPT
+	by vger.kernel.org with ESMTP id S1751800Ab0IPCKP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Sep 2010 19:52:35 -0400
+	Wed, 15 Sep 2010 22:10:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
-The mm-of-the-moment snapshot 2010-09-15-16-21 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     oom: filter unkillable tasks from tasklist dump
+has been added to the -mm tree.  Its filename is
+     oom-filter-unkillable-tasks-from-tasklist-dump.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://zen-kernel.org/kernel/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.36-rc4:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
-origin.patch
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: oom: filter unkillable tasks from tasklist dump
+From: David Rientjes <rientjes@google.com>
+
+/proc/sys/vm/oom_dump_tasks is enabled by default, so it's necessary to
+limit as much information as possible that it should emit.
+
+The tasklist dump should be filtered to only those tasks that are eligible
+for oom kill.  This is already done for memcg ooms, but this patch extends
+it to both cpuset and mempolicy ooms as well as init.
+
+In addition to suppressing irrelevant information, this also reduces
+confusion since users currently don't know which tasks in the tasklist
+aren't eligible for kill (such as those attached to cpusets or bound to
+mempolicies with a disjoint set of mems or nodes, respectively) since that
+information is not shown.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/oom_kill.c |   40 +++++++++++++++++++---------------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
+
+diff -puN mm/oom_kill.c~oom-filter-unkillable-tasks-from-tasklist-dump mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-filter-unkillable-tasks-from-tasklist-dump
++++ a/mm/oom_kill.c
+@@ -121,8 +121,8 @@ struct task_struct *find_lock_task_mm(st
+ }
+ 
+ /* return true if the task is not adequate as candidate victim task. */
+-static bool oom_unkillable_task(struct task_struct *p, struct mem_cgroup *mem,
+-			   const nodemask_t *nodemask)
++static bool oom_unkillable_task(struct task_struct *p,
++		const struct mem_cgroup *mem, const nodemask_t *nodemask)
+ {
+ 	if (is_global_init(p))
+ 		return true;
+@@ -344,26 +344,24 @@ static struct task_struct *select_bad_pr
+ /**
+  * dump_tasks - dump current memory state of all system tasks
+  * @mem: current's memory controller, if constrained
++ * @nodemask: nodemask passed to page allocator for mempolicy ooms
+  *
+- * Dumps the current memory state of all system tasks, excluding kernel threads.
++ * Dumps the current memory state of all eligible tasks.  Tasks not in the same
++ * memcg, not in the same cpuset, or bound to a disjoint set of mempolicy nodes
++ * are not shown.
+  * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
+  * value, oom_score_adj value, and name.
+  *
+- * If the actual is non-NULL, only tasks that are a member of the mem_cgroup are
+- * shown.
+- *
+  * Call with tasklist_lock read-locked.
+  */
+-static void dump_tasks(const struct mem_cgroup *mem)
++static void dump_tasks(const struct mem_cgroup *mem, const nodemask_t *nodemask)
+ {
+ 	struct task_struct *p;
+ 	struct task_struct *task;
+ 
+ 	pr_info("[ pid ]   uid  tgid total_vm      rss cpu oom_adj oom_score_adj name\n");
+ 	for_each_process(p) {
+-		if (p->flags & PF_KTHREAD)
+-			continue;
+-		if (mem && !task_in_mem_cgroup(p, mem))
++		if (oom_unkillable_task(p, mem, nodemask))
+ 			continue;
+ 
+ 		task = find_lock_task_mm(p);
+@@ -386,7 +384,7 @@ static void dump_tasks(const struct mem_
+ }
+ 
+ static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
+-							struct mem_cgroup *mem)
++			struct mem_cgroup *mem, const nodemask_t *nodemask)
+ {
+ 	task_lock(current);
+ 	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
+@@ -399,7 +397,7 @@ static void dump_header(struct task_stru
+ 	mem_cgroup_print_oom_info(mem, p);
+ 	show_mem();
+ 	if (sysctl_oom_dump_tasks)
+-		dump_tasks(mem);
++		dump_tasks(mem, nodemask);
+ }
+ 
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+@@ -441,7 +439,7 @@ static int oom_kill_process(struct task_
+ 	unsigned int victim_points = 0;
+ 
+ 	if (printk_ratelimit())
+-		dump_header(p, gfp_mask, order, mem);
++		dump_header(p, gfp_mask, order, mem, nodemask);
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -487,7 +485,7 @@ static int oom_kill_process(struct task_
+  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+  */
+ static void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
+-				int order)
++				int order, const nodemask_t *nodemask)
+ {
+ 	if (likely(!sysctl_panic_on_oom))
+ 		return;
+@@ -501,7 +499,7 @@ static void check_panic_on_oom(enum oom_
+ 			return;
+ 	}
+ 	read_lock(&tasklist_lock);
+-	dump_header(NULL, gfp_mask, order, NULL);
++	dump_header(NULL, gfp_mask, order, NULL, nodemask);
+ 	read_unlock(&tasklist_lock);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+@@ -514,7 +512,7 @@ void mem_cgroup_out_of_memory(struct mem
+ 	unsigned int points = 0;
+ 	struct task_struct *p;
+ 
+-	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0);
++	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
+ 	limit = mem_cgroup_get_limit(mem) >> PAGE_SHIFT;
+ 	read_lock(&tasklist_lock);
+ retry:
+@@ -646,6 +644,7 @@ static void clear_system_oom(void)
+ void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
+ 		int order, nodemask_t *nodemask)
+ {
++	const nodemask_t *mpol_mask;
+ 	struct task_struct *p;
+ 	unsigned long totalpages;
+ 	unsigned long freed = 0;
+@@ -675,7 +674,8 @@ void out_of_memory(struct zonelist *zone
+ 	 */
+ 	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
+ 						&totalpages);
+-	check_panic_on_oom(constraint, gfp_mask, order);
++	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
++	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask);
+ 
+ 	read_lock(&tasklist_lock);
+ 	if (sysctl_oom_kill_allocating_task &&
+@@ -693,15 +693,13 @@ void out_of_memory(struct zonelist *zone
+ 	}
+ 
+ retry:
+-	p = select_bad_process(&points, totalpages, NULL,
+-			constraint == CONSTRAINT_MEMORY_POLICY ? nodemask :
+-								 NULL);
++	p = select_bad_process(&points, totalpages, NULL, mpol_mask);
+ 	if (PTR_ERR(p) == -1UL)
+ 		goto out;
+ 
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+-		dump_header(NULL, gfp_mask, order, NULL);
++		dump_header(NULL, gfp_mask, order, NULL, mpol_mask);
+ 		read_unlock(&tasklist_lock);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
 oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
-ipmi-fix-acpi-probe-print.patch
-proc-vmcore-fix-seeking.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-drivers-pnp-isapnp-procc-fix-build.patch
-usb-otg-add-common-data-structure-for-intel-mid-platform-langwell-penwell.patch
-i-need-old-gcc.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch
-aio-do-not-return-erestartsys-as-a-result-of-aio-v2.patch
-efifb-check-that-the-base-address-is-plausible-on-pci-systems.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
-fbcon-fix-lockdep-warning-from-fbcon_deinit.patch
-proc-pid-smaps-after-swapout-swapin-private-dirty-mappings-are-reported-clean.patch
-uml-fix-compile-warning.patch
-kfifo-fix-scatterlist-usage.patch
-mm-vmap-area-cache.patch
-rmap-fix-walk-during-fork.patch
-unlink_anon_vmas-in-__split_vma-in-case-of-error.patch
-arch-arm-plat-omap-iovmmc-fix-end-address-of-vm-area-comparation-in-alloc_iovm_area.patch
-audit-call-tty_audit_push_task-outside-preempt-disabled.patch
-audit-do-not-send-uninitialized-data-for-audit_tty_get.patch
-audit-use-rcu-for-task-lookup-protection.patch
-backlight-fix-88pm860x_bl-macro-collision.patch
-cfq-iosched-fix-a-kernel-oops-when-usb-key-is-inserted.patch
-time-compensate-for-rounding-on-odd-frequency-clocksources.patch
-drivers-acpi-fanc-fix-more-unbalanced-code-block.patch
-acpi-apei-fix-erst-move_data-instruction-implementation.patch
-x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
-x86-fix-cc1-options-to-disable-fpie-when-compiling-with-config_cc_stackprotector=y.patch
-x86-use-clear_page-copy_page-and-__gfp_zero-in-favor-of-memset-memcpy-on-whole-pages.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-msi-laptop-change-driver-maintainer-to-lee-chun-yi.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-gcc-46-btrfs-clean-up-unused-variables-nonbugs.patch
-btrfs-only-bug_on-when-the-errno-is-not-enoent.patch
-arch-x86-kernel-cpu-cpufreq-fix-unsigned-return-type.patch
-fsldma-move-dma_slave-support-functions-to-the-driver.patch
-powerpc-enable-arch_dma_addr_t_64bit-with-arch_phys_addr_t_64bit.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-ir-ene_irc-fix-null-dereference.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-hpet-unmap-unused-i-o-space.patch
-hpet-fix-unwanted-interrupt-due-to-stale-irq-status-bit.patch
-hpet-fix-style-problems.patch
-documentation-timers-hpet_examplec-add-supporting-info-for-hpet_example.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-i2c-busses-i2c-pasemic-fix-unsigned-return-type.patch
-softirq-improve-preempt-count-error-message.patch
-maintainers-add-irq-subsystem.patch
-tile-enable-arch_dma_addr_t_64bit.patch
-timer_list-remove-alignment-padding-on-64-bit-when-config_timer_stats.patch
-timer-initialize-the-field-slack-of-timer_list.patch
-kernel-time-use-array_size-macro-in-timecomparec.patch
-ia64-enable-arch_dma_addr_t_64bit.patch
-readme-cite-nconfig.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
-mtdpart-memory-accessor-interface-for-mtd-layer.patch
-sctp-prevent-reading-out-of-bounds-memory.patch
-sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-drivers-video-backlight-s6e63m0c-set-permissions-on-gamma_table-file-to-0444.patch
-backlight-fix-blanking-for-lms283gf05-lcd.patch
-backlight-fix-blanking-for-l4f00242t03-lcd.patch
-backlight-s6e63m0-unregister-backlight-device-and-remove-sysfs-attribute-file-in-s6e63m0_remove.patch
-backlight-s6e63m0-fix-section-mismatch.patch
-drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch
-btusb-patch-add_apple_macbookpro62.patch
-serial-add-sc16is7x2-driver.patch
-serial-add-sc16is7x2-driver-update.patch
-serial-add-sc16is7x2-driver-update-fix.patch
-sc16is7x2-use-threaded-irqs.patch
-md-check-return-code-of-read_sb_page.patch
-gcc-46-perf-fix-set-but-unused-variables-in-perf.patch
-s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-percpu-fix-list_head-init-bug-in-__percpu_counter_init.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-block-block_dump-add-number-of-sectors-to-debug-output.patch
-usb-isp1362-hcd-removes-config_usb_otg-dependent-code-fix-build-breakage.patch
-drivers-usb-serial-io_tic-dont-return-0-if-writing-the-download-record-failed.patch
-scsi-sr-add-no_read_disc_info-scsi_device-flag.patch
-usb-storage-add-new-no_read_disc_info-quirk.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-scsi-sd-add-a-no_read_capacity_16-scsi_device-flag.patch
-usb-storage-add-new-no_read_capacity_16-quirk.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos-fix.patch
-mm.patch
-define-madv_hugepage.patch
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-vmcore-it-is-not-experimental-any-more.patch
-documentation-filesystems-proctxt-improve-smaps-field-documentation.patch
-mm-smaps-export-mlock-information.patch
+oom-filter-unkillable-tasks-from-tasklist-dump.patch
 oom-add-per-mm-oom-disable-count.patch
 oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
@@ -137,186 +210,6 @@ oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
 oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
 oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-writeback-remove-nonblocking-encountered_congestion-references.patch
-include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-mm-compaction-fix-compactpagefailed-counting.patch
-memory-hotplug-fix-notifiers-return-value-check.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
 mm-mempolicy-check-return-code-of-check_range.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-update.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-add-sys-devices-system-node-node-vmstat-update.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
-mm-fix-typo-in-mmh-when-node_not_in_page_flags.patch
-vmscan-delete-dead-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-enable-arch_dma_addr_t_64bit.patch
-alpha-remove-cast-from-void.patch
-uml-define-config_no_dma.patch
-kernelh-add-minmax3-macros.patch
-kernelh-add-minmax3-macros-fix.patch
-replace-nested-max-min-macros-with-maxmin3-macro.patch
-m68knommu-blackfin-remove-old-assembler-only-flags-bit-definitions.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-modules-no-need-to-align-modinfo-strings.patch
-use-clear_page-copy_page-in-favor-of-memset-memcpy-on-whole-pages.patch
-fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch
-init-mark-__user-address-space-on-string-literals.patch
-stop_machine-convert-cpu-notifier-to-return-encapsulate-errno-value.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-lib-bitmapc-use-hex_to_bin.patch
-lib-div64c-document-that-div64_u64-is-not-precise-on-32bit-platforms.patch
-mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors.patch
-mmc-add-config-and-runtime-option-for-number-of-mmcblk-minors-update.patch
-mmc-make-dev_to_mmc_card-macro-public.patch
-mmc-rename-dev_to_mmc_card-to-mmc_dev_to_card.patch
-sdhci-support-mmc_cap_mmc_highspeed.patch
-mmc-mmc-44-ddr-support.patch
-drivers-mmc-host-omapc-use-resource_size.patch
-drivers-mmc-host-omap_hsmmcc-use-resource_size.patch
-mmc-make-id-freq-configurable.patch
-mmc-make-id-freq-configurable-v5.patch
-mmc_test-use-api-to-check-card-type.patch
-mmc_test-change-simple_strtol-to-strict_strtol.patch
-mmc_test-collect-data-and-show-it-via-sysfs-by-demand.patch
-mmc_test-move-files-from-sysfs-to-debugfs.patch
-mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
-mmc-move-regulator-handling-closer-to-core-v3.patch
-mmc-move-regulator-handling-closer-to-core-v4.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-sdhci-turn-timeout-timer-into-delayed-work.patch
-sdhci-use-work-structs-instead-of-tasklets.patch
-sdhci-use-work-structs-instead-of-tasklets-fix.patch
-sdhci-clear-interrupt-status-register-just-once.patch
-sdhci-use-threaded-irq-handler.patch
-sdhci-turn-host-lock-into-a-mutex.patch
-sdhci-get-rid-of-card-detect-work.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense.patch
-sdhci-use-jiffies-instead-of-a-timeout-counter.patch
-checkpatch-fix-regressions-in-fix-handling-of-leading-spaces.patch
-checkpatch-types-may-sit-on-a-line-on-their-own.patch
-checkpatch-suggest-cleanpatch-and-cleanfile-when-appropriate.patch
-checkpatch-ensure-we-do-not-collapse-bracketed-sections-into-constants.patch
-checkpatch-handle-casts-better-fixing-false-categorisation-of-as-binary.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-checkpatch-add-check-for-space-after-struct-union-and-enum.patch
-checkpatch-simplify-and-consolidate-missing-space-after-checks.patch
-checkpatch-ensure-kconfig-help-checks-only-apply-when-we-are-adding-help.patch
-checkpatch-check-for-incorrect-permissions.patch
-checkpatch-add-additional-attribute-defines.patch
-checkpatch-update-copyright-dates.patch
-checkpatch-clean-up-structure-definition-macro-handline.patch
-checkpatch-handle-export_symbol-for-device_attr-and-similar.patch
-checkpatch-statement-block-context-analyser-should-look-at-sanitised-lines.patch
-checkpatch-version-031.patch
-scripts-checkpatchpl-add-warnings-for-static-char-that-could-be-static-const-char.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-epoll-make-epoll_wait-use-the-hrtimer-range-feature.patch
-drivers-char-vt_ioctlc-fix-vt_openqry-error-value.patch
-autofs4-fix-compilation-warning.patch
-rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4.patch
-rtc-bfin-shrink-optimize-interrupt-handler-a-bit.patch
-rtc-bfin-add-debug-markers-to-suspend-resume-paths.patch
-drivers-video-atafbc-remove-undead-ifdef-atafb_falcon.patch
-drivers-video-matrox-matroxfb_dac1064c-remove-undead-ifdef-config_fb_matrox_g.patch
-savagefb-fix-ddc-for-savage-4.patch
-drivers-video-matrox-matroxfb_mavenc-fix-unsigned-return-type.patch
-cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
 jbd-remove-dependency-on-__gfp_nofail.patch
-isofs-work-around-for-rock-ridgejoliet-cds-with-empty-iso-root-directory.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-cgroup_freezer-unnecessary-test-in-cgroup_freezing_or_frozen.patch
-cgroup_freezer-fix-can_attach-to-prohibit-moving-from-to-freezing-frozen-cgroups.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-fix-race-in-file_mapped-accouting-flag-management.patch
-memcg-avoid-lock-in-updating-file_mapped-was-fix-race-in-file_mapped-accouting-flag-management.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
-procfs-fix-proc-softirqs-formatting.patch
-ipc-shmc-add-rss-and-swap-size-information-to-proc-sysvipc-shm.patch
-ipc-shmc-add-rss-and-swap-size-information-to-proc-sysvipc-shm-v2.patch
-ipmi-fix-__init-and-__exit-attribute-locations.patch
-rocket-release_region-or-error-path.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-hvc_console-fix-dropping-of-characters-when-output-byte-channel-is-full.patch
-rapidio-fix-rapidio-sysfs-hierarchy.patch
-rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler.patch
-rapidio-use-stored-ingress-port-number-instead-of-register-read.patch
-rapidio-add-relation-links-between-rio-device-structures.patch
-rapidio-add-default-handler-for-error-stopped-state.patch
-rapidio-modify-sysfs-initialization-for-switches.patch
-rapidio-add-handling-of-orphan-port-write-message.patch
-rapidio-add-device-access-check-into-the-enumeration.patch
-rapidio-add-support-for-idt-cps-gen2-switches.patch
-rapidio-add-handling-of-redundant-routes.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-delayacct-align-to-8-byte-boundary-on-64-bit-systems.patch
-pps-trivial-fixes.patch
-pps-declare-variables-where-they-are-used-in-switch.patch
-pps-fix-race-in-pps_fetch-handler.patch
-pps-unify-timestamp-gathering.patch
-pps-access-pps-device-by-direct-pointer.patch
-pps-convert-printk-pr_-to-dev_.patch
-pps-move-idr-stuff-to-ppsc.patch
-pps-add-async-pps-event-handler.patch
-pps-add-async-pps-event-handler-fix.patch
-pps-dont-disable-interrupts-when-using-spin-locks.patch
-pps-use-bug_on-for-kernel-api-safety-checks.patch
-pps-simplify-conditions-a-bit.patch
-ntp-add-hardpps-implementation.patch
-pps-capture-monotonic_raw-timestamps-as-well.patch
-pps-add-kernel-consumer-support.patch
-pps-add-parallel-port-pps-client.patch
-pps-add-parallel-port-pps-signal-generator.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
-w1-dont-allow-arbitrary-users-to-remove-w1-devices.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-vfs-add-super-operation-writeback_inodes.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-vfs-take-2add-set_page_dirty_notag.patch
-vfs-change-writeback_inodes-signature.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-rename-quota-methods.patch
-reiser4-remove-inode_setattr.patch
-reiser4-change-fsync-signature.patch
-reiser4-writeback_inodes-implementation.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-writeback_inodes-implementation-adjust-to-writeback-changes.patch
-reiser4-fixup-checkin-checkout-jnodes-for-entd.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
-getblk-handle-2tb-devices.patch
+
