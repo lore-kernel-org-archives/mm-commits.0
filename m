@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch added to -mm tree
-Date: Thu, 16 Sep 2010 15:50:29 -0700
-Message-ID: <201009162250.o8GMoTb4018492@imap1.linux-foundation.org>
+Subject: + jffs2-use-cond_resched-instead-of-yield.patch added to -mm tree
+Date: Thu, 16 Sep 2010 15:53:58 -0700
+Message-ID: <201009162253.o8GMrwlm018646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755640Ab0IPWuq (ORCPT
+	by vger.kernel.org with ESMTP id S1753146Ab0IPWy2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 18:50:46 -0400
+	Thu, 16 Sep 2010 18:54:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, yinghan@google.com
+Cc: w.sang@pengutronix.de, Artem.Bityutskiy@nokia.com, dedekind@infradead.org, dwmw2@infradead.org, mingo@elte.hu
 
 
 The patch titled
-     oom: use old_mm for oom_disable_count in exec
+     jffs2: use cond_resched() instead of yield()
 has been added to the -mm tree.  Its filename is
-     oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
+     jffs2-use-cond_resched-instead-of-yield.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: use old_mm for oom_disable_count in exec
-From: David Rientjes <rientjes@google.com>
+Subject: jffs2: use cond_resched() instead of yield()
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-active_mm in the exec() path can be for an unrelated thread, so the
-oom_disable_count logic should use old_mm instead.
+yield() has different semantics meanwhile and even causes RT-kernels to
+BUG.  Replace the only appearance left in jffs2.
 
-Reported-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/jffs2/erase.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec fs/exec.c
---- a/fs/exec.c~oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec
-+++ a/fs/exec.c
-@@ -760,8 +760,8 @@ static int exec_mmap(struct mm_struct *m
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
- 	activate_mm(active_mm, mm);
--	if (tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
--		atomic_dec(&active_mm->oom_disable_count);
-+	if (old_mm && tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-+		atomic_dec(&old_mm->oom_disable_count);
- 		atomic_inc(&tsk->mm->oom_disable_count);
+diff -puN fs/jffs2/erase.c~jffs2-use-cond_resched-instead-of-yield fs/jffs2/erase.c
+--- a/fs/jffs2/erase.c~jffs2-use-cond_resched-instead-of-yield
++++ a/fs/jffs2/erase.c
+@@ -151,7 +151,7 @@ int jffs2_erase_pending_blocks(struct jf
+ 		}
+ 
+ 		/* Be nice */
+-		yield();
++		cond_resched();
+ 		mutex_lock(&c->erase_free_sem);
+ 		spin_lock(&c->erase_completion_lock);
  	}
- 	task_unlock(tsk);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
-oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
+origin.patch
 linux-next.patch
-oom-filter-unkillable-tasks-from-tasklist-dump.patch
-oom-add-per-mm-oom-disable-count.patch
-oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch
-oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
-oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-mempolicy-check-return-code-of-check_range.patch
-jbd-remove-dependency-on-__gfp_nofail.patch
+jffs2-use-cond_resched-instead-of-yield.patch
+sdhci-turn-timeout-timer-into-delayed-work.patch
+sdhci-use-work-structs-instead-of-tasklets.patch
+sdhci-use-work-structs-instead-of-tasklets-fix.patch
+sdhci-clear-interrupt-status-register-just-once.patch
+sdhci-use-threaded-irq-handler.patch
+sdhci-turn-host-lock-into-a-mutex.patch
+sdhci-get-rid-of-card-detect-work.patch
+sdhci-get-rid-of-card-detect-work-fix.patch
+sdhci-get-rid-of-mdelays-where-it-is-safe-and-makes-sense.patch
+sdhci-use-jiffies-instead-of-a-timeout-counter.patch
+rtc-rtc-lpc32xx-introduce-rtc-driver-for-the-lpc32xx-soc-v4.patch
 
