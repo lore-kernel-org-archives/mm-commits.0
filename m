@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-use-correct-indentation.patch added to -mm tree
-Date: Thu, 16 Sep 2010 12:53:19 -0700
-Message-ID: <201009161953.o8GJrJmF010332@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch added to -mm tree
+Date: Thu, 16 Sep 2010 12:53:25 -0700
+Message-ID: <201009161953.o8GJrPpk010341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752309Ab0IPTxV (ORCPT
+	by vger.kernel.org with ESMTP id S1753672Ab0IPTx1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 15:53:21 -0400
+	Thu, 16 Sep 2010 15:53:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: joe@perches.com, Valdis.Kletnieks@vt.edu
 
 
 The patch titled
-     scripts/get_maintainer.pl: use correct indentation
+     scripts/get_maintainer.pl: use .get_maintainer.conf from . then $HOME then scripts
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-use-correct-indentation.patch
+     scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: use correct indentation
+Subject: scripts/get_maintainer.pl: use .get_maintainer.conf from . then $HOME then scripts
 From: Joe Perches <joe@perches.com>
 
-Fix an overly indented block.
+On Mon, 2010-09-13 at 00:01 -0400, Valdis.Kletnieks@vt.edu wrote:
+> Any chance of getting that to be ~/.get_maintainer.conf rather than
+> ./.get_maintainer.conf? I've just gotten bit like the 3rd or 4th time by
+> "oh but you didn't create that file in *this* tree"
+> (I usually have a linus git tree, a linux-next tree, and 3-4 -mm trees)
+
+Sure.
+
+Add a search path for the .conf file.
+
+3 paths are added:
+
+.             customized per-tree configurations
+$HOME         user global configuration when per-tree configs don't exist
+./scripts     lk defaults to override script
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ scripts/get_maintainer.pl |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-use-correct-indentation scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-use-correct-indentation
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts
 +++ a/scripts/get_maintainer.pl
-@@ -420,23 +420,23 @@ foreach my $file (@files) {
+@@ -110,10 +110,12 @@ my %VCS_cmds_hg = (
+     "blame_commit_pattern" => "^([0-9a-f]+):"
+ );
  
-     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
- 	add_categories($line);
--	    if ($sections) {
--		my $i;
--		my $start = find_starting_index($line);
--		my $end = find_ending_index($line);
--		for ($i = $start; $i < $end; $i++) {
--		    my $line = $typevalue[$i];
--		    if ($line =~ /^[FX]:/) {		##Restore file patterns
--			$line =~ s/([^\\])\.([^\*])/$1\?$2/g;
--			$line =~ s/([^\\])\.$/$1\?/g;	##Convert . back to ?
--			$line =~ s/\\\./\./g;       	##Convert \. to .
--			$line =~ s/\.\*/\*/g;       	##Convert .* to *
--		    }
--		    $line =~ s/^([A-Z]):/$1:\t/g;
--		    print("$line\n");
-+	if ($sections) {
-+	    my $i;
-+	    my $start = find_starting_index($line);
-+	    my $end = find_ending_index($line);
-+	    for ($i = $start; $i < $end; $i++) {
-+		my $line = $typevalue[$i];
-+		if ($line =~ /^[FX]:/) {		##Restore file patterns
-+		    $line =~ s/([^\\])\.([^\*])/$1\?$2/g;
-+		    $line =~ s/([^\\])\.$/$1\?/g;	##Convert . back to ?
-+		    $line =~ s/\\\./\./g;       	##Convert \. to .
-+		    $line =~ s/\.\*/\*/g;       	##Convert .* to *
- 		}
--		print("\n");
-+		$line =~ s/^([A-Z]):/$1:\t/g;
-+		print("$line\n");
- 	    }
-+	    print("\n");
+-if (-f "${lk_path}.get_maintainer.conf") {
++my $conf = which_conf(".get_maintainer.conf");
++if (-f $conf) {
+     my @conf_args;
+-    open(my $conffile, '<', "${lk_path}.get_maintainer.conf")
+-	or warn "$P: Can't open .get_maintainer.conf: $!\n";
++    open(my $conffile, '<', "$conf")
++	or warn "$P: Can't find a readable .get_maintainer.conf file $!\n";
++
+     while (<$conffile>) {
+ 	my $line = $_;
+ 
+@@ -961,6 +963,18 @@ sub which {
+     return "";
+ }
+ 
++sub which_conf {
++    my ($conf) = @_;
++
++    foreach my $path (split(/:/, ".:$ENV{HOME}:.scripts")) {
++	if (-e "$path/$conf") {
++	    return "$path/$conf";
 +	}
-     }
- 
-     if ($email && $email_git) {
++    }
++
++    return "";
++}
++
+ sub mailmap {
+     my (@lines) = @_;
+     my %hash;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
