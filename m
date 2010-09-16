@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch added to -mm tree
-Date: Thu, 16 Sep 2010 12:53:23 -0700
-Message-ID: <201009161953.o8GJrOOl010338@imap1.linux-foundation.org>
+Subject: + drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch added to -mm tree
+Date: Thu, 16 Sep 2010 12:55:46 -0700
+Message-ID: <201009161955.o8GJtk8R010413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753672Ab0IPTxl (ORCPT
+	by vger.kernel.org with ESMTP id S1753851Ab0IPTzw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 15:53:41 -0400
+	Thu, 16 Sep 2010 15:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, i2g2r2@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: add default --git-fallback, remove default --git
+     drivers/media/video/cx23885/cx23885-core.c: fix cx23885_dev_checkrevision()
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch
+     drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,135 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add default --git-fallback, remove default --git
-From: Joe Perches <joe@perches.com>
+Subject: drivers/media/video/cx23885/cx23885-core.c: fix cx23885_dev_checkrevision()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Adding commit signers when there is a listed MAINTAINER for a file
-can make the output list longer than necessary.
+It was missing the `break'.
 
-Change the --git default from on to off.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=18672
 
-Add a new --git-fallback option (default on) used to add commit signers
-only when there is no MAINTAINER for a file.
-
-git history is used when --git-fallback is enabled and the pattern
-directory depth is not the same as the file directory depth.
-
-For instance:
-
-X86 ARCHITECTURE (32-BIT AND 64-BIT)
-M:	Thomas Gleixner <tglx@linutronix.de>
-M:	Ingo Molnar <mingo@redhat.com>
-M:	"H. Peter Anvin" <hpa@zytor.com>
-M:	x86@kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/x86/linux-2.6-x86.git
-S:	Maintained
-F:	Documentation/x86/
-F:	arch/x86/
-
-If using "./scripts/get_maintainer -f arch/x86/lib/atomic64_32.c", the pattern
-for "arch/x86/" does not match the directory depth of "arch/x86/lib"
-so the MAINTAINERS entries and git history is used to produce:
-
-$ ./scripts/get_maintainer.pl -f --rolestats arch/x86/lib/atomic64_32.c
-Thomas Gleixner <tglx@linutronix.de> (maintainer:X86 ARCHITECTURE...)
-Ingo Molnar <mingo@redhat.com> (maintainer:X86 ARCHITECTURE...)
-"H. Peter Anvin" <hpa@zytor.com> (maintainer:X86 ARCHITECTURE...,commit_signer:1/1=100%)
-x86@kernel.org (maintainer:X86 ARCHITECTURE...)
-Luca Barbieri <luca@luca-barbieri.com> (commit_signer:1/1=100%)
-linux-kernel@vger.kernel.org (open list)
-
-Luca Barbieri is added because he signed the only commit to
-arch/x86/lib/atomic64_32.c during the last year and he meets the
-other default qualifications.
-	--git-min-percent (default:10)
-	--git-min-signatures (default:1)
-
-If current users of ./scripts/get_maintainers.pl have scripts
-that use --nogit that expect git history to be excluded, those
-scripts should be updated to include --nogit-fallback or a
-.get_maintainer.conf file should be created with --nogit-fallback.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Igor <i2g2r2@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/media/video/cx23885/cx23885-core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-default-git-fallback-remove-default-git scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-default-git-fallback-remove-default-git
-+++ a/scripts/get_maintainer.pl
-@@ -24,9 +24,10 @@ my $email_maintainer = 1;
- my $email_list = 1;
- my $email_subscriber_list = 0;
- my $email_git_penguin_chiefs = 0;
--my $email_git = 1;
-+my $email_git = 0;
- my $email_git_all_signature_types = 0;
- my $email_git_blame = 0;
-+my $email_git_fallback = 1;
- my $email_git_min_signatures = 1;
- my $email_git_max_maintainers = 5;
- my $email_git_min_percent = 5;
-@@ -138,6 +139,7 @@ if (!GetOptions(
- 		'git!' => \$email_git,
- 		'git-all-signature-types!' => \$email_git_all_signature_types,
- 		'git-blame!' => \$email_git_blame,
-+		'git-fallback!' => \$email_git_fallback,
- 		'git-chief-penguins!' => \$email_git_penguin_chiefs,
- 		'git-min-signatures=i' => \$email_git_min_signatures,
- 		'git-max-maintainers=i' => \$email_git_max_maintainers,
-@@ -371,6 +373,7 @@ my @status = ();
- foreach my $file (@files) {
- 
-     my %hash;
-+    my $exact_pattern_match = 0;
-     my $tvi = find_first_section();
-     while ($tvi < @typevalue) {
- 	my $start = find_starting_index($tvi);
-@@ -405,6 +408,8 @@ foreach my $file (@files) {
- 			    my $value_pd = ($value =~ tr@/@@);
- 			    my $file_pd = ($file  =~ tr@/@@);
- 			    $value_pd++ if (substr($value,-1,1) ne "/");
-+			    $value_pd = -1 if ($value =~ /^\.\*/);
-+			    $exact_pattern_match = 1 if ($value_pd >= $file_pd);
- 			    if ($pattern_depth == 0 ||
- 				(($file_pd - $value_pd) < $pattern_depth)) {
- 				$hash{$tvi} = $value_pd;
-@@ -439,7 +444,8 @@ foreach my $file (@files) {
- 	}
-     }
- 
--    if ($email && $email_git) {
-+    if ($email &&
-+	($email_git || ($email_git_fallback && !$exact_pattern_match))) {
- 	vcs_file_signoffs($file);
-     }
- 
-@@ -540,6 +546,7 @@ MAINTAINER field selection options:
-     --git => include recent git \*-by: signers
-     --git-all-signature-types => include signers regardless of signature type
-         or use only ${signaturePattern} signers (default: $email_git_all_signature_types)
-+    --git-fallback => use git when no exact MAINTAINERS pattern (default: $email_git_fallback)
-     --git-chief-penguins => include ${penguin_chiefs}
-     --git-min-signatures => number of signatures required (default: $email_git_min_signatures)
-     --git-max-maintainers => maximum maintainers to add (default: $email_git_max_maintainers)
+diff -puN drivers/media/video/cx23885/cx23885-core.c~drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision drivers/media/video/cx23885/cx23885-core.c
+--- a/drivers/media/video/cx23885/cx23885-core.c~drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision
++++ a/drivers/media/video/cx23885/cx23885-core.c
+@@ -815,6 +815,7 @@ static void cx23885_dev_checkrevision(st
+ 	case 0x0e:
+ 		/* CX23887-15Z */
+ 		dev->hwrevision = 0xc0;
++		break;
+ 	case 0x0f:
+ 		/* CX23887-14Z */
+ 		dev->hwrevision = 0xb1;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-maintainers-add-irq-subsystem.patch
-kernelh-add-minmax3-macros.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
+mm-vmap-area-cache.patch
+acpi-apei-fix-erst-move_data-instruction-implementation.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
+drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
+serial-add-sc16is7x2-driver-update-fix.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 kernelh-add-minmax3-macros-fix.patch
-replace-nested-max-min-macros-with-maxmin3-macro.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
 scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-scripts-get_maintainerpl-use-correct-indentation.patch
-scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch
-scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch
-scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
-checkpatch-add-check-for-space-after-struct-union-and-enum.patch
-checkpatch-add-additional-attribute-defines.patch
-scripts-checkpatchpl-add-warnings-for-static-char-that-could-be-static-const-char.patch
+mmc_test-move-files-from-sysfs-to-debugfs-checkpatch-fixes.patch
+mmc-move-regulator-handling-closer-to-core-v3-fix.patch
+sdhci-get-rid-of-card-detect-work-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-cleanups.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+vfs-add-super-operation-writeback_inodes-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-writeback_inodes-implementation-fix.patch
+reiser4-fixups.patch
+reiser4-broke.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
