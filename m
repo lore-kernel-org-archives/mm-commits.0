@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-smaps-fix-dirty-pages-accounting.patch added to -mm tree
-Date: Thu, 16 Sep 2010 12:41:04 -0700
-Message-ID: <201009161941.o8GJf4ou009732@imap1.linux-foundation.org>
+Subject: + arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices.patch added to -mm tree
+Date: Thu, 16 Sep 2010 12:41:55 -0700
+Message-ID: <201009161941.o8GJftal009757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754628Ab0IPTlM (ORCPT
+	by vger.kernel.org with ESMTP id S1754628Ab0IPTmO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 15:41:12 -0400
+	Thu, 16 Sep 2010 15:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hughd@google.com, mpm@selenic.com
+Cc: fujita.tomonori@lab.ntt.co.jp, khc@pm.waw.pl, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     /proc/pid/smaps: fix dirty pages accounting
+     arm: fix "arm: fix pci_set_consistent_dma_mask for dmabounce devices"
 has been added to the -mm tree.  Its filename is
-     proc-pid-smaps-fix-dirty-pages-accounting.patch
+     arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/pid/smaps: fix dirty pages accounting
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: arm: fix "arm: fix pci_set_consistent_dma_mask for dmabounce devices"
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Currently, /proc/<pid>/smaps has wrong dirty pages accounting. 
-Shared_Dirty and Private_Dirty output only pte dirty pages and ignore
-PG_dirty page flag.  It is difference against documentation, but also
-inconsistent against Referenced field.  (Referenced checks both pte and
-page flags)
+This fixes the regression caused by the commit
+6fee48cd330c68332f9712bc968d934a1a84a32a ("dma-mapping: arm: use generic
+pci_set_dma_mask and pci_set_consistent_dma_mask").
 
-This patch fixes it.
+ARM needs to clip the dma coherent mask for dmabounce devices. This
+restores the old trick.
 
-Test program:
+Note that strictly speaking, the DMA API doesn't allow architectures to do
+such but I'm not sure it's worth adding the new API to set the dma mask
+that allows architectures to clip it.
 
- large-array.c
- ---------------------------------------------------
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <unistd.h>
-
- char array[1*1024*1024*1024L];
-
- int main(void)
- {
-         memset(array, 1, sizeof(array));
-         pause();
-
-         return 0;
- }
- ---------------------------------------------------
-
-Test case:
- 1. run ./large-array
- 2. cat /proc/`pidof large-array`/smaps
- 3. swapoff -a
- 4. cat /proc/`pidof large-array`/smaps again
-
-Test result:
- <before patch>
-
-00601000-40601000 rw-p 00000000 00:00 0
-Size:            1048576 kB
-Rss:             1048576 kB
-Pss:             1048576 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:    218992 kB   <-- showed pages as clean incorrectly
-Private_Dirty:    829584 kB
-Referenced:       388364 kB
-Swap:                  0 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-
- <after patch>
-
-00601000-40601000 rw-p 00000000 00:00 0
-Size:            1048576 kB
-Rss:             1048576 kB
-Pss:             1048576 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:         0 kB
-Private_Dirty:   1048576 kB  <-- fixed
-Referenced:       388480 kB
-Swap:                  0 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Reported-by: Krzysztof Halasa <khc@pm.waw.pl>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/common/it8152.c                     |    8 ++++++++
+ arch/arm/mach-ixp4xx/common-pci.c            |    8 ++++++++
+ arch/arm/mach-ixp4xx/include/mach/hardware.h |    2 ++
+ arch/arm/mach-pxa/include/mach/hardware.h    |    2 +-
+ arch/arm/mach-pxa/include/mach/io.h          |    2 ++
+ include/linux/dma-mapping.h                  |    4 ++++
+ 6 files changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~proc-pid-smaps-fix-dirty-pages-accounting fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pid-smaps-fix-dirty-pages-accounting
-+++ a/fs/proc/task_mmu.c
-@@ -363,13 +363,13 @@ static int smaps_pte_range(pmd_t *pmd, u
- 			mss->referenced += PAGE_SIZE;
- 		mapcount = page_mapcount(page);
- 		if (mapcount >= 2) {
--			if (pte_dirty(ptent))
-+			if (pte_dirty(ptent) || PageDirty(page))
- 				mss->shared_dirty += PAGE_SIZE;
- 			else
- 				mss->shared_clean += PAGE_SIZE;
- 			mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
- 		} else {
--			if (pte_dirty(ptent))
-+			if (pte_dirty(ptent) || PageDirty(page))
- 				mss->private_dirty += PAGE_SIZE;
- 			else
- 				mss->private_clean += PAGE_SIZE;
+diff -puN arch/arm/common/it8152.c~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices arch/arm/common/it8152.c
+--- a/arch/arm/common/it8152.c~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices
++++ a/arch/arm/common/it8152.c
+@@ -271,6 +271,14 @@ int dma_needs_bounce(struct device *dev,
+ 		((dma_addr + size - PHYS_OFFSET) >= SZ_64M);
+ }
+ 
++int dma_set_coherent_mask(struct device *dev, u64 mask)
++{
++	if (mask >= PHYS_OFFSET + SZ_64M - 1)
++		return 0;
++
++	return -EIO;
++}
++
+ int __init it8152_pci_setup(int nr, struct pci_sys_data *sys)
+ {
+ 	it8152_io.start = IT8152_IO_BASE + 0x12000;
+diff -puN arch/arm/mach-ixp4xx/common-pci.c~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices arch/arm/mach-ixp4xx/common-pci.c
+--- a/arch/arm/mach-ixp4xx/common-pci.c~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices
++++ a/arch/arm/mach-ixp4xx/common-pci.c
+@@ -503,6 +503,14 @@ struct pci_bus * __devinit ixp4xx_scan_b
+ 	return pci_scan_bus(sys->busnr, &ixp4xx_ops, sys);
+ }
+ 
++int dma_set_coherent_mask(struct device *dev, u64 mask)
++{
++	if (mask >= SZ_64M - 1)
++		return 0;
++
++	return -EIO;
++}
++
+ EXPORT_SYMBOL(ixp4xx_pci_read);
+ EXPORT_SYMBOL(ixp4xx_pci_write);
+ 
+diff -puN arch/arm/mach-ixp4xx/include/mach/hardware.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices arch/arm/mach-ixp4xx/include/mach/hardware.h
+--- a/arch/arm/mach-ixp4xx/include/mach/hardware.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices
++++ a/arch/arm/mach-ixp4xx/include/mach/hardware.h
+@@ -26,6 +26,8 @@
+ #define PCIBIOS_MAX_MEM		0x4BFFFFFF
+ #endif
+ 
++#define ARCH_HAS_DMA_SET_COHERENT_MASK
++
+ #define pcibios_assign_all_busses()	1
+ 
+ /* Register locations and bits */
+diff -puN arch/arm/mach-pxa/include/mach/hardware.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices arch/arm/mach-pxa/include/mach/hardware.h
+--- a/arch/arm/mach-pxa/include/mach/hardware.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices
++++ a/arch/arm/mach-pxa/include/mach/hardware.h
+@@ -309,7 +309,7 @@ extern unsigned long get_clock_tick_rate
+ #define PCIBIOS_MIN_IO		0
+ #define PCIBIOS_MIN_MEM		0
+ #define pcibios_assign_all_busses()	1
++#define ARCH_HAS_DMA_SET_COHERENT_MASK
+ #endif
+ 
+-
+ #endif  /* _ASM_ARCH_HARDWARE_H */
+diff -puN arch/arm/mach-pxa/include/mach/io.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices arch/arm/mach-pxa/include/mach/io.h
+--- a/arch/arm/mach-pxa/include/mach/io.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices
++++ a/arch/arm/mach-pxa/include/mach/io.h
+@@ -6,6 +6,8 @@
+ #ifndef __ASM_ARM_ARCH_IO_H
+ #define __ASM_ARM_ARCH_IO_H
+ 
++#include <mach/hardware.h>
++
+ #define IO_SPACE_LIMIT 0xffffffff
+ 
+ /*
+diff -puN include/linux/dma-mapping.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices
++++ a/include/linux/dma-mapping.h
+@@ -102,6 +102,9 @@ static inline u64 dma_get_mask(struct de
+ 	return DMA_BIT_MASK(32);
+ }
+ 
++#ifdef ARCH_HAS_DMA_SET_COHERENT_MASK
++int dma_set_coherent_mask(struct device *dev, u64 mask);
++#else
+ static inline int dma_set_coherent_mask(struct device *dev, u64 mask)
+ {
+ 	if (!dma_supported(dev, mask))
+@@ -109,6 +112,7 @@ static inline int dma_set_coherent_mask(
+ 	dev->coherent_dma_mask = mask;
+ 	return 0;
+ }
++#endif
+ 
+ extern u64 dma_get_required_mask(struct device *dev);
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
 linux-next.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch
-proc-pid-smaps-fix-dirty-pages-accounting.patch
-proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping.patch
-oom-filter-unkillable-tasks-from-tasklist-dump.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-vmscan-kick-flusher-threads-to-clean-pages-when-reclaim-is-encountering-dirty-pages.patch
-oom-add-per-mm-oom-disable-count.patch
-oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
-vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
-mm-mempolicy-check-return-code-of-check_range.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-update.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-add-sys-devices-system-node-node-vmstat-update.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
-vmscan-delete-dead-code.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-reiser4.patch
+arm-fix-arm-fix-pci_set_consistent_dma_mask-for-dmabounce-devices.patch
+x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
+powerpc-enable-arch_dma_addr_t_64bit-with-arch_phys_addr_t_64bit.patch
+tile-enable-arch_dma_addr_t_64bit.patch
+ia64-enable-arch_dma_addr_t_64bit.patch
+mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
+s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
+alpha-enable-arch_dma_addr_t_64bit.patch
+uml-define-config_no_dma.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
 
