@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch added to -mm tree
-Date: Thu, 16 Sep 2010 12:53:25 -0700
-Message-ID: <201009161953.o8GJrPpk010341@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch added to -mm tree
+Date: Thu, 16 Sep 2010 12:53:21 -0700
+Message-ID: <201009161953.o8GJrL8n010335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753672Ab0IPTx1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753672Ab0IPTxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 15:53:27 -0400
+	Thu, 16 Sep 2010 15:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, Valdis.Kletnieks@vt.edu
+Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: use .get_maintainer.conf from . then $HOME then scripts
+     scripts/get_maintainer.pl: don't search MAINTAINERS for keywords or emails
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
+     scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: use .get_maintainer.conf from . then $HOME then scripts
+Subject: scripts/get_maintainer.pl: don't search MAINTAINERS for keywords or emails
 From: Joe Perches <joe@perches.com>
 
-On Mon, 2010-09-13 at 00:01 -0400, Valdis.Kletnieks@vt.edu wrote:
-> Any chance of getting that to be ~/.get_maintainer.conf rather than
-> ./.get_maintainer.conf? I've just gotten bit like the 3rd or 4th time by
-> "oh but you didn't create that file in *this* tree"
-> (I usually have a linus git tree, a linux-next tree, and 3-4 -mm trees)
-
-Sure.
-
-Add a search path for the .conf file.
-
-3 paths are added:
-
-.             customized per-tree configurations
-$HOME         user global configuration when per-tree configs don't exist
-./scripts     lk defaults to override script
+Keyword matching uses K: patterns from MAINTAINERS, so if looking for the
+MAINTAINERS maintainer, don't search MAINTAINERS for pattern matches. 
+MAINTAINERS also has rather a lot of email addresses and is easily
+searched using grep "^M:", so skip it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails
 +++ a/scripts/get_maintainer.pl
-@@ -110,10 +110,12 @@ my %VCS_cmds_hg = (
-     "blame_commit_pattern" => "^([0-9a-f]+):"
- );
- 
--if (-f "${lk_path}.get_maintainer.conf") {
-+my $conf = which_conf(".get_maintainer.conf");
-+if (-f $conf) {
-     my @conf_args;
--    open(my $conffile, '<', "${lk_path}.get_maintainer.conf")
--	or warn "$P: Can't open .get_maintainer.conf: $!\n";
-+    open(my $conffile, '<', "$conf")
-+	or warn "$P: Can't find a readable .get_maintainer.conf file $!\n";
-+
-     while (<$conffile>) {
- 	my $line = $_;
- 
-@@ -961,6 +963,18 @@ sub which {
-     return "";
- }
- 
-+sub which_conf {
-+    my ($conf) = @_;
-+
-+    foreach my $path (split(/:/, ".:$ENV{HOME}:.scripts")) {
-+	if (-e "$path/$conf") {
-+	    return "$path/$conf";
-+	}
-+    }
-+
-+    return "";
-+}
-+
- sub mailmap {
-     my (@lines) = @_;
-     my %hash;
+@@ -304,7 +304,7 @@ foreach my $file (@ARGV) {
+     }
+     if ($from_filename) {
+ 	push(@files, $file);
+-	if (-f $file && ($keywords || $file_emails)) {
++	if ($file ne "MAINTAINERS" && -f $file && ($keywords || $file_emails)) {
+ 	    open(my $f, '<', $file)
+ 		or die "$P: Can't open $file: $!\n";
+ 	    my $text = do { local($/) ; <$f> };
 _
 
 Patches currently in -mm which might be from joe@perches.com are
