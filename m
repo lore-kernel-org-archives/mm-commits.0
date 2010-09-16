@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch added to -mm tree
-Date: Thu, 16 Sep 2010 15:28:41 -0700
-Message-ID: <201009162228.o8GMSfQ6017350@imap1.linux-foundation.org>
+Subject: + writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch added to -mm tree
+Date: Thu, 16 Sep 2010 15:28:44 -0700
+Message-ID: <201009162228.o8GMSiuj017353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753180Ab0IPWip (ORCPT
+	by vger.kernel.org with ESMTP id S1756767Ab0IPWit (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 18:38:45 -0400
+	Thu, 16 Sep 2010 18:38:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+Cc: mel@csn.ul.ie, axboe@kernel.dk, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     vmscan: isolate_lru_pages(): stop neighbour search if neighbour cannot be isolated
+     writeback: do not sleep on the congestion queue if there are no congested BDIs
 has been added to the -mm tree.  Its filename is
-     vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
+     writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: isolate_lru_pages(): stop neighbour search if neighbour cannot be isolated
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: writeback: do not sleep on the congestion queue if there are no congested BDIs
+From: Mel Gorman <mel@csn.ul.ie>
 
-isolate_lru_pages() does not just isolate LRU tail pages, but also
-isolates neighbour pages of the eviction page.  The neighbour search does
-not stop even if neighbours cannot be isolated which is excessive as the
-lumpy reclaim will no longer result in a successful higher order
-allocation.  This patch stops the PFN neighbour pages if an isolation
-fails and moves on to the next block.
+If congestion_wait() is called with no BDI congested, the caller will
+sleep for the full timeout and this may be an unnecessary sleep.  This
+patch adds a wait_iff_congested() that checks congestion and only sleeps
+if a BDI is congested else, it calls cond_resched() to ensure the caller
+is not hogging the CPU longer than its quota but otherwise will not sleep.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+This is aimed at reducing some of the major desktop stalls reported during
+IO.  For example, while kswapd is operating, it calls congestion_wait()
+but it could just have been reclaiming clean page cache pages with no
+congestion.  Without this patch, it would sleep for a full timeout but
+after this patch, it'll just call schedule() if it has been on the CPU too
+long.  Similar logic applies to direct reclaimers that are not making
+enough progress.
+
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/linux/backing-dev.h      |    2 -
+ include/trace/events/writeback.h |    7 +++
+ mm/backing-dev.c                 |   54 +++++++++++++++++++++++++++--
+ mm/page_alloc.c                  |    4 +-
+ 4 files changed, 62 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated mm/vmscan.c
---- a/mm/vmscan.c~vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated
-+++ a/mm/vmscan.c
-@@ -1051,7 +1051,7 @@ static unsigned long isolate_lru_pages(u
+diff -puN include/linux/backing-dev.h~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis
++++ a/include/linux/backing-dev.h
+@@ -285,7 +285,7 @@ enum {
+ void clear_bdi_congested(struct backing_dev_info *bdi, int sync);
+ void set_bdi_congested(struct backing_dev_info *bdi, int sync);
+ long congestion_wait(int sync, long timeout);
+-
++long wait_iff_congested(int sync, long timeout);
  
- 			/* Check that we have not crossed a zone boundary. */
- 			if (unlikely(page_zone_id(cursor_page) != zone_id))
--				continue;
-+				break;
+ static inline bool bdi_cap_writeback_dirty(struct backing_dev_info *bdi)
+ {
+diff -puN include/trace/events/writeback.h~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis include/trace/events/writeback.h
+--- a/include/trace/events/writeback.h~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis
++++ a/include/trace/events/writeback.h
+@@ -179,6 +179,13 @@ DEFINE_EVENT(writeback_congest_waited_te
+ 	TP_ARGS(usec_timeout, usec_delayed)
+ );
  
- 			/*
- 			 * If we don't have enough swap space, reclaiming of
-@@ -1059,8 +1059,8 @@ static unsigned long isolate_lru_pages(u
- 			 * pointless.
- 			 */
- 			if (nr_swap_pages <= 0 && PageAnon(cursor_page) &&
--					!PageSwapCache(cursor_page))
--				continue;
-+			    !PageSwapCache(cursor_page))
-+				break;
- 
- 			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
- 				list_move(&cursor_page->lru, dst);
-@@ -1071,11 +1071,16 @@ static unsigned long isolate_lru_pages(u
- 					nr_lumpy_dirty++;
- 				scan++;
- 			} else {
--				if (mode == ISOLATE_BOTH &&
--						page_count(cursor_page))
--					nr_lumpy_failed++;
-+				/* the page is freed already. */
-+				if (!page_count(cursor_page))
-+					continue;
-+				break;
- 			}
- 		}
++DEFINE_EVENT(writeback_congest_waited_template, writeback_wait_iff_congested,
 +
-+		/* If we break out of the loop above, lumpy reclaim failed */
-+		if (pfn < end_pfn)
-+			nr_lumpy_failed++;
++	TP_PROTO(unsigned int usec_timeout, unsigned int usec_delayed),
++
++	TP_ARGS(usec_timeout, usec_delayed)
++);
++
+ #endif /* _TRACE_WRITEBACK_H */
+ 
+ /* This part must be outside protection */
+diff -puN mm/backing-dev.c~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis mm/backing-dev.c
+--- a/mm/backing-dev.c~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis
++++ a/mm/backing-dev.c
+@@ -727,6 +727,7 @@ static wait_queue_head_t congestion_wqh[
+ 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
+ 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
+ 	};
++static atomic_t nr_bdi_congested[2];
+ 
+ void clear_bdi_congested(struct backing_dev_info *bdi, int sync)
+ {
+@@ -734,7 +735,8 @@ void clear_bdi_congested(struct backing_
+ 	wait_queue_head_t *wqh = &congestion_wqh[sync];
+ 
+ 	bit = sync ? BDI_sync_congested : BDI_async_congested;
+-	clear_bit(bit, &bdi->state);
++	if (test_and_clear_bit(bit, &bdi->state))
++		atomic_dec(&nr_bdi_congested[sync]);
+ 	smp_mb__after_clear_bit();
+ 	if (waitqueue_active(wqh))
+ 		wake_up(wqh);
+@@ -746,7 +748,8 @@ void set_bdi_congested(struct backing_de
+ 	enum bdi_state bit;
+ 
+ 	bit = sync ? BDI_sync_congested : BDI_async_congested;
+-	set_bit(bit, &bdi->state);
++	if (!test_and_set_bit(bit, &bdi->state))
++		atomic_inc(&nr_bdi_congested[sync]);
+ }
+ EXPORT_SYMBOL(set_bdi_congested);
+ 
+@@ -777,3 +780,50 @@ long congestion_wait(int sync, long time
+ }
+ EXPORT_SYMBOL(congestion_wait);
+ 
++/**
++ * wait_iff_congested - Conditionally wait for a backing_dev to become uncongested or a zone to complete writes
++ * @sync: SYNC or ASYNC IO
++ * @timeout: timeout in jiffies
++ *
++ * In the event of a congested backing_dev (any backing_dev), this waits for up
++ * to @timeout jiffies for either a BDI to exit congestion of the given @sync
++ * queue.
++ *
++ * If there is no congestion, then cond_resched() is called to yield the
++ * processor if necessary but otherwise does not sleep.
++ *
++ * The return value is 0 if the sleep is for the full timeout. Otherwise,
++ * it is the number of jiffies that were still remaining when the function
++ * returned. return_value == timeout implies the function did not sleep.
++ */
++long wait_iff_congested(int sync, long timeout)
++{
++	long ret;
++	unsigned long start = jiffies;
++	DEFINE_WAIT(wait);
++	wait_queue_head_t *wqh = &congestion_wqh[sync];
++
++	/* If there is no congestion, yield if necessary instead of sleeping */
++	if (atomic_read(&nr_bdi_congested[sync]) == 0) {
++		cond_resched();
++
++		/* In case we scheduled, work out time remaining */
++		ret = timeout - (jiffies - start);
++		if (ret < 0)
++			ret = 0;
++
++		goto out;
++	}
++
++	/* Sleep until uncongested or a write happens */
++	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
++	ret = io_schedule_timeout(timeout);
++	finish_wait(wqh, &wait);
++
++out:
++	trace_writeback_wait_iff_congested(jiffies_to_usecs(timeout),
++					jiffies_to_usecs(jiffies - start));
++
++	return ret;
++}
++EXPORT_SYMBOL(wait_iff_congested);
+diff -puN mm/page_alloc.c~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis mm/page_alloc.c
+--- a/mm/page_alloc.c~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis
++++ a/mm/page_alloc.c
+@@ -1907,7 +1907,7 @@ __alloc_pages_high_priority(gfp_t gfp_ma
+ 			preferred_zone, migratetype);
+ 
+ 		if (!page && gfp_mask & __GFP_NOFAIL)
+-			congestion_wait(BLK_RW_ASYNC, HZ/50);
++			wait_iff_congested(BLK_RW_ASYNC, HZ/50);
+ 	} while (!page && (gfp_mask & __GFP_NOFAIL));
+ 
+ 	return page;
+@@ -2095,7 +2095,7 @@ rebalance:
+ 	pages_reclaimed += did_some_progress;
+ 	if (should_alloc_retry(gfp_mask, order, pages_reclaimed)) {
+ 		/* Wait for some write requests to complete then retry */
+-		congestion_wait(BLK_RW_ASYNC, HZ/50);
++		wait_iff_congested(BLK_RW_ASYNC, HZ/50);
+ 		goto rebalance;
  	}
  
- 	*scanned = scan;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
-linux-next.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path.patch
-vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch
-proc-pid-smaps-fix-dirty-pages-accounting.patch
-proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping.patch
-oom-filter-unkillable-tasks-from-tasklist-dump.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-oom-add-per-mm-oom-disable-count.patch
-oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
-vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
-mm-mempolicy-check-return-code-of-check_range.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-update.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-add-sys-devices-system-node-node-vmstat-update.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
-vmscan-delete-dead-code.patch
+include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch
+mm-compaction-fix-compactpagefailed-counting.patch
+memory-hotplug-fix-notifiers-return-value-check.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code.patch
+mm-fix-typo-in-mmh-when-node_not_in_page_flags.patch
 tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
 writeback-account-for-time-spent-congestion_waited.patch
 vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
@@ -138,8 +217,7 @@ vmscan-remove-dead-code-in-shrink_inactive_list.patch
 vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
 writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
 writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-reiser4.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
