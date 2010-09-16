@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-remove-dead-code-in-shrink_inactive_list.patch added to -mm tree
-Date: Thu, 16 Sep 2010 15:28:38 -0700
-Message-ID: <201009162228.o8GMScS4017347@imap1.linux-foundation.org>
+Subject: + vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch added to -mm tree
+Date: Thu, 16 Sep 2010 15:28:41 -0700
+Message-ID: <201009162228.o8GMSfQ6017350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752950Ab0IPWin (ORCPT
+	by vger.kernel.org with ESMTP id S1753180Ab0IPWip (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 18:38:43 -0400
+	Thu, 16 Sep 2010 18:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, 
 
 
 The patch titled
-     vmscan: remove dead code in shrink_inactive_list()
+     vmscan: isolate_lru_pages(): stop neighbour search if neighbour cannot be isolated
 has been added to the -mm tree.  Its filename is
-     vmscan-remove-dead-code-in-shrink_inactive_list.patch
+     vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: remove dead code in shrink_inactive_list()
+Subject: vmscan: isolate_lru_pages(): stop neighbour search if neighbour cannot be isolated
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-After synchrounous lumpy reclaim, the page_list is guaranteed to not have
-active pages as page activation in shrink_page_list() disables lumpy
-reclaim.  Remove the dead code.
+isolate_lru_pages() does not just isolate LRU tail pages, but also
+isolates neighbour pages of the eviction page.  The neighbour search does
+not stop even if neighbours cannot be isolated which is excessive as the
+lumpy reclaim will no longer result in a successful higher order
+allocation.  This patch stops the PFN neighbour pages if an isolation
+fails and moves on to the next block.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/vmscan.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-remove-dead-code-in-shrink_inactive_list mm/vmscan.c
---- a/mm/vmscan.c~vmscan-remove-dead-code-in-shrink_inactive_list
+diff -puN mm/vmscan.c~vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated
 +++ a/mm/vmscan.c
-@@ -1331,7 +1331,6 @@ shrink_inactive_list(unsigned long nr_to
- 	unsigned long nr_scanned;
- 	unsigned long nr_reclaimed = 0;
- 	unsigned long nr_taken;
--	unsigned long nr_active;
- 	unsigned long nr_anon;
- 	unsigned long nr_file;
+@@ -1051,7 +1051,7 @@ static unsigned long isolate_lru_pages(u
  
-@@ -1386,13 +1385,6 @@ shrink_inactive_list(unsigned long nr_to
+ 			/* Check that we have not crossed a zone boundary. */
+ 			if (unlikely(page_zone_id(cursor_page) != zone_id))
+-				continue;
++				break;
  
- 	/* Check if we should syncronously wait for writeback */
- 	if (should_reclaim_stall(nr_taken, nr_reclaimed, priority, sc)) {
--		/*
--		 * The attempt at page out may have made some
--		 * of the pages active, mark them inactive again.
--		 */
--		nr_active = clear_active_flags(&page_list, NULL);
--		count_vm_events(PGDEACTIVATE, nr_active);
--
- 		set_lumpy_reclaim_mode(priority, sc, true);
- 		nr_reclaimed += shrink_page_list(&page_list, sc);
+ 			/*
+ 			 * If we don't have enough swap space, reclaiming of
+@@ -1059,8 +1059,8 @@ static unsigned long isolate_lru_pages(u
+ 			 * pointless.
+ 			 */
+ 			if (nr_swap_pages <= 0 && PageAnon(cursor_page) &&
+-					!PageSwapCache(cursor_page))
+-				continue;
++			    !PageSwapCache(cursor_page))
++				break;
+ 
+ 			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
+ 				list_move(&cursor_page->lru, dst);
+@@ -1071,11 +1071,16 @@ static unsigned long isolate_lru_pages(u
+ 					nr_lumpy_dirty++;
+ 				scan++;
+ 			} else {
+-				if (mode == ISOLATE_BOTH &&
+-						page_count(cursor_page))
+-					nr_lumpy_failed++;
++				/* the page is freed already. */
++				if (!page_count(cursor_page))
++					continue;
++				break;
+ 			}
+ 		}
++
++		/* If we break out of the loop above, lumpy reclaim failed */
++		if (pfn < end_pfn)
++			nr_lumpy_failed++;
  	}
+ 
+ 	*scanned = scan;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
