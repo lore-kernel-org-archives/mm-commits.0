@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch added to -mm tree
-Date: Thu, 16 Sep 2010 15:50:27 -0700
-Message-ID: <201009162250.o8GMoSug018489@imap1.linux-foundation.org>
+Subject: + oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch added to -mm tree
+Date: Thu, 16 Sep 2010 15:50:29 -0700
+Message-ID: <201009162250.o8GMoTb4018492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755640Ab0IPWup (ORCPT
+	by vger.kernel.org with ESMTP id S1755640Ab0IPWuq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 18:50:45 -0400
+	Thu, 16 Sep 2010 18:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     oom: protect oom_disable_count with task_lock in fork
+     oom: use old_mm for oom_disable_count in exec
 has been added to the -mm tree.  Its filename is
-     oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch
+     oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: protect oom_disable_count with task_lock in fork
+Subject: oom: use old_mm for oom_disable_count in exec
 From: David Rientjes <rientjes@google.com>
 
-task_lock(p) protects p->mm->oom_disable_count such that it accurately
-represents the number of threads attached to that mm that cannot be killed
-by the oom killer.  p->signal->oom_score_adj is never changed without
-holding the lock.
-
-This was missed in the fork() path, so we take the lock to ensure checking
-its oom_score_adj and decrementing oom_disable_count don't race.
+active_mm in the exec() path can be for an unrelated thread, so the
+oom_disable_count logic should use old_mm instead.
 
 Reported-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
@@ -53,23 +48,23 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/exec.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/fork.c~oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork kernel/fork.c
---- a/kernel/fork.c~oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork
-+++ a/kernel/fork.c
-@@ -1304,8 +1304,10 @@ bad_fork_cleanup_namespaces:
- 	exit_task_namespaces(p);
- bad_fork_cleanup_mm:
- 	if (p->mm) {
-+		task_lock(p);
- 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 			atomic_dec(&p->mm->oom_disable_count);
-+		task_unlock(p);
- 		mmput(p->mm);
+diff -puN fs/exec.c~oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec fs/exec.c
+--- a/fs/exec.c~oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec
++++ a/fs/exec.c
+@@ -760,8 +760,8 @@ static int exec_mmap(struct mm_struct *m
+ 	tsk->mm = mm;
+ 	tsk->active_mm = mm;
+ 	activate_mm(active_mm, mm);
+-	if (tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
+-		atomic_dec(&active_mm->oom_disable_count);
++	if (old_mm && tsk->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
++		atomic_dec(&old_mm->oom_disable_count);
+ 		atomic_inc(&tsk->mm->oom_disable_count);
  	}
- bad_fork_cleanup_signal:
+ 	task_unlock(tsk);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
