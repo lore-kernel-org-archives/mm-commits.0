@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-usb-hsoc-prevent-reading-uninitialized-memory.patch added to -mm tree
-Date: Thu, 16 Sep 2010 14:07:50 -0700
-Message-ID: <201009162107.o8GL7oMI013670@imap1.linux-foundation.org>
+Subject: + maintainers-move-atlx-discussions-to-netdev.patch added to -mm tree
+Date: Thu, 16 Sep 2010 14:20:03 -0700
+Message-ID: <201009162120.o8GLK3GL014156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752517Ab0IPVIc (ORCPT
+	by vger.kernel.org with ESMTP id S1750826Ab0IPVUp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Sep 2010 17:08:32 -0400
+	Thu, 16 Sep 2010 17:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, dan.j.rosenberg@gmail.com, greg@kroah.com, j.dumon@option.com
+Cc: chris.snook@gmail.com, davem@davemloft.net, jcliburn@gmail.com, jie.yang@atheros.com
 
 
 The patch titled
-     drivers/net/usb/hso.c: prevent reading uninitialized memory
+     MAINTAINERS: move atlx discussions to netdev
 has been added to the -mm tree.  Its filename is
-     drivers-net-usb-hsoc-prevent-reading-uninitialized-memory.patch
+     maintainers-move-atlx-discussions-to-netdev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/usb/hso.c: prevent reading uninitialized memory
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: MAINTAINERS: move atlx discussions to netdev
+From: Chris Snook <chris.snook@gmail.com>
 
-The TIOCGICOUNT device ioctl allows unprivileged users to read
-uninitialized stack memory, because the "reserved" member of the
-serial_icounter_struct struct declared on the stack in hso_get_count() is
-not altered or zeroed before being copied back to the user.  This patch
-takes care of it.
+The atlx drivers are sufficiently mature that we no longer need a separate
+mailing list for them.  Move the discussion to netdev, so we can
+decommission atl1-devel, which is now mostly spam.
 
-Signed-off-by: Dan Rosenberg <dan.j.rosenberg@gmail.com>
-Cc: Jan Dumon <j.dumon@option.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Chris Snook <chris.snook@gmail.com>
+Cc: Jay Cliburn <jcliburn@gmail.com>
+Cc: Jie Yang <jie.yang@atheros.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/hso.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/usb/hso.c~drivers-net-usb-hsoc-prevent-reading-uninitialized-memory drivers/net/usb/hso.c
---- a/drivers/net/usb/hso.c~drivers-net-usb-hsoc-prevent-reading-uninitialized-memory
-+++ a/drivers/net/usb/hso.c
-@@ -1643,6 +1643,8 @@ static int hso_get_count(struct hso_seri
- 	struct uart_icount cnow;
- 	struct hso_tiocmget  *tiocmget = serial->tiocmget;
- 
-+	memset(&icount, 0, sizeof(struct serial_icounter_struct));
-+
- 	if (!tiocmget)
- 		 return -ENOENT;
- 	spin_lock_irq(&serial->serial_lock);
+diff -puN MAINTAINERS~maintainers-move-atlx-discussions-to-netdev MAINTAINERS
+--- a/MAINTAINERS~maintainers-move-atlx-discussions-to-netdev
++++ a/MAINTAINERS
+@@ -1142,7 +1142,7 @@ ATLX ETHERNET DRIVERS
+ M:	Jay Cliburn <jcliburn@gmail.com>
+ M:	Chris Snook <chris.snook@gmail.com>
+ M:	Jie Yang <jie.yang@atheros.com>
+-L:	atl1-devel@lists.sourceforge.net
++L:	netdev@vger.kernel.org
+ W:	http://sourceforge.net/projects/atl1
+ W:	http://atl1.sourceforge.net
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from chris.snook@gmail.com are
 
+maintainers-move-atlx-discussions-to-netdev.patch
 linux-next.patch
-drivers-serial-serial_corec-prevent-reading-uninitialized-stack-memory.patch
-drivers-net-usb-hsoc-prevent-reading-uninitialized-memory.patch
-drivers-video-sis-sis_mainc-prevent-reading-uninitialized-stack-memory.patch
-drivers-char-amiserialc-prevent-reading-uninitialized-stack-memory.patch
-drivers-char-nozomic-prevent-reading-uninitialized-stack-memory.patch
 
