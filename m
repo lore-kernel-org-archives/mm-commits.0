@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-change-tpm_suspend_pcr-to-be-module-parameter.patch added to -mm tree
-Date: Fri, 17 Sep 2010 14:03:40 -0700
-Message-ID: <201009172103.o8HL3emi010020@imap1.linux-foundation.org>
+Subject: + vmscantmpfs-treat-used-once-pages-on-tmpfs-as-used-once.patch added to -mm tree
+Date: Fri, 17 Sep 2010 14:14:29 -0700
+Message-ID: <201009172114.o8HLETnx010453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561Ab0IQVDv (ORCPT
+	by vger.kernel.org with ESMTP id S1753671Ab0IQVOx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Sep 2010 17:03:51 -0400
+	Fri, 17 Sep 2010 17:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmitry.torokhov@gmail.com, debora@linux.vnet.ibm.com, dtor@mail.ru, jmorris@namei.org, safford@watson.ibm.com, srajiv@linux.vnet.ibm.com
+Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, hughd@google.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     tpm: change 'tpm_suspend_pcr' to be module parameter
+     vmscan,tmpfs: treat used once pages on tmpfs as used once
 has been added to the -mm tree.  Its filename is
-     tpm-change-tpm_suspend_pcr-to-be-module-parameter.patch
+     vmscantmpfs-treat-used-once-pages-on-tmpfs-as-used-once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: change 'tpm_suspend_pcr' to be module parameter
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: vmscan,tmpfs: treat used once pages on tmpfs as used once
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Fix the following warning:
+When a page has PG_referenced, shrink_page_list() discards it only if it
+is not dirty.  This rule works fine if the backing filesystem is a regular
+one.  PG_dirty is a good signal that the page was used recently because
+the flusher threads clean pages periodically.  In addition, page writeback
+is costlier than simple page discard.
 
-drivers/char/tpm/tpm.c:1085: warning: `tpm_suspend_setup' defined but not used
+However, when a page is on tmpfs this heuristic doesn't work because
+flusher threads don't write back tmpfs pages.  Consequently tmpfs pages
+always rotate around the lru twice at least and adds unnecessary lru
+churn.  Simple tmpfs streaming io shouldn't cause large anonymous page
+swap-out.
 
-and make the workaround operable in case when TPM is compiled as a module.
-As a side-effect the option will be called tpm.suspend_pcr.
+Remove this unncessary reclaim bonus of tmpfs pages.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: David Safford <safford@watson.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-change-tpm_suspend_pcr-to-be-module-parameter drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-change-tpm_suspend_pcr-to-be-module-parameter
-+++ a/drivers/char/tpm/tpm.c
-@@ -47,6 +47,16 @@ enum tpm_duration {
- #define TPM_MAX_PROTECTED_ORDINAL 12
- #define TPM_PROTECTED_ORDINAL_MASK 0xFF
+diff -puN mm/vmscan.c~vmscantmpfs-treat-used-once-pages-on-tmpfs-as-used-once mm/vmscan.c
+--- a/mm/vmscan.c~vmscantmpfs-treat-used-once-pages-on-tmpfs-as-used-once
++++ a/mm/vmscan.c
+@@ -670,7 +670,7 @@ static enum page_references page_check_r
+ 	}
  
-+/*
-+ * Bug workaround - some TPM's don't flush the most
-+ * recently changed pcr on suspend, so force the flush
-+ * with an extend to the selected _unused_ non-volatile pcr.
-+ */
-+static int tpm_suspend_pcr;
-+module_param_named(suspend_pcr, tpm_suspend_pcr, uint, 0644);
-+MODULE_PARM_DESC(suspend_pcr,
-+		 "PCR to use for dummy writes to faciltate flush on suspend.");
-+
- static LIST_HEAD(tpm_chip_list);
- static DEFINE_SPINLOCK(driver_lock);
- static DECLARE_BITMAP(dev_mask, TPM_NUM_DEVICES);
-@@ -1077,18 +1087,6 @@ static struct tpm_input_header savestate
- 	.ordinal = TPM_ORD_SAVESTATE
- };
+ 	/* Reclaim if clean, defer dirty pages to writeback */
+-	if (referenced_page)
++	if (referenced_page && !PageSwapBacked(page))
+ 		return PAGEREF_RECLAIM_CLEAN;
  
--/* Bug workaround - some TPM's don't flush the most
-- * recently changed pcr on suspend, so force the flush
-- * with an extend to the selected _unused_ non-volatile pcr.
-- */
--static int tpm_suspend_pcr;
--static int __init tpm_suspend_setup(char *str)
--{
--	get_option(&str, &tpm_suspend_pcr);
--	return 1;
--}
--__setup("tpm_suspend_pcr=", tpm_suspend_setup);
+ 	return PAGEREF_RECLAIM;
+_
+
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+
+oom-always-return-a-badness-score-of-non-zero-for-eligible-tasks.patch
+linux-next.patch
+vmscan-check-all_unreclaimable-in-direct-reclaim-path.patch
+vmscan-check-all_unreclaimable-in-direct-reclaim-path-v2.patch
+proc-pid-smaps-fix-dirty-pages-accounting.patch
+proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping.patch
+oom-filter-unkillable-tasks-from-tasklist-dump.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+oom-add-per-mm-oom-disable-count.patch
+oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch
+oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
+oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
+vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
+mm-mempolicy-check-return-code-of-check_range.patch
+mm-add-account_page_writeback.patch
+writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
+writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-update.patch
+writeback-add-sys-devices-system-node-node-vmstat.patch
+writeback-add-sys-devices-system-node-node-vmstat-update.patch
+writeback-report-dirty-thresholds-in-proc-vmstat.patch
+vmscan-delete-dead-code.patch
+tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
+writeback-account-for-time-spent-congestion_waited.patch
+vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
+vmscan-narrow-the-scenarios-lumpy-reclaim-uses-synchrounous-reclaim.patch
+vmscan-remove-dead-code-in-shrink_inactive_list.patch
+vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
+vmscantmpfs-treat-used-once-pages-on-tmpfs-as-used-once.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+reiser4.patch
+
