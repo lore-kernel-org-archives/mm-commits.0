@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + audit-add-support-to-match-lsm-labels-on-user-audit-messages.patch added to -mm tree
-Date: Fri, 17 Sep 2010 13:52:50 -0700
-Message-ID: <201009172052.o8HKqoGJ009474@imap1.linux-foundation.org>
+Subject: + zram-work-around-oops-due-to-startup-ordering-snafu.patch added to -mm tree
+Date: Fri, 17 Sep 2010 13:59:54 -0700
+Message-ID: <201009172059.o8HKxsPW009766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753937Ab0IQUxD (ORCPT
+	by vger.kernel.org with ESMTP id S1754364Ab0IQU74 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Sep 2010 16:53:03 -0400
+	Fri, 17 Sep 2010 16:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mitr@redhat.com, eparis@redhat.com, viro@zeniv.linux.org.uk
+Cc: anton@samba.org, greg@kroah.com, ngupta@vflare.org
 
 
 The patch titled
-     audit: add support to match lsm labels on user audit messages
+     zram: work around oops due to startup ordering snafu
 has been added to the -mm tree.  Its filename is
-     audit-add-support-to-match-lsm-labels-on-user-audit-messages.patch
+     zram-work-around-oops-due-to-startup-ordering-snafu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: add support to match lsm labels on user audit messages
-From: Miloslav Trmac <mitr@redhat.com>
+Subject: zram: work around oops due to startup ordering snafu
+From: Anton Blanchard <anton@samba.org>
 
-Add support for matching by security label (e.g.  SELinux context) of the
-sender of an user-space audit record.
+I'm getting an oops when running mkfs on zram:
 
-The audit filter code already allows user space to configure such filters,
-but they were ignored during evaluation.  This patch implements evaluation
-of these filters.
+NIP [d0000000030e0340] .zram_inc_stat+0x58/0x84 [zram]
+[c00000006d58f720] [d0000000030e091c] .zram_make_request+0xa8/0x6a0 [zram]
+[c00000006d58f840] [c00000000035795c] .generic_make_request+0x390/0x434
+[c00000006d58f950] [c000000000357b14] .submit_bio+0x114/0x140
+[c00000006d58fa20] [c000000000361778] .blkdev_issue_discard+0x1ac/0x250
+[c00000006d58fb10] [c000000000361f68] .blkdev_ioctl+0x358/0x7fc
+[c00000006d58fbd0] [c0000000001c1c1c] .block_ioctl+0x6c/0x90
+[c00000006d58fc70] [c0000000001984c4] .do_vfs_ioctl+0x660/0x6d4
+[c00000006d58fd70] [c0000000001985a0] .SyS_ioctl+0x68/0xb0
 
-For example, after application of this patch, PAM authentication logs
-caused by cron can be disabled using
-	auditctl -a user,never -F subj_type=crond_t
+Since disksize no longer starts as 0 it looks like we can call
+zram_make_request before the device has been initialised. The patch below
+fixes the immediate problem but this would go away if we move the
+initialisation function elsewhere (as suggested in another thread).
 
-Signed-off-by: Miloslav Trmac <mitr@redhat.com>
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/staging/zram/zram_drv.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/auditfilter.c~audit-add-support-to-match-lsm-labels-on-user-audit-messages kernel/auditfilter.c
---- a/kernel/auditfilter.c~audit-add-support-to-match-lsm-labels-on-user-audit-messages
-+++ a/kernel/auditfilter.c
-@@ -1252,6 +1252,18 @@ static int audit_filter_user_rules(struc
- 		case AUDIT_LOGINUID:
- 			result = audit_comparator(cb->loginuid, f->op, f->val);
- 			break;
-+		case AUDIT_SUBJ_USER:
-+		case AUDIT_SUBJ_ROLE:
-+		case AUDIT_SUBJ_TYPE:
-+		case AUDIT_SUBJ_SEN:
-+		case AUDIT_SUBJ_CLR:
-+			if (f->lsm_rule)
-+				result = security_audit_rule_match(cb->sid,
-+								   f->type,
-+								   f->op,
-+								   f->lsm_rule,
-+								   NULL);
-+			break;
- 		}
+diff -puN drivers/staging/zram/zram_drv.c~zram-work-around-oops-due-to-startup-ordering-snafu drivers/staging/zram/zram_drv.c
+--- a/drivers/staging/zram/zram_drv.c~zram-work-around-oops-due-to-startup-ordering-snafu
++++ a/drivers/staging/zram/zram_drv.c
+@@ -435,6 +435,12 @@ static int zram_make_request(struct requ
+ 	int ret = 0;
+ 	struct zram *zram = queue->queuedata;
  
- 		if (!result)
++	if (unlikely(!zram->init_done)) {
++		set_bit(BIO_UPTODATE, &bio->bi_flags);
++		bio_endio(bio, 0);
++		return 0;
++	}
++
+ 	if (!valid_io_request(zram, bio)) {
+ 		zram_stat64_inc(zram, &zram->stats.invalid_io);
+ 		bio_io_error(bio);
 _
 
-Patches currently in -mm which might be from mitr@redhat.com are
+Patches currently in -mm which might be from anton@samba.org are
 
-audit-add-support-to-match-lsm-labels-on-user-audit-messages.patch
+linux-next.patch
+zram-free-percpu-data-on-module-exit.patch
+zram-work-around-oops-due-to-startup-ordering-snafu.patch
 
