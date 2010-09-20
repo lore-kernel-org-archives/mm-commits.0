@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping-doc.patch added to -mm tree
-Date: Mon, 20 Sep 2010 12:19:39 -0700
-Message-ID: <201009201919.o8KJJdRx008284@imap1.linux-foundation.org>
+Subject: + writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch added to -mm tree
+Date: Mon, 20 Sep 2010 12:35:24 -0700
+Message-ID: <201009201935.o8KJZOpG009099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757238Ab0ITTY3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755090Ab0ITTgk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Sep 2010 15:24:29 -0400
+	Mon, 20 Sep 2010 15:36:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: knikanth@suse.de, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com
+Cc: mel@csn.ul.ie, axboe@kernel.dk, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     Document the new Anonymous field in smaps
+     writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix
 has been added to the -mm tree.  Its filename is
-     proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping-doc.=
-patch
+     writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,98 +26,171 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Document the new Anonymous field in smaps
-=46rom: Nikanth Karthikesan <knikanth@suse.de>
+Subject: writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix
+From: Mel Gorman <mel@csn.ul.ie>
 
-Document the new Anonymous field in smaps, and also the Swap field.=20
-Explain what smaps means by shared and private, which differs from
-MAP_SHARED and MAP_PRIVATE.
+Based on feedback from Minchan Kim, I updated the patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
+currently in the mm tree in the following manner
 
-Signed-off-by: Nikanth Karthikesan <knikanth@suse.de>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+1. Deleted the bdi_queue_status enum until such point as we distinguish
+   between being unable to write to the IO queue and it being congested
+2. Direct reclaimers consider congestion the first zone in the zonelist.
+   In the mm version of the patch, it scans for a zone with the most
+   pages in writeback. This made more sense for an earlier version of
+   wait_iff_congested().
+
+Tests did not show up any significant difference.  This patch should be
+merged with
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   57 ++++++++++----------------------------------------
+ 1 file changed, 12 insertions(+), 45 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-pid-smaps-export-amou=
-nt-of-anonymous-memory-in-a-mapping-doc Documentation/filesystems/proc.=
-txt
---- a/Documentation/filesystems/proc.txt~proc-pid-smaps-export-amount-o=
-f-anonymous-memory-in-a-mapping-doc
-+++ a/Documentation/filesystems/proc.txt
-@@ -370,17 +370,24 @@ Shared_Dirty:          0 kB
- Private_Clean:         0 kB
- Private_Dirty:         0 kB
- Referenced:          892 kB
-+Anonymous:             0 kB
- Swap:                  0 kB
- KernelPageSize:        4 kB
- MMUPageSize:           4 kB
-=20
--The first  of these lines shows  the same information  as is displayed=
- for the
--mapping in /proc/PID/maps.  The remaining lines show  the size of the =
-mapping,
-+The first of these lines shows the same information as is displayed fo=
-r the
-+mapping in /proc/PID/maps. The remaining lines show the size of the ma=
-pping,
- the amount of the mapping that is currently resident in RAM, the "prop=
-ortional
- set size=E2=80=9D (divide each shared page by the number of processes =
-sharing it), the
- number of clean and dirty shared pages in the mapping, and the number =
-of clean
--and dirty private pages in the mapping.  The "Referenced" indicates th=
-e amount
--of memory currently marked as referenced or accessed.
-+and dirty private pages in the mapping. Note that even a page which is=
- part of
-+a MAP_SHARED mapping, but has only a single pte mapped, i.e. is curren=
-tly used
-+by only one process, is accounted as private and not as shared. "Refer=
-enced"
-+indicates the amount of memory currently marked as referenced or acces=
-sed.
-+"Anonymous" shows the amount of memory that does not belong to any fil=
-e. Even
-+a mapping associated with a file may contain anonymous pages: when MAP=
-_PRIVATE
-+and a page is modified, the file page is replaced by a private anonymo=
-us copy.
-+"Swap" shows how much would-be-anonymous memory is also used, but out =
-on swap.
-=20
- This file is only present if the CONFIG_MMU kernel configuration optio=
-n is
- enabled.
+diff -puN mm/vmscan.c~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix mm/vmscan.c
+--- a/mm/vmscan.c~writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix
++++ a/mm/vmscan.c
+@@ -311,30 +311,20 @@ static inline int is_page_cache_freeable
+ 	return page_count(page) - page_has_private(page) == 2;
+ }
+ 
+-enum bdi_queue_status {
+-	QUEUEWRITE_DENIED,
+-	QUEUEWRITE_CONGESTED,
+-	QUEUEWRITE_ALLOWED,
+-};
+-
+-static enum bdi_queue_status may_write_to_queue(struct backing_dev_info *bdi,
++static int may_write_to_queue(struct backing_dev_info *bdi,
+ 			      struct scan_control *sc)
+ {
+-	enum bdi_queue_status ret = QUEUEWRITE_DENIED;
+-
+ 	if (current->flags & PF_SWAPWRITE)
+-		return QUEUEWRITE_ALLOWED;
++		return 1;
+ 	if (!bdi_write_congested(bdi))
+-		return QUEUEWRITE_ALLOWED;
+-	else
+-		ret = QUEUEWRITE_CONGESTED;
++		return 1;
+ 	if (bdi == current->backing_dev_info)
+-		return QUEUEWRITE_ALLOWED;
++		return 1;
+ 
+ 	/* lumpy reclaim for hugepage often need a lot of write */
+ 	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
+-		return QUEUEWRITE_ALLOWED;
+-	return ret;
++		return 1;
++	return 0;
+ }
+ 
+ /*
+@@ -362,8 +352,6 @@ static void handle_write_error(struct ad
+ typedef enum {
+ 	/* failed to write page out, page is locked */
+ 	PAGE_KEEP,
+-	/* failed to write page out due to congestion, page is locked */
+-	PAGE_KEEP_CONGESTED,
+ 	/* move page to the active list, page is locked */
+ 	PAGE_ACTIVATE,
+ 	/* page has been sent to the disk successfully, page is unlocked */
+@@ -413,15 +401,8 @@ static pageout_t pageout(struct page *pa
+ 	}
+ 	if (mapping->a_ops->writepage == NULL)
+ 		return PAGE_ACTIVATE;
+-	switch (may_write_to_queue(mapping->backing_dev_info, sc)) {
+-	case QUEUEWRITE_CONGESTED:
+-		return PAGE_KEEP_CONGESTED;
+-	case QUEUEWRITE_DENIED:
+-		disable_lumpy_reclaim_mode(sc);
++	if (!may_write_to_queue(mapping->backing_dev_info, sc))
+ 		return PAGE_KEEP;
+-	case QUEUEWRITE_ALLOWED:
+-		;
+-	}
+ 
+ 	if (clear_page_dirty_for_io(page)) {
+ 		int res;
+@@ -814,9 +795,8 @@ static unsigned long shrink_page_list(st
+ 
+ 			/* Page is dirty, try to write it out here */
+ 			switch (pageout(page, mapping, sc)) {
+-			case PAGE_KEEP_CONGESTED:
+-				nr_congested++;
+ 			case PAGE_KEEP:
++				nr_congested++;
+ 				goto keep_locked;
+ 			case PAGE_ACTIVATE:
+ 				goto activate_locked;
+@@ -2017,24 +1997,11 @@ static unsigned long do_try_to_free_page
+ 		/* Take a nap, wait for some writeback to complete */
+ 		if (!sc->hibernation_mode && sc->nr_scanned &&
+ 		    priority < DEF_PRIORITY - 2) {
+-			struct zone *active_zone = NULL;
+-			unsigned long max_writeback = 0;
+-			for_each_zone_zonelist(zone, z, zonelist,
+-					gfp_zone(sc->gfp_mask)) {
+-				unsigned long writeback;
+-
+-				/* Initialise for first zone */
+-				if (active_zone == NULL)
+-					active_zone = zone;
+-
+-				writeback = zone_page_state(zone, NR_WRITEBACK);
+-				if (writeback > max_writeback) {
+-					max_writeback = writeback;
+-					active_zone = zone;
+-				}
+-			}
++			struct zone *preferred_zone;
+ 
+-			wait_iff_congested(active_zone, BLK_RW_ASYNC, HZ/10);
++			first_zones_zonelist(zonelist, gfp_zone(sc->gfp_mask),
++							NULL, &preferred_zone);
++			wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/10);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from knikanth@suse.de are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-linux-next.patch
-proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping.patch
-proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping-doc.patch
-documentation-filesystems-proctxt-improve-smaps-field-documentation.pat=
-ch
-mm-smaps-export-mlock-information.patch
+include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch
+mm-compaction-fix-compactpagefailed-counting.patch
+memory-hotplug-fix-notifiers-return-value-check.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code.patch
+mm-fix-typo-in-mmh-when-node_not_in_page_flags.patch
+tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
+writeback-account-for-time-spent-congestion_waited.patch
+vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
+vmscan-narrow-the-scenarios-lumpy-reclaim-uses-synchrounous-reclaim.patch
+vmscan-remove-dead-code-in-shrink_inactive_list.patch
+vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
