@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-vt1636-cleanup.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:37:09 -0700
-Message-ID: <201009212237.o8LMb9V8006790@imap1.linux-foundation.org>
+Subject: + viafb-add-interface-for-output-device-configuration.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:37:03 -0700
+Message-ID: <201009212237.o8LMb3xB006775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749Ab0IUWho (ORCPT
+	by vger.kernel.org with ESMTP id S1752257Ab0IUWhm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:37:44 -0400
+	Tue, 21 Sep 2010 18:37:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, corbet@lwn.net
+Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, akpm@linux-foundation.org, corbet@lwn.net
 
 
 The patch titled
-     viafb: vt1636 cleanup
+     viafb: add interface for output device configuration
 has been added to the -mm tree.  Its filename is
-     viafb-vt1636-cleanup.patch
+     viafb-add-interface-for-output-device-configuration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,253 +34,381 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: vt1636 cleanup
+Subject: viafb: add interface for output device configuration
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Merge tbl1636 into vt1636 and clean it up as the data was only used there
-anyway.  No runtime changes are expected.
+Extend the proc entry to contain a possibility to view and change the
+output devices for each IGA.
+
+This is useful for debugging output problems as it provides a reliable way
+to query which low level devices are active after VIAs output device
+configuration nightmare happended.
+
+It's also well suitable for daily use as one can change the output
+configuration on the fly for example to connect a projector.  At the
+moment it's still unstable.  The reason is that we have to handle a bunch
+of undocumented output devices (those without a proper name) and that this
+patch is the first step to collect and verify the needed information. 
+Basically the only configuration change that is expected to work at the
+moment is switching output devices between IGA1 and IGA2.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
 Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/Makefile  |    2 
- drivers/video/via/global.h  |    1 
- drivers/video/via/tbl1636.c |   71 ----------------------------------
- drivers/video/via/tbl1636.h |   34 ----------------
- drivers/video/via/vt1636.c  |   65 +++++++++++++++++++------------
- 5 files changed, 42 insertions(+), 131 deletions(-)
+ drivers/video/via/hw.c       |   53 +++++++++
+ drivers/video/via/hw.h       |   10 +
+ drivers/video/via/viafbdev.c |  175 ++++++++++++++++++++++++++++-----
+ drivers/video/via/viafbdev.h |    2 
+ 4 files changed, 216 insertions(+), 24 deletions(-)
 
-diff -puN drivers/video/via/Makefile~viafb-vt1636-cleanup drivers/video/via/Makefile
---- a/drivers/video/via/Makefile~viafb-vt1636-cleanup
-+++ a/drivers/video/via/Makefile
-@@ -5,5 +5,5 @@
- obj-$(CONFIG_FB_VIA) += viafb.o
+diff -puN drivers/video/via/hw.c~viafb-add-interface-for-output-device-configuration drivers/video/via/hw.c
+--- a/drivers/video/via/hw.c~viafb-add-interface-for-output-device-configuration
++++ a/drivers/video/via/hw.c
+@@ -718,6 +718,16 @@ static struct rgbLUT palLUT_table[] = {
+ 								     0x00}
+ };
  
- viafb-y	:=viafbdev.o hw.o via_i2c.o dvi.o lcd.o ioctl.o accel.o \
--	via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o \
-+	via_utility.o vt1636.o global.o tblDPASetting.o viamode.o \
- 	via-core.o via-gpio.o via_modesetting.o
-diff -puN drivers/video/via/global.h~viafb-vt1636-cleanup drivers/video/via/global.h
---- a/drivers/video/via/global.h~viafb-vt1636-cleanup
-+++ a/drivers/video/via/global.h
-@@ -48,7 +48,6 @@
- #include "via_utility.h"
- #include "vt1636.h"
- #include "tblDPASetting.h"
--#include "tbl1636.h"
- 
- /* External struct*/
- 
-diff -puN drivers/video/via/tbl1636.c~viafb-vt1636-cleanup /dev/null
---- a/drivers/video/via/tbl1636.c
-+++ /dev/null
-@@ -1,71 +0,0 @@
--/*
-- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
-- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
--
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public
-- * License as published by the Free Software Foundation;
-- * either version 2, or (at your option) any later version.
--
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
-- * the implied warranty of MERCHANTABILITY or FITNESS FOR
-- * A PARTICULAR PURPOSE.See the GNU General Public License
-- * for more details.
--
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc.,
-- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-- */
--
--#include "global.h"
--struct IODATA COMMON_INIT_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	/* Set panel power sequence timing */
--	{0x10, 0xC0, 0x00},
--	/* T1: VDD on - Data on. Each increment is 1 ms. (50ms = 031h) */
--	{0x0B, 0xFF, 0x40},
--	/* T2: Data on - Backlight on. Each increment is 2 ms. (210ms = 068h) */
--	{0x0C, 0xFF, 0x31},
--	/* T3: Backlight off -Data off. Each increment is 2 ms. (210ms = 068h)*/
--	{0x0D, 0xFF, 0x31},
--	/* T4: Data off - VDD off. Each increment is 1 ms. (50ms = 031h) */
--	{0x0E, 0xFF, 0x68},
--	/* T5: VDD off - VDD on. Each increment is 100 ms. (500ms = 04h) */
--	{0x0F, 0xFF, 0x68},
--	/* LVDS output power up */
--	{0x09, 0xA0, 0xA0},
--	/* turn on back light */
--	{0x10, 0x33, 0x13}
--};
--
--struct IODATA DUAL_CHANNEL_ENABLE_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	{0x08, 0xF0, 0xE0}	/* Input Data Mode Select */
--};
--
--struct IODATA SINGLE_CHANNEL_ENABLE_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	{0x08, 0xF0, 0x00}	/* Input Data Mode Select */
--};
--
--struct IODATA DITHERING_ENABLE_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	{0x0A, 0x70, 0x50}
--};
--
--struct IODATA DITHERING_DISABLE_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	{0x0A, 0x70, 0x00}
--};
--
--struct IODATA VDD_ON_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	{0x10, 0x20, 0x20}
--};
--
--struct IODATA VDD_OFF_TBL_VT1636[] = {
--/*  Index, Mask, Value */
--	{0x10, 0x20, 0x00}
--};
-diff -puN drivers/video/via/tbl1636.h~viafb-vt1636-cleanup /dev/null
---- a/drivers/video/via/tbl1636.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/*
-- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
-- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
--
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public
-- * License as published by the Free Software Foundation;
-- * either version 2, or (at your option) any later version.
--
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
-- * the implied warranty of MERCHANTABILITY or FITNESS FOR
-- * A PARTICULAR PURPOSE.See the GNU General Public License
-- * for more details.
--
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc.,
-- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-- */
--
--#ifndef _TBL1636_H_
--#define _TBL1636_H_
--#include "hw.h"
--
--extern struct IODATA COMMON_INIT_TBL_VT1636[8];
--extern struct IODATA DUAL_CHANNEL_ENABLE_TBL_VT1636[1];
--extern struct IODATA SINGLE_CHANNEL_ENABLE_TBL_VT1636[1];
--extern struct IODATA DITHERING_ENABLE_TBL_VT1636[1];
--extern struct IODATA DITHERING_DISABLE_TBL_VT1636[1];
--extern struct IODATA VDD_ON_TBL_VT1636[1];
--extern struct IODATA VDD_OFF_TBL_VT1636[1];
--
--#endif /* _VIA_TBL1636_H_ */
-diff -puN drivers/video/via/vt1636.c~viafb-vt1636-cleanup drivers/video/via/vt1636.c
---- a/drivers/video/via/vt1636.c~viafb-vt1636-cleanup
-+++ a/drivers/video/via/vt1636.c
-@@ -23,6 +23,34 @@
- #include <linux/via_i2c.h>
- #include "global.h"
- 
-+static const struct IODATA common_init_data[] = {
-+/*  Index, Mask, Value */
-+	/* Set panel power sequence timing */
-+	{0x10, 0xC0, 0x00},
-+	/* T1: VDD on - Data on. Each increment is 1 ms. (50ms = 031h) */
-+	{0x0B, 0xFF, 0x40},
-+	/* T2: Data on - Backlight on. Each increment is 2 ms. (210ms = 068h) */
-+	{0x0C, 0xFF, 0x31},
-+	/* T3: Backlight off -Data off. Each increment is 2 ms. (210ms = 068h)*/
-+	{0x0D, 0xFF, 0x31},
-+	/* T4: Data off - VDD off. Each increment is 1 ms. (50ms = 031h) */
-+	{0x0E, 0xFF, 0x68},
-+	/* T5: VDD off - VDD on. Each increment is 100 ms. (500ms = 04h) */
-+	{0x0F, 0xFF, 0x68},
-+	/* LVDS output power up */
-+	{0x09, 0xA0, 0xA0},
-+	/* turn on back light */
-+	{0x10, 0x33, 0x13}
++static struct via_device_mapping device_mapping[] = {
++	{VIA_6C, "6C"},
++	{VIA_93, "93"},
++	{VIA_96, "96"},
++	{VIA_CRT, "CRT"},
++	{VIA_DVP1, "DVP1"},
++	{VIA_LVDS1, "LVDS1"},
++	{VIA_LVDS2, "LVDS2"}
 +};
 +
-+/* Index, Mask, Value */
-+static const struct IODATA dual_channel_enable_data = {0x08, 0xF0, 0xE0};
-+static const struct IODATA single_channel_enable_data = {0x08, 0xF0, 0x00};
-+static const struct IODATA dithering_enable_data = {0x0A, 0x70, 0x50};
-+static const struct IODATA dithering_disable_data = {0x0A, 0x70, 0x00};
-+static const struct IODATA vdd_on_data = {0x10, 0x20, 0x20};
-+static const struct IODATA vdd_off_data = {0x10, 0x20, 0x00};
+ static void load_fix_bit_crtc_reg(void);
+ static void __devinit init_gfx_chip_info(int chip_type);
+ static void __devinit init_tmds_chip_info(void);
+@@ -1026,6 +1036,49 @@ void via_set_source(u32 devices, u8 iga)
+ 		set_lvds2_source(iga);
+ }
+ 
++u32 via_parse_odev(char *input, char **end)
++{
++	char *ptr = input;
++	u32 odev = 0;
++	bool next = true;
++	int i, len;
 +
- u8 viafb_gpio_i2c_read_lvds(struct lvds_setting_information
- 	*plvds_setting_info, struct lvds_chip_information *plvds_chip_info,
- 	u8 index)
-@@ -55,52 +83,41 @@ void viafb_init_lvds_vt1636(struct lvds_
- 	int reg_num, i;
- 
- 	/* Common settings: */
--	reg_num = ARRAY_SIZE(COMMON_INIT_TBL_VT1636);
--
--	for (i = 0; i < reg_num; i++) {
-+	reg_num = ARRAY_SIZE(common_init_data);
-+	for (i = 0; i < reg_num; i++)
- 		viafb_gpio_i2c_write_mask_lvds(plvds_setting_info,
--					 plvds_chip_info,
--					 COMMON_INIT_TBL_VT1636[i]);
--	}
-+			plvds_chip_info, common_init_data[i]);
- 
- 	/* Input Data Mode Select */
--	if (plvds_setting_info->device_lcd_dualedge) {
-+	if (plvds_setting_info->device_lcd_dualedge)
- 		viafb_gpio_i2c_write_mask_lvds(plvds_setting_info,
--					 plvds_chip_info,
--					 DUAL_CHANNEL_ENABLE_TBL_VT1636[0]);
--	} else {
-+			plvds_chip_info, dual_channel_enable_data);
-+	else
- 		viafb_gpio_i2c_write_mask_lvds(plvds_setting_info,
--					 plvds_chip_info,
--					 SINGLE_CHANNEL_ENABLE_TBL_VT1636[0]);
--	}
-+			plvds_chip_info, single_channel_enable_data);
- 
--	if (plvds_setting_info->LCDDithering) {
-+	if (plvds_setting_info->LCDDithering)
- 		viafb_gpio_i2c_write_mask_lvds(plvds_setting_info,
--					 plvds_chip_info,
--					 DITHERING_ENABLE_TBL_VT1636[0]);
--	} else {
-+			plvds_chip_info, dithering_enable_data);
-+	else
- 		viafb_gpio_i2c_write_mask_lvds(plvds_setting_info,
--					 plvds_chip_info,
--					 DITHERING_DISABLE_TBL_VT1636[0]);
--	}
-+			plvds_chip_info, dithering_disable_data);
- }
- 
- void viafb_enable_lvds_vt1636(struct lvds_setting_information
- 			*plvds_setting_info,
- 			struct lvds_chip_information *plvds_chip_info)
++	while (next) {
++		next = false;
++		for (i = 0; i < ARRAY_SIZE(device_mapping); i++) {
++			len = strlen(device_mapping[i].name);
++			if (!strncmp(ptr, device_mapping[i].name, len)) {
++				odev |= device_mapping[i].device;
++				ptr += len;
++				if (*ptr == ',') {
++					ptr++;
++					next = true;
++				}
++			}
++		}
++	}
++
++	*end = ptr;
++	return odev;
++}
++
++void via_odev_to_seq(struct seq_file *m, u32 odev)
++{
++	int i, count = 0;
++
++	for (i = 0; i < ARRAY_SIZE(device_mapping); i++) {
++		if (odev & device_mapping[i].device) {
++			if (count > 0)
++				seq_putc(m, ',');
++
++			seq_puts(m, device_mapping[i].name);
++			count++;
++		}
++	}
++
++	seq_putc(m, '\n');
++}
++
+ static void load_fix_bit_crtc_reg(void)
  {
--
- 	viafb_gpio_i2c_write_mask_lvds(plvds_setting_info, plvds_chip_info,
--				 VDD_ON_TBL_VT1636[0]);
-+		vdd_on_data);
- }
+ 	/* always set to 1 */
+diff -puN drivers/video/via/hw.h~viafb-add-interface-for-output-device-configuration drivers/video/via/hw.h
+--- a/drivers/video/via/hw.h~viafb-add-interface-for-output-device-configuration
++++ a/drivers/video/via/hw.h
+@@ -22,6 +22,8 @@
+ #ifndef __HW_H__
+ #define __HW_H__
  
- void viafb_disable_lvds_vt1636(struct lvds_setting_information
- 			 *plvds_setting_info,
- 			 struct lvds_chip_information *plvds_chip_info)
++#include <linux/seq_file.h>
++
+ #include "viamode.h"
+ #include "global.h"
+ #include "via_modesetting.h"
+@@ -882,6 +884,11 @@ struct pci_device_id_info {
+ 	u32 chip_index;
+ };
+ 
++struct via_device_mapping {
++	u32 device;
++	const char *name;
++};
++
+ extern unsigned int viafb_second_virtual_xres;
+ extern int viafb_SAMM_ON;
+ extern int viafb_dual_fb;
+@@ -899,6 +906,9 @@ void viafb_load_reg(int timing_value, in
+ 	      int io_type);
+ void viafb_crt_disable(void);
+ void viafb_crt_enable(void);
++void via_set_source(u32 devices, u8 iga);
++u32 via_parse_odev(char *input, char **end);
++void via_odev_to_seq(struct seq_file *m, u32 odev);
+ void init_ad9389(void);
+ /* Access I/O Function */
+ void viafb_lock_crt(void);
+diff -puN drivers/video/via/viafbdev.c~viafb-add-interface-for-output-device-configuration drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-add-interface-for-output-device-configuration
++++ a/drivers/video/via/viafbdev.c
+@@ -1431,38 +1431,169 @@ static const struct file_operations viaf
+ 	.write		= viafb_vt1636_proc_write,
+ };
+ 
+-static void viafb_init_proc(struct proc_dir_entry **viafb_entry)
++#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
++
++static ssize_t odev_update(const char __user *buffer, size_t count, u32 *odev)
  {
+-	*viafb_entry = proc_mkdir("viafb", NULL);
+-	if (*viafb_entry) {
+-		proc_create("dvp0", 0, *viafb_entry, &viafb_dvp0_proc_fops);
+-		proc_create("dvp1", 0, *viafb_entry, &viafb_dvp1_proc_fops);
+-		proc_create("dfph", 0, *viafb_entry, &viafb_dfph_proc_fops);
+-		proc_create("dfpl", 0, *viafb_entry, &viafb_dfpl_proc_fops);
+-		if (VT1636_LVDS == viaparinfo->chip_info->lvds_chip_info.
+-			lvds_chip_name || VT1636_LVDS ==
+-		    viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name) {
+-			proc_create("vt1636", 0, *viafb_entry, &viafb_vt1636_proc_fops);
+-		}
++	char buf[64], *ptr = buf;
++	u32 devices;
++	bool add, sub;
++
++	if (count < 1 || count > 63)
++		return -EINVAL;
++	if (copy_from_user(&buf[0], buffer, count))
++		return -EFAULT;
++	buf[count] = '\0';
++	add = buf[0] == '+';
++	sub = buf[0] == '-';
++	if (add || sub)
++		ptr++;
++	devices = via_parse_odev(ptr, &ptr);
++	if (*ptr == '\n')
++		ptr++;
++	if (*ptr != 0)
++		return -EINVAL;
++	if (add)
++		*odev |= devices;
++	else if (sub)
++		*odev &= ~devices;
++	else
++		*odev = devices;
++	return count;
++}
++
++static int viafb_iga1_odev_proc_show(struct seq_file *m, void *v)
++{
++	via_odev_to_seq(m, viaparinfo->shared->iga1_devices);
++	return 0;
++}
++
++static int viafb_iga1_odev_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, viafb_iga1_odev_proc_show, NULL);
++}
++
++static ssize_t viafb_iga1_odev_proc_write(struct file *file,
++	const char __user *buffer, size_t count, loff_t *pos)
++{
++	u32 dev_on, dev_off, dev_old, dev_new;
++	ssize_t res;
++
++	dev_old = dev_new = viaparinfo->shared->iga1_devices;
++	res = odev_update(buffer, count, &dev_new);
++	if (res != count)
++		return res;
++	dev_off = dev_old & ~dev_new;
++	dev_on = dev_new & ~dev_old;
++	viaparinfo->shared->iga1_devices = dev_new;
++	viaparinfo->shared->iga2_devices &= ~dev_new;
++	via_set_source(dev_new, IGA1);
++	return res;
++}
++
++static const struct file_operations viafb_iga1_odev_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= viafb_iga1_odev_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= viafb_iga1_odev_proc_write,
++};
++
++static int viafb_iga2_odev_proc_show(struct seq_file *m, void *v)
++{
++	via_odev_to_seq(m, viaparinfo->shared->iga2_devices);
++	return 0;
++}
++
++static int viafb_iga2_odev_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, viafb_iga2_odev_proc_show, NULL);
++}
++
++static ssize_t viafb_iga2_odev_proc_write(struct file *file,
++	const char __user *buffer, size_t count, loff_t *pos)
++{
++	u32 dev_on, dev_off, dev_old, dev_new;
++	ssize_t res;
++
++	dev_old = dev_new = viaparinfo->shared->iga2_devices;
++	res = odev_update(buffer, count, &dev_new);
++	if (res != count)
++		return res;
++	dev_off = dev_old & ~dev_new;
++	dev_on = dev_new & ~dev_old;
++	viaparinfo->shared->iga2_devices = dev_new;
++	viaparinfo->shared->iga1_devices &= ~dev_new;
++	via_set_source(dev_new, IGA2);
++	return res;
++}
++
++static const struct file_operations viafb_iga2_odev_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= viafb_iga2_odev_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= viafb_iga2_odev_proc_write,
++};
++
++#define IS_VT1636(lvds_chip)	((lvds_chip).lvds_chip_name == VT1636_LVDS)
++static void viafb_init_proc(struct viafb_shared *shared)
++{
++	struct proc_dir_entry *iga1_entry, *iga2_entry,
++		*viafb_entry = proc_mkdir("viafb", NULL);
+ 
++	shared->proc_entry = viafb_entry;
++	if (viafb_entry) {
++#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
++		proc_create("dvp0", 0, viafb_entry, &viafb_dvp0_proc_fops);
++		proc_create("dvp1", 0, viafb_entry, &viafb_dvp1_proc_fops);
++		proc_create("dfph", 0, viafb_entry, &viafb_dfph_proc_fops);
++		proc_create("dfpl", 0, viafb_entry, &viafb_dfpl_proc_fops);
++		if (IS_VT1636(shared->chip_info.lvds_chip_info)
++			|| IS_VT1636(shared->chip_info.lvds_chip_info2))
++			proc_create("vt1636", 0, viafb_entry,
++				&viafb_vt1636_proc_fops);
++#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
++
++		iga1_entry = proc_mkdir("iga1", viafb_entry);
++		shared->iga1_proc_entry = iga1_entry;
++		proc_create("output_devices", 0, iga1_entry,
++			&viafb_iga1_odev_proc_fops);
++		iga2_entry = proc_mkdir("iga2", viafb_entry);
++		shared->iga2_proc_entry = iga2_entry;
++		proc_create("output_devices", 0, iga2_entry,
++			&viafb_iga2_odev_proc_fops);
+ 	}
+ }
+-static void viafb_remove_proc(struct proc_dir_entry *viafb_entry)
++static void viafb_remove_proc(struct viafb_shared *shared)
+ {
+-	struct chip_information *chip_info = &viaparinfo->shared->chip_info;
++	struct proc_dir_entry *viafb_entry = shared->proc_entry,
++		*iga1_entry = shared->iga1_proc_entry,
++		*iga2_entry = shared->iga2_proc_entry;
++
++	if (!viafb_entry)
++		return;
++
++	remove_proc_entry("output_devices", iga2_entry);
++	remove_proc_entry("iga2", viafb_entry);
++	remove_proc_entry("output_devices", iga1_entry);
++	remove_proc_entry("iga1", viafb_entry);
+ 
++#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
+ 	remove_proc_entry("dvp0", viafb_entry);/* parent dir */
+ 	remove_proc_entry("dvp1", viafb_entry);
+ 	remove_proc_entry("dfph", viafb_entry);
+ 	remove_proc_entry("dfpl", viafb_entry);
+-	if (chip_info->lvds_chip_info.lvds_chip_name == VT1636_LVDS
+-		|| chip_info->lvds_chip_info2.lvds_chip_name == VT1636_LVDS)
++	if (IS_VT1636(shared->chip_info.lvds_chip_info)
++		|| IS_VT1636(shared->chip_info.lvds_chip_info2))
+ 		remove_proc_entry("vt1636", viafb_entry);
++#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
+ 
+ 	remove_proc_entry("viafb", NULL);
+ }
+-
+-#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
++#undef IS_VT1636
+ 
+ static int parse_mode(const char *str, u32 *xres, u32 *yres)
+ {
+@@ -1671,9 +1802,7 @@ int __devinit via_fb_pci_probe(struct vi
+ 		  viafbinfo->node, viafbinfo->fix.id, default_var.xres,
+ 		  default_var.yres, default_var.bits_per_pixel);
+ 
+-#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
+-	viafb_init_proc(&viaparinfo->shared->proc_entry);
+-#endif
++	viafb_init_proc(viaparinfo->shared);
+ 	viafb_init_dac(IGA2);
+ 	return 0;
+ 
+@@ -1700,9 +1829,7 @@ void __devexit via_fb_pci_remove(struct 
+ 	unregister_framebuffer(viafbinfo);
+ 	if (viafb_dual_fb)
+ 		unregister_framebuffer(viafbinfo1);
+-#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
+-	viafb_remove_proc(viaparinfo->shared->proc_entry);
+-#endif
++	viafb_remove_proc(viaparinfo->shared);
+ 	framebuffer_release(viafbinfo);
+ 	if (viafb_dual_fb)
+ 		framebuffer_release(viafbinfo1);
+diff -puN drivers/video/via/viafbdev.h~viafb-add-interface-for-output-device-configuration drivers/video/via/viafbdev.h
+--- a/drivers/video/via/viafbdev.h~viafb-add-interface-for-output-device-configuration
++++ a/drivers/video/via/viafbdev.h
+@@ -44,6 +44,8 @@ struct viafb_shared {
+ 	u32 iga2_devices;
+ 
+ 	struct proc_dir_entry *proc_entry;	/*viafb proc entry */
++	struct proc_dir_entry *iga1_proc_entry;
++	struct proc_dir_entry *iga2_proc_entry;
+ 	struct viafb_dev *vdev;			/* Global dev info */
+ 
+ 	/* All the information will be needed to set engine */
+_
+
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+
+linux-next.patch
+viafb-add-interface-for-output-device-configuration.patch
+viafb-limit-lcd-code-impact.patch
+viafb-introduce-per-output-device-power-management.patch
+viafb-vt1636-cleanup.patch
+viafb-fix-i2c_transfer-error-handling.patch
+viafb-enable-i2c-for-crt.patch
+viafb-reduce-i2c-timeout-and-delay.patch
+viafb-add-function-to-change-sync-polarity-per-device.patch
+viafb-set-sync-polarity-for-all-output-devices.patch
+viafb-add-a-mapping-of-supported-output-devices.patch
+viafb-rename-output-devices.patch
+viafb-add-documentation-for-proc-interface.patch
+
