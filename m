@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch added to -mm tree
-Date: Tue, 21 Sep 2010 16:14:04 -0700
-Message-ID: <201009212314.o8LNE4xN008536@imap1.linux-foundation.org>
+Subject: + fbmem-fix-fb_read-fb_write-unaligned-accesses.patch added to -mm tree
+Date: Tue, 21 Sep 2010 16:19:56 -0700
+Message-ID: <201009212319.o8LNJuqB008797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754092Ab0IUXOu (ORCPT
+	by vger.kernel.org with ESMTP id S1752394Ab0IUXU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 19:14:50 -0400
+	Tue, 21 Sep 2010 19:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, namhyung@gmail.com
+Cc: james@albanarts.com, FlorianSchandinat@gmx.de, davem@davemloft.net
 
 
 The patch titled
-     printk-declare-printk_ratelimit_state-in-ratelimith-fix
+     fbmem: fix fb_read, fb_write unaligned accesses.
 has been added to the -mm tree.  Its filename is
-     printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+     fbmem-fix-fb_read-fb_write-unaligned-accesses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,253 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-declare-printk_ratelimit_state-in-ratelimith-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbmem: fix fb_read, fb_write unaligned accesses.
+From: James Hogan <james@albanarts.com>
 
-remove unneeded ifdef
+fb_{read,write} access the framebuffer using lots of fb_{read,write}l's
+but don't check that the file position is aligned which can cause problems
+on some architectures which do not support unaligned accesses.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Namhyung Kim <namhyung@gmail.com>
+Since the operations are essentially memcpy_{from,to}io, new
+fb_memcpy_{from,to}fb macros have been defined and these are used instead.
+
+For Sparc, fb_{read,write} macros use sbus_{read,write}, so this defines
+new sbus_memcpy_{from,to}io functions the same as memcpy_{from,to}io but
+using sbus_{read,write}b instead of {read,write}b.
+
+Signed-off-by: James Hogan <james@albanarts.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ratelimit.h |    2 --
- 1 file changed, 2 deletions(-)
+ arch/sparc/include/asm/io_32.h |   31 ++++++++++++++++++++
+ arch/sparc/include/asm/io_64.h |   31 ++++++++++++++++++++
+ drivers/video/fbmem.c          |   46 +++++++++----------------------
+ include/linux/fb.h             |    6 ++++
+ 4 files changed, 82 insertions(+), 32 deletions(-)
 
-diff -puN include/linux/ratelimit.h~printk-declare-printk_ratelimit_state-in-ratelimith-fix include/linux/ratelimit.h
---- a/include/linux/ratelimit.h~printk-declare-printk_ratelimit_state-in-ratelimith-fix
-+++ a/include/linux/ratelimit.h
-@@ -36,9 +36,7 @@ static inline void ratelimit_state_init(
- 	rs->begin = 0;
- }
+diff -puN arch/sparc/include/asm/io_32.h~fbmem-fix-fb_read-fb_write-unaligned-accesses arch/sparc/include/asm/io_32.h
+--- a/arch/sparc/include/asm/io_32.h~fbmem-fix-fb_read-fb_write-unaligned-accesses
++++ a/arch/sparc/include/asm/io_32.h
+@@ -208,6 +208,21 @@ _memset_io(volatile void __iomem *dst, i
+ #define memset_io(d,c,sz)	_memset_io(d,c,sz)
  
--#ifdef CONFIG_PRINTK
- extern struct ratelimit_state printk_ratelimit_state;
--#endif
+ static inline void
++_sbus_memcpy_fromio(void *dst, const volatile void __iomem *src,
++		    __kernel_size_t n)
++{
++	char *d = dst;
++
++	while (n--) {
++		char tmp = sbus_readb(src);
++		*d++ = tmp;
++		src++;
++	}
++}
++
++#define sbus_memcpy_fromio(d, s, sz)	_sbus_memcpy_fromio(d, s, sz)
++
++static inline void
+ _memcpy_fromio(void *dst, const volatile void __iomem *src, __kernel_size_t n)
+ {
+ 	char *d = dst;
+@@ -222,6 +237,22 @@ _memcpy_fromio(void *dst, const volatile
+ #define memcpy_fromio(d,s,sz)	_memcpy_fromio(d,s,sz)
  
- extern int ___ratelimit(struct ratelimit_state *rs, const char *func);
- #define __ratelimit(state) ___ratelimit(state, __func__)
+ static inline void
++_sbus_memcpy_toio(volatile void __iomem *dst, const void *src,
++		  __kernel_size_t n)
++{
++	const char *s = src;
++	volatile void __iomem *d = dst;
++
++	while (n--) {
++		char tmp = *s++;
++		sbus_writeb(tmp, d);
++		d++;
++	}
++}
++
++#define sbus_memcpy_toio(d, s, sz)	_sbus_memcpy_toio(d, s, sz)
++
++static inline void
+ _memcpy_toio(volatile void __iomem *dst, const void *src, __kernel_size_t n)
+ {
+ 	const char *s = src;
+diff -puN arch/sparc/include/asm/io_64.h~fbmem-fix-fb_read-fb_write-unaligned-accesses arch/sparc/include/asm/io_64.h
+--- a/arch/sparc/include/asm/io_64.h~fbmem-fix-fb_read-fb_write-unaligned-accesses
++++ a/arch/sparc/include/asm/io_64.h
+@@ -419,6 +419,21 @@ _memset_io(volatile void __iomem *dst, i
+ #define memset_io(d,c,sz)	_memset_io(d,c,sz)
+ 
+ static inline void
++_sbus_memcpy_fromio(void *dst, const volatile void __iomem *src,
++		    __kernel_size_t n)
++{
++	char *d = dst;
++
++	while (n--) {
++		char tmp = sbus_readb(src);
++		*d++ = tmp;
++		src++;
++	}
++}
++
++#define sbus_memcpy_fromio(d, s, sz)	_sbus_memcpy_fromio(d, s, sz)
++
++static inline void
+ _memcpy_fromio(void *dst, const volatile void __iomem *src, __kernel_size_t n)
+ {
+ 	char *d = dst;
+@@ -433,6 +448,22 @@ _memcpy_fromio(void *dst, const volatile
+ #define memcpy_fromio(d,s,sz)	_memcpy_fromio(d,s,sz)
+ 
+ static inline void
++_sbus_memcpy_toio(volatile void __iomem *dst, const void *src,
++		  __kernel_size_t n)
++{
++	const char *s = src;
++	volatile void __iomem *d = dst;
++
++	while (n--) {
++		char tmp = *s++;
++		sbus_writeb(tmp, d);
++		d++;
++	}
++}
++
++#define sbus_memcpy_toio(d, s, sz)	_sbus_memcpy_toio(d, s, sz)
++
++static inline void
+ _memcpy_toio(volatile void __iomem *dst, const void *src, __kernel_size_t n)
+ {
+ 	const char *s = src;
+diff -puN drivers/video/fbmem.c~fbmem-fix-fb_read-fb_write-unaligned-accesses drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbmem-fix-fb_read-fb_write-unaligned-accesses
++++ a/drivers/video/fbmem.c
+@@ -697,9 +697,9 @@ fb_read(struct file *file, char __user *
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	int fbidx = iminor(inode);
+ 	struct fb_info *info = registered_fb[fbidx];
+-	u32 *buffer, *dst;
+-	u32 __iomem *src;
+-	int c, i, cnt = 0, err = 0;
++	u8 *buffer, *dst;
++	u8 __iomem *src;
++	int c, cnt = 0, err = 0;
+ 	unsigned long total_size;
+ 
+ 	if (!info || ! info->screen_base)
+@@ -730,7 +730,7 @@ fb_read(struct file *file, char __user *
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
+-	src = (u32 __iomem *) (info->screen_base + p);
++	src = (u8 __iomem *) (info->screen_base + p);
+ 
+ 	if (info->fbops->fb_sync)
+ 		info->fbops->fb_sync(info);
+@@ -738,17 +738,9 @@ fb_read(struct file *file, char __user *
+ 	while (count) {
+ 		c  = (count > PAGE_SIZE) ? PAGE_SIZE : count;
+ 		dst = buffer;
+-		for (i = c >> 2; i--; )
+-			*dst++ = fb_readl(src++);
+-		if (c & 3) {
+-			u8 *dst8 = (u8 *) dst;
+-			u8 __iomem *src8 = (u8 __iomem *) src;
+-
+-			for (i = c & 3; i--;)
+-				*dst8++ = fb_readb(src8++);
+-
+-			src = (u32 __iomem *) src8;
+-		}
++		fb_memcpy_fromfb(dst, src, c);
++		dst += c;
++		src += c;
+ 
+ 		if (copy_to_user(buf, buffer, c)) {
+ 			err = -EFAULT;
+@@ -772,9 +764,9 @@ fb_write(struct file *file, const char _
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	int fbidx = iminor(inode);
+ 	struct fb_info *info = registered_fb[fbidx];
+-	u32 *buffer, *src;
+-	u32 __iomem *dst;
+-	int c, i, cnt = 0, err = 0;
++	u8 *buffer, *src;
++	u8 __iomem *dst;
++	int c, cnt = 0, err = 0;
+ 	unsigned long total_size;
+ 
+ 	if (!info || !info->screen_base)
+@@ -811,7 +803,7 @@ fb_write(struct file *file, const char _
+ 	if (!buffer)
+ 		return -ENOMEM;
+ 
+-	dst = (u32 __iomem *) (info->screen_base + p);
++	dst = (u8 __iomem *) (info->screen_base + p);
+ 
+ 	if (info->fbops->fb_sync)
+ 		info->fbops->fb_sync(info);
+@@ -825,19 +817,9 @@ fb_write(struct file *file, const char _
+ 			break;
+ 		}
+ 
+-		for (i = c >> 2; i--; )
+-			fb_writel(*src++, dst++);
+-
+-		if (c & 3) {
+-			u8 *src8 = (u8 *) src;
+-			u8 __iomem *dst8 = (u8 __iomem *) dst;
+-
+-			for (i = c & 3; i--; )
+-				fb_writeb(*src8++, dst8++);
+-
+-			dst = (u32 __iomem *) dst8;
+-		}
+-
++		fb_memcpy_tofb(dst, src, c);
++		dst += c;
++		src += c;
+ 		*ppos += c;
+ 		buf += c;
+ 		cnt += c;
+diff -puN include/linux/fb.h~fbmem-fix-fb_read-fb_write-unaligned-accesses include/linux/fb.h
+--- a/include/linux/fb.h~fbmem-fix-fb_read-fb_write-unaligned-accesses
++++ a/include/linux/fb.h
+@@ -931,6 +931,8 @@ static inline struct apertures_struct *a
+ #define fb_writel sbus_writel
+ #define fb_writeq sbus_writeq
+ #define fb_memset sbus_memset_io
++#define fb_memcpy_fromfb sbus_memcpy_fromio
++#define fb_memcpy_tofb sbus_memcpy_toio
+ 
+ #elif defined(__i386__) || defined(__alpha__) || defined(__x86_64__) || defined(__hppa__) || defined(__sh__) || defined(__powerpc__) || defined(__avr32__) || defined(__bfin__)
+ 
+@@ -943,6 +945,8 @@ static inline struct apertures_struct *a
+ #define fb_writel __raw_writel
+ #define fb_writeq __raw_writeq
+ #define fb_memset memset_io
++#define fb_memcpy_fromfb memcpy_fromio
++#define fb_memcpy_tofb memcpy_toio
+ 
+ #else
+ 
+@@ -955,6 +959,8 @@ static inline struct apertures_struct *a
+ #define fb_writel(b,addr) (*(volatile u32 *) (addr) = (b))
+ #define fb_writeq(b,addr) (*(volatile u64 *) (addr) = (b))
+ #define fb_memset memset
++#define fb_memcpy_fromfb memcpy
++#define fb_memcpy_tofb memcpy
+ 
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from james@albanarts.com are
 
-linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
-mm-vmap-area-cache.patch
-drivers-pci-intel-iommuc-fix-build-with-older-gccs.patch
-acpi-apei-fix-erst-move_data-instruction-implementation.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-serial-add-sc16is7x2-driver-update-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-viafb-add-interface-for-output-device-configuration.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+fbmem-ix-whitespace.patch
+fbmem-fix-fb_read-fb_write-unaligned-accesses.patch
 
