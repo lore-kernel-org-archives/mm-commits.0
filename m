@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-reduce-i2c-timeout-and-delay.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:37:15 -0700
-Message-ID: <201009212237.o8LMbFI7006801@imap1.linux-foundation.org>
+Subject: + viafb-enable-i2c-for-crt.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:37:13 -0700
+Message-ID: <201009212237.o8LMbDg3006798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752257Ab0IUWht (ORCPT
+	by vger.kernel.org with ESMTP id S1752872Ab0IUWht (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 21 Sep 2010 18:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, corbet@lwn.net
 
 
 The patch titled
-     viafb: reduce I2C timeout and delay
+     viafb: enable I2C for CRT
 has been added to the -mm tree.  Its filename is
-     viafb-reduce-i2c-timeout-and-delay.patch
+     viafb-enable-i2c-for-crt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: reduce I2C timeout and delay
+Subject: viafb: enable I2C for CRT
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Reduce the value for I2C timeout and udelay.
-
-The udelay was reduced to 10 (old: 40) which is still very high as for
-standard-mode I2C even 5 should work.  This gives a speedup of factor 4
-when talking to I2C devices.
-
-The timeout was reduced to 2 (old: 20) which is taken from the radeon
-driver so it should work as well.  This gives a speedup of factor 10 when
-detecting that there is no I2C device we want to talk to.  This causes a
-huge improvement of device initialization time.
+Enbale the I2C port to talk with the CRT.  This allows adding EDID reading
+and parsing capability for CRTs.  Just a small preparation, no notable
+changes in user experience yet.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Joseph Chan <JosephChan@via.com.tw>
@@ -54,23 +47,21 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/via_i2c.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/via/via-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/via_i2c.c~viafb-reduce-i2c-timeout-and-delay drivers/video/via/via_i2c.c
---- a/drivers/video/via/via_i2c.c~viafb-reduce-i2c-timeout-and-delay
-+++ a/drivers/video/via/via_i2c.c
-@@ -202,8 +202,8 @@ static int create_i2c_bus(struct i2c_ada
- 	algo->setscl = via_i2c_setscl;
- 	algo->getsda = via_i2c_getsda;
- 	algo->getscl = via_i2c_getscl;
--	algo->udelay = 40;
--	algo->timeout = 20;
-+	algo->udelay = 10;
-+	algo->timeout = 2;
- 	algo->data = adap_cfg;
- 
- 	sprintf(adapter->name, "viafb i2c io_port idx 0x%02x",
+diff -puN drivers/video/via/via-core.c~viafb-enable-i2c-for-crt drivers/video/via/via-core.c
+--- a/drivers/video/via/via-core.c~viafb-enable-i2c-for-crt
++++ a/drivers/video/via/via-core.c
+@@ -20,7 +20,7 @@
+  * The default port config.
+  */
+ static struct via_port_cfg adap_configs[] = {
+-	[VIA_PORT_26]	= { VIA_PORT_I2C,  VIA_MODE_OFF, VIASR, 0x26 },
++	[VIA_PORT_26]	= { VIA_PORT_I2C,  VIA_MODE_I2C, VIASR, 0x26 },
+ 	[VIA_PORT_31]	= { VIA_PORT_I2C,  VIA_MODE_I2C, VIASR, 0x31 },
+ 	[VIA_PORT_25]	= { VIA_PORT_GPIO, VIA_MODE_GPIO, VIASR, 0x25 },
+ 	[VIA_PORT_2C]	= { VIA_PORT_GPIO, VIA_MODE_I2C, VIASR, 0x2c },
 _
 
 Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
