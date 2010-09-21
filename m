@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-add-interface-for-output-device-configuration.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:37:03 -0700
-Message-ID: <201009212237.o8LMb3xB006775@imap1.linux-foundation.org>
+Subject: + viafb-introduce-per-output-device-power-management.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:37:07 -0700
+Message-ID: <201009212237.o8LMb7RR006782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752257Ab0IUWhm (ORCPT
+	by vger.kernel.org with ESMTP id S1751749Ab0IUWhn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:37:42 -0400
+	Tue, 21 Sep 2010 18:37:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, akpm@linux-foundation.org, corbet@lwn.net
+Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, corbet@lwn.net
 
 
 The patch titled
-     viafb: add interface for output device configuration
+     viafb: introduce per output device power management
 has been added to the -mm tree.  Its filename is
-     viafb-add-interface-for-output-device-configuration.patch
+     viafb-introduce-per-output-device-power-management.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,381 +34,477 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: add interface for output device configuration
+Subject: viafb: introduce per output device power management
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Extend the proc entry to contain a possibility to view and change the
-output devices for each IGA.
-
-This is useful for debugging output problems as it provides a reliable way
-to query which low level devices are active after VIAs output device
-configuration nightmare happended.
-
-It's also well suitable for daily use as one can change the output
-configuration on the fly for example to connect a projector.  At the
-moment it's still unstable.  The reason is that we have to handle a bunch
-of undocumented output devices (those without a proper name) and that this
-patch is the first step to collect and verify the needed information. 
-Basically the only configuration change that is expected to work at the
-moment is switching output devices between IGA1 and IGA2.
+Move common parts of dvi.c, lcd.c and vt1636.c to hw.c to start a per
+output device power management.  There should be no runtime changes aside
+that this patch enables the proc interface to enable/disable devices when
+needed which greatly increases the chances that changes to the output
+device configuration will work.  However the power management is not yet
+complete so it might fail on some configurations.  As this area is quite
+complex and touches undocumented things there is a slight chance of
+regressions.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
 Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/hw.c       |   53 +++++++++
- drivers/video/via/hw.h       |   10 +
- drivers/video/via/viafbdev.c |  175 ++++++++++++++++++++++++++++-----
- drivers/video/via/viafbdev.h |    2 
- 4 files changed, 216 insertions(+), 24 deletions(-)
+ drivers/video/via/dvi.c      |   25 ------
+ drivers/video/via/hw.c       |  132 +++++++++++++++++++++++++++++----
+ drivers/video/via/hw.h       |    9 +-
+ drivers/video/via/lcd.c      |   10 --
+ drivers/video/via/viafbdev.c |   16 ++--
+ drivers/video/via/vt1636.c   |   56 --------------
+ 6 files changed, 137 insertions(+), 111 deletions(-)
 
-diff -puN drivers/video/via/hw.c~viafb-add-interface-for-output-device-configuration drivers/video/via/hw.c
---- a/drivers/video/via/hw.c~viafb-add-interface-for-output-device-configuration
-+++ a/drivers/video/via/hw.c
-@@ -718,6 +718,16 @@ static struct rgbLUT palLUT_table[] = {
- 								     0x00}
- };
+diff -puN drivers/video/via/dvi.c~viafb-introduce-per-output-device-power-management drivers/video/via/dvi.c
+--- a/drivers/video/via/dvi.c~viafb-introduce-per-output-device-power-management
++++ a/drivers/video/via/dvi.c
+@@ -470,26 +470,6 @@ static void __devinit dvi_get_panel_size
+ void viafb_dvi_disable(void)
+ {
+ 	if (viaparinfo->chip_info->
+-		tmds_chip_info.output_interface == INTERFACE_DVP0)
+-		viafb_write_reg(SR1E, VIASR,
+-		viafb_read_reg(VIASR, SR1E) & (~0xC0));
+-
+-	if (viaparinfo->chip_info->
+-		tmds_chip_info.output_interface == INTERFACE_DVP1)
+-		viafb_write_reg(SR1E, VIASR,
+-		viafb_read_reg(VIASR, SR1E) & (~0x30));
+-
+-	if (viaparinfo->chip_info->
+-		tmds_chip_info.output_interface == INTERFACE_DFP_HIGH)
+-		viafb_write_reg(SR2A, VIASR,
+-		viafb_read_reg(VIASR, SR2A) & (~0x0C));
+-
+-	if (viaparinfo->chip_info->
+-		tmds_chip_info.output_interface == INTERFACE_DFP_LOW)
+-		viafb_write_reg(SR2A, VIASR,
+-		viafb_read_reg(VIASR, SR2A) & (~0x03));
+-
+-	if (viaparinfo->chip_info->
+ 		tmds_chip_info.output_interface == INTERFACE_TMDS)
+ 		/* Turn off TMDS power. */
+ 		viafb_write_reg(CRD2, VIACR,
+@@ -571,7 +551,6 @@ void viafb_dvi_enable(void)
+ 	case INTERFACE_DVP0:
+ 		viafb_write_reg_mask(CR6B, VIACR, 0x01, BIT0);
+ 		viafb_write_reg_mask(CR6C, VIACR, 0x21, BIT0 + BIT5);
+-		viafb_write_reg_mask(SR1E, VIASR, 0xC0, BIT7 + BIT6);
+ 		dvi_patch_skew_dvp0();
+ 		if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266)
+ 			tmds_register_write(0x88, 0x3b);
+@@ -585,7 +564,6 @@ void viafb_dvi_enable(void)
+ 		if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266)
+ 			viafb_write_reg_mask(CR93, VIACR, 0x21, BIT0 + BIT5);
  
-+static struct via_device_mapping device_mapping[] = {
-+	{VIA_6C, "6C"},
-+	{VIA_93, "93"},
-+	{VIA_96, "96"},
-+	{VIA_CRT, "CRT"},
-+	{VIA_DVP1, "DVP1"},
-+	{VIA_LVDS1, "LVDS1"},
-+	{VIA_LVDS2, "LVDS2"}
-+};
+-		viafb_write_reg_mask(SR1E, VIASR, 0x30, BIT4 + BIT5);
+ 		/*fix dvi cann't be enabled with MB VT5718C4 - Al Zhang */
+ 		if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266)
+ 			tmds_register_write(0x88, 0x3b);
+@@ -616,14 +594,13 @@ void viafb_dvi_enable(void)
+ 		if (viaparinfo->chip_info->gfx_chip_name != UNICHROME_CLE266)
+ 			via_write_reg_mask(VIACR, CR97, 0x03, 0x03);
+ 
+-		viafb_write_reg_mask(SR2A, VIASR, 0x0C, BIT2 + BIT3);
+ 		via_write_reg_mask(VIACR, 0x91, 0x00, 0x20);
+ 		break;
+ 
+ 	case INTERFACE_DFP_LOW:
+ 		if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266)
+ 			break;
+-		viafb_write_reg_mask(SR2A, VIASR, 0x03, BIT0 + BIT1);
 +
- static void load_fix_bit_crtc_reg(void);
- static void __devinit init_gfx_chip_info(int chip_type);
- static void __devinit init_tmds_chip_info(void);
-@@ -1026,6 +1036,49 @@ void via_set_source(u32 devices, u8 iga)
+ 		dvi_patch_skew_dvp_low();
+ 		via_write_reg_mask(VIACR, 0x91, 0x00, 0x20);
+ 		break;
+diff -puN drivers/video/via/hw.c~viafb-introduce-per-output-device-power-management drivers/video/via/hw.c
+--- a/drivers/video/via/hw.c~viafb-introduce-per-output-device-power-management
++++ a/drivers/video/via/hw.c
+@@ -1036,6 +1036,121 @@ void via_set_source(u32 devices, u8 iga)
  		set_lvds2_source(iga);
  }
  
-+u32 via_parse_odev(char *input, char **end)
++static void set_crt_state(u8 state)
 +{
-+	char *ptr = input;
-+	u32 odev = 0;
-+	bool next = true;
-+	int i, len;
++	u8 value;
 +
-+	while (next) {
-+		next = false;
-+		for (i = 0; i < ARRAY_SIZE(device_mapping); i++) {
-+			len = strlen(device_mapping[i].name);
-+			if (!strncmp(ptr, device_mapping[i].name, len)) {
-+				odev |= device_mapping[i].device;
-+				ptr += len;
-+				if (*ptr == ',') {
-+					ptr++;
-+					next = true;
-+				}
-+			}
-+		}
-+	}
-+
-+	*end = ptr;
-+	return odev;
-+}
-+
-+void via_odev_to_seq(struct seq_file *m, u32 odev)
-+{
-+	int i, count = 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(device_mapping); i++) {
-+		if (odev & device_mapping[i].device) {
-+			if (count > 0)
-+				seq_putc(m, ',');
-+
-+			seq_puts(m, device_mapping[i].name);
-+			count++;
-+		}
-+	}
-+
-+	seq_putc(m, '\n');
-+}
-+
- static void load_fix_bit_crtc_reg(void)
- {
- 	/* always set to 1 */
-diff -puN drivers/video/via/hw.h~viafb-add-interface-for-output-device-configuration drivers/video/via/hw.h
---- a/drivers/video/via/hw.h~viafb-add-interface-for-output-device-configuration
-+++ a/drivers/video/via/hw.h
-@@ -22,6 +22,8 @@
- #ifndef __HW_H__
- #define __HW_H__
- 
-+#include <linux/seq_file.h>
-+
- #include "viamode.h"
- #include "global.h"
- #include "via_modesetting.h"
-@@ -882,6 +884,11 @@ struct pci_device_id_info {
- 	u32 chip_index;
- };
- 
-+struct via_device_mapping {
-+	u32 device;
-+	const char *name;
-+};
-+
- extern unsigned int viafb_second_virtual_xres;
- extern int viafb_SAMM_ON;
- extern int viafb_dual_fb;
-@@ -899,6 +906,9 @@ void viafb_load_reg(int timing_value, in
- 	      int io_type);
- void viafb_crt_disable(void);
- void viafb_crt_enable(void);
-+void via_set_source(u32 devices, u8 iga);
-+u32 via_parse_odev(char *input, char **end);
-+void via_odev_to_seq(struct seq_file *m, u32 odev);
- void init_ad9389(void);
- /* Access I/O Function */
- void viafb_lock_crt(void);
-diff -puN drivers/video/via/viafbdev.c~viafb-add-interface-for-output-device-configuration drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-add-interface-for-output-device-configuration
-+++ a/drivers/video/via/viafbdev.c
-@@ -1431,38 +1431,169 @@ static const struct file_operations viaf
- 	.write		= viafb_vt1636_proc_write,
- };
- 
--static void viafb_init_proc(struct proc_dir_entry **viafb_entry)
-+#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
-+
-+static ssize_t odev_update(const char __user *buffer, size_t count, u32 *odev)
- {
--	*viafb_entry = proc_mkdir("viafb", NULL);
--	if (*viafb_entry) {
--		proc_create("dvp0", 0, *viafb_entry, &viafb_dvp0_proc_fops);
--		proc_create("dvp1", 0, *viafb_entry, &viafb_dvp1_proc_fops);
--		proc_create("dfph", 0, *viafb_entry, &viafb_dfph_proc_fops);
--		proc_create("dfpl", 0, *viafb_entry, &viafb_dfpl_proc_fops);
--		if (VT1636_LVDS == viaparinfo->chip_info->lvds_chip_info.
--			lvds_chip_name || VT1636_LVDS ==
--		    viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name) {
--			proc_create("vt1636", 0, *viafb_entry, &viafb_vt1636_proc_fops);
--		}
-+	char buf[64], *ptr = buf;
-+	u32 devices;
-+	bool add, sub;
-+
-+	if (count < 1 || count > 63)
-+		return -EINVAL;
-+	if (copy_from_user(&buf[0], buffer, count))
-+		return -EFAULT;
-+	buf[count] = '\0';
-+	add = buf[0] == '+';
-+	sub = buf[0] == '-';
-+	if (add || sub)
-+		ptr++;
-+	devices = via_parse_odev(ptr, &ptr);
-+	if (*ptr == '\n')
-+		ptr++;
-+	if (*ptr != 0)
-+		return -EINVAL;
-+	if (add)
-+		*odev |= devices;
-+	else if (sub)
-+		*odev &= ~devices;
-+	else
-+		*odev = devices;
-+	return count;
-+}
-+
-+static int viafb_iga1_odev_proc_show(struct seq_file *m, void *v)
-+{
-+	via_odev_to_seq(m, viaparinfo->shared->iga1_devices);
-+	return 0;
-+}
-+
-+static int viafb_iga1_odev_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, viafb_iga1_odev_proc_show, NULL);
-+}
-+
-+static ssize_t viafb_iga1_odev_proc_write(struct file *file,
-+	const char __user *buffer, size_t count, loff_t *pos)
-+{
-+	u32 dev_on, dev_off, dev_old, dev_new;
-+	ssize_t res;
-+
-+	dev_old = dev_new = viaparinfo->shared->iga1_devices;
-+	res = odev_update(buffer, count, &dev_new);
-+	if (res != count)
-+		return res;
-+	dev_off = dev_old & ~dev_new;
-+	dev_on = dev_new & ~dev_old;
-+	viaparinfo->shared->iga1_devices = dev_new;
-+	viaparinfo->shared->iga2_devices &= ~dev_new;
-+	via_set_source(dev_new, IGA1);
-+	return res;
-+}
-+
-+static const struct file_operations viafb_iga1_odev_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= viafb_iga1_odev_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= viafb_iga1_odev_proc_write,
-+};
-+
-+static int viafb_iga2_odev_proc_show(struct seq_file *m, void *v)
-+{
-+	via_odev_to_seq(m, viaparinfo->shared->iga2_devices);
-+	return 0;
-+}
-+
-+static int viafb_iga2_odev_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, viafb_iga2_odev_proc_show, NULL);
-+}
-+
-+static ssize_t viafb_iga2_odev_proc_write(struct file *file,
-+	const char __user *buffer, size_t count, loff_t *pos)
-+{
-+	u32 dev_on, dev_off, dev_old, dev_new;
-+	ssize_t res;
-+
-+	dev_old = dev_new = viaparinfo->shared->iga2_devices;
-+	res = odev_update(buffer, count, &dev_new);
-+	if (res != count)
-+		return res;
-+	dev_off = dev_old & ~dev_new;
-+	dev_on = dev_new & ~dev_old;
-+	viaparinfo->shared->iga2_devices = dev_new;
-+	viaparinfo->shared->iga1_devices &= ~dev_new;
-+	via_set_source(dev_new, IGA2);
-+	return res;
-+}
-+
-+static const struct file_operations viafb_iga2_odev_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= viafb_iga2_odev_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= viafb_iga2_odev_proc_write,
-+};
-+
-+#define IS_VT1636(lvds_chip)	((lvds_chip).lvds_chip_name == VT1636_LVDS)
-+static void viafb_init_proc(struct viafb_shared *shared)
-+{
-+	struct proc_dir_entry *iga1_entry, *iga2_entry,
-+		*viafb_entry = proc_mkdir("viafb", NULL);
- 
-+	shared->proc_entry = viafb_entry;
-+	if (viafb_entry) {
-+#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
-+		proc_create("dvp0", 0, viafb_entry, &viafb_dvp0_proc_fops);
-+		proc_create("dvp1", 0, viafb_entry, &viafb_dvp1_proc_fops);
-+		proc_create("dfph", 0, viafb_entry, &viafb_dfph_proc_fops);
-+		proc_create("dfpl", 0, viafb_entry, &viafb_dfpl_proc_fops);
-+		if (IS_VT1636(shared->chip_info.lvds_chip_info)
-+			|| IS_VT1636(shared->chip_info.lvds_chip_info2))
-+			proc_create("vt1636", 0, viafb_entry,
-+				&viafb_vt1636_proc_fops);
-+#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
-+
-+		iga1_entry = proc_mkdir("iga1", viafb_entry);
-+		shared->iga1_proc_entry = iga1_entry;
-+		proc_create("output_devices", 0, iga1_entry,
-+			&viafb_iga1_odev_proc_fops);
-+		iga2_entry = proc_mkdir("iga2", viafb_entry);
-+		shared->iga2_proc_entry = iga2_entry;
-+		proc_create("output_devices", 0, iga2_entry,
-+			&viafb_iga2_odev_proc_fops);
- 	}
- }
--static void viafb_remove_proc(struct proc_dir_entry *viafb_entry)
-+static void viafb_remove_proc(struct viafb_shared *shared)
- {
--	struct chip_information *chip_info = &viaparinfo->shared->chip_info;
-+	struct proc_dir_entry *viafb_entry = shared->proc_entry,
-+		*iga1_entry = shared->iga1_proc_entry,
-+		*iga2_entry = shared->iga2_proc_entry;
-+
-+	if (!viafb_entry)
++	switch (state) {
++	case VIA_STATE_ON:
++		value = 0x00;
++		break;
++	case VIA_STATE_STANDBY:
++		value = 0x10;
++		break;
++	case VIA_STATE_SUSPEND:
++		value = 0x20;
++		break;
++	case VIA_STATE_OFF:
++		value = 0x30;
++		break;
++	default:
 +		return;
++	}
 +
-+	remove_proc_entry("output_devices", iga2_entry);
-+	remove_proc_entry("iga2", viafb_entry);
-+	remove_proc_entry("output_devices", iga1_entry);
-+	remove_proc_entry("iga1", viafb_entry);
- 
-+#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
- 	remove_proc_entry("dvp0", viafb_entry);/* parent dir */
- 	remove_proc_entry("dvp1", viafb_entry);
- 	remove_proc_entry("dfph", viafb_entry);
- 	remove_proc_entry("dfpl", viafb_entry);
--	if (chip_info->lvds_chip_info.lvds_chip_name == VT1636_LVDS
--		|| chip_info->lvds_chip_info2.lvds_chip_name == VT1636_LVDS)
-+	if (IS_VT1636(shared->chip_info.lvds_chip_info)
-+		|| IS_VT1636(shared->chip_info.lvds_chip_info2))
- 		remove_proc_entry("vt1636", viafb_entry);
-+#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
- 
- 	remove_proc_entry("viafb", NULL);
- }
--
--#endif /* CONFIG_FB_VIA_DIRECT_PROCFS */
-+#undef IS_VT1636
- 
- static int parse_mode(const char *str, u32 *xres, u32 *yres)
++	via_write_reg_mask(VIACR, 0x36, value, 0x30);
++}
++
++static void set_96_state(u8 state)
++{
++	u8 value;
++
++	switch (state) {
++	case VIA_STATE_ON:
++		value = 0xC0;
++		break;
++	case VIA_STATE_OFF:
++		value = 0x00;
++		break;
++	default:
++		return;
++	}
++
++	via_write_reg_mask(VIASR, 0x1E, value, 0xC0);
++}
++
++static void set_dvp1_state(u8 state)
++{
++	u8 value;
++
++	switch (state) {
++	case VIA_STATE_ON:
++		value = 0x30;
++		break;
++	case VIA_STATE_OFF:
++		value = 0x00;
++		break;
++	default:
++		return;
++	}
++
++	via_write_reg_mask(VIASR, 0x1E, value, 0x30);
++}
++
++static void set_lvds1_state(u8 state)
++{
++	u8 value;
++
++	switch (state) {
++	case VIA_STATE_ON:
++		value = 0x03;
++		break;
++	case VIA_STATE_OFF:
++		value = 0x00;
++		break;
++	default:
++		return;
++	}
++
++	via_write_reg_mask(VIASR, 0x2A, value, 0x03);
++}
++
++static void set_lvds2_state(u8 state)
++{
++	u8 value;
++
++	switch (state) {
++	case VIA_STATE_ON:
++		value = 0x0C;
++		break;
++	case VIA_STATE_OFF:
++		value = 0x00;
++		break;
++	default:
++		return;
++	}
++
++	via_write_reg_mask(VIASR, 0x2A, value, 0x0C);
++}
++
++void via_set_state(u32 devices, u8 state)
++{
++	/*
++	TODO: Can we enable/disable these devices? How?
++	if (devices & VIA_6C)
++	if (devices & VIA_93)
++	*/
++	if (devices & VIA_96)
++		set_96_state(state);
++	if (devices & VIA_CRT)
++		set_crt_state(state);
++	if (devices & VIA_DVP1)
++		set_dvp1_state(state);
++	if (devices & VIA_LVDS1)
++		set_lvds1_state(state);
++	if (devices & VIA_LVDS2)
++		set_lvds2_state(state);
++}
++
+ u32 via_parse_odev(char *input, char **end)
  {
-@@ -1671,9 +1802,7 @@ int __devinit via_fb_pci_probe(struct vi
- 		  viafbinfo->node, viafbinfo->fix.id, default_var.xres,
- 		  default_var.yres, default_var.bits_per_pixel);
+ 	char *ptr = input;
+@@ -2224,6 +2339,8 @@ int viafb_setmode(struct VideoModeTable 
+ {
+ 	int i, j;
+ 	int port;
++	u32 devices = viaparinfo->shared->iga1_devices
++		| viaparinfo->shared->iga2_devices;
+ 	u8 value, index, mask;
+ 	struct crt_mode_table *crt_timing;
+ 	struct crt_mode_table *crt_timing1 = NULL;
+@@ -2271,6 +2388,7 @@ int viafb_setmode(struct VideoModeTable 
+ 	}
  
--#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
--	viafb_init_proc(&viaparinfo->shared->proc_entry);
--#endif
-+	viafb_init_proc(viaparinfo->shared);
- 	viafb_init_dac(IGA2);
- 	return 0;
+ 	device_off();
++	via_set_state(devices, VIA_STATE_OFF);
  
-@@ -1700,9 +1829,7 @@ void __devexit via_fb_pci_remove(struct 
- 	unregister_framebuffer(viafbinfo);
- 	if (viafb_dual_fb)
- 		unregister_framebuffer(viafbinfo1);
--#ifdef CONFIG_FB_VIA_DIRECT_PROCFS
--	viafb_remove_proc(viaparinfo->shared->proc_entry);
--#endif
-+	viafb_remove_proc(viaparinfo->shared);
- 	framebuffer_release(viafbinfo);
- 	if (viafb_dual_fb)
- 		framebuffer_release(viafbinfo1);
-diff -puN drivers/video/via/viafbdev.h~viafb-add-interface-for-output-device-configuration drivers/video/via/viafbdev.h
---- a/drivers/video/via/viafbdev.h~viafb-add-interface-for-output-device-configuration
-+++ a/drivers/video/via/viafbdev.h
-@@ -44,6 +44,8 @@ struct viafb_shared {
- 	u32 iga2_devices;
+ 	/* Fill VPIT Parameters */
+ 	/* Write Misc Register */
+@@ -2430,6 +2548,7 @@ int viafb_setmode(struct VideoModeTable 
+ 			viafb_DeviceStatus = CRT_Device;
+ 	}
+ 	device_on();
++	via_set_state(devices, VIA_STATE_ON);
+ 	device_screen_on();
+ 	return 1;
+ }
+@@ -2470,31 +2589,18 @@ int viafb_get_refresh(int hres, int vres
  
- 	struct proc_dir_entry *proc_entry;	/*viafb proc entry */
-+	struct proc_dir_entry *iga1_proc_entry;
-+	struct proc_dir_entry *iga2_proc_entry;
- 	struct viafb_dev *vdev;			/* Global dev info */
+ static void device_off(void)
+ {
+-	viafb_crt_disable();
+ 	viafb_dvi_disable();
+ 	viafb_lcd_disable();
+ }
  
- 	/* All the information will be needed to set engine */
-_
-
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
-
-linux-next.patch
-viafb-add-interface-for-output-device-configuration.patch
-viafb-limit-lcd-code-impact.patch
-viafb-introduce-per-output-device-power-management.patch
-viafb-vt1636-cleanup.patch
-viafb-fix-i2c_transfer-error-handling.patch
-viafb-enable-i2c-for-crt.patch
-viafb-reduce-i2c-timeout-and-delay.patch
-viafb-add-function-to-change-sync-polarity-per-device.patch
-viafb-set-sync-polarity-for-all-output-devices.patch
-viafb-add-a-mapping-of-supported-output-devices.patch
-viafb-rename-output-devices.patch
-viafb-add-documentation-for-proc-interface.patch
-
+ static void device_on(void)
+ {
+-	if (viafb_CRT_ON == 1)
+-		viafb_crt_enable();
+ 	if (viafb_DVI_ON == 1)
+ 		viafb_dvi_enable();
+ 	if (viafb_LCD_ON == 1)
+ 		viafb_lcd_enable();
+ }
+ 
+-void viafb_crt_disable(void)
+-{
+-	viafb_write_reg_mask(CR36, VIACR, BIT5 + BIT4, BIT5 + BIT4);
+-}
+-
+-void viafb_crt_enable(void)
+-{
+-	viafb_write_reg_mask(CR36, VIACR, 0x0, BIT5 + BIT4);
+-}
+-
+ static void enable_second_display_channel(void)
+ {
+ 	/* to enable second display channel. */
+diff -puN drivers/video/via/hw.h~viafb-introduce-per-output-device-power-management drivers/video/via/hw.h
+--- a/drivers/video/via/hw.h~viafb-introduce-per-output-device-power-management
++++ a/drivers/video/via/hw.h
+@@ -41,6 +41,12 @@
+ #define VIA_LVDS1	0x00000040
+ #define VIA_LVDS2	0x00000080
+ 
++/* VIA output device power states */
++#define VIA_STATE_ON		0
++#define VIA_STATE_STANDBY	1
++#define VIA_STATE_SUSPEND	2
++#define VIA_STATE_OFF		3
++
+ /***************************************************
+ * Definition IGA1 Design Method of CRTC Registers *
+ ****************************************************/
+@@ -904,9 +910,8 @@ void viafb_set_vclock(u32 CLK, int set_i
+ void viafb_load_reg(int timing_value, int viafb_load_reg_num,
+ 	struct io_register *reg,
+ 	      int io_type);
+-void viafb_crt_disable(void);
+-void viafb_crt_enable(void);
+ void via_set_source(u32 devices, u8 iga);
++void via_set_state(u32 devices, u8 state);
+ u32 via_parse_odev(char *input, char **end);
+ void via_odev_to_seq(struct seq_file *m, u32 odev);
+ void init_ad9389(void);
+diff -puN drivers/video/via/lcd.c~viafb-introduce-per-output-device-power-management drivers/video/via/lcd.c
+--- a/drivers/video/via/lcd.c~viafb-introduce-per-output-device-power-management
++++ a/drivers/video/via/lcd.c
+@@ -703,9 +703,6 @@ static void integrated_lvds_disable(stru
+ 		viafb_write_reg_mask(CR91, VIACR, 0xC0, BIT6 + BIT7);
+ 	}
+ 
+-	/* Turn DFP High/Low Pad off. */
+-	viafb_write_reg_mask(SR2A, VIASR, 0, BIT0 + BIT1 + BIT2 + BIT3);
+-
+ 	/* Power off LVDS channel. */
+ 	switch (plvds_chip_info->output_interface) {
+ 	case INTERFACE_LVDS0:
+@@ -761,9 +758,6 @@ static void integrated_lvds_enable(struc
+ 		break;
+ 	}
+ 
+-	/* Turn DFP High/Low pad on. */
+-	viafb_write_reg_mask(SR2A, VIASR, 0x0F, BIT0 + BIT1 + BIT2 + BIT3);
+-
+ 	/* Power on LVDS channel. */
+ 	switch (plvds_chip_info->output_interface) {
+ 	case INTERFACE_LVDS0:
+@@ -812,8 +806,6 @@ void viafb_lcd_disable(void)
+ 		viafb_disable_lvds_vt1636(viaparinfo->lvds_setting_info,
+ 				    &viaparinfo->chip_info->lvds_chip_info);
+ 	} else {
+-		/* DFP-HL pad off          */
+-		viafb_write_reg_mask(SR2A, VIASR, 0x00, 0x0F);
+ 		/* Backlight off           */
+ 		viafb_write_reg_mask(SR3D, VIASR, 0x00, 0x20);
+ 		/* 24 bit DI data paht off */
+@@ -879,8 +871,6 @@ void viafb_lcd_enable(void)
+ 		viafb_enable_lvds_vt1636(viaparinfo->lvds_setting_info,
+ 				   &viaparinfo->chip_info->lvds_chip_info);
+ 	} else {
+-		/* DFP-HL pad on           */
+-		viafb_write_reg_mask(SR2A, VIASR, 0x0F, 0x0F);
+ 		/* Backlight on            */
+ 		viafb_write_reg_mask(SR3D, VIASR, 0x20, 0x20);
+ 		/* 24 bit DI data paht on  */
+diff -puN drivers/video/via/viafbdev.c~viafb-introduce-per-output-device-power-management drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-introduce-per-output-device-power-management
++++ a/drivers/video/via/viafbdev.c
+@@ -332,22 +332,22 @@ static int viafb_blank(int blank_mode, s
+ 	case FB_BLANK_UNBLANK:
+ 		/* Screen: On, HSync: On, VSync: On */
+ 		/* control CRT monitor power management */
+-		viafb_write_reg_mask(CR36, VIACR, 0x00, BIT4 + BIT5);
++		via_set_state(VIA_CRT, VIA_STATE_ON);
+ 		break;
+ 	case FB_BLANK_HSYNC_SUSPEND:
+ 		/* Screen: Off, HSync: Off, VSync: On */
+ 		/* control CRT monitor power management */
+-		viafb_write_reg_mask(CR36, VIACR, 0x10, BIT4 + BIT5);
++		via_set_state(VIA_CRT, VIA_STATE_STANDBY);
+ 		break;
+ 	case FB_BLANK_VSYNC_SUSPEND:
+ 		/* Screen: Off, HSync: On, VSync: Off */
+ 		/* control CRT monitor power management */
+-		viafb_write_reg_mask(CR36, VIACR, 0x20, BIT4 + BIT5);
++		via_set_state(VIA_CRT, VIA_STATE_SUSPEND);
+ 		break;
+ 	case FB_BLANK_POWERDOWN:
+ 		/* Screen: Off, HSync: Off, VSync: Off */
+ 		/* control CRT monitor power management */
+-		viafb_write_reg_mask(CR36, VIACR, 0x30, BIT4 + BIT5);
++		via_set_state(VIA_CRT, VIA_STATE_OFF);
+ 		break;
+ 	}
+ 
+@@ -457,7 +457,7 @@ static int viafb_ioctl(struct fb_info *i
+ 		if (copy_from_user(&gpu32, argp, sizeof(gpu32)))
+ 			return -EFAULT;
+ 		if (gpu32 & CRT_Device)
+-			viafb_crt_enable();
++			via_set_state(VIA_CRT, VIA_STATE_ON);
+ 		if (gpu32 & DVI_Device)
+ 			viafb_dvi_enable();
+ 		if (gpu32 & LCD_Device)
+@@ -467,7 +467,7 @@ static int viafb_ioctl(struct fb_info *i
+ 		if (copy_from_user(&gpu32, argp, sizeof(gpu32)))
+ 			return -EFAULT;
+ 		if (gpu32 & CRT_Device)
+-			viafb_crt_disable();
++			via_set_state(VIA_CRT, VIA_STATE_OFF);
+ 		if (gpu32 & DVI_Device)
+ 			viafb_dvi_disable();
+ 		if (gpu32 & LCD_Device)
+@@ -1487,7 +1487,9 @@ static ssize_t viafb_iga1_odev_proc_writ
+ 	dev_on = dev_new & ~dev_old;
+ 	viaparinfo->shared->iga1_devices = dev_new;
+ 	viaparinfo->shared->iga2_devices &= ~dev_new;
++	via_set_state(dev_off, VIA_STATE_OFF);
+ 	via_set_source(dev_new, IGA1);
++	via_set_state(dev_on, VIA_STATE_ON);
+ 	return res;
+ }
+ 
+@@ -1525,7 +1527,9 @@ static ssize_t viafb_iga2_odev_proc_writ
+ 	dev_on = dev_new & ~dev_old;
+ 	viaparinfo->shared->iga2_devices = dev_new;
+ 	viaparinfo->shared->iga1_devices &= ~dev_new;
++	via_set_state(dev_off, VIA_STATE_OFF);
+ 	via_set_source(dev_new, IGA2);
++	via_set_state(dev_on, VIA_STATE_ON);
+ 	return res;
+ }
+ 
+diff -puN drivers/video/via/vt1636.c~viafb-introduce-per-output-device-power-management drivers/video/via/vt1636.c
+--- a/drivers/video/via/vt1636.c~viafb-introduce-per-output-device-power-management
++++ a/drivers/video/via/vt1636.c
+@@ -92,34 +92,6 @@ void viafb_enable_lvds_vt1636(struct lvd
+ 
+ 	viafb_gpio_i2c_write_mask_lvds(plvds_setting_info, plvds_chip_info,
+ 				 VDD_ON_TBL_VT1636[0]);
+-
+-	/* Pad on: */
+-	switch (plvds_chip_info->output_interface) {
+-	case INTERFACE_DVP0:
+-		{
+-			viafb_write_reg_mask(SR1E, VIASR, 0xC0, 0xC0);
+-			break;
+-		}
+-
+-	case INTERFACE_DVP1:
+-		{
+-			viafb_write_reg_mask(SR1E, VIASR, 0x30, 0x30);
+-			break;
+-		}
+-
+-	case INTERFACE_DFP_LOW:
+-		{
+-			viafb_write_reg_mask(SR2A, VIASR, 0x03, 0x03);
+-			break;
+-		}
+-
+-	case INTERFACE_DFP_HIGH:
+-		{
+-			viafb_write_reg_mask(SR2A, VIASR, 0x03, 0x0C);
+-			break;
+-		}
+-
+-	}
+ }
+ 
+ void viafb_disable_lvds_vt1636(struct lvds_setting_information
+@@ -129,34 +101,6 @@ void viafb_disable_lvds_vt1636(struct lv
+ 
+ 	viafb_gpio_i2c_write_mask_lvds(plvds_setting_info, plvds_chip_info,
+ 				 VDD_OFF_TBL_VT1636[0]);
+-
+-	/* Pad off: */
+-	switch (plvds_chip_info->output_interface) {
+-	case INTERFACE_DVP0:
+-		{
+-			viafb_write_reg_mask(SR1E, VIASR, 0x00, 0xC0);
+-			break;
+-		}
+-
+-	case INTERFACE_DVP1:
+-		{
+-			viafb_write_reg_mask(SR1E, VIASR, 0x00, 0x30);
+-			break;
+-		}
+-
+-	case INTERFACE_DFP_LOW:
+-		{
+-			viafb_write_reg_mask(SR2A, VIASR, 0x00, 0x03);
+-			break;
+-		}
+-
+-	case INTERFACE_DFP_HIGH:
+-		{
+-			viafb_write_reg_mask(SR2A, VIASR, 0x00, 0x0C);
+-			break;
+-		}
