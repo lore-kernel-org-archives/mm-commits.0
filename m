@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-stack-based-kmap_atomic-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 21 Sep 2010 16:03:39 -0700
-Message-ID: <201009212303.o8LN3dOd008072@imap1.linux-foundation.org>
+Subject: + mm-strictly-nested-kmap_atomic.patch added to -mm tree
+Date: Tue, 21 Sep 2010 16:02:45 -0700
+Message-ID: <201009212302.o8LN2jOf007955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752394Ab0IUXEO (ORCPT
+	by vger.kernel.org with ESMTP id S1752394Ab0IUXEV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 19:04:14 -0400
+	Tue, 21 Sep 2010 19:04:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
+Cc: a.p.zijlstra@chello.nl, benh@kernel.crashing.org, cmetcalf@tilera.com, davem@davemloft.net, dhowells@redhat.com, hpa@zytor.com, hughd@google.com, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, rostedt@goodmis.org, tglx@linutronix.de
 
 
 The patch titled
-     mm-stack-based-kmap_atomic-checkpatch-fixes
+     mm: strictly nested kmap_atomic()
 has been added to the -mm tree.  Its filename is
-     mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+     mm-strictly-nested-kmap_atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,133 +34,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-stack-based-kmap_atomic-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: strictly nested kmap_atomic()
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-ERROR: trailing statements should be on next line
-#323: FILE: arch/frv/mm/highmem.c:73:
-+	case 0:		__kunmap_atomic_primary(4, 6);	break;
+Ensure kmap_atomic() usage is strictly nested
 
-ERROR: trailing statements should be on next line
-#324: FILE: arch/frv/mm/highmem.c:74:
-+	case 1:		__kunmap_atomic_primary(5, 7);	break;
-
-ERROR: trailing statements should be on next line
-#325: FILE: arch/frv/mm/highmem.c:75:
-+	case 2:		__kunmap_atomic_primary(6, 8);	break;
-
-ERROR: trailing statements should be on next line
-#326: FILE: arch/frv/mm/highmem.c:76:
-+	case 3:		__kunmap_atomic_primary(7, 9);	break;
-
-ERROR: trailing statements should be on next line
-#327: FILE: arch/frv/mm/highmem.c:77:
-+	case 4:		__kunmap_atomic_primary(8, 10);	break;
-
-WARNING: line over 80 characters
-#1069: FILE: arch/x86/mm/highmem_32.c:82:
-+			((vaddr - __fix_to_virt(FIX_KMAP_BEGIN)) >> PAGE_SHIFT));
-
-WARNING: line over 80 characters
-#1191: FILE: arch/x86/mm/iomap_32.c:106:
-+			((vaddr - __fix_to_virt(FIX_KMAP_BEGIN)) >> PAGE_SHIFT));
-
-WARNING: please, no space before tabs
-#1441: FILE: include/linux/highmem.h:107:
-+#define kunmap_atomic(addr, args...) ^I^I^I^I\$
-
-total: 5 errors, 3 warnings, 1289 lines checked
-
-./patches/mm-stack-based-kmap_atomic.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/async_tx/async_memcpy.c |    2 +-
+ crypto/blkcipher.c             |    2 +-
+ drivers/block/loop.c           |    4 ++--
+ include/linux/highmem.h        |    4 ++--
+ kernel/power/snapshot.c        |    4 ++--
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/highmem.h~mm-stack-based-kmap_atomic-checkpatch-fixes include/linux/highmem.h
---- a/include/linux/highmem.h~mm-stack-based-kmap_atomic-checkpatch-fixes
+diff -puN crypto/async_tx/async_memcpy.c~mm-strictly-nested-kmap_atomic crypto/async_tx/async_memcpy.c
+--- a/crypto/async_tx/async_memcpy.c~mm-strictly-nested-kmap_atomic
++++ a/crypto/async_tx/async_memcpy.c
+@@ -83,8 +83,8 @@ async_memcpy(struct page *dest, struct p
+ 
+ 		memcpy(dest_buf, src_buf, len);
+ 
+-		kunmap_atomic(dest_buf, KM_USER0);
+ 		kunmap_atomic(src_buf, KM_USER1);
++		kunmap_atomic(dest_buf, KM_USER0);
+ 
+ 		async_tx_sync_epilog(submit);
+ 	}
+diff -puN crypto/blkcipher.c~mm-strictly-nested-kmap_atomic crypto/blkcipher.c
+--- a/crypto/blkcipher.c~mm-strictly-nested-kmap_atomic
++++ a/crypto/blkcipher.c
+@@ -89,9 +89,9 @@ static inline unsigned int blkcipher_don
+ 		memcpy(walk->dst.virt.addr, walk->page, n);
+ 		blkcipher_unmap_dst(walk);
+ 	} else if (!(walk->flags & BLKCIPHER_WALK_PHYS)) {
+-		blkcipher_unmap_src(walk);
+ 		if (walk->flags & BLKCIPHER_WALK_DIFF)
+ 			blkcipher_unmap_dst(walk);
++		blkcipher_unmap_src(walk);
+ 	}
+ 
+ 	scatterwalk_advance(&walk->in, n);
+diff -puN drivers/block/loop.c~mm-strictly-nested-kmap_atomic drivers/block/loop.c
+--- a/drivers/block/loop.c~mm-strictly-nested-kmap_atomic
++++ a/drivers/block/loop.c
+@@ -101,8 +101,8 @@ static int transfer_none(struct loop_dev
+ 	else
+ 		memcpy(raw_buf, loop_buf, size);
+ 
+-	kunmap_atomic(raw_buf, KM_USER0);
+ 	kunmap_atomic(loop_buf, KM_USER1);
++	kunmap_atomic(raw_buf, KM_USER0);
+ 	cond_resched();
+ 	return 0;
+ }
+@@ -130,8 +130,8 @@ static int transfer_xor(struct loop_devi
+ 	for (i = 0; i < size; i++)
+ 		*out++ = *in++ ^ key[(i & 511) % keysize];
+ 
+-	kunmap_atomic(raw_buf, KM_USER0);
+ 	kunmap_atomic(loop_buf, KM_USER1);
++	kunmap_atomic(raw_buf, KM_USER0);
+ 	cond_resched();
+ 	return 0;
+ }
+diff -puN include/linux/highmem.h~mm-strictly-nested-kmap_atomic include/linux/highmem.h
+--- a/include/linux/highmem.h~mm-strictly-nested-kmap_atomic
 +++ a/include/linux/highmem.h
-@@ -104,7 +104,7 @@ static inline void __kunmap_atomic(void 
-  * Prevent people trying to call kunmap_atomic() as if it were kunmap()
-  * kunmap_atomic() should get the return value of kmap_atomic, not the page.
-  */
--#define kunmap_atomic(addr, args...) 				\
-+#define kunmap_atomic(addr, args...)				\
- do {								\
- 	BUILD_BUG_ON(__same_type((addr), struct page *));	\
- 	__kunmap_atomic(addr);					\
+@@ -201,8 +201,8 @@ static inline void copy_user_highpage(st
+ 	vfrom = kmap_atomic(from, KM_USER0);
+ 	vto = kmap_atomic(to, KM_USER1);
+ 	copy_user_page(vto, vfrom, vaddr, to);
+-	kunmap_atomic(vfrom, KM_USER0);
+ 	kunmap_atomic(vto, KM_USER1);
++	kunmap_atomic(vfrom, KM_USER0);
+ }
+ 
+ #endif
+@@ -214,8 +214,8 @@ static inline void copy_highpage(struct 
+ 	vfrom = kmap_atomic(from, KM_USER0);
+ 	vto = kmap_atomic(to, KM_USER1);
+ 	copy_page(vto, vfrom);
+-	kunmap_atomic(vfrom, KM_USER0);
+ 	kunmap_atomic(vto, KM_USER1);
++	kunmap_atomic(vfrom, KM_USER0);
+ }
+ 
+ #endif /* _LINUX_HIGHMEM_H */
+diff -puN kernel/power/snapshot.c~mm-strictly-nested-kmap_atomic kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-strictly-nested-kmap_atomic
++++ a/kernel/power/snapshot.c
+@@ -984,8 +984,8 @@ static void copy_data_page(unsigned long
+ 		src = kmap_atomic(s_page, KM_USER0);
+ 		dst = kmap_atomic(d_page, KM_USER1);
+ 		do_copy_page(dst, src);
+-		kunmap_atomic(src, KM_USER0);
+ 		kunmap_atomic(dst, KM_USER1);
++		kunmap_atomic(src, KM_USER0);
+ 	} else {
+ 		if (PageHighMem(d_page)) {
+ 			/* Page pointed to by src may contain some kernel
+@@ -2273,8 +2273,8 @@ swap_two_pages_data(struct page *p1, str
+ 	memcpy(buf, kaddr1, PAGE_SIZE);
+ 	memcpy(kaddr1, kaddr2, PAGE_SIZE);
+ 	memcpy(kaddr2, buf, PAGE_SIZE);
+-	kunmap_atomic(kaddr1, KM_USER0);
+ 	kunmap_atomic(kaddr2, KM_USER1);
++	kunmap_atomic(kaddr1, KM_USER0);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
-mm-vmap-area-cache.patch
-drivers-pci-intel-iommuc-fix-build-with-older-gccs.patch
-acpi-apei-fix-erst-move_data-instruction-implementation.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-serial-add-sc16is7x2-driver-update-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-viafb-add-interface-for-output-device-configuration.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+gcc-46-perf-fix-set-but-unused-variables-in-perf.patch
+mm-strictly-nested-kmap_atomic.patch
+mm-stack-based-kmap_atomic.patch
+mm-remove-pte_map_nested.patch
+perf-x86-fix-up-kmap_atomic-type.patch
+mm-highmem-documentation.patch
+kernel-remove-pf_flusher.patch
 
