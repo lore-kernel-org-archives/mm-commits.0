@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-for_each_mem_cgroup.patch added to -mm tree
-Date: Tue, 21 Sep 2010 12:36:35 -0700
-Message-ID: <201009211936.o8LJaaRO030096@imap1.linux-foundation.org>
+Subject: + memcg-cpu-hotplug-aware-percpu-count-updates.patch added to -mm tree
+Date: Tue, 21 Sep 2010 12:36:40 -0700
+Message-ID: <201009211936.o8LJaeig030099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755912Ab0IUThQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755912Ab0IUThU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 15:37:16 -0400
+	Tue, 21 Sep 2010 15:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.
 
 
 The patch titled
-     memcg: use for_each_mem_cgroup
+     memcg: cpu hotplug aware percpu count updates
 has been added to the -mm tree.  Its filename is
-     memcg-use-for_each_mem_cgroup.patch
+     memcg-cpu-hotplug-aware-percpu-count-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use for_each_mem_cgroup
+Subject: memcg: cpu hotplug aware percpu count updates
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In memory cgroup management, we sometimes have to walk through
-subhierarchy of cgroup to gather informaiton, or lock something, etc.
+Now, memcgroup's per cpu coutner uses for_each_possible_cpu() to get the
+value.  It's better to use for_each_online_cpu() and a cpu hotplug
+handler.
 
-Now, to do that, mem_cgroup_walk_tree() function is provided.  It calls
-given callback function per cgroup found.  But the bad thing is that it
-has to pass a fixed style function and argument, "void*" and it adds much
-type casting to memcontrol.c.
-
-To make the code clean, this patch replaces walk_tree() with
-
-  for_each_mem_cgroup_tree(iter, root)
-
-An iterator style call.  The good point is that iterator call doesn't have
-to assume what kind of function is called under it.  A bad point is that
-it may cause reference-count leak if a caller use "break" from the loop by
-mistake.
-
-I think the benefit is larger.  The modified code seems straigtforward and
-easy to read because we don't have misterious callbacks and pointer cast.
+This patch only handles statistics counter.  MEM_CGROUP_ON_MOVE will be
+handled in another patch.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -63,300 +50,171 @@ Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  172 ++++++++++++++++++++++------------------------
- 1 file changed, 84 insertions(+), 88 deletions(-)
+ mm/memcontrol.c |   80 ++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 74 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-for_each_mem_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-for_each_mem_cgroup
+diff -puN mm/memcontrol.c~memcg-cpu-hotplug-aware-percpu-count-updates mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-cpu-hotplug-aware-percpu-count-updates
 +++ a/mm/memcontrol.c
-@@ -660,40 +660,57 @@ static struct mem_cgroup *try_get_mem_cg
- 	return mem;
+@@ -89,7 +89,9 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
+ 	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+ 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
+-	MEM_CGROUP_EVENTS,	/* incremented at every  pagein/pageout */
++	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
++	/* incremented at every  pagein/pageout */
++	MEM_CGROUP_EVENTS = MEM_CGROUP_STAT_DATA,
+ 	MEM_CGROUP_ON_MOVE,	/* someone is moving account between groups */
+ 
+ 	MEM_CGROUP_STAT_NSTATS,
+@@ -255,6 +257,12 @@ struct mem_cgroup {
+ 	 * percpu counter.
+ 	 */
+ 	struct mem_cgroup_stat_cpu *stat;
++	/*
++	 * used when a cpu is offlined or other synchronizations
++	 * See mem_cgroup_read_stat().
++	 */
++	struct mem_cgroup_stat_cpu nocpu_base;
++	spinlock_t pcp_counter_lock;
+ };
+ 
+ /* Stuffs for move charges at task migration. */
+@@ -531,14 +539,40 @@ mem_cgroup_largest_soft_limit_node(struc
+ 	return mz;
  }
  
--/*
-- * Call callback function against all cgroup under hierarchy tree.
-- */
--static int mem_cgroup_walk_tree(struct mem_cgroup *root, void *data,
--			  int (*func)(struct mem_cgroup *, void *))
-+/* The caller has to guarantee "mem" exists before calling this */
-+static struct mem_cgroup *mem_cgroup_start_loop(struct mem_cgroup *mem)
- {
--	int found, ret, nextid;
-+	if (mem && css_tryget(&mem->css))
-+		return mem;
-+	return NULL;
-+}
-+
-+static struct mem_cgroup *mem_cgroup_get_next(struct mem_cgroup *iter,
-+					struct mem_cgroup *root,
-+					bool cond)
-+{
-+	int nextid = css_id(&iter->css) + 1;
-+	int found;
-+	int hierarchy_used;
- 	struct cgroup_subsys_state *css;
--	struct mem_cgroup *mem;
- 
--	if (!root->use_hierarchy)
--		return (*func)(root, data);
-+	hierarchy_used = iter->use_hierarchy;
- 
--	nextid = 1;
--	do {
--		ret = 0;
--		mem = NULL;
-+	css_put(&iter->css);
-+	if (!cond || !hierarchy_used)
-+		return NULL;
- 
-+	do {
-+		iter = NULL;
- 		rcu_read_lock();
--		css = css_get_next(&mem_cgroup_subsys, nextid, &root->css,
--				   &found);
-+
-+		css = css_get_next(&mem_cgroup_subsys, nextid,
-+				&root->css, &found);
- 		if (css && css_tryget(css))
--			mem = container_of(css, struct mem_cgroup, css);
-+			iter = container_of(css, struct mem_cgroup, css);
- 		rcu_read_unlock();
--
--		if (mem) {
--			ret = (*func)(mem, data);
--			css_put(&mem->css);
--		}
-+		/* If css is NULL, no more cgroups will be found */
- 		nextid = found + 1;
--	} while (!ret && css);
-+	} while (css && !iter);
- 
--	return ret;
-+	return iter;
- }
 +/*
-+ * for_eacn_mem_cgroup_tree() for visiting all cgroup under tree. Please
-+ * be careful that "break" loop is not allowed. We have reference count.
-+ * Instead of that modify "cond" to be false and "continue" to exit the loop.
++ * Implementation Note: reading percpu statistics for memcg.
++ *
++ * Both of vmstat[] and percpu_counter has threshold and do periodic
++ * synchronization to implement "quick" read. There are trade-off between
++ * reading cost and precision of value. Then, we may have a chance to implement
++ * a periodic synchronizion of counter in memcg's counter.
++ *
++ * But this _read() function is used for user interface now. The user accounts
++ * memory usage by memory cgroup and he _always_ requires exact value because
++ * he accounts memory. Even if we provide quick-and-fuzzy read, we always
++ * have to visit all online cpus and make sum. So, for now, unnecessary
++ * synchronization is not implemented. (just implemented for cpu hotplug)
++ *
++ * If there are kernel internal actions which can make use of some not-exact
++ * value, and reading all cpu value can be performance bottleneck in some
++ * common workload, threashold and synchonization as vmstat[] should be
++ * implemented.
 + */
-+#define for_each_mem_cgroup_tree_cond(iter, root, cond)	\
-+	for (iter = mem_cgroup_start_loop(root);\
-+	     iter != NULL;\
-+	     iter = mem_cgroup_get_next(iter, root, cond))
+ static s64 mem_cgroup_read_stat(struct mem_cgroup *mem,
+ 		enum mem_cgroup_stat_index idx)
+ {
+ 	int cpu;
+ 	s64 val = 0;
+ 
+-	for_each_possible_cpu(cpu)
++	get_online_cpus();
++	for_each_online_cpu(cpu)
+ 		val += per_cpu(mem->stat->count[idx], cpu);
++#ifdef CONFIG_HOTPLUG_CPU
++	spin_lock(&mem->pcp_counter_lock);
++	val += mem->nocpu_base.count[idx];
++	spin_unlock(&mem->pcp_counter_lock);
++#endif
++	put_online_cpus();
+ 	return val;
+ }
+ 
+@@ -665,6 +699,9 @@ static struct mem_cgroup *mem_cgroup_sta
+ {
+ 	if (mem && css_tryget(&mem->css))
+ 		return mem;
++	if (!mem)
++		return root_mem_cgroup; /*css_put/get against root is ignored*/
 +
-+#define for_each_mem_cgroup_tree(iter, root) \
-+	for_each_mem_cgroup_tree_cond(iter, root, true)
+ 	return NULL;
+ }
+ 
+@@ -680,9 +717,13 @@ static struct mem_cgroup *mem_cgroup_get
+ 	hierarchy_used = iter->use_hierarchy;
+ 
+ 	css_put(&iter->css);
+-	if (!cond || !hierarchy_used)
++	/* If no ROOT, walk all, ignore hierarchy */
++	if (!cond || (root && !hierarchy_used))
+ 		return NULL;
+ 
++	if (!root)
++		root = root_mem_cgroup;
++
+ 	do {
+ 		iter = NULL;
+ 		rcu_read_lock();
+@@ -711,6 +752,9 @@ static struct mem_cgroup *mem_cgroup_get
+ #define for_each_mem_cgroup_tree(iter, root) \
+ 	for_each_mem_cgroup_tree_cond(iter, root, true)
+ 
++#define for_each_mem_cgroup_all(iter) \
++	for_each_mem_cgroup_tree_cond(iter, NULL, true)
 +
  
  static inline bool mem_cgroup_is_root(struct mem_cgroup *mem)
  {
-@@ -1132,13 +1149,6 @@ static bool mem_cgroup_wait_acct_move(st
- 	return false;
+@@ -1676,15 +1720,38 @@ static void drain_all_stock_sync(void)
+ 	atomic_dec(&memcg_drain_count);
  }
  
--static int mem_cgroup_count_children_cb(struct mem_cgroup *mem, void *data)
--{
--	int *val = data;
--	(*val)++;
--	return 0;
--}
--
- /**
-  * mem_cgroup_print_oom_info: Called from OOM with tasklist_lock held in read mode.
-  * @memcg: The memory cgroup that went over limit
-@@ -1213,7 +1223,10 @@ done:
- static int mem_cgroup_count_children(struct mem_cgroup *mem)
- {
- 	int num = 0;
-- 	mem_cgroup_walk_tree(mem, &num, mem_cgroup_count_children_cb);
-+	struct mem_cgroup *iter;
+-static int __cpuinit memcg_stock_cpu_callback(struct notifier_block *nb,
++/*
++ * This function drains percpu counter value from DEAD cpu and
++ * move it to local cpu. Note that this function can be preempted.
++ */
++static void mem_cgroup_drain_pcp_counter(struct mem_cgroup *mem, int cpu)
++{
++	int i;
 +
-+	for_each_mem_cgroup_tree(iter, mem)
-+		num++;
- 	return num;
- }
- 
-@@ -1362,49 +1375,39 @@ static int mem_cgroup_hierarchical_recla
- 	return total;
- }
- 
--static int mem_cgroup_oom_lock_cb(struct mem_cgroup *mem, void *data)
--{
--	int *val = (int *)data;
--	int x;
--	/*
--	 * Logically, we can stop scanning immediately when we find
--	 * a memcg is already locked. But condidering unlock ops and
--	 * creation/removal of memcg, scan-all is simple operation.
--	 */
--	x = atomic_inc_return(&mem->oom_lock);
--	*val = max(x, *val);
--	return 0;
--}
- /*
-  * Check OOM-Killer is already running under our hierarchy.
-  * If someone is running, return false.
-  */
- static bool mem_cgroup_oom_lock(struct mem_cgroup *mem)
- {
--	int lock_count = 0;
-+	int x, lock_count = 0;
-+	struct mem_cgroup *iter;
- 
--	mem_cgroup_walk_tree(mem, &lock_count, mem_cgroup_oom_lock_cb);
-+	for_each_mem_cgroup_tree(iter, mem) {
-+		x = atomic_inc_return(&iter->oom_lock);
-+		lock_count = max(x, lock_count);
++	spin_lock(&mem->pcp_counter_lock);
++	for (i = 0; i < MEM_CGROUP_STAT_DATA; i++) {
++		s64 x = per_cpu(mem->stat->count[i], cpu);
++
++		per_cpu(mem->stat->count[i], cpu) = 0;
++		mem->nocpu_base.count[i] += x;
 +	}
- 
- 	if (lock_count == 1)
- 		return true;
- 	return false;
- }
- 
--static int mem_cgroup_oom_unlock_cb(struct mem_cgroup *mem, void *data)
-+static int mem_cgroup_oom_unlock(struct mem_cgroup *mem)
- {
-+	struct mem_cgroup *iter;
++	spin_unlock(&mem->pcp_counter_lock);
++}
 +
- 	/*
- 	 * When a new child is created while the hierarchy is under oom,
- 	 * mem_cgroup_oom_lock() may not be called. We have to use
- 	 * atomic_add_unless() here.
- 	 */
--	atomic_add_unless(&mem->oom_lock, -1, 0);
-+	for_each_mem_cgroup_tree(iter, mem)
-+		atomic_add_unless(&iter->oom_lock, -1, 0);
- 	return 0;
- }
- 
--static void mem_cgroup_oom_unlock(struct mem_cgroup *mem)
--{
--	mem_cgroup_walk_tree(mem, NULL,	mem_cgroup_oom_unlock_cb);
--}
- 
- static DEFINE_MUTEX(memcg_oom_mutex);
- static DECLARE_WAIT_QUEUE_HEAD(memcg_oom_waitq);
-@@ -3207,33 +3210,25 @@ static int mem_cgroup_hierarchy_write(st
- 	return retval;
- }
- 
--struct mem_cgroup_idx_data {
--	s64 val;
--	enum mem_cgroup_stat_index idx;
--};
- 
--static int
--mem_cgroup_get_idx_stat(struct mem_cgroup *mem, void *data)
-+static u64 mem_cgroup_get_recursive_idx_stat(struct mem_cgroup *mem,
-+				enum mem_cgroup_stat_index idx)
++static int __cpuinit memcg_cpu_hotplug_callback(struct notifier_block *nb,
+ 					unsigned long action,
+ 					void *hcpu)
  {
--	struct mem_cgroup_idx_data *d = data;
--	d->val += mem_cgroup_read_stat(mem, d->idx);
--	return 0;
--}
+ 	int cpu = (unsigned long)hcpu;
+ 	struct memcg_stock_pcp *stock;
 +	struct mem_cgroup *iter;
-+	s64 val = 0;
  
--static void
--mem_cgroup_get_recursive_idx_stat(struct mem_cgroup *mem,
--				enum mem_cgroup_stat_index idx, s64 *val)
--{
--	struct mem_cgroup_idx_data d;
--	d.idx = idx;
--	d.val = 0;
--	mem_cgroup_walk_tree(mem, &d, mem_cgroup_get_idx_stat);
--	*val = d.val;
-+	/* each per cpu's value can be minus.Then, use s64 */
-+	for_each_mem_cgroup_tree(iter, mem)
-+		val += mem_cgroup_read_stat(iter, idx);
+-	if (action != CPU_DEAD)
++	if ((action != CPU_DEAD) || action != CPU_DEAD_FROZEN)
+ 		return NOTIFY_OK;
 +
-+	if (val < 0) /* race ? */
-+		val = 0;
-+	return val;
- }
- 
- static inline u64 mem_cgroup_usage(struct mem_cgroup *mem, bool swap)
- {
--	u64 idx_val, val;
-+	u64 val;
- 
- 	if (!mem_cgroup_is_root(mem)) {
- 		if (!swap)
-@@ -3242,16 +3237,12 @@ static inline u64 mem_cgroup_usage(struc
- 			return res_counter_read_u64(&mem->memsw, RES_USAGE);
++	for_each_mem_cgroup_all(iter)
++		mem_cgroup_drain_pcp_counter(iter, cpu);
++
+ 	stock = &per_cpu(memcg_stock, cpu);
+ 	drain_stock(stock);
+ 	return NOTIFY_OK;
+@@ -4094,6 +4161,7 @@ static struct mem_cgroup *mem_cgroup_all
+ 			vfree(mem);
+ 		mem = NULL;
  	}
- 
--	mem_cgroup_get_recursive_idx_stat(mem, MEM_CGROUP_STAT_CACHE, &idx_val);
--	val = idx_val;
--	mem_cgroup_get_recursive_idx_stat(mem, MEM_CGROUP_STAT_RSS, &idx_val);
--	val += idx_val;
--
--	if (swap) {
--		mem_cgroup_get_recursive_idx_stat(mem,
--				MEM_CGROUP_STAT_SWAPOUT, &idx_val);
--		val += idx_val;
--	}
-+	val = mem_cgroup_get_recursive_idx_stat(mem, MEM_CGROUP_STAT_CACHE);
-+	val += mem_cgroup_get_recursive_idx_stat(mem, MEM_CGROUP_STAT_RSS);
-+
-+	if (swap)
-+		val += mem_cgroup_get_recursive_idx_stat(mem,
-+				MEM_CGROUP_STAT_SWAPOUT);
- 
- 	return val << PAGE_SHIFT;
- }
-@@ -3459,9 +3450,9 @@ struct {
- };
- 
- 
--static int mem_cgroup_get_local_stat(struct mem_cgroup *mem, void *data)
-+static void
-+mem_cgroup_get_local_stat(struct mem_cgroup *mem, struct mcs_total_stat *s)
- {
--	struct mcs_total_stat *s = data;
- 	s64 val;
- 
- 	/* per cpu stat */
-@@ -3491,13 +3482,15 @@ static int mem_cgroup_get_local_stat(str
- 	s->stat[MCS_ACTIVE_FILE] += val * PAGE_SIZE;
- 	val = mem_cgroup_get_local_zonestat(mem, LRU_UNEVICTABLE);
- 	s->stat[MCS_UNEVICTABLE] += val * PAGE_SIZE;
--	return 0;
++	spin_lock_init(&mem->pcp_counter_lock);
+ 	return mem;
  }
  
- static void
- mem_cgroup_get_total_stat(struct mem_cgroup *mem, struct mcs_total_stat *s)
- {
--	mem_cgroup_walk_tree(mem, s, mem_cgroup_get_local_stat);
-+	struct mem_cgroup *iter;
-+
-+	for_each_mem_cgroup_tree(iter, mem)
-+		mem_cgroup_get_local_stat(iter, s);
- }
- 
- static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
-@@ -3670,7 +3663,7 @@ static int compare_thresholds(const void
- 	return _a->threshold - _b->threshold;
- }
- 
--static int mem_cgroup_oom_notify_cb(struct mem_cgroup *mem, void *data)
-+static int mem_cgroup_oom_notify_cb(struct mem_cgroup *mem)
- {
- 	struct mem_cgroup_eventfd_list *ev;
- 
-@@ -3681,7 +3674,10 @@ static int mem_cgroup_oom_notify_cb(stru
- 
- static void mem_cgroup_oom_notify(struct mem_cgroup *mem)
- {
--	mem_cgroup_walk_tree(mem, NULL, mem_cgroup_oom_notify_cb);
-+	struct mem_cgroup *iter;
-+
-+	for_each_mem_cgroup_tree(iter, mem)
-+		mem_cgroup_oom_notify_cb(iter);
- }
- 
- static int mem_cgroup_usage_register_event(struct cgroup *cgrp,
+@@ -4220,7 +4288,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 						&per_cpu(memcg_stock, cpu);
+ 			INIT_WORK(&stock->work, drain_local_stock);
+ 		}
+-		hotcpu_notifier(memcg_stock_cpu_callback, 0);
++		hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
+ 	} else {
+ 		parent = mem_cgroup_from_cont(cont->parent);
+ 		mem->use_hierarchy = parent->use_hierarchy;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
