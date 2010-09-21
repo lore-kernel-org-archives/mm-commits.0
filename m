@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-usb-zc0301-driver.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:09:08 -0700
-Message-ID: <201009212209.o8LM98jr004313@imap1.linux-foundation.org>
+Subject: + maintainers-remove-usb-ov511-driver.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:09:06 -0700
+Message-ID: <201009212209.o8LM96N9004310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587Ab0IUWJU (ORCPT
+	by vger.kernel.org with ESMTP id S1753587Ab0IUWJR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:09:20 -0400
+	Tue, 21 Sep 2010 18:09:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, amwang@redhat.com, mchehab@redhat.com
 
 
 The patch titled
-     MAINTAINERS: remove USB ZC0301 DRIVER
+     MAINTAINERS: remove USB OV511 DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-usb-zc0301-driver.patch
+     maintainers-remove-usb-ov511-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove USB ZC0301 DRIVER
+Subject: MAINTAINERS: remove USB OV511 DRIVER
 From: Joe Perches <joe@perches.com>
 
-Removed by commit 0d58cef664e01f ("V4L/DVB: Remove obsolete zc0301 v4l
+Removed by commit 7373ab3669aec93 ("V4L/DVB: Remove obsolete ov511
 driver").
 
 Signed-off-by: Joe Perches <joe@perches.com>
@@ -46,29 +46,26 @@ Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   10 ----------
- 1 file changed, 10 deletions(-)
+ MAINTAINERS |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-usb-zc0301-driver MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-usb-zc0301-driver
+diff -puN MAINTAINERS~maintainers-remove-usb-ov511-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-usb-ov511-driver
 +++ a/MAINTAINERS
-@@ -6211,16 +6211,6 @@ S:	Supported
- F:	drivers/usb/host/xhci*
- F:	drivers/usb/host/pci-quirks*
+@@ -6051,13 +6051,6 @@ L:	linux-usb@vger.kernel.org
+ S:	Maintained
+ F:	drivers/usb/serial/option.c
  
--USB ZC0301 DRIVER
--M:	Luca Risolia <luca.risolia@studio.unibo.it>
+-USB OV511 DRIVER
+-M:	Mark McClelland <mmcclell@bigfoot.com>
 -L:	linux-usb@vger.kernel.org
--L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
--W:	http://www.linux-projects.org
+-W:	http://alpha.dyndns.org/ov511/
 -S:	Maintained
--F:	Documentation/video4linux/zc0301.txt
--F:	drivers/media/video/zc0301/
+-F:	drivers/media/video/ov511.*
 -
- USB ZD1201 DRIVER
- L:	linux-wireless@vger.kernel.org
- W:	http://linux-lc100020.sourceforge.net
+ USB PEGASUS DRIVER
+ M:	Petko Manolov <petkan@users.sourceforge.net>
+ L:	linux-usb@vger.kernel.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
