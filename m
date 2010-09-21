@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-merge-s3c6400-and-6410-to-64xx.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:09:04 -0700
-Message-ID: <201009212209.o8LM94xl004307@imap1.linux-foundation.org>
+Subject: + memstick-core-fix-device_register-error-handling.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:20:37 -0700
+Message-ID: <201009212220.o8LMKbq3005888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757068Ab0IUWJ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757712Ab0IUWUj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:09:28 -0400
+	Tue, 21 Sep 2010 18:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, ben-linux@fluff.org
+Cc: segooon@gmail.com, maximlevitsky@gmail.com, oakad@yahoo.com
 
 
 The patch titled
-     MAINTAINERS: merge s3c6400 and 6410 to 64xx
+     memstick: core: fix device_register() error handling
 has been added to the -mm tree.  Its filename is
-     maintainers-merge-s3c6400-and-6410-to-64xx.patch
+     memstick-core-fix-device_register-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: merge s3c6400 and 6410 to 64xx
-From: Joe Perches <joe@perches.com>
+Subject: memstick: core: fix device_register() error handling
+From: Vasiliy Kulikov <segooon@gmail.com>
 
-Removed by commit 431107ea5b680a24a ("ARM: S3C64XX: Merge mach-s3c6400 and
-mach-s3c6410").
+If device_register() fails then call put_device().  See comment to
+device_register.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/memstick/core/memstick.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-merge-s3c6400-and-6410-to-64xx MAINTAINERS
---- a/MAINTAINERS~maintainers-merge-s3c6400-and-6410-to-64xx
-+++ a/MAINTAINERS
-@@ -928,19 +928,12 @@ S:	Maintained
- F:	arch/arm/mach-s3c2440/
- F:	arch/arm/mach-s3c2443/
- 
--ARM/S3C6400 ARM ARCHITECTURE
-+ARM/S3C64xx ARM ARCHITECTURE
- M:	Ben Dooks <ben-linux@fluff.org>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.fluff.org/ben/linux/
- S:	Maintained
--F:	arch/arm/mach-s3c6400/
--
--ARM/S3C6410 ARM ARCHITECTURE
--M:	Ben Dooks <ben-linux@fluff.org>
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--W:	http://www.fluff.org/ben/linux/
--S:	Maintained
--F:	arch/arm/mach-s3c6410/
-+F:	arch/arm/mach-s3c64xx/
- 
- ARM/SHMOBILE ARM ARCHITECTURE
- M:	Paul Mundt <lethal@linux-sh.org>
+diff -puN drivers/memstick/core/memstick.c~memstick-core-fix-device_register-error-handling drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-core-fix-device_register-error-handling
++++ a/drivers/memstick/core/memstick.c
+@@ -574,6 +574,7 @@ static void memstick_check(struct work_s
+ 		if (!host->card) {
+ 			host->card = card;
+ 			if (device_register(&card->dev)) {
++				put_device(&card->dev);
+ 				kfree(host->card);
+ 				host->card = NULL;
+ 			}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from segooon@gmail.com are
 
 linux-next.patch
-maintainers-add-irq-subsystem.patch
-kernelh-add-minmax3-macros.patch
-kernelh-add-minmax3-macros-fix.patch
-replace-nested-max-min-macros-with-maxmin3-macro.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-scripts-get_maintainerpl-use-correct-indentation.patch
-scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch
-scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch
-scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
-maintainers-fix-colibri-pxa270-file-pattern.patch
-maintainers-merge-imote2-and-stargate.patch
-maintainers-merge-s3c-244x-sections.patch
-maintainers-merge-s3c6400-and-6410-to-64xx.patch
-maintainers-remove-usb-ov511-driver.patch
-maintainers-remove-usb-zc0301-driver.patch
-checkpatch-add-check-for-space-after-struct-union-and-enum.patch
-checkpatch-add-additional-attribute-defines.patch
-scripts-checkpatchpl-add-warnings-for-static-char-that-could-be-static-const-char.patch
+md-check-return-code-of-read_sb_page.patch
+mm-mempolicy-check-return-code-of-check_range.patch
+memstick-core-fix-device_register-error-handling.patch
 
