@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-modulesc-fix-warning.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:03:44 -0700
-Message-ID: <201009212203.o8LM3ilR004082@imap1.linux-foundation.org>
+Subject: + maintainers-fix-colibri-pxa270-file-pattern.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:08:58 -0700
+Message-ID: <201009212208.o8LM8wWB004297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752179Ab0IUWEX (ORCPT
+	by vger.kernel.org with ESMTP id S1752522Ab0IUWJB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:04:23 -0400
+	Tue, 21 Sep 2010 18:09:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mirq-linux@rere.qmqm.pl, rusty@rustcorp.com.au, tj@kernel.org
+Cc: joe@perches.com, marek.vasut@gmail.com
 
 
 The patch titled
-     kernel/modules.c: fix warning
+     MAINTAINERS: fix Colibri PXA270 file pattern
 has been added to the -mm tree.  Its filename is
-     kernel-modulesc-fix-warning.patch
+     maintainers-fix-colibri-pxa270-file-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/modules.c: fix warning
-From: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
+Subject: MAINTAINERS: fix Colibri PXA270 file pattern
+From: Joe Perches <joe@perches.com>
 
-Building with CONFIG_KALLSYMS=n gives following warning:
+The original commit 403d29713e0a ("pxa/income: Add Income SBC support")
+started with the wrong file pattern.
 
-kernel/module.c: In function `post_relocation':
-kernel/module.c:2534:2: warning: passing argument 2 of `add_kallsyms' discards qualifiers from pointer target type
-kernel/module.c:2038:13: note: expected `struct load_info *' but argument is of type `const struct load_info *'
-
-Signed-off-by: Michal Miroslaw <mirq-linux@rere.qmqm.pl>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Marek Vasut <marek.vasut@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/module.c~kernel-modulesc-fix-warning kernel/module.c
---- a/kernel/module.c~kernel-modulesc-fix-warning
-+++ a/kernel/module.c
-@@ -2035,7 +2035,7 @@ static inline void layout_symtab(struct 
- {
- }
+diff -puN MAINTAINERS~maintainers-fix-colibri-pxa270-file-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-colibri-pxa270-file-pattern
++++ a/MAINTAINERS
+@@ -708,8 +708,7 @@ ARM/INCOME PXA270 SUPPORT
+ M:	Marek Vasut <marek.vasut@gmail.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+-F:	arch/arm/mach-pxa/income.c
+-F:	arch/arm/mach-pxa/include/mach-pxa/income.h
++F:	arch/arm/mach-pxa/colibri-pxa270-income.c
  
--static void add_kallsyms(struct module *mod, struct load_info *info)
-+static void add_kallsyms(struct module *mod, const struct load_info *info)
- {
- }
- #endif /* CONFIG_KALLSYMS */
+ ARM/INTEL IOP32X ARM ARCHITECTURE
+ M:	Lennert Buytenhek <kernel@wantstofly.org>
 _
 
-Patches currently in -mm which might be from mirq-linux@rere.qmqm.pl are
+Patches currently in -mm which might be from joe@perches.com are
 
-kernel-modulesc-fix-warning.patch
+linux-next.patch
+maintainers-add-irq-subsystem.patch
+kernelh-add-minmax3-macros.patch
+kernelh-add-minmax3-macros-fix.patch
+replace-nested-max-min-macros-with-maxmin3-macro.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+scripts-get_maintainerpl-use-correct-indentation.patch
+scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch
+scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch
+scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
+maintainers-fix-colibri-pxa270-file-pattern.patch
+maintainers-merge-imote2-and-stargate.patch
+maintainers-merge-s3c-244x-sections.patch
+maintainers-merge-s3c6400-and-6410-to-64xx.patch
+maintainers-remove-usb-ov511-driver.patch
+maintainers-remove-usb-zc0301-driver.patch
+checkpatch-add-check-for-space-after-struct-union-and-enum.patch
+checkpatch-add-additional-attribute-defines.patch
+scripts-checkpatchpl-add-warnings-for-static-char-that-could-be-static-const-char.patch
 
