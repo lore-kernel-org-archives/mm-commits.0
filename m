@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-fix-i2c_transfer-error-handling.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:37:11 -0700
-Message-ID: <201009212237.o8LMbBnl006793@imap1.linux-foundation.org>
+Subject: + viafb-set-sync-polarity-for-all-output-devices.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:37:19 -0700
+Message-ID: <201009212237.o8LMbJmg006807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749Ab0IUWhr (ORCPT
+	by vger.kernel.org with ESMTP id S1752894Ab0IUWhx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:37:47 -0400
+	Tue, 21 Sep 2010 18:37:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, corbet@lwn.net, stable@kernel.org
+Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, corbet@lwn.net
 
 
 The patch titled
-     viafb: fix i2c_transfer error handling
+     viafb: set sync polarity for all output devices
 has been added to the -mm tree.  Its filename is
-     viafb-fix-i2c_transfer-error-handling.patch
+     viafb-set-sync-polarity-for-all-output-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: fix i2c_transfer error handling
+Subject: viafb: set sync polarity for all output devices
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-i2c_transfer returns negative errno on error and number of messages
-processed on success.  Just returning this value would give a poor
-interface as it is not obvious that you must compare with 2 after reading
-1 or n bytes and with 1 after writing 1 byte to determine if it was
-successful.  To avoid this error prone interface convert the error code of
-a successful read/write to zero and all other non-negative values to an
-negative error code.
-
-This fixes a regression introduced by
-
-	via: Rationalize vt1636 detection
-
-which resulted in no longer detecting a VT1636 chip and therefore has
-broken the output in configurations wich contain this chip.
+Set the sync polarity for all output devices, not only CRT.  This may give
+some people a working screen but only if lcd scaling and centering are not
+used as it is currently too dificult to propagate a output device. 
+Hopefully this does not introduce regressions as the polarity of non-CRT
+devices was completly ignored before.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Joseph Chan <JosephChan@via.com.tw>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-Cc: <stable@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/via_i2c.c |   27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+ drivers/video/via/hw.c |   34 +++++++++++++++++++++++++---------
+ 1 file changed, 25 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/via/via_i2c.c~viafb-fix-i2c_transfer-error-handling drivers/video/via/via_i2c.c
---- a/drivers/video/via/via_i2c.c~viafb-fix-i2c_transfer-error-handling
-+++ a/drivers/video/via/via_i2c.c
-@@ -114,6 +114,7 @@ static void via_i2c_setsda(void *data, i
+diff -puN drivers/video/via/hw.c~viafb-set-sync-polarity-for-all-output-devices drivers/video/via/hw.c
+--- a/drivers/video/via/hw.c~viafb-set-sync-polarity-for-all-output-devices
++++ a/drivers/video/via/hw.c
+@@ -2014,7 +2014,6 @@ void viafb_fill_crtc_timing(struct crt_m
+ 	int index = 0;
+ 	int h_addr, v_addr;
+ 	u32 pll_D_N;
+-	u8 polarity = 0;
  
- int viafb_i2c_readbyte(u8 adap, u8 slave_addr, u8 index, u8 *pdata)
- {
-+	int ret;
- 	u8 mm1[] = {0x00};
- 	struct i2c_msg msgs[2];
+ 	for (i = 0; i < video_mode->mode_array; i++) {
+ 		index = i;
+@@ -2041,14 +2040,6 @@ void viafb_fill_crtc_timing(struct crt_m
  
-@@ -126,11 +127,18 @@ int viafb_i2c_readbyte(u8 adap, u8 slave
- 	mm1[0] = index;
- 	msgs[0].len = 1; msgs[1].len = 1;
- 	msgs[0].buf = mm1; msgs[1].buf = pdata;
--	return i2c_transfer(&via_i2c_par[adap].adapter, msgs, 2);
-+	ret = i2c_transfer(&via_i2c_par[adap].adapter, msgs, 2);
-+	if (ret == 2)
-+		ret = 0;
-+	else if (ret >= 0)
-+		ret = -EIO;
-+
-+	return ret;
+ 	h_addr = crt_reg.hor_addr;
+ 	v_addr = crt_reg.ver_addr;
+-
+-	/* update polarity for CRT timing */
+-	if (crt_table[index].h_sync_polarity == NEGATIVE)
+-		polarity |= VIA_HSYNC_NEGATIVE;
+-	if (crt_table[index].v_sync_polarity == NEGATIVE)
+-		polarity |= VIA_VSYNC_NEGATIVE;
+-	via_set_sync_polarity(VIA_CRT, polarity);
+-
+ 	if (set_iga == IGA1) {
+ 		viafb_unlock_crt();
+ 		viafb_write_reg(CR09, VIACR, 0x00);	/*initial CR09=0 */
+@@ -2352,6 +2343,17 @@ static void set_display_channel(void)
+ 	}
  }
  
- int viafb_i2c_writebyte(u8 adap, u8 slave_addr, u8 index, u8 data)
- {
-+	int ret;
- 	u8 msg[2] = { index, data };
- 	struct i2c_msg msgs;
- 
-@@ -140,11 +148,18 @@ int viafb_i2c_writebyte(u8 adap, u8 slav
- 	msgs.addr = slave_addr / 2;
- 	msgs.len = 2;
- 	msgs.buf = msg;
--	return i2c_transfer(&via_i2c_par[adap].adapter, &msgs, 1);
-+	ret = i2c_transfer(&via_i2c_par[adap].adapter, &msgs, 1);
-+	if (ret == 1)
-+		ret = 0;
-+	else if (ret >= 0)
-+		ret = -EIO;
++static u8 get_sync(struct fb_info *info)
++{
++	u8 polarity = 0;
 +
-+	return ret;
- }
- 
- int viafb_i2c_readbytes(u8 adap, u8 slave_addr, u8 index, u8 *buff, int buff_len)
- {
-+	int ret;
- 	u8 mm1[] = {0x00};
- 	struct i2c_msg msgs[2];
- 
-@@ -156,7 +171,13 @@ int viafb_i2c_readbytes(u8 adap, u8 slav
- 	mm1[0] = index;
- 	msgs[0].len = 1; msgs[1].len = buff_len;
- 	msgs[0].buf = mm1; msgs[1].buf = buff;
--	return i2c_transfer(&via_i2c_par[adap].adapter, msgs, 2);
-+	ret = i2c_transfer(&via_i2c_par[adap].adapter, msgs, 2);
-+	if (ret == 2)
-+		ret = 0;
-+	else if (ret >= 0)
-+		ret = -EIO;
++	if (!(info->var.sync & FB_SYNC_HOR_HIGH_ACT))
++		polarity |= VIA_HSYNC_NEGATIVE;
++	if (!(info->var.sync & FB_SYNC_VERT_HIGH_ACT))
++		polarity |= VIA_VSYNC_NEGATIVE;
++	return polarity;
++}
 +
-+	return ret;
+ int viafb_setmode(struct VideoModeTable *vmode_tbl, int video_bpp,
+ 	struct VideoModeTable *vmode_tbl1, int video_bpp1)
+ {
+@@ -2566,6 +2568,15 @@ int viafb_setmode(struct VideoModeTable 
+ 			viafb_DeviceStatus = CRT_Device;
+ 	}
+ 	device_on();
++	if (!viafb_dual_fb)
++		via_set_sync_polarity(devices, get_sync(viafbinfo));
++	else {
++		via_set_sync_polarity(viaparinfo->shared->iga1_devices,
++			get_sync(viafbinfo));
++		via_set_sync_polarity(viaparinfo->shared->iga2_devices,
++			get_sync(viafbinfo1));
++	}
++
+ 	via_set_state(devices, VIA_STATE_ON);
+ 	device_screen_on();
+ 	return 1;
+@@ -2719,4 +2730,9 @@ void viafb_fill_var_timing_info(struct f
+ 	    crt_reg.ver_total - (crt_reg.ver_sync_start + crt_reg.ver_sync_end);
+ 	var->lower_margin = crt_reg.ver_sync_start - crt_reg.ver_addr;
+ 	var->vsync_len = crt_reg.ver_sync_end;
++	var->sync = 0;
++	if (crt_timing[index].h_sync_polarity == POSITIVE)
++		var->sync |= FB_SYNC_HOR_HIGH_ACT;
++	if (crt_timing[index].v_sync_polarity == POSITIVE)
++		var->sync |= FB_SYNC_VERT_HIGH_ACT;
  }
- 
- /*
 _
 
 Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
