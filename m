@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 21 Sep 2010 12:38:19 -0700
-Message-ID: <201009211938.o8LJcJOw030150@imap1.linux-foundation.org>
+Subject: + led-class-always-implement-blinking.patch added to -mm tree
+Date: Tue, 21 Sep 2010 12:44:24 -0700
+Message-ID: <201009211944.o8LJiOOW030490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755333Ab0IUTiw (ORCPT
+	by vger.kernel.org with ESMTP id S1754287Ab0IUTof (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 15:38:52 -0400
+	Tue, 21 Sep 2010 15:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: johannes.berg@intel.com, rpurdie@rpsys.net
 
 
 The patch titled
-     memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes
+     led-class: always implement blinking
 has been added to the -mm tree.  Its filename is
-     memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+     led-class-always-implement-blinking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,392 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: led-class: always implement blinking
+From: Johannes Berg <johannes.berg@intel.com>
 
-ERROR: space required after that ',' (ctx:VxV)
-#63: FILE: mm/memcontrol.c:1745:
-+	per_cpu(mem->stat->count[MEM_CGROUP_ON_MOVE],cpu) = 0;
- 	                                            ^
+Currently, blinking LEDs can be awkward because it is not guaranteed that
+all LEDs implement blinking.  The trigger that wants it to blink then
+needs to implement its own timer solution.  Rather than require that, make
+the core always implement LED "blinkability" with a timer implementation
+in the core.  The timer trigger then becomes a very trivial one, and all
+code using LEDs can rely on them to be able to blink.
 
-ERROR: space required after that ',' (ctx:VxV)
-#72: FILE: mm/memcontrol.c:1754:
-+	per_cpu(mem->stat->count[idx],cpu) = mem->nocpu_base.count[idx];
- 	                             ^
-
-total: 2 errors, 0 warnings, 63 lines checked
-
-./patches/memcg-cpu-hotplug-aware-quick-acount_move-detection.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/led-class.c     |   78 ++++++++++++++++++++
+ drivers/leds/led-triggers.c  |    2 
+ drivers/leds/ledtrig-timer.c |  124 +++------------------------------
+ include/linux/leds.h         |    5 +
+ 4 files changed, 97 insertions(+), 112 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -1742,7 +1742,7 @@ static void mem_cgroup_drain_pcp_counter
- 		mem->nocpu_base.count[i] += x;
+diff -puN drivers/leds/led-class.c~led-class-always-implement-blinking drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~led-class-always-implement-blinking
++++ a/drivers/leds/led-class.c
+@@ -81,6 +81,73 @@ static struct device_attribute led_class
+ 	__ATTR_NULL,
+ };
+ 
++static void led_timer_function(unsigned long data)
++{
++	struct led_classdev *led_cdev = (void *)data;
++	unsigned long brightness;
++	unsigned long delay;
++
++	if (!led_cdev->blink_delay_on || !led_cdev->blink_delay_off) {
++		led_set_brightness(led_cdev, LED_OFF);
++		return;
++	}
++
++	brightness = led_get_brightness(led_cdev);
++	if (!brightness) {
++		/* Time to switch the LED on. */
++		brightness = led_cdev->blink_brightness;
++		delay = led_cdev->blink_delay_on;
++	} else {
++		/* Store the current brightness value to be able
++		 * to restore it when the delay_off period is over.
++		 */
++		led_cdev->blink_brightness = brightness;
++		brightness = LED_OFF;
++		delay = led_cdev->blink_delay_off;
++	}
++
++	led_set_brightness(led_cdev, brightness);
++
++	mod_timer(&led_cdev->blink_timer, jiffies + msecs_to_jiffies(delay));
++}
++
++static int led_blink_set(struct led_classdev *led_cdev,
++			 unsigned long *delay_on, unsigned long *delay_off)
++{
++	int current_brightness;
++
++	current_brightness = led_get_brightness(led_cdev);
++	if (current_brightness)
++		led_cdev->blink_brightness = current_brightness;
++	if (!led_cdev->blink_brightness)
++		led_cdev->blink_brightness = led_cdev->max_brightness;
++
++	if (*delay_on == led_cdev->blink_delay_on &&
++	    *delay_off == led_cdev->blink_delay_off)
++		return 0;
++
++	/* deactivate previous settings */
++	del_timer_sync(&led_cdev->blink_timer);
++
++	led_cdev->blink_delay_on = *delay_on;
++	led_cdev->blink_delay_off = *delay_off;
++
++	/* never on - don't blink */
++	if (!*delay_on)
++		return 0;
++
++	/* never off - just set to brightness */
++	if (!*delay_off) {
++		led_set_brightness(led_cdev, led_cdev->blink_brightness);
++		return 0;
++	}
++
++	mod_timer(&led_cdev->blink_timer, jiffies + 1);
++
++	return 0;
++}
++
++
+ /**
+  * led_classdev_suspend - suspend an led_classdev.
+  * @led_cdev: the led_classdev to suspend.
+@@ -148,6 +215,13 @@ int led_classdev_register(struct device 
+ 
+ 	led_update_brightness(led_cdev);
+ 
++	init_timer(&led_cdev->blink_timer);
++	led_cdev->blink_timer.function = led_timer_function;
++	led_cdev->blink_timer.data = (unsigned long)led_cdev;
++
++	if (!led_cdev->blink_set)
++		led_cdev->blink_set = led_blink_set;
++
+ #ifdef CONFIG_LEDS_TRIGGERS
+ 	led_trigger_set_default(led_cdev);
+ #endif
+@@ -168,6 +242,8 @@ EXPORT_SYMBOL_GPL(led_classdev_register)
+  */
+ void led_classdev_unregister(struct led_classdev *led_cdev)
+ {
++	unsigned long on = 0, off = 0;
++
+ #ifdef CONFIG_LEDS_TRIGGERS
+ 	down_write(&led_cdev->trigger_lock);
+ 	if (led_cdev->trigger)
+@@ -175,6 +251,8 @@ void led_classdev_unregister(struct led_
+ 	up_write(&led_cdev->trigger_lock);
+ #endif
+ 
++	led_cdev->blink_set(led_cdev, &on, &off);
++
+ 	device_unregister(led_cdev->dev);
+ 
+ 	down_write(&leds_list_lock);
+diff -puN drivers/leds/led-triggers.c~led-class-always-implement-blinking drivers/leds/led-triggers.c
+--- a/drivers/leds/led-triggers.c~led-class-always-implement-blinking
++++ a/drivers/leds/led-triggers.c
+@@ -103,6 +103,7 @@ EXPORT_SYMBOL_GPL(led_trigger_show);
+ void led_trigger_set(struct led_classdev *led_cdev, struct led_trigger *trigger)
+ {
+ 	unsigned long flags;
++	unsigned long on = 0, off = 0;
+ 
+ 	/* Remove any existing trigger */
+ 	if (led_cdev->trigger) {
+@@ -113,6 +114,7 @@ void led_trigger_set(struct led_classdev
+ 		if (led_cdev->trigger->deactivate)
+ 			led_cdev->trigger->deactivate(led_cdev);
+ 		led_cdev->trigger = NULL;
++		led_cdev->blink_set(led_cdev, &on, &off);
+ 		led_set_brightness(led_cdev, LED_OFF);
  	}
- 	/* need to clear ON_MOVE value, works as a kind of lock. */
--	per_cpu(mem->stat->count[MEM_CGROUP_ON_MOVE],cpu) = 0;
-+	per_cpu(mem->stat->count[MEM_CGROUP_ON_MOVE], cpu) = 0;
- 	spin_unlock(&mem->pcp_counter_lock);
+ 	if (trigger) {
+diff -puN drivers/leds/ledtrig-timer.c~led-class-always-implement-blinking drivers/leds/ledtrig-timer.c
+--- a/drivers/leds/ledtrig-timer.c~led-class-always-implement-blinking
++++ a/drivers/leds/ledtrig-timer.c
+@@ -12,73 +12,25 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/jiffies.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/list.h>
+-#include <linux/spinlock.h>
+ #include <linux/device.h>
+-#include <linux/sysdev.h>
+-#include <linux/timer.h>
+ #include <linux/ctype.h>
+ #include <linux/leds.h>
+-#include <linux/slab.h>
+ #include "leds.h"
+ 
+-struct timer_trig_data {
+-	int brightness_on;		/* LED brightness during "on" period.
+-					 * (LED_OFF < brightness_on <= LED_FULL)
+-					 */
+-	unsigned long delay_on;		/* milliseconds on */
+-	unsigned long delay_off;	/* milliseconds off */
+-	struct timer_list timer;
+-};
+-
+-static void led_timer_function(unsigned long data)
+-{
+-	struct led_classdev *led_cdev = (struct led_classdev *) data;
+-	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+-	unsigned long brightness;
+-	unsigned long delay;
+-
+-	if (!timer_data->delay_on || !timer_data->delay_off) {
+-		led_set_brightness(led_cdev, LED_OFF);
+-		return;
+-	}
+-
+-	brightness = led_get_brightness(led_cdev);
+-	if (!brightness) {
+-		/* Time to switch the LED on. */
+-		brightness = timer_data->brightness_on;
+-		delay = timer_data->delay_on;
+-	} else {
+-		/* Store the current brightness value to be able
+-		 * to restore it when the delay_off period is over.
+-		 */
+-		timer_data->brightness_on = brightness;
+-		brightness = LED_OFF;
+-		delay = timer_data->delay_off;
+-	}
+-
+-	led_set_brightness(led_cdev, brightness);
+-
+-	mod_timer(&timer_data->timer, jiffies + msecs_to_jiffies(delay));
+-}
+-
+ static ssize_t led_delay_on_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 
+-	return sprintf(buf, "%lu\n", timer_data->delay_on);
++	return sprintf(buf, "%lu\n", led_cdev->blink_delay_on);
  }
  
-@@ -1751,7 +1751,7 @@ static void synchronize_mem_cgroup_on_mo
- 	int idx = MEM_CGROUP_ON_MOVE;
+ static ssize_t led_delay_on_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 	int ret = -EINVAL;
+ 	char *after;
+ 	unsigned long state = simple_strtoul(buf, &after, 10);
+@@ -88,21 +40,8 @@ static ssize_t led_delay_on_store(struct
+ 		count++;
  
- 	spin_lock(&mem->pcp_counter_lock);
--	per_cpu(mem->stat->count[idx],cpu) = mem->nocpu_base.count[idx];
-+	per_cpu(mem->stat->count[idx], cpu) = mem->nocpu_base.count[idx];
- 	spin_unlock(&mem->pcp_counter_lock);
+ 	if (count == size) {
+-		if (timer_data->delay_on != state) {
+-			/* the new value differs from the previous */
+-			timer_data->delay_on = state;
+-
+-			/* deactivate previous settings */
+-			del_timer_sync(&timer_data->timer);
+-
+-			/* try to activate hardware acceleration, if any */
+-			if (!led_cdev->blink_set ||
+-			    led_cdev->blink_set(led_cdev,
+-			      &timer_data->delay_on, &timer_data->delay_off)) {
+-				/* no hardware acceleration, blink via timer */
+-				mod_timer(&timer_data->timer, jiffies + 1);
+-			}
+-		}
++		led_cdev->blink_set(led_cdev, &state,
++				    &led_cdev->blink_delay_off);
+ 		ret = count;
+ 	}
+ 
+@@ -113,16 +52,14 @@ static ssize_t led_delay_off_show(struct
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 
+-	return sprintf(buf, "%lu\n", timer_data->delay_off);
++	return sprintf(buf, "%lu\n", led_cdev->blink_delay_off);
  }
  
+ static ssize_t led_delay_off_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 	int ret = -EINVAL;
+ 	char *after;
+ 	unsigned long state = simple_strtoul(buf, &after, 10);
+@@ -132,21 +69,8 @@ static ssize_t led_delay_off_store(struc
+ 		count++;
+ 
+ 	if (count == size) {
+-		if (timer_data->delay_off != state) {
+-			/* the new value differs from the previous */
+-			timer_data->delay_off = state;
+-
+-			/* deactivate previous settings */
+-			del_timer_sync(&timer_data->timer);
+-
+-			/* try to activate hardware acceleration, if any */
+-			if (!led_cdev->blink_set ||
+-			    led_cdev->blink_set(led_cdev,
+-			      &timer_data->delay_on, &timer_data->delay_off)) {
+-				/* no hardware acceleration, blink via timer */
+-				mod_timer(&timer_data->timer, jiffies + 1);
+-			}
+-		}
++		led_cdev->blink_set(led_cdev, &led_cdev->blink_delay_on,
++				    &state);
+ 		ret = count;
+ 	}
+ 
+@@ -158,60 +82,36 @@ static DEVICE_ATTR(delay_off, 0644, led_
+ 
+ static void timer_trig_activate(struct led_classdev *led_cdev)
+ {
+-	struct timer_trig_data *timer_data;
+ 	int rc;
+ 
+-	timer_data = kzalloc(sizeof(struct timer_trig_data), GFP_KERNEL);
+-	if (!timer_data)
+-		return;
+-
+-	timer_data->brightness_on = led_get_brightness(led_cdev);
+-	if (timer_data->brightness_on == LED_OFF)
+-		timer_data->brightness_on = led_cdev->max_brightness;
+-	led_cdev->trigger_data = timer_data;
+-
+-	init_timer(&timer_data->timer);
+-	timer_data->timer.function = led_timer_function;
+-	timer_data->timer.data = (unsigned long) led_cdev;
++	led_cdev->trigger_data = NULL;
+ 
+ 	rc = device_create_file(led_cdev->dev, &dev_attr_delay_on);
+ 	if (rc)
+-		goto err_out;
++		return;
+ 	rc = device_create_file(led_cdev->dev, &dev_attr_delay_off);
+ 	if (rc)
+ 		goto err_out_delayon;
+ 
+-	/* If there is hardware support for blinking, start one
+-	 * user friendly blink rate chosen by the driver.
+-	 */
+-	if (led_cdev->blink_set)
+-		led_cdev->blink_set(led_cdev,
+-			&timer_data->delay_on, &timer_data->delay_off);
++	led_cdev->trigger_data = (void *)1;
+ 
+ 	return;
+ 
+ err_out_delayon:
+ 	device_remove_file(led_cdev->dev, &dev_attr_delay_on);
+-err_out:
+-	led_cdev->trigger_data = NULL;
+-	kfree(timer_data);
+ }
+ 
+ static void timer_trig_deactivate(struct led_classdev *led_cdev)
+ {
+-	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 	unsigned long on = 0, off = 0;
+ 
+-	if (timer_data) {
++	if (led_cdev->trigger_data) {
+ 		device_remove_file(led_cdev->dev, &dev_attr_delay_on);
+ 		device_remove_file(led_cdev->dev, &dev_attr_delay_off);
+-		del_timer_sync(&timer_data->timer);
+-		kfree(timer_data);
+ 	}
+ 
+-	/* If there is hardware support for blinking, stop it */
+-	if (led_cdev->blink_set)
+-		led_cdev->blink_set(led_cdev, &on, &off);
++	/* Stop blinking */
++	led_cdev->blink_set(led_cdev, &on, &off);
+ }
+ 
+ static struct led_trigger timer_led_trigger = {
+diff -puN include/linux/leds.h~led-class-always-implement-blinking include/linux/leds.h
+--- a/include/linux/leds.h~led-class-always-implement-blinking
++++ a/include/linux/leds.h
+@@ -15,6 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/rwsem.h>
++#include <linux/timer.h>
+ 
+ struct device;
+ /*
+@@ -57,6 +58,10 @@ struct led_classdev {
+ 	struct list_head	 node;			/* LED Device list */
+ 	const char		*default_trigger;	/* Trigger to use */
+ 
++	unsigned long		 blink_delay_on, blink_delay_off;
++	struct timer_list	 blink_timer;
++	int			 blink_brightness;
++
+ #ifdef CONFIG_LEDS_TRIGGERS
+ 	/* Protects the trigger data below */
+ 	struct rw_semaphore	 trigger_lock;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
-mm-vmap-area-cache.patch
-drivers-pci-intel-iommuc-fix-build-with-older-gccs.patch
-acpi-apei-fix-erst-move_data-instruction-implementation.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-serial-add-sc16is7x2-driver-update-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-sdhci-get-rid-of-card-detect-work-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-pps-add-async-pps-event-handler-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+led-class-always-implement-blinking.patch
 
