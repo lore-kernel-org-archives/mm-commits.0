@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-usb-ov511-driver.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:09:06 -0700
-Message-ID: <201009212209.o8LM96N9004310@imap1.linux-foundation.org>
+Subject: + maintainers-merge-s3c-244x-sections.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:09:02 -0700
+Message-ID: <201009212209.o8LM92o1004304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57142 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587Ab0IUWJR (ORCPT
+	by vger.kernel.org with ESMTP id S1752522Ab0IUWJ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:09:17 -0400
+	Tue, 21 Sep 2010 18:09:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, amwang@redhat.com, mchehab@redhat.com
+Cc: joe@perches.com, ben-linux@fluff.org
 
 
 The patch titled
-     MAINTAINERS: remove USB OV511 DRIVER
+     MAINTAINERS: merge s3c-244x sections
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-usb-ov511-driver.patch
+     maintainers-merge-s3c-244x-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove USB OV511 DRIVER
+Subject: MAINTAINERS: merge s3c-244x sections
 From: Joe Perches <joe@perches.com>
 
-Removed by commit 7373ab3669aec93 ("V4L/DVB: Remove obsolete ov511
-driver").
+Removed by commit 70556b143ae4c ("ARM: S3C24XX: Remove old mach-s3c2442").
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Amerigo Wang <amwang@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 -------
- 1 file changed, 7 deletions(-)
+ MAINTAINERS |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-usb-ov511-driver MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-usb-ov511-driver
+diff -puN MAINTAINERS~maintainers-merge-s3c-244x-sections MAINTAINERS
+--- a/MAINTAINERS~maintainers-merge-s3c-244x-sections
 +++ a/MAINTAINERS
-@@ -6051,13 +6051,6 @@ L:	linux-usb@vger.kernel.org
+@@ -920,25 +920,12 @@ W:	http://www.fluff.org/ben/linux/
  S:	Maintained
- F:	drivers/usb/serial/option.c
+ F:	arch/arm/mach-s3c2410/
  
--USB OV511 DRIVER
--M:	Mark McClelland <mmcclell@bigfoot.com>
--L:	linux-usb@vger.kernel.org
--W:	http://alpha.dyndns.org/ov511/
--S:	Maintained
--F:	drivers/media/video/ov511.*
+-ARM/S3C2440 ARM ARCHITECTURE
++ARM/S3C244x ARM ARCHITECTURE
+ M:	Ben Dooks <ben-linux@fluff.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.fluff.org/ben/linux/
+ S:	Maintained
+ F:	arch/arm/mach-s3c2440/
 -
- USB PEGASUS DRIVER
- M:	Petko Manolov <petkan@users.sourceforge.net>
- L:	linux-usb@vger.kernel.org
+-ARM/S3C2442 ARM ARCHITECTURE
+-M:	Ben Dooks <ben-linux@fluff.org>
+-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-W:	http://www.fluff.org/ben/linux/
+-S:	Maintained
+-F:	arch/arm/mach-s3c2442/
+-
+-ARM/S3C2443 ARM ARCHITECTURE
+-M:	Ben Dooks <ben-linux@fluff.org>
+-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-W:	http://www.fluff.org/ben/linux/
+-S:	Maintained
+ F:	arch/arm/mach-s3c2443/
+ 
+ ARM/S3C6400 ARM ARCHITECTURE
 _
 
 Patches currently in -mm which might be from joe@perches.com are
