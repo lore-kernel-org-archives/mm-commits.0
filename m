@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-merge-s3c-244x-sections.patch added to -mm tree
-Date: Tue, 21 Sep 2010 15:09:02 -0700
-Message-ID: <201009212209.o8LM92o1004304@imap1.linux-foundation.org>
+Subject: + maintainers-merge-s3c6400-and-6410-to-64xx.patch added to -mm tree
+Date: Tue, 21 Sep 2010 15:09:04 -0700
+Message-ID: <201009212209.o8LM94xl004307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752522Ab0IUWJ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1757068Ab0IUWJ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Sep 2010 18:09:27 -0400
+	Tue, 21 Sep 2010 18:09:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com, ben-linux@fluff.org
 
 
 The patch titled
-     MAINTAINERS: merge s3c-244x sections
+     MAINTAINERS: merge s3c6400 and 6410 to 64xx
 has been added to the -mm tree.  Its filename is
-     maintainers-merge-s3c-244x-sections.patch
+     maintainers-merge-s3c6400-and-6410-to-64xx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: merge s3c-244x sections
+Subject: MAINTAINERS: merge s3c6400 and 6410 to 64xx
 From: Joe Perches <joe@perches.com>
 
-Removed by commit 70556b143ae4c ("ARM: S3C24XX: Remove old mach-s3c2442").
+Removed by commit 431107ea5b680a24a ("ARM: S3C64XX: Merge mach-s3c6400 and
+mach-s3c6410").
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ MAINTAINERS |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-merge-s3c-244x-sections MAINTAINERS
---- a/MAINTAINERS~maintainers-merge-s3c-244x-sections
+diff -puN MAINTAINERS~maintainers-merge-s3c6400-and-6410-to-64xx MAINTAINERS
+--- a/MAINTAINERS~maintainers-merge-s3c6400-and-6410-to-64xx
 +++ a/MAINTAINERS
-@@ -920,25 +920,12 @@ W:	http://www.fluff.org/ben/linux/
- S:	Maintained
- F:	arch/arm/mach-s3c2410/
+@@ -928,19 +928,12 @@ S:	Maintained
+ F:	arch/arm/mach-s3c2440/
+ F:	arch/arm/mach-s3c2443/
  
--ARM/S3C2440 ARM ARCHITECTURE
-+ARM/S3C244x ARM ARCHITECTURE
+-ARM/S3C6400 ARM ARCHITECTURE
++ARM/S3C64xx ARM ARCHITECTURE
  M:	Ben Dooks <ben-linux@fluff.org>
  L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
  W:	http://www.fluff.org/ben/linux/
  S:	Maintained
- F:	arch/arm/mach-s3c2440/
+-F:	arch/arm/mach-s3c6400/
 -
--ARM/S3C2442 ARM ARCHITECTURE
+-ARM/S3C6410 ARM ARCHITECTURE
 -M:	Ben Dooks <ben-linux@fluff.org>
 -L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
 -W:	http://www.fluff.org/ben/linux/
 -S:	Maintained
--F:	arch/arm/mach-s3c2442/
--
--ARM/S3C2443 ARM ARCHITECTURE
--M:	Ben Dooks <ben-linux@fluff.org>
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--W:	http://www.fluff.org/ben/linux/
--S:	Maintained
- F:	arch/arm/mach-s3c2443/
+-F:	arch/arm/mach-s3c6410/
++F:	arch/arm/mach-s3c64xx/
  
- ARM/S3C6400 ARM ARCHITECTURE
+ ARM/SHMOBILE ARM ARCHITECTURE
+ M:	Paul Mundt <lethal@linux-sh.org>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
