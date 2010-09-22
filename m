@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-mips-include-asm-fcntlh-needs-typesh.patch added to -mm tree
-Date: Wed, 22 Sep 2010 15:19:23 -0700
-Message-ID: <201009222250.o8MMoM3m021533@imap1.linux-foundation.org>
+Subject: + drivers-serial-mrst_max3110c-needs-linux-irqh.patch added to -mm tree
+Date: Wed, 22 Sep 2010 15:50:42 -0700
+Message-ID: <201009222321.o8MNLgPN023029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754148Ab0IVWve (ORCPT
+	by vger.kernel.org with ESMTP id S1753390Ab0IVXVn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 18:51:34 -0400
+	Wed, 22 Sep 2010 19:21:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     arch/mips/include/asm/fcntl.h needs types.h
+     drivers/serial/mrst_max3110.c needs linux/irq.h
 has been added to the -mm tree.  Its filename is
-     arch-mips-include-asm-fcntlh-needs-typesh.patch
+     drivers-serial-mrst_max3110c-needs-linux-irqh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/mips/include/asm/fcntl.h needs types.h
+Subject: drivers/serial/mrst_max3110.c needs linux/irq.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips allmodconfig:
+sparc64 allmodconfig:
 
-<stdin>:1534:2: warning: #warning syscall prlimit64 not implemented
-In file included from include/linux/fcntl.h:4,
-                 from security/integrity/ima/ima_fs.c:18:
-arch/mips/include/asm/fcntl.h:63: error: syntax error before "off_t"
+drivers/serial/mrst_max3110.c: In function `serial_m3110_startup':
+drivers/serial/mrst_max3110.c:470: error: `IRQ_TYPE_EDGE_FALLING' undeclared (first use in this function)
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/fcntl.h |    1 +
+ drivers/serial/mrst_max3110.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/include/asm/fcntl.h~arch-mips-include-asm-fcntlh-needs-typesh arch/mips/include/asm/fcntl.h
---- a/arch/mips/include/asm/fcntl.h~arch-mips-include-asm-fcntlh-needs-typesh
-+++ a/arch/mips/include/asm/fcntl.h
-@@ -8,6 +8,7 @@
- #ifndef _ASM_FCNTL_H
- #define _ASM_FCNTL_H
- 
-+#include <linux/types.h>
- 
- #define O_APPEND	0x0008
- #define O_DSYNC		0x0010	/* used to be O_SYNC, see below */
+diff -puN drivers/serial/mrst_max3110.c~drivers-serial-mrst_max3110c-needs-linux-irqh drivers/serial/mrst_max3110.c
+--- a/drivers/serial/mrst_max3110.c~drivers-serial-mrst_max3110c-needs-linux-irqh
++++ a/drivers/serial/mrst_max3110.c
+@@ -31,6 +31,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/console.h>
++#include <linux/irq.h>
+ #include <linux/sysrq.h>
+ #include <linux/platform_device.h>
+ #include <linux/tty.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +77,9 @@ alpha-asm-irqflagsh-needs-asm-systemh.patch
 drivers-serial-mfdc-needs-slabh.patch
 arch-m68k-include-asm-irqflagsh-fix-build.patch
 arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch
+drivers-serial-mrst_max3110c-needs-linux-irqh.patch
 mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
 acpi-apei-fix-erst-move_data-instruction-implementation.patch
 arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
 arch-x86-kernel-entry_32s-i386-too.patch
@@ -130,5 +130,4 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
 
