@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-mrst_max3110c-needs-linux-irqh.patch added to -mm tree
-Date: Wed, 22 Sep 2010 15:50:42 -0700
-Message-ID: <201009222321.o8MNLgPN023029@imap1.linux-foundation.org>
+Subject: + memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch added to -mm tree
+Date: Wed, 22 Sep 2010 16:04:10 -0700
+Message-ID: <201009222335.o8MNZAka023562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753390Ab0IVXVn (ORCPT
+	by vger.kernel.org with ESMTP id S1750739Ab0IVXfM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 19:21:43 -0400
+	Wed, 22 Sep 2010 19:35:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, maximlevitsky@gmail.com, oakad@yahoo.com
 
 
 The patch titled
-     drivers/serial/mrst_max3110.c needs linux/irq.h
+     memstick-add-driver-for-ricoh-r5c592-card-reader-fix
 has been added to the -mm tree.  Its filename is
-     drivers-serial-mrst_max3110c-needs-linux-irqh.patch
+     memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/mrst_max3110.c needs linux/irq.h
+Subject: memstick-add-driver-for-ricoh-r5c592-card-reader-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64 allmodconfig:
+powerpc:
 
-drivers/serial/mrst_max3110.c: In function `serial_m3110_startup':
-drivers/serial/mrst_max3110.c:470: error: `IRQ_TYPE_EDGE_FALLING' undeclared (first use in this function)
+In file included from drivers/memstick/host/r592.c:23:
+drivers/memstick/host/r592.h:177:7: warning: no newline at end of file
+drivers/memstick/host/r592.c:25: error: 'enable_dma' redeclared as different kind of symbol
+/usr/src/devel/arch/powerpc/include/asm/dma.h:190: error: previous definition of 'enable_dma' was here
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mrst_max3110.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/memstick/host/r592.c |    8 ++++----
+ drivers/memstick/host/r592.h |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/mrst_max3110.c~drivers-serial-mrst_max3110c-needs-linux-irqh drivers/serial/mrst_max3110.c
---- a/drivers/serial/mrst_max3110.c~drivers-serial-mrst_max3110c-needs-linux-irqh
-+++ a/drivers/serial/mrst_max3110.c
-@@ -31,6 +31,7 @@
- #include <linux/ioport.h>
- #include <linux/init.h>
- #include <linux/console.h>
-+#include <linux/irq.h>
- #include <linux/sysrq.h>
- #include <linux/platform_device.h>
- #include <linux/tty.h>
+diff -puN drivers/memstick/host/r592.c~memstick-add-driver-for-ricoh-r5c592-card-reader-fix drivers/memstick/host/r592.c
+--- a/drivers/memstick/host/r592.c~memstick-add-driver-for-ricoh-r5c592-card-reader-fix
++++ a/drivers/memstick/host/r592.c
+@@ -22,7 +22,7 @@
+ #include <asm/byteorder.h>
+ #include "r592.h"
+ 
+-static int enable_dma = 1;
++static int dma = 1;
+ static int debug;
+ 
+ static const char *tpc_names[] = {
+@@ -257,7 +257,7 @@ static void r592_stop_dma(struct r592_de
+ /* Test if hardware supports DMA */
+ static void r592_check_dma(struct r592_device *dev)
+ {
+-	dev->dma_capable = enable_dma &&
++	dev->dma_capable = dma &&
+ 		(r592_read_reg(dev, R592_FIFO_DMA_SETTINGS) &
+ 			R592_FIFO_DMA_SETTINGS_CAP);
+ }
+@@ -883,8 +883,8 @@ static void __exit r592_module_exit(void
+ module_init(r592_module_init);
+ module_exit(r592_module_exit);
+ 
+-module_param(enable_dma, bool, S_IRUGO);
+-MODULE_PARM_DESC(enable_dma, "Enable usage of the DMA (default)");
++module_param(dma, bool, S_IRUGO);
++MODULE_PARM_DESC(dma, "Enable usage of the DMA (default)");
+ module_param(debug, int, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Debug level (0-3)");
+ 
+diff -puN drivers/memstick/host/r592.h~memstick-add-driver-for-ricoh-r5c592-card-reader-fix drivers/memstick/host/r592.h
+--- a/drivers/memstick/host/r592.h~memstick-add-driver-for-ricoh-r5c592-card-reader-fix
++++ a/drivers/memstick/host/r592.h
+@@ -174,4 +174,4 @@ struct dword_buffer {
+ #define dbg_verbose(format, ...)	__dbg(2, format, ## __VA_ARGS__)
+ #define dbg_reg(format, ...)		__dbg(3, format, ## __VA_ARGS__)
+ 
+-#endif
+\ No newline at end of file
++#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +159,7 @@ core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-
 drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
 delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
 kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
 ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
 journal_add_journal_head-debug.patch
