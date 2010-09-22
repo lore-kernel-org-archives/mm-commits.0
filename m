@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-alpha-kernel-systblss-remove-debug-check.patch added to -mm tree
-Date: Wed, 22 Sep 2010 14:44:34 -0700
-Message-ID: <201009222215.o8MMFY6l020068@imap1.linux-foundation.org>
+Subject: + drivers-serial-mfdc-needs-slabh.patch added to -mm tree
+Date: Wed, 22 Sep 2010 14:44:44 -0700
+Message-ID: <201009222215.o8MMFhaD020079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751818Ab0IVWQQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751831Ab0IVWQP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 18:16:16 -0400
+	Wed, 22 Sep 2010 18:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+Cc: akpm@linux-foundation.org, gregkh@suse.de
 
 
 The patch titled
-     arch/alpha/kernel/systbls.S: remove debug check
+     drivers/serial/mfd.c needs slab.h
 has been added to the -mm tree.  Its filename is
-     arch-alpha-kernel-systblss-remove-debug-check.patch
+     drivers-serial-mfdc-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/alpha/kernel/systbls.S: remove debug check
+Subject: drivers/serial/mfd.c needs slab.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
--mm only patch, I guess.
+alpha allmodconfig:
 
-My old gas-2.16.1 says
+drivers/serial/mfd.c:144: error: implicit declaration of function 'kzalloc'
+drivers/serial/mfd.c:144: warning: assignment makes pointer from integer without a cast
 
-arch/alpha/kernel/systbls.S: Assembler messages:
-arch/alpha/kernel/systbls.S:523: Error: non-constant expression in ".if" statement
-arch/alpha/kernel/systbls.S:524: Error: .err encountered
-
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/systbls.S |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/serial/mfd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/alpha/kernel/systbls.S~arch-alpha-kernel-systblss-remove-debug-check arch/alpha/kernel/systbls.S
---- a/arch/alpha/kernel/systbls.S~arch-alpha-kernel-systblss-remove-debug-check
-+++ a/arch/alpha/kernel/systbls.S
-@@ -519,7 +519,3 @@ sys_call_table:
- 	.size sys_call_table, . - sys_call_table
- 	.type sys_call_table, @object
- 
--/* Remember to update everything, kids.  */
--.ifne (. - sys_call_table) - (NR_SYSCALLS * 8)
--.err
--.endif
+diff -puN drivers/serial/mfd.c~drivers-serial-mfdc-needs-slabh drivers/serial/mfd.c
+--- a/drivers/serial/mfd.c~drivers-serial-mfdc-needs-slabh
++++ a/drivers/serial/mfd.c
+@@ -27,6 +27,7 @@
+ #include <linux/init.h>
+ #include <linux/console.h>
+ #include <linux/sysrq.h>
++#include <linux/slab.h>
+ #include <linux/serial_reg.h>
+ #include <linux/circ_buf.h>
+ #include <linux/delay.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
