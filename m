@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-asm-irqflagsh-needs-asm-systemh.patch added to -mm tree
-Date: Wed, 22 Sep 2010 14:44:42 -0700
-Message-ID: <201009222215.o8MMFgYl020074@imap1.linux-foundation.org>
+Subject: + arch-alpha-kernel-systblss-remove-debug-check.patch added to -mm tree
+Date: Wed, 22 Sep 2010 14:44:34 -0700
+Message-ID: <201009222215.o8MMFY6l020068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751818Ab0IVWQT (ORCPT
+	by vger.kernel.org with ESMTP id S1751818Ab0IVWQQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 18:16:19 -0400
+	Wed, 22 Sep 2010 18:16:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth
 
 
 The patch titled
-     alpha: asm/irqflags.h needs asm/system.h
+     arch/alpha/kernel/systbls.S: remove debug check
 has been added to the -mm tree.  Its filename is
-     alpha-asm-irqflagsh-needs-asm-systemh.patch
+     arch-alpha-kernel-systblss-remove-debug-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: asm/irqflags.h needs asm/system.h
+Subject: arch/alpha/kernel/systbls.S: remove debug check
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/irqflags.h:15,
-                 from include/linux/spinlock.h:53,
-                 from include/linux/seqlock.h:29,
-                 from include/linux/time.h:8,
-                 from include/linux/timex.h:56,
-                 from include/linux/sched.h:56,
-                 from arch/alpha/kernel/asm-offsets.c:9:
-arch/alpha/include/asm/irqflags.h: In function 'arch_local_save_flags':
-arch/alpha/include/asm/irqflags.h:26: error: implicit declaration of function 'rdps'
-arch/alpha/include/asm/irqflags.h: In function 'arch_local_irq_disable':
-arch/alpha/include/asm/irqflags.h:31: error: implicit declaration of function 'swpipl'
+-mm only patch, I guess.
+
+My old gas-2.16.1 says
+
+arch/alpha/kernel/systbls.S: Assembler messages:
+arch/alpha/kernel/systbls.S:523: Error: non-constant expression in ".if" statement
+arch/alpha/kernel/systbls.S:524: Error: .err encountered
 
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
@@ -55,21 +51,20 @@ Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/irqflags.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/alpha/kernel/systbls.S |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/alpha/include/asm/irqflags.h~alpha-asm-irqflagsh-needs-asm-systemh arch/alpha/include/asm/irqflags.h
---- a/arch/alpha/include/asm/irqflags.h~alpha-asm-irqflagsh-needs-asm-systemh
-+++ a/arch/alpha/include/asm/irqflags.h
-@@ -1,6 +1,8 @@
- #ifndef __ALPHA_IRQFLAGS_H
- #define __ALPHA_IRQFLAGS_H
+diff -puN arch/alpha/kernel/systbls.S~arch-alpha-kernel-systblss-remove-debug-check arch/alpha/kernel/systbls.S
+--- a/arch/alpha/kernel/systbls.S~arch-alpha-kernel-systblss-remove-debug-check
++++ a/arch/alpha/kernel/systbls.S
+@@ -519,7 +519,3 @@ sys_call_table:
+ 	.size sys_call_table, . - sys_call_table
+ 	.type sys_call_table, @object
  
-+#include <asm/system.h>
-+
- #define IPL_MIN		0
- #define IPL_SW0		1
- #define IPL_SW1		2
+-/* Remember to update everything, kids.  */
+-.ifne (. - sys_call_table) - (NR_SYSCALLS * 8)
+-.err
+-.endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
