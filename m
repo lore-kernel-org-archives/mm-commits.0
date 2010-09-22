@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-__pa-cast-arg-to-long.patch added to -mm tree
-Date: Wed, 22 Sep 2010 15:08:46 -0700
-Message-ID: <201009222239.o8MMdkul021075@imap1.linux-foundation.org>
+Subject: + arch-mips-include-asm-fcntlh-needs-typesh.patch added to -mm tree
+Date: Wed, 22 Sep 2010 15:19:23 -0700
+Message-ID: <201009222250.o8MMoM3m021533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751365Ab0IVWkb (ORCPT
+	by vger.kernel.org with ESMTP id S1754148Ab0IVWve (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 18:40:31 -0400
+	Wed, 22 Sep 2010 18:51:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geert@linux-m68k.org
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     m68k: __pa(): cast arg to long
+     arch/mips/include/asm/fcntl.h needs types.h
 has been added to the -mm tree.  Its filename is
-     m68k-__pa-cast-arg-to-long.patch
+     arch-mips-include-asm-fcntlh-needs-typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: __pa(): cast arg to long
+Subject: arch/mips/include/asm/fcntl.h needs types.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fixes this:
+mips allmodconfig:
 
-drivers/char/mem.c: In function 'mmap_kmem':
-drivers/char/mem.c:342: warning: cast to pointer from integer of different size
+<stdin>:1534:2: warning: #warning syscall prlimit64 not implemented
+In file included from include/linux/fcntl.h:4,
+                 from security/integrity/ima/ima_fs.c:18:
+arch/mips/include/asm/fcntl.h:63: error: syntax error before "off_t"
 
-by doing what other archtiectures do.
-
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/page_mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/include/asm/fcntl.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/m68k/include/asm/page_mm.h~m68k-__pa-cast-arg-to-long arch/m68k/include/asm/page_mm.h
---- a/arch/m68k/include/asm/page_mm.h~m68k-__pa-cast-arg-to-long
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -80,7 +80,7 @@ static inline unsigned long ___pa(void *
- 		: "0" (vaddr), "i" (m68k_fixup_memoffset));
- 	return paddr;
- }
--#define __pa(vaddr)	___pa((void *)(vaddr))
-+#define __pa(vaddr)	___pa((void *)(long)(vaddr))
- static inline void *__va(unsigned long paddr)
- {
- 	void *vaddr;
+diff -puN arch/mips/include/asm/fcntl.h~arch-mips-include-asm-fcntlh-needs-typesh arch/mips/include/asm/fcntl.h
+--- a/arch/mips/include/asm/fcntl.h~arch-mips-include-asm-fcntlh-needs-typesh
++++ a/arch/mips/include/asm/fcntl.h
+@@ -8,6 +8,7 @@
+ #ifndef _ASM_FCNTL_H
+ #define _ASM_FCNTL_H
+ 
++#include <linux/types.h>
+ 
+ #define O_APPEND	0x0008
+ #define O_DSYNC		0x0010	/* used to be O_SYNC, see below */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,4 +130,5 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
 
