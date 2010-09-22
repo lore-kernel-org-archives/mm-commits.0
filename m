@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch added to -mm tree
-Date: Wed, 22 Sep 2010 15:03:46 -0700
-Message-ID: <201009222234.o8MMYjPJ020873@imap1.linux-foundation.org>
+Subject: + m68k-__pa-cast-arg-to-long.patch added to -mm tree
+Date: Wed, 22 Sep 2010 15:08:46 -0700
+Message-ID: <201009222239.o8MMdkul021075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751029Ab0IVWf0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751365Ab0IVWkb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 18:35:26 -0400
+	Wed, 22 Sep 2010 18:40:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, geert@linux-m68k.org
 
 
 The patch titled
-     arch/m68k/mac/macboing.c: use unsigned long for irqfalgs
+     m68k: __pa(): cast arg to long
 has been added to the -mm tree.  Its filename is
-     arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch
+     m68k-__pa-cast-arg-to-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/m68k/mac/macboing.c: use unsigned long for irqfalgs
+Subject: m68k: __pa(): cast arg to long
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/m68k/mac/macboing.c: In function 'mac_mksound':
-arch/m68k/mac/macboing.c:189: warning: comparison of distinct pointer types lacks a cast
-arch/m68k/mac/macboing.c:211: warning: comparison of distinct pointer types lacks a cast
-arch/m68k/mac/macboing.c: In function 'mac_quadra_start_bell':
-arch/m68k/mac/macboing.c:241: warning: comparison of distinct pointer types lacks a cast
-arch/m68k/mac/macboing.c:263: warning: comparison of distinct pointer types lacks a cast
-arch/m68k/mac/macboing.c: In function 'mac_quadra_ring_bell':
-arch/m68k/mac/macboing.c:283: warning: comparison of distinct pointer types lacks a cast
+Fixes this:
+
+drivers/char/mem.c: In function 'mmap_kmem':
+drivers/char/mem.c:342: warning: cast to pointer from integer of different size
+
+by doing what other archtiectures do.
 
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mac/macboing.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/m68k/include/asm/page_mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m68k/mac/macboing.c~arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs arch/m68k/mac/macboing.c
---- a/arch/m68k/mac/macboing.c~arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs
-+++ a/arch/m68k/mac/macboing.c
-@@ -162,7 +162,7 @@ static void mac_init_asc( void )
- void mac_mksound( unsigned int freq, unsigned int length )
+diff -puN arch/m68k/include/asm/page_mm.h~m68k-__pa-cast-arg-to-long arch/m68k/include/asm/page_mm.h
+--- a/arch/m68k/include/asm/page_mm.h~m68k-__pa-cast-arg-to-long
++++ a/arch/m68k/include/asm/page_mm.h
+@@ -80,7 +80,7 @@ static inline unsigned long ___pa(void *
+ 		: "0" (vaddr), "i" (m68k_fixup_memoffset));
+ 	return paddr;
+ }
+-#define __pa(vaddr)	___pa((void *)(vaddr))
++#define __pa(vaddr)	___pa((void *)(long)(vaddr))
+ static inline void *__va(unsigned long paddr)
  {
- 	__u32 cfreq = ( freq << 5 ) / 468;
--	__u32 flags;
-+	unsigned long flags;
- 	int i;
- 
- 	if ( mac_special_bell == NULL )
-@@ -224,7 +224,7 @@ static void mac_nosound( unsigned long i
-  */
- static void mac_quadra_start_bell( unsigned int freq, unsigned int length, unsigned int volume )
- {
--	__u32 flags;
-+	unsigned long flags;
- 
- 	/* if the bell is already ringing, ring longer */
- 	if ( mac_bell_duration > 0 )
-@@ -271,7 +271,7 @@ static void mac_quadra_start_bell( unsig
- static void mac_quadra_ring_bell( unsigned long ignored )
- {
- 	int	i, count = mac_asc_samplespersec / HZ;
--	__u32 flags;
-+	unsigned long flags;
- 
- 	/*
- 	 * we neither want a sound buffer overflow nor underflow, so we need to match
+ 	void *vaddr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +79,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 alpha-asm-irqflagsh-needs-asm-systemh.patch
 drivers-serial-mfdc-needs-slabh.patch
 arch-m68k-include-asm-irqflagsh-fix-build.patch
+arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch
 mm-vmap-area-cache.patch
 acpi-apei-fix-erst-move_data-instruction-implementation.patch
 arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
@@ -126,6 +107,7 @@ mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.p
 memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
 mm-stack-based-kmap_atomic-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-__pa-cast-arg-to-long.patch
 kernelh-add-minmax3-macros-fix.patch
 include-linux-kernelh-add-__must_check-to-strict_strto.patch
 printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
@@ -149,5 +131,4 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
-arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch
 
