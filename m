@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 22 Sep 2010 12:44:07 -0700
-Message-ID: <201009222015.o8MKF7SL009753@imap1.linux-foundation.org>
+Subject: + alpha-asm-irqflagsh-needs-asm-systemh.patch added to -mm tree
+Date: Wed, 22 Sep 2010 14:44:42 -0700
+Message-ID: <201009222215.o8MMFgYl020074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750730Ab0IVUPj (ORCPT
+	by vger.kernel.org with ESMTP id S1751818Ab0IVWQT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 16:15:39 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o8MKF8Cd012636
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 22 Sep 2010 13:15:09 -0700
+	Wed, 22 Sep 2010 18:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     linux-next-git-rejects
+     alpha: asm/irqflags.h needs asm/system.h
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     alpha-asm-irqflagsh-needs-asm-systemh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,78 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: alpha: asm/irqflags.h needs asm/system.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
+In file included from include/linux/irqflags.h:15,
+                 from include/linux/spinlock.h:53,
+                 from include/linux/seqlock.h:29,
+                 from include/linux/time.h:8,
+                 from include/linux/timex.h:56,
+                 from include/linux/sched.h:56,
+                 from arch/alpha/kernel/asm-offsets.c:9:
+arch/alpha/include/asm/irqflags.h: In function 'arch_local_save_flags':
+arch/alpha/include/asm/irqflags.h:26: error: implicit declaration of function 'rdps'
+arch/alpha/include/asm/irqflags.h: In function 'arch_local_irq_disable':
+arch/alpha/include/asm/irqflags.h:31: error: implicit declaration of function 'swpipl'
+
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ceph/Kconfig      |    3 ---
- fs/ceph/mds_client.c |   18 ------------------
- 2 files changed, 21 deletions(-)
+ arch/alpha/include/asm/irqflags.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ceph/Kconfig~linux-next-git-rejects fs/ceph/Kconfig
---- a/fs/ceph/Kconfig~linux-next-git-rejects
-+++ a/fs/ceph/Kconfig
-@@ -4,11 +4,8 @@ config CEPH_FS
- 	select CEPH_LIB
- 	select LIBCRC32C
- 	select CRYPTO_AES
--<<<<<<< HEAD
- 	select CRYPTO
--=======
- 	default n
-->>>>>>> FETCH_HEAD
- 	help
- 	  Choose Y or M here to include support for mounting the
- 	  experimental Ceph distributed file system.  Ceph is an extremely
-diff -puN fs/ceph/mds_client.c~linux-next-git-rejects fs/ceph/mds_client.c
---- a/fs/ceph/mds_client.c~linux-next-git-rejects
-+++ a/fs/ceph/mds_client.c
-@@ -2365,23 +2365,6 @@ static int encode_caps_cb(struct inode *
+diff -puN arch/alpha/include/asm/irqflags.h~alpha-asm-irqflagsh-needs-asm-systemh arch/alpha/include/asm/irqflags.h
+--- a/arch/alpha/include/asm/irqflags.h~alpha-asm-irqflagsh-needs-asm-systemh
++++ a/arch/alpha/include/asm/irqflags.h
+@@ -1,6 +1,8 @@
+ #ifndef __ALPHA_IRQFLAGS_H
+ #define __ALPHA_IRQFLAGS_H
  
- 	if (recon_state->flock) {
- 		int num_fcntl_locks, num_flock_locks;
--<<<<<<< HEAD
--
--		lock_kernel();
--		ceph_count_locks(inode, &num_fcntl_locks, &num_flock_locks);
--		rec.v2.flock_len = (2*sizeof(u32) +
--				    (num_fcntl_locks+num_flock_locks) *
--				    sizeof(struct ceph_filelock));
--
--		err = ceph_pagelist_append(pagelist, &rec, reclen);
--		if (!err)
--			err = ceph_encode_locks(inode, pagelist,
--						num_fcntl_locks,
--						num_flock_locks);
--		unlock_kernel();
--	} else {
--		err = ceph_pagelist_append(pagelist, &rec, reclen);
--=======
- 		struct ceph_pagelist_cursor trunc_point;
- 
- 		ceph_pagelist_set_cursor(pagelist, &trunc_point);
-@@ -2411,7 +2394,6 @@ static int encode_caps_cb(struct inode *
- 				unlock_kernel();
- 			}
- 		} while (err == -ENOSPC);
-->>>>>>> FETCH_HEAD
- 	}
- 
- out_free:
++#include <asm/system.h>
++
+ #define IPL_MIN		0
+ #define IPL_SW0		1
+ #define IPL_SW1		2
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-efifb-support-the-efi-framebuffer-on-more-apple-hardware-checkpatch-fixes.patch
+efifb-support-the-efi-framebuffer-on-more-apple-hardware.patch
 drivers-pci-intel-iommuc-fix-build-with-older-gccs.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 fs-inodec-work-around-bug.patch
 i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+alpha-asm-irqflagsh-needs-asm-systemh.patch
+drivers-serial-mfdc-needs-slabh.patch
 mm-vmap-area-cache.patch
 acpi-apei-fix-erst-move_data-instruction-implementation.patch
 arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
@@ -156,13 +131,6 @@ delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target
 pps-add-async-pps-event-handler-fix.patch
 kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
 ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-vfs-add-super-operation-writeback_inodes-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-writeback_inodes-implementation-fix.patch
-reiser4-fixups.patch
-reiser4-broke.patch
 journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
