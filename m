@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-mfdc-needs-slabh.patch added to -mm tree
-Date: Wed, 22 Sep 2010 14:44:44 -0700
-Message-ID: <201009222215.o8MMFhaD020079@imap1.linux-foundation.org>
+Subject: + arch-m68k-include-asm-irqflagsh-fix-build.patch added to -mm tree
+Date: Wed, 22 Sep 2010 15:01:18 -0700
+Message-ID: <201009222232.o8MMWHgu020762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751831Ab0IVWQP (ORCPT
+	by vger.kernel.org with ESMTP id S1751812Ab0IVWcc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Sep 2010 18:16:15 -0400
+	Wed, 22 Sep 2010 18:32:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de
+Cc: akpm@linux-foundation.org, geert@linux-m68k.org
 
 
 The patch titled
-     drivers/serial/mfd.c needs slab.h
+     arch/m68k/include/asm/irqflags.h: fix build
 has been added to the -mm tree.  Its filename is
-     drivers-serial-mfdc-needs-slabh.patch
+     arch-m68k-include-asm-irqflagsh-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/mfd.c needs slab.h
+Subject: arch/m68k/include/asm/irqflags.h: fix build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha allmodconfig:
+arch/m68k/include/asm/irqflags.h: In function 'arch_local_irq_enable':
+arch/m68k/include/asm/irqflags.h:52: error: expected ';' before '}' token
 
-drivers/serial/mfd.c:144: error: implicit declaration of function 'kzalloc'
-drivers/serial/mfd.c:144: warning: assignment makes pointer from integer without a cast
-
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mfd.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/m68k/include/asm/irqflags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/mfd.c~drivers-serial-mfdc-needs-slabh drivers/serial/mfd.c
---- a/drivers/serial/mfd.c~drivers-serial-mfdc-needs-slabh
-+++ a/drivers/serial/mfd.c
-@@ -27,6 +27,7 @@
- #include <linux/init.h>
- #include <linux/console.h>
- #include <linux/sysrq.h>
-+#include <linux/slab.h>
- #include <linux/serial_reg.h>
- #include <linux/circ_buf.h>
- #include <linux/delay.h>
+diff -puN arch/m68k/include/asm/irqflags.h~arch-m68k-include-asm-irqflagsh-fix-build arch/m68k/include/asm/irqflags.h
+--- a/arch/m68k/include/asm/irqflags.h~arch-m68k-include-asm-irqflagsh-fix-build
++++ a/arch/m68k/include/asm/irqflags.h
+@@ -47,7 +47,7 @@ static inline void arch_local_irq_enable
+ 			"andiw %0,%%sr"
+ 			:
+ 			: "i" (ALLOWINT)
+-			: "memory")
++			: "memory");
+ #endif
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,4 +124,5 @@ journal_add_journal_head-debug.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
+arch-m68k-include-asm-irqflagsh-fix-build.patch
 
