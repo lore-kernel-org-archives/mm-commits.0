@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + lis3-add-support-for-new-lis3dc-hp3dc-chip.patch added to -mm tree
-Date: Thu, 23 Sep 2010 12:43:59 -0700
-Message-ID: <201009231943.o8NJhxYZ014970@imap1.linux-foundation.org>
+Date: Thu, 23 Sep 2010 13:13:10 -0700
+Message-ID: <201009232013.o8NKDAJH016379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756386Ab0IWToO (ORCPT
+	by vger.kernel.org with ESMTP id S1753317Ab0IWUOB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Sep 2010 15:44:14 -0400
+	Thu, 23 Sep 2010 16:14:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -47,9 +47,9 @@ Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   42 ++++++++++++++++++++++++++----------
- drivers/hwmon/lis3lv02d.h |   17 ++++++++++++++
- 2 files changed, 48 insertions(+), 11 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   35 +++++++++++++++++++++++++++--------
+ drivers/hwmon/lis3lv02d.h |   17 +++++++++++++++++
+ 2 files changed, 44 insertions(+), 8 deletions(-)
 
 diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-support-for-new-lis3dc-hp3dc-chip drivers/hwmon/lis3lv02d.c
 --- a/drivers/hwmon/lis3lv02d.c~lis3-add-support-for-new-lis3dc-hp3dc-chip
@@ -114,19 +114,7 @@ diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-support-for-new-lis3dc-hp3dc-chip d
  	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
  
  	results[0] = x - lis3->read_data(lis3, OUTX);
-@@ -301,8 +311,9 @@ static irqreturn_t lis302dl_interrupt(in
- 	wake_up_interruptible(&lis3_dev.misc_wait);
- 	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
- out:
--	if (lis3_dev.pdata && lis3_dev.whoami == WAI_8B && lis3_dev.idev &&
--	    lis3_dev.idev->input->users)
-+	if (lis3_dev.pdata &&
-+		(lis3_dev.whoami == WAI_8B || lis3_dev.whoami == WAI_3DC) &&
-+		lis3_dev.idev && lis3_dev.idev->input->users)
- 		return IRQ_WAKE_THREAD;
- 	return IRQ_HANDLED;
- }
-@@ -698,6 +709,15 @@ int lis3lv02d_init_device(struct lis3lv0
+@@ -698,6 +708,15 @@ int lis3lv02d_init_device(struct lis3lv0
  		dev->odr_mask = CTRL1_DR;
  		dev->scale = LIS3_SENSITIVITY_8B;
  		break;
@@ -142,15 +130,6 @@ diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-support-for-new-lis3dc-hp3dc-chip d
  	default:
  		printk(KERN_ERR DRIVER_NAME
  			": unknown sensor type 0x%X\n", dev->whoami);
-@@ -742,7 +762,7 @@ int lis3lv02d_init_device(struct lis3lv0
- 	 * io-apic is not configurable (and generates a warning) but I keep it
- 	 * in case of support for other hardware.
- 	 */
--	if (dev->pdata && dev->whoami == WAI_8B)
-+	if (dev->pdata && (dev->whoami == WAI_8B || dev->whoami == WAI_3DC))
- 		thread_fn = lis302dl_interrupt_thread1_8b;
- 	else
- 		thread_fn = NULL;
 diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-support-for-new-lis3dc-hp3dc-chip drivers/hwmon/lis3lv02d.h
 --- a/drivers/hwmon/lis3lv02d.h~lis3-add-support-for-new-lis3dc-hp3dc-chip
 +++ a/drivers/hwmon/lis3lv02d.h
