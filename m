@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-add-support-for-new-lis3dc-hp3dc-chip.patch added to -mm tree
-Date: Thu, 23 Sep 2010 13:13:10 -0700
-Message-ID: <201009232013.o8NKDAJH016379@imap1.linux-foundation.org>
+Subject: + lis3-add-axes-module-parameter-for-custom-axis-mapping-update.patch added to -mm tree
+Date: Thu, 23 Sep 2010 13:45:25 -0700
+Message-ID: <201009232045.o8NKjPHF017958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753317Ab0IWUOB (ORCPT
+	by vger.kernel.org with ESMTP id S1754503Ab0IWUpl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Sep 2010 16:14:01 -0400
+	Thu, 23 Sep 2010 16:45:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tiwai@suse.de, Eric.Piel@tremplin-utc.net, guenter.roeck@ericsson.com, khali@linux-fr.org
+Cc: tiwai@suse.de, eric.piel@tremplin-utc.net, khali@linux-fr.org
 
 
 The patch titled
-     lis3: add support for new LIS3DC / HP3DC chip
+     lis3-add-axes-module-parameter-for-custom-axis-mapping-update
 has been added to the -mm tree.  Its filename is
-     lis3-add-support-for-new-lis3dc-hp3dc-chip.patch
+     lis3-add-axes-module-parameter-for-custom-axis-mapping-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,219 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: add support for new LIS3DC / HP3DC chip
+Subject: lis3-add-axes-module-parameter-for-custom-axis-mapping-update
 From: Takashi Iwai <tiwai@suse.de>
 
-A new version of LIS3 chip has slight incompatibilities from former
-versions.  This patch adds the minimal support for it.
+v3->v4: use union for axis_mapping to be type-safe
 
 Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Eric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
 Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   35 +++++++++++++++++++++++++++--------
- drivers/hwmon/lis3lv02d.h |   17 +++++++++++++++++
- 2 files changed, 44 insertions(+), 8 deletions(-)
+ drivers/hwmon/hp_accel.c      |   37 ++++++++++++++++----------------
+ drivers/hwmon/lis3lv02d.c     |   14 ++++++------
+ drivers/hwmon/lis3lv02d.h     |    9 ++++++-
+ drivers/hwmon/lis3lv02d_i2c.c |   11 +++++----
+ drivers/hwmon/lis3lv02d_spi.c |    3 +-
+ 5 files changed, 42 insertions(+), 32 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-support-for-new-lis3dc-hp3dc-chip drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3-add-support-for-new-lis3dc-hp3dc-chip
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -162,6 +162,7 @@ static void lis3lv02d_get_xyz(struct lis
- /* conversion btw sampling rate and the register values */
- static int lis3_12_rates[4] = {40, 160, 640, 2560};
- static int lis3_8_rates[2] = {100, 400};
-+static int lis3_3dc_rates[16] = {0, 1, 10, 25, 50, 100, 200, 400, 1600, 5000};
+diff -puN drivers/hwmon/hp_accel.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update drivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update
++++ a/drivers/hwmon/hp_accel.c
+@@ -146,8 +146,7 @@ int lis3lv02d_acpi_write(struct lis3lv02
  
- /* ODR is Output Data Rate */
- static int lis3lv02d_get_odr(void)
-@@ -180,6 +181,9 @@ static int lis3lv02d_set_odr(int rate)
- 	u8 ctrl;
- 	int i, len, shift;
- 
-+	if (!rate)
-+		return -EINVAL;
-+
- 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
- 	ctrl &= ~lis3_dev.odr_mask;
- 	len = 1 << hweight_long(lis3_dev.odr_mask); /* # of possible values */
-@@ -196,19 +200,25 @@ static int lis3lv02d_set_odr(int rate)
- 
- static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
+ static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
  {
--	u8 reg;
-+	u8 ctlreg, reg;
- 	s16 x, y, z;
- 	u8 selftest;
- 	int ret;
+-	memcpy(lis3_dev.axis_map, (int *)dmi->driver_data,
+-	       sizeof(lis3_dev.axis_map));
++	lis3_dev.ac = *((union axis_conversion *)dmi->driver_data);
+ 	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->ident);
  
- 	mutex_lock(&lis3->mutex);
--	if (lis3_dev.whoami == WAI_12B)
--		selftest = CTRL1_ST;
--	else
--		selftest = CTRL1_STP;
-+	if (lis3_dev.whoami == WAI_3DC) {
-+		ctlreg = CTRL_REG4;
-+		selftest = CTRL4_ST0;
-+	} else {
-+		ctlreg = CTRL_REG1;
-+		if (lis3_dev.whoami == WAI_12B)
-+			selftest = CTRL1_ST;
-+		else
-+			selftest = CTRL1_STP;
-+	}
+ 	return 1;
+@@ -155,16 +154,19 @@ static int lis3lv02d_dmi_matched(const s
  
--	lis3->read(lis3, CTRL_REG1, &reg);
--	lis3->write(lis3, CTRL_REG1, (reg | selftest));
-+	lis3->read(lis3, ctlreg, &reg);
-+	lis3->write(lis3, ctlreg, (reg | selftest));
- 	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
+ /* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
+  * If the value is negative, the opposite of the hw value is used. */
+-static int lis3lv02d_axis_normal[3] = {1, 2, 3};
+-static int lis3lv02d_axis_y_inverted[3] = {1, -2, 3};
+-static int lis3lv02d_axis_x_inverted[3] = {-1, 2, 3};
+-static int lis3lv02d_axis_z_inverted[3] = {1, 2, -3};
+-static int lis3lv02d_axis_xy_swap[3] = {2, 1, 3};
+-static int lis3lv02d_axis_xy_rotated_left[3] = {-2, 1, 3};
+-static int lis3lv02d_axis_xy_rotated_left_usd[3] = {-2, 1, -3};
+-static int lis3lv02d_axis_xy_swap_inverted[3] = {-2, -1, 3};
+-static int lis3lv02d_axis_xy_rotated_right[3] = {2, -1, 3};
+-static int lis3lv02d_axis_xy_swap_yz_inverted[3] = {2, -1, -3};
++#define DEFINE_CONV(name, x, y, z)			      \
++	static union axis_conversion lis3lv02d_axis_##name = \
++		{ .as_array = { x, y, z } }
++DEFINE_CONV(normal, 1, 2, 3);
++DEFINE_CONV(y_inverted, 1, -2, 3);
++DEFINE_CONV(x_inverted, -1, 2, 3);
++DEFINE_CONV(z_inverted, 1, 2, -3);
++DEFINE_CONV(xy_swap, 2, 1, 3);
++DEFINE_CONV(xy_rotated_left, -2, 1, 3);
++DEFINE_CONV(xy_rotated_left_usd, -2, 1, -3);
++DEFINE_CONV(xy_swap_inverted, -2, -1, 3);
++DEFINE_CONV(xy_rotated_right, 2, -1, 3);
++DEFINE_CONV(xy_swap_yz_inverted, 2, -1, -3);
  
- 	/* Read directly to avoid axis remap */
-@@ -217,7 +227,7 @@ static int lis3lv02d_selftest(struct lis
- 	z = lis3->read_data(lis3, OUTZ);
+ #define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
+ 	.ident = _ident,				\
+@@ -172,7 +174,7 @@ static int lis3lv02d_axis_xy_swap_yz_inv
+ 	.matches = {					\
+ 		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
+ 	},						\
+-	.driver_data = lis3lv02d_axis_##_axis		\
++	.driver_data = &lis3lv02d_axis_##_axis		\
+ }
  
- 	/* back to normal settings */
--	lis3->write(lis3, CTRL_REG1, reg);
-+	lis3->write(lis3, ctlreg, reg);
- 	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
+ #define AXIS_DMI_MATCH2(_ident, _class1, _name1,	\
+@@ -184,7 +186,7 @@ static int lis3lv02d_axis_xy_swap_yz_inv
+ 		DMI_MATCH(DMI_##_class1, _name1),	\
+ 		DMI_MATCH(DMI_##_class2, _name2),	\
+ 	},						\
+-	.driver_data = lis3lv02d_axis_##_axis		\
++	.driver_data = &lis3lv02d_axis_##_axis		\
+ }
+ static struct dmi_system_id lis3lv02d_dmi_ids[] = {
+ 	/* product names are truncated to match all kinds of a same model */
+@@ -300,14 +302,13 @@ static int lis3lv02d_add(struct acpi_dev
+ 	lis3lv02d_enum_resources(device);
  
- 	results[0] = x - lis3->read_data(lis3, OUTX);
-@@ -698,6 +708,15 @@ int lis3lv02d_init_device(struct lis3lv0
- 		dev->odr_mask = CTRL1_DR;
- 		dev->scale = LIS3_SENSITIVITY_8B;
- 		break;
-+	case WAI_3DC:
-+		printk(KERN_INFO DRIVER_NAME ": 8 bits 3DC sensor found\n");
-+		dev->read_data = lis3lv02d_read_8;
-+		dev->mdps_max_val = 128;
-+		dev->pwron_delay = LIS3_PWRON_DELAY_WAI_8B;
-+		dev->odrs = lis3_3dc_rates;
-+		dev->odr_mask = CTRL1_ODR0|CTRL1_ODR1|CTRL1_ODR2|CTRL1_ODR3;
-+		dev->scale = LIS3_SENSITIVITY_8B;
-+		break;
- 	default:
- 		printk(KERN_ERR DRIVER_NAME
- 			": unknown sensor type 0x%X\n", dev->whoami);
-diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-support-for-new-lis3dc-hp3dc-chip drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3-add-support-for-new-lis3dc-hp3dc-chip
+ 	/* If possible use a "standard" axes order */
+-	if (lis3_dev.axis_map[0] && lis3_dev.axis_map[1] && lis3_dev.axis_map[2]) {
++	if (lis3_dev.ac.x && lis3_dev.ac.y && lis3_dev.ac.z) {
+ 		printk(KERN_INFO DRIVER_NAME ": Using custom axes %d,%d,%d\n",
+-		       lis3_dev.axis_map[0], lis3_dev.axis_map[1], lis3_dev.axis_map[2]);
++		       lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
+ 	} else if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
+ 		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
+ 				 "using default axes configuration\n");
+-		memcpy(lis3_dev.axis_map, lis3lv02d_axis_normal,
+-		       sizeof(lis3_dev.axis_map));
++		lis3_dev.ac = lis3lv02d_axis_normal;
+ 	}
+ 
+ 	/* call the core layer do its init */
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -96,7 +96,7 @@ static struct kernel_param_ops param_ops
+ 	.get = param_get_int,
+ };
+ 
+-module_param_array_named(axes, lis3_dev.axis_map, axis, NULL, 0644);
++module_param_array_named(axes, lis3_dev.ac.as_array, axis, NULL, 0644);
+ MODULE_PARM_DESC(axes, "Axis-mapping for x,y,z directions");
+ 
+ static s16 lis3lv02d_read_8(struct lis3lv02d *lis3, int reg)
+@@ -154,9 +154,9 @@ static void lis3lv02d_get_xyz(struct lis
+ 	for (i = 0; i < 3; i++)
+ 		position[i] = (position[i] * lis3->scale) / LIS3_ACCURACY;
+ 
+-	*x = lis3lv02d_get_axis(lis3->axis_map[0], position);
+-	*y = lis3lv02d_get_axis(lis3->axis_map[1], position);
+-	*z = lis3lv02d_get_axis(lis3->axis_map[2], position);
++	*x = lis3lv02d_get_axis(lis3->ac.x, position);
++	*y = lis3lv02d_get_axis(lis3->ac.y, position);
++	*z = lis3lv02d_get_axis(lis3->ac.z, position);
+ }
+ 
+ /* conversion btw sampling rate and the register values */
+@@ -503,9 +503,9 @@ int lis3lv02d_joystick_enable(void)
+ 	input_set_abs_params(input_dev, ABS_Y, -max_val, max_val, fuzz, flat);
+ 	input_set_abs_params(input_dev, ABS_Z, -max_val, max_val, fuzz, flat);
+ 
+-	lis3_dev.mapped_btns[0] = lis3lv02d_get_axis(abs(lis3_dev.axis_map[0]), btns);
+-	lis3_dev.mapped_btns[1] = lis3lv02d_get_axis(abs(lis3_dev.axis_map[1]), btns);
+-	lis3_dev.mapped_btns[2] = lis3lv02d_get_axis(abs(lis3_dev.axis_map[2]), btns);
++	lis3_dev.mapped_btns[0] = lis3lv02d_get_axis(abs(lis3_dev.ac.x), btns);
++	lis3_dev.mapped_btns[1] = lis3lv02d_get_axis(abs(lis3_dev.ac.y), btns);
++	lis3_dev.mapped_btns[2] = lis3lv02d_get_axis(abs(lis3_dev.ac.z), btns);
+ 
+ 	err = input_register_polled_device(lis3_dev.idev);
+ 	if (err) {
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-axes-module-parameter-for-custom-axis-mapping-update drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-add-axes-module-parameter-for-custom-axis-mapping-update
 +++ a/drivers/hwmon/lis3lv02d.h
-@@ -45,6 +45,7 @@ enum lis3_reg {
- 	CTRL_REG1	= 0x20,
- 	CTRL_REG2	= 0x21,
- 	CTRL_REG3	= 0x22,
-+	CTRL_REG4	= 0x23,
- 	HP_FILTER_RESET	= 0x23,
- 	STATUS_REG	= 0x27,
- 	OUTX_L		= 0x28,
-@@ -93,6 +94,7 @@ enum lis3lv02d_reg {
+@@ -206,6 +206,13 @@ enum lis3lv02d_click_src_8b {
+ 	CLICK_IA	= 0x40,
  };
  
- enum lis3_who_am_i {
-+	WAI_3DC		= 0x33,	/* 8 bits: LIS3DC, HP3DC */
- 	WAI_12B		= 0x3A, /* 12 bits: LIS3LV02D[LQ]... */
- 	WAI_8B		= 0x3B, /* 8 bits: LIS[23]02D[LQ]... */
- 	WAI_6B		= 0x52, /* 6 bits: LIS331DLF - not supported */
-@@ -118,6 +120,13 @@ enum lis3lv02d_ctrl1_8b {
- 	CTRL1_DR	= 0x80,
- };
- 
-+enum lis3lv02d_ctrl1_3dc {
-+	CTRL1_ODR0	= 0x10,
-+	CTRL1_ODR1	= 0x20,
-+	CTRL1_ODR2	= 0x40,
-+	CTRL1_ODR3	= 0x80,
++union axis_conversion {
++	struct {
++		int x, y, z;
++	};
++	int as_array[3];
 +};
 +
- enum lis3lv02d_ctrl2 {
- 	CTRL2_DAS	= 0x01,
- 	CTRL2_SIM	= 0x02,
-@@ -129,6 +138,14 @@ enum lis3lv02d_ctrl2 {
- 	CTRL2_FS	= 0x80, /* Full Scale selection */
- };
+ struct lis3lv02d {
+ 	void			*bus_priv; /* used by the bus layer only */
+ 	int (*init) (struct lis3lv02d *lis3);
+@@ -226,7 +233,7 @@ struct lis3lv02d {
+ 	struct input_polled_dev	*idev;     /* input device */
+ 	struct platform_device	*pdev;     /* platform device */
+ 	atomic_t		count;     /* interrupt count after last read */
+-	int			axis_map[3];  /* hw -> logical axis */
++	union axis_conversion	ac;        /* hw -> logical axis */
+ 	int			mapped_btns[3];
  
-+enum lis3lv02d_ctrl4_3dc {
-+	CTRL4_SIM	= 0x01,
-+	CTRL4_ST0	= 0x02,
-+	CTRL4_ST1	= 0x04,
-+	CTRL4_FS0	= 0x10,
-+	CTRL4_FS1	= 0x20,
-+};
-+
- enum lis302d_ctrl2 {
- 	HP_FF_WU2	= 0x08,
- 	HP_FF_WU1	= 0x04,
+ 	u32			irq;       /* IRQ number */
+diff -puN drivers/hwmon/lis3lv02d_i2c.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update drivers/hwmon/lis3lv02d_i2c.c
+--- a/drivers/hwmon/lis3lv02d_i2c.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update
++++ a/drivers/hwmon/lis3lv02d_i2c.c
+@@ -61,7 +61,8 @@ static int lis3_i2c_init(struct lis3lv02
+ }
+ 
+ /* Default axis mapping but it can be overwritten by platform data */
+-static int lis3lv02d_axis_map[3] = { LIS3_DEV_X, LIS3_DEV_Y, LIS3_DEV_Z };
++static union axis_conversion lis3lv02d_axis_map =
++	{ .as_array = { LIS3_DEV_X, LIS3_DEV_Y, LIS3_DEV_Z } };
+ 
+ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+@@ -71,13 +72,13 @@ static int __devinit lis3lv02d_i2c_probe
+ 
+ 	if (pdata) {
+ 		if (pdata->axis_x)
+-			lis3lv02d_axis_map[0] = pdata->axis_x;
++			lis3lv02d_axis_map.x = pdata->axis_x;
+ 
+ 		if (pdata->axis_y)
+-			lis3lv02d_axis_map[1] = pdata->axis_y;
++			lis3lv02d_axis_map.y = pdata->axis_y;
+ 
+ 		if (pdata->axis_z)
+-			lis3lv02d_axis_map[2] = pdata->axis_z;
++			lis3lv02d_axis_map.z = pdata->axis_z;
+ 
+ 		if (pdata->setup_resources)
+ 			ret = pdata->setup_resources();
+@@ -92,7 +93,7 @@ static int __devinit lis3lv02d_i2c_probe
+ 	lis3_dev.read	  = lis3_i2c_read;
+ 	lis3_dev.write	  = lis3_i2c_write;
+ 	lis3_dev.irq	  = client->irq;
+-	memcpy(&lis3_dev.axis_map, &lis3lv02d_axis_map, sizeof(lis3_dev.axis_map));
++	lis3_dev.ac	  = lis3lv02d_axis_map;
+ 
+ 	i2c_set_clientdata(client, &lis3_dev);
+ 	ret = lis3lv02d_init_device(&lis3_dev);
+diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update drivers/hwmon/lis3lv02d_spi.c
+--- a/drivers/hwmon/lis3lv02d_spi.c~lis3-add-axes-module-parameter-for-custom-axis-mapping-update
++++ a/drivers/hwmon/lis3lv02d_spi.c
+@@ -54,7 +54,8 @@ static int lis3_spi_init(struct lis3lv02
+ 	return lis3->write(lis3, CTRL_REG1, reg);
+ }
+ 
+-static struct axis_conversion lis3lv02d_axis_normal = { 1, 2, 3 };
++static union axis_conversion lis3lv02d_axis_normal =
++	{ .as_array = { 1, 2, 3 } };
+ 
+ static int __devinit lis302dl_spi_probe(struct spi_device *spi)
+ {
 _
 
 Patches currently in -mm which might be from tiwai@suse.de are
@@ -185,5 +254,6 @@ Patches currently in -mm which might be from tiwai@suse.de are
 linux-next.patch
 lis3-fix-oops-with-null-platform-data.patch
 lis3-add-axes-module-parameter-for-custom-axis-mapping.patch
+lis3-add-axes-module-parameter-for-custom-axis-mapping-update.patch
 lis3-add-support-for-new-lis3dc-hp3dc-chip.patch
 
