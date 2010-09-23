@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-use-release_pages.patch added to -mm tree
-Date: Thu, 23 Sep 2010 14:28:36 -0700
-Message-ID: <201009232128.o8NLSajj020062@imap1.linux-foundation.org>
+Subject: + mm-add-a-might_sleep_if-in-dma_pool_alloc.patch added to -mm tree
+Date: Thu, 23 Sep 2010 14:23:57 -0700
+Message-ID: <201009232123.o8NLNvZs019861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753579Ab0IWV31 (ORCPT
+	by vger.kernel.org with ESMTP id S1753041Ab0IWVcb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Sep 2010 17:29:27 -0400
+	Thu, 23 Sep 2010 17:32:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, akpm@linux-foundation.org
+Cc: dima@android.com
 
 
 The patch titled
-     fuse: use release_pages()
+     mm: add a might_sleep_if() to dma_pool_alloc()
 has been added to the -mm tree.  Its filename is
-     fuse-use-release_pages.patch
+     mm-add-a-might_sleep_if-in-dma_pool_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: use release_pages()
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: mm: add a might_sleep_if() to dma_pool_alloc()
+From: Dima Zavin <dima@android.com>
 
-Replace iterated page_cache_release() with release_pages(), which is
-faster and shorter.
+Buggy drivers (e.g.  fsl_udc) could call dma_pool_alloc from atomic
+context with GFP_KERNEL.  In most instances, the first pool_alloc_page
+call would succeed and the sleeping functions would never be called.  This
+allowed the buggy drivers to slip through the cracks.
 
-Needs release_pages() to be exported to modules.
+Add a might_sleep_if() checking for __GFP_WAIT in flags.
 
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Dima Zavin <dima@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c |    7 +------
- mm/swap.c     |    1 +
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ mm/dmapool.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/fuse/dev.c~fuse-use-release_pages fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-use-release_pages
-+++ a/fs/fuse/dev.c
-@@ -1334,12 +1334,7 @@ out_finish:
+diff -puN mm/dmapool.c~mm-add-a-might_sleep_if-in-dma_pool_alloc mm/dmapool.c
+--- a/mm/dmapool.c~mm-add-a-might_sleep_if-in-dma_pool_alloc
++++ a/mm/dmapool.c
+@@ -311,6 +311,8 @@ void *dma_pool_alloc(struct dma_pool *po
+ 	size_t offset;
+ 	void *retval;
  
- static void fuse_retrieve_end(struct fuse_conn *fc, struct fuse_req *req)
- {
--	int i;
--
--	for (i = 0; i < req->num_pages; i++) {
--		struct page *page = req->pages[i];
--		page_cache_release(page);
--	}
-+	release_pages(req->pages, req->num_pages, 0);
- }
- 
- static int fuse_retrieve(struct fuse_conn *fc, struct inode *inode,
-diff -puN mm/swap.c~fuse-use-release_pages mm/swap.c
---- a/mm/swap.c~fuse-use-release_pages
-+++ a/mm/swap.c
-@@ -378,6 +378,7 @@ void release_pages(struct page **pages, 
- 
- 	pagevec_free(&pages_to_free);
- }
-+EXPORT_SYMBOL(release_pages);
- 
- /*
-  * The pages which we're about to release may be in the deferred lru-addition
++	might_sleep_if(mem_flags & __GFP_WAIT);
++
+ 	spin_lock_irqsave(&pool->lock, flags);
+  restart:
+ 	list_for_each_entry(page, &pool->page_list, page_list) {
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from dima@android.com are
 
-fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch
-fuse-use-release_pages.patch
+mm-add-a-might_sleep_if-in-dma_pool_alloc.patch
 
