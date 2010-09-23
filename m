@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdhci-s3c-fix-null-ptr-access-in-sdhci_s3c_remove.patch added to -mm tree
-Date: Thu, 23 Sep 2010 12:08:10 -0700
-Message-ID: <201009231908.o8NJ8A4u013067@imap1.linux-foundation.org>
+Subject: + drivers-net-stmmac-add-has_iomem-dependency.patch added to -mm tree
+Date: Thu, 23 Sep 2010 12:10:12 -0700
+Message-ID: <201009231910.o8NJACH5013115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34207 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754855Ab0IWTI5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754856Ab0IWTKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Sep 2010 15:08:57 -0400
+	Thu, 23 Sep 2010 15:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.szyprowski@samsung.com, ben-linux@fluff.org, cjb@laptop.org, kyungmin.park@samsung.com
+Cc: schwidefsky@de.ibm.com, davem@davemloft.net, heiko.carstens@de.ibm.com, peppe.cavallaro@st.com
 
 
 The patch titled
-     sdhci-s3c: fix NULL ptr access in sdhci_s3c_remove
+     drivers/net/stmmac/: add HAS_IOMEM dependency
 has been added to the -mm tree.  Its filename is
-     sdhci-s3c-fix-null-ptr-access-in-sdhci_s3c_remove.patch
+     drivers-net-stmmac-add-has_iomem-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci-s3c: fix NULL ptr access in sdhci_s3c_remove
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: drivers/net/stmmac/: add HAS_IOMEM dependency
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-If not all clocks has been defined in platform data, driver will cause a
-null pointer dereference when it is being removed.  This patch fixes this
-issue.
+The stmmac driver does not compile on s390:
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Chris Ball <cjb@laptop.org>
+drivers/net/stmmac/stmmac_main.c: In function 'stmmac_adjust_link':
+drivers/net/stmmac/stmmac_main.c:210: error: implicit declaration of function 'readl'
+drivers/net/stmmac/stmmac_main.c:263: error: implicit declaration of function 'writel'
+drivers/net/stmmac/stmmac_main.c: In function 'stmmac_dvr_probe':
+drivers/net/stmmac/stmmac_main.c:1674: error: implicit declaration of function 'ioremap'
+drivers/net/stmmac/stmmac_main.c:1674: warning: assignment makes pointer from integer without a cast
+drivers/net/stmmac/stmmac_main.c:1761: error: implicit declaration of function 'iounmap'
+make[3]: *** [drivers/net/stmmac/stmmac_main.o] Error 1
+
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Giuseppe CAVALLARO <peppe.cavallaro@st.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-s3c.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/stmmac/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci-s3c.c~sdhci-s3c-fix-null-ptr-access-in-sdhci_s3c_remove drivers/mmc/host/sdhci-s3c.c
---- a/drivers/mmc/host/sdhci-s3c.c~sdhci-s3c-fix-null-ptr-access-in-sdhci_s3c_remove
-+++ a/drivers/mmc/host/sdhci-s3c.c
-@@ -483,8 +483,10 @@ static int __devexit sdhci_s3c_remove(st
- 	sdhci_remove_host(host, 1);
- 
- 	for (ptr = 0; ptr < 3; ptr++) {
--		clk_disable(sc->clk_bus[ptr]);
--		clk_put(sc->clk_bus[ptr]);
-+		if (sc->clk_bus[ptr]) {
-+			clk_disable(sc->clk_bus[ptr]);
-+			clk_put(sc->clk_bus[ptr]);
-+		}
- 	}
- 	clk_disable(sc->clk_io);
- 	clk_put(sc->clk_io);
+diff -puN drivers/net/stmmac/Kconfig~drivers-net-stmmac-add-has_iomem-dependency drivers/net/stmmac/Kconfig
+--- a/drivers/net/stmmac/Kconfig~drivers-net-stmmac-add-has_iomem-dependency
++++ a/drivers/net/stmmac/Kconfig
+@@ -3,7 +3,7 @@ config STMMAC_ETH
+ 	select MII
+ 	select PHYLIB
+ 	select CRC32
+-	depends on NETDEVICES
++	depends on NETDEVICES && HAS_IOMEM
+ 	help
+ 	  This is the driver for the Ethernet IPs are built around a
+ 	  Synopsys IP Core and only tested on the STMicroelectronics
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
 linux-next.patch
-sdhci-s3c-fix-null-ptr-access-in-sdhci_s3c_remove.patch
+time-compensate-for-rounding-on-odd-frequency-clocksources.patch
+drivers-net-stmmac-add-has_iomem-dependency.patch
+s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+initramfs-generalize-initramfs_dataxxxs-variants.patch
+initramfs-fix-initramfs-size-calculation.patch
 
