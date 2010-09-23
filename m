@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + lis3-fix-oops-with-null-platform-data.patch added to -mm tree
-Date: Thu, 23 Sep 2010 12:25:11 -0700
-Message-ID: <201009231925.o8NJPBdJ014030@imap1.linux-foundation.org>
+Date: Thu, 23 Sep 2010 12:25:38 -0700
+Message-ID: <201009231925.o8NJPdkx014040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59835 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754734Ab0IWTZa (ORCPT
+	by vger.kernel.org with ESMTP id S1754734Ab0IWTZz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Sep 2010 15:25:30 -0400
+	Thu, 23 Sep 2010 15:25:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tiwai@suse.de, guenter.roeck@ericsson.com, khali@linux-fr.org, samu.p.onkalo@nokia.com
+Cc: tiwai@suse.de, guenter.roeck@ericsson.com, khali@linux-fr.org, samu.p.onkalo@nokia.com, stable@kernel.org
 
 
 The patch titled
@@ -44,6 +44,7 @@ Signed-off-by: Takashi Iwai <tiwai@suse.de>
 Acked-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: Jean Delvare <khali@linux-fr.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -53,7 +54,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN drivers/hwmon/lis3lv02d.c~lis3-fix-oops-with-null-platform-data drivers/hwmon/lis3lv02d.c
 --- a/drivers/hwmon/lis3lv02d.c~lis3-fix-oops-with-null-platform-data
 +++ a/drivers/hwmon/lis3lv02d.c
-@@ -301,7 +301,7 @@ static irqreturn_t lis302dl_interrupt(in
+@@ -277,7 +277,7 @@ static irqreturn_t lis302dl_interrupt(in
  	wake_up_interruptible(&lis3_dev.misc_wait);
  	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
  out:
@@ -62,7 +63,7 @@ diff -puN drivers/hwmon/lis3lv02d.c~lis3-fix-oops-with-null-platform-data driver
  	    lis3_dev.idev->input->users)
  		return IRQ_WAKE_THREAD;
  	return IRQ_HANDLED;
-@@ -742,7 +742,7 @@ int lis3lv02d_init_device(struct lis3lv0
+@@ -718,7 +718,7 @@ int lis3lv02d_init_device(struct lis3lv0
  	 * io-apic is not configurable (and generates a warning) but I keep it
  	 * in case of support for other hardware.
  	 */
@@ -76,6 +77,6 @@ _
 Patches currently in -mm which might be from tiwai@suse.de are
 
 linux-next.patch
-lis3-add-axes-module-parameter-for-custom-axis-mapping.patch
 lis3-fix-oops-with-null-platform-data.patch
+lis3-add-axes-module-parameter-for-custom-axis-mapping.patch
 
