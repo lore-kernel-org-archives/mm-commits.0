@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sys_semctl-fix-kernel-stack-leakage.patch added to -mm tree
-Date: Thu, 23 Sep 2010 15:06:03 -0700
-Message-ID: <201009232206.o8NM63YZ021919@imap1.linux-foundation.org>
+Subject: + gpio-sx150x-fix-error-code-value.patch added to -mm tree
+Date: Thu, 23 Sep 2010 16:21:17 -0700
+Message-ID: <201009232321.o8NNLHFN025348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755794Ab0IWWGG (ORCPT
+	by vger.kernel.org with ESMTP id S1752254Ab0IWXWD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Sep 2010 18:06:06 -0400
+	Thu, 23 Sep 2010 19:22:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, dan.j.rosenberg@gmail.com, manfred@colorfullife.com
+Cc: segooon@gmail.com, david-b@pacbell.net, gbean@codeaurora.org, khali@linux-fr.org
 
 
 The patch titled
-     sys_semctl: fix kernel stack leakage
+     gpio: sx150x: fix error code value
 has been added to the -mm tree.  Its filename is
-     sys_semctl-fix-kernel-stack-leakage.patch
+     gpio-sx150x-fix-error-code-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_semctl: fix kernel stack leakage
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: gpio: sx150x: fix error code value
+From: Vasiliy Kulikov <segooon@gmail.com>
 
-The semctl syscall has several code paths that lead to the leakage of
-uninitialized kernel stack memory (namely the IPC_INFO, SEM_INFO,
-IPC_STAT, and SEM_STAT commands) during the use of the older, obsolete
-version of the semid_ds struct.
+The return code of sx150x_get_io() is propagated as error code, so it
+should look like standard code.
 
-The copy_semid_to_user() function declares a semid_ds struct on the stack
-and copies it back to the user without initializing or zeroing the
-"sem_base", "sem_pending", "sem_pending_last", and "undo" pointers,
-allowing the leakage of 16 bytes of kernel stack memory.
-
-The code is still reachable on 32-bit systems - when calling semctl()
-newer glibc's automatically OR the IPC command with the IPC_64 flag, but
-invoking the syscall directly allows users to use the older versions of
-the struct.
-
-Signed-off-by: Dan Rosenberg <dan.j.rosenberg@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+Cc: Gregory Bean <gbean@codeaurora.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/gpio/sx150x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~sys_semctl-fix-kernel-stack-leakage ipc/sem.c
---- a/ipc/sem.c~sys_semctl-fix-kernel-stack-leakage
-+++ a/ipc/sem.c
-@@ -743,6 +743,8 @@ static unsigned long copy_semid_to_user(
- 	    {
- 		struct semid_ds out;
+diff -puN drivers/gpio/sx150x.c~gpio-sx150x-fix-error-code-value drivers/gpio/sx150x.c
+--- a/drivers/gpio/sx150x.c~gpio-sx150x-fix-error-code-value
++++ a/drivers/gpio/sx150x.c
+@@ -179,7 +179,7 @@ static int sx150x_get_io(struct sx150x_c
+ 	sx150x_find_cfg(offset, 1, &reg, &mask, &shift);
+ 	err = sx150x_i2c_read(chip->client, reg, &data);
+ 	if (err >= 0)
+-		err = (data & mask) != 0 ? 1 : 0;
++		err = (data & mask) != 0 ? -EIO : 0;
  
-+		memset(&out, 0, sizeof(out));
-+
- 		ipc64_perm_to_ipc_perm(&in->sem_perm, &out.sem_perm);
- 
- 		out.sem_otime	= in->sem_otime;
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from segooon@gmail.com are
 
-origin.patch
-sys_semctl-fix-kernel-stack-leakage.patch
-drivers-serial-serial_corec-prevent-reading-uninitialized-stack-memory.patch
-drivers-char-amiserialc-prevent-reading-uninitialized-stack-memory.patch
-drivers-char-nozomic-prevent-reading-uninitialized-stack-memory.patch
+linux-next.patch
+md-check-return-code-of-read_sb_page.patch
+mm-mempolicy-check-return-code-of-check_range.patch
+drivers-rtc-classc-fix-device_register-error-handling.patch
+gpio-sx150x-fix-error-code-value.patch
+memstick-core-fix-device_register-error-handling.patch
 
