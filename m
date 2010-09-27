@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr.patch added to -mm tree
-Date: Mon, 27 Sep 2010 14:20:19 -0700
-Message-ID: <201009272120.o8RLKJd3017330@imap1.linux-foundation.org>
+Subject: + i915-signedness-bugs-in-i915-ring-buffer.patch added to -mm tree
+Date: Mon, 27 Sep 2010 14:46:55 -0700
+Message-ID: <201009272146.o8RLktpr018495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753411Ab0I0VUd (ORCPT
+	by vger.kernel.org with ESMTP id S1752196Ab0I0Vr5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Sep 2010 17:20:33 -0400
+	Mon, 27 Sep 2010 17:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roberto.sassu@polito.it, jmorris@namei.org, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com
+Cc: error27@gmail.com, airlied@linux.ie, chris@chris-wilson.co.uk, eric@anholt.net, haihao.xiang@intel.com, nanhai.zou@intel.com, zhenyuw@linux.intel.com
 
 
 The patch titled
-     ecryptfs: call __vfs_setxattr_noperm() in ecryptfs_setxattr()
+     drivers/gpu/drm/i915/: fix signedness bugs in i915 ring buffer
 has been added to the -mm tree.  Its filename is
-     ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr.patch
+     i915-signedness-bugs-in-i915-ring-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: call __vfs_setxattr_noperm() in ecryptfs_setxattr()
-From: Roberto Sassu <roberto.sassu@polito.it>
+Subject: drivers/gpu/drm/i915/: fix signedness bugs in i915 ring buffer
+From: Dan Carpenter <error27@gmail.com>
 
-Ecryptfs is a stackable filesystem which relies on lower filesystems the
-ability of setting/getting extended attributes.
+"ring->space" is unsigned so it's never less than zero.
 
-If there is a security module enabled on the system it updates the
-'security' field of inodes according to the owned extended attribute set
-with the function vfs_setxattr().  When this function is performed on a
-ecryptfs filesystem the 'security' field is not updated for the lower
-filesystem since the call security_inode_post_setxattr() is missing for
-the lower inode.
-
-This patch makes the function __vfs_setxattr_noperm() available for
-modules and replaces the call to the setxattr() method of the lower inode
-with the exported function.
-
-Signed-off-by: Roberto Sassu <roberto.sassu@polito.it>
-Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Cc: Dustin Kirkland <kirkland@canonical.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Zou Nan hai <nanhai.zou@intel.com>
+Cc: Xiang Hai hao <haihao.xiang@intel.com>
+Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    5 +++--
- fs/xattr.c          |    1 +
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/i915/i915_dma.c         |    7 ++++---
+ drivers/gpu/drm/i915/intel_ringbuffer.c |   21 ++++++++++++---------
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr
-+++ a/fs/ecryptfs/inode.c
-@@ -32,6 +32,7 @@
- #include <linux/crypto.h>
- #include <linux/fs_stack.h>
- #include <linux/slab.h>
-+#include <linux/xattr.h>
- #include <asm/unaligned.h>
- #include "ecryptfs_kernel.h"
+diff -puN drivers/gpu/drm/i915/i915_dma.c~i915-signedness-bugs-in-i915-ring-buffer drivers/gpu/drm/i915/i915_dma.c
+--- a/drivers/gpu/drm/i915/i915_dma.c~i915-signedness-bugs-in-i915-ring-buffer
++++ a/drivers/gpu/drm/i915/i915_dma.c
+@@ -109,9 +109,10 @@ void i915_kernel_lost_context(struct drm
  
-@@ -1109,8 +1110,8 @@ ecryptfs_setxattr(struct dentry *dentry,
- 		goto out;
+ 	ring->head = I915_READ(PRB0_HEAD) & HEAD_ADDR;
+ 	ring->tail = I915_READ(PRB0_TAIL) & TAIL_ADDR;
+-	ring->space = ring->head - (ring->tail + 8);
+-	if (ring->space < 0)
+-		ring->space += ring->size;
++	if (ring->head >= ring->tail + 8)
++		ring->space = ring->head - (ring->tail + 8);
++	else
++		ring->space = ring->head - (ring->tail + 8) + ring->size;
+ 
+ 	if (!dev->primary->master)
+ 		return;
+diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~i915-signedness-bugs-in-i915-ring-buffer drivers/gpu/drm/i915/intel_ringbuffer.c
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c~i915-signedness-bugs-in-i915-ring-buffer
++++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -208,9 +208,10 @@ static int init_ring_common(struct drm_d
+ 	else {
+ 		ring->head = ring->get_head(dev, ring);
+ 		ring->tail = ring->get_tail(dev, ring);
+-		ring->space = ring->head - (ring->tail + 8);
+-		if (ring->space < 0)
+-			ring->space += ring->size;
++		if (ring->head >= ring->tail + 8)
++			ring->space = ring->head - (ring->tail + 8);
++		else
++			ring->space = ring->head - (ring->tail + 8) + ring->size;
  	}
- 	mutex_lock(&lower_dentry->d_inode->i_mutex);
--	rc = lower_dentry->d_inode->i_op->setxattr(lower_dentry, name, value,
--						   size, flags);
-+	rc = __vfs_setxattr_noperm(lower_dentry, name, value,
-+				   size, flags);
- 	mutex_unlock(&lower_dentry->d_inode->i_mutex);
- out:
- 	return rc;
-diff -puN fs/xattr.c~ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr fs/xattr.c
---- a/fs/xattr.c~ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr
-+++ a/fs/xattr.c
-@@ -106,6 +106,7 @@ int __vfs_setxattr_noperm(struct dentry 
- 
- 	return error;
+ 	return 0;
  }
-+EXPORT_SYMBOL_GPL(__vfs_setxattr_noperm);
- 
- 
- int
+@@ -670,9 +671,10 @@ int intel_init_ring_buffer(struct drm_de
+ 	else {
+ 		ring->head = ring->get_head(dev, ring);
+ 		ring->tail = ring->get_tail(dev, ring);
+-		ring->space = ring->head - (ring->tail + 8);
+-		if (ring->space < 0)
+-			ring->space += ring->size;
++		if (ring->head >= ring->tail + 8)
++			ring->space = ring->head - (ring->tail + 8);
++		else
++			ring->space = ring->head - (ring->tail + 8) + ring->size;
+ 	}
+ 	INIT_LIST_HEAD(&ring->active_list);
+ 	INIT_LIST_HEAD(&ring->request_list);
+@@ -739,9 +741,10 @@ int intel_wait_ring_buffer(struct drm_de
+ 	end = jiffies + 3 * HZ;
+ 	do {
+ 		ring->head = ring->get_head(dev, ring);
+-		ring->space = ring->head - (ring->tail + 8);
+-		if (ring->space < 0)
+-			ring->space += ring->size;
++		if (ring->head >= ring->tail + 8)
++			ring->space = ring->head - (ring->tail + 8);
++		else
++			ring->space = ring->head - (ring->tail + 8) + ring->size;
+ 		if (ring->space >= n) {
+ 			trace_i915_ring_wait_end (dev);
+ 			return 0;
 _
 
-Patches currently in -mm which might be from roberto.sassu@polito.it are
+Patches currently in -mm which might be from error27@gmail.com are
 
-ecryptfs-call-__vfs_setxattr_noperm-in-ecryptfs_setxattr.patch
+origin.patch
+linux-next.patch
+drivers-char-agp-parisc-agpc-eliminate-memory-leak.patch
+i915-signedness-bugs-in-i915-ring-buffer.patch
+rocket-release_region-or-error-path.patch
+affs-testing-the-wrong-variable.patch
 
