@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-userc-add-lock-release-annotation-on-free_user.patch added to -mm tree
-Date: Mon, 27 Sep 2010 13:58:03 -0700
-Message-ID: <201009272058.o8RKw3Ln016240@imap1.linux-foundation.org>
+Subject: + maintainers-update-matroxfb-ncpfs-status.patch added to -mm tree
+Date: Mon, 27 Sep 2010 14:06:59 -0700
+Message-ID: <201009272106.o8RL6xqq016665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42647 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760244Ab0I0U6K (ORCPT
+	by vger.kernel.org with ESMTP id S1754180Ab0I0VHB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Sep 2010 16:58:10 -0400
+	Mon, 27 Sep 2010 17:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, dhaval.giani@gmail.com, mingo@elte.hu
+Cc: petr@vandrovec.name
 
 
 The patch titled
-     kernel/user.c: add lock release annotation on free_user()
+     MAINTAINERS: update matroxfb & ncpfs status
 has been added to the -mm tree.  Its filename is
-     kernel-userc-add-lock-release-annotation-on-free_user.patch
+     maintainers-update-matroxfb-ncpfs-status.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/user.c: add lock release annotation on free_user()
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: MAINTAINERS: update matroxfb & ncpfs status
+From: Petr Vandrovec <petr@vandrovec.name>
 
-free_user() releases uidhash_lock but was missing annotation.  Add it. 
-This removes following sparse warnings:
+I moved couple years ago, so let's update my email and snail mail.
 
- include/linux/spinlock.h:339:9: warning: context imbalance in 'free_user' - unexpected unlock
- kernel/user.c:120:6: warning: context imbalance in 'free_uid' - wrong count at exit
+And I do not have any access to Matrox hardware anymore, and I'm quite
+unresponsive to matroxfb bug reports (sorry Alan), so saying that I'm
+maintainer is a bit far fetched.
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dhaval Giani <dhaval.giani@gmail.com>
+For ncpfs I do not use ncpfs in my daily life either, but at least I can
+test that one, so I can stay listed here for odd fixes.
+
+Signed-off-by: Petr Vandrovec <petr@vandrovec.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    1 +
- 1 file changed, 1 insertion(+)
+ CREDITS     |    8 ++++----
+ MAINTAINERS |    7 +++----
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN kernel/user.c~kernel-userc-add-lock-release-annotation-on-free_user kernel/user.c
---- a/kernel/user.c~kernel-userc-add-lock-release-annotation-on-free_user
-+++ a/kernel/user.c
-@@ -91,6 +91,7 @@ static struct user_struct *uid_hash_find
-  * upon function exit.
-  */
- static void free_user(struct user_struct *up, unsigned long flags)
-+	__releases(&uidhash_lock)
- {
- 	uid_hash_remove(up);
- 	spin_unlock_irqrestore(&uidhash_lock, flags);
+diff -puN CREDITS~maintainers-update-matroxfb-ncpfs-status CREDITS
+--- a/CREDITS~maintainers-update-matroxfb-ncpfs-status
++++ a/CREDITS
+@@ -3554,12 +3554,12 @@ E: cvance@nai.com
+ D: portions of the Linux Security Module (LSM) framework and security modules
+ 
+ N: Petr Vandrovec
+-E: vandrove@vc.cvut.cz
++E: petr@vandrovec.name
+ D: Small contributions to ncpfs
+ D: Matrox framebuffer driver
+-S: Chudenicka 8
+-S: 10200 Prague 10, Hostivar
+-S: Czech Republic
++S: 21513 Conradia Ct
++S: Cupertino, CA 95014
++S: USA
+ 
+ N: Thibaut Varene
+ E: T-Bone@parisc-linux.org
+diff -puN MAINTAINERS~maintainers-update-matroxfb-ncpfs-status MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-matroxfb-ncpfs-status
++++ a/MAINTAINERS
+@@ -3839,9 +3839,8 @@ W:	http://www.syskonnect.com
+ S:	Supported
+ 
+ MATROX FRAMEBUFFER DRIVER
+-M:	Petr Vandrovec <vandrove@vc.cvut.cz>
+ L:	linux-fbdev@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ F:	drivers/video/matrox/matroxfb_*
+ F:	include/linux/matroxfb.h
+ 
+@@ -4028,8 +4027,8 @@ S:	Maintained
+ F:	drivers/net/natsemi.c
+ 
+ NCP FILESYSTEM
+-M:	Petr Vandrovec <vandrove@vc.cvut.cz>
+-S:	Maintained
++M:	Petr Vandrovec <petr@vandrovec.name>
++S:	Odd Fixes
+ F:	fs/ncpfs/
+ 
+ NCR DUAL 700 SCSI DRIVER (MICROCHANNEL)
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from petr@vandrovec.name are
 
-linux-next.patch
-init-mark-__user-address-space-on-string-literals.patch
-kernel-userc-add-lock-release-annotation-on-free_user.patch
-printk-fixup-declaration-of-kmsg_reasons.patch
-printk-add-lock-context-annotation.patch
-printk-change-type-of-boot_delay-to-int.patch
-printk-declare-printk_ratelimit_state-in-ratelimith.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
+maintainers-update-matroxfb-ncpfs-status.patch
 
