@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-bump-i_count-instead-of-using-igrab.patch added to -mm tree
-Date: Mon, 27 Sep 2010 14:54:59 -0700
-Message-ID: <201009272154.o8RLsx8L018852@imap1.linux-foundation.org>
+Subject: + uml-fix-config_static_link=y-build-failure-with-newer-glibc.patch added to -mm tree
+Date: Mon, 27 Sep 2010 15:25:48 -0700
+Message-ID: <201009272225.o8RMPmOi020313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780Ab0I0Vzs (ORCPT
+	by vger.kernel.org with ESMTP id S1760273Ab0I0W0q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Sep 2010 17:55:48 -0400
+	Mon, 27 Sep 2010 18:26:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chris.mason@oracle.com, hch@infradead.org, jmoyer@redhat.com, npiggin@kernel.dk, zach.brown@oracle.com
+Cc: roland@redhat.com, jdike@addtoit.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     aio: bump i_count instead of using igrab
+     uml: fix CONFIG_STATIC_LINK=y build failure with newer glibc
 has been added to the -mm tree.  Its filename is
-     aio-bump-i_count-instead-of-using-igrab.patch
+     uml-fix-config_static_link=y-build-failure-with-newer-glibc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: bump i_count instead of using igrab
-From: Chris Mason <chris.mason@oracle.com>
+Subject: uml: fix CONFIG_STATIC_LINK=y build failure with newer glibc
+From: Roland McGrath <roland@redhat.com>
 
-The aio batching code is using igrab to get an extra reference on the
-inode so it can safely batch.  igrab will go ahead and take the global
-inode spinlock, which can be a bottleneck on large machines doing lots of
-AIO.
+With glibc 2.11 or later that was built with --enable-multi-arch, the UML
+link fails with undefined references to __rel_iplt_start and similar
+symbols.  In recent binutils, the default linker script defines these
+symbols (see ld --verbose).  Fix the UML linker scripts to match the new
+defaults for these sections.
 
-In this case, igrab isn't required because we already have a reference on
-the file handle.  It is safe to just bump the i_count directly on the
-inode.
-
-Benchmarking shows this patch brings IOP/s on tons of flash up by about
-2.5X.
-
-Signed-off-by: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ arch/um/kernel/dyn.lds.S |   14 ++++++++++++--
+ arch/um/kernel/uml.lds.S |   17 +++++++++++++++++
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~aio-bump-i_count-instead-of-using-igrab fs/aio.c
---- a/fs/aio.c~aio-bump-i_count-instead-of-using-igrab
-+++ a/fs/aio.c
-@@ -1543,7 +1543,20 @@ static void aio_batch_add(struct address
- 	}
+diff -puN arch/um/kernel/dyn.lds.S~uml-fix-config_static_link=y-build-failure-with-newer-glibc arch/um/kernel/dyn.lds.S
+--- a/arch/um/kernel/dyn.lds.S~uml-fix-config_static_link=y-build-failure-with-newer-glibc
++++ a/arch/um/kernel/dyn.lds.S
+@@ -50,8 +50,18 @@ SECTIONS
+   .rela.got       : { *(.rela.got) }
+   .rel.bss        : { *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*) }
+   .rela.bss       : { *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*) }
+-  .rel.plt        : { *(.rel.plt) }
+-  .rela.plt       : { *(.rela.plt) }
++  .rel.plt : {
++	*(.rel.plt)
++	PROVIDE_HIDDEN(__rel_iplt_start = .);
++	*(.rel.iplt)
++	PROVIDE_HIDDEN(__rel_iplt_end = .);
++  }
++  .rela.plt : {
++	*(.rela.plt)
++	PROVIDE_HIDDEN(__rela_iplt_start = .);
++	*(.rela.iplt)
++	PROVIDE_HIDDEN(__rela_iplt_end = .);
++  }
+   .init           : {
+     KEEP (*(.init))
+   } =0x90909090
+diff -puN arch/um/kernel/uml.lds.S~uml-fix-config_static_link=y-build-failure-with-newer-glibc arch/um/kernel/uml.lds.S
+--- a/arch/um/kernel/uml.lds.S~uml-fix-config_static_link=y-build-failure-with-newer-glibc
++++ a/arch/um/kernel/uml.lds.S
+@@ -43,6 +43,23 @@ SECTIONS
+ 	__syscall_stub_end = .;
+   }
  
- 	abe = mempool_alloc(abe_pool, GFP_KERNEL);
--	BUG_ON(!igrab(mapping->host));
++  /*
++   * These are needed even in a static link, even if they wind up being empty.
++   * Newer glibc needs these __rel{,a}_iplt_{start,end} symbols.
++   */
++  .rel.plt : {
++	*(.rel.plt)
++	PROVIDE_HIDDEN(__rel_iplt_start = .);
++	*(.rel.iplt)
++	PROVIDE_HIDDEN(__rel_iplt_end = .);
++  }
++  .rela.plt : {
++	*(.rela.plt)
++	PROVIDE_HIDDEN(__rela_iplt_start = .);
++	*(.rela.iplt)
++	PROVIDE_HIDDEN(__rela_iplt_end = .);
++  }
 +
-+	/*
-+	 * we should be using igrab here, but
-+	 * we don't want to hammer on the global
-+	 * inode spinlock just to take an extra
-+	 * reference on a file that we must already
-+	 * have a reference to.
-+	 *
-+	 * When we're called, we always have a reference
-+	 * on the file, so we must always have a reference
-+	 * on the inode, so igrab must always just
-+	 * bump the count and move on.
-+	 */
-+	atomic_inc(&mapping->host->i_count);
- 	abe->mapping = mapping;
- 	hlist_add_head(&abe->list, &batch_hash[bucket]);
- 	return;
+   #include "asm/common.lds.S"
+ 
+   init.data : { INIT_DATA }
 _
 
-Patches currently in -mm which might be from chris.mason@oracle.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-linux-next.patch
-fs-btrfs-use-memdup_user.patch
-fs-btrfs-use-err_cast.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-gcc-46-btrfs-clean-up-unused-variables-nonbugs.patch
-btrfs-only-bug_on-when-the-errno-is-not-enoent.patch
-fs-btrfs-inodec-eliminate-memory-leak.patch
-writeback-remove-nonblocking-encountered_congestion-references.patch
-aio-bump-i_count-instead-of-using-igrab.patch
+uml-fix-config_static_link=y-build-failure-with-newer-glibc.patch
+ptrace-annotate-lock-context-change-on-exit_ptrace.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+default-config_core_dump_default_elf_headers=y.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
+fs-execc-provide-the-correct-process-pid-to-the-pipe-helper.patch
 
