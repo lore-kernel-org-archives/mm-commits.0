@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i915-signedness-bugs-in-i915-ring-buffer.patch added to -mm tree
-Date: Mon, 27 Sep 2010 14:46:55 -0700
-Message-ID: <201009272146.o8RLktpr018495@imap1.linux-foundation.org>
+Subject: + aio-bump-i_count-instead-of-using-igrab.patch added to -mm tree
+Date: Mon, 27 Sep 2010 14:54:59 -0700
+Message-ID: <201009272154.o8RLsx8L018852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752196Ab0I0Vr5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750780Ab0I0Vzs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Sep 2010 17:47:57 -0400
+	Mon, 27 Sep 2010 17:55:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, airlied@linux.ie, chris@chris-wilson.co.uk, eric@anholt.net, haihao.xiang@intel.com, nanhai.zou@intel.com, zhenyuw@linux.intel.com
+Cc: chris.mason@oracle.com, hch@infradead.org, jmoyer@redhat.com, npiggin@kernel.dk, zach.brown@oracle.com
 
 
 The patch titled
-     drivers/gpu/drm/i915/: fix signedness bugs in i915 ring buffer
+     aio: bump i_count instead of using igrab
 has been added to the -mm tree.  Its filename is
-     i915-signedness-bugs-in-i915-ring-buffer.patch
+     aio-bump-i_count-instead-of-using-igrab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/: fix signedness bugs in i915 ring buffer
-From: Dan Carpenter <error27@gmail.com>
+Subject: aio: bump i_count instead of using igrab
+From: Chris Mason <chris.mason@oracle.com>
 
-"ring->space" is unsigned so it's never less than zero.
+The aio batching code is using igrab to get an extra reference on the
+inode so it can safely batch.  igrab will go ahead and take the global
+inode spinlock, which can be a bottleneck on large machines doing lots of
+AIO.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Zou Nan hai <nanhai.zou@intel.com>
-Cc: Xiang Hai hao <haihao.xiang@intel.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
+In this case, igrab isn't required because we already have a reference on
+the file handle.  It is safe to just bump the i_count directly on the
+inode.
+
+Benchmarking shows this patch brings IOP/s on tons of flash up by about
+2.5X.
+
+Signed-off-by: Chris Mason <chris.mason@oracle.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_dma.c         |    7 ++++---
- drivers/gpu/drm/i915/intel_ringbuffer.c |   21 ++++++++++++---------
- 2 files changed, 16 insertions(+), 12 deletions(-)
+ fs/aio.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/i915_dma.c~i915-signedness-bugs-in-i915-ring-buffer drivers/gpu/drm/i915/i915_dma.c
---- a/drivers/gpu/drm/i915/i915_dma.c~i915-signedness-bugs-in-i915-ring-buffer
-+++ a/drivers/gpu/drm/i915/i915_dma.c
-@@ -109,9 +109,10 @@ void i915_kernel_lost_context(struct drm
- 
- 	ring->head = I915_READ(PRB0_HEAD) & HEAD_ADDR;
- 	ring->tail = I915_READ(PRB0_TAIL) & TAIL_ADDR;
--	ring->space = ring->head - (ring->tail + 8);
--	if (ring->space < 0)
--		ring->space += ring->size;
-+	if (ring->head >= ring->tail + 8)
-+		ring->space = ring->head - (ring->tail + 8);
-+	else
-+		ring->space = ring->head - (ring->tail + 8) + ring->size;
- 
- 	if (!dev->primary->master)
- 		return;
-diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~i915-signedness-bugs-in-i915-ring-buffer drivers/gpu/drm/i915/intel_ringbuffer.c
---- a/drivers/gpu/drm/i915/intel_ringbuffer.c~i915-signedness-bugs-in-i915-ring-buffer
-+++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
-@@ -208,9 +208,10 @@ static int init_ring_common(struct drm_d
- 	else {
- 		ring->head = ring->get_head(dev, ring);
- 		ring->tail = ring->get_tail(dev, ring);
--		ring->space = ring->head - (ring->tail + 8);
--		if (ring->space < 0)
--			ring->space += ring->size;
-+		if (ring->head >= ring->tail + 8)
-+			ring->space = ring->head - (ring->tail + 8);
-+		else
-+			ring->space = ring->head - (ring->tail + 8) + ring->size;
+diff -puN fs/aio.c~aio-bump-i_count-instead-of-using-igrab fs/aio.c
+--- a/fs/aio.c~aio-bump-i_count-instead-of-using-igrab
++++ a/fs/aio.c
+@@ -1543,7 +1543,20 @@ static void aio_batch_add(struct address
  	}
- 	return 0;
- }
-@@ -670,9 +671,10 @@ int intel_init_ring_buffer(struct drm_de
- 	else {
- 		ring->head = ring->get_head(dev, ring);
- 		ring->tail = ring->get_tail(dev, ring);
--		ring->space = ring->head - (ring->tail + 8);
--		if (ring->space < 0)
--			ring->space += ring->size;
-+		if (ring->head >= ring->tail + 8)
-+			ring->space = ring->head - (ring->tail + 8);
-+		else
-+			ring->space = ring->head - (ring->tail + 8) + ring->size;
- 	}
- 	INIT_LIST_HEAD(&ring->active_list);
- 	INIT_LIST_HEAD(&ring->request_list);
-@@ -739,9 +741,10 @@ int intel_wait_ring_buffer(struct drm_de
- 	end = jiffies + 3 * HZ;
- 	do {
- 		ring->head = ring->get_head(dev, ring);
--		ring->space = ring->head - (ring->tail + 8);
--		if (ring->space < 0)
--			ring->space += ring->size;
-+		if (ring->head >= ring->tail + 8)
-+			ring->space = ring->head - (ring->tail + 8);
-+		else
-+			ring->space = ring->head - (ring->tail + 8) + ring->size;
- 		if (ring->space >= n) {
- 			trace_i915_ring_wait_end (dev);
- 			return 0;
+ 
+ 	abe = mempool_alloc(abe_pool, GFP_KERNEL);
+-	BUG_ON(!igrab(mapping->host));
++
++	/*
++	 * we should be using igrab here, but
++	 * we don't want to hammer on the global
++	 * inode spinlock just to take an extra
++	 * reference on a file that we must already
++	 * have a reference to.
++	 *
++	 * When we're called, we always have a reference
++	 * on the file, so we must always have a reference
++	 * on the inode, so igrab must always just
++	 * bump the count and move on.
++	 */
++	atomic_inc(&mapping->host->i_count);
+ 	abe->mapping = mapping;
+ 	hlist_add_head(&abe->list, &batch_hash[bucket]);
+ 	return;
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from chris.mason@oracle.com are
 
-origin.patch
 linux-next.patch
-drivers-char-agp-parisc-agpc-eliminate-memory-leak.patch
-i915-signedness-bugs-in-i915-ring-buffer.patch
-rocket-release_region-or-error-path.patch
-affs-testing-the-wrong-variable.patch
+fs-btrfs-use-memdup_user.patch
+fs-btrfs-use-err_cast.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+gcc-46-btrfs-clean-up-unused-variables-nonbugs.patch
+btrfs-only-bug_on-when-the-errno-is-not-enoent.patch
+fs-btrfs-inodec-eliminate-memory-leak.patch
+writeback-remove-nonblocking-encountered_congestion-references.patch
+aio-bump-i_count-instead-of-using-igrab.patch
 
