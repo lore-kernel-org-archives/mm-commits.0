@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl.patch added to -mm tree
-Date: Tue, 28 Sep 2010 14:48:57 -0700
-Message-ID: <201009282148.o8SLmv0E019874@imap1.linux-foundation.org>
+Subject: + maintainers-use-t-git-and-whitespace-trivia.patch added to -mm tree
+Date: Tue, 28 Sep 2010 15:27:34 -0700
+Message-ID: <201009282227.o8SMRY8b021500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754376Ab0I1VtA (ORCPT
+	by vger.kernel.org with ESMTP id S1750975Ab0I1W1i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Sep 2010 17:49:00 -0400
+	Tue, 28 Sep 2010 18:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, dan.j.rosenberg@gmail.com, stable@kernel.org
+Cc: joe@perches.com
 
 
 The patch titled
-     drivers/block/pktcdvd.c: prevent arbitrary kernel reads in ioctl
+     MAINTAINERS: use "T: git" and whitespace trivia
 has been added to the -mm tree.  Its filename is
-     drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl.patch
+     maintainers-use-t-git-and-whitespace-trivia.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/pktcdvd.c: prevent arbitrary kernel reads in ioctl
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: MAINTAINERS: use "T: git" and whitespace trivia
+From: Joe Perches <joe@perches.com>
 
-The PKT_CTRL_CMD_STATUS device ioctl retrieves a pointer to a
-pktcdvd_device from the global pkt_devs array.  The index into this array
-is provided directly by the user and is a signed integer, so the
-comparison to ensure that it falls within the bounds of this array will
-fail when provided with a negative index.
+Add missing git as a prefix for git repositories in the few places it
+wasn't already used.
 
-This can be used to read arbitrary kernel memory or cause a crash due to
-an invalid pointer dereference.  This can be exploited by users with
-permission to open /dev/pktcdvd/control (on many distributions, this is
-readable by group "cdrom").  This patch fixes it.
+Convert a space delimiter to a tab.
 
-Signed-off-by: Dan Rosenberg <dan.j.rosenberg@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl
-+++ a/drivers/block/pktcdvd.c
-@@ -2370,7 +2370,7 @@ static void pkt_release_dev(struct pktcd
+diff -puN MAINTAINERS~maintainers-use-t-git-and-whitespace-trivia MAINTAINERS
+--- a/MAINTAINERS~maintainers-use-t-git-and-whitespace-trivia
++++ a/MAINTAINERS
+@@ -655,7 +655,7 @@ ARM/FARADAY FA526 PORT
+ M:	Hans Ulli Kroll <ulli.kroll@googlemail.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+-T:	git://git.berlios.de/gemini-board
++T:	git git://git.berlios.de/gemini-board
+ F:	arch/arm/mm/*-fa*
  
- static struct pktcdvd_device *pkt_find_dev_from_minor(unsigned int dev_minor)
- {
--	if (dev_minor >= MAX_WRITERS)
-+	if ((unsigned int)dev_minor >= MAX_WRITERS)
- 		return NULL;
- 	return pkt_devs[dev_minor];
- }
+ ARM/FOOTBRIDGE ARCHITECTURE
+@@ -670,7 +670,7 @@ ARM/FREESCALE IMX / MXC ARM ARCHITECTURE
+ M:	Sascha Hauer <kernel@pengutronix.de>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+-T:	git://git.pengutronix.de/git/imx/linux-2.6.git
++T:	git git://git.pengutronix.de/git/imx/linux-2.6.git
+ F:	arch/arm/mach-mx*/
+ F:	arch/arm/plat-mxc/
+ 
+@@ -3817,7 +3817,7 @@ F:	drivers/net/wireless/mwl8k.c
+ MARVELL SOC MMC/SD/SDIO CONTROLLER DRIVER
+ M:	Nicolas Pitre <nico@fluxnic.net>
+ S:	Odd Fixes
+-F: drivers/mmc/host/mvsdio.*
++F:	drivers/mmc/host/mvsdio.*
+ 
+ MARVELL YUKON / SYSKONNECT DRIVER
+ M:	Mirko Lindner <mlindner@syskonnect.de>
+@@ -4894,7 +4894,7 @@ RCUTORTURE MODULE
+ M:	Josh Triplett <josh@freedesktop.org>
+ M:	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+ S:	Supported
+-T:	git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-2.6-rcu.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-2.6-rcu.git
+ F:	Documentation/RCU/torture.txt
+ F:	kernel/rcutorture.c
+ 
+@@ -4919,7 +4919,7 @@ M:	Dipankar Sarma <dipankar@in.ibm.com>
+ M:	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+ W:	http://www.rdrop.com/users/paulmck/rclock/
+ S:	Supported
+-T:	git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-2.6-rcu.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-2.6-rcu.git
+ F:	Documentation/RCU/
+ F:	include/linux/rcu*
+ F:	include/linux/srcu*
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-sys_semctl-fix-kernel-stack-leakage.patch
-drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl.patch
-drivers-serial-serial_corec-prevent-reading-uninitialized-stack-memory.patch
+linux-next.patch
+kernelh-add-minmax3-macros.patch
+kernelh-add-minmax3-macros-fix.patch
+replace-nested-max-min-macros-with-maxmin3-macro.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+lib-fix-scnprintf-if-size-is-==-0.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+scripts-get_maintainerpl-use-correct-indentation.patch
+scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch
+scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch
+scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
+maintainers-fix-colibri-pxa270-file-pattern.patch
+maintainers-merge-imote2-and-stargate.patch
+maintainers-merge-s3c-244x-sections.patch
+maintainers-merge-s3c6400-and-6410-to-64xx.patch
+maintainers-remove-usb-ov511-driver.patch
+maintainers-remove-usb-zc0301-driver.patch
+maintainers-use-t-git-and-whitespace-trivia.patch
+checkpatch-add-check-for-space-after-struct-union-and-enum.patch
+checkpatch-add-additional-attribute-defines.patch
+scripts-checkpatchpl-add-warnings-for-static-char-that-could-be-static-const-char.patch
 
