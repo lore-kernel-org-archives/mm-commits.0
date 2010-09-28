@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 28 Sep 2010 14:25:06 -0700
-Message-ID: <201009282125.o8SLP6VE018715@imap1.linux-foundation.org>
+Subject: + gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix.patch added to -mm tree
+Date: Tue, 28 Sep 2010 14:29:20 -0700
+Message-ID: <201009282129.o8SLTKSF018908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753423Ab0I1VZt (ORCPT
+	by vger.kernel.org with ESMTP id S1753106Ab0I1VaH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Sep 2010 17:25:49 -0400
+	Tue, 28 Sep 2010 17:30:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arun.murthy@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net
+Cc: cbouatmailru@gmail.com, alan@lxorguk.ukuu.org.uk, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, sameo@linux.intel.com
 
 
 The patch titled
-     backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes
+     gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix
 has been added to the -mm tree.  Its filename is
-     backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes.patch
+     gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix
+From: Anton Vorontsov <cbouatmailru@gmail.com>
 
-ERROR: need consistent spacing around '/' (ctx:VxW)
-#78: FILE: drivers/video/backlight/pwm_bl.c:53:
-+			(brightness * (pb->period - pb->lth_brightness)/ max);
- 			                                               ^
+On Fri, Sep 24, 2010 at 02:45:35PM -0700, Andrew Morton wrote:
+> It would be good to document `bits' and `big_endian_bits', and to
+> describe what `lock' locks.
 
-total: 1 errors, 0 warnings, 32 lines checked
+Done.
 
-./patches/backlight-add-low-threshold-to-pwm-backlight.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+> > +static int bgpio_dir_in(struct gpio_chip *gc, unsigned int gpio)
+> > +{
+> > +	return 0;
+> > +}
+>
+> hm, what does this mean.  The hardware cannot set pin directions to
+> "in"?
 
-Please run checkpatch prior to sending patches
+Nope, 0 is the success. The hardware cannot set pin directions
+at all (well, some hw can, but we don't support these yet).
 
-Cc: Arun Murthy <arun.murthy@stericsson.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+> > +	return gpiochip_add(&bgc->gc);
+> > +}
+>
+> If this function returns -EINVAL then much head-scratching will ensue.
+> It might make your life easier to emit a diagnostic just before the
+> failure so you can work out why it failed.
+
+OK.
+
+Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Samuel Ortiz <sameo@linux.intel.com>,
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pwm_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/basic_mmio_gpio.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes drivers/video/backlight/pwm_bl.c
---- a/drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes
-+++ a/drivers/video/backlight/pwm_bl.c
-@@ -50,7 +50,7 @@ static int pwm_backlight_update_status(s
- 		pwm_disable(pb->pwm);
- 	} else {
- 		brightness = pb->lth_brightness +
--			(brightness * (pb->period - pb->lth_brightness)/ max);
-+			(brightness * (pb->period - pb->lth_brightness) / max);
- 		pwm_config(pb->pwm, brightness, pb->period);
- 		pwm_enable(pb->pwm);
- 	}
+diff -puN drivers/gpio/basic_mmio_gpio.c~gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix drivers/gpio/basic_mmio_gpio.c
+--- a/drivers/gpio/basic_mmio_gpio.c~gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix
++++ a/drivers/gpio/basic_mmio_gpio.c
+@@ -66,12 +66,23 @@ struct bgpio_chip {
+ 	void __iomem *reg_dat;
+ 	void __iomem *reg_set;
+ 	void __iomem *reg_clr;
+-	spinlock_t lock;
+ 
++	/* Number of bits (GPIOs): <register width> * 8. */
+ 	int bits;
++
++	/*
++	 * Some GPIO controllers work with the big-endian bits notation,
++	 * e.g. in a 8-bits register, GPIO7 is the least significant bit.
++	 */
+ 	int big_endian_bits;
+ 
+-	/* shadowed data register to clear/set bits safely */
++	/*
++	 * Used to lock bgpio_chip->data. Also, this is needed to keep
++	 * shadowed and real data registers writes together.
++	 */
++	spinlock_t lock;
++
++	/* Shadowed data register to clear/set bits safely. */
+ 	unsigned long data;
+ };
+ 
+@@ -181,6 +192,7 @@ static int __devinit bgpio_probe(struct 
+ 	struct resource *res_clr;
+ 	resource_size_t dat_sz;
+ 	int bits;
++	int ret;
+ 
+ 	res_dat = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dat");
+ 	if (!res_dat)
+@@ -238,7 +250,11 @@ static int __devinit bgpio_probe(struct 
+ 
+ 	dev_set_drvdata(dev, bgc);
+ 
+-	return gpiochip_add(&bgc->gc);
++	ret = gpiochip_add(&bgc->gc);
++	if (ret)
++		dev_err(dev, "gpiochip_add() failed: %d\n", ret);
++
++	return ret;
+ }
+ 
+ static int __devexit bgpio_remove(struct platform_device *pdev)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cbouatmailru@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-alpha-asm-irqflagsh-needs-asm-systemh.patch
-drivers-serial-mfdc-needs-slabh.patch
-arch-m68k-include-asm-irqflagsh-fix-build.patch
-arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch
-drivers-serial-mrst_max3110c-needs-linux-irqh.patch
-mm-vmap-area-cache.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
-acpi-apei-fix-erst-move_data-instruction-implementation.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes.patch
-serial-add-sc16is7x2-driver-update-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-__pa-cast-arg-to-long.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-mmc-move-regulator-handling-closer-to-core-v3-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+mtdpart-memory-accessor-interface-for-mtd-layer.patch
+drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch
+gpio-add-driver-for-basic-memory-mapped-gpio-controllers.patch
+gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix.patch
+gpiolib-fix-have_gpio_lib-leftovers-in-asm-generic-gpioh.patch
 
