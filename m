@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-low-threshold-to-pwm-backlight.patch added to -mm tree
-Date: Tue, 28 Sep 2010 14:24:45 -0700
-Message-ID: <201009282124.o8SLOjd3018701@imap1.linux-foundation.org>
+Subject: + backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 28 Sep 2010 14:25:06 -0700
+Message-ID: <201009282125.o8SLP6VE018715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753423Ab0I1VZb (ORCPT
+	by vger.kernel.org with ESMTP id S1753423Ab0I1VZt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Sep 2010 17:25:31 -0400
+	Tue, 28 Sep 2010 17:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arun.murthy@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, arun.murthy@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net
 
 
 The patch titled
-     backlight: add low threshold to pwm backlight
+     backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     backlight-add-low-threshold-to-pwm-backlight.patch
+     backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: add low threshold to pwm backlight
-From: Arun Murthy <arun.murthy@stericsson.com>
+Subject: backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The intensity of the backlight can be varied from a range of
-max_brightness to zero.  Though most, if not all the pwm based backlight
-devices start flickering at lower brightness value.  And also for each
-device there exists a brightness value below which the backlight appears
-to be turned off though the value is not equal to zero.
+ERROR: need consistent spacing around '/' (ctx:VxW)
+#78: FILE: drivers/video/backlight/pwm_bl.c:53:
++			(brightness * (pb->period - pb->lth_brightness)/ max);
+ 			                                               ^
 
-If the range of brightness for a device is from zero to max_brightness.  A
-graph is plotted for brightness Vs intensity for the pwm based backlight
-device has to be a linear graph.
+total: 1 errors, 0 warnings, 32 lines checked
 
-intensity
-	  |   /
-	  |  /
-	  | /
-	  |/
-	  ---------
-	 0	max_brightness
+./patches/backlight-add-low-threshold-to-pwm-backlight.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-But pratically on measuring the above we note that the intensity of
-backlight goes to zero(OFF) when the value in not zero almost nearing to
-zero(some x%).  so the graph looks like
+Please run checkpatch prior to sending patches
 
-intensity
-	  |    /
-	  |   /
-	  |  /
-	  |  |
-	  ------------
-	 0   x	 max_brightness
-
-In order to overcome this drawback knowing this x% i.e nothing but the low
-threshold beyond which the backlight is off and will have no effect, the
-brightness value is being offset by the low threshold value(retaining the
-linearity of the graph).  Now the graph becomes
-
-intensity
-	  |     /
-	  |    /
-	  |   /
-	  |  /
-	  -------------
-	   0	  max_brightness
-
-With this for each and every digit increment in the brightness from zero
-there is a change in the intensity of backlight.  Devices having this
-behaviour can set the low threshold brightness(lth_brightness) and pass
-the same as platform data else can have it as zero.
-
-Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
-Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Arun Murthy <arun.murthy@stericsson.com>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pwm_bl.c |    7 ++++++-
- include/linux/pwm_backlight.h    |    1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/video/backlight/pwm_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight drivers/video/backlight/pwm_bl.c
---- a/drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight
+diff -puN drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes
 +++ a/drivers/video/backlight/pwm_bl.c
-@@ -25,6 +25,7 @@ struct pwm_bl_data {
- 	struct pwm_device	*pwm;
- 	struct device		*dev;
- 	unsigned int		period;
-+	unsigned int		lth_brightness;
- 	int			(*notify)(struct device *,
- 					  int brightness);
- };
-@@ -48,7 +49,9 @@ static int pwm_backlight_update_status(s
- 		pwm_config(pb->pwm, 0, pb->period);
+@@ -50,7 +50,7 @@ static int pwm_backlight_update_status(s
  		pwm_disable(pb->pwm);
  	} else {
--		pwm_config(pb->pwm, brightness * pb->period / max, pb->period);
-+		brightness = pb->lth_brightness +
-+			(brightness * (pb->period - pb->lth_brightness)/ max);
-+		pwm_config(pb->pwm, brightness, pb->period);
+ 		brightness = pb->lth_brightness +
+-			(brightness * (pb->period - pb->lth_brightness)/ max);
++			(brightness * (pb->period - pb->lth_brightness) / max);
+ 		pwm_config(pb->pwm, brightness, pb->period);
  		pwm_enable(pb->pwm);
  	}
- 	return 0;
-@@ -92,6 +95,8 @@ static int pwm_backlight_probe(struct pl
- 
- 	pb->period = data->pwm_period_ns;
- 	pb->notify = data->notify;
-+	pb->lth_brightness = data->lth_brightness *
-+		(data->pwm_period_ns / data->max_brightness);
- 	pb->dev = &pdev->dev;
- 
- 	pb->pwm = pwm_request(data->pwm_id, "backlight");
-diff -puN include/linux/pwm_backlight.h~backlight-add-low-threshold-to-pwm-backlight include/linux/pwm_backlight.h
---- a/include/linux/pwm_backlight.h~backlight-add-low-threshold-to-pwm-backlight
-+++ a/include/linux/pwm_backlight.h
-@@ -8,6 +8,7 @@ struct platform_pwm_backlight_data {
- 	int pwm_id;
- 	unsigned int max_brightness;
- 	unsigned int dft_brightness;
-+	unsigned int lth_brightness;
- 	unsigned int pwm_period_ns;
- 	int (*init)(struct device *dev);
- 	int (*notify)(struct device *dev, int brightness);
 _
 
-Patches currently in -mm which might be from arun.murthy@stericsson.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+alpha-asm-irqflagsh-needs-asm-systemh.patch
+drivers-serial-mfdc-needs-slabh.patch
+arch-m68k-include-asm-irqflagsh-fix-build.patch
+arch-m68k-mac-macboingc-use-unsigned-long-for-irqfalgs.patch
+drivers-serial-mrst_max3110c-needs-linux-irqh.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+acpi-apei-fix-erst-move_data-instruction-implementation.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+parport-prevent-arm-boards-frmo-crashing-when-cups-is-loaded-fix.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+sctp-prevent-reading-out-of-bounds-memory-cleanup.patch
+drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight-checkpatch-fixes.patch
+serial-add-sc16is7x2-driver-update-fix.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+usb-storage-add-new-no_read_disc_info-quirk-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-__pa-cast-arg-to-long.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+mmc-move-regulator-handling-closer-to-core-v3-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
