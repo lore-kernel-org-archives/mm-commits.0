@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch added to -mm tree
-Date: Mon, 27 Sep 2010 15:45:43 -0700
-Message-ID: <201009272245.o8RMjhhd021241@imap1.linux-foundation.org>
+Subject: + taskstats-split-fill_pid-function.patch added to -mm tree
+Date: Tue, 28 Sep 2010 13:55:43 -0700
+Message-ID: <201009282055.o8SKthLL017326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758227Ab0I0Wpx (ORCPT
+	by vger.kernel.org with ESMTP id S1752229Ab0I1U4P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Sep 2010 18:45:53 -0400
+	Tue, 28 Sep 2010 16:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cce.hp.com, axboe@kernel.dk
+Cc: holzheu@linux.vnet.ibm.com, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     cciss: fix botched tag masking for scsi tape commands
+     taskstats: split fill_pid function
 has been added to the -mm tree.  Its filename is
-     cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
+     taskstats-split-fill_pid-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix botched tag masking for scsi tape commands
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: taskstats: split fill_pid function
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 
-In process_non_indexed_cmd() we were only masking off the low two bits
-when comparing tags vs.  busaddr, and not taking into account the fact
-that in "performant" mode, three bits of block fetch table indexes were
-stuffed into the tag, and needed to be masked out for the comparison to
-work.
+Separate the finding of a task_struct by pid or tgid from filling the
+taskstats data. This makes the code more readable.
 
-This resulted in spurious "bad tag" messages, and command completions
-getting ignored for any scsi tape i/o and any i/o coming through
-CCISS_BIG_PASSTHRU which required more than one scatter gather entry
-(fewer than two worked because in such cases the 3 bits we failed to mask
-off happened to be zero anyway.)
-
-I also noticed we were repeatedly masking the bits off the tag in a loop
-when doing it once at the top of the loop would have sufficed, so I fixed
-that as well.
-
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ kernel/taskstats.c |   50 ++++++++++++++++++-------------------------
+ 1 file changed, 21 insertions(+), 29 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-botched-tag-masking-for-scsi-tape-commands drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-botched-tag-masking-for-scsi-tape-commands
-+++ a/drivers/block/cciss.c
-@@ -3163,10 +3163,13 @@ static inline u32 cciss_tag_to_index(u32
- 	return tag >> DIRECT_LOOKUP_SHIFT;
+diff -puN kernel/taskstats.c~taskstats-split-fill_pid-function kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-split-fill_pid-function
++++ a/kernel/taskstats.c
+@@ -175,22 +175,8 @@ static void send_cpu_listeners(struct sk
+ 	up_write(&listeners->sem);
  }
  
--static inline u32 cciss_tag_discard_error_bits(u32 tag)
-+static inline u32 cciss_tag_discard_error_bits(ctlr_info_t *h, u32 tag)
+-static int fill_pid(pid_t pid, struct task_struct *tsk,
+-		struct taskstats *stats)
++static void fill_stats(struct task_struct *tsk, struct taskstats *stats)
  {
--#define CCISS_ERROR_BITS 0x03
--	return tag & ~CCISS_ERROR_BITS;
-+#define CCISS_PERF_ERROR_BITS ((1 << DIRECT_LOOKUP_SHIFT) - 1)
-+#define CCISS_SIMPLE_ERROR_BITS 0x03
-+	if (likely(h->transMethod == CFGTBL_Trans_Performant))
-+		return tag & ~CCISS_PERF_ERROR_BITS;
-+	return tag & ~CCISS_SIMPLE_ERROR_BITS;
+-	int rc = 0;
+-
+-	if (!tsk) {
+-		rcu_read_lock();
+-		tsk = find_task_by_vpid(pid);
+-		if (tsk)
+-			get_task_struct(tsk);
+-		rcu_read_unlock();
+-		if (!tsk)
+-			return -ESRCH;
+-	} else
+-		get_task_struct(tsk);
+-
+ 	memset(stats, 0, sizeof(*stats));
+ 	/*
+ 	 * Each accounting subsystem adds calls to its functions to
+@@ -209,17 +195,27 @@ static int fill_pid(pid_t pid, struct ta
+ 
+ 	/* fill in extended acct fields */
+ 	xacct_add_tsk(stats, tsk);
++}
+ 
+-	/* Define err: label here if needed */
+-	put_task_struct(tsk);
+-	return rc;
++static int fill_stats_for_pid(pid_t pid, struct taskstats *stats)
++{
++	struct task_struct *tsk;
+ 
++	rcu_read_lock();
++	tsk = find_task_by_vpid(pid);
++	if (tsk)
++		get_task_struct(tsk);
++	rcu_read_unlock();
++	if (!tsk)
++		return -ESRCH;
++	fill_stats(tsk, stats);
++	put_task_struct(tsk);
++	return 0;
  }
  
- static inline void cciss_mark_tag_indexed(u32 *tag)
-@@ -3427,15 +3430,13 @@ static inline u32 process_indexed_cmd(ct
- /* process completion of a non-indexed command */
- static inline u32 process_nonindexed_cmd(ctlr_info_t *h, u32 raw_tag)
+-static int fill_tgid(pid_t tgid, struct task_struct *first,
+-		struct taskstats *stats)
++static int fill_stats_for_tgid(pid_t tgid, struct taskstats *stats)
  {
--	u32 tag;
- 	CommandList_struct *c = NULL;
- 	struct hlist_node *tmp;
- 	__u32 busaddr_masked, tag_masked;
+-	struct task_struct *tsk;
++	struct task_struct *tsk, *first;
+ 	unsigned long flags;
+ 	int rc = -ESRCH;
  
--	tag = cciss_tag_discard_error_bits(raw_tag);
-+	tag_masked = cciss_tag_discard_error_bits(h, raw_tag);
- 	hlist_for_each_entry(c, tmp, &h->cmpQ, list) {
--		busaddr_masked = cciss_tag_discard_error_bits(c->busaddr);
--		tag_masked = cciss_tag_discard_error_bits(tag);
-+		busaddr_masked = cciss_tag_discard_error_bits(h, c->busaddr);
- 		if (busaddr_masked == tag_masked) {
- 			finish_cmd(h, c, raw_tag);
- 			return next_command(h);
+@@ -228,8 +224,7 @@ static int fill_tgid(pid_t tgid, struct 
+ 	 * leaders who are already counted with the dead tasks
+ 	 */
+ 	rcu_read_lock();
+-	if (!first)
+-		first = find_task_by_vpid(tgid);
++	first = find_task_by_vpid(tgid);
+ 
+ 	if (!first || !lock_task_sighand(first, &flags))
+ 		goto out;
+@@ -268,7 +263,6 @@ out:
+ 	return rc;
+ }
+ 
+-
+ static void fill_tgid_exit(struct task_struct *tsk)
+ {
+ 	unsigned long flags;
+@@ -477,7 +471,7 @@ static int cmd_attr_pid(struct genl_info
+ 	if (!stats)
+ 		goto err;
+ 
+-	rc = fill_pid(pid, NULL, stats);
++	rc = fill_stats_for_pid(pid, stats);
+ 	if (rc < 0)
+ 		goto err;
+ 	return send_reply(rep_skb, info);
+@@ -507,7 +501,7 @@ static int cmd_attr_tgid(struct genl_inf
+ 	if (!stats)
+ 		goto err;
+ 
+-	rc = fill_tgid(tgid, NULL, stats);
++	rc = fill_stats_for_tgid(tgid, stats);
+ 	if (rc < 0)
+ 		goto err;
+ 	return send_reply(rep_skb, info);
+@@ -593,9 +587,7 @@ void taskstats_exit(struct task_struct *
+ 	if (!stats)
+ 		goto err;
+ 
+-	rc = fill_pid(-1, tsk, stats);
+-	if (rc < 0)
+-		goto err;
++	fill_stats(tsk, stats);
+ 
+ 	/*
+ 	 * Doesn't matter if tsk is the leader or the last group member leaving
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-linux-next.patch
-cciss-fix-botched-tag-masking-for-scsi-tape-commands.patch
+initramfs-fix-initramfs-size-calculation.patch
+taskstats-separate-taskstats-commands.patch
+taskstats-split-fill_pid-function.patch
 
