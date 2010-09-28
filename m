@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + taskstats-separate-taskstats-commands.patch added to -mm tree
-Date: Tue, 28 Sep 2010 13:55:37 -0700
-Message-ID: <201009282055.o8SKtdVk017320@imap1.linux-foundation.org>
+Subject: + backlight-add-low-threshold-to-pwm-backlight.patch added to -mm tree
+Date: Tue, 28 Sep 2010 14:24:45 -0700
+Message-ID: <201009282124.o8SLOjd3018701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752229Ab0I1U4M (ORCPT
+	by vger.kernel.org with ESMTP id S1753423Ab0I1VZb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Sep 2010 16:56:12 -0400
+	Tue, 28 Sep 2010 17:25:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holzheu@linux.vnet.ibm.com, balbir@linux.vnet.ibm.com
+Cc: arun.murthy@stericsson.com, linus.walleij@stericsson.com, rpurdie@rpsys.net
 
 
 The patch titled
-     taskstats: separate taskstats commands
+     backlight: add low threshold to pwm backlight
 has been added to the -mm tree.  Its filename is
-     taskstats-separate-taskstats-commands.patch
+     backlight-add-low-threshold-to-pwm-backlight.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,180 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: taskstats: separate taskstats commands
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: backlight: add low threshold to pwm backlight
+From: Arun Murthy <arun.murthy@stericsson.com>
 
-Move each taskstats command into a single function.  This makes the code
-more readable and makes it easier to add new commands.
+The intensity of the backlight can be varied from a range of
+max_brightness to zero.  Though most, if not all the pwm based backlight
+devices start flickering at lower brightness value.  And also for each
+device there exists a brightness value below which the backlight appears
+to be turned off though the value is not equal to zero.
 
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+If the range of brightness for a device is from zero to max_brightness.  A
+graph is plotted for brightness Vs intensity for the pwm based backlight
+device has to be a linear graph.
+
+intensity
+	  |   /
+	  |  /
+	  | /
+	  |/
+	  ---------
+	 0	max_brightness
+
+But pratically on measuring the above we note that the intensity of
+backlight goes to zero(OFF) when the value in not zero almost nearing to
+zero(some x%).  so the graph looks like
+
+intensity
+	  |    /
+	  |   /
+	  |  /
+	  |  |
+	  ------------
+	 0   x	 max_brightness
+
+In order to overcome this drawback knowing this x% i.e nothing but the low
+threshold beyond which the backlight is off and will have no effect, the
+brightness value is being offset by the low threshold value(retaining the
+linearity of the graph).  Now the graph becomes
+
+intensity
+	  |     /
+	  |    /
+	  |   /
+	  |  /
+	  -------------
+	   0	  max_brightness
+
+With this for each and every digit increment in the brightness from zero
+there is a change in the intensity of backlight.  Devices having this
+behaviour can set the low threshold brightness(lth_brightness) and pass
+the same as platform data else can have it as zero.
+
+Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |  118 ++++++++++++++++++++++++++++---------------
- 1 file changed, 78 insertions(+), 40 deletions(-)
+ drivers/video/backlight/pwm_bl.c |    7 ++++++-
+ include/linux/pwm_backlight.h    |    1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/taskstats.c~taskstats-separate-taskstats-commands kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-separate-taskstats-commands
-+++ a/kernel/taskstats.c
-@@ -424,39 +424,76 @@ err:
- 	return rc;
- }
+diff -puN drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~backlight-add-low-threshold-to-pwm-backlight
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -25,6 +25,7 @@ struct pwm_bl_data {
+ 	struct pwm_device	*pwm;
+ 	struct device		*dev;
+ 	unsigned int		period;
++	unsigned int		lth_brightness;
+ 	int			(*notify)(struct device *,
+ 					  int brightness);
+ };
+@@ -48,7 +49,9 @@ static int pwm_backlight_update_status(s
+ 		pwm_config(pb->pwm, 0, pb->period);
+ 		pwm_disable(pb->pwm);
+ 	} else {
+-		pwm_config(pb->pwm, brightness * pb->period / max, pb->period);
++		brightness = pb->lth_brightness +
++			(brightness * (pb->period - pb->lth_brightness)/ max);
++		pwm_config(pb->pwm, brightness, pb->period);
+ 		pwm_enable(pb->pwm);
+ 	}
+ 	return 0;
+@@ -92,6 +95,8 @@ static int pwm_backlight_probe(struct pl
  
--static int taskstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
-+static int cmd_attr_register_cpumask(struct genl_info *info)
- {
--	int rc;
--	struct sk_buff *rep_skb;
--	struct taskstats *stats;
--	size_t size;
- 	cpumask_var_t mask;
-+	int rc;
+ 	pb->period = data->pwm_period_ns;
+ 	pb->notify = data->notify;
++	pb->lth_brightness = data->lth_brightness *
++		(data->pwm_period_ns / data->max_brightness);
+ 	pb->dev = &pdev->dev;
  
- 	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
- 		return -ENOMEM;
--
- 	rc = parse(info->attrs[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK], mask);
- 	if (rc < 0)
--		goto free_return_rc;
--	if (rc == 0) {
--		rc = add_del_listener(info->snd_pid, mask, REGISTER);
--		goto free_return_rc;
--	}
-+		goto out;
-+	rc = add_del_listener(info->snd_pid, mask, REGISTER);
-+out:
-+	free_cpumask_var(mask);
-+	return rc;
-+}
-+
-+static int cmd_attr_deregister_cpumask(struct genl_info *info)
-+{
-+	cpumask_var_t mask;
-+	int rc;
- 
-+	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
-+		return -ENOMEM;
- 	rc = parse(info->attrs[TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK], mask);
- 	if (rc < 0)
--		goto free_return_rc;
--	if (rc == 0) {
--		rc = add_del_listener(info->snd_pid, mask, DEREGISTER);
--free_return_rc:
--		free_cpumask_var(mask);
--		return rc;
--	}
-+		goto out;
-+	rc = add_del_listener(info->snd_pid, mask, DEREGISTER);
-+out:
- 	free_cpumask_var(mask);
-+	return rc;
-+}
-+
-+static int cmd_attr_pid(struct genl_info *info)
-+{
-+	struct taskstats *stats;
-+	struct sk_buff *rep_skb;
-+	size_t size;
-+	u32 pid;
-+	int rc;
-+
-+	size = nla_total_size(sizeof(u32)) +
-+		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
-+
-+	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = -EINVAL;
-+	pid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_PID]);
-+	stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid);
-+	if (!stats)
-+		goto err;
-+
-+	rc = fill_pid(pid, NULL, stats);
-+	if (rc < 0)
-+		goto err;
-+	return send_reply(rep_skb, info);
-+err:
-+	nlmsg_free(rep_skb);
-+	return rc;
-+}
-+
-+static int cmd_attr_tgid(struct genl_info *info)
-+{
-+	struct taskstats *stats;
-+	struct sk_buff *rep_skb;
-+	size_t size;
-+	u32 tgid;
-+	int rc;
- 
--	/*
--	 * Size includes space for nested attributes
--	 */
- 	size = nla_total_size(sizeof(u32)) +
- 		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
- 
-@@ -465,33 +502,34 @@ free_return_rc:
- 		return rc;
- 
- 	rc = -EINVAL;
--	if (info->attrs[TASKSTATS_CMD_ATTR_PID]) {
--		u32 pid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_PID]);
--		stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid);
--		if (!stats)
--			goto err;
--
--		rc = fill_pid(pid, NULL, stats);
--		if (rc < 0)
--			goto err;
--	} else if (info->attrs[TASKSTATS_CMD_ATTR_TGID]) {
--		u32 tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
--		stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid);
--		if (!stats)
--			goto err;
--
--		rc = fill_tgid(tgid, NULL, stats);
--		if (rc < 0)
--			goto err;
--	} else
-+	tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
-+	stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid);
-+	if (!stats)
- 		goto err;
- 
-+	rc = fill_tgid(tgid, NULL, stats);
-+	if (rc < 0)
-+		goto err;
- 	return send_reply(rep_skb, info);
- err:
- 	nlmsg_free(rep_skb);
- 	return rc;
- }
- 
-+static int taskstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
-+{
-+	if (info->attrs[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK])
-+		return cmd_attr_register_cpumask(info);
-+	else if (info->attrs[TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK])
-+		return cmd_attr_deregister_cpumask(info);
-+	else if (info->attrs[TASKSTATS_CMD_ATTR_PID])
-+		return cmd_attr_pid(info);
-+	else if (info->attrs[TASKSTATS_CMD_ATTR_TGID])
-+		return cmd_attr_tgid(info);
-+	else
-+		return -EINVAL;
-+}
-+
- static struct taskstats *taskstats_tgid_alloc(struct task_struct *tsk)
- {
- 	struct signal_struct *sig = tsk->signal;
+ 	pb->pwm = pwm_request(data->pwm_id, "backlight");
+diff -puN include/linux/pwm_backlight.h~backlight-add-low-threshold-to-pwm-backlight include/linux/pwm_backlight.h
+--- a/include/linux/pwm_backlight.h~backlight-add-low-threshold-to-pwm-backlight
++++ a/include/linux/pwm_backlight.h
+@@ -8,6 +8,7 @@ struct platform_pwm_backlight_data {
+ 	int pwm_id;
+ 	unsigned int max_brightness;
+ 	unsigned int dft_brightness;
++	unsigned int lth_brightness;
+ 	unsigned int pwm_period_ns;
+ 	int (*init)(struct device *dev);
+ 	int (*notify)(struct device *dev, int brightness);
 _
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from arun.murthy@stericsson.com are
 
-initramfs-fix-initramfs-size-calculation.patch
-taskstats-separate-taskstats-commands.patch
-taskstats-split-fill_pid-function.patch
+linux-next.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
 
