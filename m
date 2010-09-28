@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-maintainer-for-s5p-arm-architectures.patch added to -mm tree
-Date: Tue, 28 Sep 2010 14:42:26 -0700
-Message-ID: <201009282142.o8SLgQ8B019488@imap1.linux-foundation.org>
+Subject: + drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl.patch added to -mm tree
+Date: Tue, 28 Sep 2010 14:48:57 -0700
+Message-ID: <201009282148.o8SLmv0E019874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751952Ab0I1Vmq (ORCPT
+	by vger.kernel.org with ESMTP id S1754376Ab0I1VtA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Sep 2010 17:42:46 -0400
+	Tue, 28 Sep 2010 17:49:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kgene.kim@samsung.com, ben-linux@fluff.org, kmpark@infradead.org, rmk@arm.linux.org.uk
+Cc: drosenberg@vsecurity.com, dan.j.rosenberg@gmail.com, stable@kernel.org
 
 
 The patch titled
-     MAINTAINERS: update maintainer for S5P ARM ARCHITECTURES
+     drivers/block/pktcdvd.c: prevent arbitrary kernel reads in ioctl
 has been added to the -mm tree.  Its filename is
-     maintainers-update-maintainer-for-s5p-arm-architectures.patch
+     drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update maintainer for S5P ARM ARCHITECTURES
-From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: drivers/block/pktcdvd.c: prevent arbitrary kernel reads in ioctl
+From: Dan Rosenberg <drosenberg@vsecurity.com>
 
-Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Kyungmin Park <kmpark@infradead.org>
+The PKT_CTRL_CMD_STATUS device ioctl retrieves a pointer to a
+pktcdvd_device from the global pkt_devs array.  The index into this array
+is provided directly by the user and is a signed integer, so the
+comparison to ensure that it falls within the bounds of this array will
+fail when provided with a negative index.
+
+This can be used to read arbitrary kernel memory or cause a crash due to
+an invalid pointer dereference.  This can be exploited by users with
+permission to open /dev/pktcdvd/control (on many distributions, this is
+readable by group "cdrom").  This patch fixes it.
+
+Signed-off-by: Dan Rosenberg <dan.j.rosenberg@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/block/pktcdvd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-maintainer-for-s5p-arm-architectures MAINTAINERS
---- a/MAINTAINERS~maintainers-update-maintainer-for-s5p-arm-architectures
-+++ a/MAINTAINERS
-@@ -962,6 +962,13 @@ W:	http://www.fluff.org/ben/linux/
- S:	Maintained
- F:	arch/arm/mach-s3c6410/
+diff -puN drivers/block/pktcdvd.c~drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl
++++ a/drivers/block/pktcdvd.c
+@@ -2370,7 +2370,7 @@ static void pkt_release_dev(struct pktcd
  
-+ARM/S5P ARM ARCHITECTURES
-+M:	Kukjin Kim <kgene.kim@samsung.com>
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
-+S:	Maintained
-+F:	arch/arm/mach-s5p*/
-+
- ARM/SHMOBILE ARM ARCHITECTURE
- M:	Paul Mundt <lethal@linux-sh.org>
- M:	Magnus Damm <magnus.damm@gmail.com>
+ static struct pktcdvd_device *pkt_find_dev_from_minor(unsigned int dev_minor)
+ {
+-	if (dev_minor >= MAX_WRITERS)
++	if ((unsigned int)dev_minor >= MAX_WRITERS)
+ 		return NULL;
+ 	return pkt_devs[dev_minor];
+ }
 _
 
-Patches currently in -mm which might be from kgene.kim@samsung.com are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
 origin.patch
-linux-next.patch
-maintainers-update-maintainer-for-s5p-arm-architectures.patch
+sys_semctl-fix-kernel-stack-leakage.patch
+drivers-block-pktcdvdc-prevent-arbitrary-kernel-reads-in-ioctl.patch
+drivers-serial-serial_corec-prevent-reading-uninitialized-stack-memory.patch
 
