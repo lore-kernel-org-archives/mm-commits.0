@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix.patch added to -mm tree
-Date: Tue, 28 Sep 2010 14:29:20 -0700
-Message-ID: <201009282129.o8SLTKSF018908@imap1.linux-foundation.org>
+Subject: + mm-cleanup-gfp_zone-fix-sparse-warnings.patch added to -mm tree
+Date: Tue, 28 Sep 2010 14:31:52 -0700
+Message-ID: <201009282131.o8SLVq6v018986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753106Ab0I1VaH (ORCPT
+	by vger.kernel.org with ESMTP id S1753673Ab0I1VcZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 28 Sep 2010 17:30:07 -0400
+	Tue, 28 Sep 2010 17:32:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cbouatmailru@gmail.com, alan@lxorguk.ukuu.org.uk, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, sameo@linux.intel.com
+Cc: namhyung@gmail.com
 
 
 The patch titled
-     gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix
+     mm: cleanup gfp_zone(), fix sparse warnings
 has been added to the -mm tree.  Its filename is
-     gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix.patch
+     mm-cleanup-gfp_zone-fix-sparse-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix
-From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: mm: cleanup gfp_zone(), fix sparse warnings
+From: Namhyung Kim <namhyung@gmail.com>
 
-On Fri, Sep 24, 2010 at 02:45:35PM -0700, Andrew Morton wrote:
-> It would be good to document `bits' and `big_endian_bits', and to
-> describe what `lock' locks.
+Use Z[TB]_SHIFT() macro to calculate GFP_ZONE_TABLE and GFP_ZONE_BAD.
+This also removes lots of warnings from sparse like following:
 
-Done.
+ warning: restricted gfp_t degrades to integer
 
-> > +static int bgpio_dir_in(struct gpio_chip *gc, unsigned int gpio)
-> > +{
-> > +	return 0;
-> > +}
->
-> hm, what does this mean.  The hardware cannot set pin directions to
-> "in"?
-
-Nope, 0 is the success. The hardware cannot set pin directions
-at all (well, some hw can, but we don't support these yet).
-
-> > +	return gpiochip_add(&bgc->gc);
-> > +}
->
-> If this function returns -EINVAL then much head-scratching will ensue.
-> It might make your life easier to emit a diagnostic just before the
-> failure so you can work out why it failed.
-
-OK.
-
-Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>,
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/basic_mmio_gpio.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ include/linux/gfp.h |   43 +++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
-diff -puN drivers/gpio/basic_mmio_gpio.c~gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix drivers/gpio/basic_mmio_gpio.c
---- a/drivers/gpio/basic_mmio_gpio.c~gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix
-+++ a/drivers/gpio/basic_mmio_gpio.c
-@@ -66,12 +66,23 @@ struct bgpio_chip {
- 	void __iomem *reg_dat;
- 	void __iomem *reg_set;
- 	void __iomem *reg_clr;
--	spinlock_t lock;
+diff -puN include/linux/gfp.h~mm-cleanup-gfp_zone-fix-sparse-warnings include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-cleanup-gfp_zone-fix-sparse-warnings
++++ a/include/linux/gfp.h
+@@ -185,15 +185,16 @@ static inline int allocflags_to_migratet
+ #error ZONES_SHIFT too large to create GFP_ZONE_TABLE integer
+ #endif
  
-+	/* Number of bits (GPIOs): <register width> * 8. */
- 	int bits;
-+
-+	/*
-+	 * Some GPIO controllers work with the big-endian bits notation,
-+	 * e.g. in a 8-bits register, GPIO7 is the least significant bit.
-+	 */
- 	int big_endian_bits;
++#define ZT_SHIFT(gfp) ((__force int) (gfp) * ZONES_SHIFT)
+ #define GFP_ZONE_TABLE ( \
+-	(ZONE_NORMAL << 0 * ZONES_SHIFT)				\
+-	| (OPT_ZONE_DMA << __GFP_DMA * ZONES_SHIFT)			\
+-	| (OPT_ZONE_HIGHMEM << __GFP_HIGHMEM * ZONES_SHIFT)		\
+-	| (OPT_ZONE_DMA32 << __GFP_DMA32 * ZONES_SHIFT)			\
+-	| (ZONE_NORMAL << __GFP_MOVABLE * ZONES_SHIFT)			\
+-	| (OPT_ZONE_DMA << (__GFP_MOVABLE | __GFP_DMA) * ZONES_SHIFT)	\
+-	| (ZONE_MOVABLE << (__GFP_MOVABLE | __GFP_HIGHMEM) * ZONES_SHIFT)\
+-	| (OPT_ZONE_DMA32 << (__GFP_MOVABLE | __GFP_DMA32) * ZONES_SHIFT)\
++	(ZONE_NORMAL        << ZT_SHIFT(0))				\
++	| (OPT_ZONE_DMA     << ZT_SHIFT(__GFP_DMA))			\
++	| (OPT_ZONE_HIGHMEM << ZT_SHIFT(__GFP_HIGHMEM))			\
++	| (OPT_ZONE_DMA32   << ZT_SHIFT(__GFP_DMA32))			\
++	| (ZONE_NORMAL      << ZT_SHIFT(__GFP_MOVABLE))			\
++	| (OPT_ZONE_DMA     << ZT_SHIFT(__GFP_MOVABLE | __GFP_DMA))	\
++	| (ZONE_MOVABLE     << ZT_SHIFT(__GFP_MOVABLE | __GFP_HIGHMEM)) \
++	| (OPT_ZONE_DMA32   << ZT_SHIFT(__GFP_MOVABLE | __GFP_DMA32))	\
+ )
  
--	/* shadowed data register to clear/set bits safely */
-+	/*
-+	 * Used to lock bgpio_chip->data. Also, this is needed to keep
-+	 * shadowed and real data registers writes together.
-+	 */
-+	spinlock_t lock;
-+
-+	/* Shadowed data register to clear/set bits safely. */
- 	unsigned long data;
- };
+ /*
+@@ -202,24 +203,25 @@ static inline int allocflags_to_migratet
+  * entry starting with bit 0. Bit is set if the combination is not
+  * allowed.
+  */
++#define ZB_SHIFT(gfp) ((__force int) (gfp))
+ #define GFP_ZONE_BAD ( \
+-	1 << (__GFP_DMA | __GFP_HIGHMEM)				\
+-	| 1 << (__GFP_DMA | __GFP_DMA32)				\
+-	| 1 << (__GFP_DMA32 | __GFP_HIGHMEM)				\
+-	| 1 << (__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM)		\
+-	| 1 << (__GFP_MOVABLE | __GFP_HIGHMEM | __GFP_DMA)		\
+-	| 1 << (__GFP_MOVABLE | __GFP_DMA32 | __GFP_DMA)		\
+-	| 1 << (__GFP_MOVABLE | __GFP_DMA32 | __GFP_HIGHMEM)		\
+-	| 1 << (__GFP_MOVABLE | __GFP_DMA32 | __GFP_DMA | __GFP_HIGHMEM)\
++	1   << ZB_SHIFT(__GFP_DMA | __GFP_HIGHMEM)			\
++	| 1 << ZB_SHIFT(__GFP_DMA | __GFP_DMA32)			\
++	| 1 << ZB_SHIFT(__GFP_DMA32 | __GFP_HIGHMEM)			\
++	| 1 << ZB_SHIFT(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM)	\
++	| 1 << ZB_SHIFT(__GFP_MOVABLE | __GFP_HIGHMEM | __GFP_DMA)	\
++	| 1 << ZB_SHIFT(__GFP_MOVABLE | __GFP_DMA32 | __GFP_DMA)	\
++	| 1 << ZB_SHIFT(__GFP_MOVABLE | __GFP_DMA32 | __GFP_HIGHMEM)	\
++	| 1 << ZB_SHIFT(__GFP_MOVABLE | __GFP_DMA32 | __GFP_DMA |	\
++			__GFP_HIGHMEM)					\
+ )
  
-@@ -181,6 +192,7 @@ static int __devinit bgpio_probe(struct 
- 	struct resource *res_clr;
- 	resource_size_t dat_sz;
- 	int bits;
-+	int ret;
+ static inline enum zone_type gfp_zone(gfp_t flags)
+ {
+ 	enum zone_type z;
+-	int bit = flags & GFP_ZONEMASK;
++	int bit = (__force int) (flags & GFP_ZONEMASK);
  
- 	res_dat = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dat");
- 	if (!res_dat)
-@@ -238,7 +250,11 @@ static int __devinit bgpio_probe(struct 
+-	z = (GFP_ZONE_TABLE >> (bit * ZONES_SHIFT)) &
+-					 ((1 << ZONES_SHIFT) - 1);
++	z = (GFP_ZONE_TABLE >> ZT_SHIFT(bit)) & ((1 << ZONES_SHIFT) - 1);
  
- 	dev_set_drvdata(dev, bgc);
- 
--	return gpiochip_add(&bgc->gc);
-+	ret = gpiochip_add(&bgc->gc);
-+	if (ret)
-+		dev_err(dev, "gpiochip_add() failed: %d\n", ret);
-+
-+	return ret;
+ 	if (__builtin_constant_p(bit))
+ 		MAYBE_BUILD_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+@@ -231,6 +233,9 @@ static inline enum zone_type gfp_zone(gf
+ 	return z;
  }
  
- static int __devexit bgpio_remove(struct platform_device *pdev)
++#undef ZT_SHIFT
++#undef ZB_SHIFT
++
+ /*
+  * There is only one page-allocator function, and two main namespaces to
+  * it. The alloc_page*() variants return 'struct page *' and as such
 _
 
-Patches currently in -mm which might be from cbouatmailru@gmail.com are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
 linux-next.patch
-mtdpart-memory-accessor-interface-for-mtd-layer.patch
-drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch
-gpio-add-driver-for-basic-memory-mapped-gpio-controllers.patch
-gpio-add-driver-for-basic-memory-mapped-gpio-controllers-fix.patch
-gpiolib-fix-have_gpio_lib-leftovers-in-asm-generic-gpioh.patch
+mm-cleanup-gfp_zone-fix-sparse-warnings.patch
+init-mark-__user-address-space-on-string-literals.patch
+kernel-userc-add-lock-release-annotation-on-free_user.patch
+printk-fixup-declaration-of-kmsg_reasons.patch
+printk-add-lock-context-annotation.patch
+printk-change-type-of-boot_delay-to-int.patch
+printk-declare-printk_ratelimit_state-in-ratelimith.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+ptrace-annotate-lock-context-change-on-exit_ptrace.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
 
