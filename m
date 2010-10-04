@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-x86.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:38 -0700
-Message-ID: <201010042341.o94NfcTo022704@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-microblaze.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:41:57 -0700
+Message-ID: <201010042341.o94NfvW9022749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757002Ab0JDXmZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:25 -0400
+	by vger.kernel.org with ESMTP id S1757014Ab0JDXma (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
+Cc: namhyung@gmail.com, monstr@monstr.eu
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on x86
+     ptrace: cleanup arch_ptrace() on microblaze
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-x86.patch
+     ptrace-cleanup-arch_ptrace-on-microblaze.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on x86
+Subject: ptrace: cleanup arch_ptrace() on microblaze
 From: Namhyung Kim <namhyung@gmail.com>
 
-Remove checking @addr less than 0 because @addr is now unsigned and
-use new udescp variable in order to remove unnecessary castings.
+Remove checking @addr greater than 0 because @addr is now unsigned.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ arch/microblaze/kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-x86 arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-x86
-+++ a/arch/x86/kernel/ptrace.c
-@@ -806,6 +806,7 @@ long arch_ptrace(struct task_struct *chi
- {
- 	int ret;
- 	unsigned long __user *datap = (unsigned long __user *)data;
-+	struct user_desc __user *udescp = (struct user_desc __user *)data;
- 
- 	switch (request) {
- 	/* read the word at location addr in the USER area. */
-@@ -813,8 +814,7 @@ long arch_ptrace(struct task_struct *chi
- 		unsigned long tmp;
- 
- 		ret = -EIO;
--		if ((addr & (sizeof(data) - 1)) || addr < 0 ||
--		    addr >= sizeof(struct user))
-+		if ((addr & (sizeof(data) - 1)) || addr >= sizeof(struct user))
- 			break;
- 
- 		tmp = 0;  /* Default return condition */
-@@ -831,8 +831,7 @@ long arch_ptrace(struct task_struct *chi
- 
- 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
- 		ret = -EIO;
--		if ((addr & (sizeof(data) - 1)) || addr < 0 ||
--		    addr >= sizeof(struct user))
-+		if ((addr & (sizeof(data) - 1)) || addr >= sizeof(struct user))
- 			break;
- 
- 		if (addr < sizeof(struct user_regs_struct))
-@@ -891,15 +890,13 @@ long arch_ptrace(struct task_struct *chi
- 	case PTRACE_GET_THREAD_AREA:
- 		if ((int) addr < 0)
- 			return -EIO;
--		ret = do_get_thread_area(child, addr,
--					 (struct user_desc __user *) data);
-+		ret = do_get_thread_area(child, addr, udescp);
- 		break;
- 
- 	case PTRACE_SET_THREAD_AREA:
- 		if ((int) addr < 0)
- 			return -EIO;
--		ret = do_set_thread_area(child, addr,
--					 (struct user_desc __user *) data, 0);
-+		ret = do_set_thread_area(child, addr, udescp, 0);
- 		break;
- #endif
- 
+diff -puN arch/microblaze/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-microblaze arch/microblaze/kernel/ptrace.c
+--- a/arch/microblaze/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-microblaze
++++ a/arch/microblaze/kernel/ptrace.c
+@@ -100,7 +100,7 @@ long arch_ptrace(struct task_struct *chi
+ 			} else {
+ 				rval = -EIO;
+ 			}
+-		} else if (addr >= 0 && addr < PT_SIZE && (addr & 0x3) == 0) {
++		} else if (addr < PT_SIZE && (addr & 0x3) == 0) {
+ 			microblaze_reg_t *reg_addr = reg_save_addr(addr, child);
+ 			if (request == PTRACE_PEEKUSR)
+ 				val = *reg_addr;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
@@ -115,9 +75,6 @@ printk-change-type-of-boot_delay-to-int.patch
 printk-declare-printk_ratelimit_state-in-ratelimith.patch
 printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
 ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
 ptrace-change-signature-of-sys_ptrace-and-friends.patch
 ptrace-cleanup-ptrace_request.patch
 ptrace-change-signature-of-arch_ptrace.patch
@@ -141,4 +98,7 @@ ptrace-cleanup-arch_ptrace-on-sparc.patch
 ptrace-cleanup-arch_ptrace-on-tile.patch
 ptrace-cleanup-arch_ptrace-on-um.patch
 ptrace-cleanup-arch_ptrace-on-xtensa.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
 
