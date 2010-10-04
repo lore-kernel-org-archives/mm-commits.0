@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial8250-ratelimit-too-much-work-error-fix-fix.patch added to -mm tree
-Date: Mon, 04 Oct 2010 15:03:27 -0700
-Message-ID: <201010042203.o94M3RXm018282@imap1.linux-foundation.org>
+Subject: + drivers-usb-gadget-amd5536udcc-fix-error-path.patch added to -mm tree
+Date: Mon, 04 Oct 2010 15:16:06 -0700
+Message-ID: <201010042216.o94MG6j8018802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811Ab0JDWD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:03:58 -0400
+	by vger.kernel.org with ESMTP id S1751642Ab0JDWQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, dsd@laptop.org, greg@kroah.com
+Cc: rahul.ruikar@gmail.com, dahlmann.thomas@arcor.de, david-b@pacbell.net, greg@kroah.com
 
 
 The patch titled
-     serial8250-ratelimit-too-much-work-error-fix-fix
+     drivers/usb/gadget/amd5536udc.c: fix error path
 has been added to the -mm tree.  Its filename is
-     serial8250-ratelimit-too-much-work-error-fix-fix.patch
+     drivers-usb-gadget-amd5536udcc-fix-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,94 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial8250-ratelimit-too-much-work-error-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/usb/gadget/amd5536udc.c: fix error path
+From: Rahul Ruikar <rahul.ruikar@gmail.com>
 
-printk_ratelimited() needs ratelimit.h
+In function udc_probe() call put_device() when device_register() fails.
 
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Daniel Drake <dsd@laptop.org>
+Signed-off-by: Rahul Ruikar <rahul.ruikar@gmail.com>
+Acked-by: Thomas Dahlmann <dahlmann.thomas@arcor.de>
 Cc: Greg KH <greg@kroah.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/gadget/amd5536udc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250.c~serial8250-ratelimit-too-much-work-error-fix-fix drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial8250-ratelimit-too-much-work-error-fix-fix
-+++ a/drivers/serial/8250.c
-@@ -31,6 +31,7 @@
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/tty.h>
-+#include <linux/ratelimit.h>
- #include <linux/tty_flip.h>
- #include <linux/serial_reg.h>
- #include <linux/serial_core.h>
+diff -puN drivers/usb/gadget/amd5536udc.c~drivers-usb-gadget-amd5536udcc-fix-error-path drivers/usb/gadget/amd5536udc.c
+--- a/drivers/usb/gadget/amd5536udc.c~drivers-usb-gadget-amd5536udcc-fix-error-path
++++ a/drivers/usb/gadget/amd5536udc.c
+@@ -3383,8 +3383,10 @@ static int udc_probe(struct udc *dev)
+ 	udc = dev;
+ 
+ 	retval = device_register(&dev->gadget.dev);
+-	if (retval)
++	if (retval) {
++		put_device(&dev->gadget.dev);
+ 		goto finished;
++	}
+ 
+ 	/* timer init */
+ 	init_timer(&udc_timer);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rahul.ruikar@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial-add-sc16is7x2-driver.patch
-serial8250-ratelimit-too-much-work-error-fix.patch
-serial8250-ratelimit-too-much-work-error-fix-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-m68k-__pa-cast-arg-to-long.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+drivers-usb-gadget-amd5536udcc-fix-error-path.patch
+drivers-misc-phantomc-add-missing-warning-messages-in-phantom_probe.patch
 
