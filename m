@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-change-signature-of-sys_ptrace-and-friends.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:31 -0700
-Message-ID: <201010042341.o94NfVbs022690@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-ptrace_request.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:41:33 -0700
+Message-ID: <201010042341.o94NfXEt022695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756923Ab0JDXmT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:19 -0400
+	by vger.kernel.org with ESMTP id S1756923Ab0JDXmS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, arnd@arndb.de, roland@redhat.com
+Cc: namhyung@gmail.com, roland@redhat.com
 
 
 The patch titled
-     ptrace: change signature of sys_ptrace() and friends
+     ptrace: cleanup ptrace_request()
 has been added to the -mm tree.  Its filename is
-     ptrace-change-signature-of-sys_ptrace-and-friends.patch
+     ptrace-cleanup-ptrace_request.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,129 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: change signature of sys_ptrace() and friends
+Subject: ptrace: cleanup ptrace_request()
 From: Namhyung Kim <namhyung@gmail.com>
 
-Since userspace API of ptrace syscall defines @addr and @data as void
-pointers, it would be more appropriate to define them as unsigned long in
-kernel.  Therefore related functions are changed also.
+Use new 'datavp' and 'datalp' variables to remove unnecesary castings.
 
-'unsigned long' is typically used in other places in kernel as an opaque
-data type and that using this helps cleaning up a lot of warnings from
-sparse.
-
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h   |    9 ++++++---
- include/linux/syscalls.h |    3 ++-
- kernel/ptrace.c          |   16 ++++++++++------
- 3 files changed, 18 insertions(+), 10 deletions(-)
+ kernel/ptrace.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/ptrace.h~ptrace-change-signature-of-sys_ptrace-and-friends include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-change-signature-of-sys_ptrace-and-friends
-+++ a/include/linux/ptrace.h
-@@ -108,7 +108,8 @@ extern int ptrace_attach(struct task_str
- extern int ptrace_detach(struct task_struct *, unsigned int);
- extern void ptrace_disable(struct task_struct *);
- extern int ptrace_check_attach(struct task_struct *task, int kill);
--extern int ptrace_request(struct task_struct *child, long request, long addr, long data);
-+extern int ptrace_request(struct task_struct *child, long request,
-+			  unsigned long addr, unsigned long data);
- extern void ptrace_notify(int exit_code);
- extern void __ptrace_link(struct task_struct *child,
- 			  struct task_struct *new_parent);
-@@ -132,8 +133,10 @@ static inline void ptrace_unlink(struct 
- 		__ptrace_unlink(child);
- }
- 
--int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data);
--int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data);
-+int generic_ptrace_peekdata(struct task_struct *tsk, unsigned long addr,
-+			    unsigned long data);
-+int generic_ptrace_pokedata(struct task_struct *tsk, unsigned long addr,
-+			    unsigned long data);
- 
- /**
-  * task_ptrace - return %PT_* flags that apply to a task
-diff -puN include/linux/syscalls.h~ptrace-change-signature-of-sys_ptrace-and-friends include/linux/syscalls.h
---- a/include/linux/syscalls.h~ptrace-change-signature-of-sys_ptrace-and-friends
-+++ a/include/linux/syscalls.h
-@@ -701,7 +701,8 @@ asmlinkage long sys_nfsservctl(int cmd,
- asmlinkage long sys_syslog(int type, char __user *buf, int len);
- asmlinkage long sys_uselib(const char __user *library);
- asmlinkage long sys_ni_syscall(void);
--asmlinkage long sys_ptrace(long request, long pid, long addr, long data);
-+asmlinkage long sys_ptrace(long request, long pid, unsigned long addr,
-+			   unsigned long data);
- 
- asmlinkage long sys_add_key(const char __user *_type,
- 			    const char __user *_description,
-diff -puN kernel/ptrace.c~ptrace-change-signature-of-sys_ptrace-and-friends kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-change-signature-of-sys_ptrace-and-friends
+diff -puN kernel/ptrace.c~ptrace-cleanup-ptrace_request kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-cleanup-ptrace_request
 +++ a/kernel/ptrace.c
-@@ -404,7 +404,7 @@ int ptrace_writedata(struct task_struct 
- 	return copied;
- }
- 
--static int ptrace_setoptions(struct task_struct *child, long data)
-+static int ptrace_setoptions(struct task_struct *child, unsigned long data)
- {
- 	child->ptrace &= ~PT_TRACE_MASK;
- 
-@@ -483,7 +483,8 @@ static int ptrace_setsiginfo(struct task
- #define is_sysemu_singlestep(request)	0
- #endif
- 
--static int ptrace_resume(struct task_struct *child, long request, long data)
-+static int ptrace_resume(struct task_struct *child, long request,
-+			 unsigned long data)
- {
- 	if (!valid_signal(data))
- 		return -EIO;
-@@ -560,7 +561,7 @@ static int ptrace_regset(struct task_str
- #endif
- 
- int ptrace_request(struct task_struct *child, long request,
--		   long addr, long data)
-+		   unsigned long addr, unsigned long data)
+@@ -565,6 +565,8 @@ int ptrace_request(struct task_struct *c
  {
  	int ret = -EIO;
  	siginfo_t siginfo;
-@@ -693,7 +694,8 @@ static struct task_struct *ptrace_get_ta
- #define arch_ptrace_attach(child)	do { } while (0)
++	void __user *datavp = (void __user *) data;
++	unsigned long __user *datalp = datavp;
+ 
+ 	switch (request) {
+ 	case PTRACE_PEEKTEXT:
+@@ -581,19 +583,17 @@ int ptrace_request(struct task_struct *c
+ 		ret = ptrace_setoptions(child, data);
+ 		break;
+ 	case PTRACE_GETEVENTMSG:
+-		ret = put_user(child->ptrace_message, (unsigned long __user *) data);
++		ret = put_user(child->ptrace_message, datalp);
+ 		break;
+ 
+ 	case PTRACE_GETSIGINFO:
+ 		ret = ptrace_getsiginfo(child, &siginfo);
+ 		if (!ret)
+-			ret = copy_siginfo_to_user((siginfo_t __user *) data,
+-						   &siginfo);
++			ret = copy_siginfo_to_user(datavp, &siginfo);
+ 		break;
+ 
+ 	case PTRACE_SETSIGINFO:
+-		if (copy_from_user(&siginfo, (siginfo_t __user *) data,
+-				   sizeof siginfo))
++		if (copy_from_user(&siginfo, datavp, sizeof siginfo))
+ 			ret = -EFAULT;
+ 		else
+ 			ret = ptrace_setsiginfo(child, &siginfo);
+@@ -624,7 +624,7 @@ int ptrace_request(struct task_struct *c
+ 		}
+ 		mmput(mm);
+ 
+-		ret = put_user(tmp, (unsigned long __user *) data);
++		ret = put_user(tmp, datalp);
+ 		break;
+ 	}
  #endif
+@@ -653,7 +653,7 @@ int ptrace_request(struct task_struct *c
+ 	case PTRACE_SETREGSET:
+ 	{
+ 		struct iovec kiov;
+-		struct iovec __user *uiov = (struct iovec __user *) data;
++		struct iovec __user *uiov = datavp;
  
--SYSCALL_DEFINE4(ptrace, long, request, long, pid, long, addr, long, data)
-+SYSCALL_DEFINE4(ptrace, long, request, long, pid, unsigned long, addr,
-+		unsigned long, data)
- {
- 	struct task_struct *child;
- 	long ret;
-@@ -734,7 +736,8 @@ SYSCALL_DEFINE4(ptrace, long, request, l
- 	return ret;
- }
- 
--int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data)
-+int generic_ptrace_peekdata(struct task_struct *tsk, unsigned long addr,
-+			    unsigned long data)
- {
- 	unsigned long tmp;
- 	int copied;
-@@ -745,7 +748,8 @@ int generic_ptrace_peekdata(struct task_
- 	return put_user(tmp, (unsigned long __user *)data);
- }
- 
--int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data)
-+int generic_ptrace_pokedata(struct task_struct *tsk, unsigned long addr,
-+			    unsigned long data)
- {
- 	int copied;
- 
+ 		if (!access_ok(VERIFY_WRITE, uiov, sizeof(*uiov)))
+ 			return -EFAULT;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
