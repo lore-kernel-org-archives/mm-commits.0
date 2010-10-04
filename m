@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-h8300.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:51 -0700
-Message-ID: <201010042341.o94NfpQ2022737@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-sparc.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:42:13 -0700
+Message-ID: <201010042342.o94NgDHB022784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757380Ab0JDXwu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:52:50 -0400
+	by vger.kernel.org with ESMTP id S1757380Ab0JDXxL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:53:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, ysato@users.sourceforge.jp
+Cc: namhyung@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on h8300
+     ptrace: cleanup arch_ptrace() on sparc
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-h8300.patch
+     ptrace-cleanup-arch_ptrace-on-sparc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on h8300
+Subject: ptrace: cleanup arch_ptrace() on sparc
 From: Namhyung Kim <namhyung@gmail.com>
 
-Use new 'regno', 'datap' variables in order to remove duplicated
-expressions and unnecessary castings. Alse remove checking @addr
-less than 0 because addr is now unsigned.
+Factor out struct fps and remove redundant castings.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/ptrace.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ arch/sparc/kernel/ptrace_32.c |   54 +++++++++++---------------------
+ arch/sparc/kernel/ptrace_64.c |    8 ++--
+ 2 files changed, 24 insertions(+), 38 deletions(-)
 
-diff -puN arch/h8300/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-h8300 arch/h8300/kernel/ptrace.c
---- a/arch/h8300/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-h8300
-+++ a/arch/h8300/kernel/ptrace.c
-@@ -54,24 +54,25 @@ long arch_ptrace(struct task_struct *chi
+diff -puN arch/sparc/kernel/ptrace_32.c~ptrace-cleanup-arch_ptrace-on-sparc arch/sparc/kernel/ptrace_32.c
+--- a/arch/sparc/kernel/ptrace_32.c~ptrace-cleanup-arch_ptrace-on-sparc
++++ a/arch/sparc/kernel/ptrace_32.c
+@@ -323,19 +323,35 @@ const struct user_regset_view *task_user
+ 	return &user_sparc32_view;
+ }
+ 
++struct fps {
++	unsigned long regs[32];
++	unsigned long fsr;
++	unsigned long flags;
++	unsigned long extra;
++	unsigned long fpqd;
++	struct fq {
++		unsigned long *insnaddr;
++		unsigned long insn;
++	} fpq[16];
++};
++
+ long arch_ptrace(struct task_struct *child, long request,
  		 unsigned long addr, unsigned long data)
  {
+ 	unsigned long addr2 = current->thread.kregs->u_regs[UREG_I4];
++	void __user *addr2p;
+ 	const struct user_regset_view *view;
++	struct pt_regs __user *pregs;
++	struct fps __user *fps;
  	int ret;
-+	int regno = addr >> 2;
-+	unsigned long __user *datap = (unsigned long __user *) data;
+ 
+ 	view = task_user_regset_view(current);
++	addr2p = (void __user *) addr2;
++	pregs = (struct pt_regs __user *) addr;
++	fps = (struct fps __user *) addr;
+ 
+ 	switch(request) {
+ 	case PTRACE_GETREGS: {
+-		struct pt_regs __user *pregs = (struct pt_regs __user *) addr;
+-
+ 		ret = copy_regset_to_user(child, view, REGSET_GENERAL,
+ 					  32 * sizeof(u32),
+ 					  4 * sizeof(u32),
+@@ -349,8 +365,6 @@ long arch_ptrace(struct task_struct *chi
+ 	}
+ 
+ 	case PTRACE_SETREGS: {
+-		struct pt_regs __user *pregs = (struct pt_regs __user *) addr;
+-
+ 		ret = copy_regset_from_user(child, view, REGSET_GENERAL,
+ 					    32 * sizeof(u32),
+ 					    4 * sizeof(u32),
+@@ -364,19 +378,6 @@ long arch_ptrace(struct task_struct *chi
+ 	}
+ 
+ 	case PTRACE_GETFPREGS: {
+-		struct fps {
+-			unsigned long regs[32];
+-			unsigned long fsr;
+-			unsigned long flags;
+-			unsigned long extra;
+-			unsigned long fpqd;
+-			struct fq {
+-				unsigned long *insnaddr;
+-				unsigned long insn;
+-			} fpq[16];
+-		};
+-		struct fps __user *fps = (struct fps __user *) addr;
+-
+ 		ret = copy_regset_to_user(child, view, REGSET_FP,
+ 					  0 * sizeof(u32),
+ 					  32 * sizeof(u32),
+@@ -398,19 +399,6 @@ long arch_ptrace(struct task_struct *chi
+ 	}
+ 
+ 	case PTRACE_SETFPREGS: {
+-		struct fps {
+-			unsigned long regs[32];
+-			unsigned long fsr;
+-			unsigned long flags;
+-			unsigned long extra;
+-			unsigned long fpqd;
+-			struct fq {
+-				unsigned long *insnaddr;
+-				unsigned long insn;
+-			} fpq[16];
+-		};
+-		struct fps __user *fps = (struct fps __user *) addr;
+-
+ 		ret = copy_regset_from_user(child, view, REGSET_FP,
+ 					    0 * sizeof(u32),
+ 					    32 * sizeof(u32),
+@@ -425,8 +413,7 @@ long arch_ptrace(struct task_struct *chi
+ 
+ 	case PTRACE_READTEXT:
+ 	case PTRACE_READDATA:
+-		ret = ptrace_readdata(child, addr,
+-				      (void __user *) addr2, data);
++		ret = ptrace_readdata(child, addr, addr2p, data);
+ 
+ 		if (ret == data)
+ 			ret = 0;
+@@ -436,8 +423,7 @@ long arch_ptrace(struct task_struct *chi
+ 
+ 	case PTRACE_WRITETEXT:
+ 	case PTRACE_WRITEDATA:
+-		ret = ptrace_writedata(child, (void __user *) addr2,
+-				       addr, data);
++		ret = ptrace_writedata(child, addr2p, addr, data);
+ 
+ 		if (ret == data)
+ 			ret = 0;
+diff -puN arch/sparc/kernel/ptrace_64.c~ptrace-cleanup-arch_ptrace-on-sparc arch/sparc/kernel/ptrace_64.c
+--- a/arch/sparc/kernel/ptrace_64.c~ptrace-cleanup-arch_ptrace-on-sparc
++++ a/arch/sparc/kernel/ptrace_64.c
+@@ -976,10 +976,12 @@ long arch_ptrace(struct task_struct *chi
+ 	unsigned long addr2 = task_pt_regs(current)->u_regs[UREG_I4];
+ 	struct pt_regs __user *pregs;
+ 	struct fps __user *fps;
++	void __user *addr2p;
+ 	int ret;
+ 
+ 	pregs = (struct pt_regs __user *) addr;
+ 	fps = (struct fps __user *) addr;
++	addr2p = (void __user *) addr2;
  
  	switch (request) {
- 	/* read the word at location addr in the USER area. */
- 		case PTRACE_PEEKUSR: {
- 			unsigned long tmp = 0;
- 			
--			if ((addr & 3) || addr < 0 || addr >= sizeof(struct user)) {
-+			if ((addr & 3) || addr >= sizeof(struct user)) {
- 				ret = -EIO;
- 				break ;
- 			}
- 			
- 		        ret = 0;  /* Default return condition */
--			addr = addr >> 2; /* temporary hack. */
+ 	case PTRACE_PEEKUSR:
+@@ -1030,8 +1032,7 @@ long arch_ptrace(struct task_struct *chi
  
--			if (addr < H8300_REGS_NO)
--				tmp = h8300_get_reg(child, addr);
-+			if (regno < H8300_REGS_NO)
-+				tmp = h8300_get_reg(child, regno);
- 			else {
--				switch(addr) {
-+				switch (regno) {
- 				case 49:
- 					tmp = child->mm->start_code;
- 					break ;
-@@ -89,24 +90,23 @@ long arch_ptrace(struct task_struct *chi
- 				}
- 			}
- 			if (!ret)
--				ret = put_user(tmp,(unsigned long *) data);
-+				ret = put_user(tmp, datap);
- 			break ;
- 		}
+ 	case PTRACE_READTEXT:
+ 	case PTRACE_READDATA:
+-		ret = ptrace_readdata(child, addr,
+-				      (char __user *)addr2, data);
++		ret = ptrace_readdata(child, addr, addr2p, data);
+ 		if (ret == data)
+ 			ret = 0;
+ 		else if (ret >= 0)
+@@ -1040,8 +1041,7 @@ long arch_ptrace(struct task_struct *chi
  
-       /* when I and D space are separate, this will have to be fixed. */
- 		case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
--			if ((addr & 3) || addr < 0 || addr >= sizeof(struct user)) {
-+			if ((addr & 3) || addr >= sizeof(struct user)) {
- 				ret = -EIO;
- 				break ;
- 			}
--			addr = addr >> 2; /* temporary hack. */
- 			    
--			if (addr == PT_ORIG_ER0) {
-+			if (regno == PT_ORIG_ER0) {
- 				ret = -EIO;
- 				break ;
- 			}
--			if (addr < H8300_REGS_NO) {
--				ret = h8300_put_reg(child, addr, data);
-+			if (regno < H8300_REGS_NO) {
-+				ret = h8300_put_reg(child, regno, data);
- 				break ;
- 			}
- 			ret = -EIO;
-@@ -117,11 +117,11 @@ long arch_ptrace(struct task_struct *chi
- 			unsigned long tmp;
- 			for (i = 0; i < H8300_REGS_NO; i++) {
- 			    tmp = h8300_get_reg(child, i);
--			    if (put_user(tmp, (unsigned long *) data)) {
-+			    if (put_user(tmp, datap)) {
- 				ret = -EFAULT;
- 				break;
- 			    }
--			    data += sizeof(unsigned long);
-+			    datap++;
- 			}
+ 	case PTRACE_WRITETEXT:
+ 	case PTRACE_WRITEDATA:
+-		ret = ptrace_writedata(child, (char __user *) addr2,
+-				       addr, data);
++		ret = ptrace_writedata(child, addr2p, addr, data);
+ 		if (ret == data)
  			ret = 0;
- 			break;
-@@ -131,12 +131,12 @@ long arch_ptrace(struct task_struct *chi
- 			int i;
- 			unsigned long tmp;
- 			for (i = 0; i < H8300_REGS_NO; i++) {
--			    if (get_user(tmp, (unsigned long *) data)) {
-+			    if (get_user(tmp, datap)) {
- 				ret = -EFAULT;
- 				break;
- 			    }
- 			    h8300_put_reg(child, i, tmp);
--			    data += sizeof(unsigned long);
-+			    datap++;
- 			}
- 			ret = 0;
- 			break;
+ 		else if (ret >= 0)
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
