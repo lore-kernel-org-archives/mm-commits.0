@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch added to -mm tree
-Date: Mon, 04 Oct 2010 15:55:38 -0700
-Message-ID: <201010042255.o94MtcYN020617@imap1.linux-foundation.org>
+Subject: + lirc-make-struct-file_operations-pointer-const.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:00:01 -0700
+Message-ID: <201010042300.o94N01ui020822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49498 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072Ab0JDW4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:10 -0400
+	by vger.kernel.org with ESMTP id S1752073Ab0JDXAi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:00:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nico@fluxnic.net, alan@linux.intel.com, greg@kroah.com, nicolas.pitre@canonical.com
+Cc: geert@linux-m68k.org, greg@kroah.com, jarod@redhat.com
 
 
 The patch titled
-     vcs: invoke the vt update callback when /dev/vcs* is written to
+     lirc: make struct file_operations pointer const
 has been added to the -mm tree.  Its filename is
-     vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
+     lirc-make-struct-file_operations-pointer-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vcs: invoke the vt update callback when /dev/vcs* is written to
-From: Nicolas Pitre <nico@fluxnic.net>
+Subject: lirc: make struct file_operations pointer const
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-A notifier chain is called whenever the vt code modifies a terminal
-content, except for one case which is when the modification comes through
-writes to /dev/vcs* devices.  Let's add the missing notifier invocation at
-the end of vcs_write() for that case too.
+struct file_operations was made const in the drivers, but not in struct
+lirc_driver:
 
-Signed-off-by: Nicolas Pitre <nicolas.pitre@canonical.com>
-Cc: Alan Cox <alan@linux.intel.com>
+drivers/staging/lirc/lirc_it87.c:365: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_parallel.c:571: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_serial.c:1073: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_sir.c:482: warning: initialization discards qualifiers from pointer target type
+drivers/staging/lirc/lirc_zilog.c:1284: warning: assignment discards qualifiers from pointer target type
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Jarod Wilson <jarod@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vc_screen.c  |    2 ++
- drivers/char/vt.c         |    5 +++++
- include/linux/selection.h |    1 +
- 3 files changed, 8 insertions(+)
+ include/media/lirc_dev.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vc_screen.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to drivers/char/vc_screen.c
---- a/drivers/char/vc_screen.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to
-+++ a/drivers/char/vc_screen.c
-@@ -530,6 +530,8 @@ vcs_write(struct file *file, const char 
- 	}
- 	*ppos += written;
- 	ret = written;
-+	if (written)
-+		vcs_scr_updated(vc);
- 
- unlock_out:
- 	release_console_sem();
-diff -puN drivers/char/vt.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to drivers/char/vt.c
---- a/drivers/char/vt.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to
-+++ a/drivers/char/vt.c
-@@ -4182,6 +4182,11 @@ void vcs_scr_writew(struct vc_data *vc, 
- 	}
- }
- 
-+void vcs_scr_updated(struct vc_data *vc)
-+{
-+	notify_update(vc);
-+}
-+
- /*
-  *	Visible symbols for modules
-  */
-diff -puN include/linux/selection.h~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to include/linux/selection.h
---- a/include/linux/selection.h~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to
-+++ a/include/linux/selection.h
-@@ -39,5 +39,6 @@ extern void putconsxy(struct vc_data *vc
- 
- extern u16 vcs_scr_readw(struct vc_data *vc, const u16 *org);
- extern void vcs_scr_writew(struct vc_data *vc, u16 val, u16 *org);
-+extern void vcs_scr_updated(struct vc_data *vc);
- 
- #endif
+diff -puN include/media/lirc_dev.h~lirc-make-struct-file_operations-pointer-const include/media/lirc_dev.h
+--- a/include/media/lirc_dev.h~lirc-make-struct-file_operations-pointer-const
++++ a/include/media/lirc_dev.h
+@@ -139,7 +139,7 @@ struct lirc_driver {
+ 	struct lirc_buffer *rbuf;
+ 	int (*set_use_inc) (void *data);
+ 	void (*set_use_dec) (void *data);
+-	struct file_operations *fops;
++	const struct file_operations *fops;
+ 	struct device *dev;
+ 	struct module *owner;
+ };
 _
 
-Patches currently in -mm which might be from nico@fluxnic.net are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
+origin.patch
 linux-next.patch
-vcs-add-poll-fasync-support.patch
-vcs-add-poll-fasync-support-fix.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
+drivers-power-ds2782_batteryc-fix-ds2782-battery-driver-units.patch
+block-m68k-z2ram-correct-printing-of-sector_t.patch
+lirc-make-struct-file_operations-pointer-const.patch
+m68k-__pa-cast-arg-to-long.patch
+m68knommu-blackfin-remove-old-assembler-only-flags-bit-definitions.patch
 
