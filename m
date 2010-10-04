@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-cris.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:47 -0700
-Message-ID: <201010042341.o94NflRx022725@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-m68k.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:41:55 -0700
+Message-ID: <201010042341.o94NftkO022745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752460Ab0JDXyr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:54:47 -0400
+	by vger.kernel.org with ESMTP id S1751487Ab0JDXz0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
+Cc: namhyung@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on cris
+     ptrace: cleanup arch_ptrace() on m68k
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-cris.patch
+     ptrace-cleanup-arch_ptrace-on-m68k.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on cris
+Subject: ptrace: cleanup arch_ptrace() on m68k
 From: Namhyung Kim <namhyung@gmail.com>
 
-Use new 'regno' variable in order to remove redandunt expression and
-remove checking @addr less than 0 because @addr is now unsigned.  Also
-update 'datap' on PTRACE_GET/SETREGS to fix a bug on arch-v10.
+Use new 'regno', 'datap' variables in order to remove duplicated
+expressions and unnecessary castings.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/ptrace.c |   17 ++++++++---------
- arch/cris/arch-v32/kernel/ptrace.c |   13 ++++++-------
- 2 files changed, 14 insertions(+), 16 deletions(-)
+ arch/m68k/kernel/ptrace.c |   46 ++++++++++++++++++------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-cris arch/cris/arch-v10/kernel/ptrace.c
---- a/arch/cris/arch-v10/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-cris
-+++ a/arch/cris/arch-v10/kernel/ptrace.c
-@@ -80,6 +80,7 @@ long arch_ptrace(struct task_struct *chi
- 		 unsigned long addr, unsigned long data)
+diff -puN arch/m68k/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-m68k arch/m68k/kernel/ptrace.c
+--- a/arch/m68k/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-m68k
++++ a/arch/m68k/kernel/ptrace.c
+@@ -161,51 +161,52 @@ long arch_ptrace(struct task_struct *chi
  {
- 	int ret;
-+	unsigned int regno = addr >> 2;
- 	unsigned long __user *datap = (unsigned long __user *)data;
+ 	unsigned long tmp;
+ 	int i, ret = 0;
++	int regno = addr >> 2; /* temporary hack. */
++	unsigned long __user *datap = (unsigned long __user *) data;
  
  	switch (request) {
-@@ -94,10 +95,10 @@ long arch_ptrace(struct task_struct *chi
- 			unsigned long tmp;
+ 	/* read the word at location addr in the USER area. */
+ 	case PTRACE_PEEKUSR:
+ 		if (addr & 3)
+ 			goto out_eio;
+-		addr >>= 2;	/* temporary hack. */
  
- 			ret = -EIO;
--			if ((addr & 3) || addr < 0 || addr > PT_MAX << 2)
-+			if ((addr & 3) || regno > PT_MAX)
- 				break;
- 
--			tmp = get_reg(child, addr >> 2);
+-		if (addr >= 0 && addr < 19) {
+-			tmp = get_reg(child, addr);
+-		} else if (addr >= 21 && addr < 49) {
+-			tmp = child->thread.fp[addr - 21];
++		if (regno >= 0 && regno < 19) {
 +			tmp = get_reg(child, regno);
- 			ret = put_user(tmp, datap);
- 			break;
++		} else if (regno >= 21 && regno < 49) {
++			tmp = child->thread.fp[regno - 21];
+ 			/* Convert internal fpu reg representation
+ 			 * into long double format
+ 			 */
+-			if (FPU_IS_EMU && (addr < 45) && !(addr % 3))
++			if (FPU_IS_EMU && (regno < 45) && !(regno % 3))
+ 				tmp = ((tmp & 0xffff0000) << 15) |
+ 				      ((tmp & 0x0000ffff) << 16);
+ 		} else
+ 			goto out_eio;
+-		ret = put_user(tmp, (unsigned long *)data);
++		ret = put_user(tmp, datap);
+ 		break;
+ 
+-	case PTRACE_POKEUSR:	/* write the word at location addr in the USER area */
++	case PTRACE_POKEUSR:
++	/* write the word at location addr in the USER area */
+ 		if (addr & 3)
+ 			goto out_eio;
+-		addr >>= 2;	/* temporary hack. */
+ 
+-		if (addr == PT_SR) {
++		if (regno == PT_SR) {
+ 			data &= SR_MASK;
+ 			data |= get_reg(child, PT_SR) & ~SR_MASK;
  		}
-@@ -111,19 +112,17 @@ long arch_ptrace(struct task_struct *chi
-  		/* Write the word at location address in the USER area. */
- 		case PTRACE_POKEUSR:
- 			ret = -EIO;
--			if ((addr & 3) || addr < 0 || addr > PT_MAX << 2)
-+			if ((addr & 3) || regno > PT_MAX)
- 				break;
- 
--			addr >>= 2;
--
--			if (addr == PT_DCCR) {
-+			if (regno == PT_DCCR) {
- 				/* don't allow the tracing process to change stuff like
- 				 * interrupt enable, kernel/user bit, dma enables etc.
- 				 */
- 				data &= DCCR_MASK;
- 				data |= get_reg(child, PT_DCCR) & ~DCCR_MASK;
- 			}
+-		if (addr >= 0 && addr < 19) {
 -			if (put_reg(child, addr, data))
++		if (regno >= 0 && regno < 19) {
 +			if (put_reg(child, regno, data))
- 				break;
- 			ret = 0;
- 			break;
-@@ -142,7 +141,7 @@ long arch_ptrace(struct task_struct *chi
- 					break;
- 				}
- 				
--				data += sizeof(unsigned long);
-+				datap++;
+ 				goto out_eio;
+-		} else if (addr >= 21 && addr < 48) {
++		} else if (regno >= 21 && regno < 48) {
+ 			/* Convert long double format
+ 			 * into internal fpu reg representation
+ 			 */
+-			if (FPU_IS_EMU && (addr < 45) && !(addr % 3)) {
++			if (FPU_IS_EMU && (regno < 45) && !(regno % 3)) {
+ 				data <<= 15;
+ 				data = (data & 0xffff0000) |
+ 				       ((data & 0x0000ffff) >> 1);
  			}
- 
- 			break;
-@@ -166,7 +165,7 @@ long arch_ptrace(struct task_struct *chi
- 				}
- 				
- 				put_reg(child, i, tmp);
--				data += sizeof(unsigned long);
-+				datap++;
- 			}
- 			
- 			break;
-diff -puN arch/cris/arch-v32/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-cris arch/cris/arch-v32/kernel/ptrace.c
---- a/arch/cris/arch-v32/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-cris
-+++ a/arch/cris/arch-v32/kernel/ptrace.c
-@@ -130,6 +130,7 @@ long arch_ptrace(struct task_struct *chi
- 		 unsigned long addr, unsigned long data)
- {
- 	int ret;
-+	unsigned int regno = addr >> 2;
- 	unsigned long __user *datap = (unsigned long __user *)data;
- 
- 	switch (request) {
-@@ -164,10 +165,10 @@ long arch_ptrace(struct task_struct *chi
- 			unsigned long tmp;
- 
- 			ret = -EIO;
--			if ((addr & 3) || addr < 0 || addr > PT_MAX << 2)
-+			if ((addr & 3) || regno > PT_MAX)
+-			child->thread.fp[addr - 21] = data;
++			child->thread.fp[regno - 21] = data;
+ 		} else
+ 			goto out_eio;
+ 		break;
+@@ -213,16 +214,16 @@ long arch_ptrace(struct task_struct *chi
+ 	case PTRACE_GETREGS:	/* Get all gp regs from the child. */
+ 		for (i = 0; i < 19; i++) {
+ 			tmp = get_reg(child, i);
+-			ret = put_user(tmp, (unsigned long *)data);
++			ret = put_user(tmp, datap);
+ 			if (ret)
  				break;
- 
--			tmp = get_reg(child, addr >> 2);
-+			tmp = get_reg(child, regno);
- 			ret = put_user(tmp, datap);
- 			break;
+-			data += sizeof(unsigned long);
++			datap++;
  		}
-@@ -181,19 +182,17 @@ long arch_ptrace(struct task_struct *chi
- 		/* Write the word at location address in the USER area. */
- 		case PTRACE_POKEUSR:
- 			ret = -EIO;
--			if ((addr & 3) || addr < 0 || addr > PT_MAX << 2)
-+			if ((addr & 3) || regno > PT_MAX)
- 				break;
+ 		break;
  
--			addr >>= 2;
--
--			if (addr == PT_CCS) {
-+			if (regno == PT_CCS) {
- 				/* don't allow the tracing process to change stuff like
- 				 * interrupt enable, kernel/user bit, dma enables etc.
- 				 */
- 				data &= CCS_MASK;
- 				data |= get_reg(child, PT_CCS) & ~CCS_MASK;
- 			}
--			if (put_reg(child, addr, data))
-+			if (put_reg(child, regno, data))
+ 	case PTRACE_SETREGS:	/* Set all gp regs in the child. */
+ 		for (i = 0; i < 19; i++) {
+-			ret = get_user(tmp, (unsigned long *)data);
++			ret = get_user(tmp, datap);
+ 			if (ret)
  				break;
- 			ret = 0;
- 			break;
+ 			if (i == PT_SR) {
+@@ -230,25 +231,24 @@ long arch_ptrace(struct task_struct *chi
+ 				tmp |= get_reg(child, PT_SR) & ~SR_MASK;
+ 			}
+ 			put_reg(child, i, tmp);
+-			data += sizeof(unsigned long);
++			datap++;
+ 		}
+ 		break;
+ 
+ 	case PTRACE_GETFPREGS:	/* Get the child FPU state. */
+-		if (copy_to_user((void *)data, &child->thread.fp,
++		if (copy_to_user(datap, &child->thread.fp,
+ 				 sizeof(struct user_m68kfp_struct)))
+ 			ret = -EFAULT;
+ 		break;
+ 
+ 	case PTRACE_SETFPREGS:	/* Set the child FPU state. */
+-		if (copy_from_user(&child->thread.fp, (void *)data,
++		if (copy_from_user(&child->thread.fp, datap,
+ 				   sizeof(struct user_m68kfp_struct)))
+ 			ret = -EFAULT;
+ 		break;
+ 
+ 	case PTRACE_GET_THREAD_AREA:
+-		ret = put_user(task_thread_info(child)->tp_value,
+-			       (unsigned long __user *)data);
++		ret = put_user(task_thread_info(child)->tp_value, datap);
+ 		break;
+ 
+ 	default:
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
@@ -179,9 +186,6 @@ printk-change-type-of-boot_delay-to-int.patch
 printk-declare-printk_ratelimit_state-in-ratelimith.patch
 printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
 ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
 ptrace-change-signature-of-sys_ptrace-and-friends.patch
 ptrace-cleanup-ptrace_request.patch
 ptrace-change-signature-of-arch_ptrace.patch
@@ -205,4 +209,7 @@ ptrace-cleanup-arch_ptrace-on-sparc.patch
 ptrace-cleanup-arch_ptrace-on-tile.patch
 ptrace-cleanup-arch_ptrace-on-um.patch
 ptrace-cleanup-arch_ptrace-on-xtensa.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
 
