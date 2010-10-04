@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-avr32.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:43 -0700
-Message-ID: <201010042341.o94NfhsU022714@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-arm.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:41:40 -0700
+Message-ID: <201010042341.o94NfeNr022709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755607Ab0JDXvF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:51:05 -0400
+	by vger.kernel.org with ESMTP id S1755607Ab0JDXvp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:51:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, hskinnemoen@atmel.com
+Cc: namhyung@gmail.com, linux@arm.linux.org.uk
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on avr32
+     ptrace: cleanup arch_ptrace() on ARM
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-avr32.patch
+     ptrace-cleanup-arch_ptrace-on-arm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on avr32
+Subject: ptrace: cleanup arch_ptrace() on ARM
 From: Namhyung Kim <namhyung@gmail.com>
 
-use new 'datap' variable type of void pointer in order to remove unnecessary
-castings.
+use new 'datap' variable in order to remove unnecessary castings.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/ptrace.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/kernel/ptrace.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN arch/avr32/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-avr32 arch/avr32/kernel/ptrace.c
---- a/arch/avr32/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-avr32
-+++ a/arch/avr32/kernel/ptrace.c
-@@ -150,6 +150,7 @@ long arch_ptrace(struct task_struct *chi
+diff -puN arch/arm/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-arm arch/arm/kernel/ptrace.c
+--- a/arch/arm/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-arm
++++ a/arch/arm/kernel/ptrace.c
+@@ -1079,10 +1079,11 @@ long arch_ptrace(struct task_struct *chi
  		 unsigned long addr, unsigned long data)
  {
  	int ret;
-+	void __user *datap = (void __user *) data;
++	unsigned long __user *datap = (unsigned long __user *) data;
  
  	switch (request) {
- 	/* Read the word at location addr in the child process */
-@@ -159,8 +160,7 @@ long arch_ptrace(struct task_struct *chi
- 		break;
+ 		case PTRACE_PEEKUSR:
+-			ret = ptrace_read_user(child, addr, (unsigned long __user *)data);
++			ret = ptrace_read_user(child, addr, datap);
+ 			break;
  
- 	case PTRACE_PEEKUSR:
--		ret = ptrace_read_user(child, addr,
--				       (unsigned long __user *)data);
-+		ret = ptrace_read_user(child, addr, datap);
- 		break;
+ 		case PTRACE_POKEUSR:
+@@ -1090,34 +1091,34 @@ long arch_ptrace(struct task_struct *chi
+ 			break;
  
- 	/* Write the word in data at location addr */
-@@ -174,11 +174,11 @@ long arch_ptrace(struct task_struct *chi
- 		break;
+ 		case PTRACE_GETREGS:
+-			ret = ptrace_getregs(child, (void __user *)data);
++			ret = ptrace_getregs(child, datap);
+ 			break;
  
- 	case PTRACE_GETREGS:
--		ret = ptrace_getregs(child, (void __user *)data);
-+		ret = ptrace_getregs(child, datap);
- 		break;
+ 		case PTRACE_SETREGS:
+-			ret = ptrace_setregs(child, (void __user *)data);
++			ret = ptrace_setregs(child, datap);
+ 			break;
  
- 	case PTRACE_SETREGS:
--		ret = ptrace_setregs(child, (const void __user *)data);
-+		ret = ptrace_setregs(child, datap);
- 		break;
+ 		case PTRACE_GETFPREGS:
+-			ret = ptrace_getfpregs(child, (void __user *)data);
++			ret = ptrace_getfpregs(child, datap);
+ 			break;
+ 		
+ 		case PTRACE_SETFPREGS:
+-			ret = ptrace_setfpregs(child, (void __user *)data);
++			ret = ptrace_setfpregs(child, datap);
+ 			break;
  
- 	default:
+ #ifdef CONFIG_IWMMXT
+ 		case PTRACE_GETWMMXREGS:
+-			ret = ptrace_getwmmxregs(child, (void __user *)data);
++			ret = ptrace_getwmmxregs(child, datap);
+ 			break;
+ 
+ 		case PTRACE_SETWMMXREGS:
+-			ret = ptrace_setwmmxregs(child, (void __user *)data);
++			ret = ptrace_setwmmxregs(child, datap);
+ 			break;
+ #endif
+ 
+ 		case PTRACE_GET_THREAD_AREA:
+ 			ret = put_user(task_thread_info(child)->tp_value,
+-				       (unsigned long __user *) data);
++				       datap);
+ 			break;
+ 
+ 		case PTRACE_SET_SYSCALL:
+@@ -1127,21 +1128,21 @@ long arch_ptrace(struct task_struct *chi
+ 
+ #ifdef CONFIG_CRUNCH
+ 		case PTRACE_GETCRUNCHREGS:
+-			ret = ptrace_getcrunchregs(child, (void __user *)data);
++			ret = ptrace_getcrunchregs(child, datap);
+ 			break;
+ 
+ 		case PTRACE_SETCRUNCHREGS:
+-			ret = ptrace_setcrunchregs(child, (void __user *)data);
++			ret = ptrace_setcrunchregs(child, datap);
+ 			break;
+ #endif
+ 
+ #ifdef CONFIG_VFP
+ 		case PTRACE_GETVFPREGS:
+-			ret = ptrace_getvfpregs(child, (void __user *)data);
++			ret = ptrace_getvfpregs(child, datap);
+ 			break;
+ 
+ 		case PTRACE_SETVFPREGS:
+-			ret = ptrace_setvfpregs(child, (void __user *)data);
++			ret = ptrace_setvfpregs(child, datap);
+ 			break;
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
