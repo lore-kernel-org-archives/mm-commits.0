@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-idle2-bits-corruption.patch added to -mm tree
-Date: Mon, 04 Oct 2010 15:25:59 -0700
-Message-ID: <201010042225.o94MPx50019223@imap1.linux-foundation.org>
+Subject: + vcs-add-poll-fasync-support.patch added to -mm tree
+Date: Mon, 04 Oct 2010 15:55:32 -0700
+Message-ID: <201010042255.o94MtW63020602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751793Ab0JDW05 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:26:57 -0400
+	by vger.kernel.org with ESMTP id S1756072Ab0JDW4F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com
+Cc: nico@fluxnic.net, alan@linux.intel.com, greg@kroah.com, nicolas.pitre@canonical.com
 
 
 The patch titled
-     RapidIO: fix IDLE2 bits corruption
+     vcs: add poll/fasync support
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-idle2-bits-corruption.patch
+     vcs-add-poll-fasync-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,216 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: RapidIO: fix IDLE2 bits corruption
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: vcs: add poll/fasync support
+From: Nicolas Pitre <nico@fluxnic.net>
 
-RapidIO spec v.2.1 adds Idle Sequence 2 into LP-Serial Physical Layer. 
-The fix ensures that corresponding bits are not corrupted during error
-handling.
+The /dev/vcs* devices are used, amongst other things, by accessibility
+applications such as BRLTTY to display the screen content onto refreshable
+braille displays.  Currently this is performed by constantly reading from
+/dev/vcsa0 whether or not the screen content has changed.  Given the
+default braille refresh rate of 25 times per second, this easily qualifies
+as the biggest source of wake-up events preventing laptops from entering
+deeper power saving states.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Micha Nelissen <micha@neli.hopto.org>
+To avoid this periodic polling, let's add support for select()/poll() and
+SIGIO with the /dev/vcs* devices.  The implemented semantic is to report
+data availability whenever the corresponding vt has seen some update after
+the last read() operation.  The application still has to lseek() back as
+usual in order to read() the new data.
+
+Not to create unwanted overhead, the needed data structure is allocated
+and the vt notification callback is registered only when the poll or
+fasync method is invoked for the first time per file instance.
+
+Signed-off-by: Nicolas Pitre <nicolas.pitre@canonical.com>
+Acked-by: Alan Cox <alan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c    |    9 ++-------
- include/linux/rio_regs.h |    3 +--
- 2 files changed, 3 insertions(+), 9 deletions(-)
+ drivers/char/vc_screen.c |  123 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 123 insertions(+)
 
-diff -puN drivers/rapidio/rio.c~rapidio-fix-idle2-bits-corruption drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-fix-idle2-bits-corruption
-+++ a/drivers/rapidio/rio.c
-@@ -871,15 +871,10 @@ int rio_inb_pwrite_handler(union rio_pw_
- 			rdev->em_efptr + RIO_EM_LTL_ERR_DETECT, 0);
- 	}
+diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support drivers/char/vc_screen.c
+--- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support
++++ a/drivers/char/vc_screen.c
+@@ -35,6 +35,10 @@
+ #include <linux/console.h>
+ #include <linux/device.h>
+ #include <linux/smp_lock.h>
++#include <linux/sched.h>
++#include <linux/poll.h>
++#include <linux/signal.h>
++#include <linux/slab.h>
  
--	/* Clear remaining error bits */
-+	/* Clear remaining error bits and Port-Write Pending bit */
- 	rio_mport_write_config_32(mport, destid, hopcount,
- 			rdev->phys_efptr + RIO_PORT_N_ERR_STS_CSR(portnum),
--			err_status & RIO_PORT_N_ERR_STS_CLR_MASK);
--
--	/* Clear Port-Write Pending bit */
--	rio_mport_write_config_32(mport, destid, hopcount,
--			rdev->phys_efptr + RIO_PORT_N_ERR_STS_CSR(portnum),
--			RIO_PORT_N_ERR_STS_PW_PEND);
-+			err_status);
+ #include <asm/uaccess.h>
+ #include <asm/byteorder.h>
+@@ -45,6 +49,78 @@
+ #undef addr
+ #define HEADER_SIZE	4
  
- 	return 0;
++struct vcs_poll_data {
++	struct notifier_block notifier;
++	unsigned int cons_num;
++	int has_read;
++	wait_queue_head_t waitq;
++	struct fasync_struct *fasync;
++};
++
++static int
++vcs_notifier(struct notifier_block *nb, unsigned long code, void *_param)
++{
++	struct vt_notifier_param *param = _param;
++	struct vc_data *vc = param->vc;
++	struct vcs_poll_data *poll =
++		container_of(nb, struct vcs_poll_data, notifier);
++	int currcons = poll->cons_num;
++
++	if (code != VT_UPDATE)
++		return NOTIFY_DONE;
++
++	if (currcons == 0)
++		currcons = fg_console;
++	else
++		currcons--;
++	if (currcons != vc->vc_num)
++		return NOTIFY_DONE;
++
++	poll->has_read = 0;
++	wake_up_interruptible(&poll->waitq);
++	kill_fasync(&poll->fasync, SIGIO, POLL_IN);
++	return NOTIFY_OK;
++}
++
++static void
++vcs_poll_data_free(struct vcs_poll_data *poll)
++{
++	unregister_vt_notifier(&poll->notifier);
++	kfree(poll);
++}
++
++static struct vcs_poll_data *
++vcs_poll_data_get(struct file *file)
++{
++	struct vcs_poll_data *poll = file->private_data;
++
++	if (poll)
++		return poll;
++
++	poll = kzalloc(sizeof(*poll), GFP_KERNEL);
++	if (!poll)
++		return NULL;
++	poll->cons_num = iminor(file->f_path.dentry->d_inode) & 127;
++	init_waitqueue_head(&poll->waitq);
++	poll->notifier.notifier_call = vcs_notifier;
++	if (register_vt_notifier(&poll->notifier) != 0) {
++		kfree(poll);
++		return NULL;
++	}
++
++	spin_lock(&file->f_lock);
++	if (!file->private_data) {
++		file->private_data = poll;
++	} else {
++		/* someone else raced ahead of us */
++		vcs_poll_data_free(poll);
++		poll = file->private_data;
++	}
++	spin_unlock(&file->f_lock);
++
++	return poll;
++}
++
+ static int
+ vcs_size(struct inode *inode)
+ {
+@@ -102,6 +178,7 @@ vcs_read(struct file *file, char __user 
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	unsigned int currcons = iminor(inode);
+ 	struct vc_data *vc;
++	struct vcs_poll_data *poll;
+ 	long pos;
+ 	long viewed, attr, read;
+ 	int col, maxcol;
+@@ -134,6 +211,9 @@ vcs_read(struct file *file, char __user 
+ 	ret = -EINVAL;
+ 	if (pos < 0)
+ 		goto unlock_out;
++	poll = file->private_data;
++	if (count && poll)
++		poll->has_read = 1;
+ 	read = 0;
+ 	ret = 0;
+ 	while (count) {
+@@ -457,6 +537,37 @@ unlock_out:
+ 	return ret;
  }
-diff -puN include/linux/rio_regs.h~rapidio-fix-idle2-bits-corruption include/linux/rio_regs.h
---- a/include/linux/rio_regs.h~rapidio-fix-idle2-bits-corruption
-+++ a/include/linux/rio_regs.h
-@@ -229,7 +229,7 @@
- #define  RIO_MNT_REQ_CMD_IS		0x04	/* Input-status command */
- #define RIO_PORT_N_MNT_RSP_CSR(x)	(0x0044 + x*0x20)	/* 0x0002 */
- #define  RIO_PORT_N_MNT_RSP_RVAL	0x80000000 /* Response Valid */
--#define  RIO_PORT_N_MNT_RSP_ASTAT	0x000003e0 /* ackID Status */
-+#define  RIO_PORT_N_MNT_RSP_ASTAT	0x000007e0 /* ackID Status */
- #define  RIO_PORT_N_MNT_RSP_LSTAT	0x0000001f /* Link Status */
- #define RIO_PORT_N_ACK_STS_CSR(x)	(0x0048 + x*0x20)	/* 0x0002 */
- #define  RIO_PORT_N_ACK_CLEAR		0x80000000
-@@ -243,7 +243,6 @@
- #define  RIO_PORT_N_ERR_STS_PORT_ERR	0x00000004
- #define  RIO_PORT_N_ERR_STS_PORT_OK	0x00000002
- #define  RIO_PORT_N_ERR_STS_PORT_UNINIT	0x00000001
--#define  RIO_PORT_N_ERR_STS_CLR_MASK	0x07120204
- #define RIO_PORT_N_CTL_CSR(x)		(0x005c + x*0x20)
- #define  RIO_PORT_N_CTL_PWIDTH		0xc0000000
- #define  RIO_PORT_N_CTL_PWIDTH_1	0x00000000
+ 
++static unsigned int
++vcs_poll(struct file *file, poll_table *wait)
++{
++	struct vcs_poll_data *poll = vcs_poll_data_get(file);
++	int ret = 0;
++
++	if (poll) {
++		poll_wait(file, &poll->waitq, wait);
++		if (!poll->has_read)
++			ret = POLLIN | POLLRDNORM;
++	}
++	return ret;
++}
++
++static int
++vcs_fasync(int fd, struct file *file, int on)
++{
++	struct vcs_poll_data *poll = file->private_data;
++
++	if (!poll) {
++		/* don't allocate anything if all we want is disable fasync */
++		if (!on)
++			return 0;
++		poll = vcs_poll_data_get(file);
++		if (!poll)
++			return -ENOMEM;
++	}
++
++	return fasync_helper(fd, file, on, &poll->fasync);
++}
++
+ static int
+ vcs_open(struct inode *inode, struct file *filp)
+ {
+@@ -470,11 +581,23 @@ vcs_open(struct inode *inode, struct fil
+ 	return ret;
+ }
+ 
++static int vcs_release(struct inode *inode, struct file *file)
++{
++	struct vcs_poll_data *poll = file->private_data;
++
++	if (poll)
++		vcs_poll_data_free(poll);
++	return 0;
++}
++
+ static const struct file_operations vcs_fops = {
+ 	.llseek		= vcs_lseek,
+ 	.read		= vcs_read,
+ 	.write		= vcs_write,
++	.poll		= vcs_poll,
++	.fasync		= vcs_fasync,
+ 	.open		= vcs_open,
++	.release	= vcs_release,
+ };
+ 
+ static struct class *vc_class;
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from nico@fluxnic.net are
 
-rapidio-fix-rapidio-sysfs-hierarchy.patch
-rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler.patch
-rapidio-use-stored-ingress-port-number-instead-of-register-read.patch
-rapidio-add-relation-links-between-rio-device-structures.patch
-rapidio-add-default-handler-for-error-stopped-state.patch
-rapidio-modify-sysfs-initialization-for-switches.patch
-rapidio-add-handling-of-orphan-port-write-message.patch
-rapidio-add-device-access-check-into-the-enumeration.patch
-rapidio-add-support-for-idt-cps-gen2-switches.patch
-rapidio-add-handling-of-redundant-routes.patch
-rapidio-fix-idle2-bits-corruption.patch
+linux-next.patch
+vcs-add-poll-fasync-support.patch
+vcs-add-poll-fasync-support-fix.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
 
