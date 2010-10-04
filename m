@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-fix-isofs_get_blocks-for-8tb-files.patch added to -mm tree
-Date: Mon, 04 Oct 2010 12:50:21 -0700
-Message-ID: <201010041950.o94JoMWY010763@imap1.linux-foundation.org>
+Subject: + mm-alloc_large_system_hash-printk-overflow-on-16tb-boot.patch added to -mm tree
+Date: Mon, 04 Oct 2010 12:53:12 -0700
+Message-ID: <201010041953.o94JrCmW010911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56647 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51395 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755926Ab0JDTu4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 15:50:56 -0400
+	by vger.kernel.org with ESMTP id S1756939Ab0JDTxo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 15:53:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: holt@sgi.com
 
 
 The patch titled
-     isofs: fix isofs_get_blocks for 8TB files
+     mm: alloc_large_system_hash() printk overflow on 16TB boot
 has been added to the -mm tree.  Its filename is
-     isofs-fix-isofs_get_blocks-for-8tb-files.patch
+     mm-alloc_large_system_hash-printk-overflow-on-16tb-boot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: fix isofs_get_blocks for 8TB files
-From: Jan Kara <jack@suse.cz>
+Subject: mm: alloc_large_system_hash() printk overflow on 16TB boot
+From: Robin Holt <holt@sgi.com>
 
-Currently isofs_get_blocks() was limited to handle only 4TB files on
-32-bit architectures because of unnecessary use of iblock variable which
-was signed long.  Just remove the variable.  The error messages that were
-using this variable should have rather used b_off anyway because that is
-the block we are currently mapping.
+During boot of a 16TB system, the following is printed:
+Dentry cache hash table entries: -2147483648 (order: 22, 17179869184 bytes)
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/isofs/inode.c~isofs-fix-isofs_get_blocks-for-8tb-files fs/isofs/inode.c
---- a/fs/isofs/inode.c~isofs-fix-isofs_get_blocks-for-8tb-files
-+++ a/fs/isofs/inode.c
-@@ -1002,26 +1002,23 @@ static int isofs_statfs (struct dentry *
-  * or getblk() if they are not.  Returns the number of blocks inserted
-  * (-ve == error.)
-  */
--int isofs_get_blocks(struct inode *inode, sector_t iblock_s,
-+int isofs_get_blocks(struct inode *inode, sector_t iblock,
- 		     struct buffer_head **bh, unsigned long nblocks)
- {
--	unsigned long b_off;
-+	unsigned long b_off = iblock;
- 	unsigned offset, sect_size;
- 	unsigned int firstext;
- 	unsigned long nextblk, nextoff;
--	long iblock = (long)iblock_s;
- 	int section, rv, error;
- 	struct iso_inode_info *ei = ISOFS_I(inode);
+diff -puN mm/page_alloc.c~mm-alloc_large_system_hash-printk-overflow-on-16tb-boot mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-alloc_large_system_hash-printk-overflow-on-16tb-boot
++++ a/mm/page_alloc.c
+@@ -5198,9 +5198,9 @@ void *__init alloc_large_system_hash(con
+ 	if (!table)
+ 		panic("Failed to allocate %s hash table\n", tablename);
  
- 	error = -EIO;
- 	rv = 0;
--	if (iblock < 0 || iblock != iblock_s) {
-+	if (iblock != b_off) {
- 		printk(KERN_DEBUG "%s: block number too large\n", __func__);
- 		goto abort;
- 	}
+-	printk(KERN_INFO "%s hash table entries: %d (order: %d, %lu bytes)\n",
++	printk(KERN_INFO "%s hash table entries: %ld (order: %d, %lu bytes)\n",
+ 	       tablename,
+-	       (1U << log2qty),
++	       (1UL << log2qty),
+ 	       ilog2(size) - PAGE_SHIFT,
+ 	       size);
  
--	b_off = iblock;
--
- 	offset = 0;
- 	firstext = ei->i_first_extent;
- 	sect_size = ei->i_section_size >> ISOFS_BUFFER_BITS(inode);
-@@ -1038,8 +1035,9 @@ int isofs_get_blocks(struct inode *inode
- 		 * I/O errors.
- 		 */
- 		if (b_off > ((inode->i_size + PAGE_CACHE_SIZE - 1) >> ISOFS_BUFFER_BITS(inode))) {
--			printk(KERN_DEBUG "%s: block >= EOF (%ld, %ld)\n",
--				__func__, iblock, (unsigned long) inode->i_size);
-+			printk(KERN_DEBUG "%s: block >= EOF (%lu, %llu)\n",
-+				__func__, b_off,
-+				(unsigned long long)inode->i_size);
- 			goto abort;
- 		}
- 
-@@ -1065,9 +1063,9 @@ int isofs_get_blocks(struct inode *inode
- 			if (++section > 100) {
- 				printk(KERN_DEBUG "%s: More than 100 file sections ?!?"
- 					" aborting...\n", __func__);
--				printk(KERN_DEBUG "%s: block=%ld firstext=%u sect_size=%u "
-+				printk(KERN_DEBUG "%s: block=%lu firstext=%u sect_size=%u "
- 					"nextblk=%lu nextoff=%lu\n", __func__,
--					iblock, firstext, (unsigned) sect_size,
-+					b_off, firstext, (unsigned) sect_size,
- 					nextblk, nextoff);
- 				goto abort;
- 			}
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from holt@sgi.com are
 
+mm-alloc_large_system_hash-printk-overflow-on-16tb-boot.patch
 linux-next.patch
-writeback-remove-the-internal-5%-low-bound-on-dirty_ratio.patch
-isofs-fix-isofs_get_blocks-for-8tb-files.patch
 
