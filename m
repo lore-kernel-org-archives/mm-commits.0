@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vcs-add-poll-fasync-support-fix-fix.patch added to -mm tree
-Date: Mon, 04 Oct 2010 15:55:36 -0700
-Message-ID: <201010042255.o94Mtaak020614@imap1.linux-foundation.org>
+Subject: + vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch added to -mm tree
+Date: Mon, 04 Oct 2010 15:55:38 -0700
+Message-ID: <201010042255.o94MtcYN020617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072Ab0JDW4P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:15 -0400
+	by vger.kernel.org with ESMTP id S1756072Ab0JDW4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, greg@kroah.com, nico@fluxnic.net, nicolas.pitre@canonical.com
+Cc: nico@fluxnic.net, alan@linux.intel.com, greg@kroah.com, nicolas.pitre@canonical.com
 
 
 The patch titled
-     vcs-add-poll-fasync-support-fix-fix
+     vcs: invoke the vt update callback when /dev/vcs* is written to
 has been added to the -mm tree.  Its filename is
-     vcs-add-poll-fasync-support-fix-fix.patch
+     vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vcs-add-poll-fasync-support-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vcs: invoke the vt update callback when /dev/vcs* is written to
+From: Nicolas Pitre <nico@fluxnic.net>
 
-include fs.h for kill_fasync() (from review)
+A notifier chain is called whenever the vt code modifies a terminal
+content, except for one case which is when the modification comes through
+writes to /dev/vcs* devices.  Let's add the missing notifier invocation at
+the end of vcs_write() for that case too.
 
+Signed-off-by: Nicolas Pitre <nicolas.pitre@canonical.com>
 Cc: Alan Cox <alan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>
-Cc: Nicolas Pitre <nicolas.pitre@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vc_screen.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/vc_screen.c  |    2 ++
+ drivers/char/vt.c         |    5 +++++
+ include/linux/selection.h |    1 +
+ 3 files changed, 8 insertions(+)
 
-diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix-fix drivers/char/vc_screen.c
---- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix-fix
+diff -puN drivers/char/vc_screen.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to drivers/char/vc_screen.c
+--- a/drivers/char/vc_screen.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to
 +++ a/drivers/char/vc_screen.c
-@@ -27,6 +27,7 @@
- #include <linux/tty.h>
- #include <linux/interrupt.h>
- #include <linux/mm.h>
-+#include <linux/fs.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/vt_kern.h>
+@@ -530,6 +530,8 @@ vcs_write(struct file *file, const char 
+ 	}
+ 	*ppos += written;
+ 	ret = written;
++	if (written)
++		vcs_scr_updated(vc);
+ 
+ unlock_out:
+ 	release_console_sem();
+diff -puN drivers/char/vt.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to drivers/char/vt.c
+--- a/drivers/char/vt.c~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to
++++ a/drivers/char/vt.c
+@@ -4182,6 +4182,11 @@ void vcs_scr_writew(struct vc_data *vc, 
+ 	}
+ }
+ 
++void vcs_scr_updated(struct vc_data *vc)
++{
++	notify_update(vc);
++}
++
+ /*
+  *	Visible symbols for modules
+  */
+diff -puN include/linux/selection.h~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to include/linux/selection.h
+--- a/include/linux/selection.h~vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to
++++ a/include/linux/selection.h
+@@ -39,5 +39,6 @@ extern void putconsxy(struct vc_data *vc
+ 
+ extern u16 vcs_scr_readw(struct vc_data *vc, const u16 *org);
+ extern void vcs_scr_writew(struct vc_data *vc, u16 val, u16 *org);
++extern void vcs_scr_updated(struct vc_data *vc);
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nico@fluxnic.net are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial8250-ratelimit-too-much-work-error-fix.patch
-serial8250-ratelimit-too-much-work-error-fix-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-m68k-__pa-cast-arg-to-long.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support.patch
 vcs-add-poll-fasync-support-fix.patch
 vcs-add-poll-fasync-support-fix-fix.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
 
