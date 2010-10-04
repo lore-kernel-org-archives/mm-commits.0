@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-score.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:42:09 -0700
-Message-ID: <201010042342.o94Ng94b022777@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-parisc.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:42:05 -0700
+Message-ID: <201010042342.o94Ng5Up022762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752361Ab0JDXnF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:43:05 -0400
+	by vger.kernel.org with ESMTP id S1752361Ab0JDXnR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com
+Cc: namhyung@gmail.com, deller@gmx.de, jejb@parisc-linux.org, kyle@mcmartin.ca
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on score
+     ptrace: cleanup arch_ptrace() on parisc
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-score.patch
+     ptrace-cleanup-arch_ptrace-on-parisc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on score
+Subject: ptrace: cleanup arch_ptrace() on parisc
 From: Namhyung Kim <namhyung@gmail.com>
 
-Remove unnecessary castings.
+Add missing __user markup on the argument of put_user().
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Chen Liqin <liqin.chen@sunplusct.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/kernel/ptrace.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/parisc/kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/score/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-score arch/score/kernel/ptrace.c
---- a/arch/score/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-score
-+++ a/arch/score/kernel/ptrace.c
-@@ -336,14 +336,14 @@ arch_ptrace(struct task_struct *child, l
- 		ret = copy_regset_to_user(child, &user_score_native_view,
- 						REGSET_GENERAL,
- 						0, sizeof(struct pt_regs),
--						(void __user *)datap);
-+						datap);
+diff -puN arch/parisc/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-parisc arch/parisc/kernel/ptrace.c
+--- a/arch/parisc/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-parisc
++++ a/arch/parisc/kernel/ptrace.c
+@@ -125,7 +125,7 @@ long arch_ptrace(struct task_struct *chi
+ 		     addr >= sizeof(struct pt_regs))
+ 			break;
+ 		tmp = *(unsigned long *) ((char *) task_regs(child) + addr);
+-		ret = put_user(tmp, (unsigned long *) data);
++		ret = put_user(tmp, (unsigned long __user *) data);
  		break;
  
- 	case PTRACE_SETREGS:
- 		ret = copy_regset_from_user(child, &user_score_native_view,
- 						REGSET_GENERAL,
- 						0, sizeof(struct pt_regs),
--						(const void __user *)datap);
-+						datap);
- 		break;
- 
- 	default:
+ 	/* Write the word at location addr in the USER area.  This will need
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
