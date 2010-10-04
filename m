@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:32:47 -0700
-Message-ID: <201010042332.o94NWlOg022272@imap1.linux-foundation.org>
+Subject: + ptrace-change-signature-of-sys_ptrace-and-friends.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:41:31 -0700
+Message-ID: <201010042341.o94NfVbs022690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752242Ab0JDXdZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:33:25 -0400
+	by vger.kernel.org with ESMTP id S1756923Ab0JDXmT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, nishimura@mxp.nes.nec.co.jp
+Cc: namhyung@gmail.com, arnd@arndb.de, roland@redhat.com
 
 
 The patch titled
-     memcg-fix-thresholds-with-use_hierarchy-==-1-fix
+     ptrace: change signature of sys_ptrace() and friends
 has been added to the -mm tree.  Its filename is
-     memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
+     ptrace-change-signature-of-sys_ptrace-and-friends.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,170 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-thresholds-with-use_hierarchy-==-1-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ptrace: change signature of sys_ptrace() and friends
+From: Namhyung Kim <namhyung@gmail.com>
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Since userspace API of ptrace syscall defines @addr and @data as void
+pointers, it would be more appropriate to define them as unsigned long in
+kernel.  Therefore related functions are changed also.
+
+'unsigned long' is typically used in other places in kernel as an opaque
+data type and that using this helps cleaning up a lot of warnings from
+sparse.
+
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/ptrace.h   |    9 ++++++---
+ include/linux/syscalls.h |    3 ++-
+ kernel/ptrace.c          |   16 ++++++++++------
+ 3 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-thresholds-with-use_hierarchy-==-1-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-thresholds-with-use_hierarchy-==-1-fix
-+++ a/mm/memcontrol.c
-@@ -3592,7 +3592,7 @@ static void mem_cgroup_threshold(struct 
- 		if (do_swap_account)
- 			__mem_cgroup_threshold(memcg, true);
- 
--		memcg =  parent_mem_cgroup(memcg);
-+		memcg = parent_mem_cgroup(memcg);
- 	}
+diff -puN include/linux/ptrace.h~ptrace-change-signature-of-sys_ptrace-and-friends include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-change-signature-of-sys_ptrace-and-friends
++++ a/include/linux/ptrace.h
+@@ -108,7 +108,8 @@ extern int ptrace_attach(struct task_str
+ extern int ptrace_detach(struct task_struct *, unsigned int);
+ extern void ptrace_disable(struct task_struct *);
+ extern int ptrace_check_attach(struct task_struct *task, int kill);
+-extern int ptrace_request(struct task_struct *child, long request, long addr, long data);
++extern int ptrace_request(struct task_struct *child, long request,
++			  unsigned long addr, unsigned long data);
+ extern void ptrace_notify(int exit_code);
+ extern void __ptrace_link(struct task_struct *child,
+ 			  struct task_struct *new_parent);
+@@ -132,8 +133,10 @@ static inline void ptrace_unlink(struct 
+ 		__ptrace_unlink(child);
  }
+ 
+-int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data);
+-int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data);
++int generic_ptrace_peekdata(struct task_struct *tsk, unsigned long addr,
++			    unsigned long data);
++int generic_ptrace_pokedata(struct task_struct *tsk, unsigned long addr,
++			    unsigned long data);
+ 
+ /**
+  * task_ptrace - return %PT_* flags that apply to a task
+diff -puN include/linux/syscalls.h~ptrace-change-signature-of-sys_ptrace-and-friends include/linux/syscalls.h
+--- a/include/linux/syscalls.h~ptrace-change-signature-of-sys_ptrace-and-friends
++++ a/include/linux/syscalls.h
+@@ -701,7 +701,8 @@ asmlinkage long sys_nfsservctl(int cmd,
+ asmlinkage long sys_syslog(int type, char __user *buf, int len);
+ asmlinkage long sys_uselib(const char __user *library);
+ asmlinkage long sys_ni_syscall(void);
+-asmlinkage long sys_ptrace(long request, long pid, long addr, long data);
++asmlinkage long sys_ptrace(long request, long pid, unsigned long addr,
++			   unsigned long data);
+ 
+ asmlinkage long sys_add_key(const char __user *_type,
+ 			    const char __user *_description,
+diff -puN kernel/ptrace.c~ptrace-change-signature-of-sys_ptrace-and-friends kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-change-signature-of-sys_ptrace-and-friends
++++ a/kernel/ptrace.c
+@@ -404,7 +404,7 @@ int ptrace_writedata(struct task_struct 
+ 	return copied;
+ }
+ 
+-static int ptrace_setoptions(struct task_struct *child, long data)
++static int ptrace_setoptions(struct task_struct *child, unsigned long data)
+ {
+ 	child->ptrace &= ~PT_TRACE_MASK;
+ 
+@@ -483,7 +483,8 @@ static int ptrace_setsiginfo(struct task
+ #define is_sysemu_singlestep(request)	0
+ #endif
+ 
+-static int ptrace_resume(struct task_struct *child, long request, long data)
++static int ptrace_resume(struct task_struct *child, long request,
++			 unsigned long data)
+ {
+ 	if (!valid_signal(data))
+ 		return -EIO;
+@@ -560,7 +561,7 @@ static int ptrace_regset(struct task_str
+ #endif
+ 
+ int ptrace_request(struct task_struct *child, long request,
+-		   long addr, long data)
++		   unsigned long addr, unsigned long data)
+ {
+ 	int ret = -EIO;
+ 	siginfo_t siginfo;
+@@ -693,7 +694,8 @@ static struct task_struct *ptrace_get_ta
+ #define arch_ptrace_attach(child)	do { } while (0)
+ #endif
+ 
+-SYSCALL_DEFINE4(ptrace, long, request, long, pid, long, addr, long, data)
++SYSCALL_DEFINE4(ptrace, long, request, long, pid, unsigned long, addr,
++		unsigned long, data)
+ {
+ 	struct task_struct *child;
+ 	long ret;
+@@ -734,7 +736,8 @@ SYSCALL_DEFINE4(ptrace, long, request, l
+ 	return ret;
+ }
+ 
+-int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data)
++int generic_ptrace_peekdata(struct task_struct *tsk, unsigned long addr,
++			    unsigned long data)
+ {
+ 	unsigned long tmp;
+ 	int copied;
+@@ -745,7 +748,8 @@ int generic_ptrace_peekdata(struct task_
+ 	return put_user(tmp, (unsigned long __user *)data);
+ }
+ 
+-int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data)
++int generic_ptrace_pokedata(struct task_struct *tsk, unsigned long addr,
++			    unsigned long data)
+ {
+ 	int copied;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
 origin.patch
-memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-sctp-prevent-reading-out-of-bounds-memory.patch
-drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial8250-ratelimit-too-much-work-error-fix.patch
-serial8250-ratelimit-too-much-work-error-fix-fix.patch
-security-add-const-to-security_task_setscheduler.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-m68k-__pa-cast-arg-to-long.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
+vfs-remove-a-warning-on-open_fmode.patch
+vfs-add-__fmode_exec.patch
+mm-cleanup-gfp_zone-fix-sparse-warnings.patch
+init-mark-__user-address-space-on-string-literals.patch
+kernel-userc-add-lock-release-annotation-on-free_user.patch
+printk-fixup-declaration-of-kmsg_reasons.patch
+printk-add-lock-context-annotation.patch
+printk-change-type-of-boot_delay-to-int.patch
+printk-declare-printk_ratelimit_state-in-ratelimith.patch
 printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
+ptrace-annotate-lock-context-change-on-exit_ptrace.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
+ptrace-change-signature-of-sys_ptrace-and-friends.patch
+ptrace-cleanup-ptrace_request.patch
+ptrace-change-signature-of-arch_ptrace.patch
+ptrace-cleanup-arch_ptrace-on-x86.patch
+ptrace-cleanup-arch_ptrace-on-arm.patch
+ptrace-cleanup-arch_ptrace-on-avr32.patch
+ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
+ptrace-cleanup-arch_ptrace-on-cris.patch
+ptrace-cleanup-arch_ptrace-on-frv.patch
+ptrace-cleanup-arch_ptrace-on-h8300.patch
+ptrace-cleanup-arch_ptrace-on-m32r.patch
+ptrace-cleanup-arch_ptrace-on-m68k.patch
+ptrace-cleanup-arch_ptrace-on-microblaze.patch
+ptrace-cleanup-arch_ptrace-on-mips.patch
+ptrace-cleanup-arch_ptrace-on-mn10300.patch
+ptrace-cleanup-arch_ptrace-on-parisc.patch
+ptrace-cleanup-arch_ptrace-on-powerpc.patch
+ptrace-cleanup-arch_ptrace-on-score.patch
+ptrace-cleanup-arch_ptrace-on-sh.patch
+ptrace-cleanup-arch_ptrace-on-sparc.patch
+ptrace-cleanup-arch_ptrace-on-tile.patch
+ptrace-cleanup-arch_ptrace-on-um.patch
+ptrace-cleanup-arch_ptrace-on-xtensa.patch
 
