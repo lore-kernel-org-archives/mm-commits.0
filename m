@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vcs-add-poll-fasync-support.patch added to -mm tree
-Date: Mon, 04 Oct 2010 15:55:32 -0700
-Message-ID: <201010042255.o94MtW63020602@imap1.linux-foundation.org>
+Subject: + vcs-add-poll-fasync-support-fix.patch added to -mm tree
+Date: Mon, 04 Oct 2010 15:55:34 -0700
+Message-ID: <201010042255.o94MtYn4020611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072Ab0JDW4F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:05 -0400
+	by vger.kernel.org with ESMTP id S1756072Ab0JDW4J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nico@fluxnic.net, alan@linux.intel.com, greg@kroah.com, nicolas.pitre@canonical.com
+Cc: akpm@linux-foundation.org, alan@linux.intel.com, greg@kroah.com, nico@fluxnic.net, nicolas.pitre@canonical.com
 
 
 The patch titled
-     vcs: add poll/fasync support
+     vcs-add-poll-fasync-support-fix
 has been added to the -mm tree.  Its filename is
-     vcs-add-poll-fasync-support.patch
+     vcs-add-poll-fasync-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,216 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vcs: add poll/fasync support
-From: Nicolas Pitre <nico@fluxnic.net>
+Subject: vcs-add-poll-fasync-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The /dev/vcs* devices are used, amongst other things, by accessibility
-applications such as BRLTTY to display the screen content onto refreshable
-braille displays.  Currently this is performed by constantly reading from
-/dev/vcsa0 whether or not the screen content has changed.  Given the
-default braille refresh rate of 25 times per second, this easily qualifies
-as the biggest source of wake-up events preventing laptops from entering
-deeper power saving states.
+include notifier.h (from review)
 
-To avoid this periodic polling, let's add support for select()/poll() and
-SIGIO with the /dev/vcs* devices.  The implemented semantic is to report
-data availability whenever the corresponding vt has seen some update after
-the last read() operation.  The application still has to lseek() back as
-usual in order to read() the new data.
-
-Not to create unwanted overhead, the needed data structure is allocated
-and the vt notification callback is registered only when the poll or
-fasync method is invoked for the first time per file instance.
-
-Signed-off-by: Nicolas Pitre <nicolas.pitre@canonical.com>
-Acked-by: Alan Cox <alan@linux.intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>
+Cc: Nicolas Pitre <nicolas.pitre@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vc_screen.c |  123 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 123 insertions(+)
+ drivers/char/vc_screen.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support drivers/char/vc_screen.c
---- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support
+diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix drivers/char/vc_screen.c
+--- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix
 +++ a/drivers/char/vc_screen.c
-@@ -35,6 +35,10 @@
- #include <linux/console.h>
+@@ -36,6 +36,7 @@
  #include <linux/device.h>
  #include <linux/smp_lock.h>
-+#include <linux/sched.h>
-+#include <linux/poll.h>
-+#include <linux/signal.h>
-+#include <linux/slab.h>
- 
- #include <asm/uaccess.h>
- #include <asm/byteorder.h>
-@@ -45,6 +49,78 @@
- #undef addr
- #define HEADER_SIZE	4
- 
-+struct vcs_poll_data {
-+	struct notifier_block notifier;
-+	unsigned int cons_num;
-+	int has_read;
-+	wait_queue_head_t waitq;
-+	struct fasync_struct *fasync;
-+};
-+
-+static int
-+vcs_notifier(struct notifier_block *nb, unsigned long code, void *_param)
-+{
-+	struct vt_notifier_param *param = _param;
-+	struct vc_data *vc = param->vc;
-+	struct vcs_poll_data *poll =
-+		container_of(nb, struct vcs_poll_data, notifier);
-+	int currcons = poll->cons_num;
-+
-+	if (code != VT_UPDATE)
-+		return NOTIFY_DONE;
-+
-+	if (currcons == 0)
-+		currcons = fg_console;
-+	else
-+		currcons--;
-+	if (currcons != vc->vc_num)
-+		return NOTIFY_DONE;
-+
-+	poll->has_read = 0;
-+	wake_up_interruptible(&poll->waitq);
-+	kill_fasync(&poll->fasync, SIGIO, POLL_IN);
-+	return NOTIFY_OK;
-+}
-+
-+static void
-+vcs_poll_data_free(struct vcs_poll_data *poll)
-+{
-+	unregister_vt_notifier(&poll->notifier);
-+	kfree(poll);
-+}
-+
-+static struct vcs_poll_data *
-+vcs_poll_data_get(struct file *file)
-+{
-+	struct vcs_poll_data *poll = file->private_data;
-+
-+	if (poll)
-+		return poll;
-+
-+	poll = kzalloc(sizeof(*poll), GFP_KERNEL);
-+	if (!poll)
-+		return NULL;
-+	poll->cons_num = iminor(file->f_path.dentry->d_inode) & 127;
-+	init_waitqueue_head(&poll->waitq);
-+	poll->notifier.notifier_call = vcs_notifier;
-+	if (register_vt_notifier(&poll->notifier) != 0) {
-+		kfree(poll);
-+		return NULL;
-+	}
-+
-+	spin_lock(&file->f_lock);
-+	if (!file->private_data) {
-+		file->private_data = poll;
-+	} else {
-+		/* someone else raced ahead of us */
-+		vcs_poll_data_free(poll);
-+		poll = file->private_data;
-+	}
-+	spin_unlock(&file->f_lock);
-+
-+	return poll;
-+}
-+
- static int
- vcs_size(struct inode *inode)
- {
-@@ -102,6 +178,7 @@ vcs_read(struct file *file, char __user 
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	unsigned int currcons = iminor(inode);
- 	struct vc_data *vc;
-+	struct vcs_poll_data *poll;
- 	long pos;
- 	long viewed, attr, read;
- 	int col, maxcol;
-@@ -134,6 +211,9 @@ vcs_read(struct file *file, char __user 
- 	ret = -EINVAL;
- 	if (pos < 0)
- 		goto unlock_out;
-+	poll = file->private_data;
-+	if (count && poll)
-+		poll->has_read = 1;
- 	read = 0;
- 	ret = 0;
- 	while (count) {
-@@ -457,6 +537,37 @@ unlock_out:
- 	return ret;
- }
- 
-+static unsigned int
-+vcs_poll(struct file *file, poll_table *wait)
-+{
-+	struct vcs_poll_data *poll = vcs_poll_data_get(file);
-+	int ret = 0;
-+
-+	if (poll) {
-+		poll_wait(file, &poll->waitq, wait);
-+		if (!poll->has_read)
-+			ret = POLLIN | POLLRDNORM;
-+	}
-+	return ret;
-+}
-+
-+static int
-+vcs_fasync(int fd, struct file *file, int on)
-+{
-+	struct vcs_poll_data *poll = file->private_data;
-+
-+	if (!poll) {
-+		/* don't allocate anything if all we want is disable fasync */
-+		if (!on)
-+			return 0;
-+		poll = vcs_poll_data_get(file);
-+		if (!poll)
-+			return -ENOMEM;
-+	}
-+
-+	return fasync_helper(fd, file, on, &poll->fasync);
-+}
-+
- static int
- vcs_open(struct inode *inode, struct file *filp)
- {
-@@ -470,11 +581,23 @@ vcs_open(struct inode *inode, struct fil
- 	return ret;
- }
- 
-+static int vcs_release(struct inode *inode, struct file *file)
-+{
-+	struct vcs_poll_data *poll = file->private_data;
-+
-+	if (poll)
-+		vcs_poll_data_free(poll);
-+	return 0;
-+}
-+
- static const struct file_operations vcs_fops = {
- 	.llseek		= vcs_lseek,
- 	.read		= vcs_read,
- 	.write		= vcs_write,
-+	.poll		= vcs_poll,
-+	.fasync		= vcs_fasync,
- 	.open		= vcs_open,
-+	.release	= vcs_release,
- };
- 
- static struct class *vc_class;
+ #include <linux/sched.h>
++#include <linux/notifier.h>
+ #include <linux/poll.h>
+ #include <linux/signal.h>
+ #include <linux/slab.h>
 _
 
-Patches currently in -mm which might be from nico@fluxnic.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-vcs-add-poll-fasync-support.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+sctp-prevent-reading-out-of-bounds-memory.patch
+drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+usb-storage-add-new-no_read_disc_info-quirk.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+m68k-__pa-cast-arg-to-long.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
 vcs-add-poll-fasync-support-fix.patch
 vcs-add-poll-fasync-support-fix-fix.patch
-vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
