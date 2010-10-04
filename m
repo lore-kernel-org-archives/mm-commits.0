@@ -1,24 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-dont-go-out-from-read-config-loop-when-you-read-new-symbol.patch added to -mm tree
-Date: Thu, 30 Sep 2010 15:49:58 -0700
-Message-ID: <201009302249.o8UMnwX4024157@imap1.linux-foundation.org>
+Subject: + isofs-fix-isofs_get_blocks-for-8tb-files.patch added to -mm tree
+Date: Mon, 04 Oct 2010 12:50:21 -0700
+Message-ID: <201010041950.o94JoMWY010763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755060Ab0I3Wuf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 30 Sep 2010 18:50:35 -0400
+	by vger.kernel.org with ESMTP id S1755926Ab0JDTu4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 15:50:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: naota@elisp.net, mmarek@suse.cz
+Cc: jack@suse.cz
 
 
 The patch titled
-     kconfig: don't go out from read config loop when you read new symbol
+     isofs: fix isofs_get_blocks for 8TB files
 has been added to the -mm tree.  Its filename is
-     kconfig-dont-go-out-from-read-config-loop-when-you-read-new-symbol.patch
+     isofs-fix-isofs_get_blocks-for-8tb-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: don't go out from read config loop when you read new symbol
-From: Naohiro Aota <naota@elisp.net>
+Subject: isofs: fix isofs_get_blocks for 8TB files
+From: Jan Kara <jack@suse.cz>
 
-commit 8baefd30b5b0101aa07aa75da44a9eee881eed28 of linux-next replaced
-a `switch()' statement with some `if()' statements, but left `break's
-in the `switch()' statement untouched. This cause read config loop to
-exit and so "make oldconfig" is not much usable (see below).
+Currently isofs_get_blocks() was limited to handle only 4TB files on
+32-bit architectures because of unnecessary use of iblock variable which
+was signed long.  Just remove the variable.  The error messages that were
+using this variable should have rather used b_off anyway because that is
+the block we are currently mapping.
 
-> $ make oldconfig
-><snip>
-> scripts/kconfig/conf --oldconfig Kconfig
-> #
-> # using defaults found in /boot/config-2.6.34-ccs-r1
-> #
-> *
-> * Restart config...
-> *
-> *
-> * General setup
-> *
-> Prompt for development and/or incomplete code/drivers (EXPERIMENTAL) [N/y/?] (NEW)
-
-(I've already have "CONFIG_EXPERIMENTAL=y" in the old config file. But
-that's not read here.)
-
-This patch should fix this problem.
-
-Signed-off-by: Naohiro Aota <naota@elisp.net>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/confdata.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/isofs/inode.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN scripts/kconfig/confdata.c~kconfig-dont-go-out-from-read-config-loop-when-you-read-new-symbol scripts/kconfig/confdata.c
---- a/scripts/kconfig/confdata.c~kconfig-dont-go-out-from-read-config-loop-when-you-read-new-symbol
-+++ a/scripts/kconfig/confdata.c
-@@ -234,7 +234,7 @@ load:
- 				sym = sym_find(line + 9);
- 				if (!sym) {
- 					sym_add_change_count(1);
--					break;
-+					goto setsym;
- 				}
- 			} else {
- 				sym = sym_lookup(line + 9, 0);
-@@ -273,7 +273,7 @@ load:
- 				sym = sym_find(line + 7);
- 				if (!sym) {
- 					sym_add_change_count(1);
--					break;
-+					goto setsym;
- 				}
- 			} else {
- 				sym = sym_lookup(line + 7, 0);
-@@ -293,6 +293,7 @@ load:
- 			conf_warning("unexpected data");
- 			continue;
+diff -puN fs/isofs/inode.c~isofs-fix-isofs_get_blocks-for-8tb-files fs/isofs/inode.c
+--- a/fs/isofs/inode.c~isofs-fix-isofs_get_blocks-for-8tb-files
++++ a/fs/isofs/inode.c
+@@ -1002,26 +1002,23 @@ static int isofs_statfs (struct dentry *
+  * or getblk() if they are not.  Returns the number of blocks inserted
+  * (-ve == error.)
+  */
+-int isofs_get_blocks(struct inode *inode, sector_t iblock_s,
++int isofs_get_blocks(struct inode *inode, sector_t iblock,
+ 		     struct buffer_head **bh, unsigned long nblocks)
+ {
+-	unsigned long b_off;
++	unsigned long b_off = iblock;
+ 	unsigned offset, sect_size;
+ 	unsigned int firstext;
+ 	unsigned long nextblk, nextoff;
+-	long iblock = (long)iblock_s;
+ 	int section, rv, error;
+ 	struct iso_inode_info *ei = ISOFS_I(inode);
+ 
+ 	error = -EIO;
+ 	rv = 0;
+-	if (iblock < 0 || iblock != iblock_s) {
++	if (iblock != b_off) {
+ 		printk(KERN_DEBUG "%s: block number too large\n", __func__);
+ 		goto abort;
+ 	}
+ 
+-	b_off = iblock;
+-
+ 	offset = 0;
+ 	firstext = ei->i_first_extent;
+ 	sect_size = ei->i_section_size >> ISOFS_BUFFER_BITS(inode);
+@@ -1038,8 +1035,9 @@ int isofs_get_blocks(struct inode *inode
+ 		 * I/O errors.
+ 		 */
+ 		if (b_off > ((inode->i_size + PAGE_CACHE_SIZE - 1) >> ISOFS_BUFFER_BITS(inode))) {
+-			printk(KERN_DEBUG "%s: block >= EOF (%ld, %ld)\n",
+-				__func__, iblock, (unsigned long) inode->i_size);
++			printk(KERN_DEBUG "%s: block >= EOF (%lu, %llu)\n",
++				__func__, b_off,
++				(unsigned long long)inode->i_size);
+ 			goto abort;
  		}
-+setsym:
- 		if (sym && sym_is_choice_value(sym)) {
- 			struct symbol *cs = prop_get_symbol(sym_get_choice_prop(sym));
- 			switch (sym->def[def].tri) {
+ 
+@@ -1065,9 +1063,9 @@ int isofs_get_blocks(struct inode *inode
+ 			if (++section > 100) {
+ 				printk(KERN_DEBUG "%s: More than 100 file sections ?!?"
+ 					" aborting...\n", __func__);
+-				printk(KERN_DEBUG "%s: block=%ld firstext=%u sect_size=%u "
++				printk(KERN_DEBUG "%s: block=%lu firstext=%u sect_size=%u "
+ 					"nextblk=%lu nextoff=%lu\n", __func__,
+-					iblock, firstext, (unsigned) sect_size,
++					b_off, firstext, (unsigned) sect_size,
+ 					nextblk, nextoff);
+ 				goto abort;
+ 			}
 _
 
-Patches currently in -mm which might be from naota@elisp.net are
+Patches currently in -mm which might be from jack@suse.cz are
 
 linux-next.patch
-idr-fix-idr_pre_get-locking-description.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-kconfig-dont-go-out-from-read-config-loop-when-you-read-new-symbol.patch
+writeback-remove-the-internal-5%-low-bound-on-dirty_ratio.patch
+isofs-fix-isofs_get_blocks-for-8tb-files.patch
 
