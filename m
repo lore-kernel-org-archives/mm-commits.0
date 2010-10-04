@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-ptrace_request.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:33 -0700
-Message-ID: <201010042341.o94NfXEt022695@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-x86.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:41:38 -0700
+Message-ID: <201010042341.o94NfcTo022704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756923Ab0JDXmS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:18 -0400
+	by vger.kernel.org with ESMTP id S1757002Ab0JDXmZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:42:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, roland@redhat.com
+Cc: namhyung@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     ptrace: cleanup ptrace_request()
+     ptrace: cleanup arch_ptrace() on x86
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-ptrace_request.patch
+     ptrace-cleanup-arch_ptrace-on-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup ptrace_request()
+Subject: ptrace: cleanup arch_ptrace() on x86
 From: Namhyung Kim <namhyung@gmail.com>
 
-Use new 'datavp' and 'datalp' variables to remove unnecesary castings.
+Remove checking @addr less than 0 because @addr is now unsigned and
+use new udescp variable in order to remove unnecessary castings.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/kernel/ptrace.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-cleanup-ptrace_request kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-cleanup-ptrace_request
-+++ a/kernel/ptrace.c
-@@ -565,6 +565,8 @@ int ptrace_request(struct task_struct *c
+diff -puN arch/x86/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-x86 arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-x86
++++ a/arch/x86/kernel/ptrace.c
+@@ -806,6 +806,7 @@ long arch_ptrace(struct task_struct *chi
  {
- 	int ret = -EIO;
- 	siginfo_t siginfo;
-+	void __user *datavp = (void __user *) data;
-+	unsigned long __user *datalp = datavp;
+ 	int ret;
+ 	unsigned long __user *datap = (unsigned long __user *)data;
++	struct user_desc __user *udescp = (struct user_desc __user *)data;
  
  	switch (request) {
- 	case PTRACE_PEEKTEXT:
-@@ -581,19 +583,17 @@ int ptrace_request(struct task_struct *c
- 		ret = ptrace_setoptions(child, data);
- 		break;
- 	case PTRACE_GETEVENTMSG:
--		ret = put_user(child->ptrace_message, (unsigned long __user *) data);
-+		ret = put_user(child->ptrace_message, datalp);
+ 	/* read the word at location addr in the USER area. */
+@@ -813,8 +814,7 @@ long arch_ptrace(struct task_struct *chi
+ 		unsigned long tmp;
+ 
+ 		ret = -EIO;
+-		if ((addr & (sizeof(data) - 1)) || addr < 0 ||
+-		    addr >= sizeof(struct user))
++		if ((addr & (sizeof(data) - 1)) || addr >= sizeof(struct user))
+ 			break;
+ 
+ 		tmp = 0;  /* Default return condition */
+@@ -831,8 +831,7 @@ long arch_ptrace(struct task_struct *chi
+ 
+ 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+ 		ret = -EIO;
+-		if ((addr & (sizeof(data) - 1)) || addr < 0 ||
+-		    addr >= sizeof(struct user))
++		if ((addr & (sizeof(data) - 1)) || addr >= sizeof(struct user))
+ 			break;
+ 
+ 		if (addr < sizeof(struct user_regs_struct))
+@@ -891,15 +890,13 @@ long arch_ptrace(struct task_struct *chi
+ 	case PTRACE_GET_THREAD_AREA:
+ 		if ((int) addr < 0)
+ 			return -EIO;
+-		ret = do_get_thread_area(child, addr,
+-					 (struct user_desc __user *) data);
++		ret = do_get_thread_area(child, addr, udescp);
  		break;
  
- 	case PTRACE_GETSIGINFO:
- 		ret = ptrace_getsiginfo(child, &siginfo);
- 		if (!ret)
--			ret = copy_siginfo_to_user((siginfo_t __user *) data,
--						   &siginfo);
-+			ret = copy_siginfo_to_user(datavp, &siginfo);
+ 	case PTRACE_SET_THREAD_AREA:
+ 		if ((int) addr < 0)
+ 			return -EIO;
+-		ret = do_set_thread_area(child, addr,
+-					 (struct user_desc __user *) data, 0);
++		ret = do_set_thread_area(child, addr, udescp, 0);
  		break;
- 
- 	case PTRACE_SETSIGINFO:
--		if (copy_from_user(&siginfo, (siginfo_t __user *) data,
--				   sizeof siginfo))
-+		if (copy_from_user(&siginfo, datavp, sizeof siginfo))
- 			ret = -EFAULT;
- 		else
- 			ret = ptrace_setsiginfo(child, &siginfo);
-@@ -624,7 +624,7 @@ int ptrace_request(struct task_struct *c
- 		}
- 		mmput(mm);
- 
--		ret = put_user(tmp, (unsigned long __user *) data);
-+		ret = put_user(tmp, datalp);
- 		break;
- 	}
  #endif
-@@ -653,7 +653,7 @@ int ptrace_request(struct task_struct *c
- 	case PTRACE_SETREGSET:
- 	{
- 		struct iovec kiov;
--		struct iovec __user *uiov = (struct iovec __user *) data;
-+		struct iovec __user *uiov = datavp;
  
- 		if (!access_ok(VERIFY_WRITE, uiov, sizeof(*uiov)))
- 			return -EFAULT;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
