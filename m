@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-thresholds-with-use_hierarchy-==-1.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:32:14 -0700
-Message-ID: <201010042332.o94NWEP5022258@imap1.linux-foundation.org>
+Subject: + memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:32:47 -0700
+Message-ID: <201010042332.o94NWlOg022272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55930 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56447 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752242Ab0JDXcw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:32:52 -0400
+	by vger.kernel.org with ESMTP id S1752242Ab0JDXdZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     memcg: fix thresholds with use_hierarchy == 1
+     memcg-fix-thresholds-with-use_hierarchy-==-1-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-thresholds-with-use_hierarchy-==-1.patch
+     memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix thresholds with use_hierarchy == 1
-From: Kirill A. Shutemov <kirill@shutemov.name>
+Subject: memcg-fix-thresholds-with-use_hierarchy-==-1-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We need to check parent's thresholds if parent has use_hierarchy == 1 to
-be sure that parent's threshold events will be triggered even if parent
-itself is not active (no MEM_CGROUP_EVENTS).
-
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-thresholds-with-use_hierarchy-==-1 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-thresholds-with-use_hierarchy-==-1
+diff -puN mm/memcontrol.c~memcg-fix-thresholds-with-use_hierarchy-==-1-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-thresholds-with-use_hierarchy-==-1-fix
 +++ a/mm/memcontrol.c
-@@ -3587,9 +3587,13 @@ unlock:
+@@ -3592,7 +3592,7 @@ static void mem_cgroup_threshold(struct 
+ 		if (do_swap_account)
+ 			__mem_cgroup_threshold(memcg, true);
  
- static void mem_cgroup_threshold(struct mem_cgroup *memcg)
- {
--	__mem_cgroup_threshold(memcg, false);
--	if (do_swap_account)
--		__mem_cgroup_threshold(memcg, true);
-+	while (memcg) {
-+		__mem_cgroup_threshold(memcg, false);
-+		if (do_swap_account)
-+			__mem_cgroup_threshold(memcg, true);
-+
-+		memcg =  parent_mem_cgroup(memcg);
-+	}
+-		memcg =  parent_mem_cgroup(memcg);
++		memcg = parent_mem_cgroup(memcg);
+ 	}
  }
  
- static int compare_thresholds(const void *a, const void *b)
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-thresholds-with-use_hierarchy-==-1.patch
+origin.patch
+memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
 linux-next.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+sctp-prevent-reading-out-of-bounds-memory.patch
+drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+usb-storage-add-new-no_read_disc_info-quirk.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+m68k-__pa-cast-arg-to-long.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
