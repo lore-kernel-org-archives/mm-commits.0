@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-arm.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:40 -0700
-Message-ID: <201010042341.o94NfeNr022709@imap1.linux-foundation.org>
+Subject: + ptrace-cleanup-arch_ptrace-on-um.patch added to -mm tree
+Date: Mon, 04 Oct 2010 16:42:17 -0700
+Message-ID: <201010042342.o94NgHG9022790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755607Ab0JDXvp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:51:45 -0400
+	by vger.kernel.org with ESMTP id S1757380Ab0JDXwg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:52:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, linux@arm.linux.org.uk
+Cc: namhyung@gmail.com, jdike@addtoit.com
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on ARM
+     ptrace: cleanup arch_ptrace() on um
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-arm.patch
+     ptrace-cleanup-arch_ptrace-on-um.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on ARM
+Subject: ptrace: cleanup arch_ptrace() on um
 From: Namhyung Kim <namhyung@gmail.com>
 
-use new 'datap' variable in order to remove unnecessary castings.
+Remove unnecessary castings using void pointer and fix copy_to_user()
+return value. Also add missing __user markup on the argument of
+arch_ptrctl().
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/ptrace.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ arch/um/kernel/ptrace.c     |   18 ++++++++----------
+ arch/um/sys-x86_64/ptrace.c |    7 +++----
+ 2 files changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN arch/arm/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-arm arch/arm/kernel/ptrace.c
---- a/arch/arm/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-arm
-+++ a/arch/arm/kernel/ptrace.c
-@@ -1079,10 +1079,11 @@ long arch_ptrace(struct task_struct *chi
- 		 unsigned long addr, unsigned long data)
+diff -puN arch/um/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-um arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-um
++++ a/arch/um/kernel/ptrace.c
+@@ -47,6 +47,7 @@ long arch_ptrace(struct task_struct *chi
  {
- 	int ret;
-+	unsigned long __user *datap = (unsigned long __user *) data;
+ 	int i, ret;
+ 	unsigned long __user *p = (void __user *)data;
++	void __user *vp = p;
  
  	switch (request) {
- 		case PTRACE_PEEKUSR:
--			ret = ptrace_read_user(child, addr, (unsigned long __user *)data);
-+			ret = ptrace_read_user(child, addr, datap);
- 			break;
- 
- 		case PTRACE_POKEUSR:
-@@ -1090,34 +1091,34 @@ long arch_ptrace(struct task_struct *chi
- 			break;
- 
- 		case PTRACE_GETREGS:
--			ret = ptrace_getregs(child, (void __user *)data);
-+			ret = ptrace_getregs(child, datap);
- 			break;
- 
- 		case PTRACE_SETREGS:
--			ret = ptrace_setregs(child, (void __user *)data);
-+			ret = ptrace_setregs(child, datap);
- 			break;
- 
- 		case PTRACE_GETFPREGS:
--			ret = ptrace_getfpregs(child, (void __user *)data);
-+			ret = ptrace_getfpregs(child, datap);
- 			break;
- 		
- 		case PTRACE_SETFPREGS:
--			ret = ptrace_setfpregs(child, (void __user *)data);
-+			ret = ptrace_setfpregs(child, datap);
- 			break;
- 
- #ifdef CONFIG_IWMMXT
- 		case PTRACE_GETWMMXREGS:
--			ret = ptrace_getwmmxregs(child, (void __user *)data);
-+			ret = ptrace_getwmmxregs(child, datap);
- 			break;
- 
- 		case PTRACE_SETWMMXREGS:
--			ret = ptrace_setwmmxregs(child, (void __user *)data);
-+			ret = ptrace_setwmmxregs(child, datap);
- 			break;
+ 	/* read word at location addr. */
+@@ -108,24 +109,20 @@ long arch_ptrace(struct task_struct *chi
  #endif
- 
- 		case PTRACE_GET_THREAD_AREA:
- 			ret = put_user(task_thread_info(child)->tp_value,
--				       (unsigned long __user *) data);
-+				       datap);
- 			break;
- 
- 		case PTRACE_SET_SYSCALL:
-@@ -1127,21 +1128,21 @@ long arch_ptrace(struct task_struct *chi
- 
- #ifdef CONFIG_CRUNCH
- 		case PTRACE_GETCRUNCHREGS:
--			ret = ptrace_getcrunchregs(child, (void __user *)data);
-+			ret = ptrace_getcrunchregs(child, datap);
- 			break;
- 
- 		case PTRACE_SETCRUNCHREGS:
--			ret = ptrace_setcrunchregs(child, (void __user *)data);
-+			ret = ptrace_setcrunchregs(child, datap);
- 			break;
+ #ifdef PTRACE_GETFPREGS
+ 	case PTRACE_GETFPREGS: /* Get the child FPU state. */
+-		ret = get_fpregs((struct user_i387_struct __user *) data,
+-				 child);
++		ret = get_fpregs(vp, child);
+ 		break;
  #endif
- 
- #ifdef CONFIG_VFP
- 		case PTRACE_GETVFPREGS:
--			ret = ptrace_getvfpregs(child, (void __user *)data);
-+			ret = ptrace_getvfpregs(child, datap);
- 			break;
- 
- 		case PTRACE_SETVFPREGS:
--			ret = ptrace_setvfpregs(child, (void __user *)data);
-+			ret = ptrace_setvfpregs(child, datap);
- 			break;
+ #ifdef PTRACE_SETFPREGS
+ 	case PTRACE_SETFPREGS: /* Set the child FPU state. */
+-	        ret = set_fpregs((struct user_i387_struct __user *) data,
+-				 child);
++		ret = set_fpregs(vp, child);
+ 		break;
  #endif
+ 	case PTRACE_GET_THREAD_AREA:
+-		ret = ptrace_get_thread_area(child, addr,
+-					     (struct user_desc __user *) data);
++		ret = ptrace_get_thread_area(child, addr, vp);
+ 		break;
+ 
+ 	case PTRACE_SET_THREAD_AREA:
+-		ret = ptrace_set_thread_area(child, addr,
+-					     (struct user_desc __user *) data);
++		ret = ptrace_set_thread_area(child, addr, datavp);
+ 		break;
+ 
+ 	case PTRACE_FAULTINFO: {
+@@ -135,7 +132,8 @@ long arch_ptrace(struct task_struct *chi
+ 		 * On i386, ptrace_faultinfo is smaller!
+ 		 */
+ 		ret = copy_to_user(p, &child->thread.arch.faultinfo,
+-				   sizeof(struct ptrace_faultinfo));
++				   sizeof(struct ptrace_faultinfo)) ?
++			-EIO : 0;
+ 		break;
+ 	}
+ 
+@@ -159,7 +157,7 @@ long arch_ptrace(struct task_struct *chi
+ #ifdef PTRACE_ARCH_PRCTL
+ 	case PTRACE_ARCH_PRCTL:
+ 		/* XXX Calls ptrace on the host - needs some SMP thinking */
+-		ret = arch_prctl(child, data, (void *) addr);
++		ret = arch_prctl(child, data, (void __user *) addr);
+ 		break;
+ #endif
+ 	default:
+diff -puN arch/um/sys-x86_64/ptrace.c~ptrace-cleanup-arch_ptrace-on-um arch/um/sys-x86_64/ptrace.c
+--- a/arch/um/sys-x86_64/ptrace.c~ptrace-cleanup-arch_ptrace-on-um
++++ a/arch/um/sys-x86_64/ptrace.c
+@@ -179,15 +179,14 @@ long subarch_ptrace(struct task_struct *
+ 		    unsigned long addr, unsigned long data)
+ {
+ 	int ret = -EIO;
++	void __user *datap = (void __user *) data;
+ 
+ 	switch (request) {
+ 	case PTRACE_GETFPXREGS: /* Get the child FPU state. */
+-		ret = get_fpregs((struct user_i387_struct __user *) data,
+-				 child);
++		ret = get_fpregs(datap, child);
+ 		break;
+ 	case PTRACE_SETFPXREGS: /* Set the child FPU state. */
+-		ret = set_fpregs((struct user_i387_struct __user *) data,
+-				 child);
++		ret = set_fpregs(datap, child);
+ 		break;
+ 	}
  
 _
 
@@ -147,9 +147,6 @@ printk-change-type-of-boot_delay-to-int.patch
 printk-declare-printk_ratelimit_state-in-ratelimith.patch
 printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
 ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
 ptrace-change-signature-of-sys_ptrace-and-friends.patch
 ptrace-cleanup-ptrace_request.patch
 ptrace-change-signature-of-arch_ptrace.patch
@@ -173,4 +170,7 @@ ptrace-cleanup-arch_ptrace-on-sparc.patch
 ptrace-cleanup-arch_ptrace-on-tile.patch
 ptrace-cleanup-arch_ptrace-on-um.patch
 ptrace-cleanup-arch_ptrace-on-xtensa.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
 
