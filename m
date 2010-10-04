@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vcs-add-poll-fasync-support-fix.patch added to -mm tree
-Date: Mon, 04 Oct 2010 15:55:34 -0700
-Message-ID: <201010042255.o94MtYn4020611@imap1.linux-foundation.org>
+Subject: + vcs-add-poll-fasync-support-fix-fix.patch added to -mm tree
+Date: Mon, 04 Oct 2010 15:55:36 -0700
+Message-ID: <201010042255.o94Mtaak020614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072Ab0JDW4J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:09 -0400
+	by vger.kernel.org with ESMTP id S1756072Ab0JDW4P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 18:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, alan@linux.intel.com, greg@kroah.com, nico@fluxni
 
 
 The patch titled
-     vcs-add-poll-fasync-support-fix
+     vcs-add-poll-fasync-support-fix-fix
 has been added to the -mm tree.  Its filename is
-     vcs-add-poll-fasync-support-fix.patch
+     vcs-add-poll-fasync-support-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vcs-add-poll-fasync-support-fix
+Subject: vcs-add-poll-fasync-support-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-include notifier.h (from review)
+include fs.h for kill_fasync() (from review)
 
 Cc: Alan Cox <alan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
@@ -48,17 +48,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/char/vc_screen.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix drivers/char/vc_screen.c
---- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix
+diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix-fix drivers/char/vc_screen.c
+--- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support-fix-fix
 +++ a/drivers/char/vc_screen.c
-@@ -36,6 +36,7 @@
- #include <linux/device.h>
- #include <linux/smp_lock.h>
- #include <linux/sched.h>
-+#include <linux/notifier.h>
- #include <linux/poll.h>
- #include <linux/signal.h>
- #include <linux/slab.h>
+@@ -27,6 +27,7 @@
+ #include <linux/tty.h>
+ #include <linux/interrupt.h>
+ #include <linux/mm.h>
++#include <linux/fs.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/vt_kern.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
