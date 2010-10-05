@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-ignore-error-on-forced-remount.patch added to -mm tree
-Date: Tue, 05 Oct 2010 12:42:48 -0700
-Message-ID: <201010051942.o95JgmeW015701@imap1.linux-foundation.org>
+Subject: + vfs-fix-per-mount-read-write.patch added to -mm tree
+Date: Tue, 05 Oct 2010 12:42:50 -0700
+Message-ID: <201010051942.o95Jgo51015704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755979Ab0JETm7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:42:59 -0400
+	by vger.kernel.org with ESMTP id S1755979Ab0JETnC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:43:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: ignore error on forced remount
+     vfs: fix per mount read-write
 has been added to the -mm tree.  Its filename is
-     vfs-ignore-error-on-forced-remount.patch
+     vfs-fix-per-mount-read-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: ignore error on forced remount
+Subject: vfs: fix per mount read-write
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-On emergency remount we want to force MS_RDONLY on the super block even if
-->remount_fs() failed for some reason.
+Don't allow remounting the vfsmount read-write if the superblock is
+read-only.  Return -EROFS in this case.
+
+Rename __mnt_unmake_readonly() to mnt_make_writable() to match
+mnt_make_readonly().
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -45,22 +48,42 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/namespace.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN fs/super.c~vfs-ignore-error-on-forced-remount fs/super.c
---- a/fs/super.c~vfs-ignore-error-on-forced-remount
-+++ a/fs/super.c
-@@ -582,7 +582,8 @@ int do_remount_sb(struct super_block *sb
+diff -puN fs/namespace.c~vfs-fix-per-mount-read-write fs/namespace.c
+--- a/fs/namespace.c~vfs-fix-per-mount-read-write
++++ a/fs/namespace.c
+@@ -399,11 +399,18 @@ static int mnt_make_readonly(struct vfsm
+ 	return ret;
+ }
  
- 	if (sb->s_op->remount_fs) {
- 		retval = sb->s_op->remount_fs(sb, &flags, data);
--		if (retval)
-+		/* If forced remount, go ahead despite any errors */
-+		if (retval && !force)
- 			return retval;
- 	}
- 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
+-static void __mnt_unmake_readonly(struct vfsmount *mnt)
++static int mnt_make_writable(struct vfsmount *mnt)
+ {
++	int err = 0;
++
+ 	br_write_lock(vfsmount_lock);
+-	mnt->mnt_flags &= ~MNT_READONLY;
++	if (mnt->mnt_sb->s_flags & MS_RDONLY)
++		err = -EROFS;
++	else
++		mnt->mnt_flags &= ~MNT_READONLY;
+ 	br_write_unlock(vfsmount_lock);
++
++	return err;
+ }
+ 
+ void simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+@@ -1600,7 +1607,7 @@ static int change_mount_flags(struct vfs
+ 	if (readonly_request)
+ 		error = mnt_make_readonly(mnt);
+ 	else
+-		__mnt_unmake_readonly(mnt);
++		error = mnt_make_writable(mnt);
+ 	return error;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
