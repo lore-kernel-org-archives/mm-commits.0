@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:04 -0700
-Message-ID: <201010052128.o95LS43R021067@imap1.linux-foundation.org>
+Subject: + mm-wrap-get_locked_pte-using-__cond_lock.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:06 -0700
+Message-ID: <201010052128.o95LS6UT021077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755675Ab0JEV2d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:33 -0400
+	by vger.kernel.org with ESMTP id S1755675Ab0JEV2f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     mm: add casts to/from gfp_t in gfp_to_alloc_flags()
+     mm: wrap get_locked_pte() using __cond_lock()
 has been added to the -mm tree.  Its filename is
-     mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
+     mm-wrap-get_locked_pte-using-__cond_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add casts to/from gfp_t in gfp_to_alloc_flags()
+Subject: mm: wrap get_locked_pte() using __cond_lock()
 From: Namhyung Kim <namhyung@gmail.com>
 
-This removes following warning from sparse:
-
- mm/page_alloc.c:1934:9: warning: restricted gfp_t degrades to integer
+The get_locked_pte() conditionally grabs 'ptl' in case of returning
+non-NULL.  This leads sparse to complain about context imbalance.  Rename
+and wrap it using __cond_lock() to make sparse happy.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   10 +++++++++-
+ mm/memory.c        |    2 +-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags
-+++ a/mm/page_alloc.c
-@@ -1932,7 +1932,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	const gfp_t wait = gfp_mask & __GFP_WAIT;
+diff -puN include/linux/mm.h~mm-wrap-get_locked_pte-using-__cond_lock include/linux/mm.h
+--- a/include/linux/mm.h~mm-wrap-get_locked_pte-using-__cond_lock
++++ a/include/linux/mm.h
+@@ -1026,7 +1026,15 @@ extern void unregister_shrinker(struct s
  
- 	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
--	BUILD_BUG_ON(__GFP_HIGH != ALLOC_HIGH);
-+	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
+ int vma_wants_writenotify(struct vm_area_struct *vma);
  
- 	/*
- 	 * The caller may dip into page reserves a bit more if the caller
-@@ -1940,7 +1940,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
- 	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
- 	 */
--	alloc_flags |= (gfp_mask & __GFP_HIGH);
-+	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
+-extern pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl);
++extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
++			       spinlock_t **ptl);
++static inline pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
++				    spinlock_t **ptl)
++{
++	pte_t *ptep;
++	__cond_lock(*ptl, ptep = __get_locked_pte(mm, addr, ptl));
++	return ptep;
++}
  
- 	if (!wait) {
- 		alloc_flags |= ALLOC_HARDER;
+ #ifdef __PAGETABLE_PUD_FOLDED
+ static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
+diff -puN mm/memory.c~mm-wrap-get_locked_pte-using-__cond_lock mm/memory.c
+--- a/mm/memory.c~mm-wrap-get_locked_pte-using-__cond_lock
++++ a/mm/memory.c
+@@ -1590,7 +1590,7 @@ struct page *get_dump_page(unsigned long
+ }
+ #endif /* CONFIG_ELF_CORE */
+ 
+-pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
++pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
+ 			spinlock_t **ptl)
+ {
+ 	pgd_t * pgd = pgd_offset(mm, addr);
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
