@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-temporary-variable-on-generic_file_direct_write.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:02 -0700
-Message-ID: <201010052128.o95LS2rG020990@imap1.linux-foundation.org>
+Subject: + mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:04 -0700
+Message-ID: <201010052128.o95LS43R021067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48248 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754650Ab0JEV2c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:32 -0400
+	by vger.kernel.org with ESMTP id S1755675Ab0JEV2d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     mm: remove temporary variable on generic_file_direct_write()
+     mm: add casts to/from gfp_t in gfp_to_alloc_flags()
 has been added to the -mm tree.  Its filename is
-     mm-remove-temporary-variable-on-generic_file_direct_write.patch
+     mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove temporary variable on generic_file_direct_write()
+Subject: mm: add casts to/from gfp_t in gfp_to_alloc_flags()
 From: Namhyung Kim <namhyung@gmail.com>
 
-'end' shadows earlier one and is not necessary at all.  Remove it and use
-'pos' instead.  This removes following sparse warnings:
+This removes following warning from sparse:
 
- mm/filemap.c:2180:24: warning: symbol 'end' shadows an earlier one
- mm/filemap.c:2132:25: originally declared here
+ mm/page_alloc.c:1934:9: warning: restricted gfp_t degrades to integer
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap.c~mm-remove-temporary-variable-on-generic_file_direct_write mm/filemap.c
---- a/mm/filemap.c~mm-remove-temporary-variable-on-generic_file_direct_write
-+++ a/mm/filemap.c
-@@ -2211,12 +2211,12 @@ generic_file_direct_write(struct kiocb *
- 	}
+diff -puN mm/page_alloc.c~mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags
++++ a/mm/page_alloc.c
+@@ -1932,7 +1932,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	const gfp_t wait = gfp_mask & __GFP_WAIT;
  
- 	if (written > 0) {
--		loff_t end = pos + written;
--		if (end > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
--			i_size_write(inode,  end);
-+		pos += written;
-+		if (pos > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
-+			i_size_write(inode, pos);
- 			mark_inode_dirty(inode);
- 		}
--		*ppos = end;
-+		*ppos = pos;
- 	}
- out:
- 	return written;
+ 	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
+-	BUILD_BUG_ON(__GFP_HIGH != ALLOC_HIGH);
++	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
+ 
+ 	/*
+ 	 * The caller may dip into page reserves a bit more if the caller
+@@ -1940,7 +1940,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+ 	 * set both ALLOC_HARDER (!wait) and ALLOC_HIGH (__GFP_HIGH).
+ 	 */
+-	alloc_flags |= (gfp_mask & __GFP_HIGH);
++	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
+ 
+ 	if (!wait) {
+ 		alloc_flags |= ALLOC_HARDER;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
