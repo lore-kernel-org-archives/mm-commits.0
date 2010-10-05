@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-make-anon_vma_free-static.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:16 -0700
-Message-ID: <201010052128.o95LSG5W021112@imap1.linux-foundation.org>
+Subject: + rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:12 -0700
+Message-ID: <201010052128.o95LSC5S021086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750742Ab0JEVbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:01 -0400
+	by vger.kernel.org with ESMTP id S1750826Ab0JEVbC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     rmap: make anon_vma_[chain_]free() static
+     rmap: annotate lock context change on page_[un]lock_anon_vma()
 has been added to the -mm tree.  Its filename is
-     rmap-make-anon_vma_free-static.patch
+     rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: make anon_vma_[chain_]free() static
+Subject: rmap: annotate lock context change on page_[un]lock_anon_vma()
 From: Namhyung Kim <namhyung@gmail.com>
 
-Make anon_vma_free() and anon_vma_chain_free() static.  They are called
-only in rmap.c and corresponding alloc functions are already static.
+The page_lock_anon_vma() conditionally grabs RCU and anon_vma lock but
+page_unlock_anon_vma() releases them unconditionally.  This leads sparse
+to complain about context imbalance.  Annotate them.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 -
- mm/rmap.c            |    4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/rmap.h |   15 ++++++++++++++-
+ mm/rmap.c            |    4 +++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/rmap.h~rmap-make-anon_vma_free-static include/linux/rmap.h
---- a/include/linux/rmap.h~rmap-make-anon_vma_free-static
+diff -puN include/linux/rmap.h~rmap-annotate-lock-context-change-on-page_lock_anon_vma include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-annotate-lock-context-change-on-page_lock_anon_vma
 +++ a/include/linux/rmap.h
-@@ -148,7 +148,6 @@ void unlink_anon_vmas(struct vm_area_str
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
- int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
- void __anon_vma_link(struct vm_area_struct *);
--void anon_vma_free(struct anon_vma *);
+@@ -230,7 +230,20 @@ int try_to_munlock(struct page *);
+ /*
+  * Called by memory-failure.c to kill processes.
+  */
+-struct anon_vma *page_lock_anon_vma(struct page *page);
++struct anon_vma *__page_lock_anon_vma(struct page *page);
++
++static inline struct anon_vma *page_lock_anon_vma(struct page *page)
++{
++	struct anon_vma *anon_vma;
++
++	__cond_lock(RCU, anon_vma = __page_lock_anon_vma(page));
++
++	/* (void) is needed to make gcc happy */
++	(void) __cond_lock(&anon_vma->root->lock, anon_vma);
++
++	return anon_vma;
++}
++
+ void page_unlock_anon_vma(struct anon_vma *anon_vma);
+ int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
  
- static inline void anon_vma_merge(struct vm_area_struct *vma,
- 				  struct vm_area_struct *next)
-diff -puN mm/rmap.c~rmap-make-anon_vma_free-static mm/rmap.c
---- a/mm/rmap.c~rmap-make-anon_vma_free-static
+diff -puN mm/rmap.c~rmap-annotate-lock-context-change-on-page_lock_anon_vma mm/rmap.c
+--- a/mm/rmap.c~rmap-annotate-lock-context-change-on-page_lock_anon_vma
 +++ a/mm/rmap.c
-@@ -70,7 +70,7 @@ static inline struct anon_vma *anon_vma_
- 	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+@@ -314,7 +314,7 @@ void __init anon_vma_init(void)
+  * Getting a lock on a stable anon_vma from a page off the LRU is
+  * tricky: page_lock_anon_vma rely on RCU to guard against the races.
+  */
+-struct anon_vma *page_lock_anon_vma(struct page *page)
++struct anon_vma *__page_lock_anon_vma(struct page *page)
+ {
+ 	struct anon_vma *anon_vma, *root_anon_vma;
+ 	unsigned long anon_mapping;
+@@ -348,6 +348,8 @@ out:
  }
  
--void anon_vma_free(struct anon_vma *anon_vma)
-+static void anon_vma_free(struct anon_vma *anon_vma)
+ void page_unlock_anon_vma(struct anon_vma *anon_vma)
++	__releases(&anon_vma->root->lock)
++	__releases(RCU)
  {
- 	kmem_cache_free(anon_vma_cachep, anon_vma);
- }
-@@ -80,7 +80,7 @@ static inline struct anon_vma_chain *ano
- 	return kmem_cache_alloc(anon_vma_chain_cachep, GFP_KERNEL);
- }
- 
--void anon_vma_chain_free(struct anon_vma_chain *anon_vma_chain)
-+static void anon_vma_chain_free(struct anon_vma_chain *anon_vma_chain)
- {
- 	kmem_cache_free(anon_vma_chain_cachep, anon_vma_chain);
- }
+ 	anon_vma_unlock(anon_vma);
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
