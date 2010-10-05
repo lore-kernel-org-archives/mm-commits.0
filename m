@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-declare-some-external-symbols.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:22 -0700
-Message-ID: <201010052128.o95LSMBq021124@imap1.linux-foundation.org>
+Subject: + vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:18 -0700
+Message-ID: <201010052128.o95LSIvl021115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750826Ab0JEVbB (ORCPT
+	by vger.kernel.org with ESMTP id S1750742Ab0JEVbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     mm: declare some external symbols
+     vmalloc: rename temporary variable in __insert_vmap_area()
 has been added to the -mm tree.  Its filename is
-     mm-declare-some-external-symbols.patch
+     vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: declare some external symbols
+Subject: vmalloc: rename temporary variable in __insert_vmap_area()
 From: Namhyung Kim <namhyung@gmail.com>
 
-Declare 'bdi_pending_list' and 'tag_pages_for_writeback()' to remove
-following sparse warnings:
+Rename redundant 'tmp' to fix following sparse warnings:
 
- mm/backing-dev.c:46:1: warning: symbol 'bdi_pending_list' was not declared. Should it be static?
- mm/page-writeback.c:825:6: warning: symbol 'tag_pages_for_writeback' was not declared. Should it be static?
+ mm/vmalloc.c:296:34: warning: symbol 'tmp' shadows an earlier one
+ mm/vmalloc.c:293:24: originally declared here
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- include/linux/writeback.h   |    2 ++
- 2 files changed, 3 insertions(+)
+ mm/vmalloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/backing-dev.h~mm-declare-some-external-symbols include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-declare-some-external-symbols
-+++ a/include/linux/backing-dev.h
-@@ -111,6 +111,7 @@ void bdi_wakeup_thread_delayed(struct ba
+diff -puN mm/vmalloc.c~vmalloc-rename-temporary-variable-in-__insert_vmap_area mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-rename-temporary-variable-in-__insert_vmap_area
++++ a/mm/vmalloc.c
+@@ -300,13 +300,13 @@ static void __insert_vmap_area(struct vm
+ 	struct rb_node *tmp;
  
- extern spinlock_t bdi_lock;
- extern struct list_head bdi_list;
-+extern struct list_head bdi_pending_list;
+ 	while (*p) {
+-		struct vmap_area *tmp;
++		struct vmap_area *tmp_va;
  
- static inline int wb_has_dirty_io(struct bdi_writeback *wb)
- {
-diff -puN include/linux/writeback.h~mm-declare-some-external-symbols include/linux/writeback.h
---- a/include/linux/writeback.h~mm-declare-some-external-symbols
-+++ a/include/linux/writeback.h
-@@ -149,6 +149,8 @@ int write_cache_pages(struct address_spa
- int do_writepages(struct address_space *mapping, struct writeback_control *wbc);
- void set_page_dirty_balance(struct page *page, int page_mkwrite);
- void writeback_set_ratelimit(void);
-+void tag_pages_for_writeback(struct address_space *mapping,
-+			     pgoff_t start, pgoff_t end);
- 
- /* pdflush.c */
- extern int nr_pdflush_threads;	/* Global so it can be exported to sysctl
+ 		parent = *p;
+-		tmp = rb_entry(parent, struct vmap_area, rb_node);
+-		if (va->va_start < tmp->va_end)
++		tmp_va = rb_entry(parent, struct vmap_area, rb_node);
++		if (va->va_start < tmp_va->va_end)
+ 			p = &(*p)->rb_left;
+-		else if (va->va_end > tmp->va_start)
++		else if (va->va_end > tmp_va->va_start)
+ 			p = &(*p)->rb_right;
+ 		else
+ 			BUG();
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
