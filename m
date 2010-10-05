@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-wrap-follow_pte-using-__cond_lock.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:10 -0700
-Message-ID: <201010052128.o95LSA1l021083@imap1.linux-foundation.org>
+Subject: + mm-add-lock-release-annotation-on-do_wp_page.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:08 -0700
+Message-ID: <201010052128.o95LS8WP021080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756762Ab0JEV2m (ORCPT
+	by vger.kernel.org with ESMTP id S1756709Ab0JEV2m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     mm: wrap follow_pte() using __cond_lock()
+     mm: add lock release annotation on do_wp_page()
 has been added to the -mm tree.  Its filename is
-     mm-wrap-follow_pte-using-__cond_lock.patch
+     mm-add-lock-release-annotation-on-do_wp_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: wrap follow_pte() using __cond_lock()
+Subject: mm: add lock release annotation on do_wp_page()
 From: Namhyung Kim <namhyung@gmail.com>
 
-The follow_pte() conditionally grabs *@ptlp in case of returning 0. 
-Rename and wrap it using __cond_lock() removes following warnings:
+The do_wp_page() releases @ptl but was missing proper annotation.  Add it.
+ This removes following warnings from sparse:
 
  mm/memory.c:2337:9: warning: context imbalance in 'do_wp_page' - unexpected unlock
  mm/memory.c:3142:19: warning: context imbalance in 'handle_mm_fault' - different lock contexts for basic block
@@ -46,39 +46,20 @@ Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory.c~mm-wrap-follow_pte-using-__cond_lock mm/memory.c
---- a/mm/memory.c~mm-wrap-follow_pte-using-__cond_lock
+diff -puN mm/memory.c~mm-add-lock-release-annotation-on-do_wp_page mm/memory.c
+--- a/mm/memory.c~mm-add-lock-release-annotation-on-do_wp_page
 +++ a/mm/memory.c
-@@ -3345,7 +3345,7 @@ int in_gate_area_no_task(unsigned long a
- 
- #endif	/* __HAVE_ARCH_GATE_AREA */
- 
--static int follow_pte(struct mm_struct *mm, unsigned long address,
-+static int __follow_pte(struct mm_struct *mm, unsigned long address,
- 		pte_t **ptepp, spinlock_t **ptlp)
+@@ -2107,6 +2107,7 @@ static inline void cow_user_page(struct 
+ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+ 		spinlock_t *ptl, pte_t orig_pte)
++	__releases(ptl)
  {
- 	pgd_t *pgd;
-@@ -3382,6 +3382,17 @@ out:
- 	return -EINVAL;
- }
- 
-+static inline int follow_pte(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, spinlock_t **ptlp)
-+{
-+	int res;
-+
-+	/* (void) is needed to make gcc happy */
-+	(void) __cond_lock(*ptlp,
-+			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
-+	return res;
-+}
-+
- /**
-  * follow_pfn - look up PFN at a user virtual address
-  * @vma: memory mapping
+ 	struct page *old_page, *new_page;
+ 	pte_t entry;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
