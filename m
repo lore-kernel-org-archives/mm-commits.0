@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-lock-release-annotation-on-do_wp_page.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:08 -0700
-Message-ID: <201010052128.o95LS8WP021080@imap1.linux-foundation.org>
+Subject: + vmalloc-annotate-lock-context-change-on-s_start-stop.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:20 -0700
+Message-ID: <201010052128.o95LSKmP021118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756709Ab0JEV2m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:42 -0400
+	by vger.kernel.org with ESMTP id S1755896Ab0JEV2t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     mm: add lock release annotation on do_wp_page()
+     vmalloc: annotate lock context change on s_start/stop()
 has been added to the -mm tree.  Its filename is
-     mm-add-lock-release-annotation-on-do_wp_page.patch
+     vmalloc-annotate-lock-context-change-on-s_start-stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add lock release annotation on do_wp_page()
+Subject: vmalloc: annotate lock context change on s_start/stop()
 From: Namhyung Kim <namhyung@gmail.com>
 
-The do_wp_page() releases @ptl but was missing proper annotation.  Add it.
- This removes following warnings from sparse:
-
- mm/memory.c:2337:9: warning: context imbalance in 'do_wp_page' - unexpected unlock
- mm/memory.c:3142:19: warning: context imbalance in 'handle_mm_fault' - different lock contexts for basic block
+s_start() and s_stop() grab/release vmlist_lock but were missing proper
+annotations.  Add them.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memory.c~mm-add-lock-release-annotation-on-do_wp_page mm/memory.c
---- a/mm/memory.c~mm-add-lock-release-annotation-on-do_wp_page
-+++ a/mm/memory.c
-@@ -2107,6 +2107,7 @@ static inline void cow_user_page(struct 
- static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 		unsigned long address, pte_t *page_table, pmd_t *pmd,
- 		spinlock_t *ptl, pte_t orig_pte)
-+	__releases(ptl)
+diff -puN mm/vmalloc.c~vmalloc-annotate-lock-context-change-on-s_start-stop mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-annotate-lock-context-change-on-s_start-stop
++++ a/mm/vmalloc.c
+@@ -2407,6 +2407,7 @@ void pcpu_free_vm_areas(struct vm_struct
+ 
+ #ifdef CONFIG_PROC_FS
+ static void *s_start(struct seq_file *m, loff_t *pos)
++	__acquires(&vmlist_lock)
  {
- 	struct page *old_page, *new_page;
- 	pte_t entry;
+ 	loff_t n = *pos;
+ 	struct vm_struct *v;
+@@ -2433,6 +2434,7 @@ static void *s_next(struct seq_file *m, 
+ }
+ 
+ static void s_stop(struct seq_file *m, void *p)
++	__releases(&vmlist_lock)
+ {
+ 	read_unlock(&vmlist_lock);
+ }
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
