@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-include-compactionh-when-config_compaction-fix.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:26 -0700
-Message-ID: <201010052128.o95LSQEo021134@imap1.linux-foundation.org>
+Subject: + btrfs-dont-dereference-extent_mapping-if-null.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:30:30 -0700
+Message-ID: <201010052130.o95LUU1o021216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755896Ab0JEV24 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:56 -0400
+	by vger.kernel.org with ESMTP id S1752565Ab0JEVbG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, namhyung@gmail.com
+Cc: roel.kluin@gmail.com, chris.mason@oracle.com
 
 
 The patch titled
-     vmstat-include-compactionh-when-config_compaction-fix
+     btrfs: don't dereference extent_mapping if NULL
 has been added to the -mm tree.  Its filename is
-     vmstat-include-compactionh-when-config_compaction-fix.patch
+     btrfs-dont-dereference-extent_mapping-if-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat-include-compactionh-when-config_compaction-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: btrfs: don't dereference extent_mapping if NULL
+From: Roel Kluin <roel.kluin@gmail.com>
 
-move the include to top-of-file
+Don't dereference em if it's NULL or an error pointer.
 
-Cc: Namhyung Kim <namhyung@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/btrfs/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-include-compactionh-when-config_compaction-fix mm/vmstat.c
---- a/mm/vmstat.c~vmstat-include-compactionh-when-config_compaction-fix
-+++ a/mm/vmstat.c
-@@ -18,6 +18,7 @@
- #include <linux/sched.h>
- #include <linux/math64.h>
- #include <linux/writeback.h>
-+#include <linux/compaction.h>
+diff -puN fs/btrfs/inode.c~btrfs-dont-dereference-extent_mapping-if-null fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~btrfs-dont-dereference-extent_mapping-if-null
++++ a/fs/btrfs/inode.c
+@@ -1777,7 +1777,8 @@ static int btrfs_io_failed_hook(struct b
  
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
-@@ -395,7 +396,6 @@ void zone_statistics(struct zone *prefer
- #endif
- 
- #ifdef CONFIG_COMPACTION
--#include <linux/compaction.h>
- 
- struct contig_page_info {
- 	unsigned long free_pages;
+ 		read_lock(&em_tree->lock);
+ 		em = lookup_extent_mapping(em_tree, start, failrec->len);
+-		if (em->start > start || em->start + em->len < start) {
++		if (em && !IS_ERR(em) && (em->start > start ||
++					em->start + em->len < start)) {
+ 			free_extent_map(em);
+ 			em = NULL;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
-maintainers-haavard-has-moved.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial8250-ratelimit-too-much-work-error-fix.patch
-serial8250-ratelimit-too-much-work-error-fix-fix.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-usb-storage-add-new-no_read_disc_info-quirk.patch
-vfs-allow-mnt_want_write-to-sleep-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
+btrfs-dont-dereference-extent_mapping-if-null.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-m68k-__pa-cast-arg-to-long.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
 
