@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-wrap-get_locked_pte-using-__cond_lock.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:06 -0700
-Message-ID: <201010052128.o95LS6UT021077@imap1.linux-foundation.org>
+Subject: + mm-wrap-follow_pte-using-__cond_lock.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:10 -0700
+Message-ID: <201010052128.o95LSA1l021083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755675Ab0JEV2f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:35 -0400
+	by vger.kernel.org with ESMTP id S1756762Ab0JEV2m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     mm: wrap get_locked_pte() using __cond_lock()
+     mm: wrap follow_pte() using __cond_lock()
 has been added to the -mm tree.  Its filename is
-     mm-wrap-get_locked_pte-using-__cond_lock.patch
+     mm-wrap-follow_pte-using-__cond_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: wrap get_locked_pte() using __cond_lock()
+Subject: mm: wrap follow_pte() using __cond_lock()
 From: Namhyung Kim <namhyung@gmail.com>
 
-The get_locked_pte() conditionally grabs 'ptl' in case of returning
-non-NULL.  This leads sparse to complain about context imbalance.  Rename
-and wrap it using __cond_lock() to make sparse happy.
+The follow_pte() conditionally grabs *@ptlp in case of returning 0. 
+Rename and wrap it using __cond_lock() removes following warnings:
+
+ mm/memory.c:2337:9: warning: context imbalance in 'do_wp_page' - unexpected unlock
+ mm/memory.c:3142:19: warning: context imbalance in 'handle_mm_fault' - different lock contexts for basic block
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   10 +++++++++-
- mm/memory.c        |    2 +-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ mm/memory.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-wrap-get_locked_pte-using-__cond_lock include/linux/mm.h
---- a/include/linux/mm.h~mm-wrap-get_locked_pte-using-__cond_lock
-+++ a/include/linux/mm.h
-@@ -1026,7 +1026,15 @@ extern void unregister_shrinker(struct s
- 
- int vma_wants_writenotify(struct vm_area_struct *vma);
- 
--extern pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl);
-+extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
-+			       spinlock_t **ptl);
-+static inline pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
-+				    spinlock_t **ptl)
-+{
-+	pte_t *ptep;
-+	__cond_lock(*ptl, ptep = __get_locked_pte(mm, addr, ptl));
-+	return ptep;
-+}
- 
- #ifdef __PAGETABLE_PUD_FOLDED
- static inline int __pud_alloc(struct mm_struct *mm, pgd_t *pgd,
-diff -puN mm/memory.c~mm-wrap-get_locked_pte-using-__cond_lock mm/memory.c
---- a/mm/memory.c~mm-wrap-get_locked_pte-using-__cond_lock
+diff -puN mm/memory.c~mm-wrap-follow_pte-using-__cond_lock mm/memory.c
+--- a/mm/memory.c~mm-wrap-follow_pte-using-__cond_lock
 +++ a/mm/memory.c
-@@ -1590,7 +1590,7 @@ struct page *get_dump_page(unsigned long
- }
- #endif /* CONFIG_ELF_CORE */
+@@ -3345,7 +3345,7 @@ int in_gate_area_no_task(unsigned long a
  
--pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
-+pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
- 			spinlock_t **ptl)
+ #endif	/* __HAVE_ARCH_GATE_AREA */
+ 
+-static int follow_pte(struct mm_struct *mm, unsigned long address,
++static int __follow_pte(struct mm_struct *mm, unsigned long address,
+ 		pte_t **ptepp, spinlock_t **ptlp)
  {
- 	pgd_t * pgd = pgd_offset(mm, addr);
+ 	pgd_t *pgd;
+@@ -3382,6 +3382,17 @@ out:
+ 	return -EINVAL;
+ }
+ 
++static inline int follow_pte(struct mm_struct *mm, unsigned long address,
++			     pte_t **ptepp, spinlock_t **ptlp)
++{
++	int res;
++
++	/* (void) is needed to make gcc happy */
++	(void) __cond_lock(*ptlp,
++			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
++	return res;
++}
++
+ /**
+  * follow_pfn - look up PFN at a user virtual address
+  * @vma: memory mapping
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
