@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-correct-indentation-in-a-few-places.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:09:53 -0700
-Message-ID: <201010052109.o95L9r2E020211@imap1.linux-foundation.org>
+Subject: + mm-remove-temporary-variable-on-generic_file_direct_write.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:02 -0700
+Message-ID: <201010052128.o95LS2rG020990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755222Ab0JEVK3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:10:29 -0400
+	by vger.kernel.org with ESMTP id S1754650Ab0JEV2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, florian@mickler.org
+Cc: namhyung@gmail.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: correct indentation in a few places
+     mm: remove temporary variable on generic_file_direct_write()
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-correct-indentation-in-a-few-places.patch
+     mm-remove-temporary-variable-on-generic_file_direct_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,268 +33,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: correct indentation in a few places
-From: Joe Perches <joe@perches.com>
+Subject: mm: remove temporary variable on generic_file_direct_write()
+From: Namhyung Kim <namhyung@gmail.com>
 
-And a miscellaneous conversion of You to you in a help message
+'end' shadows earlier one and is not necessary at all.  Remove it and use
+'pos' instead.  This removes following sparse warnings:
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Florian Mickler <florian@mickler.org>
+ mm/filemap.c:2180:24: warning: symbol 'end' shadows an earlier one
+ mm/filemap.c:2132:25: originally declared here
+
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |  156 ++++++++++++++++++------------------
- 1 file changed, 78 insertions(+), 78 deletions(-)
+ mm/filemap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-correct-indentation-in-a-few-places scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-correct-indentation-in-a-few-places
-+++ a/scripts/get_maintainer.pl
-@@ -306,7 +306,7 @@ sub read_mailmap {
-     my $mailmap = {
- 	names => {},
- 	addresses => {}
--   };
-+    };
- 
-     if (!$email_remove_duplicates) {
- 	return $mailmap;
-@@ -327,39 +327,39 @@ sub read_mailmap {
- 	# name1 <mail1> name2 <mail2>
- 	# (see man git-shortlog)
- 	if (/^(.+)<(.+)>$/) {
--		my $real_name = $1;
--		my $address = $2;
-+	    my $real_name = $1;
-+	    my $address = $2;
- 
--		$real_name =~ s/\s+$//;
--		$mailmap->{names}->{$address} = $real_name;
-+	    $real_name =~ s/\s+$//;
-+	    $mailmap->{names}->{$address} = $real_name;
- 
- 	} elsif (/^<([^\s]+)>\s*<([^\s]+)>$/) {
--		my $real_address = $1;
--		my $wrong_address = $2;
-+	    my $real_address = $1;
-+	    my $wrong_address = $2;
- 
--		$mailmap->{addresses}->{$wrong_address} = $real_address;
-+	    $mailmap->{addresses}->{$wrong_address} = $real_address;
- 
- 	} elsif (/^(.+)<([^\s]+)>\s*<([^\s]+)>$/) {
--		my $real_name= $1;
--		my $real_address = $2;
--		my $wrong_address = $3;
-+	    my $real_name= $1;
-+	    my $real_address = $2;
-+	    my $wrong_address = $3;
- 
--		$real_name =~ s/\s+$//;
-+	    $real_name =~ s/\s+$//;
- 
--		$mailmap->{names}->{$wrong_address} = $real_name;
--		$mailmap->{addresses}->{$wrong_address} = $real_address;
-+	    $mailmap->{names}->{$wrong_address} = $real_name;
-+	    $mailmap->{addresses}->{$wrong_address} = $real_address;
- 
- 	} elsif (/^(.+)<([^\s]+)>\s*([^\s].*)<([^\s]+)>$/) {
--		my $real_name = $1;
--		my $real_address = $2;
--		my $wrong_name = $3;
--		my $wrong_address = $4;
-+	    my $real_name = $1;
-+	    my $real_address = $2;
-+	    my $wrong_name = $3;
-+	    my $wrong_address = $4;
- 
--		$real_name =~ s/\s+$//;
--		$wrong_name =~ s/\s+$//;
-+	    $real_name =~ s/\s+$//;
-+	    $wrong_name =~ s/\s+$//;
- 
--		$mailmap->{names}->{format_email($wrong_name,$wrong_address,1)} = $real_name;
--		$mailmap->{addresses}->{format_email($wrong_name,$wrong_address,1)} = $real_address;
-+	    $mailmap->{names}->{format_email($wrong_name,$wrong_address,1)} = $real_name;
-+	    $mailmap->{addresses}->{format_email($wrong_name,$wrong_address,1)} = $real_address;
+diff -puN mm/filemap.c~mm-remove-temporary-variable-on-generic_file_direct_write mm/filemap.c
+--- a/mm/filemap.c~mm-remove-temporary-variable-on-generic_file_direct_write
++++ a/mm/filemap.c
+@@ -2211,12 +2211,12 @@ generic_file_direct_write(struct kiocb *
  	}
-     }
-     close($mailmap_file);
-@@ -743,30 +743,30 @@ EOT
- }
  
- sub top_of_kernel_tree {
--	my ($lk_path) = @_;
-+    my ($lk_path) = @_;
- 
--	if ($lk_path ne "" && substr($lk_path,length($lk_path)-1,1) ne "/") {
--	    $lk_path .= "/";
--	}
--	if (   (-f "${lk_path}COPYING")
--	    && (-f "${lk_path}CREDITS")
--	    && (-f "${lk_path}Kbuild")
--	    && (-f "${lk_path}MAINTAINERS")
--	    && (-f "${lk_path}Makefile")
--	    && (-f "${lk_path}README")
--	    && (-d "${lk_path}Documentation")
--	    && (-d "${lk_path}arch")
--	    && (-d "${lk_path}include")
--	    && (-d "${lk_path}drivers")
--	    && (-d "${lk_path}fs")
--	    && (-d "${lk_path}init")
--	    && (-d "${lk_path}ipc")
--	    && (-d "${lk_path}kernel")
--	    && (-d "${lk_path}lib")
--	    && (-d "${lk_path}scripts")) {
--		return 1;
--	}
--	return 0;
-+    if ($lk_path ne "" && substr($lk_path,length($lk_path)-1,1) ne "/") {
-+	$lk_path .= "/";
-+    }
-+    if (   (-f "${lk_path}COPYING")
-+	&& (-f "${lk_path}CREDITS")
-+	&& (-f "${lk_path}Kbuild")
-+	&& (-f "${lk_path}MAINTAINERS")
-+	&& (-f "${lk_path}Makefile")
-+	&& (-f "${lk_path}README")
-+	&& (-d "${lk_path}Documentation")
-+	&& (-d "${lk_path}arch")
-+	&& (-d "${lk_path}include")
-+	&& (-d "${lk_path}drivers")
-+	&& (-d "${lk_path}fs")
-+	&& (-d "${lk_path}init")
-+	&& (-d "${lk_path}ipc")
-+	&& (-d "${lk_path}kernel")
-+	&& (-d "${lk_path}lib")
-+	&& (-d "${lk_path}scripts")) {
-+	return 1;
-+    }
-+    return 0;
- }
- 
- sub parse_email {
-@@ -1107,29 +1107,30 @@ sub which_conf {
- }
- 
- sub mailmap_email {
--	my $line = shift;
-+    my $line = shift;
- 
--	my ($name, $address) = parse_email($line);
--	my $email = format_email($name, $address, 1);
--	my $real_name = $name;
--	my $real_address = $address;
--
--	if (exists $mailmap->{names}->{$email} || exists $mailmap->{addresses}->{$email}) {
--		if (exists $mailmap->{names}->{$email}) {
--			$real_name = $mailmap->{names}->{$email};
--		}
--		if (exists $mailmap->{addresses}->{$email}) {
--			$real_address = $mailmap->{addresses}->{$email};
--		}
--	} else {
--		if (exists $mailmap->{names}->{$address}) {
--			$real_name = $mailmap->{names}->{$address};
--		}
--		if (exists $mailmap->{addresses}->{$address}) {
--			$real_address = $mailmap->{addresses}->{$address};
--		}
-+    my ($name, $address) = parse_email($line);
-+    my $email = format_email($name, $address, 1);
-+    my $real_name = $name;
-+    my $real_address = $address;
-+
-+    if (exists $mailmap->{names}->{$email} ||
-+	exists $mailmap->{addresses}->{$email}) {
-+	if (exists $mailmap->{names}->{$email}) {
-+	    $real_name = $mailmap->{names}->{$email};
-+	}
-+	if (exists $mailmap->{addresses}->{$email}) {
-+	    $real_address = $mailmap->{addresses}->{$email};
-+	}
-+    } else {
-+	if (exists $mailmap->{names}->{$address}) {
-+	    $real_name = $mailmap->{names}->{$address};
-+	}
-+	if (exists $mailmap->{addresses}->{$address}) {
-+	    $real_address = $mailmap->{addresses}->{$address};
+ 	if (written > 0) {
+-		loff_t end = pos + written;
+-		if (end > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
+-			i_size_write(inode,  end);
++		pos += written;
++		if (pos > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
++			i_size_write(inode, pos);
+ 			mark_inode_dirty(inode);
+ 		}
+-		*ppos = end;
++		*ppos = pos;
  	}
--	return format_email($real_name, $real_address, 1);
-+    }
-+    return format_email($real_name, $real_address, 1);
- }
- 
- sub mailmap {
-@@ -1146,18 +1147,17 @@ sub mailmap {
- }
- 
- sub merge_by_realname {
--	my %address_map;
--	my (@emails) = @_;
--	foreach my $email (@emails) {
--		my ($name, $address) = parse_email($email);
--		if (!exists $address_map{$name}) {
--			$address_map{$name} = $address;
--		} else {
--			$address = $address_map{$name};
--			$email = format_email($name,$address,1);
--		}
-+    my %address_map;
-+    my (@emails) = @_;
-+    foreach my $email (@emails) {
-+	my ($name, $address) = parse_email($email);
-+	if (!exists $address_map{$name}) {
-+	    $address_map{$name} = $address;
-+	} else {
-+	    $address = $address_map{$name};
-+	    $email = format_email($name,$address,1);
- 	}
--
-+    }
- }
- 
- sub git_execute_cmd {
-@@ -1555,7 +1555,7 @@ commit signers and mailing lists that co
- 
- Any *'d entry is selected.
- 
--If you have git or hg installed, You can choose to summarize the commit
-+If you have git or hg installed, you can choose to summarize the commit
- history of files in the patch.  Also, each line of the current file can
- be matched to its commit author and that commits signers with blame.
- 
+ out:
+ 	return written;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
+origin.patch
 linux-next.patch
-kernelh-add-minmax3-macros.patch
-kernelh-add-minmax3-macros-fix.patch
-replace-nested-max-min-macros-with-maxmin3-macro.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-lib-fix-scnprintf-if-size-is-==-0.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-scripts-get_maintainerpl-use-correct-indentation.patch
-scripts-get_maintainerpl-dont-search-maintainers-for-keywords-or-emails.patch
-scripts-get_maintainerpl-add-default-git-fallback-remove-default-git.patch
-scripts-get_maintainerpl-use-get_maintainerconf-from-then-home-then-scripts.patch
-scripts-get_maintainerpl-add-interactive-mode.patch
-scripts-get_maintainerpl-improve-interactive-ui.patch
-scripts-get_maintainerpl-update-interactive-ui-improve-hg-runtime.patch
-scripts-get_maintainerpl-use-case-insensitive-name-de-duplication.patch
-scripts-get_maintainerpl-fix-mailmap-handling.patch
-scripts-get_maintainerpl-correct-indentation-in-a-few-places.patch
-scripts-get_maintainerpl-use-mailmap-in-name-deduplication-and-other-updates.patch
-scripts-get_maintainerpl-dont-deduplicate-unnamed-addresses-ie-mailing-lists.patch
-maintainers-fix-colibri-pxa270-file-pattern.patch
-maintainers-merge-imote2-and-stargate.patch
-maintainers-merge-s3c-244x-sections.patch
-maintainers-merge-s3c6400-and-6410-to-64xx.patch
-maintainers-remove-usb-ov511-driver.patch
-maintainers-remove-usb-zc0301-driver.patch
-maintainers-use-t-git-and-whitespace-trivia.patch
-checkpatch-add-check-for-space-after-struct-union-and-enum.patch
-checkpatch-add-additional-attribute-defines.patch
-scripts-checkpatchpl-add-warnings-for-static-char-that-could-be-static-const-char.patch
+vfs-remove-a-warning-on-open_fmode.patch
+vfs-add-__fmode_exec.patch
+mm-cleanup-gfp_zone-fix-sparse-warnings.patch
+mm-remove-temporary-variable-on-generic_file_direct_write.patch
+mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
+mm-wrap-get_locked_pte-using-__cond_lock.patch
+mm-add-lock-release-annotation-on-do_wp_page.patch
+mm-wrap-follow_pte-using-__cond_lock.patch
+rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
+rmap-wrap-page_check_address-using-__cond_lock.patch
+rmap-make-anon_vma_free-static.patch
+vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
+vmalloc-annotate-lock-context-change-on-s_start-stop.patch
+mm-declare-some-external-symbols.patch
+vmstat-include-compactionh-when-config_compaction.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+init-mark-__user-address-space-on-string-literals.patch
+kernel-userc-add-lock-release-annotation-on-free_user.patch
+printk-fixup-declaration-of-kmsg_reasons.patch
+printk-add-lock-context-annotation.patch
+printk-change-type-of-boot_delay-to-int.patch
+printk-declare-printk_ratelimit_state-in-ratelimith.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+ptrace-annotate-lock-context-change-on-exit_ptrace.patch
+ptrace-change-signature-of-sys_ptrace-and-friends.patch
+ptrace-cleanup-ptrace_request.patch
+ptrace-change-signature-of-arch_ptrace.patch
+ptrace-cleanup-arch_ptrace-on-x86.patch
+ptrace-cleanup-arch_ptrace-on-arm.patch
+ptrace-cleanup-arch_ptrace-on-avr32.patch
+ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
+ptrace-cleanup-arch_ptrace-on-cris.patch
+ptrace-cleanup-arch_ptrace-on-frv.patch
+ptrace-cleanup-arch_ptrace-on-h8300.patch
+ptrace-cleanup-arch_ptrace-on-m32r.patch
+ptrace-cleanup-arch_ptrace-on-m68k.patch
+ptrace-cleanup-arch_ptrace-on-m68knommu.patch
+ptrace-cleanup-arch_ptrace-on-microblaze.patch
+ptrace-cleanup-arch_ptrace-on-mips.patch
+ptrace-cleanup-arch_ptrace-on-mn10300.patch
+ptrace-cleanup-arch_ptrace-on-parisc.patch
+ptrace-cleanup-arch_ptrace-on-powerpc.patch
+ptrace-cleanup-arch_ptrace-on-score.patch
+ptrace-cleanup-arch_ptrace-on-sh.patch
+ptrace-cleanup-arch_ptrace-on-sparc.patch
+ptrace-cleanup-arch_ptrace-on-tile.patch
+ptrace-cleanup-arch_ptrace-on-um.patch
+ptrace-cleanup-arch_ptrace-on-xtensa.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
 
