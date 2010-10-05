@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + softirq-cleanup-preempt-check.patch added to -mm tree
-Date: Tue, 05 Oct 2010 12:05:11 -0700
-Message-ID: <201010051905.o95J5BrS013873@imap1.linux-foundation.org>
+Subject: + dmi-log-board-system-and-bios-information-v2.patch added to -mm tree
+Date: Tue, 05 Oct 2010 12:32:26 -0700
+Message-ID: <201010051932.o95JWQjI015230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753292Ab0JETGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:06:06 -0400
+	by vger.kernel.org with ESMTP id S1755047Ab0JETcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:32:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de
+Cc: bjorn.helgaas@hp.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     softirq: cleanup preempt check
+     dmi: log board, system, and BIOS information
 has been added to the -mm tree.  Its filename is
-     softirq-cleanup-preempt-check.patch
+     dmi-log-board-system-and-bios-information-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: softirq: cleanup preempt check
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: dmi: log board, system, and BIOS information
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The preempt debugging check in the softirq code is ugly.  The print is
-lenghty and spread over several lines which makes the code difficult to
-read.  This was also the reason for the wrong spacing in the message.
+Put basic system information in the dmesg log.  There are lots of dmesg
+logs on the web, and it would be useful if they contained this information
+for debugging platform problems.  "BOARD/PRODUCT" format copied from
+show_regs_common(), which is used in the oops path.
 
-So move the check into a separate inlined function and make the print text
-a one-liner for easier grepping.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/firmware/dmi_scan.c |   32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-diff -puN kernel/softirq.c~softirq-cleanup-preempt-check kernel/softirq.c
---- a/kernel/softirq.c~softirq-cleanup-preempt-check
-+++ a/kernel/softirq.c
-@@ -177,6 +177,17 @@ void local_bh_enable_ip(unsigned long ip
+diff -puN drivers/firmware/dmi_scan.c~dmi-log-board-system-and-bios-information-v2 drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi-log-board-system-and-bios-information-v2
++++ a/drivers/firmware/dmi_scan.c
+@@ -2,6 +2,7 @@
+ #include <linux/string.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/ctype.h>
+ #include <linux/dmi.h>
+ #include <linux/efi.h>
+ #include <linux/bootmem.h>
+@@ -361,6 +362,33 @@ static void __init dmi_decode(const stru
+ 	}
  }
- EXPORT_SYMBOL(local_bh_enable_ip);
  
-+static inline void softirq_preempt_check(struct softirq_action *h,
-+		int prev_count)
++static void __init print_filtered(const char *info)
 +{
-+	if (unlikely(prev_count != preempt_count())) {
-+		printk(KERN_ERR "huh, entered softirq %td %s %pf with preempt_count %08x, exited with %08x?\n",
-+			h - softirq_vec, softirq_to_name[h - softirq_vec],
-+			h->action, prev_count, preempt_count());
-+		preempt_count() = prev_count;
-+	}
++	const char *p;
++
++	if (!info)
++		return;
++
++	for (p = info; *p; p++)
++		if (isprint(*p))
++			printk(KERN_CONT "%c", *p);
++		else
++			printk(KERN_CONT "\\x%02x", *p & 0xff);
 +}
 +
- /*
-  * We restart softirq processing MAX_SOFTIRQ_RESTART times,
-  * and we fall back to softirqd after that.
-@@ -218,14 +229,8 @@ restart:
- 			trace_softirq_entry(h, softirq_vec);
- 			h->action(h);
- 			trace_softirq_exit(h, softirq_vec);
--			if (unlikely(prev_count != preempt_count())) {
--				printk(KERN_ERR "huh, entered softirq %td %s "
--				       "%pf with preempt_count %08x,"
--				       " exited with %08x?\n", h - softirq_vec,
--				       softirq_to_name[h - softirq_vec],
--				       h->action, prev_count, preempt_count());
--				preempt_count() = prev_count;
--			}
++static void __init dmi_dump_ids(void)
++{
++	printk(KERN_DEBUG "DMI: ");
++	print_filtered(dmi_get_system_info(DMI_BOARD_NAME));
++	printk(KERN_CONT "/");
++	print_filtered(dmi_get_system_info(DMI_PRODUCT_NAME));
++	printk(KERN_CONT ", BIOS ");
++	print_filtered(dmi_get_system_info(DMI_BIOS_VERSION));
++	printk(KERN_CONT " ");
++	print_filtered(dmi_get_system_info(DMI_BIOS_DATE));
++	printk(KERN_CONT "\n");
++}
 +
-+			softirq_preempt_check(h, prev_count);
- 
- 			rcu_bh_qs(cpu);
- 		}
+ static int __init dmi_present(const char __iomem *p)
+ {
+ 	u8 buf[15];
+@@ -381,8 +409,10 @@ static int __init dmi_present(const char
+ 			       buf[14] >> 4, buf[14] & 0xF);
+ 		else
+ 			printk(KERN_INFO "DMI present.\n");
+-		if (dmi_walk_early(dmi_decode) == 0)
++		if (dmi_walk_early(dmi_decode) == 0) {
++			dmi_dump_ids();
+ 			return 0;
++		}
+ 	}
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 linux-next.patch
-drivers-media-ir-ene_irc-fix-null-dereference.patch
-softirq-improve-preempt-count-error-message.patch
-softirq-cleanup-preempt-check.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-hpet-unmap-unused-i-o-space.patch
+dmi-log-board-system-and-bios-information-v2.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
 
