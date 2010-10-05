@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:18 -0700
-Message-ID: <201010052128.o95LSIvl021115@imap1.linux-foundation.org>
+Subject: + cgroup-notify-ns_cgroup-deprecated.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:53:27 -0700
+Message-ID: <201010052153.o95LrRAA022283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750742Ab0JEVbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:01 -0400
+	by vger.kernel.org with ESMTP id S1755326Ab0JEVxe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com
+Cc: daniel.lezcano@free.fr, menage@google.com
 
 
 The patch titled
-     vmalloc: rename temporary variable in __insert_vmap_area()
+     cgroup: notify ns_cgroup deprecated
 has been added to the -mm tree.  Its filename is
-     vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
+     cgroup-notify-ns_cgroup-deprecated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc: rename temporary variable in __insert_vmap_area()
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: cgroup: notify ns_cgroup deprecated
+From: Daniel Lezcano <daniel.lezcano@free.fr>
 
-Rename redundant 'tmp' to fix following sparse warnings:
+The ns_cgroup will be removed very soon.  Let's warn, for this version,
+ns_cgroup is deprecated.
 
- mm/vmalloc.c:296:34: warning: symbol 'tmp' shadows an earlier one
- mm/vmalloc.c:293:24: originally declared here
+Make ns_cgroup and clone_children exclusive.  If the clone_children is set
+and the ns_cgroup is mounted, let's fail with EINVAL when the ns_cgroup
+subsys is created (a printk will help the user to understand why the
+creation fails).
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Update the feature remove schedule file with the deprecated ns_cgroup.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/feature-removal-schedule.txt |   17 +++++++++++++++++
+ kernel/ns_cgroup.c                         |    8 ++++++++
+ 2 files changed, 25 insertions(+)
 
-diff -puN mm/vmalloc.c~vmalloc-rename-temporary-variable-in-__insert_vmap_area mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-rename-temporary-variable-in-__insert_vmap_area
-+++ a/mm/vmalloc.c
-@@ -300,13 +300,13 @@ static void __insert_vmap_area(struct vm
- 	struct rb_node *tmp;
+diff -puN Documentation/feature-removal-schedule.txt~cgroup-notify-ns_cgroup-deprecated Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~cgroup-notify-ns_cgroup-deprecated
++++ a/Documentation/feature-removal-schedule.txt
+@@ -545,4 +545,21 @@ Why:    This is a legacy interface which
+ Who:    NeilBrown <neilb@suse.de>
  
- 	while (*p) {
--		struct vmap_area *tmp;
-+		struct vmap_area *tmp_va;
+ ----------------------------
++
++What:   namespace cgroup (ns_cgroup)
++When:   2.6.38
++Why:    The ns_cgroup leads to some problems:
++	* cgroup creation is out-of-control
++	* cgroup name can conflict when pids are looping
++	* it is not possible to have a single process handling
++	a lot of namespaces without falling in a exponential creation time
++	* we may want to create a namespace without creating a cgroup
++
++	The ns_cgroup is replaced by a compatibility flag 'clone_children',
++	where a newly created cgroup will copy the parent cgroup values.
++	The userspace has to manually create a cgroup and add a task to
++	the 'tasks' file.
++Who:    Daniel Lezcano <daniel.lezcano@free.fr>
++
++----------------------------
+ 	
+diff -puN kernel/ns_cgroup.c~cgroup-notify-ns_cgroup-deprecated kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~cgroup-notify-ns_cgroup-deprecated
++++ a/kernel/ns_cgroup.c
+@@ -85,6 +85,14 @@ static struct cgroup_subsys_state *ns_cr
+ 		return ERR_PTR(-EPERM);
+ 	if (!cgroup_is_descendant(cgroup, current))
+ 		return ERR_PTR(-EPERM);
++	if (test_bit(CGRP_CLONE_CHILDREN, &cgroup->flags)) {
++		printk("ns_cgroup can't be created with parent "
++		       "'clone_children' set.\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	printk_once("ns_cgroup deprecated: consider using the "
++		    "'clone_children' flag without the ns_cgroup.\n");
  
- 		parent = *p;
--		tmp = rb_entry(parent, struct vmap_area, rb_node);
--		if (va->va_start < tmp->va_end)
-+		tmp_va = rb_entry(parent, struct vmap_area, rb_node);
-+		if (va->va_start < tmp_va->va_end)
- 			p = &(*p)->rb_left;
--		else if (va->va_end > tmp->va_start)
-+		else if (va->va_end > tmp_va->va_start)
- 			p = &(*p)->rb_right;
- 		else
- 			BUG();
+ 	ns_cgroup = kzalloc(sizeof(*ns_cgroup), GFP_KERNEL);
+ 	if (!ns_cgroup)
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from daniel.lezcano@free.fr are
 
-origin.patch
 linux-next.patch
-vfs-remove-a-warning-on-open_fmode.patch
-vfs-add-__fmode_exec.patch
-mm-cleanup-gfp_zone-fix-sparse-warnings.patch
-mm-remove-temporary-variable-on-generic_file_direct_write.patch
-mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
-mm-wrap-get_locked_pte-using-__cond_lock.patch
-mm-add-lock-release-annotation-on-do_wp_page.patch
-mm-wrap-follow_pte-using-__cond_lock.patch
-rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
-rmap-wrap-page_check_address-using-__cond_lock.patch
-rmap-make-anon_vma_free-static.patch
-vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
-vmalloc-annotate-lock-context-change-on-s_start-stop.patch
-mm-declare-some-external-symbols.patch
-vmstat-include-compactionh-when-config_compaction.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-init-mark-__user-address-space-on-string-literals.patch
-kernel-userc-add-lock-release-annotation-on-free_user.patch
-printk-fixup-declaration-of-kmsg_reasons.patch
-printk-add-lock-context-annotation.patch
-printk-change-type-of-boot_delay-to-int.patch
-printk-declare-printk_ratelimit_state-in-ratelimith.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-ptrace-change-signature-of-sys_ptrace-and-friends.patch
-ptrace-cleanup-ptrace_request.patch
-ptrace-change-signature-of-arch_ptrace.patch
-ptrace-cleanup-arch_ptrace-on-x86.patch
-ptrace-cleanup-arch_ptrace-on-arm.patch
-ptrace-cleanup-arch_ptrace-on-avr32.patch
-ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
-ptrace-cleanup-arch_ptrace-on-cris.patch
-ptrace-cleanup-arch_ptrace-on-frv.patch
-ptrace-cleanup-arch_ptrace-on-h8300.patch
-ptrace-cleanup-arch_ptrace-on-m32r.patch
-ptrace-cleanup-arch_ptrace-on-m68k.patch
-ptrace-cleanup-arch_ptrace-on-m68knommu.patch
-ptrace-cleanup-arch_ptrace-on-microblaze.patch
-ptrace-cleanup-arch_ptrace-on-mips.patch
-ptrace-cleanup-arch_ptrace-on-mn10300.patch
-ptrace-cleanup-arch_ptrace-on-parisc.patch
-ptrace-cleanup-arch_ptrace-on-powerpc.patch
-ptrace-cleanup-arch_ptrace-on-score.patch
-ptrace-cleanup-arch_ptrace-on-sh.patch
-ptrace-cleanup-arch_ptrace-on-sparc.patch
-ptrace-cleanup-arch_ptrace-on-tile.patch
-ptrace-cleanup-arch_ptrace-on-um.patch
-ptrace-cleanup-arch_ptrace-on-xtensa.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
+cgroup-add-clone_children-control-file.patch
+cgroup-make-the-mount-options-parsing-more-accurate.patch
+cgroup-notify-ns_cgroup-deprecated.patch
 
