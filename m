@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-arch_ptrace-on-m68k.patch added to -mm tree
-Date: Mon, 04 Oct 2010 16:41:55 -0700
-Message-ID: <201010042341.o94NftkO022745@imap1.linux-foundation.org>
+Subject: + serial8250-ratelimit-too-much-work-error-fix.patch added to -mm tree
+Date: Mon, 04 Oct 2010 17:09:11 -0700
+Message-ID: <201010050009.o9509Bxm024111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751487Ab0JDXz0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 19:55:26 -0400
+	by vger.kernel.org with ESMTP id S1752610Ab0JEAJn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Oct 2010 20:09:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, alan@linux.intel.com, dsd@laptop.org, greg@kroah.com
 
 
 The patch titled
-     ptrace: cleanup arch_ptrace() on m68k
+     serial8250-ratelimit-too-much-work-error-fix
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-arch_ptrace-on-m68k.patch
+     serial8250-ratelimit-too-much-work-error-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,183 +33,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup arch_ptrace() on m68k
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: serial8250-ratelimit-too-much-work-error-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use new 'regno', 'datap' variables in order to remove duplicated
-expressions and unnecessary castings.
+use the superior printk_ratelimited()
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/ptrace.c |   46 ++++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ drivers/serial/8250.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/m68k/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-m68k arch/m68k/kernel/ptrace.c
---- a/arch/m68k/kernel/ptrace.c~ptrace-cleanup-arch_ptrace-on-m68k
-+++ a/arch/m68k/kernel/ptrace.c
-@@ -161,51 +161,52 @@ long arch_ptrace(struct task_struct *chi
- {
- 	unsigned long tmp;
- 	int i, ret = 0;
-+	int regno = addr >> 2; /* temporary hack. */
-+	unsigned long __user *datap = (unsigned long __user *) data;
+diff -puN drivers/serial/8250.c~serial8250-ratelimit-too-much-work-error-fix drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial8250-ratelimit-too-much-work-error-fix
++++ a/drivers/serial/8250.c
+@@ -1606,9 +1606,8 @@ static irqreturn_t serial8250_interrupt(
  
- 	switch (request) {
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR:
- 		if (addr & 3)
- 			goto out_eio;
--		addr >>= 2;	/* temporary hack. */
- 
--		if (addr >= 0 && addr < 19) {
--			tmp = get_reg(child, addr);
--		} else if (addr >= 21 && addr < 49) {
--			tmp = child->thread.fp[addr - 21];
-+		if (regno >= 0 && regno < 19) {
-+			tmp = get_reg(child, regno);
-+		} else if (regno >= 21 && regno < 49) {
-+			tmp = child->thread.fp[regno - 21];
- 			/* Convert internal fpu reg representation
- 			 * into long double format
- 			 */
--			if (FPU_IS_EMU && (addr < 45) && !(addr % 3))
-+			if (FPU_IS_EMU && (regno < 45) && !(regno % 3))
- 				tmp = ((tmp & 0xffff0000) << 15) |
- 				      ((tmp & 0x0000ffff) << 16);
- 		} else
- 			goto out_eio;
--		ret = put_user(tmp, (unsigned long *)data);
-+		ret = put_user(tmp, datap);
- 		break;
- 
--	case PTRACE_POKEUSR:	/* write the word at location addr in the USER area */
-+	case PTRACE_POKEUSR:
-+	/* write the word at location addr in the USER area */
- 		if (addr & 3)
- 			goto out_eio;
--		addr >>= 2;	/* temporary hack. */
- 
--		if (addr == PT_SR) {
-+		if (regno == PT_SR) {
- 			data &= SR_MASK;
- 			data |= get_reg(child, PT_SR) & ~SR_MASK;
+ 		if (l == i->head && pass_counter++ > PASS_LIMIT) {
+ 			/* If we hit this, we're dead. */
+-			if (printk_ratelimit())
+-				printk(KERN_ERR "serial8250: too much work for "
+-					"irq%d\n", irq);
++			printk_ratelimited(KERN_ERR
++				"serial8250: too much work for irq%d\n", irq);
+ 			break;
  		}
--		if (addr >= 0 && addr < 19) {
--			if (put_reg(child, addr, data))
-+		if (regno >= 0 && regno < 19) {
-+			if (put_reg(child, regno, data))
- 				goto out_eio;
--		} else if (addr >= 21 && addr < 48) {
-+		} else if (regno >= 21 && regno < 48) {
- 			/* Convert long double format
- 			 * into internal fpu reg representation
- 			 */
--			if (FPU_IS_EMU && (addr < 45) && !(addr % 3)) {
-+			if (FPU_IS_EMU && (regno < 45) && !(regno % 3)) {
- 				data <<= 15;
- 				data = (data & 0xffff0000) |
- 				       ((data & 0x0000ffff) >> 1);
- 			}
--			child->thread.fp[addr - 21] = data;
-+			child->thread.fp[regno - 21] = data;
- 		} else
- 			goto out_eio;
- 		break;
-@@ -213,16 +214,16 @@ long arch_ptrace(struct task_struct *chi
- 	case PTRACE_GETREGS:	/* Get all gp regs from the child. */
- 		for (i = 0; i < 19; i++) {
- 			tmp = get_reg(child, i);
--			ret = put_user(tmp, (unsigned long *)data);
-+			ret = put_user(tmp, datap);
- 			if (ret)
- 				break;
--			data += sizeof(unsigned long);
-+			datap++;
- 		}
- 		break;
- 
- 	case PTRACE_SETREGS:	/* Set all gp regs in the child. */
- 		for (i = 0; i < 19; i++) {
--			ret = get_user(tmp, (unsigned long *)data);
-+			ret = get_user(tmp, datap);
- 			if (ret)
- 				break;
- 			if (i == PT_SR) {
-@@ -230,25 +231,24 @@ long arch_ptrace(struct task_struct *chi
- 				tmp |= get_reg(child, PT_SR) & ~SR_MASK;
- 			}
- 			put_reg(child, i, tmp);
--			data += sizeof(unsigned long);
-+			datap++;
- 		}
- 		break;
- 
- 	case PTRACE_GETFPREGS:	/* Get the child FPU state. */
--		if (copy_to_user((void *)data, &child->thread.fp,
-+		if (copy_to_user(datap, &child->thread.fp,
- 				 sizeof(struct user_m68kfp_struct)))
- 			ret = -EFAULT;
- 		break;
- 
- 	case PTRACE_SETFPREGS:	/* Set the child FPU state. */
--		if (copy_from_user(&child->thread.fp, (void *)data,
-+		if (copy_from_user(&child->thread.fp, datap,
- 				   sizeof(struct user_m68kfp_struct)))
- 			ret = -EFAULT;
- 		break;
- 
- 	case PTRACE_GET_THREAD_AREA:
--		ret = put_user(task_thread_info(child)->tp_value,
--			       (unsigned long __user *)data);
-+		ret = put_user(task_thread_info(child)->tp_value, datap);
- 		break;
- 
- 	default:
+ 	} while (l != end);
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
 linux-next.patch
-vfs-remove-a-warning-on-open_fmode.patch
-vfs-add-__fmode_exec.patch
-mm-cleanup-gfp_zone-fix-sparse-warnings.patch
-init-mark-__user-address-space-on-string-literals.patch
-kernel-userc-add-lock-release-annotation-on-free_user.patch
-printk-fixup-declaration-of-kmsg_reasons.patch
-printk-add-lock-context-annotation.patch
-printk-change-type-of-boot_delay-to-int.patch
-printk-declare-printk_ratelimit_state-in-ratelimith.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+sctp-prevent-reading-out-of-bounds-memory.patch
+drivers-net-tulip-de4x5c-fix-copy-length-in-de4x5_ioctl-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+usb-storage-add-new-no_read_disc_info-quirk.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+m68k-__pa-cast-arg-to-long.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
 printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-ptrace-change-signature-of-sys_ptrace-and-friends.patch
-ptrace-cleanup-ptrace_request.patch
-ptrace-change-signature-of-arch_ptrace.patch
-ptrace-cleanup-arch_ptrace-on-x86.patch
-ptrace-cleanup-arch_ptrace-on-arm.patch
-ptrace-cleanup-arch_ptrace-on-avr32.patch
-ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
-ptrace-cleanup-arch_ptrace-on-cris.patch
-ptrace-cleanup-arch_ptrace-on-frv.patch
-ptrace-cleanup-arch_ptrace-on-h8300.patch
-ptrace-cleanup-arch_ptrace-on-m32r.patch
-ptrace-cleanup-arch_ptrace-on-m68k.patch
-ptrace-cleanup-arch_ptrace-on-microblaze.patch
-ptrace-cleanup-arch_ptrace-on-mips.patch
-ptrace-cleanup-arch_ptrace-on-mn10300.patch
-ptrace-cleanup-arch_ptrace-on-parisc.patch
-ptrace-cleanup-arch_ptrace-on-powerpc.patch
-ptrace-cleanup-arch_ptrace-on-score.patch
-ptrace-cleanup-arch_ptrace-on-sh.patch
-ptrace-cleanup-arch_ptrace-on-sparc.patch
-ptrace-cleanup-arch_ptrace-on-tile.patch
-ptrace-cleanup-arch_ptrace-on-um.patch
-ptrace-cleanup-arch_ptrace-on-xtensa.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
