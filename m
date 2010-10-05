@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-notify-ns_cgroup-deprecated.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:53:27 -0700
-Message-ID: <201010052153.o95LrRAA022283@imap1.linux-foundation.org>
+Subject: + leds-update-lp552x-support-kconfig-and-makefile.patch added to -mm tree
+Date: Tue, 05 Oct 2010 15:03:40 -0700
+Message-ID: <201010052203.o95M3eAm022804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755326Ab0JEVxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:53:34 -0400
+	by vger.kernel.org with ESMTP id S1751486Ab0JEWEa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 18:04:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel.lezcano@free.fr, menage@google.com
+Cc: samu.p.onkalo@nokia.com, khali@linux-fr.org, rpurdie@rpsys.net
 
 
 The patch titled
-     cgroup: notify ns_cgroup deprecated
+     leds: update LP552x support Kconfig and Makefile
 has been added to the -mm tree.  Its filename is
-     cgroup-notify-ns_cgroup-deprecated.patch
+     leds-update-lp552x-support-kconfig-and-makefile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: notify ns_cgroup deprecated
-From: Daniel Lezcano <daniel.lezcano@free.fr>
+Subject: leds: update LP552x support Kconfig and Makefile
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-The ns_cgroup will be removed very soon.  Let's warn, for this version,
-ns_cgroup is deprecated.
+Provide configuration and compilation support for LP5521 and LP5523
 
-Make ns_cgroup and clone_children exclusive.  If the clone_children is set
-and the ns_cgroup is mounted, let's fail with EINVAL when the ns_cgroup
-subsys is created (a printk will help the user to understand why the
-creation fails).
-
-Update the feature remove schedule file with the deprecated ns_cgroup.
-
-Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
-Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   17 +++++++++++++++++
- kernel/ns_cgroup.c                         |    8 ++++++++
- 2 files changed, 25 insertions(+)
+ drivers/leds/Kconfig  |   18 ++++++++++++++++++
+ drivers/leds/Makefile |    2 ++
+ 2 files changed, 20 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~cgroup-notify-ns_cgroup-deprecated Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~cgroup-notify-ns_cgroup-deprecated
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -545,4 +545,21 @@ Why:    This is a legacy interface which
- Who:    NeilBrown <neilb@suse.de>
+diff -puN drivers/leds/Kconfig~leds-update-lp552x-support-kconfig-and-makefile drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-update-lp552x-support-kconfig-and-makefile
++++ a/drivers/leds/Kconfig
+@@ -181,6 +181,24 @@ config LEDS_LP3944
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called leds-lp3944.
  
- ----------------------------
++config LEDS_LP5521
++	tristate "LED Support for N.S. LP5521 LED driver chip"
++	depends on LEDS_CLASS && I2C
++	help
++	  If you say yes here you get support for the National Semiconductor
++	  LP5521 LED driver. It is 3 channel chip with programmable engines.
++	  Driver provides direct control via LED class and interface for
++	  programming the engines.
 +
-+What:   namespace cgroup (ns_cgroup)
-+When:   2.6.38
-+Why:    The ns_cgroup leads to some problems:
-+	* cgroup creation is out-of-control
-+	* cgroup name can conflict when pids are looping
-+	* it is not possible to have a single process handling
-+	a lot of namespaces without falling in a exponential creation time
-+	* we may want to create a namespace without creating a cgroup
++config LEDS_LP5523
++	tristate "LED Support for N.S. LP5523 LED driver chip"
++	depends on LEDS_CLASS && I2C
++	help
++	  If you say yes here you get support for the National Semiconductor
++	  LP5523 LED driver. It is 9 channel chip with programmable engines.
++	  Driver provides direct control via LED class and interface for
++	  programming the engines.
 +
-+	The ns_cgroup is replaced by a compatibility flag 'clone_children',
-+	where a newly created cgroup will copy the parent cgroup values.
-+	The userspace has to manually create a cgroup and add a task to
-+	the 'tasks' file.
-+Who:    Daniel Lezcano <daniel.lezcano@free.fr>
-+
-+----------------------------
- 	
-diff -puN kernel/ns_cgroup.c~cgroup-notify-ns_cgroup-deprecated kernel/ns_cgroup.c
---- a/kernel/ns_cgroup.c~cgroup-notify-ns_cgroup-deprecated
-+++ a/kernel/ns_cgroup.c
-@@ -85,6 +85,14 @@ static struct cgroup_subsys_state *ns_cr
- 		return ERR_PTR(-EPERM);
- 	if (!cgroup_is_descendant(cgroup, current))
- 		return ERR_PTR(-EPERM);
-+	if (test_bit(CGRP_CLONE_CHILDREN, &cgroup->flags)) {
-+		printk("ns_cgroup can't be created with parent "
-+		       "'clone_children' set.\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	printk_once("ns_cgroup deprecated: consider using the "
-+		    "'clone_children' flag without the ns_cgroup.\n");
- 
- 	ns_cgroup = kzalloc(sizeof(*ns_cgroup), GFP_KERNEL);
- 	if (!ns_cgroup)
+ config LEDS_CLEVO_MAIL
+ 	tristate "Mail LED on Clevo notebook"
+ 	depends on X86 && SERIO_I8042 && DMI
+diff -puN drivers/leds/Makefile~leds-update-lp552x-support-kconfig-and-makefile drivers/leds/Makefile
+--- a/drivers/leds/Makefile~leds-update-lp552x-support-kconfig-and-makefile
++++ a/drivers/leds/Makefile
+@@ -24,6 +24,8 @@ obj-$(CONFIG_LEDS_SUNFIRE)		+= leds-sunf
+ obj-$(CONFIG_LEDS_PCA9532)		+= leds-pca9532.o
+ obj-$(CONFIG_LEDS_GPIO)			+= leds-gpio.o
+ obj-$(CONFIG_LEDS_LP3944)		+= leds-lp3944.o
++obj-$(CONFIG_LEDS_LP5521)		+= leds-lp5521.o
++obj-$(CONFIG_LEDS_LP5523)		+= leds-lp5523.o
+ obj-$(CONFIG_LEDS_CLEVO_MAIL)		+= leds-clevo-mail.o
+ obj-$(CONFIG_LEDS_HP6XX)		+= leds-hp6xx.o
+ obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
 _
 
-Patches currently in -mm which might be from daniel.lezcano@free.fr are
+Patches currently in -mm which might be from samu.p.onkalo@nokia.com are
 
 linux-next.patch
-cgroup-add-clone_children-control-file.patch
-cgroup-make-the-mount-options-parsing-more-accurate.patch
-cgroup-notify-ns_cgroup-deprecated.patch
+leds-driver-for-national-semiconductor-lp5521-chip.patch
+leds-driver-for-national-semiconductors-lp5523-chip.patch
+leds-update-lp552x-support-kconfig-and-makefile.patch
+documentation-led-drivers-lp5521-and-lp5523.patch
 
