@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-wrap-page_check_address-using-__cond_lock.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:14 -0700
-Message-ID: <201010052128.o95LSEpq021089@imap1.linux-foundation.org>
+Subject: + rmap-make-anon_vma_free-static.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:16 -0700
+Message-ID: <201010052128.o95LSG5W021112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58168 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752565Ab0JEVbD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:03 -0400
+	by vger.kernel.org with ESMTP id S1750742Ab0JEVbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     rmap: wrap page_check_address() using __cond_lock()
+     rmap: make anon_vma_[chain_]free() static
 has been added to the -mm tree.  Its filename is
-     rmap-wrap-page_check_address-using-__cond_lock.patch
+     rmap-make-anon_vma_free-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: wrap page_check_address() using __cond_lock()
+Subject: rmap: make anon_vma_[chain_]free() static
 From: Namhyung Kim <namhyung@gmail.com>
 
-The page_check_address() conditionally grabs *@ptlp in case of returning
-non-NULL.  Rename and wrap it using __cond_lock() removes following
-warnings from sparse:
-
- mm/rmap.c:472:9: warning: context imbalance in 'page_mapped_in_vma' - unexpected unlock
- mm/rmap.c:524:9: warning: context imbalance in 'page_referenced_one' - unexpected unlock
- mm/rmap.c:706:9: warning: context imbalance in 'page_mkclean_one' - unexpected unlock
- mm/rmap.c:1066:9: warning: context imbalance in 'try_to_unmap_one' - unexpected unlock
+Make anon_vma_free() and anon_vma_chain_free() static.  They are called
+only in rmap.c and corresponding alloc functions are already static.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   13 ++++++++++++-
- mm/rmap.c            |    2 +-
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ include/linux/rmap.h |    1 -
+ mm/rmap.c            |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rmap.h~rmap-wrap-page_check_address-using-__cond_lock include/linux/rmap.h
---- a/include/linux/rmap.h~rmap-wrap-page_check_address-using-__cond_lock
+diff -puN include/linux/rmap.h~rmap-make-anon_vma_free-static include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-make-anon_vma_free-static
 +++ a/include/linux/rmap.h
-@@ -205,9 +205,20 @@ int try_to_unmap_one(struct page *, stru
- /*
-  * Called from mm/filemap_xip.c to unmap empty zero page
-  */
--pte_t *page_check_address(struct page *, struct mm_struct *,
-+pte_t *__page_check_address(struct page *, struct mm_struct *,
- 				unsigned long, spinlock_t **, int);
+@@ -148,7 +148,6 @@ void unlink_anon_vmas(struct vm_area_str
+ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+ int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+ void __anon_vma_link(struct vm_area_struct *);
+-void anon_vma_free(struct anon_vma *);
  
-+static inline pte_t *page_check_address(struct page *page, struct mm_struct *mm,
-+					unsigned long address,
-+					spinlock_t **ptlp, int sync)
-+{
-+	pte_t *ptep;
-+
-+	__cond_lock(*ptlp, ptep = __page_check_address(page, mm, address,
-+						       ptlp, sync));
-+	return ptep;
-+}
-+
- /*
-  * Used by swapoff to help locate where page is expected in vma.
-  */
-diff -puN mm/rmap.c~rmap-wrap-page_check_address-using-__cond_lock mm/rmap.c
---- a/mm/rmap.c~rmap-wrap-page_check_address-using-__cond_lock
+ static inline void anon_vma_merge(struct vm_area_struct *vma,
+ 				  struct vm_area_struct *next)
+diff -puN mm/rmap.c~rmap-make-anon_vma_free-static mm/rmap.c
+--- a/mm/rmap.c~rmap-make-anon_vma_free-static
 +++ a/mm/rmap.c
-@@ -409,7 +409,7 @@ unsigned long page_address_in_vma(struct
-  *
-  * On success returns with pte mapped and locked.
-  */
--pte_t *page_check_address(struct page *page, struct mm_struct *mm,
-+pte_t *__page_check_address(struct page *page, struct mm_struct *mm,
- 			  unsigned long address, spinlock_t **ptlp, int sync)
+@@ -70,7 +70,7 @@ static inline struct anon_vma *anon_vma_
+ 	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+ }
+ 
+-void anon_vma_free(struct anon_vma *anon_vma)
++static void anon_vma_free(struct anon_vma *anon_vma)
  {
- 	pgd_t *pgd;
+ 	kmem_cache_free(anon_vma_cachep, anon_vma);
+ }
+@@ -80,7 +80,7 @@ static inline struct anon_vma_chain *ano
+ 	return kmem_cache_alloc(anon_vma_chain_cachep, GFP_KERNEL);
+ }
+ 
+-void anon_vma_chain_free(struct anon_vma_chain *anon_vma_chain)
++static void anon_vma_chain_free(struct anon_vma_chain *anon_vma_chain)
+ {
+ 	kmem_cache_free(anon_vma_chain_cachep, anon_vma_chain);
+ }
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
