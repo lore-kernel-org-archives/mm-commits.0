@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-annotate-lock-context-change-on-s_start-stop.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:20 -0700
-Message-ID: <201010052128.o95LSKmP021118@imap1.linux-foundation.org>
+Subject: + vmstat-include-compactionh-when-config_compaction.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:24 -0700
+Message-ID: <201010052128.o95LSOrI021129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755896Ab0JEV2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:49 -0400
+	by vger.kernel.org with ESMTP id S1755896Ab0JEV26 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:28:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     vmalloc: annotate lock context change on s_start/stop()
+     vmstat: include compaction.h when CONFIG_COMPACTION
 has been added to the -mm tree.  Its filename is
-     vmalloc-annotate-lock-context-change-on-s_start-stop.patch
+     vmstat-include-compactionh-when-config_compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc: annotate lock context change on s_start/stop()
+Subject: vmstat: include compaction.h when CONFIG_COMPACTION
 From: Namhyung Kim <namhyung@gmail.com>
 
-s_start() and s_stop() grab/release vmlist_lock but were missing proper
-annotations.  Add them.
+This removes following warning from sparse:
+
+ mm/vmstat.c:466:5: warning: symbol 'fragmentation_index' was not declared. Should it be static?
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 ++
+ mm/vmstat.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN mm/vmalloc.c~vmalloc-annotate-lock-context-change-on-s_start-stop mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-annotate-lock-context-change-on-s_start-stop
-+++ a/mm/vmalloc.c
-@@ -2407,6 +2407,7 @@ void pcpu_free_vm_areas(struct vm_struct
+diff -puN mm/vmstat.c~vmstat-include-compactionh-when-config_compaction mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-include-compactionh-when-config_compaction
++++ a/mm/vmstat.c
+@@ -395,6 +395,8 @@ void zone_statistics(struct zone *prefer
+ #endif
  
- #ifdef CONFIG_PROC_FS
- static void *s_start(struct seq_file *m, loff_t *pos)
-+	__acquires(&vmlist_lock)
- {
- 	loff_t n = *pos;
- 	struct vm_struct *v;
-@@ -2433,6 +2434,7 @@ static void *s_next(struct seq_file *m, 
- }
- 
- static void s_stop(struct seq_file *m, void *p)
-+	__releases(&vmlist_lock)
- {
- 	read_unlock(&vmlist_lock);
- }
+ #ifdef CONFIG_COMPACTION
++#include <linux/compaction.h>
++
+ struct contig_page_info {
+ 	unsigned long free_pages;
+ 	unsigned long free_blocks_total;
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
