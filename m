@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-remove-duplicated-extern-declarations.patch added to -mm tree
-Date: Tue, 05 Oct 2010 15:11:11 -0700
-Message-ID: <201010052211.o95MBBgs023085@imap1.linux-foundation.org>
+Subject: + bitops-make-asm-generic-bitops-findh-more-generic.patch added to -mm tree
+Date: Tue, 05 Oct 2010 15:11:09 -0700
+Message-ID: <201010052211.o95MB9YB023081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756653Ab0JEWLo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 18:11:44 -0400
+	by vger.kernel.org with ESMTP id S1757040Ab0JEWL7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 18:11:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arnd@arndb.de
+Cc: akinobu.mita@gmail.com, arnd@arndb.de, cmetcalf@tilera.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     bitops: remove duplicated extern declarations
+     bitops: make asm-generic/bitops/find.h more generic
 has been added to the -mm tree.  Its filename is
-     bitops-remove-duplicated-extern-declarations.patch
+     bitops-make-asm-generic-bitops-findh-more-generic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: remove duplicated extern declarations
+Subject: bitops: make asm-generic/bitops/find.h more generic
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-If CONFIG_GENERIC_FIND_NEXT_BIT is enabled, find_next_bit() and
-find_next_zero_bit() are doubly declared in asm-generic/bitops/find.h and
+asm-generic/bitops/find.h has the extern declarations of find_next_bit()
+and find_next_zero_bit() and the macro definitions of find_first_bit() and
+find_first_zero_bit().  It is only usable by the architectures which
+enables CONFIG_GENERIC_FIND_NEXT_BIT and disables
+CONFIG_GENERIC_FIND_FIRST_BIT.
+
+x86 and tile enable both CONFIG_GENERIC_FIND_NEXT_BIT and
+CONFIG_GENERIC_FIND_FIRST_BIT.  These architectures cannot include
+asm-generic/bitops/find.h in their asm/bitops.h.  So ifdefed extern
+declarations of find_first_bit and find_first_zero_bit() are put in
 linux/bitops.h.
 
-asm/bitops.h includes asm-generic/bitops/find.h if and only if the
-architecture enables CONFIG_GENERIC_FIND_NEXT_BIT.  And asm/bitops.h is
-included by linux/bitops.h
-
-So we can just remove the extern declarations of find_next_bit() and
-find_next_zero_bit() in linux/bitops.h.
-
-Also we can remove unneeded #ifndef CONFIG_GENERIC_FIND_NEXT_BIT in
-asm-generic/bitops/find.h.
+This makes asm-generic/bitops/find.h usable by these architectures and use
+it.  Also this change is needed for the forthcoming duplicated extern
+declarations cleanup.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/find.h |   14 ++++++++++++--
- include/linux/bitops.h            |   23 -----------------------
- 2 files changed, 12 insertions(+), 25 deletions(-)
+ arch/tile/include/asm/bitops.h    |    1 +
+ arch/x86/include/asm/bitops.h     |    2 ++
+ include/asm-generic/bitops/find.h |   25 +++++++++++++++++++++++++
+ include/linux/bitops.h            |   22 ----------------------
+ 4 files changed, 28 insertions(+), 22 deletions(-)
 
-diff -puN include/asm-generic/bitops/find.h~bitops-remove-duplicated-extern-declarations include/asm-generic/bitops/find.h
---- a/include/asm-generic/bitops/find.h~bitops-remove-duplicated-extern-declarations
+diff -puN arch/tile/include/asm/bitops.h~bitops-make-asm-generic-bitops-findh-more-generic arch/tile/include/asm/bitops.h
+--- a/arch/tile/include/asm/bitops.h~bitops-make-asm-generic-bitops-findh-more-generic
++++ a/arch/tile/include/asm/bitops.h
+@@ -120,6 +120,7 @@ static inline unsigned long __arch_hweig
+ 
+ #include <asm-generic/bitops/const_hweight.h>
+ #include <asm-generic/bitops/lock.h>
++#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/ext2-non-atomic.h>
+ #include <asm-generic/bitops/minix.h>
+diff -puN arch/x86/include/asm/bitops.h~bitops-make-asm-generic-bitops-findh-more-generic arch/x86/include/asm/bitops.h
+--- a/arch/x86/include/asm/bitops.h~bitops-make-asm-generic-bitops-findh-more-generic
++++ a/arch/x86/include/asm/bitops.h
+@@ -440,6 +440,8 @@ static inline int fls(int x)
+ 
+ #ifdef __KERNEL__
+ 
++#include <asm-generic/bitops/find.h>
++
+ #include <asm-generic/bitops/sched.h>
+ 
+ #define ARCH_HAS_FAST_MULTIPLIER 1
+diff -puN include/asm-generic/bitops/find.h~bitops-make-asm-generic-bitops-findh-more-generic include/asm-generic/bitops/find.h
+--- a/include/asm-generic/bitops/find.h~bitops-make-asm-generic-bitops-findh-more-generic
 +++ a/include/asm-generic/bitops/find.h
-@@ -1,13 +1,23 @@
- #ifndef _ASM_GENERIC_BITOPS_FIND_H_
- #define _ASM_GENERIC_BITOPS_FIND_H_
- 
--#ifndef CONFIG_GENERIC_FIND_NEXT_BIT
-+/**
-+ * find_next_bit - find the next set bit in a memory region
-+ * @addr: The address to base the search on
-+ * @offset: The bitnumber to start searching at
-+ * @size: The bitmap size in bits
-+ */
- extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
- 		size, unsigned long offset);
- 
-+/**
-+ * find_next_zero_bit - find the next cleared bit in a memory region
-+ * @addr: The address to base the search on
-+ * @offset: The bitnumber to start searching at
-+ * @size: The bitmap size in bits
-+ */
- extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
+@@ -9,7 +9,32 @@ extern unsigned long find_next_zero_bit(
  		long size, unsigned long offset);
--#endif
+ #endif
  
- #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
++#ifdef CONFIG_GENERIC_FIND_FIRST_BIT
++
++/**
++ * find_first_bit - find the first set bit in a memory region
++ * @addr: The address to start the search at
++ * @size: The maximum size to search
++ *
++ * Returns the bit number of the first set bit.
++ */
++extern unsigned long find_first_bit(const unsigned long *addr,
++				    unsigned long size);
++
++/**
++ * find_first_zero_bit - find the first cleared bit in a memory region
++ * @addr: The address to start the search at
++ * @size: The maximum size to search
++ *
++ * Returns the bit number of the first cleared bit.
++ */
++extern unsigned long find_first_zero_bit(const unsigned long *addr,
++					 unsigned long size);
++#else /* CONFIG_GENERIC_FIND_FIRST_BIT */
++
+ #define find_first_bit(addr, size) find_next_bit((addr), (size), 0)
+ #define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
  
-diff -puN include/linux/bitops.h~bitops-remove-duplicated-extern-declarations include/linux/bitops.h
---- a/include/linux/bitops.h~bitops-remove-duplicated-extern-declarations
++#endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
++
+ #endif /*_ASM_GENERIC_BITOPS_FIND_H_ */
+diff -puN include/linux/bitops.h~bitops-make-asm-generic-bitops-findh-more-generic include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-make-asm-generic-bitops-findh-more-generic
 +++ a/include/linux/bitops.h
-@@ -149,28 +149,5 @@ extern unsigned long find_last_bit(const
- 				   unsigned long size);
- #endif /* CONFIG_GENERIC_FIND_LAST_BIT */
+@@ -136,28 +136,6 @@ static inline unsigned long __ffs64(u64 
+ }
  
--#ifdef CONFIG_GENERIC_FIND_NEXT_BIT
+ #ifdef __KERNEL__
+-#ifdef CONFIG_GENERIC_FIND_FIRST_BIT
 -
 -/**
-- * find_next_bit - find the next set bit in a memory region
-- * @addr: The address to base the search on
-- * @offset: The bitnumber to start searching at
-- * @size: The bitmap size in bits
+- * find_first_bit - find the first set bit in a memory region
+- * @addr: The address to start the search at
+- * @size: The maximum size to search
+- *
+- * Returns the bit number of the first set bit.
 - */
--extern unsigned long find_next_bit(const unsigned long *addr,
--				   unsigned long size, unsigned long offset);
--
--/**
-- * find_next_zero_bit - find the next cleared bit in a memory region
-- * @addr: The address to base the search on
-- * @offset: The bitnumber to start searching at
-- * @size: The bitmap size in bits
-- */
--
--extern unsigned long find_next_zero_bit(const unsigned long *addr,
--					unsigned long size,
--					unsigned long offset);
+-extern unsigned long find_first_bit(const unsigned long *addr,
+-				    unsigned long size);
