@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-dont-deduplicate-unnamed-addresses-ie-mailing-lists.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:09:57 -0700
-Message-ID: <201010052109.o95L9vJa020218@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-correct-indentation-in-a-few-places.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:09:53 -0700
+Message-ID: <201010052109.o95L9r2E020211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40420 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755222Ab0JEVK2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:10:28 -0400
+	by vger.kernel.org with ESMTP id S1755222Ab0JEVK3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:10:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: joe@perches.com, florian@mickler.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: don't deduplicate unnamed addresses ie: mailing lists
+     scripts/get_maintainer.pl: correct indentation in a few places
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-dont-deduplicate-unnamed-addresses-ie-mailing-lists.patch
+     scripts-get_maintainerpl-correct-indentation-in-a-few-places.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,236 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: don't deduplicate unnamed addresses ie: mailing lists
+Subject: scripts/get_maintainer.pl: correct indentation in a few places
 From: Joe Perches <joe@perches.com>
 
-Fix a defect with the first mailing list address being used for each
-subsequent mailing list.
-
-Updated to 0.26-beta6.
+And a miscellaneous conversion of You to you in a help message
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Florian Mickler <florian@mickler.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/get_maintainer.pl |  156 ++++++++++++++++++------------------
+ 1 file changed, 78 insertions(+), 78 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-dont-deduplicate-unnamed-addresses-ie-mailing-lists scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-dont-deduplicate-unnamed-addresses-ie-mailing-lists
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-correct-indentation-in-a-few-places scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-correct-indentation-in-a-few-places
 +++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
+@@ -306,7 +306,7 @@ sub read_mailmap {
+     my $mailmap = {
+ 	names => {},
+ 	addresses => {}
+-   };
++    };
  
- my $P = $0;
--my $V = '0.26-beta5';
-+my $V = '0.26-beta6';
+     if (!$email_remove_duplicates) {
+ 	return $mailmap;
+@@ -327,39 +327,39 @@ sub read_mailmap {
+ 	# name1 <mail1> name2 <mail2>
+ 	# (see man git-shortlog)
+ 	if (/^(.+)<(.+)>$/) {
+-		my $real_name = $1;
+-		my $address = $2;
++	    my $real_name = $1;
++	    my $address = $2;
  
- use Getopt::Long qw(:config no_auto_abbrev);
+-		$real_name =~ s/\s+$//;
+-		$mailmap->{names}->{$address} = $real_name;
++	    $real_name =~ s/\s+$//;
++	    $mailmap->{names}->{$address} = $real_name;
  
-@@ -1036,7 +1036,7 @@ sub push_email_address {
- 	push(@email_to, [format_email($name, $address, $email_usename), $role]);
-     } elsif (!email_inuse($name, $address)) {
- 	push(@email_to, [format_email($name, $address, $email_usename), $role]);
--	$email_hash_name{lc($name)}++;
-+	$email_hash_name{lc($name)}++ if ($name ne "");
- 	$email_hash_address{lc($address)}++;
+ 	} elsif (/^<([^\s]+)>\s*<([^\s]+)>$/) {
+-		my $real_address = $1;
+-		my $wrong_address = $2;
++	    my $real_address = $1;
++	    my $wrong_address = $2;
+ 
+-		$mailmap->{addresses}->{$wrong_address} = $real_address;
++	    $mailmap->{addresses}->{$wrong_address} = $real_address;
+ 
+ 	} elsif (/^(.+)<([^\s]+)>\s*<([^\s]+)>$/) {
+-		my $real_name= $1;
+-		my $real_address = $2;
+-		my $wrong_address = $3;
++	    my $real_name= $1;
++	    my $real_address = $2;
++	    my $wrong_address = $3;
+ 
+-		$real_name =~ s/\s+$//;
++	    $real_name =~ s/\s+$//;
+ 
+-		$mailmap->{names}->{$wrong_address} = $real_name;
+-		$mailmap->{addresses}->{$wrong_address} = $real_address;
++	    $mailmap->{names}->{$wrong_address} = $real_name;
++	    $mailmap->{addresses}->{$wrong_address} = $real_address;
+ 
+ 	} elsif (/^(.+)<([^\s]+)>\s*([^\s].*)<([^\s]+)>$/) {
+-		my $real_name = $1;
+-		my $real_address = $2;
+-		my $wrong_name = $3;
+-		my $wrong_address = $4;
++	    my $real_name = $1;
++	    my $real_address = $2;
++	    my $wrong_name = $3;
++	    my $wrong_address = $4;
+ 
+-		$real_name =~ s/\s+$//;
+-		$wrong_name =~ s/\s+$//;
++	    $real_name =~ s/\s+$//;
++	    $wrong_name =~ s/\s+$//;
+ 
+-		$mailmap->{names}->{format_email($wrong_name,$wrong_address,1)} = $real_name;
+-		$mailmap->{addresses}->{format_email($wrong_name,$wrong_address,1)} = $real_address;
++	    $mailmap->{names}->{format_email($wrong_name,$wrong_address,1)} = $real_name;
++	    $mailmap->{addresses}->{format_email($wrong_name,$wrong_address,1)} = $real_address;
+ 	}
      }
+     close($mailmap_file);
+@@ -743,30 +743,30 @@ EOT
+ }
  
-@@ -1659,7 +1659,7 @@ sub deduplicate_email {
+ sub top_of_kernel_tree {
+-	my ($lk_path) = @_;
++    my ($lk_path) = @_;
  
-     ($name, $address) = parse_email($email);
+-	if ($lk_path ne "" && substr($lk_path,length($lk_path)-1,1) ne "/") {
+-	    $lk_path .= "/";
+-	}
+-	if (   (-f "${lk_path}COPYING")
+-	    && (-f "${lk_path}CREDITS")
+-	    && (-f "${lk_path}Kbuild")
+-	    && (-f "${lk_path}MAINTAINERS")
+-	    && (-f "${lk_path}Makefile")
+-	    && (-f "${lk_path}README")
+-	    && (-d "${lk_path}Documentation")
+-	    && (-d "${lk_path}arch")
+-	    && (-d "${lk_path}include")
+-	    && (-d "${lk_path}drivers")
+-	    && (-d "${lk_path}fs")
+-	    && (-d "${lk_path}init")
+-	    && (-d "${lk_path}ipc")
+-	    && (-d "${lk_path}kernel")
+-	    && (-d "${lk_path}lib")
+-	    && (-d "${lk_path}scripts")) {
+-		return 1;
+-	}
+-	return 0;
++    if ($lk_path ne "" && substr($lk_path,length($lk_path)-1,1) ne "/") {
++	$lk_path .= "/";
++    }
++    if (   (-f "${lk_path}COPYING")
++	&& (-f "${lk_path}CREDITS")
++	&& (-f "${lk_path}Kbuild")
++	&& (-f "${lk_path}MAINTAINERS")
++	&& (-f "${lk_path}Makefile")
++	&& (-f "${lk_path}README")
++	&& (-d "${lk_path}Documentation")
++	&& (-d "${lk_path}arch")
++	&& (-d "${lk_path}include")
++	&& (-d "${lk_path}drivers")
++	&& (-d "${lk_path}fs")
++	&& (-d "${lk_path}init")
++	&& (-d "${lk_path}ipc")
++	&& (-d "${lk_path}kernel")
++	&& (-d "${lk_path}lib")
++	&& (-d "${lk_path}scripts")) {
++	return 1;
++    }
++    return 0;
+ }
  
--    if ($deduplicate_name_hash{lc($name)}) {
-+    if ($name ne "" && $deduplicate_name_hash{lc($name)}) {
- 	$name = $deduplicate_name_hash{lc($name)}->[0];
- 	$address = $deduplicate_name_hash{lc($name)}->[1];
- 	$matched = 1;
+ sub parse_email {
+@@ -1107,29 +1107,30 @@ sub which_conf {
+ }
+ 
+ sub mailmap_email {
+-	my $line = shift;
++    my $line = shift;
+ 
+-	my ($name, $address) = parse_email($line);
+-	my $email = format_email($name, $address, 1);
+-	my $real_name = $name;
+-	my $real_address = $address;
+-
+-	if (exists $mailmap->{names}->{$email} || exists $mailmap->{addresses}->{$email}) {
+-		if (exists $mailmap->{names}->{$email}) {
+-			$real_name = $mailmap->{names}->{$email};
+-		}
+-		if (exists $mailmap->{addresses}->{$email}) {
+-			$real_address = $mailmap->{addresses}->{$email};
+-		}
+-	} else {
+-		if (exists $mailmap->{names}->{$address}) {
+-			$real_name = $mailmap->{names}->{$address};
+-		}
+-		if (exists $mailmap->{addresses}->{$address}) {
+-			$real_address = $mailmap->{addresses}->{$address};
+-		}
++    my ($name, $address) = parse_email($line);
++    my $email = format_email($name, $address, 1);
++    my $real_name = $name;
++    my $real_address = $address;
++
++    if (exists $mailmap->{names}->{$email} ||
++	exists $mailmap->{addresses}->{$email}) {
++	if (exists $mailmap->{names}->{$email}) {
++	    $real_name = $mailmap->{names}->{$email};
++	}
++	if (exists $mailmap->{addresses}->{$email}) {
++	    $real_address = $mailmap->{addresses}->{$email};
++	}
++    } else {
++	if (exists $mailmap->{names}->{$address}) {
++	    $real_name = $mailmap->{names}->{$address};
++	}
++	if (exists $mailmap->{addresses}->{$address}) {
++	    $real_address = $mailmap->{addresses}->{$address};
+ 	}
+-	return format_email($real_name, $real_address, 1);
++    }
++    return format_email($real_name, $real_address, 1);
+ }
+ 
+ sub mailmap {
+@@ -1146,18 +1147,17 @@ sub mailmap {
+ }
+ 
+ sub merge_by_realname {
+-	my %address_map;
+-	my (@emails) = @_;
+-	foreach my $email (@emails) {
+-		my ($name, $address) = parse_email($email);
+-		if (!exists $address_map{$name}) {
+-			$address_map{$name} = $address;
+-		} else {
+-			$address = $address_map{$name};
+-			$email = format_email($name,$address,1);
+-		}
++    my %address_map;
++    my (@emails) = @_;
++    foreach my $email (@emails) {
++	my ($name, $address) = parse_email($email);
++	if (!exists $address_map{$name}) {
++	    $address_map{$name} = $address;
++	} else {
++	    $address = $address_map{$name};
++	    $email = format_email($name,$address,1);
+ 	}
+-
++    }
+ }
+ 
+ sub git_execute_cmd {
+@@ -1555,7 +1555,7 @@ commit signers and mailing lists that co
+ 
+ Any *'d entry is selected.
+ 
+-If you have git or hg installed, You can choose to summarize the commit
++If you have git or hg installed, you can choose to summarize the commit
+ history of files in the patch.  Also, each line of the current file can
+ be matched to its commit author and that commits signers with blame.
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
