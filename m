@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vcs-add-poll-fasync-support-update.patch added to -mm tree
-Date: Tue, 05 Oct 2010 12:35:39 -0700
-Message-ID: <201010051935.o95JZdwt015411@imap1.linux-foundation.org>
+Subject: + vfs-ignore-error-on-forced-remount.patch added to -mm tree
+Date: Tue, 05 Oct 2010 12:42:48 -0700
+Message-ID: <201010051942.o95JgmeW015701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40558 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754976Ab0JETfo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:35:44 -0400
+	by vger.kernel.org with ESMTP id S1755979Ab0JETm7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:42:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nico@fluxnic.net, alan@linux.intel.com, greg@kroah.com, nicolas.pitre@canonical.com
+Cc: mszeredi@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vcs-add-poll-fasync-support-update
+     vfs: ignore error on forced remount
 has been added to the -mm tree.  Its filename is
-     vcs-add-poll-fasync-support-update.patch
+     vfs-ignore-error-on-forced-remount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vcs-add-poll-fasync-support-update
-From: Nicolas Pitre <nico@fluxnic.net>
+Subject: vfs: ignore error on forced remount
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-The /dev/vcs* devices are used, amongst other things, by accessibility
-applications such as BRLTTY to display the screen content onto refreshable
-braille displays.  Currently this is performed by constantly reading from
-/dev/vcsa0 whether or not the screen content has changed.  Given the
-default braille refresh rate of 25 times per second, this easily qualifies
-as the biggest source of wake-up events preventing laptops from entering
-deeper power saving states.
+On emergency remount we want to force MS_RDONLY on the super block even if
+->remount_fs() failed for some reason.
 
-To avoid this periodic polling, let's add support for select()/poll() and
-SIGIO with the /dev/vcs* devices.  The implemented semantic is to report
-data availability whenever the corresponding vt has seen some update after
-the last read() operation.  The application still has to lseek() back
-as usual in order to read() the new data.
-
-Not to create unwanted overhead, the needed data structure is allocated
-and the vt notification callback is registered only when the poll or
-fasync method is invoked for the first time per file instance.
-
-Signed-off-by: Nicolas Pitre <nicolas.pitre@canonical.com>
-Acked-by: Alan Cox <alan@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vc_screen.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ fs/super.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/vc_screen.c~vcs-add-poll-fasync-support-update drivers/char/vc_screen.c
---- a/drivers/char/vc_screen.c~vcs-add-poll-fasync-support-update
-+++ a/drivers/char/vc_screen.c
-@@ -27,7 +27,6 @@
- #include <linux/tty.h>
- #include <linux/interrupt.h>
- #include <linux/mm.h>
--#include <linux/fs.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/vt_kern.h>
-@@ -37,10 +36,11 @@
- #include <linux/device.h>
- #include <linux/smp_lock.h>
- #include <linux/sched.h>
--#include <linux/notifier.h>
-+#include <linux/fs.h>
- #include <linux/poll.h>
- #include <linux/signal.h>
- #include <linux/slab.h>
-+#include <linux/notifier.h>
+diff -puN fs/super.c~vfs-ignore-error-on-forced-remount fs/super.c
+--- a/fs/super.c~vfs-ignore-error-on-forced-remount
++++ a/fs/super.c
+@@ -582,7 +582,8 @@ int do_remount_sb(struct super_block *sb
  
- #include <asm/uaccess.h>
- #include <asm/byteorder.h>
-@@ -54,7 +54,7 @@
- struct vcs_poll_data {
- 	struct notifier_block notifier;
- 	unsigned int cons_num;
--	int has_read;
-+	bool seen_last_update;
- 	wait_queue_head_t waitq;
- 	struct fasync_struct *fasync;
- };
-@@ -78,7 +78,7 @@ vcs_notifier(struct notifier_block *nb, 
- 	if (currcons != vc->vc_num)
- 		return NOTIFY_DONE;
- 
--	poll->has_read = 0;
-+	poll->seen_last_update = false;
- 	wake_up_interruptible(&poll->waitq);
- 	kill_fasync(&poll->fasync, SIGIO, POLL_IN);
- 	return NOTIFY_OK;
-@@ -110,6 +110,14 @@ vcs_poll_data_get(struct file *file)
- 		return NULL;
+ 	if (sb->s_op->remount_fs) {
+ 		retval = sb->s_op->remount_fs(sb, &flags, data);
+-		if (retval)
++		/* If forced remount, go ahead despite any errors */
++		if (retval && !force)
+ 			return retval;
  	}
- 
-+	/*
-+	 * This code may be called either through ->poll() or ->fasync().
-+	 * If we have two threads using the same file descriptor, they could
-+	 * both enter this function, both notice that the structure hasn't
-+	 * been allocated yet and go ahead allocating it in parallel, but
-+	 * only one of them must survive and be shared otherwise we'd leak
-+	 * memory with a dangling notifier callback.
-+	 */
- 	spin_lock(&file->f_lock);
- 	if (!file->private_data) {
- 		file->private_data = poll;
-@@ -215,7 +223,7 @@ vcs_read(struct file *file, char __user 
- 		goto unlock_out;
- 	poll = file->private_data;
- 	if (count && poll)
--		poll->has_read = 1;
-+		poll->seen_last_update = true;
- 	read = 0;
- 	ret = 0;
- 	while (count) {
-@@ -547,7 +555,7 @@ vcs_poll(struct file *file, poll_table *
- 
- 	if (poll) {
- 		poll_wait(file, &poll->waitq, wait);
--		if (!poll->has_read)
-+		if (!poll->seen_last_update)
- 			ret = POLLIN | POLLRDNORM;
- 	}
- 	return ret;
+ 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
 _
 
-Patches currently in -mm which might be from nico@fluxnic.net are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 linux-next.patch
-vcs-add-poll-fasync-support.patch
-vcs-add-poll-fasync-support-fix.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-vcs-add-poll-fasync-support-update.patch
-vcs-invoke-the-vt-update-callback-when-dev-vcs-is-written-to.patch
+vfs-fix-infinite-loop-caused-by-clone_mnt-race.patch
+vfs-ignore-error-on-forced-remount.patch
+vfs-fix-per-mount-read-write.patch
+vfs-add-sb_force_remount_readonly-helper.patch
+vfs-allow-mnt_want_write-to-sleep.patch
+vfs-allow-mnt_want_write-to-sleep-fix.patch
+vfs-keep-list-of-mounts-for-each-superblock.patch
+vfs-protect-remounting-superblock-read-only.patch
+vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
+vfs-mark-mounts-read-only-on-forced-remount.patch
+fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch
+fuse-use-release_pages.patch
 
