@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch added to -mm tree
-Date: Tue, 05 Oct 2010 14:28:12 -0700
-Message-ID: <201010052128.o95LSC5S021086@imap1.linux-foundation.org>
+Subject: + mm-declare-some-external-symbols.patch added to -mm tree
+Date: Tue, 05 Oct 2010 14:28:22 -0700
+Message-ID: <201010052128.o95LSMBq021124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750826Ab0JEVbC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:02 -0400
+	by vger.kernel.org with ESMTP id S1750826Ab0JEVbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 17:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     rmap: annotate lock context change on page_[un]lock_anon_vma()
+     mm: declare some external symbols
 has been added to the -mm tree.  Its filename is
-     rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
+     mm-declare-some-external-symbols.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap: annotate lock context change on page_[un]lock_anon_vma()
+Subject: mm: declare some external symbols
 From: Namhyung Kim <namhyung@gmail.com>
 
-The page_lock_anon_vma() conditionally grabs RCU and anon_vma lock but
-page_unlock_anon_vma() releases them unconditionally.  This leads sparse
-to complain about context imbalance.  Annotate them.
+Declare 'bdi_pending_list' and 'tag_pages_for_writeback()' to remove
+following sparse warnings:
+
+ mm/backing-dev.c:46:1: warning: symbol 'bdi_pending_list' was not declared. Should it be static?
+ mm/page-writeback.c:825:6: warning: symbol 'tag_pages_for_writeback' was not declared. Should it be static?
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   15 ++++++++++++++-
- mm/rmap.c            |    4 +++-
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ include/linux/backing-dev.h |    1 +
+ include/linux/writeback.h   |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN include/linux/rmap.h~rmap-annotate-lock-context-change-on-page_lock_anon_vma include/linux/rmap.h
---- a/include/linux/rmap.h~rmap-annotate-lock-context-change-on-page_lock_anon_vma
-+++ a/include/linux/rmap.h
-@@ -230,7 +230,20 @@ int try_to_munlock(struct page *);
- /*
-  * Called by memory-failure.c to kill processes.
-  */
--struct anon_vma *page_lock_anon_vma(struct page *page);
-+struct anon_vma *__page_lock_anon_vma(struct page *page);
-+
-+static inline struct anon_vma *page_lock_anon_vma(struct page *page)
-+{
-+	struct anon_vma *anon_vma;
-+
-+	__cond_lock(RCU, anon_vma = __page_lock_anon_vma(page));
-+
-+	/* (void) is needed to make gcc happy */
-+	(void) __cond_lock(&anon_vma->root->lock, anon_vma);
-+
-+	return anon_vma;
-+}
-+
- void page_unlock_anon_vma(struct anon_vma *anon_vma);
- int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
+diff -puN include/linux/backing-dev.h~mm-declare-some-external-symbols include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-declare-some-external-symbols
++++ a/include/linux/backing-dev.h
+@@ -111,6 +111,7 @@ void bdi_wakeup_thread_delayed(struct ba
  
-diff -puN mm/rmap.c~rmap-annotate-lock-context-change-on-page_lock_anon_vma mm/rmap.c
---- a/mm/rmap.c~rmap-annotate-lock-context-change-on-page_lock_anon_vma
-+++ a/mm/rmap.c
-@@ -314,7 +314,7 @@ void __init anon_vma_init(void)
-  * Getting a lock on a stable anon_vma from a page off the LRU is
-  * tricky: page_lock_anon_vma rely on RCU to guard against the races.
-  */
--struct anon_vma *page_lock_anon_vma(struct page *page)
-+struct anon_vma *__page_lock_anon_vma(struct page *page)
- {
- 	struct anon_vma *anon_vma, *root_anon_vma;
- 	unsigned long anon_mapping;
-@@ -348,6 +348,8 @@ out:
- }
+ extern spinlock_t bdi_lock;
+ extern struct list_head bdi_list;
++extern struct list_head bdi_pending_list;
  
- void page_unlock_anon_vma(struct anon_vma *anon_vma)
-+	__releases(&anon_vma->root->lock)
-+	__releases(RCU)
+ static inline int wb_has_dirty_io(struct bdi_writeback *wb)
  {
- 	anon_vma_unlock(anon_vma);
- 	rcu_read_unlock();
+diff -puN include/linux/writeback.h~mm-declare-some-external-symbols include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-declare-some-external-symbols
++++ a/include/linux/writeback.h
+@@ -149,6 +149,8 @@ int write_cache_pages(struct address_spa
+ int do_writepages(struct address_space *mapping, struct writeback_control *wbc);
+ void set_page_dirty_balance(struct page *page, int page_mkwrite);
+ void writeback_set_ratelimit(void);
++void tag_pages_for_writeback(struct address_space *mapping,
++			     pgoff_t start, pgoff_t end);
+ 
+ /* pdflush.c */
+ extern int nr_pdflush_threads;	/* Global so it can be exported to sysctl
 _
 
 Patches currently in -mm which might be from namhyung@gmail.com are
