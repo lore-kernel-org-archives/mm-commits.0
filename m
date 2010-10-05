@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-keep-list-of-mounts-for-each-superblock.patch added to -mm tree
-Date: Tue, 05 Oct 2010 12:42:58 -0700
-Message-ID: <201010051942.o95Jgwb3015716@imap1.linux-foundation.org>
+Subject: + vfs-allow-mnt_want_write-to-sleep-fix.patch added to -mm tree
+Date: Tue, 05 Oct 2010 12:42:56 -0700
+Message-ID: <201010051942.o95JguxG015713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755047Ab0JETnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:43:09 -0400
+	by vger.kernel.org with ESMTP id S1755047Ab0JETnH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Oct 2010 15:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, hch@lst.de, mszeredi@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: keep list of mounts for each superblock
+     vfs-allow-mnt_want_write-to-sleep-fix
 has been added to the -mm tree.  Its filename is
-     vfs-keep-list-of-mounts-for-each-superblock.patch
+     vfs-allow-mnt_want_write-to-sleep-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: keep list of mounts for each superblock
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: vfs-allow-mnt_want_write-to-sleep-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Keep track of vfsmounts belonging to a superblock.  List is protected by
-vfsmount_lock.
+fix tpyo
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |    5 +++++
- fs/super.c            |    7 +++++++
- include/linux/fs.h    |    1 +
- include/linux/mount.h |    1 +
- 4 files changed, 14 insertions(+)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock fs/namespace.c
---- a/fs/namespace.c~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/fs/namespace.c
-@@ -638,6 +638,10 @@ static struct vfsmount *clone_mnt(struct
- 			if (!list_empty(&old->mnt_expire))
- 				list_add(&mnt->mnt_expire, &old->mnt_expire);
- 		}
-+
-+		br_write_lock(vfsmount_lock);
-+		list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
-+		br_write_unlock(vfsmount_lock);
- 	}
- 	return mnt;
- 
-@@ -677,6 +681,7 @@ repeat:
- 		return;
- 	}
- 	if (likely(!mnt->mnt_pinned)) {
-+		list_del(&mnt->mnt_instance);
- 		br_write_unlock(vfsmount_lock);
- 		__mntput(mnt);
- 		return;
-diff -puN fs/super.c~vfs-keep-list-of-mounts-for-each-superblock fs/super.c
---- a/fs/super.c~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/fs/super.c
-@@ -75,6 +75,7 @@ static struct super_block *alloc_super(s
- 		INIT_HLIST_HEAD(&s->s_anon);
- 		INIT_LIST_HEAD(&s->s_inodes);
- 		INIT_LIST_HEAD(&s->s_dentry_lru);
-+		INIT_LIST_HEAD(&s->s_mounts);
- 		init_rwsem(&s->s_umount);
- 		mutex_init(&s->s_lock);
- 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
-@@ -130,6 +131,7 @@ static inline void destroy_super(struct 
- 	free_percpu(s->s_files);
- #endif
- 	security_sb_free(s);
-+	WARN_ON(!list_empty(&s->s_mounts));
- 	kfree(s->s_subtype);
- 	kfree(s->s_options);
- 	kfree(s);
-@@ -972,6 +974,11 @@ vfs_kern_mount(struct file_system_type *
- 	mnt->mnt_parent = mnt;
- 	up_write(&mnt->mnt_sb->s_umount);
- 	free_secdata(secdata);
-+
-+	br_write_lock(vfsmount_lock);
-+	list_add_tail(&mnt->mnt_instance, &mnt->mnt_sb->s_mounts);
-+	br_write_unlock(vfsmount_lock);
-+
- 	return mnt;
- out_sb:
- 	dput(mnt->mnt_root);
-diff -puN include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/fs.h
---- a/include/linux/fs.h~vfs-keep-list-of-mounts-for-each-superblock
+diff -puN include/linux/fs.h~vfs-allow-mnt_want_write-to-sleep-fix include/linux/fs.h
+--- a/include/linux/fs.h~vfs-allow-mnt_want_write-to-sleep-fix
 +++ a/include/linux/fs.h
-@@ -1351,6 +1351,7 @@ struct super_block {
- #else
- 	struct list_head	s_files;
- #endif
-+	struct list_head	s_mounts;	/* list of mounts */
- 	/* s_dentry_lru and s_nr_dentry_unused are protected by dcache_lock */
- 	struct list_head	s_dentry_lru;	/* unused dentry lru */
- 	int			s_nr_dentry_unused;	/* # of dentry on lru */
-diff -puN include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock include/linux/mount.h
---- a/include/linux/mount.h~vfs-keep-list-of-mounts-for-each-superblock
-+++ a/include/linux/mount.h
-@@ -54,6 +54,7 @@ struct vfsmount {
- 	struct super_block *mnt_sb;	/* pointer to superblock */
- 	struct list_head mnt_mounts;	/* list of children, anchored here */
- 	struct list_head mnt_child;	/* and going through their mnt_child */
-+	struct list_head mnt_instance;	/* mount instance on sb->s_mounts */
- 	int mnt_flags;
- 	/* 4 bytes hole on 64bits arches without fsnotify */
- #ifdef CONFIG_FSNOTIFY
+@@ -1380,7 +1380,7 @@ struct super_block {
+ 	struct mutex s_vfs_rename_mutex;	/* Kludge */
+ 
+ 	/*
+-	 * Wait queue for remouting read-only
++	 * Wait queue for remounting read-only
+ 	 */
+ 	wait_queue_head_t s_wait_remount_readonly;
+ 
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
 linux-next.patch
-vfs-fix-infinite-loop-caused-by-clone_mnt-race.patch
-vfs-ignore-error-on-forced-remount.patch
-vfs-fix-per-mount-read-write.patch
-vfs-add-sb_force_remount_readonly-helper.patch
-vfs-allow-mnt_want_write-to-sleep.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+security-add-const-to-security_task_setscheduler.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+usb-storage-add-new-no_read_disc_info-quirk.patch
 vfs-allow-mnt_want_write-to-sleep-fix.patch
-vfs-keep-list-of-mounts-for-each-superblock.patch
-vfs-protect-remounting-superblock-read-only.patch
-vfs-fs_may_remount_ro-turn-unnecessary-check-into-a-warn_on.patch
-vfs-mark-mounts-read-only-on-forced-remount.patch
-fuse-use-clear_highpage-and-km_user0-instead-of-km_user1.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+m68k-__pa-cast-arg-to-long.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
 fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
 
