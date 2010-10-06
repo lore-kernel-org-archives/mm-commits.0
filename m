@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fcntl-make-exported-headers-use-strict-posix-types.patch added to -mm tree
-Date: Wed, 06 Oct 2010 15:03:47 -0700
-Message-ID: <201010062203.o96M3lSr024877@imap1.linux-foundation.org>
+Subject: + memblock-add-input-size-checking-to-memblock_find_region.patch added to -mm tree
+Date: Wed, 06 Oct 2010 15:07:17 -0700
+Message-ID: <201010062207.o96M7HEu025015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755427Ab0JFWEX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Oct 2010 18:04:23 -0400
+	by vger.kernel.org with ESMTP id S1756823Ab0JFWHh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Oct 2010 18:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lucian.grijincu@gmail.com, arnd@arndb.de
+Cc: yinghai@kernel.org, akpm@linux-foundation.org, benh@kernel.crashing.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fcntl: make exported headers use strict posix types
+     memblock: add input size checking to memblock_find_region()
 has been added to the -mm tree.  Its filename is
-     fcntl-make-exported-headers-use-strict-posix-types.patch
+     memblock-add-input-size-checking-to-memblock_find_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fcntl: make exported headers use strict posix types
-From: Lucian Adrian Grijincu <lucian.grijincu@gmail.com>
+Subject: memblock: add input size checking to memblock_find_region()
+From: Yinghai Lu <yinghai@kernel.org>
 
-All 'pid_t' were changed to '__kernel_pid_t' in a previous commit:
-make exported headers use strict posix types
+Make sure two callers have right inputs.  and add print warning to catch
+other offending callers.
 
-    A number of standard posix types are used in exported headers,
-    which is not allowed if __STRICT_KERNEL_NAMES is defined. In order
-    to get rid of the non-__STRICT_KERNEL_NAMES part and to make sane
-    headers the default, we have to change them all to safe types.
-
-but a later change introduced 'pid_t' again:
-    fcntl: add F_[SG]ETOWN_EX
-
-This makes asm-generic/fcntl.h d use strict posix types again.
-
-Signed-off-by: Lucian Adrian Grijincu <lucian.grijincu@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/fcntl.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memblock.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-generic/fcntl.h~fcntl-make-exported-headers-use-strict-posix-types include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~fcntl-make-exported-headers-use-strict-posix-types
-+++ a/include/asm-generic/fcntl.h
-@@ -122,7 +122,7 @@
+diff -puN mm/memblock.c~memblock-add-input-size-checking-to-memblock_find_region mm/memblock.c
+--- a/mm/memblock.c~memblock-add-input-size-checking-to-memblock_find_region
++++ a/mm/memblock.c
+@@ -106,7 +106,7 @@ static phys_addr_t __init memblock_find_
+ 	long j;
  
- struct f_owner_ex {
- 	int	type;
--	pid_t	pid;
-+	__kernel_pid_t	pid;
- };
+ 	/* In case, huge size is requested */
+-	if (end < size)
++	if (WARN_ONCE(end < size, "memblock_find_region: wrong range [%#llx-%#llx] size %#llx", start, end, size))
+ 		return MEMBLOCK_ERROR;
  
- /* for F_[GET|SET]FL */
+ 	base = memblock_align_down((end - size), align);
+@@ -152,14 +152,14 @@ static phys_addr_t __init_memblock membl
+ 		phys_addr_t memblocksize = memblock.memory.regions[i].size;
+ 		phys_addr_t bottom, top, found;
+ 
+-		if (memblocksize < size)
+-			continue;
+ 		if ((memblockbase + memblocksize) <= start)
+ 			break;
+ 		bottom = max(memblockbase, start);
+ 		top = min(memblockbase + memblocksize, end);
+ 		if (bottom >= top)
+ 			continue;
++		if ((top - bottom) < size)
++			continue;
+ 		found = memblock_find_region(bottom, top, size, align);
+ 		if (found != MEMBLOCK_ERROR)
+ 			return found;
+@@ -547,7 +547,7 @@ static phys_addr_t __init memblock_alloc
+ 		int this_nid;
+ 
+ 		this_end = memblock_nid_range(start, end, &this_nid);
+-		if (this_nid == nid) {
++		if (this_nid == nid && (this_end - start) >= size) {
+ 			phys_addr_t ret = memblock_find_region(start, this_end, size, align);
+ 			if (ret != MEMBLOCK_ERROR &&
+ 			    memblock_add_region(&memblock.reserved, ret, size) >= 0)
 _
 
-Patches currently in -mm which might be from lucian.grijincu@gmail.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
-fcntl-make-exported-headers-use-strict-posix-types.patch
+origin.patch
+linux-next.patch
+memblock-fix-big-size-with-find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
 
