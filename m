@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-add-input-size-checking-to-memblock_find_region.patch added to -mm tree
-Date: Wed, 06 Oct 2010 15:07:17 -0700
-Message-ID: <201010062207.o96M7HEu025015@imap1.linux-foundation.org>
+Subject: + posix-timers-annotate-lock_timer.patch added to -mm tree
+Date: Wed, 06 Oct 2010 15:12:08 -0700
+Message-ID: <201010062212.o96MC8X1025237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756823Ab0JFWHh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Oct 2010 18:07:37 -0400
+	by vger.kernel.org with ESMTP id S1756288Ab0JFWMO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Oct 2010 18:12:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, akpm@linux-foundation.org, benh@kernel.crashing.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: namhyung@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     memblock: add input size checking to memblock_find_region()
+     posix-timers: annotate lock_timer()
 has been added to the -mm tree.  Its filename is
-     memblock-add-input-size-checking-to-memblock_find_region.patch
+     posix-timers-annotate-lock_timer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memblock: add input size checking to memblock_find_region()
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: posix-timers: annotate lock_timer()
+From: Namhyung Kim <namhyung@gmail.com>
 
-Make sure two callers have right inputs.  and add print warning to catch
-other offending callers.
+lock_timer() conditionally grabs it_lock in case of returning non-NULL but
+unlock_timer() releases it unconditionally.  This leads sparse to complain
+about the lock context imbalance.  Rename and wrap lock_timer using
+__cond_lock() macro to make sparse happy.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Namhyung Kim <namhyung@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/posix-timers.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/memblock.c~memblock-add-input-size-checking-to-memblock_find_region mm/memblock.c
---- a/mm/memblock.c~memblock-add-input-size-checking-to-memblock_find_region
-+++ a/mm/memblock.c
-@@ -106,7 +106,7 @@ static phys_addr_t __init memblock_find_
- 	long j;
+diff -puN kernel/posix-timers.c~posix-timers-annotate-lock_timer kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-annotate-lock_timer
++++ a/kernel/posix-timers.c
+@@ -145,7 +145,13 @@ static int common_timer_del(struct k_iti
  
- 	/* In case, huge size is requested */
--	if (end < size)
-+	if (WARN_ONCE(end < size, "memblock_find_region: wrong range [%#llx-%#llx] size %#llx", start, end, size))
- 		return MEMBLOCK_ERROR;
+ static enum hrtimer_restart posix_timer_fn(struct hrtimer *data);
  
- 	base = memblock_align_down((end - size), align);
-@@ -152,14 +152,14 @@ static phys_addr_t __init_memblock membl
- 		phys_addr_t memblocksize = memblock.memory.regions[i].size;
- 		phys_addr_t bottom, top, found;
+-static struct k_itimer *lock_timer(timer_t timer_id, unsigned long *flags);
++static struct k_itimer *__lock_timer(timer_t timer_id, unsigned long *flags);
++
++#define lock_timer(tid, flags)						   \
++({	struct k_itimer *__timr;					   \
++	__cond_lock(&__timr->it_lock, __timr = __lock_timer(tid, flags));  \
++	__timr;								   \
++})
  
--		if (memblocksize < size)
--			continue;
- 		if ((memblockbase + memblocksize) <= start)
- 			break;
- 		bottom = max(memblockbase, start);
- 		top = min(memblockbase + memblocksize, end);
- 		if (bottom >= top)
- 			continue;
-+		if ((top - bottom) < size)
-+			continue;
- 		found = memblock_find_region(bottom, top, size, align);
- 		if (found != MEMBLOCK_ERROR)
- 			return found;
-@@ -547,7 +547,7 @@ static phys_addr_t __init memblock_alloc
- 		int this_nid;
- 
- 		this_end = memblock_nid_range(start, end, &this_nid);
--		if (this_nid == nid) {
-+		if (this_nid == nid && (this_end - start) >= size) {
- 			phys_addr_t ret = memblock_find_region(start, this_end, size, align);
- 			if (ret != MEMBLOCK_ERROR &&
- 			    memblock_add_region(&memblock.reserved, ret, size) >= 0)
+ static inline void unlock_timer(struct k_itimer *timr, unsigned long flags)
+ {
+@@ -619,7 +625,7 @@ out:
+  * the find to the timer lock.  To avoid a dead lock, the timer id MUST
+  * be release with out holding the timer lock.
+  */
+-static struct k_itimer *lock_timer(timer_t timer_id, unsigned long *flags)
++static struct k_itimer *__lock_timer(timer_t timer_id, unsigned long *flags)
+ {
+ 	struct k_itimer *timr;
+ 	/*
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from namhyung@gmail.com are
 
 origin.patch
 linux-next.patch
-memblock-fix-big-size-with-find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
+posix-timers-annotate-lock_timer.patch
+vfs-remove-a-warning-on-open_fmode.patch
+vfs-add-__fmode_exec.patch
+mm-remove-temporary-variable-on-generic_file_direct_write.patch
+mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
+mm-wrap-get_locked_pte-using-__cond_lock.patch
+mm-add-lock-release-annotation-on-do_wp_page.patch
+mm-wrap-follow_pte-using-__cond_lock.patch
+rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
+rmap-wrap-page_check_address-using-__cond_lock.patch
+rmap-make-anon_vma_free-static.patch
+vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
+vmalloc-annotate-lock-context-change-on-s_start-stop.patch
+mm-declare-some-external-symbols.patch
+vmstat-include-compactionh-when-config_compaction.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+mm-fix-sparse-warnings-on-gfp_zone_table-bad.patch
+init-mark-__user-address-space-on-string-literals.patch
+kernel-userc-add-lock-release-annotation-on-free_user.patch
+printk-fixup-declaration-of-kmsg_reasons.patch
+printk-add-lock-context-annotation.patch
+printk-change-type-of-boot_delay-to-int.patch
+printk-declare-printk_ratelimit_state-in-ratelimith.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+ptrace-annotate-lock-context-change-on-exit_ptrace.patch
+ptrace-change-signature-of-sys_ptrace-and-friends.patch
+ptrace-cleanup-ptrace_request.patch
+ptrace-change-signature-of-arch_ptrace.patch
+ptrace-cleanup-arch_ptrace-on-x86.patch
+ptrace-cleanup-arch_ptrace-on-arm.patch
+ptrace-cleanup-arch_ptrace-on-avr32.patch
+ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
+ptrace-cleanup-arch_ptrace-on-cris.patch
+ptrace-cleanup-arch_ptrace-on-frv.patch
+ptrace-cleanup-arch_ptrace-on-h8300.patch
+ptrace-cleanup-arch_ptrace-on-m32r.patch
+ptrace-cleanup-arch_ptrace-on-m68k.patch
+ptrace-cleanup-arch_ptrace-on-m68knommu.patch
+ptrace-cleanup-arch_ptrace-on-microblaze.patch
+ptrace-cleanup-arch_ptrace-on-mips.patch
+ptrace-cleanup-arch_ptrace-on-mn10300.patch
+ptrace-cleanup-arch_ptrace-on-parisc.patch
+ptrace-cleanup-arch_ptrace-on-powerpc.patch
+ptrace-cleanup-arch_ptrace-on-score.patch
+ptrace-cleanup-arch_ptrace-on-sh.patch
+ptrace-cleanup-arch_ptrace-on-sparc.patch
+ptrace-cleanup-arch_ptrace-on-tile.patch
+ptrace-cleanup-arch_ptrace-on-um.patch
+ptrace-cleanup-arch_ptrace-on-xtensa.patch
+signals-annotate-lock_task_sighand.patch
+signals-annotate-lock-context-change-on-ptrace_stop.patch
+exit-add-lock-context-annotation-on-find_new_reaper.patch
 
