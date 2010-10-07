@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-clarify-the-behaviour-of-dirty_ratio-dirty_bytes.patch added to -mm tree
-Date: Wed, 06 Oct 2010 15:45:50 -0700
-Message-ID: <201010062245.o96MjoDj026727@imap1.linux-foundation.org>
+Subject: + sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2.patch added to -mm tree
+Date: Thu, 07 Oct 2010 12:18:53 -0700
+Message-ID: <201010071918.o97JIs28018487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759416Ab0JFWqG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Oct 2010 18:46:06 -0400
+	by vger.kernel.org with ESMTP id S1754103Ab0JGTS6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 15:18:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arighi@develer.com, gthelen@google.com, rdunlap@xenotime.net, rientjes@google.com
+Cc: eric.dumazet@gmail.com, ebiederm@xmission.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     doc: clarify the behaviour of dirty_ratio/dirty_bytes
+     sysctl: fix min/max handling in __do_proc_doulongvec_minmax()
 has been added to the -mm tree.  Its filename is
-     doc-clarify-the-behaviour-of-dirty_ratio-dirty_bytes.patch
+     sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: clarify the behaviour of dirty_ratio/dirty_bytes
-From: Andrea Righi <arighi@develer.com>
+Subject: sysctl: fix min/max handling in __do_proc_doulongvec_minmax()
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-When dirty_ratio or dirty_bytes is written the other parameter is disabled
-and set to 0 (in dirty_bytes_handler() / dirty_ratio_handler()).
+When proc_doulongvec_minmax() is used with an array of longs, and no
+min/max check requested (.extra1 or .extra2 being NULL), we dereference a
+NULL pointer for the second element of the array.
 
-We do the same for dirty_background_ratio and dirty_background_bytes.
+Noticed while doing some changes in network stack for the "16TB problem"
 
-However, in the sysctl documentation, we say that the counterpart becomes
-a function of the old value, that is not correct.
+Fix is to not change min & max pointers in __do_proc_doulongvec_minmax(),
+so that all elements of the vector share an unique min/max limit, like
+proc_dointvec_minmax().
 
-Clarify the documentation reporting the actual behaviour.
-
-Reviewed-by: Greg Thelen <gthelen@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Andrea Righi <arighi@develer.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Americo Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~doc-clarify-the-behaviour-of-dirty_ratio-dirty_bytes Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~doc-clarify-the-behaviour-of-dirty_ratio-dirty_bytes
-+++ a/Documentation/sysctl/vm.txt
-@@ -80,8 +80,10 @@ dirty_background_bytes
- Contains the amount of dirty memory at which the pdflush background writeback
- daemon will start writeback.
+diff -puN kernel/sysctl.c~sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2 kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2
++++ a/kernel/sysctl.c
+@@ -2485,7 +2485,7 @@ static int __do_proc_doulongvec_minmax(v
+ 		kbuf[left] = 0;
+ 	}
  
--If dirty_background_bytes is written, dirty_background_ratio becomes a function
--of its value (dirty_background_bytes / the amount of dirtyable system memory).
-+Note: dirty_background_bytes is the counterpart of dirty_background_ratio. Only
-+one of them may be specified at a time. When one sysctl is written it is
-+immediately taken into account to evaluate the dirty memory limits and the
-+other appears as 0 when read.
+-	for (; left && vleft--; i++, min++, max++, first=0) {
++	for (; left && vleft--; i++, first=0) {
+ 		unsigned long val;
  
- ==============================================================
- 
-@@ -97,8 +99,10 @@ dirty_bytes
- Contains the amount of dirty memory at which a process generating disk writes
- will itself start writeback.
- 
--If dirty_bytes is written, dirty_ratio becomes a function of its value
--(dirty_bytes / the amount of dirtyable system memory).
-+Note: dirty_bytes is the counterpart of dirty_ratio. Only one of them may be
-+specified at a time. When one sysctl is written it is immediately taken into
-+account to evaluate the dirty memory limits and the other appears as 0 when
-+read.
- 
- Note: the minimum value allowed for dirty_bytes is two pages (in bytes); any
- value lower than this limit will be ignored and the old configuration will be
+ 		if (write) {
 _
 
-Patches currently in -mm which might be from arighi@develer.com are
+Patches currently in -mm which might be from eric.dumazet@gmail.com are
 
-doc-clarify-the-behaviour-of-dirty_ratio-dirty_bytes.patch
+sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2.patch
+linux-next.patch
+net-avoid-limits-overflow.patch
+fs-allow-for-more-than-231-files.patch
+signals-annotate-lock_task_sighand.patch
 
