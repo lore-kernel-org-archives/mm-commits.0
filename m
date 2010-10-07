@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 07 Oct 2010 12:19:42 -0700
-Message-ID: <201010071919.o97JJgq2018512@imap1.linux-foundation.org>
+Subject: + rmap-make-anon_vma_free-static-fix.patch added to -mm tree
+Date: Thu, 07 Oct 2010 12:45:14 -0700
+Message-ID: <201010072016.o97KGal3021384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754602Ab0JGTTn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 15:19:43 -0400
+	by vger.kernel.org with ESMTP id S1752718Ab0JGURT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 16:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eric.dumazet@gmail.com
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, namhyung@gmail.com
 
 
 The patch titled
-     sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes
+     rmap-make-anon_vma_free-static-fix
 has been added to the -mm tree.  Its filename is
-     sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes.patch
+     rmap-make-anon_vma_free-static-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes
+Subject: rmap-make-anon_vma_free-static-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#30: FILE: kernel/sysctl.c:2488:
-+	for (; left && vleft--; i++, first=0) {
- 	                                  ^
+Andi just added patches to linux-next which call anon_vma_free() from
+mm/migrate.c.
 
-total: 1 errors, 0 warnings, 8 lines checked
-
-./patches/sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    1 +
+ mm/rmap.c            |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes
-+++ a/kernel/sysctl.c
-@@ -2485,7 +2485,7 @@ static int __do_proc_doulongvec_minmax(v
- 		kbuf[left] = 0;
- 	}
+diff -puN include/linux/rmap.h~rmap-make-anon_vma_free-static-fix include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-make-anon_vma_free-static-fix
++++ a/include/linux/rmap.h
+@@ -148,6 +148,7 @@ void unlink_anon_vmas(struct vm_area_str
+ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+ int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+ void __anon_vma_link(struct vm_area_struct *);
++void anon_vma_free(struct anon_vma *);
  
--	for (; left && vleft--; i++, first=0) {
-+	for (; left && vleft--; i++, first = 0) {
- 		unsigned long val;
+ static inline void anon_vma_merge(struct vm_area_struct *vma,
+ 				  struct vm_area_struct *next)
+diff -puN mm/rmap.c~rmap-make-anon_vma_free-static-fix mm/rmap.c
+--- a/mm/rmap.c~rmap-make-anon_vma_free-static-fix
++++ a/mm/rmap.c
+@@ -70,7 +70,7 @@ static inline struct anon_vma *anon_vma_
+ 	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+ }
  
- 		if (write) {
+-static void anon_vma_free(struct anon_vma *anon_vma)
++void anon_vma_free(struct anon_vma *anon_vma)
+ {
+ 	kmem_cache_free(anon_vma_cachep, anon_vma);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-thresholds-with-use_hierarchy-==-1-fix.patch
 maintainers-haavard-has-moved.patch
-sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2-checkpatch-fixes.patch
+sysctl-fix-min-max-handling-in-__do_proc_doulongvec_minmax-v2.patch
 linux-next.patch
 next-remove-localversion.patch
 fs-inodec-work-around-bug.patch
@@ -103,6 +105,7 @@ oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
 mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
 memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
 mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+rmap-make-anon_vma_free-static-fix.patch
 vmstat-include-compactionh-when-config_compaction-fix.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
