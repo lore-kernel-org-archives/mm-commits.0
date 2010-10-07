@@ -1,83 +1,60 @@
-From: akpm@linux-foundation.org
-Subject: + percpu_counter-use-this_cpu_ptr-instead-of-per_cpu_ptr.patch added to -mm tree
-Date: Thu, 07 Oct 2010 14:59:06 -0700
-Message-ID: <201010072159.o97Lx6Lr026660@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: IPv4: sysctl table check failed [was: mmotm 2010-10-07-14-08
+ uploaded]
+Date: Thu, 7 Oct 2010 15:22:56 -0700
+Message-ID: <20101007152256.9c21ef22.akpm@linux-foundation.org>
+References: <201010072140.o97Le69i025659@imap1.linux-foundation.org>
+	<4CAE4479.6010606@gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755181Ab0JGV7q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 17:59:46 -0400
+	by vger.kernel.org with ESMTP id S1751172Ab0JGWX2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 18:23:28 -0400
+In-Reply-To: <4CAE4479.6010606@gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: cl@linux.com, eric.dumazet@gmail.com, tj@kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org, ML netdev <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <eric.dumazet@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>
 
+On Fri, 08 Oct 2010 00:06:49 +0200
+Jiri Slaby <jirislaby@gmail.com> wrote:
 
-The patch titled
-     percpu_counter: use this_cpu_ptr() instead of per_cpu_ptr()
-has been added to the -mm tree.  Its filename is
-     percpu_counter-use-this_cpu_ptr-instead-of-per_cpu_ptr.patch
+> On 10/07/2010 11:08 PM, akpm@linux-foundation.org wrote:
+> > The mm-of-the-moment snapshot 2010-10-07-14-08 has been uploaded to
+> 
+> Hi, I got bunch of "sysctl table check failed" below. All seem to be
+> related to ipv4:
+> 
+> sysctl table check failed: /net/ipv4/tcp_mem  No min
+> Pid: 1, comm: swapper Not tainted 2.6.36-rc7-mm1_64+ #1285
+> Call Trace:
+>  [<ffffffff8108d444>] set_fail+0xa4/0xf0
+>  [<ffffffff8108d736>] sysctl_check_table+0x2a6/0x310
+>  [<ffffffff8108d4eb>] sysctl_check_table+0x5b/0x310
+>  [<ffffffff8108d4eb>] sysctl_check_table+0x5b/0x310
+>  [<ffffffff81072204>] __register_sysctl_paths+0xf4/0x320
+>  [<ffffffff815c1232>] ? printk+0x3c/0x42
+>  [<ffffffff8115d3bc>] ? sysfs_add_file+0xc/0x10
+>  [<ffffffff818b18bd>] ? sysctl_ipv4_init+0x0/0x87
+>  [<ffffffff81072456>] register_sysctl_paths+0x26/0x30
+>  [<ffffffff818b18fd>] sysctl_ipv4_init+0x40/0x87
+>  [<ffffffff810002df>] do_one_initcall+0x3f/0x170
+>  [<ffffffff81884d44>] kernel_init+0x158/0x1e2
+>  [<ffffffff8102fb54>] kernel_thread_helper+0x4/0x10
+>  [<ffffffff81884bec>] ? kernel_init+0x0/0x1e2
+>  [<ffffffff8102fb50>] ? kernel_thread_helper+0x0/0x10
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+OK, thanks.
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Eric D's net-avoid-limits-overflow.patch switched tcp_mem and udp_mem
+from proc_dointvec() to proc_doulongvec_minmax().  And
+sysctl_check_table() checks `min' and `max' for
+proc_doulongvec_minmax() but not for proc_dointvec().
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: percpu_counter: use this_cpu_ptr() instead of per_cpu_ptr()
-From: Christoph Lameter <cl@linux.com>
-
-this_cpu_ptr() avoids an array lookup and can use the percpu offset of the
-local cpu directly.
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/percpu_counter.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff -puN lib/percpu_counter.c~percpu_counter-use-this_cpu_ptr-instead-of-per_cpu_ptr lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counter-use-this_cpu_ptr-instead-of-per_cpu_ptr
-+++ a/lib/percpu_counter.c
-@@ -73,9 +73,9 @@ void __percpu_counter_add(struct percpu_
- {
- 	s64 count;
- 	s32 *pcount;
--	int cpu = get_cpu();
- 
--	pcount = per_cpu_ptr(fbc->counters, cpu);
-+	preempt_disable();
-+	pcount = this_cpu_ptr(fbc->counters);
- 	count = *pcount + amount;
- 	if (count >= batch || count <= -batch) {
- 		spin_lock(&fbc->lock);
-@@ -85,7 +85,7 @@ void __percpu_counter_add(struct percpu_
- 	} else {
- 		*pcount = count;
- 	}
--	put_cpu();
-+	preempt_enable();
- }
- EXPORT_SYMBOL(__percpu_counter_add);
- 
-_
-
-Patches currently in -mm which might be from cl@linux.com are
-
-linux-next.patch
-mm-compaction-fix-compactpagefailed-counting.patch
-mm-mempolicy-check-return-code-of-check_range.patch
-percpu_counter-use-this_cpu_ptr-instead-of-per_cpu_ptr.patch
+I'm not sure which Eric to blame ;) .min and .max are optional, so
+perhaps the check is wrong?
 
