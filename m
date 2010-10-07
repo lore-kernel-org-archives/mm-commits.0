@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-stack-based-kmap_atomic-fix.patch added to -mm tree
-Date: Thu, 07 Oct 2010 13:00:20 -0700
-Message-ID: <201010072031.o97KVfAh022148@imap1.linux-foundation.org>
+Subject: + memblock-add-input-size-checking-to-memblock_find_region-fix.patch added to -mm tree
+Date: Thu, 07 Oct 2010 13:51:59 -0700
+Message-ID: <201010072123.o97LNLV1024848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751822Ab0JGUbs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 16:31:48 -0400
+	by vger.kernel.org with ESMTP id S1753640Ab0JGVXf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 17:23:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, yinghai@kernel.org
 
 
 The patch titled
-     mm-stack-based-kmap_atomic-fix
+     memblock-add-input-size-checking-to-memblock_find_region-fix
 has been added to the -mm tree.  Its filename is
-     mm-stack-based-kmap_atomic-fix.patch
+     memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-stack-based-kmap_atomic-fix
+Subject: memblock-add-input-size-checking-to-memblock_find_region-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+mm/memblock.c: In function 'memblock_find_region':
+mm/memblock.c:109: warning: format '%#llx' expects type 'long long unsigned int', but argument 4 has type 'phys_addr_t'
+mm/memblock.c:109: warning: format '%#llx' expects type 'long long unsigned int', but argument 5 has type 'phys_addr_t'
+mm/memblock.c:109: warning: format '%#llx' expects type 'long long unsigned int', but argument 6 has type 'phys_addr_t'
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_overlay.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/memblock.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_overlay.c~mm-stack-based-kmap_atomic-fix drivers/gpu/drm/i915/intel_overlay.c
---- a/drivers/gpu/drm/i915/intel_overlay.c~mm-stack-based-kmap_atomic-fix
-+++ a/drivers/gpu/drm/i915/intel_overlay.c
-@@ -1475,21 +1475,18 @@ intel_overlay_map_regs_atomic(struct int
- 		regs = overlay->reg_bo->phys_obj->handle->vaddr;
- 	else
- 		regs = io_mapping_map_atomic_wc(dev_priv->mm.gtt_mapping,
--						overlay->reg_bo->gtt_offset,
--						slot);
-+						overlay->reg_bo->gtt_offset);
+diff -puN mm/memblock.c~memblock-add-input-size-checking-to-memblock_find_region-fix mm/memblock.c
+--- a/mm/memblock.c~memblock-add-input-size-checking-to-memblock_find_region-fix
++++ a/mm/memblock.c
+@@ -106,7 +106,11 @@ static phys_addr_t __init memblock_find_
+ 	long j;
  
- 	return regs;
- }
+ 	/* In case, huge size is requested */
+-	if (WARN_ONCE(end < size, "memblock_find_region: wrong range [%#llx-%#llx] size %#llx", start, end, size))
++	if (WARN_ONCE(end < size,
++		  "memblock_find_region: wrong range [%#llx-%#llx] size %#llx",
++		  (unsigned long long)start,
++		  (unsigned long long)end,
++		  (unsigned long long)size))
+ 		return MEMBLOCK_ERROR;
  
- static void intel_overlay_unmap_regs_atomic(struct intel_overlay *overlay,
--					    int slot,
- 					    struct overlay_registers *regs)
- {
- 	if (!OVERLAY_NEEDS_PHYSICAL(overlay->dev))
--		io_mapping_unmap_atomic(regs, slot);
-+		io_mapping_unmap_atomic(regs);
- }
- 
--
- struct intel_overlay_error_state *
- intel_overlay_capture_error_state(struct drm_device *dev)
- {
-@@ -1517,7 +1514,7 @@ intel_overlay_capture_error_state(struct
- 		goto err;
- 
- 	memcpy_fromio(&error->regs, regs, sizeof(struct overlay_registers));
--	intel_overlay_unmap_regs_atomic(overlay, KM_IRQ0, regs);
-+	intel_overlay_unmap_regs_atomic(overlay, regs);
- 
- 	return error;
- 
+ 	base = memblock_align_down((end - size), align);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +106,7 @@ mm-stack-based-kmap_atomic-fix.patch
 rmap-make-anon_vma_free-static-fix.patch
 vmstat-include-compactionh-when-config_compaction-fix.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 hpet-factor-timer-allocate-from-open-fix.patch
