@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-initialize-structure-memory-to-zero-for-compat-functions.patch added to -mm tree
-Date: Thu, 07 Oct 2010 15:51:27 -0700
-Message-ID: <201010072251.o97MpR6P029138@imap1.linux-foundation.org>
+Subject: + arm-imx-serial-driver-fix-resume.patch added to -mm tree
+Date: Thu, 07 Oct 2010 15:56:20 -0700
+Message-ID: <201010072256.o97MuKxi029346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753837Ab0JGWvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 18:51:36 -0400
+	by vger.kernel.org with ESMTP id S1750992Ab0JGW45 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 18:56:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, arnd@arndb.de, manfred@colorfullife.com
+Cc: volker.ernst@txtr.com, andy@warmcat.com, daniel@caiaq.de, greg@kroah.com, s.hauer@pengutronix.de
 
 
 The patch titled
-     ipc: initialize structure memory to zero for compat functions
+     ARM: imx serial driver: fix resume
 has been added to the -mm tree.  Its filename is
-     ipc-initialize-structure-memory-to-zero-for-compat-functions.patch
+     arm-imx-serial-driver-fix-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: initialize structure memory to zero for compat functions
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: ARM: imx serial driver: fix resume
+From: Volker Ernst <volker.ernst@txtr.com>
 
-This takes care of leaking uninitialized kernel stack memory to
-userspace from non-zeroed fields in structs in compat ipc functions.
+I just came across a bug in the IMX31 serial driver which is still present
+in the newest kernels and which prevents successful resume-operation for
+the IMX31 serial ports.
 
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+What happens is that in "drivers/serial/imx.c" on resume function
+"serial_imx_resume" gets called.  This function in turn calls
+"uart_resume_port" (in the generic serial driver "serial_core.c"), which
+in turn calls "imx_start_tx" in "imx.c" (in case the SIO-port was really
+suspended) which in turn calls "imx_transmit_buffer".
+
+However calling "imx_transmit_buffer" with an empty TX-fifo (as is usually
+the case) will result in the serial port starting to transmit (actually
+the old [already sent] tx-buffer), as there is no check if the tx-buffer
+is empty before starting to feed tx-fifo-data to the serial port hardware.
+
+Signed-off-by: Volker Ernst <volker.ernst@txtr.com>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: Andy Green <andy@warmcat.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/compat.c    |    6 ++++++
- ipc/compat_mq.c |    5 +++++
- 2 files changed, 11 insertions(+)
+ drivers/serial/imx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/compat.c~ipc-initialize-structure-memory-to-zero-for-compat-functions ipc/compat.c
---- a/ipc/compat.c~ipc-initialize-structure-memory-to-zero-for-compat-functions
-+++ a/ipc/compat.c
-@@ -241,6 +241,8 @@ long compat_sys_semctl(int first, int se
- 	struct semid64_ds __user *up64;
- 	int version = compat_ipc_parse_version(&third);
+diff -puN drivers/serial/imx.c~arm-imx-serial-driver-fix-resume drivers/serial/imx.c
+--- a/drivers/serial/imx.c~arm-imx-serial-driver-fix-resume
++++ a/drivers/serial/imx.c
+@@ -328,13 +328,13 @@ static inline void imx_transmit_buffer(s
+ 	struct circ_buf *xmit = &sport->port.state->xmit;
  
-+	memset(&s64, 0, sizeof(s64));
-+
- 	if (!uptr)
- 		return -EINVAL;
- 	if (get_user(pad, (u32 __user *) uptr))
-@@ -421,6 +423,8 @@ long compat_sys_msgctl(int first, int se
- 	int version = compat_ipc_parse_version(&second);
- 	void __user *p;
+ 	while (!(readl(sport->port.membase + UTS) & UTS_TXFULL)) {
++		if (uart_circ_empty(xmit))
++			break;
+ 		/* send xmit->buf[xmit->tail]
+ 		 * out the port here */
+ 		writel(xmit->buf[xmit->tail], sport->port.membase + URTX0);
+ 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
+ 		sport->port.icount.tx++;
+-		if (uart_circ_empty(xmit))
+-			break;
+ 	}
  
-+	memset(&m64, 0, sizeof(m64));
-+
- 	switch (second & (~IPC_64)) {
- 	case IPC_INFO:
- 	case IPC_RMID:
-@@ -594,6 +598,8 @@ long compat_sys_shmctl(int first, int se
- 	int err, err2;
- 	int version = compat_ipc_parse_version(&second);
- 
-+	memset(&s64, 0, sizeof(s64));
-+
- 	switch (second & (~IPC_64)) {
- 	case IPC_RMID:
- 	case SHM_LOCK:
-diff -puN ipc/compat_mq.c~ipc-initialize-structure-memory-to-zero-for-compat-functions ipc/compat_mq.c
---- a/ipc/compat_mq.c~ipc-initialize-structure-memory-to-zero-for-compat-functions
-+++ a/ipc/compat_mq.c
-@@ -53,6 +53,9 @@ asmlinkage long compat_sys_mq_open(const
- 	void __user *p = NULL;
- 	if (u_attr && oflag & O_CREAT) {
- 		struct mq_attr attr;
-+
-+		memset(&attr, 0, sizeof(attr));
-+
- 		p = compat_alloc_user_space(sizeof(attr));
- 		if (get_compat_mq_attr(&attr, u_attr) ||
- 		    copy_to_user(p, &attr, sizeof(attr)))
-@@ -127,6 +130,8 @@ asmlinkage long compat_sys_mq_getsetattr
- 	struct mq_attr __user *p = compat_alloc_user_space(2 * sizeof(*p));
- 	long ret;
- 
-+	memset(&mqstat, 0, sizeof(mqstat));
-+
- 	if (u_mqstat) {
- 		if (get_compat_mq_attr(&mqstat, u_mqstat) ||
- 		    copy_to_user(p, &mqstat, sizeof(mqstat)))
+ 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from volker.ernst@txtr.com are
 
-linux-next.patch
-ipc-initialize-structure-memory-to-zero-for-compat-functions.patch
+arm-imx-serial-driver-fix-resume.patch
 
