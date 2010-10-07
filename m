@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-reduce-lock-hold-time-during-charge-moving.patch added to -mm tree
-Date: Thu, 07 Oct 2010 16:15:29 -0700
-Message-ID: <201010072315.o97NFT8a030304@imap1.linux-foundation.org>
+Subject: + alpha-use-single-hae-window-on-t2-core-logic-gamma-sable.patch added to -mm tree
+Date: Thu, 07 Oct 2010 16:16:45 -0700
+Message-ID: <201010072316.o97NGjsc030372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754602Ab0JGXQT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 19:16:19 -0400
+	by vger.kernel.org with ESMTP id S1754602Ab0JGXR0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 19:17:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, gthelen@google.com, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp
+Cc: ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     memcg: reduce lock hold time during charge moving
+     alpha: use single HAE window on T2 core logic (gamma, sable)
 has been added to the -mm tree.  Its filename is
-     memcg-reduce-lock-hold-time-during-charge-moving.patch
+     alpha-use-single-hae-window-on-t2-core-logic-gamma-sable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,269 +33,277 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: reduce lock hold time during charge moving
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: alpha: use single HAE window on T2 core logic (gamma, sable)
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Presently during task migration among cgroups, memory cgroup scans page
-tables and moves accounting if flags are properly set.
+T2 are the only alpha SMP systems that do HAE switching at runtime, which
+is fundamentally racy on SMP.  This patch limits MMIO space on T2 to HAE0
+only, like we did on MCPCIA (rawhide) long ago.  This leaves us with only
+112 Mb of PCI MMIO (128 Mb HAE aperture minus 16 Mb reserved for EISA),
+but since linux PCI allocations are reasonably tight, it should be enough
+for sane hardware configurations.
 
-The core code, mem_cgroup_move_charge_pte_range() does
+Also, fix a typo in MCPCIA_FROB_MMIO macro which shouldn't call set_hae()
+if MCPCIA_ONE_HAE_WINDOW is defined.  It's more for correctness, as
+set_hae() is a no-op anyway in that case.
 
- 	pte_offset_map_lock();
-	for all ptes in a page table:
-		1. look into page table, find_and_get a page
-		2. remove it from LRU.
-		3. move charge.
-		4. putback to LRU. put_page()
-	pte_offset_map_unlock();
-
-for pte entries on a 3rd level? page table.
-
-This pte_offset_map_lock seems a bit long. This patch modifies a rountine as
-
-	for 32 pages: pte_offset_map_lock()
-		      find_and_get a page
-		      record it
-		      pte_offset_map_unlock()
-	for all recorded pages
-		      isolate it from LRU.
-		      move charge
-		      putback to LRU
-	for all recorded pages
-		      put_page()
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   95 ++++++++++++++++++++++++++++------------------
- 1 file changed, 59 insertions(+), 36 deletions(-)
+ arch/alpha/include/asm/core_mcpcia.h |    2 
+ arch/alpha/include/asm/core_t2.h     |   54 ++++++++-----------------
+ arch/alpha/kernel/core_t2.c          |   11 +++--
+ arch/alpha/kernel/machvec_impl.h     |    3 +
+ 4 files changed, 30 insertions(+), 40 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-reduce-lock-hold-time-during-charge-moving mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reduce-lock-hold-time-during-charge-moving
-+++ a/mm/memcontrol.c
-@@ -276,6 +276,21 @@ enum move_type {
- 	NR_MOVE_TYPE,
- };
+diff -puN arch/alpha/include/asm/core_mcpcia.h~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable arch/alpha/include/asm/core_mcpcia.h
+--- a/arch/alpha/include/asm/core_mcpcia.h~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable
++++ a/arch/alpha/include/asm/core_mcpcia.h
+@@ -247,7 +247,7 @@ struct el_MCPCIA_uncorrected_frame_mchec
+ #define vip	volatile int __force *
+ #define vuip	volatile unsigned int __force *
  
-+enum mc_target_type {
-+	MC_TARGET_NONE, /* used as failure code(0) */
-+	MC_TARGET_PAGE,
-+	MC_TARGET_SWAP,
-+};
-+
-+struct mc_target {
-+	enum mc_target_type type;
-+	union {
-+		struct page *page;
-+		swp_entry_t	ent;
-+	} val;
-+};
-+#define MC_MOVE_ONCE	(32)
-+
- /* "mc" and its members are protected by cgroup_mutex */
- static struct move_charge_struct {
- 	spinlock_t	  lock; /* for from, to, moving_task */
-@@ -284,6 +299,7 @@ static struct move_charge_struct {
- 	unsigned long precharge;
- 	unsigned long moved_charge;
- 	unsigned long moved_swap;
-+	struct mc_target target[MC_MOVE_ONCE];
- 	struct task_struct *moving_task;	/* a task moving charges */
- 	wait_queue_head_t waitq;		/* a waitq for other context */
- } mc = {
-@@ -291,6 +307,7 @@ static struct move_charge_struct {
- 	.waitq = __WAIT_QUEUE_HEAD_INITIALIZER(mc.waitq),
- };
+-#ifdef MCPCIA_ONE_HAE_WINDOW
++#ifndef MCPCIA_ONE_HAE_WINDOW
+ #define MCPCIA_FROB_MMIO						\
+ 	if (__mcpcia_is_mmio(hose)) {					\
+ 		set_hae(hose & 0xffffffff);				\
+diff -puN arch/alpha/include/asm/core_t2.h~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable arch/alpha/include/asm/core_t2.h
+--- a/arch/alpha/include/asm/core_t2.h~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable
++++ a/arch/alpha/include/asm/core_t2.h
+@@ -1,6 +1,9 @@
+ #ifndef __ALPHA_T2__H__
+ #define __ALPHA_T2__H__
  
++/* Fit everything into one 128MB HAE window. */
++#define T2_ONE_HAE_WINDOW 1
 +
- static bool move_anon(void)
- {
- 	return test_bit(MOVE_CHARGE_TYPE_ANON,
-@@ -4479,16 +4496,7 @@ one_by_one:
+ #include <linux/types.h>
+ #include <linux/spinlock.h>
+ #include <asm/compiler.h>
+@@ -19,7 +22,7 @@
   *
-  * Called with pte lock held.
   */
--union mc_target {
--	struct page	*page;
--	swp_entry_t	ent;
--};
  
--enum mc_target_type {
--	MC_TARGET_NONE,	/* not used */
--	MC_TARGET_PAGE,
--	MC_TARGET_SWAP,
--};
+-#define T2_MEM_R1_MASK 0x07ffffff  /* Mem sparse region 1 mask is 26 bits */
++#define T2_MEM_R1_MASK 0x07ffffff  /* Mem sparse region 1 mask is 27 bits */
  
- static struct page *mc_handle_present_pte(struct vm_area_struct *vma,
- 						unsigned long addr, pte_t ptent)
-@@ -4565,7 +4573,7 @@ static struct page *mc_handle_file_pte(s
+ /* GAMMA-SABLE is a SABLE with EV5-based CPUs */
+ /* All LYNX machines, EV4 or EV5, use the GAMMA bias also */
+@@ -85,7 +88,9 @@
+ #define T2_DIR			(IDENT_ADDR + GAMMA_BIAS + 0x38e0004a0UL)
+ #define T2_ICE			(IDENT_ADDR + GAMMA_BIAS + 0x38e0004c0UL)
+ 
++#ifndef T2_ONE_HAE_WINDOW
+ #define T2_HAE_ADDRESS		T2_HAE_1
++#endif
+ 
+ /*  T2 CSRs are in the non-cachable primary IO space from 3.8000.0000 to
+  3.8fff.ffff
+@@ -429,13 +434,15 @@ extern inline void t2_outl(u32 b, unsign
+  *
+  */
+ 
++#ifdef T2_ONE_HAE_WINDOW
++#define t2_set_hae
++#else
+ #define t2_set_hae { \
+-	msb = addr  >> 27; \
++	unsigned long msb = addr >> 27; \
+ 	addr &= T2_MEM_R1_MASK; \
+ 	set_hae(msb); \
  }
+-
+-extern raw_spinlock_t t2_hae_lock;
++#endif
  
- static int is_target_pte_for_mc(struct vm_area_struct *vma,
--		unsigned long addr, pte_t ptent, union mc_target *target)
-+		unsigned long addr, pte_t ptent, struct mc_target *target)
+ /*
+  * NOTE: take T2_DENSE_MEM off in each readX/writeX routine, since
+@@ -446,28 +453,22 @@ extern raw_spinlock_t t2_hae_lock;
+ __EXTERN_INLINE u8 t2_readb(const volatile void __iomem *xaddr)
  {
- 	struct page *page = NULL;
- 	struct page_cgroup *pc;
-@@ -4591,7 +4599,7 @@ static int is_target_pte_for_mc(struct v
- 		if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
- 			ret = MC_TARGET_PAGE;
- 			if (target)
--				target->page = page;
-+				target->val.page = page;
- 		}
- 		if (!ret || !target)
- 			put_page(page);
-@@ -4601,8 +4609,10 @@ static int is_target_pte_for_mc(struct v
- 			css_id(&mc.from->css) == lookup_swap_cgroup(ent)) {
- 		ret = MC_TARGET_SWAP;
- 		if (target)
--			target->ent = ent;
-+			target->val.ent = ent;
- 	}
-+	if (target)
-+		target->type = ret;
- 	return ret;
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long result, msb;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long result;
+ 
+ 	t2_set_hae;
+ 
+ 	result = *(vip) ((addr << 5) + T2_SPARSE_MEM + 0x00);
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ 	return __kernel_extbl(result, addr & 3);
  }
  
-@@ -4763,26 +4773,42 @@ static int mem_cgroup_move_charge_pte_ra
- 	struct vm_area_struct *vma = walk->private;
- 	pte_t *pte;
- 	spinlock_t *ptl;
-+	int index, num;
+ __EXTERN_INLINE u16 t2_readw(const volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long result, msb;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long result;
  
- retry:
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
--	for (; addr != end; addr += PAGE_SIZE) {
-+	for (num = 0; num < MC_MOVE_ONCE && addr != end; addr += PAGE_SIZE) {
- 		pte_t ptent = *(pte++);
--		union mc_target target;
--		int type;
-+		ret = is_target_pte_for_mc(vma, addr, ptent, &mc.target[num]);
-+		if (!ret)
-+			continue;
-+		mc.target[num++].type = ret;
-+	}
-+	pte_unmap_unlock(pte - 1, ptl);
-+	cond_resched();
-+
-+	ret = 0;
-+	index = 0;
-+	do {
-+		struct mc_target *mt;
- 		struct page *page;
- 		struct page_cgroup *pc;
- 		swp_entry_t ent;
+ 	t2_set_hae;
  
--		if (!mc.precharge)
--			break;
-+		if (!mc.precharge) {
-+			ret = mem_cgroup_do_precharge(1);
-+			if (ret)
-+				goto out;
-+			continue;
-+		}
-+
-+		mt = &mc.target[index++];
- 
--		type = is_target_pte_for_mc(vma, addr, ptent, &target);
--		switch (type) {
-+		switch (mt->type) {
- 		case MC_TARGET_PAGE:
--			page = target.page;
-+			page = mt->val.page;
- 			if (isolate_lru_page(page))
--				goto put;
-+				break;
- 			pc = lookup_page_cgroup(page);
- 			if (!mem_cgroup_move_account(pc,
- 						mc.from, mc.to, false)) {
-@@ -4791,11 +4817,9 @@ retry:
- 				mc.moved_charge++;
- 			}
- 			putback_lru_page(page);
--put:			/* is_target_pte_for_mc() gets the page */
--			put_page(page);
- 			break;
- 		case MC_TARGET_SWAP:
--			ent = target.ent;
-+			ent = mt->val.ent;
- 			if (!mem_cgroup_move_swap_account(ent,
- 						mc.from, mc.to, false)) {
- 				mc.precharge--;
-@@ -4806,21 +4830,20 @@ put:			/* is_target_pte_for_mc() gets th
- 		default:
- 			break;
- 		}
-+	} while (index < num);
-+out:
-+	for (index = 0; index < num; index++) {
-+		if (mc.target[index].type == MC_TARGET_PAGE)
-+			put_page(mc.target[index].val.page);
-+		mc.target[index].type = MC_TARGET_NONE;
- 	}
--	pte_unmap_unlock(pte - 1, ptl);
-+
-+	if (ret)
-+		return ret;
- 	cond_resched();
- 
--	if (addr != end) {
--		/*
--		 * We have consumed all precharges we got in can_attach().
--		 * We try charge one by one, but don't do any additional
--		 * charges to mc.to if we have failed in charge once in attach()
--		 * phase.
--		 */
--		ret = mem_cgroup_do_precharge(1);
--		if (!ret)
--			goto retry;
--	}
-+	if (addr != end)
-+		goto retry;
- 
- 	return ret;
+ 	result = *(vuip) ((addr << 5) + T2_SPARSE_MEM + 0x08);
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ 	return __kernel_extwl(result, addr & 3);
  }
+ 
+@@ -478,59 +479,47 @@ __EXTERN_INLINE u16 t2_readw(const volat
+ __EXTERN_INLINE u32 t2_readl(const volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long result, msb;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long result;
+ 
+ 	t2_set_hae;
+ 
+ 	result = *(vuip) ((addr << 5) + T2_SPARSE_MEM + 0x18);
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ 	return result & 0xffffffffUL;
+ }
+ 
+ __EXTERN_INLINE u64 t2_readq(const volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long r0, r1, work, msb;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long r0, r1, work;
+ 
+ 	t2_set_hae;
+ 
+ 	work = (addr << 5) + T2_SPARSE_MEM + 0x18;
+ 	r0 = *(vuip)(work);
+ 	r1 = *(vuip)(work + (4 << 5));
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ 	return r1 << 32 | r0;
+ }
+ 
+ __EXTERN_INLINE void t2_writeb(u8 b, volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long msb, w;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long w;
+ 
+ 	t2_set_hae;
+ 
+ 	w = __kernel_insbl(b, addr & 3);
+ 	*(vuip) ((addr << 5) + T2_SPARSE_MEM + 0x00) = w;
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ }
+ 
+ __EXTERN_INLINE void t2_writew(u16 b, volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long msb, w;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long w;
+ 
+ 	t2_set_hae;
+ 
+ 	w = __kernel_inswl(b, addr & 3);
+ 	*(vuip) ((addr << 5) + T2_SPARSE_MEM + 0x08) = w;
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ }
+ 
+ /*
+@@ -540,29 +529,22 @@ __EXTERN_INLINE void t2_writew(u16 b, vo
+ __EXTERN_INLINE void t2_writel(u32 b, volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long msb;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
+ 
+ 	t2_set_hae;
+ 
+ 	*(vuip) ((addr << 5) + T2_SPARSE_MEM + 0x18) = b;
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ }
+ 
+ __EXTERN_INLINE void t2_writeq(u64 b, volatile void __iomem *xaddr)
+ {
+ 	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
+-	unsigned long msb, work;
+-	unsigned long flags;
+-	raw_spin_lock_irqsave(&t2_hae_lock, flags);
++	unsigned long work;
+ 
+ 	t2_set_hae;
+ 
+ 	work = (addr << 5) + T2_SPARSE_MEM + 0x18;
+ 	*(vuip)work = b;
+ 	*(vuip)(work + (4 << 5)) = b >> 32;
+-	raw_spin_unlock_irqrestore(&t2_hae_lock, flags);
+ }
+ 
+ __EXTERN_INLINE void __iomem *t2_ioportmap(unsigned long addr)
+diff -puN arch/alpha/kernel/core_t2.c~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable arch/alpha/kernel/core_t2.c
+--- a/arch/alpha/kernel/core_t2.c~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable
++++ a/arch/alpha/kernel/core_t2.c
+@@ -74,8 +74,6 @@
+ # define DBG(args)
+ #endif
+ 
+-DEFINE_RAW_SPINLOCK(t2_hae_lock);
+-
+ static volatile unsigned int t2_mcheck_any_expected;
+ static volatile unsigned int t2_mcheck_last_taken;
+ 
+@@ -406,6 +404,7 @@ void __init
+ t2_init_arch(void)
+ {
+ 	struct pci_controller *hose;
++	struct resource *hae_mem;
+ 	unsigned long temp;
+ 	unsigned int i;
+ 
+@@ -433,7 +432,13 @@ t2_init_arch(void)
+ 	 */
+ 	pci_isa_hose = hose = alloc_pci_controller();
+ 	hose->io_space = &ioport_resource;
+-	hose->mem_space = &iomem_resource;
++	hae_mem = alloc_resource();
++	hae_mem->start = 0;
++	hae_mem->end = T2_MEM_R1_MASK;
++	hae_mem->name = pci_hae0_name;
++	if (request_resource(&iomem_resource, hae_mem) < 0)
++		printk(KERN_ERR "Failed to request HAE_MEM\n");
++	hose->mem_space = hae_mem;
+ 	hose->index = 0;
+ 
+ 	hose->sparse_mem_base = T2_SPARSE_MEM - IDENT_ADDR;
+diff -puN arch/alpha/kernel/machvec_impl.h~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable arch/alpha/kernel/machvec_impl.h
+--- a/arch/alpha/kernel/machvec_impl.h~alpha-use-single-hae-window-on-t2-core-logic-gamma-sable
++++ a/arch/alpha/kernel/machvec_impl.h
+@@ -25,6 +25,9 @@
+ #ifdef MCPCIA_ONE_HAE_WINDOW
+ #define MCPCIA_HAE_ADDRESS	(&alpha_mv.hae_cache)
+ #endif
++#ifdef T2_ONE_HAE_WINDOW
++#define T2_HAE_ADDRESS		(&alpha_mv.hae_cache)
++#endif
+ 
+ /* Only a few systems don't define IACK_SC, handling all interrupts through
+    the SRM console.  But splitting out that one case from IO() below
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-memcg-fix-thresholds-with-use_hierarchy-==-1.patch
 linux-next.patch
-vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
-oom-add-per-mm-oom-disable-count.patch
-oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch
-oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
-oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-memory-hotplug-fix-notifiers-return-value-check.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
-writeback-account-for-time-spent-congestion_waited.patch
-vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
-vmscan-narrow-the-scenarios-lumpy-reclaim-uses-synchrounous-reclaim.patch
-vmscan-remove-dead-code-in-shrink_inactive_list.patch
-vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch
-memcg-fix-race-in-file_mapped-accouting-flag-management.patch
-memcg-avoid-lock-in-updating-file_mapped-was-fix-race-in-file_mapped-accouting-flag-management.patch
-memcg-use-for_each_mem_cgroup.patch
-memcg-cpu-hotplug-aware-percpu-count-updates.patch
-memcg-cpu-hotplug-aware-percpu-count-updates-fix.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-memcg-generic-filestat-update-interface.patch
-memcg-reduce-lock-hold-time-during-charge-moving.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+alpha-enable-arch_dma_addr_t_64bit.patch
+alpha-use-single-hae-window-on-t2-core-logic-gamma-sable.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+make-sure-nobodys-leaking-resources.patch
 
