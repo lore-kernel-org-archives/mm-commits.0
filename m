@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-make-anon_vma_free-static-fix.patch added to -mm tree
-Date: Thu, 07 Oct 2010 12:45:14 -0700
-Message-ID: <201010072016.o97KGal3021384@imap1.linux-foundation.org>
+Subject: + mm-stack-based-kmap_atomic-fix.patch added to -mm tree
+Date: Thu, 07 Oct 2010 13:00:20 -0700
+Message-ID: <201010072031.o97KVfAh022148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752718Ab0JGURT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 16:17:19 -0400
+	by vger.kernel.org with ESMTP id S1751822Ab0JGUbs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2010 16:31:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, namhyung@gmail.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     rmap-make-anon_vma_free-static-fix
+     mm-stack-based-kmap_atomic-fix
 has been added to the -mm tree.  Its filename is
-     rmap-make-anon_vma_free-static-fix.patch
+     mm-stack-based-kmap_atomic-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rmap-make-anon_vma_free-static-fix
+Subject: mm-stack-based-kmap_atomic-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Andi just added patches to linux-next which call anon_vma_free() from
-mm/migrate.c.
-
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 +
- mm/rmap.c            |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/i915/intel_overlay.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/rmap.h~rmap-make-anon_vma_free-static-fix include/linux/rmap.h
---- a/include/linux/rmap.h~rmap-make-anon_vma_free-static-fix
-+++ a/include/linux/rmap.h
-@@ -148,6 +148,7 @@ void unlink_anon_vmas(struct vm_area_str
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
- int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
- void __anon_vma_link(struct vm_area_struct *);
-+void anon_vma_free(struct anon_vma *);
+diff -puN drivers/gpu/drm/i915/intel_overlay.c~mm-stack-based-kmap_atomic-fix drivers/gpu/drm/i915/intel_overlay.c
+--- a/drivers/gpu/drm/i915/intel_overlay.c~mm-stack-based-kmap_atomic-fix
++++ a/drivers/gpu/drm/i915/intel_overlay.c
+@@ -1475,21 +1475,18 @@ intel_overlay_map_regs_atomic(struct int
+ 		regs = overlay->reg_bo->phys_obj->handle->vaddr;
+ 	else
+ 		regs = io_mapping_map_atomic_wc(dev_priv->mm.gtt_mapping,
+-						overlay->reg_bo->gtt_offset,
+-						slot);
++						overlay->reg_bo->gtt_offset);
  
- static inline void anon_vma_merge(struct vm_area_struct *vma,
- 				  struct vm_area_struct *next)
-diff -puN mm/rmap.c~rmap-make-anon_vma_free-static-fix mm/rmap.c
---- a/mm/rmap.c~rmap-make-anon_vma_free-static-fix
-+++ a/mm/rmap.c
-@@ -70,7 +70,7 @@ static inline struct anon_vma *anon_vma_
- 	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+ 	return regs;
  }
  
--static void anon_vma_free(struct anon_vma *anon_vma)
-+void anon_vma_free(struct anon_vma *anon_vma)
+ static void intel_overlay_unmap_regs_atomic(struct intel_overlay *overlay,
+-					    int slot,
+ 					    struct overlay_registers *regs)
  {
- 	kmem_cache_free(anon_vma_cachep, anon_vma);
+ 	if (!OVERLAY_NEEDS_PHYSICAL(overlay->dev))
+-		io_mapping_unmap_atomic(regs, slot);
++		io_mapping_unmap_atomic(regs);
  }
+ 
+-
+ struct intel_overlay_error_state *
+ intel_overlay_capture_error_state(struct drm_device *dev)
+ {
+@@ -1517,7 +1514,7 @@ intel_overlay_capture_error_state(struct
+ 		goto err;
+ 
+ 	memcpy_fromio(&error->regs, regs, sizeof(struct overlay_registers));
+-	intel_overlay_unmap_regs_atomic(overlay, KM_IRQ0, regs);
++	intel_overlay_unmap_regs_atomic(overlay, regs);
+ 
+ 	return error;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +113,7 @@ oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
 mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
 memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
 mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-fix.patch
 rmap-make-anon_vma_free-static-fix.patch
 vmstat-include-compactionh-when-config_compaction-fix.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
