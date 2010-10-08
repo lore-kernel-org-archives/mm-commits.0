@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + lib-parser-cleanup-match_number.patch added to -mm tree
-Date: Fri, 08 Oct 2010 12:13:07 -0700
-Message-ID: <201010081913.o98JD71C020670@imap1.linux-foundation.org>
+Date: Fri, 08 Oct 2010 12:13:16 -0700
+Message-ID: <201010081913.o98JDG3N020673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754242Ab0JHTNm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Oct 2010 15:13:42 -0400
+	by vger.kernel.org with ESMTP id S1754242Ab0JHTNs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Oct 2010 15:13:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,7 +15,7 @@ Cc: namhyung@gmail.com
 
 
 The patch titled
-     From: Namhyung Kim <namhyung@gmail.com>
+     lib/parser: cleanup match_number()
 has been added to the -mm tree.  Its filename is
      lib-parser-cleanup-match_number.patch
 
@@ -33,15 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Namhyung Kim <namhyung@gmail.com>
-
+Subject: lib/parser: cleanup match_number()
+From: Namhyung Kim <namhyung@gmail.com>
 
 Use new variable 'len' to make code more readable.
 
 Signed-off-by: Namhyung Kim <namhyung@gmail.com>
----
-
-index fb34977..6e89eca 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
