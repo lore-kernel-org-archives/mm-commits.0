@@ -1,10 +1,10 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-s3c-fix-on-support-rtc-alarm.patch added to -mm tree
-Date: Mon, 11 Oct 2010 15:59:32 -0700
-Message-ID: <201010112259.o9BMxWiw023162@imap1.linux-foundation.org>
+Subject: + rtc-rtc-s3c-add-rtc_valid_tm-in-s3c_rtc_gettime.patch added to -mm tree
+Date: Mon, 11 Oct 2010 15:59:38 -0700
+Message-ID: <201010112259.o9BMxcTp023173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
 	by vger.kernel.org with ESMTP id S1751306Ab0JKXAc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
@@ -12,13 +12,13 @@ Received: from smtp1.linux-foundation.org ([140.211.169.13]:54437 "EHLO
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chaos.youn@samsung.com, a.zummo@towertech.it, ben-linux@fluff.org, kgene.kim@samsung.com, mcuos.com@gmail.com
+Cc: kgene.kim@samsung.com, a.zummo@towertech.it, ben-linux@fluff.org, mcuos.com@gmail.com
 
 
 The patch titled
-     rtc: rtc-s3c: fix on support RTC Alarm
+     rtc: rtc-s3c: add rtc_valid_tm in s3c_rtc_gettime()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-s3c-fix-on-support-rtc-alarm.patch
+     rtc-rtc-s3c-add-rtc_valid_tm-in-s3c_rtc_gettime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-s3c: fix on support RTC Alarm
-From: Changhwan Youn <chaos.youn@samsung.com>
+Subject: rtc: rtc-s3c: add rtc_valid_tm in s3c_rtc_gettime()
+From: Kukjin Kim <kgene.kim@samsung.com>
 
-The alarm_irq_enable function should be implemented to support RTC alarm. 
-And fix tabs instead of white space around the proc field.
+Add "rtc_valid_tm" in s3c_rtc_gettime() as per Wan ZongShun's suggestion.
 
-Signed-off-by: Changhwan Youn <chaos.youn@samsung.com>
+Suggested-by: Wan ZongShun <mcuos.com@gmail.com>
 Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-on-support-rtc-alarm drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-on-support-rtc-alarm
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-add-rtc_valid_tm-in-s3c_rtc_gettime drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-add-rtc_valid_tm-in-s3c_rtc_gettime
 +++ a/drivers/rtc/rtc-s3c.c
-@@ -379,7 +379,8 @@ static const struct rtc_class_ops s3c_rt
- 	.set_alarm	= s3c_rtc_setalarm,
- 	.irq_set_freq	= s3c_rtc_setfreq,
- 	.irq_set_state	= s3c_rtc_setpie,
--	.proc	        = s3c_rtc_proc,
-+	.proc		= s3c_rtc_proc,
-+	.alarm_irq_enable = s3c_rtc_setaie,
- };
+@@ -185,7 +185,7 @@ static int s3c_rtc_gettime(struct device
+ 	rtc_tm->tm_year += 100;
+ 	rtc_tm->tm_mon -= 1;
  
- static void s3c_rtc_enable(struct platform_device *pdev, int en)
+-	return 0;
++	return rtc_valid_tm(rtc_tm);
+ }
+ 
+ static int s3c_rtc_settime(struct device *dev, struct rtc_time *tm)
 _
 
-Patches currently in -mm which might be from chaos.youn@samsung.com are
+Patches currently in -mm which might be from kgene.kim@samsung.com are
 
+origin.patch
 linux-next.patch
 rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon.patch
 rtc-rtc-s3c-fix-setting-missing-field-of-getalarm.patch
 rtc-rtc-s3c-fix-on-support-rtc-alarm.patch
+rtc-rtc-s3c-fix-debug-message-format-on-rtc.patch
 rtc-rtc-s3c-fix-rtc-initialization-method.patch
+rtc-rtc-s3c-add-rtc_valid_tm-in-s3c_rtc_gettime.patch
 
