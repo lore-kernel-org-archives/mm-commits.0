@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-s3c-fix-rtc-initialization-method.patch added to -mm tree
-Date: Mon, 11 Oct 2010 15:59:36 -0700
-Message-ID: <201010112259.o9BMxame023169@imap1.linux-foundation.org>
+Subject: + rtc-rtc-s3c-fix-setting-missing-field-of-getalarm.patch added to -mm tree
+Date: Mon, 11 Oct 2010 15:59:30 -0700
+Message-ID: <201010112259.o9BMxU3L023159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751523Ab0JKXAe (ORCPT
+	by vger.kernel.org with ESMTP id S1751524Ab0JKXAi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Oct 2010 19:00:34 -0400
+	Mon, 11 Oct 2010 19:00:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: chaos.youn@samsung.com, a.zummo@towertech.it, ben-linux@fluff.org, kgene.kim
 
 
 The patch titled
-     rtc: rtc-s3c: fix RTC initialization method
+     rtc: rtc-s3c: fix setting missing field of getalarm
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-s3c-fix-rtc-initialization-method.patch
+     rtc-rtc-s3c-fix-setting-missing-field-of-getalarm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-s3c: fix RTC initialization method
+Subject: rtc: rtc-s3c: fix setting missing field of getalarm
 From: Changhwan Youn <chaos.youn@samsung.com>
 
-Change RTC initialization method in probe().  The 'rtc_valid_tm(tm)' can
-check whether RTC BCD is valid or not.  And change the method of checking
-because the previous method cannot validate RTC BCD registers properly.
+Current s3c_rtc_getalarm() sets missing field of alarm time with 0xff. 
+But this value should be -1 according to drivers/rtc/interface.c.
 
 Signed-off-by: Changhwan Youn <chaos.youn@samsung.com>
 Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
 Cc: Wan ZongShun <mcuos.com@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-s3c.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-rtc-initialization-method drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-rtc-initialization-method
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-setting-missing-field-of-getalarm drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-setting-missing-field-of-getalarm
 +++ a/drivers/rtc/rtc-s3c.c
-@@ -453,8 +453,8 @@ static int __devexit s3c_rtc_remove(stru
- static int __devinit s3c_rtc_probe(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc;
-+	struct rtc_time rtc_tm;
- 	struct resource *res;
--	unsigned int tmp, i;
- 	int ret;
+@@ -242,34 +242,34 @@ static int s3c_rtc_getalarm(struct devic
+ 	if (alm_en & S3C2410_RTCALM_SECEN)
+ 		alm_tm->tm_sec = bcd2bin(alm_tm->tm_sec);
+ 	else
+-		alm_tm->tm_sec = 0xff;
++		alm_tm->tm_sec = -1;
  
- 	pr_debug("%s: probe=%p\n", __func__, pdev);
-@@ -535,11 +535,19 @@ static int __devinit s3c_rtc_probe(struc
+ 	if (alm_en & S3C2410_RTCALM_MINEN)
+ 		alm_tm->tm_min = bcd2bin(alm_tm->tm_min);
+ 	else
+-		alm_tm->tm_min = 0xff;
++		alm_tm->tm_min = -1;
  
- 	/* Check RTC Time */
+ 	if (alm_en & S3C2410_RTCALM_HOUREN)
+ 		alm_tm->tm_hour = bcd2bin(alm_tm->tm_hour);
+ 	else
+-		alm_tm->tm_hour = 0xff;
++		alm_tm->tm_hour = -1;
  
--	for (i = S3C2410_RTCSEC; i <= S3C2410_RTCYEAR; i += 0x4) {
--		tmp = readb(s3c_rtc_base + i);
-+	s3c_rtc_gettime(NULL, &rtc_tm);
+ 	if (alm_en & S3C2410_RTCALM_DAYEN)
+ 		alm_tm->tm_mday = bcd2bin(alm_tm->tm_mday);
+ 	else
+-		alm_tm->tm_mday = 0xff;
++		alm_tm->tm_mday = -1;
  
--		if ((tmp & 0xf) > 0x9 || ((tmp >> 4) & 0xf) > 0x9)
--			writeb(0, s3c_rtc_base + i);
-+	if (rtc_valid_tm(&rtc_tm)) {
-+		rtc_tm.tm_year	= 100;
-+		rtc_tm.tm_mon	= 0;
-+		rtc_tm.tm_mday	= 1;
-+		rtc_tm.tm_hour	= 0;
-+		rtc_tm.tm_min	= 0;
-+		rtc_tm.tm_sec	= 0;
-+
-+		s3c_rtc_settime(NULL, &rtc_tm);
-+
-+		dev_warn(&pdev->dev, "warning: invalid RTC value so initializing it\n");
+ 	if (alm_en & S3C2410_RTCALM_MONEN) {
+ 		alm_tm->tm_mon = bcd2bin(alm_tm->tm_mon);
+ 		alm_tm->tm_mon -= 1;
+ 	} else {
+-		alm_tm->tm_mon = 0xff;
++		alm_tm->tm_mon = -1;
  	}
  
- 	if (s3c_rtc_cpu_type == TYPE_S3C64XX)
+ 	if (alm_en & S3C2410_RTCALM_YEAREN)
+ 		alm_tm->tm_year = bcd2bin(alm_tm->tm_year);
+ 	else
+-		alm_tm->tm_year = 0xffff;
++		alm_tm->tm_year = -1;
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from chaos.youn@samsung.com are
