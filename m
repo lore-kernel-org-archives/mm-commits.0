@@ -1,23 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-parser-cleanup-match_number.patch added to -mm tree
-Date: Fri, 08 Oct 2010 12:13:16 -0700
-Message-ID: <201010081913.o98JDG3N020673@imap1.linux-foundation.org>
+Subject: + taskstats-use-real-microsecond-granularity-for-cpu-times.patch added to -mm tree
+Date: Mon, 11 Oct 2010 12:57:19 -0700
+Message-ID: <201010111957.o9BJvJZE014744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754242Ab0JHTNs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Oct 2010 15:13:48 -0400
+	by vger.kernel.org with ESMTP id S1753573Ab0JKT5v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Oct 2010 15:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namhyung@gmail.com
+Cc: holzheu@linux.vnet.ibm.com, balbir@linux.vnet.ibm.com, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, nagar1234@in.ibm.com, nagar@us.ibm.com, oleg@redhat.com, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     lib/parser: cleanup match_number()
+     taskstats: use real microsecond granularity for CPU times
 has been added to the -mm tree.  Its filename is
-     lib-parser-cleanup-match_number.patch
+     taskstats-use-real-microsecond-granularity-for-cpu-times.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/parser: cleanup match_number()
-From: Namhyung Kim <namhyung@gmail.com>
+Subject: taskstats: use real microsecond granularity for CPU times
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 
-Use new variable 'len' to make code more readable.
+The taskstats interface uses microsecond granularity for the user and
+system time values.  The conversion from cputime to the taskstats values
+uses the cputime_to_msecs primitive which effectively limits the
+granularity to milliseconds.  Add the cputime_to_usecs primitive for
+architectures that have better, more precise CPU time values.  Remove
+cputime_to_msecs primitive because there are no more users left.
 
-Signed-off-by: Namhyung Kim <namhyung@gmail.com>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Luck Tony <tony.luck@intel.com>
+Cc: Shailabh Nagar <nagar1234@in.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Shailabh Nagar <nagar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/ia64/include/asm/cputime.h    |    6 +++---
+ arch/powerpc/include/asm/cputime.h |   12 ++++++------
+ arch/s390/include/asm/cputime.h    |   10 +++++-----
+ include/asm-generic/cputime.h      |    6 +++---
+ kernel/tsacct.c                    |   10 ++++------
+ 5 files changed, 21 insertions(+), 23 deletions(-)
 
-diff -puN lib/parser.c~lib-parser-cleanup-match_number lib/parser.c
---- a/lib/parser.c~lib-parser-cleanup-match_number
-+++ a/lib/parser.c
-@@ -128,12 +128,13 @@ static int match_number(substring_t *s, 
- 	char *endp;
- 	char *buf;
- 	int ret;
-+	size_t len = s->to - s->from;
+diff -puN arch/ia64/include/asm/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times arch/ia64/include/asm/cputime.h
+--- a/arch/ia64/include/asm/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times
++++ a/arch/ia64/include/asm/cputime.h
+@@ -56,10 +56,10 @@ typedef u64 cputime64_t;
+ #define jiffies64_to_cputime64(__jif)	((__jif) * (NSEC_PER_SEC / HZ))
  
--	buf = kmalloc(s->to - s->from + 1, GFP_KERNEL);
-+	buf = kmalloc(len + 1, GFP_KERNEL);
- 	if (!buf)
- 		return -ENOMEM;
--	memcpy(buf, s->from, s->to - s->from);
--	buf[s->to - s->from] = '\0';
-+	memcpy(buf, s->from, len);
-+	buf[len] = '\0';
- 	*result = simple_strtol(buf, &endp, base);
- 	ret = 0;
- 	if (endp == buf)
+ /*
+- * Convert cputime <-> milliseconds
++ * Convert cputime <-> microseconds
+  */
+-#define cputime_to_msecs(__ct)		((__ct) / NSEC_PER_MSEC)
+-#define msecs_to_cputime(__msecs)	((__msecs) * NSEC_PER_MSEC)
++#define cputime_to_usecs(__ct)		((__ct) / NSEC_PER_USEC)
++#define usecs_to_cputime(__usecs)	((__usecs) * NSEC_PER_USEC)
+ 
+ /*
+  * Convert cputime <-> seconds
+diff -puN arch/powerpc/include/asm/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times arch/powerpc/include/asm/cputime.h
+--- a/arch/powerpc/include/asm/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times
++++ a/arch/powerpc/include/asm/cputime.h
+@@ -124,23 +124,23 @@ static inline u64 cputime64_to_jiffies64
+ }
+ 
+ /*
+- * Convert cputime <-> milliseconds
++ * Convert cputime <-> microseconds
+  */
+ extern u64 __cputime_msec_factor;
+ 
+-static inline unsigned long cputime_to_msecs(const cputime_t ct)
++static inline unsigned long cputime_to_usecs(const cputime_t ct)
+ {
+-	return mulhdu(ct, __cputime_msec_factor);
++	return mulhdu(ct, __cputime_msec_factor) * USEC_PER_MSEC;
+ }
+ 
+-static inline cputime_t msecs_to_cputime(const unsigned long ms)
++static inline cputime_t usecs_to_cputime(const unsigned long us)
+ {
+ 	cputime_t ct;
+ 	unsigned long sec;
+ 
+ 	/* have to be a little careful about overflow */
+-	ct = ms % 1000;
+-	sec = ms / 1000;
++	ct = us % 1000000;
++	sec = us / 1000000;
+ 	if (ct) {
+ 		ct *= tb_ticks_per_sec;
+ 		do_div(ct, 1000);
+diff -puN arch/s390/include/asm/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times arch/s390/include/asm/cputime.h
+--- a/arch/s390/include/asm/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times
++++ a/arch/s390/include/asm/cputime.h
+@@ -73,18 +73,18 @@ cputime64_to_jiffies64(cputime64_t cputi
+ }
+ 
+ /*
+- * Convert cputime to milliseconds and back.
++ * Convert cputime to microseconds and back.
+  */
+ static inline unsigned int
+-cputime_to_msecs(const cputime_t cputime)
++cputime_to_usecs(const cputime_t cputime)
+ {
+-	return cputime_div(cputime, 4096000);
++	return cputime_div(cputime, 4096);
+ }
+ 
+ static inline cputime_t
+-msecs_to_cputime(const unsigned int m)
++usecs_to_cputime(const unsigned int m)
+ {
+-	return (cputime_t) m * 4096000;
++	return (cputime_t) m * 4096;
+ }
+ 
+ /*
+diff -puN include/asm-generic/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times include/asm-generic/cputime.h
+--- a/include/asm-generic/cputime.h~taskstats-use-real-microsecond-granularity-for-cpu-times
++++ a/include/asm-generic/cputime.h
+@@ -33,10 +33,10 @@ typedef u64 cputime64_t;
+ 
+ 
+ /*
+- * Convert cputime to milliseconds and back.
++ * Convert cputime to microseconds and back.
+  */
+-#define cputime_to_msecs(__ct)		jiffies_to_msecs(__ct)
+-#define msecs_to_cputime(__msecs)	msecs_to_jiffies(__msecs)
++#define cputime_to_usecs(__ct)		jiffies_to_usecs(__ct);
++#define usecs_to_cputime(__msecs)	usecs_to_jiffies(__msecs);
+ 
+ /*
+  * Convert cputime to seconds and back.
+diff -puN kernel/tsacct.c~taskstats-use-real-microsecond-granularity-for-cpu-times kernel/tsacct.c
+--- a/kernel/tsacct.c~taskstats-use-real-microsecond-granularity-for-cpu-times
++++ a/kernel/tsacct.c
+@@ -63,12 +63,10 @@ void bacct_add_tsk(struct taskstats *sta
+ 	stats->ac_ppid	 = pid_alive(tsk) ?
+ 				rcu_dereference(tsk->real_parent)->tgid : 0;
+ 	rcu_read_unlock();
+-	stats->ac_utime	 = cputime_to_msecs(tsk->utime) * USEC_PER_MSEC;
+-	stats->ac_stime	 = cputime_to_msecs(tsk->stime) * USEC_PER_MSEC;
+-	stats->ac_utimescaled =
+-		cputime_to_msecs(tsk->utimescaled) * USEC_PER_MSEC;
+-	stats->ac_stimescaled =
+-		cputime_to_msecs(tsk->stimescaled) * USEC_PER_MSEC;
++	stats->ac_utime = cputime_to_usecs(tsk->utime);
++	stats->ac_stime = cputime_to_usecs(tsk->stime);
++	stats->ac_utimescaled = cputime_to_usecs(tsk->utimescaled);
++	stats->ac_stimescaled = cputime_to_usecs(tsk->stimescaled);
+ 	stats->ac_minflt = tsk->min_flt;
+ 	stats->ac_majflt = tsk->maj_flt;
+ 
 _
 
-Patches currently in -mm which might be from namhyung@gmail.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
 linux-next.patch
-posix-timers-annotate-lock_timer.patch
-vfs-remove-a-warning-on-open_fmode.patch
-vfs-add-__fmode_exec.patch
-mm-remove-temporary-variable-on-generic_file_direct_write.patch
-mm-add-casts-to-from-gfp_t-in-gfp_to_alloc_flags.patch
-mm-wrap-get_locked_pte-using-__cond_lock.patch
-mm-add-lock-release-annotation-on-do_wp_page.patch
-mm-wrap-follow_pte-using-__cond_lock.patch
-rmap-annotate-lock-context-change-on-page_lock_anon_vma.patch
-rmap-wrap-page_check_address-using-__cond_lock.patch
-rmap-make-anon_vma_free-static.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmalloc-rename-temporary-variable-in-__insert_vmap_area.patch
-vmalloc-annotate-lock-context-change-on-s_start-stop.patch
-mm-declare-some-external-symbols.patch
-vmstat-include-compactionh-when-config_compaction.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-mm-fix-sparse-warnings-on-gfp_zone_table-bad.patch
-init-mark-__user-address-space-on-string-literals.patch
-kernel-userc-add-lock-release-annotation-on-free_user.patch
-printk-fixup-declaration-of-kmsg_reasons.patch
-printk-add-lock-context-annotation.patch
-printk-change-type-of-boot_delay-to-int.patch
-printk-declare-printk_ratelimit_state-in-ratelimith.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-lib-parser-cleanup-match_number.patch
-ptrace-annotate-lock-context-change-on-exit_ptrace.patch
-ptrace-change-signature-of-sys_ptrace-and-friends.patch
-ptrace-cleanup-ptrace_request.patch
-ptrace-change-signature-of-arch_ptrace.patch
-ptrace-cleanup-arch_ptrace-on-x86.patch
-ptrace-cleanup-arch_ptrace-on-arm.patch
-ptrace-cleanup-arch_ptrace-on-avr32.patch
-ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
-ptrace-cleanup-arch_ptrace-on-cris.patch
-ptrace-cleanup-arch_ptrace-on-frv.patch
-ptrace-cleanup-arch_ptrace-on-h8300.patch
-ptrace-cleanup-arch_ptrace-on-m32r.patch
-ptrace-cleanup-arch_ptrace-on-m68k.patch
-ptrace-cleanup-arch_ptrace-on-m68knommu.patch
-ptrace-cleanup-arch_ptrace-on-microblaze.patch
-ptrace-cleanup-arch_ptrace-on-mips.patch
-ptrace-cleanup-arch_ptrace-on-mn10300.patch
-ptrace-cleanup-arch_ptrace-on-parisc.patch
-ptrace-cleanup-arch_ptrace-on-powerpc.patch
-ptrace-cleanup-arch_ptrace-on-score.patch
-ptrace-cleanup-arch_ptrace-on-sh.patch
-ptrace-cleanup-arch_ptrace-on-sparc.patch
-ptrace-cleanup-arch_ptrace-on-tile.patch
-ptrace-cleanup-arch_ptrace-on-um.patch
-ptrace-cleanup-arch_ptrace-on-xtensa.patch
-signals-annotate-lock_task_sighand.patch
-signals-annotate-lock-context-change-on-ptrace_stop.patch
-exit-add-lock-context-annotation-on-find_new_reaper.patch
+taskstats-separate-taskstats-commands.patch
+taskstats-split-fill_pid-function.patch
+taskstats-use-real-microsecond-granularity-for-cpu-times.patch
 
