@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-remove-dma64_addr_t-usage.patch added to -mm tree
-Date: Tue, 12 Oct 2010 14:42:32 -0700
-Message-ID: <201010122142.o9CLgX3r020681@imap1.linux-foundation.org>
+Subject: + mips-remove-dma64_addr_t-usage.patch added to -mm tree
+Date: Tue, 12 Oct 2010 14:42:34 -0700
+Message-ID: <201010122142.o9CLgYKa020685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750851Ab0JLVnE (ORCPT
+	by vger.kernel.org with ESMTP id S1750993Ab0JLVnM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Oct 2010 17:43:04 -0400
+	Tue, 12 Oct 2010 17:43:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net
+Cc: fujita.tomonori@lab.ntt.co.jp, ralf@linux-mips.org
 
 
 The patch titled
-     sparc: remove dma64_addr_t usage
+     mips: remove dma64_addr_t usage
 has been added to the -mm tree.  Its filename is
-     sparc-remove-dma64_addr_t-usage.patch
+     mips-remove-dma64_addr_t-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc: remove dma64_addr_t usage
+Subject: mips: remove dma64_addr_t usage
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
 dma64_addr_t looks pointless (at least there is no point that an
 architecture has the own dma64_addr_t typedef).
 
-dma_addr_t is set to 32 or 64 bits appropriately. You can use u64
-at places where you know that 64 bit address is always necessary.
+dma_addr_t is set to 32 or 64 bits appropriately.  You can use u64 at
+places where you know that 64 bit address is always necessary.
 
-Let's use u64 instead for sparc32.
-
-Looks like PCI654_REQUIRED_MASK or PCI64_ADR_BASE isn't used. They can
-be removed?
+Let's use u64 instead for mips.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: David Miller <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pci_64.h |    2 +-
+ arch/mips/include/asm/pci/bridge.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/pci_64.h~sparc-remove-dma64_addr_t-usage arch/sparc/include/asm/pci_64.h
---- a/arch/sparc/include/asm/pci_64.h~sparc-remove-dma64_addr_t-usage
-+++ a/arch/sparc/include/asm/pci_64.h
-@@ -38,7 +38,7 @@ static inline void pcibios_penalize_isa_
-  * types on sparc64.  However, it requires that the device
-  * can drive enough of the 64 bits.
-  */
--#define PCI64_REQUIRED_MASK	(~(dma64_addr_t)0)
-+#define PCI64_REQUIRED_MASK	(~(u64)0)
- #define PCI64_ADDR_BASE		0xfffc000000000000UL
+diff -puN arch/mips/include/asm/pci/bridge.h~mips-remove-dma64_addr_t-usage arch/mips/include/asm/pci/bridge.h
+--- a/arch/mips/include/asm/pci/bridge.h~mips-remove-dma64_addr_t-usage
++++ a/arch/mips/include/asm/pci/bridge.h
+@@ -839,7 +839,7 @@ struct bridge_controller {
+ 	nasid_t			nasid;
+ 	unsigned int		widget_id;
+ 	unsigned int 		irq_cpu;
+-	dma64_addr_t		baddr;
++	u64			baddr;
+ 	unsigned int		pci_int[8];
+ };
  
- #ifdef CONFIG_PCI
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
