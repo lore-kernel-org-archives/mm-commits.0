@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimers-fix-a-complex-race-update.patch added to -mm tree
-Date: Mon, 11 Oct 2010 17:15:00 -0700
-Message-ID: <201010120013.o9C0Dcij026475@imap1.linux-foundation.org>
+Subject: + sparc-remove-dma64_addr_t-usage.patch added to -mm tree
+Date: Tue, 12 Oct 2010 14:42:32 -0700
+Message-ID: <201010122142.o9CLgX3r020681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754778Ab0JLANz (ORCPT
+	by vger.kernel.org with ESMTP id S1750851Ab0JLVnE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Oct 2010 20:13:55 -0400
+	Tue, 12 Oct 2010 17:43:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sqazi@google.com, mingo@elte.hu, tglx@linutronix.de
+Cc: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net
 
 
 The patch titled
-     hrtimers-fix-a-complex-race-update
+     sparc: remove dma64_addr_t usage
 has been added to the -mm tree.  Its filename is
-     hrtimers-fix-a-complex-race-update.patch
+     sparc-remove-dma64_addr_t-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimers-fix-a-complex-race-update
-From: Salman Qazi <sqazi@google.com>
+Subject: sparc: remove dma64_addr_t usage
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+dma64_addr_t looks pointless (at least there is no point that an
+architecture has the own dma64_addr_t typedef).
+
+dma_addr_t is set to 32 or 64 bits appropriately. You can use u64
+at places where you know that 64 bit address is always necessary.
+
+Let's use u64 instead for sparc32.
+
+Looks like PCI654_REQUIRED_MASK or PCI64_ADR_BASE isn't used. They can
+be removed?
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    2 +-
+ arch/sparc/include/asm/pci_64.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/hrtimer.c~hrtimers-fix-a-complex-race-update kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-fix-a-complex-race-update
-+++ a/kernel/hrtimer.c
-@@ -1232,7 +1232,7 @@ static void __run_hrtimer(struct hrtimer
- 		enqueue_hrtimer(timer, base);
- 	}
+diff -puN arch/sparc/include/asm/pci_64.h~sparc-remove-dma64_addr_t-usage arch/sparc/include/asm/pci_64.h
+--- a/arch/sparc/include/asm/pci_64.h~sparc-remove-dma64_addr_t-usage
++++ a/arch/sparc/include/asm/pci_64.h
+@@ -38,7 +38,7 @@ static inline void pcibios_penalize_isa_
+  * types on sparc64.  However, it requires that the device
+  * can drive enough of the 64 bits.
+  */
+-#define PCI64_REQUIRED_MASK	(~(dma64_addr_t)0)
++#define PCI64_REQUIRED_MASK	(~(u64)0)
+ #define PCI64_ADDR_BASE		0xfffc000000000000UL
  
--	BUG_ON(!(timer->state & HRTIMER_STATE_CALLBACK));
-+	WARN_ON_ONCE(!(timer->state & HRTIMER_STATE_CALLBACK));
- 
- 	timer->state &= ~HRTIMER_STATE_CALLBACK;
- }
+ #ifdef CONFIG_PCI
 _
 
-Patches currently in -mm which might be from sqazi@google.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-hrtimers-fix-a-complex-race.patch
-hrtimers-fix-a-complex-race-update.patch
+linux-next.patch
+x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
+powerpc-enable-arch_dma_addr_t_64bit-with-arch_phys_addr_t_64bit.patch
+tile-enable-arch_dma_addr_t_64bit.patch
+mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
+s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
+alpha-enable-arch_dma_addr_t_64bit.patch
+uml-define-config_no_dma.patch
+add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
+sparc-remove-dma64_addr_t-usage.patch
+mips-remove-dma64_addr_t-usage.patch
+alpha-remove-dma64_addr_t-usage.patch
+remove-dma64_addr_t.patch
 
