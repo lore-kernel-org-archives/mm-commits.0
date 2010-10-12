@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-remove-dma64_addr_t-usage.patch added to -mm tree
-Date: Tue, 12 Oct 2010 14:42:36 -0700
-Message-ID: <201010122142.o9CLgakW020688@imap1.linux-foundation.org>
+Subject: + remove-dma64_addr_t.patch added to -mm tree
+Date: Tue, 12 Oct 2010 14:42:39 -0700
+Message-ID: <201010122142.o9CLgdsU020695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751298Ab0JLVnU (ORCPT
+	by vger.kernel.org with ESMTP id S1751390Ab0JLVnX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Oct 2010 17:43:20 -0400
+	Tue, 12 Oct 2010 17:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+Cc: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, ralf@linux-mips.org, rth@twiddle.net
 
 
 The patch titled
-     alpha: remove dma64_addr_t usage
+     remove dma64_addr_t
 has been added to the -mm tree.  Its filename is
-     alpha-remove-dma64_addr_t-usage.patch
+     remove-dma64_addr_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,212 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: remove dma64_addr_t usage
+Subject: remove dma64_addr_t
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-dma_addr_t is always 64 bit on alpha. So let's use dma_addr_t instead.
+There is no user now.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci_iommu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/alpha/include/asm/types.h   |   11 -----------
+ arch/arm/include/asm/types.h     |    6 ------
+ arch/cris/include/asm/types.h    |    6 ------
+ arch/m32r/include/asm/types.h    |    6 ------
+ arch/m68k/include/asm/types.h    |    6 ------
+ arch/mips/include/asm/types.h    |    2 --
+ arch/parisc/include/asm/types.h  |   13 -------------
+ arch/powerpc/include/asm/types.h |    2 --
+ arch/s390/include/asm/types.h    |    2 --
+ arch/sparc/include/asm/types.h   |   18 ------------------
+ arch/x86/include/asm/types.h     |    8 --------
+ 11 files changed, 80 deletions(-)
 
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-remove-dma64_addr_t-usage arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-remove-dma64_addr_t-usage
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -223,7 +223,7 @@ iommu_arena_free(struct pci_iommu_arena 
+diff -puN arch/alpha/include/asm/types.h~remove-dma64_addr_t arch/alpha/include/asm/types.h
+--- a/arch/alpha/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/alpha/include/asm/types.h
+@@ -20,15 +20,4 @@
+ typedef unsigned int umode_t;
+ 
+ #endif /* __ASSEMBLY__ */
+-
+-/*
+- * These aren't exported outside the kernel to avoid name space clashes
+- */
+-#ifdef __KERNEL__
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-#endif /* __KERNEL__ */
+ #endif /* _ALPHA_TYPES_H */
+diff -puN arch/arm/include/asm/types.h~remove-dma64_addr_t arch/arm/include/asm/types.h
+--- a/arch/arm/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/arm/include/asm/types.h
+@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif
+diff -puN arch/cris/include/asm/types.h~remove-dma64_addr_t arch/cris/include/asm/types.h
+--- a/arch/cris/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/cris/include/asm/types.h
+@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif
+diff -puN arch/m32r/include/asm/types.h~remove-dma64_addr_t arch/m32r/include/asm/types.h
+--- a/arch/m32r/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/m32r/include/asm/types.h
+@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _ASM_M32R_TYPES_H */
+diff -puN arch/m68k/include/asm/types.h~remove-dma64_addr_t arch/m68k/include/asm/types.h
+--- a/arch/m68k/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/m68k/include/asm/types.h
+@@ -23,12 +23,6 @@ typedef unsigned short umode_t;
+ 
+ #define BITS_PER_LONG 32
+ 
+-#ifndef __ASSEMBLY__
+-
+-typedef u32 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _M68K_TYPES_H */
+diff -puN arch/mips/include/asm/types.h~remove-dma64_addr_t arch/mips/include/asm/types.h
+--- a/arch/mips/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/mips/include/asm/types.h
+@@ -33,8 +33,6 @@ typedef unsigned short umode_t;
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ 
+-typedef u64 dma64_addr_t;
+-
+ /*
+  * Don't use phys_t.  You've been warned.
   */
- static int pci_dac_dma_supported(struct pci_dev *dev, u64 mask)
- {
--	dma64_addr_t dac_offset = alpha_mv.pci_dac_offset;
-+	dma_addr_t dac_offset = alpha_mv.pci_dac_offset;
- 	int ok = 1;
+diff -puN arch/parisc/include/asm/types.h~remove-dma64_addr_t arch/parisc/include/asm/types.h
+--- a/arch/parisc/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/parisc/include/asm/types.h
+@@ -9,17 +9,4 @@ typedef unsigned short umode_t;
  
- 	/* If this is not set, the machine doesn't support DAC at all.  */
-@@ -756,7 +756,7 @@ static void alpha_pci_unmap_sg(struct de
- 	spin_lock_irqsave(&arena->lock, flags);
+ #endif /* __ASSEMBLY__ */
  
- 	for (end = sg + nents; sg < end; ++sg) {
--		dma64_addr_t addr;
-+		dma_addr_t addr;
- 		size_t size;
- 		long npages, ofs;
- 		dma_addr_t tend;
-_
-
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
-
-linux-next.patch
-x86-enable-arch_dma_addr_t_64bit-with-x86_64-highmem64g.patch
-powerpc-enable-arch_dma_addr_t_64bit-with-arch_phys_addr_t_64bit.patch
-tile-enable-arch_dma_addr_t_64bit.patch
-mips-enable-arch_dma_addr_t_64bit-with-highmem-64bit_phys_addr-64bit.patch
-s390-enable-arch_dma_addr_t_64bit-with-64bit.patch
-alpha-enable-arch_dma_addr_t_64bit.patch
-uml-define-config_no_dma.patch
-add-the-common-dma_addr_t-typedef-to-include-linux-typesh.patch
-sparc-remove-dma64_addr_t-usage.patch
-mips-remove-dma64_addr_t-usage.patch
-alpha-remove-dma64_addr_t-usage.patch
-remove-dma64_addr_t.patch
-
+-/*
+- * These aren't exported outside the kernel to avoid name space clashes
+- */
+-#ifdef __KERNEL__
+-
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /* __KERNEL__ */
+-
+ #endif
+diff -puN arch/powerpc/include/asm/types.h~remove-dma64_addr_t arch/powerpc/include/asm/types.h
+--- a/arch/powerpc/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/powerpc/include/asm/types.h
+@@ -44,8 +44,6 @@ typedef struct {
+ 
+ typedef __vector128 vector128;
+ 
+-typedef u64 dma64_addr_t;
+-
+ typedef struct {
+ 	unsigned long entry;
+ 	unsigned long toc;
+diff -puN arch/s390/include/asm/types.h~remove-dma64_addr_t arch/s390/include/asm/types.h
+--- a/arch/s390/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/s390/include/asm/types.h
+@@ -30,8 +30,6 @@ typedef __signed__ long saddr_t;
+ 
+ #ifndef __ASSEMBLY__
+ 
+-typedef u64 dma64_addr_t;
+-
+ #ifndef __s390x__
+ typedef union {
+ 	unsigned long long pair;
+diff -puN arch/sparc/include/asm/types.h~remove-dma64_addr_t arch/sparc/include/asm/types.h
+--- a/arch/sparc/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/sparc/include/asm/types.h
+@@ -18,24 +18,6 @@ typedef unsigned short umode_t;
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-#ifdef __KERNEL__
+-
+-#ifndef __ASSEMBLY__
+-
+-#if defined(__arch64__)
+-
+-/*** SPARC 64 bit ***/
+-typedef u64 dma64_addr_t;
+-#else
+-/*** SPARC 32 bit ***/
+-typedef u32 dma64_addr_t;
+-
+-#endif /* defined(__arch64__) */
+-
+-#endif /* __ASSEMBLY__ */
+-
+-#endif /* __KERNEL__ */
+-
+ #endif /* defined(__sparc__) */
+ 
+ #endif /* defined(_SPARC_TYPES_H) */
+diff -puN arch/x86/include/asm/types.h~remove-dma64_addr_t arch/x86/include/asm/types.h
+--- a/arch/x86/include/asm/types.h~remove-dma64_addr_t
++++ a/arch/x86/include/asm/types.h
+@@ -3,12 +3,4 @@
+ 
+ #include <asm-generic/types.h>
+ 
+-#ifdef __KERNEL__
+-#ifndef __ASSEMBLY__
+-
+-typedef u64 dma64_addr_t;
+-
+-#endif /* __ASSEMBLY__ */
+-#endif /* __KERNEL__ */
