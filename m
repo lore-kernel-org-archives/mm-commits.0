@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-dma64_addr_t.patch added to -mm tree
-Date: Tue, 12 Oct 2010 14:42:39 -0700
-Message-ID: <201010122142.o9CLgdsU020695@imap1.linux-foundation.org>
+Subject: + mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch added to -mm tree
+Date: Wed, 13 Oct 2010 15:46:39 -0700
+Message-ID: <201010132318.o9DNIAkE025067__15222.7854858667$1287012009$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48168 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751390Ab0JLVnX (ORCPT
+	by vger.kernel.org with ESMTP id S1753631Ab0JMXT3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Oct 2010 17:43:23 -0400
+	Wed, 13 Oct 2010 19:19:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, davem@davemloft.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, ralf@linux-mips.org, rth@twiddle.net
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, fengguang.wu@intel.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, nickpiggin@yahoo.com.au, riel@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, walken@google.com, yinghan@google.com
 
 
 The patch titled
-     remove dma64_addr_t
+     mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix
 has been added to the -mm tree.  Its filename is
-     remove-dma64_addr_t.patch
+     mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove dma64_addr_t
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There is no user now.
+mm/filemap.c: In function 'filemap_fault':
+mm/filemap.c:1577: warning: passing argument 2 of 'lock_page_or_retry' from incompatible pointer type
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: David Miller <davem@davemloft.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/types.h   |   11 -----------
- arch/arm/include/asm/types.h     |    6 ------
- arch/cris/include/asm/types.h    |    6 ------
- arch/m32r/include/asm/types.h    |    6 ------
- arch/m68k/include/asm/types.h    |    6 ------
- arch/mips/include/asm/types.h    |    2 --
- arch/parisc/include/asm/types.h  |   13 -------------
- arch/powerpc/include/asm/types.h |    2 --
- arch/s390/include/asm/types.h    |    2 --
- arch/sparc/include/asm/types.h   |   18 ------------------
- arch/x86/include/asm/types.h     |    8 --------
- 11 files changed, 80 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/types.h~remove-dma64_addr_t arch/alpha/include/asm/types.h
---- a/arch/alpha/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/alpha/include/asm/types.h
-@@ -20,15 +20,4 @@
- typedef unsigned int umode_t;
+diff -puN mm/filemap.c~mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix mm/filemap.c
+--- a/mm/filemap.c~mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix
++++ a/mm/filemap.c
+@@ -1574,7 +1574,7 @@ retry_find:
+ 			goto no_cached_page;
+ 	}
  
- #endif /* __ASSEMBLY__ */
--
--/*
-- * These aren't exported outside the kernel to avoid name space clashes
-- */
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--#endif /* __KERNEL__ */
- #endif /* _ALPHA_TYPES_H */
-diff -puN arch/arm/include/asm/types.h~remove-dma64_addr_t arch/arm/include/asm/types.h
---- a/arch/arm/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/arm/include/asm/types.h
-@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
+-	if (!lock_page_or_retry(page, &vma->vm_mm, vmf->flags))
++	if (!lock_page_or_retry(page, vma->vm_mm, vmf->flags))
+ 		return ret | VM_FAULT_RETRY;
  
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--typedef u32 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- #endif
-diff -puN arch/cris/include/asm/types.h~remove-dma64_addr_t arch/cris/include/asm/types.h
---- a/arch/cris/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/cris/include/asm/types.h
-@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--typedef u32 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- #endif
-diff -puN arch/m32r/include/asm/types.h~remove-dma64_addr_t arch/m32r/include/asm/types.h
---- a/arch/m32r/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/m32r/include/asm/types.h
-@@ -16,12 +16,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_M32R_TYPES_H */
-diff -puN arch/m68k/include/asm/types.h~remove-dma64_addr_t arch/m68k/include/asm/types.h
---- a/arch/m68k/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/m68k/include/asm/types.h
-@@ -23,12 +23,6 @@ typedef unsigned short umode_t;
- 
- #define BITS_PER_LONG 32
- 
--#ifndef __ASSEMBLY__
--
--typedef u32 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
- #endif /* __KERNEL__ */
- 
- #endif /* _M68K_TYPES_H */
-diff -puN arch/mips/include/asm/types.h~remove-dma64_addr_t arch/mips/include/asm/types.h
---- a/arch/mips/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/mips/include/asm/types.h
-@@ -33,8 +33,6 @@ typedef unsigned short umode_t;
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- 
--typedef u64 dma64_addr_t;
--
- /*
-  * Don't use phys_t.  You've been warned.
-  */
-diff -puN arch/parisc/include/asm/types.h~remove-dma64_addr_t arch/parisc/include/asm/types.h
---- a/arch/parisc/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/parisc/include/asm/types.h
-@@ -9,17 +9,4 @@ typedef unsigned short umode_t;
- 
- #endif /* __ASSEMBLY__ */
- 
--/*
-- * These aren't exported outside the kernel to avoid name space clashes
-- */
--#ifdef __KERNEL__
--
--#ifndef __ASSEMBLY__
--
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* __KERNEL__ */
--
- #endif
-diff -puN arch/powerpc/include/asm/types.h~remove-dma64_addr_t arch/powerpc/include/asm/types.h
---- a/arch/powerpc/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/powerpc/include/asm/types.h
-@@ -44,8 +44,6 @@ typedef struct {
- 
- typedef __vector128 vector128;
- 
--typedef u64 dma64_addr_t;
--
- typedef struct {
- 	unsigned long entry;
- 	unsigned long toc;
-diff -puN arch/s390/include/asm/types.h~remove-dma64_addr_t arch/s390/include/asm/types.h
---- a/arch/s390/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/s390/include/asm/types.h
-@@ -30,8 +30,6 @@ typedef __signed__ long saddr_t;
- 
- #ifndef __ASSEMBLY__
- 
--typedef u64 dma64_addr_t;
--
- #ifndef __s390x__
- typedef union {
- 	unsigned long long pair;
-diff -puN arch/sparc/include/asm/types.h~remove-dma64_addr_t arch/sparc/include/asm/types.h
---- a/arch/sparc/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/sparc/include/asm/types.h
-@@ -18,24 +18,6 @@ typedef unsigned short umode_t;
- 
- #endif /* __ASSEMBLY__ */
- 
--#ifdef __KERNEL__
--
--#ifndef __ASSEMBLY__
--
--#if defined(__arch64__)
--
--/*** SPARC 64 bit ***/
--typedef u64 dma64_addr_t;
--#else
--/*** SPARC 32 bit ***/
--typedef u32 dma64_addr_t;
--
--#endif /* defined(__arch64__) */
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* __KERNEL__ */
--
- #endif /* defined(__sparc__) */
- 
- #endif /* defined(_SPARC_TYPES_H) */
-diff -puN arch/x86/include/asm/types.h~remove-dma64_addr_t arch/x86/include/asm/types.h
---- a/arch/x86/include/asm/types.h~remove-dma64_addr_t
-+++ a/arch/x86/include/asm/types.h
-@@ -3,12 +3,4 @@
- 
- #include <asm-generic/types.h>
- 
--#ifdef __KERNEL__
--#ifndef __ASSEMBLY__
--
--typedef u64 dma64_addr_t;
--
--#endif /* __ASSEMBLY__ */
--#endif /* __KERNEL__ */
+ 	/* Did it get truncated? */
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
+vfs-allow-mnt_want_write-to-sleep-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-fix.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
+rmap-make-anon_vma_free-static-fix.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+fs-fs-writebackc-restore-lost-comment.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
