@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplugc-make-scan_lru_pages-static.patch added to -mm tree
-Date: Thu, 14 Oct 2010 14:08:00 -0700
-Message-ID: <201010142108.o9EL80bf019197@imap1.linux-foundation.org>
+Subject: + leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 14 Oct 2010 14:16:35 -0700
+Message-ID: <201010142116.o9ELGZo6019675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752492Ab0JNVIf (ORCPT
+	by vger.kernel.org with ESMTP id S932129Ab0JNVRV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Oct 2010 17:08:35 -0400
+	Thu, 14 Oct 2010 17:17:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, dtor@mail.ru, peter.korsgaard@genesi-usa.com, rpurdie@rpsys.net
 
 
 The patch titled
-     mm/memory_hotplug.c: make scan_lru_pages() static
+     leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplugc-make-scan_lru_pages-static.patch
+     leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory_hotplug.c: make scan_lru_pages() static
+Subject: leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Reported-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+WARNING: please, no space for starting a line, 
+				excluding comments
+#99: FILE: drivers/leds/ledtrig-input.c:49:
++ err_unregister_handle:$
+
+WARNING: please, no space for starting a line, 
+				excluding comments
+#101: FILE: drivers/leds/ledtrig-input.c:51:
++ err_free_handle:$
+
+WARNING: please, no space for starting a line, 
+				excluding comments
+#192: FILE: drivers/leds/ledtrig-input.c:142:
++ trig_reg_fail:$
+
+total: 0 errors, 3 warnings, 182 lines checked
+
+./patches/leds-add-led-trigger-for-input-subsystem-led-events.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Peter Korsgaard <peter.korsgaard@genesi-usa.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/ledtrig-input.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-make-scan_lru_pages-static mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-make-scan_lru_pages-static
-+++ a/mm/memory_hotplug.c
-@@ -646,7 +646,7 @@ static int test_pages_in_a_zone(unsigned
-  * Scanning pfn is much easier than scanning lru list.
-  * Scan pfn from start to end and Find LRU page.
-  */
--unsigned long scan_lru_pages(unsigned long start, unsigned long end)
-+static unsigned long scan_lru_pages(unsigned long start, unsigned long end)
- {
- 	unsigned long pfn;
- 	struct page *page;
+diff -puN drivers/leds/ledtrig-input.c~leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes drivers/leds/ledtrig-input.c
+--- a/drivers/leds/ledtrig-input.c~leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes
++++ a/drivers/leds/ledtrig-input.c
+@@ -46,9 +46,9 @@ static int trig_connect(struct input_han
+ 
+ 	return 0;
+ 
+- err_unregister_handle:
++err_unregister_handle:
+ 	input_unregister_handle(handle);
+- err_free_handle:
++err_free_handle:
+ 	kfree(handle);
+ 	return error;
+ }
+@@ -139,7 +139,7 @@ static int __init trig_init(void)
+ 	if (!ret)
+ 		return 0;
+ 
+- trig_reg_fail:
++trig_reg_fail:
+ 	for (; i > 0; i--)
+ 		led_trigger_unregister(&trig[i-1].trig);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +113,7 @@ drivers-gpu-drm-radeon-atomc-fix-warning.patch
 drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
 fs-notify-fanotify-fanotify_userc-fix-warnings.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
 backlight-add-low-threshold-to-pwm-backlight.patch
 serial8250-ratelimit-too-much-work-error-fix.patch
 serial8250-ratelimit-too-much-work-error-fix-fix.patch
