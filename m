@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 14 Oct 2010 14:16:35 -0700
-Message-ID: <201010142116.o9ELGZo6019675@imap1.linux-foundation.org>
+Subject: + leds-add-led-trigger-for-input-subsystem-led-events.patch added to -mm tree
+Date: Thu, 14 Oct 2010 14:16:03 -0700
+Message-ID: <201010142116.o9ELG3L3019651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932129Ab0JNVRV (ORCPT
+	by vger.kernel.org with ESMTP id S1756067Ab0JNVQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Oct 2010 17:17:21 -0400
+	Thu, 14 Oct 2010 17:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru, peter.korsgaard@genesi-usa.com, rpurdie@rpsys.net
+Cc: peter.korsgaard@genesi-usa.com, dtor@mail.ru, rpurdie@rpsys.net
 
 
 The patch titled
-     leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes
+     leds: add led trigger for input subsystem led events
 has been added to the -mm tree.  Its filename is
-     leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
+     leds-add-led-trigger-for-input-subsystem-led-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,225 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds: add led trigger for input subsystem led events
+From: Peter Korsgaard <peter.korsgaard@genesi-usa.com>
 
-WARNING: please, no space for starting a line, 
-				excluding comments
-#99: FILE: drivers/leds/ledtrig-input.c:49:
-+ err_unregister_handle:$
+Add a LED trigger for the numlock/capslock/scrolllock states of the input
+subsystem.  This is handy for devices like the Efika smartbook [1], which
+uses a standard USB HID keyboard, but keyboard LEDs are connected directly
+to GPIOs, or for any other situation where you want to show
+num/caps/scrolllock state on LED subsystem LEDs.
 
-WARNING: please, no space for starting a line, 
-				excluding comments
-#101: FILE: drivers/leds/ledtrig-input.c:51:
-+ err_free_handle:$
+[1] http://www.genesi-usa.com/products/smartbook
 
-WARNING: please, no space for starting a line, 
-				excluding comments
-#192: FILE: drivers/leds/ledtrig-input.c:142:
-+ trig_reg_fail:$
-
-total: 0 errors, 3 warnings, 182 lines checked
-
-./patches/leds-add-led-trigger-for-input-subsystem-led-events.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Peter Korsgaard <peter.korsgaard@genesi-usa.com>
+Signed-off-by: Peter Korsgaard <peter.korsgaard@genesi-usa.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/ledtrig-input.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/leds/Kconfig         |    7 +
+ drivers/leds/Makefile        |    1 
+ drivers/leds/ledtrig-input.c |  165 +++++++++++++++++++++++++++++++++
+ 3 files changed, 173 insertions(+)
 
-diff -puN drivers/leds/ledtrig-input.c~leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes drivers/leds/ledtrig-input.c
---- a/drivers/leds/ledtrig-input.c~leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes
+diff -puN drivers/leds/Kconfig~leds-add-led-trigger-for-input-subsystem-led-events drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-add-led-trigger-for-input-subsystem-led-events
++++ a/drivers/leds/Kconfig
+@@ -405,6 +405,13 @@ config LEDS_TRIGGER_DEFAULT_ON
+ 	  This allows LEDs to be initialised in the ON state.
+ 	  If unsure, say Y.
+ 
++config LEDS_TRIGGER_INPUT
++	tristate "Input subsystem LEDs Trigger"
++	depends on INPUT
++	help
++	  This allows LEDs to be controlled according to the state of
++	  the input subsystem LEDs (capslock/numlock/scrolllock/..)
++
+ comment "iptables trigger is under Netfilter config (LED target)"
+ 	depends on LEDS_TRIGGERS
+ 
+diff -puN drivers/leds/Makefile~leds-add-led-trigger-for-input-subsystem-led-events drivers/leds/Makefile
+--- a/drivers/leds/Makefile~leds-add-led-trigger-for-input-subsystem-led-events
++++ a/drivers/leds/Makefile
+@@ -53,3 +53,4 @@ obj-$(CONFIG_LEDS_TRIGGER_HEARTBEAT)	+= 
+ obj-$(CONFIG_LEDS_TRIGGER_BACKLIGHT)	+= ledtrig-backlight.o
+ obj-$(CONFIG_LEDS_TRIGGER_GPIO)		+= ledtrig-gpio.o
+ obj-$(CONFIG_LEDS_TRIGGER_DEFAULT_ON)	+= ledtrig-default-on.o
++obj-$(CONFIG_LEDS_TRIGGER_INPUT)	+= ledtrig-input.o
+diff -puN /dev/null drivers/leds/ledtrig-input.c
+--- /dev/null
 +++ a/drivers/leds/ledtrig-input.c
-@@ -46,9 +46,9 @@ static int trig_connect(struct input_han
- 
- 	return 0;
- 
-- err_unregister_handle:
-+err_unregister_handle:
- 	input_unregister_handle(handle);
-- err_free_handle:
-+err_free_handle:
- 	kfree(handle);
- 	return error;
- }
-@@ -139,7 +139,7 @@ static int __init trig_init(void)
- 	if (!ret)
- 		return 0;
- 
-- trig_reg_fail:
-+trig_reg_fail:
- 	for (; i > 0; i--)
- 		led_trigger_unregister(&trig[i-1].trig);
- 
+@@ -0,0 +1,165 @@
++/*
++ * led trigger for input subsystem led states
++ *
++ * Peter Korsgaard <peter.korsgaard@genesi-usa.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/input.h>
++#include <linux/leds.h>
++#include <linux/slab.h>
++#include <linux/workqueue.h>
++#include "leds.h"
++
++struct input_trig {
++	int value; /* current value of input LED */
++	struct work_struct work;
++	struct led_trigger trig;
++};
++
++static int trig_connect(struct input_handler *handler, struct input_dev *dev,
++			 const struct input_device_id *id)
++{
++	struct input_handle *handle;
++	int error;
++
++	handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
++	if (!handle)
++		return -ENOMEM;
++
++	handle->dev = dev;
++	handle->handler = handler;
++	handle->name = "ledtrig-input";
++
++	error = input_register_handle(handle);
++	if (error)
++		goto err_free_handle;
++
++	error = input_open_device(handle);
++	if (error)
++		goto err_unregister_handle;
++
++	return 0;
++
++ err_unregister_handle:
++	input_unregister_handle(handle);
++ err_free_handle:
++	kfree(handle);
++	return error;
++}
++
++static void trig_disconnect(struct input_handle *handle)
++{
++	input_close_device(handle);
++	input_unregister_handle(handle);
++	kfree(handle);
++}
++
++static void trig_activate(struct led_classdev *led_cdev)
++{
++	struct input_trig *input = container_of(led_cdev->trigger,
++						struct input_trig, trig);
++
++	led_set_brightness(led_cdev, input->value ? LED_FULL : LED_OFF);
++}
++
++static struct input_trig trig[] = {
++	[LED_NUML] = {
++		.trig = {
++			.name = "numlock",
++			.activate = trig_activate,
++		},
++	},
++	[LED_CAPSL] = {
++		.trig = {
++			.name = "capslock",
++			.activate = trig_activate,
++		}
++	},
++	[LED_SCROLLL] = {
++		.trig = {
++			.name = "scrolllock",
++			.activate = trig_activate,
++		},
++	},
++};
++
++static void trig_event(struct input_handle *handle, unsigned int type,
++		      unsigned int code, int value)
++{
++	if (type == EV_LED && code < ARRAY_SIZE(trig)) {
++		if (value != trig[code].value) {
++			trig[code].value = value;
++			schedule_work(&trig[code].work);
++		}
++	}
++}
++
++static const struct input_device_id trig_ids[] = {
++	{
++		.flags = INPUT_DEVICE_ID_MATCH_EVBIT,
++		.evbit = { BIT_MASK(EV_LED) },
++	},
++	{ },			/* Terminating zero entry */
++};
++MODULE_DEVICE_TABLE(input, trig_ids);
++
++static struct input_handler trig_handler = {
++	.event		= trig_event,
++	.connect	= trig_connect,
++	.disconnect	= trig_disconnect,
++	.name		= "ledtrig-input",
++	.id_table	= trig_ids,
++};
++
++static void trig_work(struct work_struct *work)
++{
++	struct input_trig *input = container_of(work, struct input_trig, work);
++
++	led_trigger_event(&input->trig, input->value ? LED_FULL : LED_OFF);
++}
++
++static int __init trig_init(void)
++{
++	int i, ret;
++
++	for (i = 0; i < ARRAY_SIZE(trig); i++) {
++		INIT_WORK(&trig[i].work, trig_work);
++		ret = led_trigger_register(&trig[i].trig);
++		if (ret)
++			goto trig_reg_fail;
++	}
++
++	ret = input_register_handler(&trig_handler);
++	if (!ret)
++		return 0;
++
++ trig_reg_fail:
++	for (; i > 0; i--)
++		led_trigger_unregister(&trig[i-1].trig);
++
++	return ret;
++}
++module_init(trig_init);
++
++static void __exit trig_exit(void)
++{
++	int i;
++
++	input_unregister_handler(&trig_handler);
++
++	for (i = 0; i < ARRAY_SIZE(trig); i++) {
++		cancel_work_sync(&trig[i].work);
++		led_trigger_unregister(&trig[i].trig);
++	}
++}
++module_exit(trig_exit);
++
++MODULE_AUTHOR("Peter Korsgaard <peter.korsgaard@genesi-usa.com>");
++MODULE_DESCRIPTION("LED trigger for input subsystem LEDs");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from peter.korsgaard@genesi-usa.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-arch-mips-include-asm-fcntlh-needs-typesh.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial8250-ratelimit-too-much-work-error-fix.patch
-serial8250-ratelimit-too-much-work-error-fix-fix.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
-vfs-allow-mnt_want_write-to-sleep-fix.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-fix.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-fs-fs-writebackc-restore-lost-comment.patch
-mm-memory_hotplugc-make-scan_lru_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+leds-add-led-trigger-for-input-subsystem-led-events.patch
 
