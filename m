@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + typesh-define-__aligned_u64-and-expose-to-userspace.patch added to -mm tree
-Date: Thu, 14 Oct 2010 21:33:56 -0700
-Message-ID: <201010150432.o9F4WeRw006060@imap1.linux-foundation.org>
+Subject: + include-linux-typesh-aligned_64-improve-the-code-comment.patch added to -mm tree
+Date: Fri, 15 Oct 2010 14:33:15 -0700
+Message-ID: <201010152133.o9FLXGpN021392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48618 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750895Ab0JOEdG (ORCPT
+	by vger.kernel.org with ESMTP id S1750800Ab0JOVdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Oct 2010 00:33:06 -0400
+	Fri, 15 Oct 2010 17:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, agruen@suse.de, andi@firstfloor.org, davem@davemloft.net, jengelh@medozas.de
+Cc: akpm@linux-foundation.org, agruen@suse.de, andi@firstfloor.org, arnd@arndb.de, davem@davemloft.net, eparis@redhat.com, jengelh@medozas.de
 
 
 The patch titled
-     types.h: define __aligned_u64 and expose to userspace
+     include/linux/types.h: aligned_64: improve the code comment
 has been added to the -mm tree.  Its filename is
-     typesh-define-__aligned_u64-and-expose-to-userspace.patch
+     include-linux-typesh-aligned_64-improve-the-code-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: types.h: define __aligned_u64 and expose to userspace
-From: Eric Paris <eparis@redhat.com>
+Subject: include/linux/types.h: aligned_64: improve the code comment
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We currently have a kernel internal type called aligned_u64 which aligns
-__u64's on 8 bytes boundaries even on systems which would normally align
-them on 4 byte boundaries.  This patch creates a new type __aligned_u64
-which does the same thing but which is exposed to userspace rather than
-being kernel internal.
+Enhance the comment describing the reasons for using aligned_u64.  Via
+Andreas and Andi.
 
-[akpm: merge early as both the net and audit trees want this]
-
-Based-on-patch-by: Andreas Gruenbacher <agruen@suse.de>
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: David Miller <davem@davemloft.net>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/types.h |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/types.h~typesh-define-__aligned_u64-and-expose-to-userspace include/linux/types.h
---- a/include/linux/types.h~typesh-define-__aligned_u64-and-expose-to-userspace
+diff -puN include/linux/types.h~include-linux-typesh-aligned_64-improve-the-code-comment include/linux/types.h
+--- a/include/linux/types.h~include-linux-typesh-aligned_64-improve-the-code-comment
 +++ a/include/linux/types.h
-@@ -178,6 +178,11 @@ typedef __u64 __bitwise __be64;
- typedef __u16 __bitwise __sum16;
- typedef __u32 __bitwise __wsum;
+@@ -121,7 +121,15 @@ typedef		__u64		u_int64_t;
+ typedef		__s64		int64_t;
+ #endif
  
-+/* this is a special 64bit data type that is 8-byte aligned */
-+#define __aligned_u64 __u64 __attribute__((aligned(8)))
-+#define __aligned_be64 __be64 __attribute__((aligned(8)))
-+#define __aligned_le64 __le64 __attribute__((aligned(8)))
-+
- #ifdef __KERNEL__
- typedef unsigned __bitwise__ gfp_t;
- typedef unsigned __bitwise__ fmode_t;
+-/* this is a special 64bit data type that is 8-byte aligned */
++/*
++ * aligned_u64 should be used in defining kernel<->userspace ABIs to avoid
++ * common 32/64-bit compat problems.
++ * 64-bit values align to 4-byte boundaries on x86_32 (and possibly other
++ * architectures) and to 8-byte boundaries on 64-bit architetures.  The new
++ * aligned_64 type enforces 8-byte alignment so that structs containing
++ * aligned_64 values have the same alignment on 32-bit and 64-bit architectures.
++ * No conversions are necessary between 32-bit user-space and a 64-bit kernel.
++ */
+ #define aligned_u64 __u64 __attribute__((aligned(8)))
+ #define aligned_be64 __be64 __attribute__((aligned(8)))
+ #define aligned_le64 __le64 __attribute__((aligned(8)))
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-typesh-define-__aligned_u64-and-expose-to-userspace.patch
+include-linux-typesh-aligned_64-improve-the-code-comment.patch
 linux-next.patch
-audit-call-tty_audit_push_task-outside-preempt-disabled.patch
-audit-do-not-send-uninitialized-data-for-audit_tty_get.patch
-audit-use-rcu-for-task-lookup-protection.patch
-audit-add-support-to-match-lsm-labels-on-user-audit-messages.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+drivers-media-video-cx23885-cx23885-corec-fix-cx23885_dev_checkrevision.patch
 fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-fsnotify-remove-alignment-padding-from-fsnotify_mark-on-64-bit-builds.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
+vfs-allow-mnt_want_write-to-sleep-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-fix.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
+rmap-make-anon_vma_free-static-fix.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+fs-fs-writebackc-restore-lost-comment.patch
+mm-memory_hotplugc-make-scan_lru_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
