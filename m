@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-typesh-aligned_64-improve-the-code-comment.patch added to -mm tree
-Date: Fri, 15 Oct 2010 14:33:15 -0700
-Message-ID: <201010152133.o9FLXGpN021392@imap1.linux-foundation.org>
+Subject: + typesh-move-misplaced-comment.patch added to -mm tree
+Date: Fri, 15 Oct 2010 21:38:29 -0700
+Message-ID: <201010160437.o9G4bLPq006399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750800Ab0JOVdw (ORCPT
+	by vger.kernel.org with ESMTP id S1751229Ab0JPEhn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Oct 2010 17:33:52 -0400
+	Sat, 16 Oct 2010 00:37:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agruen@suse.de, andi@firstfloor.org, arnd@arndb.de, davem@davemloft.net, eparis@redhat.com, jengelh@medozas.de
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, arnd@arndb.de, davem@davemloft.net, eparis@redhat.com, jengelh@medozas.de
 
 
 The patch titled
-     include/linux/types.h: aligned_64: improve the code comment
+     types.h: move misplaced comment
 has been added to the -mm tree.  Its filename is
-     include-linux-typesh-aligned_64-improve-the-code-comment.patch
+     typesh-move-misplaced-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/types.h: aligned_64: improve the code comment
+Subject: types.h: move misplaced comment
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Enhance the comment describing the reasons for using aligned_u64.  Via
-Andreas and Andi.
+This comment landed in the wrong palce.
 
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Miller <davem@davemloft.net>
 Cc: Eric Paris <eparis@redhat.com>
 Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Andreas Gruenbacher <agruen@suse.de>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/types.h |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/types.h~include-linux-typesh-aligned_64-improve-the-code-comment include/linux/types.h
---- a/include/linux/types.h~include-linux-typesh-aligned_64-improve-the-code-comment
+diff -puN include/linux/types.h~typesh-move-misplaced-comment include/linux/types.h
+--- a/include/linux/types.h~typesh-move-misplaced-comment
 +++ a/include/linux/types.h
-@@ -121,7 +121,15 @@ typedef		__u64		u_int64_t;
+@@ -121,15 +121,7 @@ typedef		__u64		u_int64_t;
  typedef		__s64		int64_t;
  #endif
+ 
+-/*
+- * aligned_u64 should be used in defining kernel<->userspace ABIs to avoid
+- * common 32/64-bit compat problems.
+- * 64-bit values align to 4-byte boundaries on x86_32 (and possibly other
+- * architectures) and to 8-byte boundaries on 64-bit architetures.  The new
+- * aligned_64 type enforces 8-byte alignment so that structs containing
+- * aligned_64 values have the same alignment on 32-bit and 64-bit architectures.
+- * No conversions are necessary between 32-bit user-space and a 64-bit kernel.
+- */
++/* this is a special 64bit data type that is 8-byte aligned */
+ #define aligned_u64 __u64 __attribute__((aligned(8)))
+ #define aligned_be64 __be64 __attribute__((aligned(8)))
+ #define aligned_le64 __le64 __attribute__((aligned(8)))
+@@ -186,7 +178,15 @@ typedef __u64 __bitwise __be64;
+ typedef __u16 __bitwise __sum16;
+ typedef __u32 __bitwise __wsum;
  
 -/* this is a special 64bit data type that is 8-byte aligned */
 +/*
@@ -70,14 +84,15 @@ diff -puN include/linux/types.h~include-linux-typesh-aligned_64-improve-the-code
 + * aligned_64 values have the same alignment on 32-bit and 64-bit architectures.
 + * No conversions are necessary between 32-bit user-space and a 64-bit kernel.
 + */
- #define aligned_u64 __u64 __attribute__((aligned(8)))
- #define aligned_be64 __be64 __attribute__((aligned(8)))
- #define aligned_le64 __le64 __attribute__((aligned(8)))
+ #define __aligned_u64 __u64 __attribute__((aligned(8)))
+ #define __aligned_be64 __be64 __attribute__((aligned(8)))
+ #define __aligned_le64 __le64 __attribute__((aligned(8)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-include-linux-typesh-aligned_64-improve-the-code-comment.patch
+typesh-define-__aligned_u64-and-expose-to-userspace.patch
+typesh-move-misplaced-comment.patch
 linux-next.patch
 next-remove-localversion.patch
 fs-inodec-work-around-bug.patch
