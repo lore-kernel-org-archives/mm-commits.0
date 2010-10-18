@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-pci-ids-for-new-smart-array-controllers.patch added to -mm tree
-Date: Mon, 18 Oct 2010 12:55:53 -0700
-Message-ID: <201010181955.o9IJtrGK030852@imap1.linux-foundation.org>
+Subject: + um-fix-global-timer-issue-when-using-config_no_hz.patch added to -mm tree
+Date: Mon, 18 Oct 2010 13:05:33 -0700
+Message-ID: <201010182005.o9IK5XAQ031341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933123Ab0JRTz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756004Ab0JRUFr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Oct 2010 15:55:56 -0400
+	Mon, 18 Oct 2010 16:05:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, axboe@kernel.dk
+Cc: richard@nod.at, jdike@addtoit.com, penberg@kernel.org, stable@kernel.org
 
 
 The patch titled
-     cciss: fix PCI IDs for new Smart Array controllers
+     um: fix global timer issue when using CONFIG_NO_HZ
 has been added to the -mm tree.  Its filename is
-     cciss-fix-pci-ids-for-new-smart-array-controllers.patch
+     um-fix-global-timer-issue-when-using-config_no_hz.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix PCI IDs for new Smart Array controllers
-From: Mike Miller <mike.miller@hp.com>
+Subject: um: fix global timer issue when using CONFIG_NO_HZ
+From: Richard Weinberger <richard@nod.at>
 
-Fix the botched up PCI IDs of new controllers.  Please consider this patch
-for inclusion.
+This fixes a issue which was introduced by fe2cc53e ("uml: track and make
+up lost ticks").
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+timeval_to_ns() returns long long and not int.  Due to that UML's timer
+did not work properlt and caused timer freezes.
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c   |   22 ++++++++++++----------
- include/linux/pci_ids.h |    1 +
- 2 files changed, 13 insertions(+), 10 deletions(-)
+ arch/um/os-Linux/time.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-pci-ids-for-new-smart-array-controllers drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-pci-ids-for-new-smart-array-controllers
-+++ a/drivers/block/cciss.c
-@@ -105,11 +105,12 @@ static const struct pci_device_id cciss_
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3249},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x324A},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x324B},
--	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3250},
--	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3251},
--	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3252},
--	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3253},
--	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3254},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3350},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3351},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3352},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3353},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3354},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3355},
- 	{0,}
- };
+diff -puN arch/um/os-Linux/time.c~um-fix-global-timer-issue-when-using-config_no_hz arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~um-fix-global-timer-issue-when-using-config_no_hz
++++ a/arch/um/os-Linux/time.c
+@@ -60,7 +60,7 @@ static inline long long timeval_to_ns(co
+ long long disable_timer(void)
+ {
+ 	struct itimerval time = ((struct itimerval) { { 0, 0 }, { 0, 0 } });
+-	int remain, max = UM_NSEC_PER_SEC / UM_HZ;
++	long long remain, max = UM_NSEC_PER_SEC / UM_HZ;
  
-@@ -149,11 +150,12 @@ static struct board_type products[] = {
- 	{0x3249103C, "Smart Array P812", &SA5_access},
- 	{0x324A103C, "Smart Array P712m", &SA5_access},
- 	{0x324B103C, "Smart Array P711m", &SA5_access},
--	{0x3250103C, "Smart Array", &SA5_access},
--	{0x3251103C, "Smart Array", &SA5_access},
--	{0x3252103C, "Smart Array", &SA5_access},
--	{0x3253103C, "Smart Array", &SA5_access},
--	{0x3254103C, "Smart Array", &SA5_access},
-+	{0x3350103C, "Smart Array", &SA5_access},
-+	{0x3351103C, "Smart Array", &SA5_access},
-+	{0x3352103C, "Smart Array", &SA5_access},
-+	{0x3353103C, "Smart Array", &SA5_access},
-+	{0x3354103C, "Smart Array", &SA5_access},
-+	{0x3355103C, "Smart Array", &SA5_access},
- };
- 
- /* How long to wait (in milliseconds) for board to go into simple mode */
-diff -puN include/linux/pci_ids.h~cciss-fix-pci-ids-for-new-smart-array-controllers include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~cciss-fix-pci-ids-for-new-smart-array-controllers
-+++ a/include/linux/pci_ids.h
-@@ -743,6 +743,7 @@
- #define PCI_DEVICE_ID_HP_CISSC		0x3230
- #define PCI_DEVICE_ID_HP_CISSD		0x3238
- #define PCI_DEVICE_ID_HP_CISSE		0x323a
-+#define PCI_DEVICE_ID_HP_CISSF		0x323b
- #define PCI_DEVICE_ID_HP_ZX2_IOC	0x4031
- 
- #define PCI_VENDOR_ID_PCTECH		0x1042
+ 	if (setitimer(ITIMER_VIRTUAL, &time, &time) < 0)
+ 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from richard@nod.at are
 
-cciss-fix-pci-ids-for-new-smart-array-controllers.patch
+origin.patch
+hostfs-fix-uml-crash.patch
+um-migrate-from-__do_irq-to-generic_handle_irq.patch
+um-fix-global-timer-issue-when-using-config_no_hz.patch
 
