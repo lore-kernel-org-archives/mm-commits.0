@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-destructive-port-em-initialization-for-tsi568.patch added to -mm tree
-Date: Mon, 18 Oct 2010 12:53:27 -0700
-Message-ID: <201010181953.o9IJrRsR030724@imap1.linux-foundation.org>
+Subject: + cciss-fix-pci-ids-for-new-smart-array-controllers.patch added to -mm tree
+Date: Mon, 18 Oct 2010 12:55:53 -0700
+Message-ID: <201010181955.o9IJtrGK030852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46422 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933204Ab0JRTyZ (ORCPT
+	by vger.kernel.org with ESMTP id S933123Ab0JRTz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Oct 2010 15:54:25 -0400
+	Mon, 18 Oct 2010 15:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, micha@neli.hopto.org, mporter@kernel.crashing.org, thomas.moll@sysgo.com
+Cc: mike.miller@hp.com, axboe@kernel.dk
 
 
 The patch titled
-     rapidio: fix destructive port EM initialization for Tsi568
+     cciss: fix PCI IDs for new Smart Array controllers
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-destructive-port-em-initialization-for-tsi568.patch
+     cciss-fix-pci-ids-for-new-smart-array-controllers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: fix destructive port EM initialization for Tsi568
-From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: cciss: fix PCI IDs for new Smart Array controllers
+From: Mike Miller <mike.miller@hp.com>
 
-Replace possibly damaging broadcast writes into the per-port SP_MODE
-registers with individual writes for each port.  This will preserve
-individual port configurations in case if ports are configured
-differently.
+Fix the botched up PCI IDs of new controllers.  Please consider this patch
+for inclusion.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Thomas Moll <thomas.moll@sysgo.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/switches/tsi568.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/block/cciss.c   |   22 ++++++++++++----------
+ include/linux/pci_ids.h |    1 +
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rapidio/switches/tsi568.c~rapidio-fix-destructive-port-em-initialization-for-tsi568 drivers/rapidio/switches/tsi568.c
---- a/drivers/rapidio/switches/tsi568.c~rapidio-fix-destructive-port-em-initialization-for-tsi568
-+++ a/drivers/rapidio/switches/tsi568.c
-@@ -29,7 +29,7 @@
- #define SPP_ROUTE_CFG_DESTID(n)	(0x11070 + 0x100*n)
- #define SPP_ROUTE_CFG_PORT(n)	(0x11074 + 0x100*n)
+diff -puN drivers/block/cciss.c~cciss-fix-pci-ids-for-new-smart-array-controllers drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-pci-ids-for-new-smart-array-controllers
++++ a/drivers/block/cciss.c
+@@ -105,11 +105,12 @@ static const struct pci_device_id cciss_
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3249},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x324A},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x324B},
+-	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3250},
+-	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3251},
+-	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3252},
+-	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3253},
+-	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3254},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3350},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3351},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3352},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3353},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3354},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3355},
+ 	{0,}
+ };
  
--#define TSI568_SP_MODE_BC	0x10004
-+#define TSI568_SP_MODE(n)	(0x11004 + 0x100*n)
- #define  TSI568_SP_MODE_PW_DIS	0x08000000
+@@ -149,11 +150,12 @@ static struct board_type products[] = {
+ 	{0x3249103C, "Smart Array P812", &SA5_access},
+ 	{0x324A103C, "Smart Array P712m", &SA5_access},
+ 	{0x324B103C, "Smart Array P711m", &SA5_access},
+-	{0x3250103C, "Smart Array", &SA5_access},
+-	{0x3251103C, "Smart Array", &SA5_access},
+-	{0x3252103C, "Smart Array", &SA5_access},
+-	{0x3253103C, "Smart Array", &SA5_access},
+-	{0x3254103C, "Smart Array", &SA5_access},
++	{0x3350103C, "Smart Array", &SA5_access},
++	{0x3351103C, "Smart Array", &SA5_access},
++	{0x3352103C, "Smart Array", &SA5_access},
++	{0x3353103C, "Smart Array", &SA5_access},
++	{0x3354103C, "Smart Array", &SA5_access},
++	{0x3355103C, "Smart Array", &SA5_access},
+ };
  
- static int
-@@ -117,14 +117,19 @@ tsi568_em_init(struct rio_dev *rdev)
- 	u16 destid = rdev->rswitch->destid;
- 	u8 hopcount = rdev->rswitch->hopcount;
- 	u32 regval;
-+	int portnum;
+ /* How long to wait (in milliseconds) for board to go into simple mode */
+diff -puN include/linux/pci_ids.h~cciss-fix-pci-ids-for-new-smart-array-controllers include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~cciss-fix-pci-ids-for-new-smart-array-controllers
++++ a/include/linux/pci_ids.h
+@@ -743,6 +743,7 @@
+ #define PCI_DEVICE_ID_HP_CISSC		0x3230
+ #define PCI_DEVICE_ID_HP_CISSD		0x3238
+ #define PCI_DEVICE_ID_HP_CISSE		0x323a
++#define PCI_DEVICE_ID_HP_CISSF		0x323b
+ #define PCI_DEVICE_ID_HP_ZX2_IOC	0x4031
  
- 	pr_debug("TSI568 %s [%d:%d]\n", __func__, destid, hopcount);
- 
- 	/* Make sure that Port-Writes are disabled (for all ports) */
--	rio_mport_read_config_32(mport, destid, hopcount,
--			TSI568_SP_MODE_BC, &regval);
--	rio_mport_write_config_32(mport, destid, hopcount,
--			TSI568_SP_MODE_BC, regval | TSI568_SP_MODE_PW_DIS);
-+	for (portnum = 0;
-+	     portnum < RIO_GET_TOTAL_PORTS(rdev->swpinfo); portnum++) {
-+		rio_mport_read_config_32(mport, destid, hopcount,
-+				TSI568_SP_MODE(portnum), &regval);
-+		rio_mport_write_config_32(mport, destid, hopcount,
-+				TSI568_SP_MODE(portnum),
-+				regval | TSI568_SP_MODE_PW_DIS);
-+	}
- 
- 	return 0;
- }
+ #define PCI_VENDOR_ID_PCTECH		0x1042
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-rapidio-fix-rapidio-sysfs-hierarchy.patch
-rapidio-powerpc-85xx-modify-rio-port-write-interrupt-handler.patch
-rapidio-use-stored-ingress-port-number-instead-of-register-read.patch
-rapidio-add-relation-links-between-rio-device-structures.patch
-rapidio-add-default-handler-for-error-stopped-state.patch
-rapidio-modify-sysfs-initialization-for-switches.patch
-rapidio-add-handling-of-orphan-port-write-message.patch
-rapidio-add-device-access-check-into-the-enumeration.patch
-rapidio-add-support-for-idt-cps-gen2-switches.patch
-rapidio-add-handling-of-redundant-routes.patch
-rapidio-fix-idle2-bits-corruption.patch
-rapidio-fix-maximum-port-number-in-tsi57x-em-initialization.patch
-rapidio-fix-destructive-port-em-initialization-for-tsi568.patch
+cciss-fix-pci-ids-for-new-smart-array-controllers.patch
 
