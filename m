@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-allocator-do-not-check-the-state-of-a-non-existant-buddy-during-free.patch added to -mm tree
-Date: Mon, 18 Oct 2010 12:38:01 -0700
-Message-ID: <201010181938.o9IJc1R0030012@imap1.linux-foundation.org>
+Subject: + sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down.patch added to -mm tree
+Date: Mon, 18 Oct 2010 12:41:35 -0700
+Message-ID: <201010181941.o9IJfZ9j030210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933144Ab0JRTjc (ORCPT
+	by vger.kernel.org with ESMTP id S1755993Ab0JRTmE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Oct 2010 15:39:32 -0400
+	Mon, 18 Oct 2010 15:42:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, czoccolo@gmail.com, kosaki.motohiro@jp.fujitsu.com, pacman@kosh.dhis.org, riel@redhat.com, stable@kernel.org
+Cc: holt@sgi.com
 
 
 The patch titled
-     mm, page-allocator: do not check the state of a non-existant buddy during free
+     sgi-zp: incoming XPC channel messages can come in after the channel's partition structures have been torn down.
 has been added to the -mm tree.  Its filename is
-     mm-page-allocator-do-not-check-the-state-of-a-non-existant-buddy-during-free.patch
+     sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm, page-allocator: do not check the state of a non-existant buddy during free
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: sgi-zp: incoming XPC channel messages can come in after the channel's partition structures have been torn down.
+From: Robin Holt <holt@sgi.com>
 
-There is a bug in commit 6dda9d55 ("page allocator: reduce fragmentation
-in buddy allocator by adding buddies that are merging to the tail of the
-free lists") that means a buddy at order MAX_ORDER is checked for merging.
- A page of this order never exists so at times, an effectively random
-piece of memory is being checked.
+Under some workloads, some channel messages have been observed being
+delayed on the sending side past the point where the receiving side has
+been able to tear down its partition structures.  This condition is
+already detected in xpc_handle_activate_IRQ_uv(), but that information is
+not given to xpc_handle_activate_mq_msg_uv().  As a result,
+xpc_handle_activate_mq_msg_uv() assumes the structures still exist and
+references them.
 
-Alan Curry has reported that this is causing memory corruption in
-userspace data on a PPC32 platform (http://lkml.org/lkml/2010/10/9/32). 
-It is not clear why this is happening.  It could be a cache coherency
-problem where pages mapped in both user and kernel space are getting
-different cache lines due to the bad read from kernel space
-(http://lkml.org/lkml/2010/10/13/179).  It could also be that there are
-some special registers being io-remapped at the end of the memmap array
-and that a read has special meaning on them.  Compiler bugs have been
-ruled out because the assembly before and after the patch looks relatively
-harmless.
-
-This patch fixes the problem by ensuring we are not reading a possibly
-invalid location of memory.  It's not clear why the read causes corruption
-but one way or the other it is a buggy read.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Corrado Zoccolo <czoccolo@gmail.com>
-Reported-by: Alan Curry <pacman@kosh.dhis.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/sgi-xp/xpc_uv.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page-allocator-do-not-check-the-state-of-a-non-existant-buddy-during-free mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page-allocator-do-not-check-the-state-of-a-non-existant-buddy-during-free
-+++ a/mm/page_alloc.c
-@@ -530,7 +530,7 @@ static inline void __free_one_page(struc
- 	 * so it's less likely to be used soon and more likely to be merged
- 	 * as a higher order page
- 	 */
--	if ((order < MAX_ORDER-1) && pfn_valid_within(page_to_pfn(buddy))) {
-+	if ((order < MAX_ORDER-2) && pfn_valid_within(page_to_pfn(buddy))) {
- 		struct page *higher_page, *higher_buddy;
- 		combined_idx = __find_combined_index(page_idx, order);
- 		higher_page = page + combined_idx - page_idx;
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -417,6 +417,7 @@ xpc_process_activate_IRQ_rcvd_uv(void)
+ static void
+ xpc_handle_activate_mq_msg_uv(struct xpc_partition *part,
+ 			      struct xpc_activate_mq_msghdr_uv *msg_hdr,
++			      int part_setup,
+ 			      int *wakeup_hb_checker)
+ {
+ 	unsigned long irq_flags;
+@@ -481,6 +482,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_CLOSEREQUEST_UV: {
+ 		struct xpc_activate_mq_msg_chctl_closerequest_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_closerequest_uv,
+ 				   hdr);
+@@ -497,6 +501,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_CLOSEREPLY_UV: {
+ 		struct xpc_activate_mq_msg_chctl_closereply_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_closereply_uv,
+ 				   hdr);
+@@ -511,6 +518,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENREQUEST_UV: {
+ 		struct xpc_activate_mq_msg_chctl_openrequest_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_openrequest_uv,
+ 				   hdr);
+@@ -528,6 +538,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENREPLY_UV: {
+ 		struct xpc_activate_mq_msg_chctl_openreply_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_openreply_uv, hdr);
+ 		args = &part->remote_openclose_args[msg->ch_number];
+@@ -545,6 +558,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENCOMPLETE_UV: {
+ 		struct xpc_activate_mq_msg_chctl_opencomplete_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				xpc_activate_mq_msg_chctl_opencomplete_uv, hdr);
+ 		spin_lock_irqsave(&part->chctl_lock, irq_flags);
+@@ -621,6 +637,7 @@ xpc_handle_activate_IRQ_uv(int irq, void
+ 
+ 			part_referenced = xpc_part_ref(part);
+ 			xpc_handle_activate_mq_msg_uv(part, msg_hdr,
++						      part_referenced,
+ 						      &wakeup_hb_checker);
+ 			if (part_referenced)
+ 				xpc_part_deref(part);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from holt@sgi.com are
 
-mm-page-allocator-do-not-check-the-state-of-a-non-existant-buddy-during-free.patch
 linux-next.patch
-include-linux-pageblock-flagsh-fix-set_pageblock_flags-macro-definiton.patch
-mm-compaction-fix-compactpagefailed-counting.patch
-memory-hotplug-fix-notifiers-return-value-check.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code.patch
-mm-fix-typo-in-mmh-when-node_not_in_page_flags.patch
-tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
-writeback-account-for-time-spent-congestion_waited.patch
-vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
-vmscan-narrow-the-scenarios-lumpy-reclaim-uses-synchrounous-reclaim.patch
-vmscan-remove-dead-code-in-shrink_inactive_list.patch
-vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+net-avoid-limits-overflow.patch
+fs-allow-for-more-than-231-files.patch
+sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down.patch
 
