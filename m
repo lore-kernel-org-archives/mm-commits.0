@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-fix-global-timer-issue-when-using-config_no_hz.patch added to -mm tree
-Date: Mon, 18 Oct 2010 13:05:33 -0700
-Message-ID: <201010182005.o9IK5XAQ031341@imap1.linux-foundation.org>
+Subject: + sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down.patch added to -mm tree
+Date: Mon, 18 Oct 2010 13:13:21 -0700
+Message-ID: <201010182013.o9IKDLwI031638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756004Ab0JRUFr (ORCPT
+	by vger.kernel.org with ESMTP id S1756086Ab0JRUN1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Oct 2010 16:05:47 -0400
+	Mon, 18 Oct 2010 16:13:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, jdike@addtoit.com, penberg@kernel.org, stable@kernel.org
+Cc: holt@sgi.com, stable@kernel.org
 
 
 The patch titled
-     um: fix global timer issue when using CONFIG_NO_HZ
+     sgi-xp: incoming XPC channel messages can come in after the channel's partition structures have been torn down.
 has been added to the -mm tree.  Its filename is
-     um-fix-global-timer-issue-when-using-config_no_hz.patch
+     sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: fix global timer issue when using CONFIG_NO_HZ
-From: Richard Weinberger <richard@nod.at>
+Subject: sgi-xp: incoming XPC channel messages can come in after the channel's partition structures have been torn down.
+From: Robin Holt <holt@sgi.com>
 
-This fixes a issue which was introduced by fe2cc53e ("uml: track and make
-up lost ticks").
+Under some workloads, some channel messages have been observed being
+delayed on the sending side past the point where the receiving side has
+been able to tear down its partition structures.
 
-timeval_to_ns() returns long long and not int.  Due to that UML's timer
-did not work properlt and caused timer freezes.
+This condition is already detected in xpc_handle_activate_IRQ_uv(), but
+that information is not given to xpc_handle_activate_mq_msg_uv().  As a
+result, xpc_handle_activate_mq_msg_uv() assumes the structures still exist
+and references them, causing a NULL-pointer deref.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/time.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/sgi-xp/xpc_uv.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN arch/um/os-Linux/time.c~um-fix-global-timer-issue-when-using-config_no_hz arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~um-fix-global-timer-issue-when-using-config_no_hz
-+++ a/arch/um/os-Linux/time.c
-@@ -60,7 +60,7 @@ static inline long long timeval_to_ns(co
- long long disable_timer(void)
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -417,6 +417,7 @@ xpc_process_activate_IRQ_rcvd_uv(void)
+ static void
+ xpc_handle_activate_mq_msg_uv(struct xpc_partition *part,
+ 			      struct xpc_activate_mq_msghdr_uv *msg_hdr,
++			      int part_setup,
+ 			      int *wakeup_hb_checker)
  {
- 	struct itimerval time = ((struct itimerval) { { 0, 0 }, { 0, 0 } });
--	int remain, max = UM_NSEC_PER_SEC / UM_HZ;
-+	long long remain, max = UM_NSEC_PER_SEC / UM_HZ;
+ 	unsigned long irq_flags;
+@@ -481,6 +482,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_CLOSEREQUEST_UV: {
+ 		struct xpc_activate_mq_msg_chctl_closerequest_uv *msg;
  
- 	if (setitimer(ITIMER_VIRTUAL, &time, &time) < 0)
- 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_closerequest_uv,
+ 				   hdr);
+@@ -497,6 +501,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_CLOSEREPLY_UV: {
+ 		struct xpc_activate_mq_msg_chctl_closereply_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_closereply_uv,
+ 				   hdr);
+@@ -511,6 +518,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENREQUEST_UV: {
+ 		struct xpc_activate_mq_msg_chctl_openrequest_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_openrequest_uv,
+ 				   hdr);
+@@ -528,6 +538,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENREPLY_UV: {
+ 		struct xpc_activate_mq_msg_chctl_openreply_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				   xpc_activate_mq_msg_chctl_openreply_uv, hdr);
+ 		args = &part->remote_openclose_args[msg->ch_number];
+@@ -545,6 +558,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
+ 	case XPC_ACTIVATE_MQ_MSG_CHCTL_OPENCOMPLETE_UV: {
+ 		struct xpc_activate_mq_msg_chctl_opencomplete_uv *msg;
+ 
++		if (!part_setup)
++			break;
++
+ 		msg = container_of(msg_hdr, struct
+ 				xpc_activate_mq_msg_chctl_opencomplete_uv, hdr);
+ 		spin_lock_irqsave(&part->chctl_lock, irq_flags);
+@@ -621,6 +637,7 @@ xpc_handle_activate_IRQ_uv(int irq, void
+ 
+ 			part_referenced = xpc_part_ref(part);
+ 			xpc_handle_activate_mq_msg_uv(part, msg_hdr,
++						      part_referenced,
+ 						      &wakeup_hb_checker);
+ 			if (part_referenced)
+ 				xpc_part_deref(part);
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from holt@sgi.com are
 
-origin.patch
-hostfs-fix-uml-crash.patch
-um-migrate-from-__do_irq-to-generic_handle_irq.patch
-um-fix-global-timer-issue-when-using-config_no_hz.patch
+sgi-zp-incoming-xpc-channel-messages-can-come-in-after-the-channels-partition-structures-have-been-torn-down.patch
+linux-next.patch
+net-avoid-limits-overflow.patch
+fs-allow-for-more-than-231-files.patch
 
