@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-dont-turn-pf_kthread-off-when-a-target-command-was-not-found.patch added to -mm tree
-Date: Tue, 19 Oct 2010 16:23:44 -0700
-Message-ID: <201010192323.o9JNNiGv012555@imap1.linux-foundation.org>
+Subject: + proc-swaps-support-polling-fix.patch added to -mm tree
+Date: Tue, 19 Oct 2010 16:39:06 -0700
+Message-ID: <201010192339.o9JNd6iK013175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753013Ab0JSXX5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753837Ab0JSXjj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Oct 2010 19:23:57 -0400
+	Tue, 19 Oct 2010 19:39:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, roland@redhat.com
+Cc: akpm@linux-foundation.org, corbet@lwn.net, greg@kroah.com, kay.sievers@vrfy.org, peterz@infradead.org
 
 
 The patch titled
-     exec: don't turn PF_KTHREAD off when a target command was not found
+     proc-swaps-support-polling-fix
 has been added to the -mm tree.  Its filename is
-     exec-dont-turn-pf_kthread-off-when-a-target-command-was-not-found.patch
+     proc-swaps-support-polling-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: don't turn PF_KTHREAD off when a target command was not found
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: proc-swaps-support-polling-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Presently do_execve() turns PF_KTHREAD off before search_binary_handler().
- THis has a theorical risk of PF_KTHREAD getting lost.  We don't have to
-turn PF_KTHREAD off in the ENOEXEC case.
+document proc_poll_event
 
-This patch moves this flag modification to after the finding of the
-executable file.
-
-This is only a theorical issue because kthreads do not call do_execve()
-directly.  But fixing would be better.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/swapfile.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/exec.c~exec-dont-turn-pf_kthread-off-when-a-target-command-was-not-found fs/exec.c
---- a/fs/exec.c~exec-dont-turn-pf_kthread-off-when-a-target-command-was-not-found
-+++ a/fs/exec.c
-@@ -1009,7 +1009,7 @@ int flush_old_exec(struct linux_binprm *
+diff -puN mm/swapfile.c~proc-swaps-support-polling-fix mm/swapfile.c
+--- a/mm/swapfile.c~proc-swaps-support-polling-fix
++++ a/mm/swapfile.c
+@@ -60,6 +60,7 @@ static struct swap_info_struct *swap_inf
+ static DEFINE_MUTEX(swapon_mutex);
  
- 	bprm->mm = NULL;		/* We're using it now */
+ static DECLARE_WAIT_QUEUE_HEAD(proc_poll_wait);
++/* Activity counter to indicate that a swapon or swapoff has occurred */
+ static atomic_t proc_poll_event = ATOMIC_INIT(0);
  
--	current->flags &= ~PF_RANDOMIZE;
-+	current->flags &= ~(PF_RANDOMIZE | PF_KTHREAD);
- 	flush_thread();
- 	current->personality &= ~bprm->per_clear;
- 
-@@ -1412,7 +1412,6 @@ int do_execve(const char * filename,
- 	if (retval < 0)
- 		goto out;
- 
--	current->flags &= ~PF_KTHREAD;
- 	retval = search_binary_handler(bprm,regs);
- 	if (retval < 0)
- 		goto out;
+ static inline unsigned char swap_count(unsigned char ent)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page-allocator-do-not-check-the-state-of-a-non-existant-buddy-during-free.patch
+origin.patch
+typesh-move-misplaced-comment.patch
 linux-next.patch
-mm-fix-return-value-of-scan_lru_pages-in-memory-unplug.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
 sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-oom-add-per-mm-oom-disable-count.patch
-oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch
-oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
-oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
+vfs-allow-mnt_want_write-to-sleep-fix.patch
+mm.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
 oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
 oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
 oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled.patch
-vmscan-prevent-background-aging-of-anon-page-in-no-swap-system.patch
-mm-mempolicy-check-return-code-of-check_range.patch
-mm-add-account_page_writeback.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat.patch
-writeback-add-nr_dirtied-and-nr_written-to-proc-vmstat-update.patch
-writeback-add-sys-devices-system-node-node-vmstat.patch
-writeback-add-sys-devices-system-node-node-vmstat-update.patch
-writeback-report-dirty-thresholds-in-proc-vmstat.patch
-vmscan-delete-dead-code.patch
-tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
-writeback-account-for-time-spent-congestion_waited.patch
-vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
-vmscan-narrow-the-scenarios-lumpy-reclaim-uses-synchrounous-reclaim.patch
-vmscan-remove-dead-code-in-shrink_inactive_list.patch
-vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
-writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch
-writeback-remove-the-internal-5%-low-bound-on-dirty_ratio.patch
-vmscantmpfs-treat-used-once-pages-on-tmpfs-as-used-once.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-fix.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
+rmap-make-anon_vma_free-static-fix.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+fs-fs-writebackc-restore-lost-comment.patch
 mm-memory_hotplugc-make-scan_lru_pages-static.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler.patch
+proc-swaps-support-polling-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
+gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
 core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
 core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping.patch
-proc-pid-smaps-export-amount-of-anonymous-memory-in-a-mapping-doc.patch
-proc-pid-pagemap-document-in-documentation-filesystems-proctxt.patch
-exec-dont-turn-pf_kthread-off-when-a-target-command-was-not-found.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
