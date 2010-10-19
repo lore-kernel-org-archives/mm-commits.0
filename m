@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + misc-update-apds990x-driver-to-kconfig-and-makefile.patch added to -mm tree
-Date: Tue, 19 Oct 2010 16:21:00 -0700
-Message-ID: <201010192321.o9JNL0iQ012483@imap1.linux-foundation.org>
+Subject: + misc-update-bh1770glc-driver-to-kconfig-and-makefile.patch added to -mm tree
+Date: Tue, 19 Oct 2010 16:20:54 -0700
+Message-ID: <201010192320.o9JNKsST012476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756510Ab0JSXVH (ORCPT
+	by vger.kernel.org with ESMTP id S1757505Ab0JSXVC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Oct 2010 19:21:07 -0400
+	Tue, 19 Oct 2010 19:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: samu.p.onkalo@nokia.com, jic23@cam.ac.uk
 
 
 The patch titled
-     drivers/misc: update apds990x driver to Kconfig and Makefile
+     drivers/misc: update bh1770glc driver to Kconfig and Makefile
 has been added to the -mm tree.  Its filename is
-     misc-update-apds990x-driver-to-kconfig-and-makefile.patch
+     misc-update-bh1770glc-driver-to-kconfig-and-makefile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc: update apds990x driver to Kconfig and Makefile
+Subject: drivers/misc: update bh1770glc driver to Kconfig and Makefile
 From: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Compilation support for apds990x driver
+Compilation support for bh1770glc driver
 
 Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 Cc: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig  |   11 +++++++++++
+ drivers/misc/Kconfig  |   10 ++++++++++
  drivers/misc/Makefile |    1 +
- 2 files changed, 12 insertions(+)
+ 2 files changed, 11 insertions(+)
 
-diff -puN drivers/misc/Kconfig~misc-update-apds990x-driver-to-kconfig-and-makefile drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~misc-update-apds990x-driver-to-kconfig-and-makefile
+diff -puN drivers/misc/Kconfig~misc-update-bh1770glc-driver-to-kconfig-and-makefile drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~misc-update-bh1770glc-driver-to-kconfig-and-makefile
 +++ a/drivers/misc/Kconfig
-@@ -334,6 +334,17 @@ config SENSORS_BH1770
-            To compile this driver as a module, choose M here: the
-            module will be called bh1770glc. If unsure, say N here.
+@@ -324,6 +324,16 @@ config SENSORS_BH1780
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called bh1780gli.
  
-+config SENSORS_APDS990X
-+	 tristate "APDS990X combined als and proximity sensors"
-+	 depends on I2C
-+	 default n
-+	 ---help---
-+	   Say Y here if you want to build a driver for Avago APDS990x
-+	   combined ambient light and proximity sensor chip.
++config SENSORS_BH1770
++         tristate "BH1770GLC / SFH7770 combined ALS - Proximity sensor"
++         depends on I2C
++         ---help---
++           Say Y here if you want to build a driver for BH1770GLC (ROHM) or
++	   SFH7770 (Osram) combined ambient light and proximity sensor chip.
 +
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called apds990x. If unsure, say N here.
++           To compile this driver as a module, choose M here: the
++           module will be called bh1770glc. If unsure, say N here.
 +
  config HMC6352
  	tristate "Honeywell HMC6352 compass"
  	depends on I2C
-diff -puN drivers/misc/Makefile~misc-update-apds990x-driver-to-kconfig-and-makefile drivers/misc/Makefile
---- a/drivers/misc/Makefile~misc-update-apds990x-driver-to-kconfig-and-makefile
+diff -puN drivers/misc/Makefile~misc-update-bh1770glc-driver-to-kconfig-and-makefile drivers/misc/Makefile
+--- a/drivers/misc/Makefile~misc-update-bh1770glc-driver-to-kconfig-and-makefile
 +++ a/drivers/misc/Makefile
-@@ -17,6 +17,7 @@ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7
+@@ -16,6 +16,7 @@ obj-$(CONFIG_TIFM_CORE)       	+= tifm_c
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
  obj-$(CONFIG_PHANTOM)		+= phantom.o
  obj-$(CONFIG_SENSORS_BH1780)	+= bh1780gli.o
- obj-$(CONFIG_SENSORS_BH1770)	+= bh1770glc.o
-+obj-$(CONFIG_SENSORS_APDS990X)	+= apds990x.o
++obj-$(CONFIG_SENSORS_BH1770)	+= bh1770glc.o
  obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
  obj-$(CONFIG_ENCLOSURE_SERVICES) += enclosure.o
  obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
