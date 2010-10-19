@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-proper-spinlocks-initializations.patch added to -mm tree
-Date: Tue, 19 Oct 2010 13:49:14 -0700
-Message-ID: <201010192049.o9JKnENW032749@imap1.linux-foundation.org>
+Subject: + hostfs-fix-uml-crash-remove-f_spare-from-hostfs.patch added to -mm tree
+Date: Tue, 19 Oct 2010 14:27:59 -0700
+Message-ID: <201010192127.o9JLRxun002142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753031Ab0JSUtT (ORCPT
+	by vger.kernel.org with ESMTP id S1754761Ab0JSVaZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Oct 2010 16:49:19 -0400
+	Tue, 19 Oct 2010 17:30:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, cminyard@mvista.com, davem@davemloft.net, yinghai@kernel.org
+Cc: richard@nod.at, hch@lst.de, jdike@addtoit.com, toralf.foerster@gmx.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ipmi: proper spinlock initialization
+     hostfs: fix UML crash: remove f_spare from hostfs
 has been added to the -mm tree.  Its filename is
-     ipmi-proper-spinlocks-initializations.patch
+     hostfs-fix-uml-crash-remove-f_spare-from-hostfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,146 +29,106 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ipmi: proper spinlock initialization
-From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: hostfs: fix UML crash: remove f_spare from hostfs
+=46rom: Richard Weinberger <richard@nod.at>
 
-Unloading ipmi module can trigger following error.  (if
-CONFIG_DEBUG_SPINLOCK=y)
+365b1818 ("add f_flags to struct statfs(64)") resized f_spare within
+struct statfs which caused a UML crash.  There is no need to copy f_spa=
+re.
 
-[ 9633.779590] BUG: spinlock bad magic on CPU#1, rmmod/7170
-[ 9633.779606]  lock: f41f5414, .magic: 00000000, .owner:
-<none>/-1, .owner_cpu: 0
-[ 9633.779626] Pid: 7170, comm: rmmod Not tainted
-2.6.36-rc7-11474-gb71eb1e-dirty #328
-[ 9633.779644] Call Trace:
-[ 9633.779657]  [<c13921cc>] ? printk+0x18/0x1c
-[ 9633.779672]  [<c11a1f33>] spin_bug+0xa3/0xf0
-[ 9633.779685]  [<c11a1ffd>] do_raw_spin_lock+0x7d/0x160
-[ 9633.779702]  [<c1131537>] ? release_sysfs_dirent+0x47/0xb0
-[ 9633.779718]  [<c1131b78>] ? sysfs_addrm_finish+0xa8/0xd0
-[ 9633.779734]  [<c1394bac>] _raw_spin_lock_irqsave+0xc/0x20
-[ 9633.779752]  [<f99d93da>] cleanup_one_si+0x6a/0x200 [ipmi_si]
-[ 9633.779768]  [<c11305b2>] ? sysfs_hash_and_remove+0x72/0x80
-[ 9633.779786]  [<f99dcf26>] ipmi_pnp_remove+0xd/0xf [ipmi_si]
-[ 9633.779802]  [<c11f622b>] pnp_device_remove+0x1b/0x40
-
-Fix this by initializing spinlocks in a smi_info_alloc() helper function,
-right after memory allocation and clearing.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Acked-by: David Miller <davem@davemloft.net>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Reported-by: Toralf F=F6rster <toralf.foerster@gmx.de>
+Tested-by: Toralf F=F6rster <toralf.foerster@gmx.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |   30 ++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ fs/hostfs/hostfs.h      |    3 +--
+ fs/hostfs/hostfs_kern.c |    2 +-
+ fs/hostfs/hostfs_user.c |    9 ++-------
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-proper-spinlocks-initializations drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-proper-spinlocks-initializations
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1665,6 +1665,17 @@ static int check_hotmod_int_op(const cha
+diff -puN fs/hostfs/hostfs.h~hostfs-fix-uml-crash-remove-f_spare-from-h=
+ostfs fs/hostfs/hostfs.h
+--- a/fs/hostfs/hostfs.h~hostfs-fix-uml-crash-remove-f_spare-from-hostf=
+s
++++ a/fs/hostfs/hostfs.h
+@@ -96,7 +96,6 @@ extern int rename_file(char *from, char=20
+ extern int do_statfs(char *root, long *bsize_out, long long *blocks_ou=
+t,
+ 		     long long *bfree_out, long long *bavail_out,
+ 		     long long *files_out, long long *ffree_out,
+-		     void *fsid_out, int fsid_size, long *namelen_out,
+-		     long *spare_out);
++		     void *fsid_out, int fsid_size, long *namelen_out);
+=20
+ #endif
+diff -puN fs/hostfs/hostfs_kern.c~hostfs-fix-uml-crash-remove-f_spare-f=
+rom-hostfs fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~hostfs-fix-uml-crash-remove-f_spare-from-=
+hostfs
++++ a/fs/hostfs/hostfs_kern.c
+@@ -217,7 +217,7 @@ int hostfs_statfs(struct dentry *dentry,
+ 	err =3D do_statfs(dentry->d_sb->s_fs_info,
+ 			&sf->f_bsize, &f_blocks, &f_bfree, &f_bavail, &f_files,
+ 			&f_ffree, &sf->f_fsid, sizeof(sf->f_fsid),
+-			&sf->f_namelen, sf->f_spare);
++			&sf->f_namelen);
+ 	if (err)
+ 		return err;
+ 	sf->f_blocks =3D f_blocks;
+diff -puN fs/hostfs/hostfs_user.c~hostfs-fix-uml-crash-remove-f_spare-f=
+rom-hostfs fs/hostfs/hostfs_user.c
+--- a/fs/hostfs/hostfs_user.c~hostfs-fix-uml-crash-remove-f_spare-from-=
+hostfs
++++ a/fs/hostfs/hostfs_user.c
+@@ -364,8 +364,7 @@ int rename_file(char *from, char *to)
+ int do_statfs(char *root, long *bsize_out, long long *blocks_out,
+ 	      long long *bfree_out, long long *bavail_out,
+ 	      long long *files_out, long long *ffree_out,
+-	      void *fsid_out, int fsid_size, long *namelen_out,
+-	      long *spare_out)
++	      void *fsid_out, int fsid_size, long *namelen_out)
+ {
+ 	struct statfs64 buf;
+ 	int err;
+@@ -384,10 +383,6 @@ int do_statfs(char *root, long *bsize_ou
+ 	       sizeof(buf.f_fsid) > fsid_size ? fsid_size :
+ 	       sizeof(buf.f_fsid));
+ 	*namelen_out =3D buf.f_namelen;
+-	spare_out[0] =3D buf.f_spare[0];
+-	spare_out[1] =3D buf.f_spare[1];
+-	spare_out[2] =3D buf.f_spare[2];
+-	spare_out[3] =3D buf.f_spare[3];
+-	spare_out[4] =3D buf.f_spare[4];
++
  	return 0;
  }
- 
-+static struct smi_info *smi_info_alloc(void)
-+{
-+	struct smi_info *info = kzalloc(sizeof(*info), GFP_KERNEL);
-+
-+	if (info) {
-+		spin_lock_init(&info->si_lock);
-+		spin_lock_init(&info->msg_lock);
-+	}
-+	return info;
-+}
-+
- static int hotmod_handler(const char *val, struct kernel_param *kp)
- {
- 	char *str = kstrdup(val, GFP_KERNEL);
-@@ -1779,7 +1790,7 @@ static int hotmod_handler(const char *va
- 		}
- 
- 		if (op == HM_ADD) {
--			info = kzalloc(sizeof(*info), GFP_KERNEL);
-+			info = smi_info_alloc();
- 			if (!info) {
- 				rv = -ENOMEM;
- 				goto out;
-@@ -1844,7 +1855,7 @@ static __devinit void hardcode_find_bmc(
- 		if (!ports[i] && !addrs[i])
- 			continue;
- 
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
-+		info = smi_info_alloc();
- 		if (!info)
- 			return;
- 
-@@ -2028,7 +2039,7 @@ static __devinit int try_init_spmi(struc
- 		return -ENODEV;
- 	}
- 
--	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	info = smi_info_alloc();
- 	if (!info) {
- 		printk(KERN_ERR PFX "Could not allocate SI data (3)\n");
- 		return -ENOMEM;
-@@ -2138,7 +2149,7 @@ static int __devinit ipmi_pnp_probe(stru
- 	if (!acpi_dev)
- 		return -ENODEV;
- 
--	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	info = smi_info_alloc();
- 	if (!info)
- 		return -ENOMEM;
- 
-@@ -2319,7 +2330,7 @@ static __devinit void try_init_dmi(struc
- {
- 	struct smi_info *info;
- 
--	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	info = smi_info_alloc();
- 	if (!info) {
- 		printk(KERN_ERR PFX "Could not allocate SI data\n");
- 		return;
-@@ -2426,7 +2437,7 @@ static int __devinit ipmi_pci_probe(stru
- 	int class_type = pdev->class & PCI_ERMC_CLASSCODE_TYPE_MASK;
- 	struct smi_info *info;
- 
--	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	info = smi_info_alloc();
- 	if (!info)
- 		return -ENOMEM;
- 
-@@ -2567,7 +2578,7 @@ static int __devinit ipmi_of_probe(struc
- 		return -EINVAL;
- 	}
- 
--	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	info = smi_info_alloc();
- 
- 	if (!info) {
- 		dev_err(&dev->dev,
-@@ -3014,7 +3025,7 @@ static __devinit void default_find_bmc(v
- 		if (check_legacy_ioport(ipmi_defaults[i].port))
- 			continue;
- #endif
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
-+		info = smi_info_alloc();
- 		if (!info)
- 			return;
- 
-@@ -3139,9 +3150,6 @@ static int try_smi_init(struct smi_info 
- 		goto out_err;
- 	}
- 
--	spin_lock_init(&(new_smi->si_lock));
--	spin_lock_init(&(new_smi->msg_lock));
+_
+
+Patches currently in -mm which might be from richard@nod.at are
+
+origin.patch
+um-fix-global-timer-issue-when-using-config_no_hz.patch
+um-remove-page_size-alignment-in-linker-script-causing-kernel-segfault.=
+patch
+hostfs-fix-uml-crash-remove-f_spare-from-hostfs.patch
+um-migrate-from-__do_irq-to-generic_handle_irq.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
