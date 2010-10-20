@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-duplicate-includes-from-many-files.patch added to -mm tree
-Date: Wed, 20 Oct 2010 16:15:55 -0700
-Message-ID: <201010202315.o9KNFtii010444@imap1.linux-foundation.org>
+Subject: + synclink_gt-fix-per-device-locking.patch added to -mm tree
+Date: Wed, 20 Oct 2010 16:17:06 -0700
+Message-ID: <201010202317.o9KNH6EU010477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756249Ab0JTXP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754178Ab0JTXRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Oct 2010 19:15:58 -0400
+	Wed, 20 Oct 2010 19:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: napohybelskurwysynom2010@gmail.com
+Cc: paulkf@microgate.com
 
 
 The patch titled
-     Remove duplicate includes from many files
+     synclink_gt: fix per device locking
 has been added to the -mm tree.  Its filename is
-     remove-duplicate-includes-from-many-files.patch
+     synclink_gt-fix-per-device-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove duplicate includes from many files
-From: Zimny Lech <napohybelskurwysynom2010@gmail.com>
+Subject: synclink_gt: fix per device locking
+From: Paul Fulghum <paulkf@microgate.com>
 
-Signed-off-by: Zimny Lech <napohybelskurwysynom2010@gmail.com>
+Fix a long standing bug with per device locking.
+
+Each device has an associated spinlock for synchronizing access to
+hardware and state information with the ISR.  A single hardware card has
+one or more devices.
+
+Bug: Non ISR code correctly acquires and releases the per device lock. 
+ISR incorrectly always acquires and releases the lock of the first device
+on the card.
+
+The decoupled and list based nature of the ISR and deferred processing
+interaction allowed this to work in normal operation.  Exceptional events
+like an application forcing hardware shutdown, reset, or reconfiguration
+while active can trigger the bug.
+
+Fixed ISR to acquire and release the per device lock.
+
+One exception is manipulation of the GPIO card resource which is global
+and effectively owned by the first device of the card.  Non-ISR access to
+GPIO resource is changed to use lock of first device on card.
+
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-tegra/timer.c                    |    1 -
- arch/arm/plat-nomadik/include/plat/ste_dma40.h |    1 -
- arch/tile/kernel/setup.c                       |    2 --
- arch/x86/mm/init_64.c                          |    1 -
- arch/x86/xen/enlighten.c                       |    1 -
- drivers/media/IR/lirc_dev.c                    |    1 -
- drivers/platform/x86/intel_pmic_gpio.c         |    1 -
- include/linux/virtio_9p.h                      |    1 -
- kernel/trace/trace_kprobe.c                    |    1 -
- net/netfilter/xt_ipvs.c                        |    1 -
- 10 files changed, 11 deletions(-)
+ drivers/char/synclink_gt.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN arch/arm/mach-tegra/timer.c~remove-duplicate-includes-from-many-files arch/arm/mach-tegra/timer.c
---- a/arch/arm/mach-tegra/timer.c~remove-duplicate-includes-from-many-files
-+++ a/arch/arm/mach-tegra/timer.c
-@@ -28,7 +28,6 @@
- #include <linux/cnt32_to_63.h>
+diff -puN drivers/char/synclink_gt.c~synclink_gt-fix-per-device-locking drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-fix-per-device-locking
++++ a/drivers/char/synclink_gt.c
+@@ -2357,26 +2357,27 @@ static irqreturn_t slgt_interrupt(int du
  
- #include <asm/mach/time.h>
--#include <asm/mach/time.h>
- #include <asm/localtimer.h>
+ 	DBGISR(("slgt_interrupt irq=%d entry\n", info->irq_level));
  
- #include <mach/iomap.h>
-diff -puN arch/arm/plat-nomadik/include/plat/ste_dma40.h~remove-duplicate-includes-from-many-files arch/arm/plat-nomadik/include/plat/ste_dma40.h
---- a/arch/arm/plat-nomadik/include/plat/ste_dma40.h~remove-duplicate-includes-from-many-files
-+++ a/arch/arm/plat-nomadik/include/plat/ste_dma40.h
-@@ -12,7 +12,6 @@
- #include <linux/dmaengine.h>
- #include <linux/workqueue.h>
- #include <linux/interrupt.h>
--#include <linux/dmaengine.h>
+-	spin_lock(&info->lock);
+-
+ 	while((gsr = rd_reg32(info, GSR) & 0xffffff00)) {
+ 		DBGISR(("%s gsr=%08x\n", info->device_name, gsr));
+ 		info->irq_occurred = true;
+ 		for(i=0; i < info->port_count ; i++) {
+ 			if (info->port_array[i] == NULL)
+ 				continue;
++			spin_lock(&info->port_array[i]->lock);
+ 			if (gsr & (BIT8 << i))
+ 				isr_serial(info->port_array[i]);
+ 			if (gsr & (BIT16 << (i*2)))
+ 				isr_rdma(info->port_array[i]);
+ 			if (gsr & (BIT17 << (i*2)))
+ 				isr_tdma(info->port_array[i]);
++			spin_unlock(&info->port_array[i]->lock);
+ 		}
+ 	}
  
- /* dev types for memcpy */
- #define STEDMA40_DEV_DST_MEMORY (-1)
-diff -puN arch/tile/kernel/setup.c~remove-duplicate-includes-from-many-files arch/tile/kernel/setup.c
---- a/arch/tile/kernel/setup.c~remove-duplicate-includes-from-many-files
-+++ a/arch/tile/kernel/setup.c
-@@ -30,8 +30,6 @@
- #include <linux/timex.h>
- #include <asm/setup.h>
- #include <asm/sections.h>
--#include <asm/sections.h>
--#include <asm/cacheflush.h>
- #include <asm/cacheflush.h>
- #include <asm/pgalloc.h>
- #include <asm/mmu_context.h>
-diff -puN arch/x86/mm/init_64.c~remove-duplicate-includes-from-many-files arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~remove-duplicate-includes-from-many-files
-+++ a/arch/x86/mm/init_64.c
-@@ -51,7 +51,6 @@
- #include <asm/numa.h>
- #include <asm/cacheflush.h>
- #include <asm/init.h>
--#include <linux/bootmem.h>
+ 	if (info->gpio_present) {
+ 		unsigned int state;
+ 		unsigned int changed;
++		spin_lock(&info->lock);
+ 		while ((changed = rd_reg32(info, IOSR)) != 0) {
+ 			DBGISR(("%s iosr=%08x\n", info->device_name, changed));
+ 			/* read latched state of GPIO signals */
+@@ -2388,22 +2389,24 @@ static irqreturn_t slgt_interrupt(int du
+ 					isr_gpio(info->port_array[i], changed, state);
+ 			}
+ 		}
++		spin_unlock(&info->lock);
+ 	}
  
- static int __init parse_direct_gbpages_off(char *arg)
- {
-diff -puN arch/x86/xen/enlighten.c~remove-duplicate-includes-from-many-files arch/x86/xen/enlighten.c
---- a/arch/x86/xen/enlighten.c~remove-duplicate-includes-from-many-files
-+++ a/arch/x86/xen/enlighten.c
-@@ -60,7 +60,6 @@
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
- #include <asm/reboot.h>
--#include <asm/setup.h>
- #include <asm/stackprotector.h>
- #include <asm/hypervisor.h>
+ 	for(i=0; i < info->port_count ; i++) {
+ 		struct slgt_info *port = info->port_array[i];
+-
+-		if (port && (port->port.count || port->netcount) &&
++		if (port == NULL)
++			continue;
++		spin_lock(&port->lock);
++		if ((port->port.count || port->netcount) &&
+ 		    port->pending_bh && !port->bh_running &&
+ 		    !port->bh_requested) {
+ 			DBGISR(("%s bh queued\n", port->device_name));
+ 			schedule_work(&port->task);
+ 			port->bh_requested = true;
+ 		}
++		spin_unlock(&port->lock);
+ 	}
  
-diff -puN drivers/media/IR/lirc_dev.c~remove-duplicate-includes-from-many-files drivers/media/IR/lirc_dev.c
---- a/drivers/media/IR/lirc_dev.c~remove-duplicate-includes-from-many-files
-+++ a/drivers/media/IR/lirc_dev.c
-@@ -27,7 +27,6 @@
- #include <linux/fs.h>
- #include <linux/poll.h>
- #include <linux/completion.h>
--#include <linux/errno.h>
- #include <linux/mutex.h>
- #include <linux/wait.h>
- #include <linux/unistd.h>
-diff -puN drivers/platform/x86/intel_pmic_gpio.c~remove-duplicate-includes-from-many-files drivers/platform/x86/intel_pmic_gpio.c
---- a/drivers/platform/x86/intel_pmic_gpio.c~remove-duplicate-includes-from-many-files
-+++ a/drivers/platform/x86/intel_pmic_gpio.c
-@@ -29,7 +29,6 @@
- #include <linux/init.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
--#include <linux/interrupt.h>
- #include <asm/intel_scu_ipc.h>
- #include <linux/device.h>
- #include <linux/intel_pmic_gpio.h>
-diff -puN include/linux/virtio_9p.h~remove-duplicate-includes-from-many-files include/linux/virtio_9p.h
---- a/include/linux/virtio_9p.h~remove-duplicate-includes-from-many-files
-+++ a/include/linux/virtio_9p.h
-@@ -5,7 +5,6 @@
- #include <linux/types.h>
- #include <linux/virtio_ids.h>
- #include <linux/virtio_config.h>
--#include <linux/types.h>
+-	spin_unlock(&info->lock);
+-
+ 	DBGISR(("slgt_interrupt irq=%d exit\n", info->irq_level));
+ 	return IRQ_HANDLED;
+ }
+@@ -2906,7 +2909,7 @@ static int set_gpio(struct slgt_info *in
+ 		 info->device_name, gpio.state, gpio.smask,
+ 		 gpio.dir, gpio.dmask));
  
- /* The feature bitmap for virtio 9P */
+-	spin_lock_irqsave(&info->lock,flags);
++	spin_lock_irqsave(&info->port_array[0]->lock, flags);
+ 	if (gpio.dmask) {
+ 		data = rd_reg32(info, IODR);
+ 		data |= gpio.dmask & gpio.dir;
+@@ -2919,7 +2922,7 @@ static int set_gpio(struct slgt_info *in
+ 		data &= ~(gpio.smask & ~gpio.state);
+ 		wr_reg32(info, IOVR, data);
+ 	}
+-	spin_unlock_irqrestore(&info->lock,flags);
++	spin_unlock_irqrestore(&info->port_array[0]->lock, flags);
  
-diff -puN kernel/trace/trace_kprobe.c~remove-duplicate-includes-from-many-files kernel/trace/trace_kprobe.c
---- a/kernel/trace/trace_kprobe.c~remove-duplicate-includes-from-many-files
-+++ a/kernel/trace/trace_kprobe.c
-@@ -31,7 +31,6 @@
- #include <linux/perf_event.h>
- #include <linux/stringify.h>
- #include <linux/limits.h>
--#include <linux/uaccess.h>
- #include <asm/bitsperlong.h>
+ 	return 0;
+ }
+@@ -3020,7 +3023,7 @@ static int wait_gpio(struct slgt_info *i
+ 		return -EINVAL;
+ 	init_cond_wait(&wait, gpio.smask);
  
- #include "trace.h"
-diff -puN net/netfilter/xt_ipvs.c~remove-duplicate-includes-from-many-files net/netfilter/xt_ipvs.c
---- a/net/netfilter/xt_ipvs.c~remove-duplicate-includes-from-many-files
-+++ a/net/netfilter/xt_ipvs.c
-@@ -16,7 +16,6 @@
- #include <linux/ip_vs.h>
- #include <linux/types.h>
- #include <linux/netfilter/x_tables.h>
--#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_ipvs.h>
- #include <net/netfilter/nf_conntrack.h>
+-	spin_lock_irqsave(&info->lock, flags);
++	spin_lock_irqsave(&info->port_array[0]->lock, flags);
+ 	/* enable interrupts for watched pins */
+ 	wr_reg32(info, IOER, rd_reg32(info, IOER) | gpio.smask);
+ 	/* get current pin states */
+@@ -3032,20 +3035,20 @@ static int wait_gpio(struct slgt_info *i
+ 	} else {
+ 		/* wait for target state */
+ 		add_cond_wait(&info->gpio_wait_q, &wait);
+-		spin_unlock_irqrestore(&info->lock, flags);
++		spin_unlock_irqrestore(&info->port_array[0]->lock, flags);
+ 		schedule();
+ 		if (signal_pending(current))
+ 			rc = -ERESTARTSYS;
+ 		else
+ 			gpio.state = wait.data;
+-		spin_lock_irqsave(&info->lock, flags);
++		spin_lock_irqsave(&info->port_array[0]->lock, flags);
+ 		remove_cond_wait(&info->gpio_wait_q, &wait);
+ 	}
  
+ 	/* disable all GPIO interrupts if no waiting processes */
+ 	if (info->gpio_wait_q == NULL)
+ 		wr_reg32(info, IOER, 0);
+-	spin_unlock_irqrestore(&info->lock,flags);
++	spin_unlock_irqrestore(&info->port_array[0]->lock, flags);
+ 
+ 	if ((rc == 0) && copy_to_user(user_gpio, &gpio, sizeof(gpio)))
+ 		rc = -EFAULT;
+@@ -3578,7 +3581,6 @@ static void device_init(int adapter_num,
+ 
+ 		/* copy resource information from first port to others */
+ 		for (i = 1; i < port_count; ++i) {
+-			port_array[i]->lock      = port_array[0]->lock;
+ 			port_array[i]->irq_level = port_array[0]->irq_level;
+ 			port_array[i]->reg_addr  = port_array[0]->reg_addr;
+ 			alloc_dma_bufs(port_array[i]);
 _
 
-Patches currently in -mm which might be from napohybelskurwysynom2010@gmail.com are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
-linux-next.patch
-remove-duplicate-includes-from-many-files.patch
+synclink_gt-fix-per-device-locking.patch
 
