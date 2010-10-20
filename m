@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-swaps-support-polling.patch added to -mm tree
-Date: Tue, 19 Oct 2010 16:39:04 -0700
-Message-ID: <201010192339.o9JNd4BW013172@imap1.linux-foundation.org>
+Subject: + kfifo-disable-__kfifo_must_check_helper.patch added to -mm tree
+Date: Tue, 19 Oct 2010 22:14:22 -0700
+Message-ID: <201010200513.o9K5DlRm027000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751414Ab0JSXji (ORCPT
+	by vger.kernel.org with ESMTP id S1752098Ab0JTFOF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Oct 2010 19:39:38 -0400
+	Wed, 20 Oct 2010 01:14:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, corbet@lwn.net, greg@kroah.com, peterz@infradead.org
+Cc: akpm@linux-foundation.org, randy.dunlap@oracle.com, stefani@seibold.net
 
 
 The patch titled
-     /proc/swaps: support polling
+     kfifo: disable __kfifo_must_check_helper()
 has been added to the -mm tree.  Its filename is
-     proc-swaps-support-polling.patch
+     kfifo-disable-__kfifo_must_check_helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/swaps: support polling
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: kfifo: disable __kfifo_must_check_helper()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-System management wants to subscribe to changes in swap configuration. 
-Make /proc/swaps pollable like /proc/mounts.
+This helper is wrong: it coerces signed values into unsigned ones, so code
+such as
 
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
+	if (kfifo_alloc(...) < 0) {
+		error
+	}
+
+will fail to detect the error.
+
+So let's disable __kfifo_must_check_helper() for 2.6.37.
+
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   48 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
+ include/linux/kfifo.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/swapfile.c~proc-swaps-support-polling mm/swapfile.c
---- a/mm/swapfile.c~proc-swaps-support-polling
-+++ a/mm/swapfile.c
-@@ -30,6 +30,7 @@
- #include <linux/capability.h>
- #include <linux/syscalls.h>
- #include <linux/memcontrol.h>
-+#include <linux/poll.h>
- 
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-@@ -58,6 +59,9 @@ static struct swap_info_struct *swap_inf
- 
- static DEFINE_MUTEX(swapon_mutex);
- 
-+static DECLARE_WAIT_QUEUE_HEAD(proc_poll_wait);
-+static atomic_t proc_poll_event = ATOMIC_INIT(0);
-+
- static inline unsigned char swap_count(unsigned char ent)
- {
- 	return ent & ~SWAP_HAS_CACHE;	/* may include SWAP_HAS_CONT flag */
-@@ -1680,6 +1684,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+diff -puN include/linux/kfifo.h~kfifo-disable-__kfifo_must_check_helper include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-disable-__kfifo_must_check_helper
++++ a/include/linux/kfifo.h
+@@ -171,11 +171,7 @@ struct kfifo_rec_ptr_2 __STRUCT_KFIFO_PT
  	}
- 	filp_close(swap_file, NULL);
- 	err = 0;
-+	atomic_inc(&proc_poll_event);
-+	wake_up_interruptible(&proc_poll_wait);
  
- out_dput:
- 	filp_close(victim, NULL);
-@@ -1688,6 +1694,25 @@ out:
- }
  
- #ifdef CONFIG_PROC_FS
-+struct proc_swaps {
-+	struct seq_file seq;
-+	int event;
-+};
-+
-+static unsigned swaps_poll(struct file *file, poll_table *wait)
-+{
-+	struct proc_swaps *s = file->private_data;
-+
-+	poll_wait(file, &proc_poll_wait, wait);
-+
-+	if (s->event != atomic_read(&proc_poll_event)) {
-+		s->event = atomic_read(&proc_poll_event);
-+		return POLLIN | POLLRDNORM | POLLERR | POLLPRI;
-+	}
-+
-+	return POLLIN | POLLRDNORM;
-+}
-+
- /* iterator */
- static void *swap_start(struct seq_file *swap, loff_t *pos)
- {
-@@ -1771,7 +1796,24 @@ static const struct seq_operations swaps
+-static inline unsigned int __must_check
+-__kfifo_must_check_helper(unsigned int val)
+-{
+-	return val;
+-}
++#define __kfifo_must_check_helper(x) (x)
  
- static int swaps_open(struct inode *inode, struct file *file)
- {
--	return seq_open(file, &swaps_op);
-+	struct proc_swaps *s;
-+	int ret;
-+
-+	s = kmalloc(sizeof(struct proc_swaps), GFP_KERNEL);
-+	if (!s)
-+		return -ENOMEM;
-+
-+	file->private_data = s;
-+
-+	ret = seq_open(file, &swaps_op);
-+	if (ret) {
-+		kfree(s);
-+		return ret;
-+	}
-+
-+	s->seq.private = s;
-+	s->event = atomic_read(&proc_poll_event);
-+	return ret;
- }
- 
- static const struct file_operations proc_swaps_operations = {
-@@ -1779,6 +1821,7 @@ static const struct file_operations proc
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
-+	.poll		= swaps_poll,
- };
- 
- static int __init procswaps_init(void)
-@@ -2084,6 +2127,9 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		swap_info[prev]->next = type;
- 	spin_unlock(&swap_lock);
- 	mutex_unlock(&swapon_mutex);
-+	atomic_inc(&proc_poll_event);
-+	wake_up_interruptible(&proc_poll_wait);
-+
- 	error = 0;
- 	goto out;
- bad_swap:
+ /**
+  * kfifo_initialized - Check if the fifo is initialized
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+typesh-move-misplaced-comment.patch
+kfifo-disable-__kfifo_must_check_helper.patch
 linux-next.patch
-proc-swaps-support-polling.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+arch-mips-include-asm-fcntlh-needs-typesh.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events-checkpatch-fixes.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error-fix.patch
+serial8250-ratelimit-too-much-work-error-fix-fix.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
+vfs-allow-mnt_want_write-to-sleep-fix.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-fix.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
+rmap-make-anon_vma_free-static-fix.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+fs-fs-writebackc-restore-lost-comment.patch
+mm-memory_hotplugc-make-scan_lru_pages-static.patch
 proc-swaps-support-polling-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
+gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
