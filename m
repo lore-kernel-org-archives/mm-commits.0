@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-ipmi-makefile-replace-the-use-of-module-objs-with-module-y.patch added to -mm tree
-Date: Thu, 21 Oct 2010 15:25:48 -0700
-Message-ID: <201010212225.o9LMPmas007265@imap1.linux-foundation.org>
+Subject: + drivers-char-ip2-makefile-replace-the-use-of-module-objs-with-module-y.patch added to -mm tree
+Date: Thu, 21 Oct 2010 15:25:46 -0700
+Message-ID: <201010212225.o9LMPkgJ007262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758859Ab0JUW0Z (ORCPT
+	by vger.kernel.org with ESMTP id S1758876Ab0JUW0S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Oct 2010 18:26:25 -0400
+	Thu, 21 Oct 2010 18:26:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tdent48227@gmail.com, jirislaby@gmail.com, minyard@acm.org, mmarek@suse.cz
+Cc: tdent48227@gmail.com, jirislaby@gmail.com, mmarek@suse.cz
 
 
 The patch titled
-     drivers/char/ipmi/Makefile: replace the use of <module>-objs with <module>-y
+     drivers/char/ip2/Makefile: replace the use of <module>-objs with <module>-y
 has been added to the -mm tree.  Its filename is
-     drivers-char-ipmi-makefile-replace-the-use-of-module-objs-with-module-y.patch
+     drivers-char-ip2-makefile-replace-the-use-of-module-objs-with-module-y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/ipmi/Makefile: replace the use of <module>-objs with <module>-y
+Subject: drivers/char/ip2/Makefile: replace the use of <module>-objs with <module>-y
 From: Tracey Dent <tdent48227@gmail.com>
 
 Changed <module>-objs to <module>-y in Makefile.
@@ -42,25 +42,22 @@ Changed <module>-objs to <module>-y in Makefile.
 Signed-off-by: Tracey Dent <tdent48227@gmail.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Cc: Michal Marek <mmarek@suse.cz>
-Cc: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/Makefile |    2 +-
+ drivers/char/ip2/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/Makefile~drivers-char-ipmi-makefile-replace-the-use-of-module-objs-with-module-y drivers/char/ipmi/Makefile
---- a/drivers/char/ipmi/Makefile~drivers-char-ipmi-makefile-replace-the-use-of-module-objs-with-module-y
-+++ a/drivers/char/ipmi/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the ipmi drivers.
- #
+diff -puN drivers/char/ip2/Makefile~drivers-char-ip2-makefile-replace-the-use-of-module-objs-with-module-y drivers/char/ip2/Makefile
+--- a/drivers/char/ip2/Makefile~drivers-char-ip2-makefile-replace-the-use-of-module-objs-with-module-y
++++ a/drivers/char/ip2/Makefile
+@@ -4,5 +4,5 @@
  
--ipmi_si-objs := ipmi_si_intf.o ipmi_kcs_sm.o ipmi_smic_sm.o ipmi_bt_sm.o
-+ipmi_si-y := ipmi_si_intf.o ipmi_kcs_sm.o ipmi_smic_sm.o ipmi_bt_sm.o
+ obj-$(CONFIG_COMPUTONE)         += ip2.o
  
- obj-$(CONFIG_IPMI_HANDLER) += ipmi_msghandler.o
- obj-$(CONFIG_IPMI_DEVICE_INTERFACE) += ipmi_devintf.o
+-ip2-objs			:= ip2main.o
++ip2-y			:= ip2main.o
+ 
 _
 
 Patches currently in -mm which might be from tdent48227@gmail.com are
