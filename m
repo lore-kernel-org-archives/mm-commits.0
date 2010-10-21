@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch added to -mm tree
-Date: Thu, 21 Oct 2010 12:58:45 -0700
-Message-ID: <201010211958.o9LJwjVi032743@imap1.linux-foundation.org>
+Subject: + fs-pipec-pipe_read-fix-error-return.patch added to -mm tree
+Date: Thu, 21 Oct 2010 13:01:03 -0700
+Message-ID: <201010212001.o9LK130P000445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753965Ab0JUT7f (ORCPT
+	by vger.kernel.org with ESMTP id S1755041Ab0JUUBk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:59:35 -0400
+	Thu, 21 Oct 2010 16:01:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de, yinghai@kernel.org
+Cc: nikai@nikai.net, axboe@kernel.dk, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix
+     fs/pipe.c: pipe_read(): fix error return
 has been added to the -mm tree.  Its filename is
-     proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
+     fs-pipec-pipe_read-fix-error-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/pipe.c: pipe_read(): fix error return
+From: Nicolas Kaiser <nikai@nikai.net>
 
-- unexport kstat_irqs
-- coding-style tweaks
+pipe_read() would accidentally return 0 if ->confirm failed.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/irqdesc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/pipe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/irqdesc.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix kernel/irq/irqdesc.c
---- a/kernel/irq/irqdesc.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix
-+++ a/kernel/irq/irqdesc.c
-@@ -395,7 +395,7 @@ unsigned int kstat_irqs_cpu(unsigned int
- }
+diff -puN fs/pipe.c~fs-pipec-pipe_read-fix-error-return fs/pipe.c
+--- a/fs/pipe.c~fs-pipec-pipe_read-fix-error-return
++++ a/fs/pipe.c
+@@ -382,7 +382,7 @@ pipe_read(struct kiocb *iocb, const stru
+ 			error = ops->confirm(pipe, buf);
+ 			if (error) {
+ 				if (!ret)
+-					error = ret;
++					ret = error;
+ 				break;
+ 			}
  
- #ifdef CONFIG_GENERIC_HARDIRQS
--unsigned int  kstat_irqs(unsigned int irq)
-+unsigned int kstat_irqs(unsigned int irq)
- {
- 	struct irq_desc *desc = irq_to_desc(irq);
- 	int cpu;
-@@ -407,5 +407,4 @@ unsigned int  kstat_irqs(unsigned int ir
- 		sum += desc->kstat_irqs[cpu];
- 	return sum;
- }
--EXPORT_SYMBOL_GPL(kstat_irqs);
--#endif /*CONFIG_GENERIC_HARDIRQS*/
-+#endif /* CONFIG_GENERIC_HARDIRQS */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nikai@nikai.net are
 
-typesh-move-misplaced-comment.patch
-kfifo-disable-__kfifo_must_check_helper.patch
 linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial8250-ratelimit-too-much-work-error.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
-vfs-allow-mnt_want_write-to-sleep.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-fix.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-fs-fs-writebackc-restore-lost-comment.patch
-mm-memory_hotplugc-make-scan_lru_pages-static.patch
-proc-swaps-support-polling-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
-gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+fs-pipec-pipe_read-fix-error-return.patch
 
