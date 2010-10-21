@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-hpetc-fix-information-leak-to-userland.patch added to -mm tree
-Date: Thu, 21 Oct 2010 14:12:09 -0700
-Message-ID: <201010212112.o9LLC9IU003944@imap1.linux-foundation.org>
+Subject: + drivers-char-hpetc-fix-information-leak-to-userland-fix.patch added to -mm tree
+Date: Thu, 21 Oct 2010 14:12:11 -0700
+Message-ID: <201010212112.o9LLCBbb003948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753166Ab0JUVMs (ORCPT
+	by vger.kernel.org with ESMTP id S1757954Ab0JUVMs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 21 Oct 2010 17:12:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segooon@gmail.com, clemens@ladisch.de
+Cc: akpm@linux-foundation.org, clemens@ladisch.de, segooon@gmail.com
 
 
 The patch titled
-     drivers/char/hpet.c: fix information leak to userland
+     drivers-char-hpetc-fix-information-leak-to-userland-fix
 has been added to the -mm tree.  Its filename is
-     drivers-char-hpetc-fix-information-leak-to-userland.patch
+     drivers-char-hpetc-fix-information-leak-to-userland-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/hpet.c: fix information leak to userland
-From: Vasiliy Kulikov <segooon@gmail.com>
+Subject: drivers-char-hpetc-fix-information-leak-to-userland-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Structure info is copied to userland with some padding fields unitialized.
-It leads to leaking of stack memory.
+remove now-unneeded zeroing of info->hi_ireqfreq
 
-Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
 Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Vasiliy Kulikov <segooon@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/hpet.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/char/hpet.c~drivers-char-hpetc-fix-information-leak-to-userland drivers/char/hpet.c
---- a/drivers/char/hpet.c~drivers-char-hpetc-fix-information-leak-to-userland
+diff -puN drivers/char/hpet.c~drivers-char-hpetc-fix-information-leak-to-userland-fix drivers/char/hpet.c
+--- a/drivers/char/hpet.c~drivers-char-hpetc-fix-information-leak-to-userland-fix
 +++ a/drivers/char/hpet.c
-@@ -631,6 +631,7 @@ hpet_ioctl_common(struct hpet_dev *devp,
- 		break;
- 	case HPET_INFO:
- 		{
-+			memset(info, 0, sizeof(*info));
+@@ -635,8 +635,6 @@ hpet_ioctl_common(struct hpet_dev *devp,
  			if (devp->hd_ireqfreq)
  				info->hi_ireqfreq =
  					hpet_time_div(hpetp, devp->hd_ireqfreq);
+-			else
+-				info->hi_ireqfreq = 0;
+ 			info->hi_flags =
+ 			    readq(&timer->hpet_config) & Tn_PER_INT_CAP_MASK;
+ 			info->hi_hpet = hpetp->hp_which;
 _
 
-Patches currently in -mm which might be from segooon@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+typesh-move-misplaced-comment.patch
+kfifo-disable-__kfifo_must_check_helper.patch
 linux-next.patch
-mm-mempolicy-check-return-code-of-check_range.patch
-drivers-rtc-classc-fix-device_register-error-handling.patch
-drivers-char-applicomc-fix-information-leak-to-userland.patch
-drivers-char-hpetc-fix-information-leak-to-userland.patch
+next-remove-localversion.patch
+fs-inodec-work-around-bug.patch
+arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
+arch-x86-kernel-entry_32s-i386-too.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmap-area-cache.patch
+gcc-46-btrfs-clean-up-unused-variables-bugs.patch
+drivers-gpu-drm-radeon-atomc-fix-warning.patch
+fs-notify-fanotify-fanotify_userc-fix-warnings.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-add-led-trigger-for-input-subsystem-led-events.patch
+backlight-add-low-threshold-to-pwm-backlight.patch
+serial8250-ratelimit-too-much-work-error.patch
+sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
+drivers-message-fusion-mptsasc-fix-warning.patch
+drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
+vfs-allow-mnt_want_write-to-sleep.patch
+mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-checkpatch-fixes.patch
+mm-stack-based-kmap_atomic-fix.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer.patch
+mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
+rmap-make-anon_vma_free-static-fix.patch
+vmstat-include-compactionh-when-config_compaction-fix.patch
+fs-fs-writebackc-restore-lost-comment.patch
+mm-memory_hotplugc-make-scan_lru_pages-static.patch
+proc-swaps-support-polling-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+hpet-factor-timer-allocate-from-open-fix.patch
+kernelh-add-minmax3-macros-fix.patch
+include-linux-kernelh-add-__must_check-to-strict_strto.patch
+printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
+vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+idr-fix-idr_pre_get-locking-description-fix.patch
+checkpatch-returning-errno-typically-should-be-negative.patch
+select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
+vcs-add-poll-fasync-support-fix-fix.patch
+rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
+gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
+cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
+core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
+proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
+drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
 drivers-char-hpetc-fix-information-leak-to-userland-fix.patch
-drivers-char-ppdevc-fix-information-leak-to-userland.patch
-drivers-char-synclink_gtc-fix-information-leak-to-userland.patch
-memstick-core-fix-device_register-error-handling.patch
+delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
+fuse-use-release_pages.patch
+pps-add-async-pps-event-handler-fix.patch
+memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
+kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
+ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
+journal_add_journal_head-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
