@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-stat-fix-scalability-of-irq-sum-of-all-cpu.patch added to -mm tree
-Date: Thu, 21 Oct 2010 12:58:43 -0700
-Message-ID: <201010211958.o9LJwhjE032738@imap1.linux-foundation.org>
+Subject: + proc-stat-scalability-of-irq-num-per-cpu.patch added to -mm tree
+Date: Thu, 21 Oct 2010 12:58:41 -0700
+Message-ID: <201010211958.o9LJwfaq032735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751403Ab0JUT73 (ORCPT
+	by vger.kernel.org with ESMTP id S1753965Ab0JUT7b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:59:29 -0400
+	Thu, 21 Oct 2010 15:59:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, steiner@sgi.com, tglx@linutro
 
 
 The patch titled
-     /proc/stat: fix scalability of irq sum of all cpu
+     /proc/stat: scalability of irq num per cpu
 has been added to the -mm tree.  Its filename is
-     proc-stat-fix-scalability-of-irq-sum-of-all-cpu.patch
+     proc-stat-scalability-of-irq-num-per-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/stat: fix scalability of irq sum of all cpu
+Subject: /proc/stat: scalability of irq num per cpu
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In /proc/stat, the number of per-IRQ event is shown by making a sum each
-irq's events on all cpus.  But we can make use of kstat_irqs().
+/proc/stat shows the total number of all interrupts to each cpu.  But when
+the number of IRQs are very large, it take very long time and 'cat
+/proc/stat' takes more than 10 secs.  This is because sum of all irq
+events are counted when /proc/stat is read.  This patch adds "sum of all
+irq" counter percpu and reduce read costs.
 
-kstat_irqs() do the same calculation, If !CONFIG_GENERIC_HARDIRQ,
-it's not a big cost. (Both of the number of cpus and irqs are small.)
+The cost of reading /proc/stat is important because it's used by major
+applications as 'top', 'ps', 'w', etc....
 
-If a system is very big and CONFIG_GENERIC_HARDIRQ, it does
+A test on a mechin (4096cpu, 256 nodes, 4592 irqs) shows
 
-	for_each_irq()
-		for_each_cpu()
-			- look up a radix tree
-			- read desc->irq_stat[cpu]
-This seems not efficient. This patch adds kstat_irqs() for
-CONFIG_GENRIC_HARDIRQ and change the calculation as
-
-	for_each_irq()
-		look up radix tree
-		for_each_cpu()
-			- read desc->irq_stat[cpu]
-
-This reduces cost.
-
-A test on (4096cpusp, 256 nodes, 4592 irqs) host (by Jack Steiner)
-
-%time cat /proc/stat > /dev/null
-
-Before Patch:	 2.459 sec
-After Patch :	  .561 sec
+ %time cat /proc/stat > /dev/null
+ Before Patch:  12.627 sec
+ After  Patch:  2.459 sec
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Tested-by: Jack Steiner <steiner@sgi.com>
@@ -75,74 +61,69 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c              |    9 ++-------
- include/linux/kernel_stat.h |    4 ++++
- kernel/irq/irqdesc.c        |   16 ++++++++++++++++
- 3 files changed, 22 insertions(+), 7 deletions(-)
+ fs/proc/stat.c              |    4 +---
+ include/linux/kernel_stat.h |   14 ++++++++++++--
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu fs/proc/stat.c
---- a/fs/proc/stat.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu
+diff -puN fs/proc/stat.c~proc-stat-scalability-of-irq-num-per-cpu fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-stat-scalability-of-irq-num-per-cpu
 +++ a/fs/proc/stat.c
-@@ -108,13 +108,8 @@ static int show_stat(struct seq_file *p,
- 	seq_printf(p, "intr %llu", (unsigned long long)sum);
+@@ -52,9 +52,7 @@ static int show_stat(struct seq_file *p,
+ 		guest = cputime64_add(guest, kstat_cpu(i).cpustat.guest);
+ 		guest_nice = cputime64_add(guest_nice,
+ 			kstat_cpu(i).cpustat.guest_nice);
+-		for_each_irq_nr(j) {
+-			sum += kstat_irqs_cpu(j, i);
+-		}
++		sum += kstat_cpu_irqs_sum(i);
+ 		sum += arch_irq_stat_cpu(i);
  
- 	/* sum again ? it could be updated? */
--	for_each_irq_nr(j) {
--		per_irq_sum = 0;
--		for_each_possible_cpu(i)
--			per_irq_sum += kstat_irqs_cpu(j, i);
--
--		seq_printf(p, " %u", per_irq_sum);
--	}
-+	for_each_irq_nr(j)
-+		seq_printf(p, " %u", kstat_irqs(j));
- 
- 	seq_printf(p,
- 		"\nctxt %llu\n"
-diff -puN include/linux/kernel_stat.h~proc-stat-fix-scalability-of-irq-sum-of-all-cpu include/linux/kernel_stat.h
---- a/include/linux/kernel_stat.h~proc-stat-fix-scalability-of-irq-sum-of-all-cpu
+ 		for (j = 0; j < NR_SOFTIRQS; j++) {
+diff -puN include/linux/kernel_stat.h~proc-stat-scalability-of-irq-num-per-cpu include/linux/kernel_stat.h
+--- a/include/linux/kernel_stat.h~proc-stat-scalability-of-irq-num-per-cpu
 +++ a/include/linux/kernel_stat.h
-@@ -86,6 +86,7 @@ static inline unsigned int kstat_softirq
- /*
-  * Number of interrupts per specific IRQ source, since bootup
-  */
-+#ifndef CONFIG_GENERIC_HARDIRQS
- static inline unsigned int kstat_irqs(unsigned int irq)
- {
- 	unsigned int sum = 0;
-@@ -96,6 +97,9 @@ static inline unsigned int kstat_irqs(un
+@@ -33,6 +33,7 @@ struct kernel_stat {
+ #ifndef CONFIG_GENERIC_HARDIRQS
+        unsigned int irqs[NR_IRQS];
+ #endif
++	unsigned long irqs_sum;
+ 	unsigned int softirqs[NR_SOFTIRQS];
+ };
  
+@@ -54,6 +55,7 @@ static inline void kstat_incr_irqs_this_
+ 					    struct irq_desc *desc)
+ {
+ 	kstat_this_cpu.irqs[irq]++;
++	kstat_this_cpu.irqs_sum++;
+ }
+ 
+ static inline unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
+@@ -65,8 +67,9 @@ static inline unsigned int kstat_irqs_cp
+ extern unsigned int kstat_irqs_cpu(unsigned int irq, int cpu);
+ #define kstat_irqs_this_cpu(DESC) \
+ 	((DESC)->kstat_irqs[smp_processor_id()])
+-#define kstat_incr_irqs_this_cpu(irqno, DESC) \
+-	((DESC)->kstat_irqs[smp_processor_id()]++)
++#define kstat_incr_irqs_this_cpu(irqno, DESC) do {\
++	((DESC)->kstat_irqs[smp_processor_id()]++);\
++	kstat_this_cpu.irqs_sum++; } while (0)
+ 
+ #endif
+ 
+@@ -94,6 +97,13 @@ static inline unsigned int kstat_irqs(un
  	return sum;
  }
-+#else
-+extern unsigned int kstat_irqs(unsigned int irq);
-+#endif
+ 
++/*
++ * Number of interrupts per cpu, since bootup
++ */
++static inline unsigned int kstat_cpu_irqs_sum(unsigned int cpu)
++{
++	return kstat_cpu(cpu).irqs_sum;
++}
  
  /*
-  * Number of interrupts per cpu, since bootup
-diff -puN kernel/irq/irqdesc.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu kernel/irq/irqdesc.c
---- a/kernel/irq/irqdesc.c~proc-stat-fix-scalability-of-irq-sum-of-all-cpu
-+++ a/kernel/irq/irqdesc.c
-@@ -393,3 +393,19 @@ unsigned int kstat_irqs_cpu(unsigned int
- 	struct irq_desc *desc = irq_to_desc(irq);
- 	return desc ? desc->kstat_irqs[cpu] : 0;
- }
-+
-+#ifdef CONFIG_GENERIC_HARDIRQS
-+unsigned int  kstat_irqs(unsigned int irq)
-+{
-+	struct irq_desc *desc = irq_to_desc(irq);
-+	int cpu;
-+	int sum = 0;
-+
-+	if (!desc)
-+		return 0;
-+	for_each_possible_cpu(cpu)
-+		sum += desc->kstat_irqs[cpu];
-+	return sum;
-+}
-+EXPORT_SYMBOL_GPL(kstat_irqs);
-+#endif /*CONFIG_GENERIC_HARDIRQS*/
+  * Lock/unlock the current runqueue - to extract task statistics:
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
