@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + b44-fix-resume-request_irq-after-hw-reset.patch added to -mm tree
-Date: Thu, 21 Oct 2010 14:40:30 -0700
-Message-ID: <201010212140.o9LLeUQE005259@imap1.linux-foundation.org>
+Subject: + vmlinuxldsh-lower-init-ramfs-alignment-to-4.patch added to -mm tree
+Date: Thu, 21 Oct 2010 14:46:33 -0700
+Message-ID: <201010212146.o9LLkXLY005578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758328Ab0JUVkd (ORCPT
+	by vger.kernel.org with ESMTP id S1752881Ab0JUVqi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Oct 2010 17:40:33 -0400
+	Thu, 21 Oct 2010 17:46:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: james@albanarts.com, zambrano@broadcom.com
+Cc: vapier@gentoo.org, linux-arch@vger.kernel.org, sam@ravnborg.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     b44: fix resume, request_irq after hw reset
+     vmlinux.lds.h: lower init ramfs alignment to 4
 has been added to the -mm tree.  Its filename is
-     b44-fix-resume-request_irq-after-hw-reset.patch
+     vmlinuxldsh-lower-init-ramfs-alignment-to-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b44: fix resume, request_irq after hw reset
-From: James Hogan <james@albanarts.com>
+Subject: vmlinux.lds.h: lower init ramfs alignment to 4
+From: Mike Frysinger <vapier@gentoo.org>
 
-On resume, call request_irq() after resetting the hardware rather than
-before.  It's a shared interrupt so the handler could be called
-immediately if another device on the same irq interrupts (and will be
-called immediately if CONFIG_DEBUG_SHIRQ=y), but unless the hardware is
-reinitialised with b44_init_hw() the read of the interrupt status register
-will hang the system.
+The new init ramfs format (cpio based) requires an alignment of 4 (per the
+documentation and per the source files themselves).  As for compressed
+sources, the decompressors can all deal with unaligned buffers.
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: Gary Zambrano <zambrano@broadcom.com>
+The cpio source is also found in the __init sections of the kernel, so
+once they are read and expanded into a tmpfs, the source is freed.  That
+means there is no need to force page alignment here either.
+
+This has been used on Blackfin systems for many releases without issue.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/b44.c~b44-fix-resume-request_irq-after-hw-reset drivers/net/b44.c
---- a/drivers/net/b44.c~b44-fix-resume-request_irq-after-hw-reset
-+++ a/drivers/net/b44.c
-@@ -2296,18 +2296,27 @@ static int b44_resume(struct ssb_device 
- 	if (!netif_running(dev))
- 		return 0;
+diff -puN include/asm-generic/vmlinux.lds.h~vmlinuxldsh-lower-init-ramfs-alignment-to-4 include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~vmlinuxldsh-lower-init-ramfs-alignment-to-4
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -637,7 +637,7 @@
  
-+	spin_lock_irq(&bp->lock);
-+	b44_init_rings(bp);
-+	b44_init_hw(bp, B44_FULL_RESET);
-+	spin_unlock_irq(&bp->lock);
-+
-+	/*
-+	 * As a shared interrupt, the handler can be called immediately. To be
-+	 * able to check the interrupt status the hardware must already be
-+	 * powered back on (b44_init_hw).
-+	 */
- 	rc = request_irq(dev->irq, b44_interrupt, IRQF_SHARED, dev->name, dev);
- 	if (rc) {
- 		netdev_err(dev, "request_irq failed\n");
-+		spin_lock_irq(&bp->lock);
-+		b44_halt(bp);
-+		b44_free_rings(bp);
-+		spin_unlock_irq(&bp->lock);
- 		return rc;
- 	}
- 
--	spin_lock_irq(&bp->lock);
+ #ifdef CONFIG_BLK_DEV_INITRD
+ #define INIT_RAM_FS							\
+-	. = ALIGN(PAGE_SIZE);						\
++	. = ALIGN(4);							\
+ 	VMLINUX_SYMBOL(__initramfs_start) = .;				\
+ 	*(.init.ramfs)							\
+ 	. = ALIGN(8);							\
+_
+
+Patches currently in -mm which might be from vapier@gentoo.org are
+
+drivers-misc-ad525x_dpot-fix-typo-in-spi-write16-and-write24-transfer-counts.patch
+linux-next.patch
+video-backlight-adp8860-fix-ambient-light-zone-overwrite-handling.patch
+m68knommu-blackfin-remove-old-assembler-only-flags-bit-definitions.patch
+vmlinuxldsh-gather-datashared_aligned-sections-in-data_data.patch
+vmlinuxldsh-lower-init-ramfs-alignment-to-4.patch
+drivers-misc-ad525x_dpot-fix-part-name-typos-in-defines.patch
+drivers-misc-ad525x_dpot-new-features.patch
+misc-devices-do-not-enable-by-default.patch
+rtc-bfin-shrink-optimize-interrupt-handler-a-bit.patch
+rtc-bfin-add-debug-markers-to-suspend-resume-paths.patch
+gpio-adp5588-gpio-support-interrupt-controller.patch
+gpio-adp5588-gpio-support-interrupt-controller-update.patch
+gpio-adp5588-gpio-gpio_start-must-be-signed.patch
+ptrace-cleanup-arch_ptrace-and-friends-on-blackfin.patch
+
