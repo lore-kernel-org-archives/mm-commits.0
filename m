@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_counters-inline-the-percpu_counter_add_batch-fastpath.patch added to -mm tree
-Date: Thu, 21 Oct 2010 18:56:21 -0700
-Message-ID: <201010220156.o9M1u24E017211@imap1.linux-foundation.org>
+Subject: + percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch.patch added to -mm tree
+Date: Thu, 21 Oct 2010 18:56:19 -0700
+Message-ID: <201010220156.o9M1u0bW017206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751513Ab0JVB4E (ORCPT
+	by vger.kernel.org with ESMTP id S1750901Ab0JVB4D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Oct 2010 21:56:04 -0400
+	Thu, 21 Oct 2010 21:56:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, cl@linux-foundation.org, eric.dumazet@gmail.com
 
 
 The patch titled
-     percpu_counters: inline the percpu_counter_add_batch() fastpath
+     percpu_counter: rename __percpu_counter_add() to percpu_counter_add_batch()
 has been added to the -mm tree.  Its filename is
-     percpu_counters-inline-the-percpu_counter_add_batch-fastpath.patch
+     percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu_counters: inline the percpu_counter_add_batch() fastpath
+Subject: percpu_counter: rename __percpu_counter_add() to percpu_counter_add_batch()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Inline the fastpath code and uninline the uncommon path where the batching
-value has overflowed.
-
-Am not sure that I like this.
+A more appropriate name for this exported API function.
 
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |   19 +++++++++++++++++--
- lib/percpu_counter.c           |   27 +++++++++------------------
- 2 files changed, 26 insertions(+), 20 deletions(-)
+ include/linux/backing-dev.h    |    2 +-
+ include/linux/percpu_counter.h |    6 +++---
+ kernel/sched.c                 |    2 +-
+ lib/percpu_counter.c           |    5 +++--
+ lib/proportions.c              |    4 ++--
+ 5 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/percpu_counter.h~percpu_counters-inline-the-percpu_counter_add_batch-fastpath include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~percpu_counters-inline-the-percpu_counter_add_batch-fastpath
-+++ a/include/linux/percpu_counter.h
-@@ -8,6 +8,7 @@
-  *	64*8 (512) bytes + sizeof(struct percpu_counter)
-  */
+diff -puN include/linux/backing-dev.h~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch
++++ a/include/linux/backing-dev.h
+@@ -123,7 +123,7 @@ static inline int wb_has_dirty_io(struct
+ static inline void __add_bdi_stat(struct backing_dev_info *bdi,
+ 		enum bdi_stat_item item, s64 amount)
+ {
+-	__percpu_counter_add(&bdi->bdi_stat[item], amount, BDI_STAT_BATCH);
++	percpu_counter_add_batch(&bdi->bdi_stat[item], amount, BDI_STAT_BATCH);
+ }
  
-+#include <linux/kernel.h>
- #include <linux/spinlock.h>
- #include <linux/smp.h>
- #include <linux/list.h>
-@@ -40,11 +41,25 @@ int __percpu_counter_init(struct percpu_
+ static inline void __inc_bdi_stat(struct backing_dev_info *bdi,
+diff -puN include/linux/percpu_counter.h~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch
++++ a/include/linux/percpu_counter.h
+@@ -40,13 +40,13 @@ int __percpu_counter_init(struct percpu_
  
  void percpu_counter_destroy(struct percpu_counter *fbc);
  void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
--void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, long batch);
+-void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, long batch);
++void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, long batch);
  s64 __percpu_counter_sum(struct percpu_counter *fbc);
  int percpu_counter_compare(struct percpu_counter *fbc, s64 rhs);
-+void percpu_counter_handle_overflow(struct percpu_counter *fbc);
  
--static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
-+static __always_inline void percpu_counter_add_batch(struct percpu_counter *fbc,
-+						s64 amount, long batch)
-+{
-+	long *pcounter;
-+
-+	preempt_disable();
-+	pcounter = this_cpu_ptr(fbc->counters);
-+	*pcounter += amount;
-+	if (unlikely(abs(*pcounter) >= batch))
-+		percpu_counter_handle_overflow(fbc);
-+	preempt_enable();
-+}
-+
-+static __always_inline void percpu_counter_add(struct percpu_counter *fbc,
-+						s64 amount)
+ static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
  {
- 	percpu_counter_add_batch(fbc, amount, percpu_counter_batch);
+-	__percpu_counter_add(fbc, amount, percpu_counter_batch);
++	percpu_counter_add_batch(fbc, amount, percpu_counter_batch);
  }
-diff -puN lib/percpu_counter.c~percpu_counters-inline-the-percpu_counter_add_batch-fastpath lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counters-inline-the-percpu_counter_add_batch-fastpath
+ 
+ /**
+@@ -146,7 +146,7 @@ percpu_counter_add_fast(struct percpu_co
+ }
+ 
+ static inline void
+-__percpu_counter_add(struct percpu_counter *fbc, s64 amount, long batch)
++percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, long batch)
+ {
+ 	percpu_counter_add(fbc, amount);
+ }
+diff -puN kernel/sched.c~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch kernel/sched.c
+--- a/kernel/sched.c~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch
++++ a/kernel/sched.c
+@@ -9317,7 +9317,7 @@ static void cpuacct_update_stats(struct 
+ 	ca = task_ca(tsk);
+ 
+ 	do {
+-		__percpu_counter_add(&ca->cpustat[idx], val, batch);
++		percpu_counter_add_batch(&ca->cpustat[idx], val, batch);
+ 		ca = ca->parent;
+ 	} while (ca);
+ 	rcu_read_unlock();
+diff -puN lib/percpu_counter.c~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch
 +++ a/lib/percpu_counter.c
-@@ -69,26 +69,17 @@ void percpu_counter_set(struct percpu_co
+@@ -69,7 +69,8 @@ void percpu_counter_set(struct percpu_co
  }
  EXPORT_SYMBOL(percpu_counter_set);
  
--void
--percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, long batch)
-+/*
-+ * Handle overflow of the current cpu's ->count.  Premption is disabled.
-+ */
-+void percpu_counter_handle_overflow(struct percpu_counter *fbc)
+-void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, long batch)
++void
++percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, long batch)
  {
--	s64 count;
--	long *pcount;
--
--	preempt_disable();
--	pcount = this_cpu_ptr(fbc->counters);
--	count = *pcount + amount;
--	if (count >= batch || count <= -batch) {
--		spin_lock(&fbc->lock);
--		fbc->count += count;
--		*pcount = 0;
--		spin_unlock(&fbc->lock);
--	} else {
--		*pcount = count;
--	}
--	preempt_enable();
-+	spin_lock(&fbc->lock);
-+	fbc->count += this_cpu_read(*fbc->counters);
-+	this_cpu_write(*fbc->counters, 0);
-+	spin_unlock(&fbc->lock);
+ 	s64 count;
+ 	long *pcount;
+@@ -87,7 +88,7 @@ void __percpu_counter_add(struct percpu_
+ 	}
+ 	preempt_enable();
  }
--EXPORT_SYMBOL(percpu_counter_add_batch);
-+EXPORT_SYMBOL(percpu_counter_handle_overflow);
+-EXPORT_SYMBOL(__percpu_counter_add);
++EXPORT_SYMBOL(percpu_counter_add_batch);
  
  /*
   * Add up all the per-cpu counts, return the result.  This is a more accurate
+diff -puN lib/proportions.c~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch lib/proportions.c
+--- a/lib/proportions.c~percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch
++++ a/lib/proportions.c
+@@ -241,7 +241,7 @@ void prop_norm_percpu(struct prop_global
+ 		if (val < (nr_cpu_ids * PROP_BATCH))
+ 			val = percpu_counter_sum(&pl->events);
+ 
+-		__percpu_counter_add(&pl->events, -val + (val >> period),
++		percpu_counter_add_batch(&pl->events, -val + (val >> period),
+ 					PROP_BATCH);
+ 	} else
+ 		percpu_counter_set(&pl->events, 0);
+@@ -258,7 +258,7 @@ void __prop_inc_percpu(struct prop_descr
+ 	struct prop_global *pg = prop_get_global(pd);
+ 
+ 	prop_norm_percpu(pg, pl);
+-	__percpu_counter_add(&pl->events, 1, PROP_BATCH);
++	percpu_counter_add_batch(&pl->events, 1, PROP_BATCH);
+ 	percpu_counter_add(&pg->events, 1);
+ 	prop_put_global(pd, pg);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
