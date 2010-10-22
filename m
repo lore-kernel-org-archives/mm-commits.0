@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isl29020-ambient-light-sensor.patch added to -mm tree
-Date: Fri, 22 Oct 2010 12:53:15 -0700
-Message-ID: <201010221953.o9MJrFJf004162@imap1.linux-foundation.org>
+Subject: + drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als.patch added to -mm tree
+Date: Fri, 22 Oct 2010 13:03:37 -0700
+Message-ID: <201010222003.o9MK3b8V004706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759041Ab0JVTxt (ORCPT
+	by vger.kernel.org with ESMTP id S1759105Ab0JVUEO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Oct 2010 15:53:49 -0400
+	Fri, 22 Oct 2010 16:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kalhan.trisal@intel.com, alan@linux.intel.com, arjan@linux.intel.com, hong.liu@intel.com
+Cc: anantha.narayanan@intel.com, alan@linux.intel.com, hong.liu@intel.com, jic23@cam.ac.uk
 
 
 The patch titled
-     drivers/misc/isl29020.c: ambient light sensor
+     drivers/misc/apds9802als.c: ALS drivers for the apds9802als
 has been added to the -mm tree.  Its filename is
-     isl29020-ambient-light-sensor.patch
+     drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/isl29020.c: ambient light sensor
-From: Kalhan Trisal <kalhan.trisal@intel.com>
+Subject: drivers/misc/apds9802als.c: ALS drivers for the apds9802als
+From: anantha <anantha.narayanan@intel.com>
 
-The LS driver will read the latest Lux measurement based upon the light
-brightness and will report the LUX output through sysfs interface.
+This adds support for the ADPS9802ALS sensor.
 
-This hardware isn't quite the same as the ISL29003 so has a different
-driver.
+Cleanup by Alan Cox
+	- move mutexes to cover more things
+	- report I/O errors back to user space
+	- report range and values in LUX
 
-Signed-off-by: Kalhan Trisal <kalhan.trisal@intel.com>
-[Runtime power management support added]
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-[Fixes to runtime PM]
-Signed-off-by: Liu Hong <hong.liu@intel.com>
-[Cleanups and added checks for I2C errors, reworked the API to match the
- saner one agreed for other sensors]
+Signed-off-by: Anantha Narayanan <anantha.narayanan@intel.com>
+[The 4K and 64K in the hw spec actually means 4095 (12bit) and 65535 (16bit).]
+Signed-off-by: Hong Liu <hong.liu@intel.com>
+[Updated to match the ALS light API interface convention from Samu]
 Signed-off-by: Alan Cox <alan@linux.intel.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig    |   10 +
- drivers/misc/Makefile   |    1 
- drivers/misc/isl29020.c |  241 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 252 insertions(+)
+ drivers/misc/Kconfig       |   10 +
+ drivers/misc/Makefile      |    1 
+ drivers/misc/apds9802als.c |  308 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 319 insertions(+)
 
-diff -puN drivers/misc/Kconfig~isl29020-ambient-light-sensor drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~isl29020-ambient-light-sensor
+diff -puN drivers/misc/Kconfig~drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als
 +++ a/drivers/misc/Kconfig
-@@ -304,6 +304,16 @@ config ISL29003
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called isl29003.
+@@ -294,6 +294,16 @@ config SGI_GRU_DEBUG
+ 	This option enables addition debugging code for the SGI GRU driver. If
+ 	you are unsure, say N.
  
-+config ISL29020
-+	tristate "Intersil ISL29020 ambient light sensor"
++config APDS9802ALS
++	tristate "Medfield Avago APDS9802 ALS Sensor module"
 +	depends on I2C
 +	help
-+	  If you say yes here you get support for the Intersil ISL29020
-+	  ambient light sensor.
++	  If you say yes here you get support for the ALS APDS9802 ambient
++	  light sensor.
 +
 +	  This driver can also be built as a module.  If so, the module
-+	  will be called isl29020.
++	  will be called apds9802als.
 +
- config SENSORS_TSL2550
- 	tristate "Taos TSL2550 ambient light sensor"
+ config ISL29003
+ 	tristate "Intersil ISL29003 ambient light sensor"
  	depends on I2C && SYSFS
-diff -puN drivers/misc/Makefile~isl29020-ambient-light-sensor drivers/misc/Makefile
---- a/drivers/misc/Makefile~isl29020-ambient-light-sensor
+diff -puN drivers/misc/Makefile~drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als drivers/misc/Makefile
+--- a/drivers/misc/Makefile~drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als
 +++ a/drivers/misc/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_SGI_GRU)		+= sgi-gru/
+@@ -25,6 +25,7 @@ obj-$(CONFIG_SGI_XP)		+= sgi-xp/
+ obj-$(CONFIG_SGI_GRU)		+= sgi-gru/
  obj-$(CONFIG_CS5535_MFGPT)	+= cs5535-mfgpt.o
  obj-$(CONFIG_HP_ILO)		+= hpilo.o
++obj-$(CONFIG_APDS9802ALS)	+= apds9802als.o
  obj-$(CONFIG_ISL29003)		+= isl29003.o
-+obj-$(CONFIG_ISL29020)		+= isl29020.o
+ obj-$(CONFIG_ISL29020)		+= isl29020.o
  obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
- obj-$(CONFIG_EP93XX_PWM)	+= ep93xx_pwm.o
- obj-$(CONFIG_DS1682)		+= ds1682.o
-diff -puN /dev/null drivers/misc/isl29020.c
+diff -puN /dev/null drivers/misc/apds9802als.c
 --- /dev/null
-+++ a/drivers/misc/isl29020.c
-@@ -0,0 +1,241 @@
++++ a/drivers/misc/apds9802als.c
+@@ -0,0 +1,308 @@
 +/*
-+ * isl29020.c - Intersil  ALS Driver
++ * apds9802als.c - apds9802  ALS Driver
 + *
-+ * Copyright (C) 2008 Intel Corp
++ * Copyright (C) 2009 Intel Corp
 + *
 + *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
@@ -115,7 +114,6 @@ diff -puN /dev/null drivers/misc/isl29020.c
 + * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
-+ * Data sheet at: http://www.intersil.com/data/fn/fn6505.pdf
 + */
 +
 +#include <linux/module.h>
@@ -124,10 +122,23 @@ diff -puN /dev/null drivers/misc/isl29020.c
 +#include <linux/i2c.h>
 +#include <linux/err.h>
 +#include <linux/delay.h>
++#include <linux/mutex.h>
 +#include <linux/sysfs.h>
-+#include <linux/pm_runtime.h>
++#include <linux/hwmon-sysfs.h>
 +
-+static DEFINE_MUTEX(mutex);
++#define ALS_MIN_RANGE_VAL 1
++#define ALS_MAX_RANGE_VAL 2
++#define POWER_STA_ENABLE 1
++#define POWER_STA_DISABLE 0
++#define APDS9802ALS_I2C_ADDR 0x29
++
++#define DRIVER_NAME "apds9802als"
++
++struct als_data {
++	struct device *hwmon_dev;
++	bool needresume;
++	struct mutex mutex;
++};
 +
 +static ssize_t als_sensing_range_show(struct device *dev,
 +			struct device_attribute *attr,  char *buf)
@@ -135,147 +146,205 @@ diff -puN /dev/null drivers/misc/isl29020.c
 +	struct i2c_client *client = to_i2c_client(dev);
 +	int  val;
 +
-+	val = i2c_smbus_read_byte_data(client, 0x00);
-+
++	val = i2c_smbus_read_byte_data(client, 0x81);
 +	if (val < 0)
 +		return val;
-+	return sprintf(buf, "%d000\n", 1 << (2 * (val & 3)));
-+
++	if (val & 1)
++		return sprintf(buf, "4095\n");
++	else
++		return sprintf(buf, "65535\n");
 +}
 +
-+static ssize_t als_lux_input_data_show(struct device *dev,
++static ssize_t als_lux0_input_data_show(struct device *dev,
 +			struct device_attribute *attr, char *buf)
 +{
 +	struct i2c_client *client = to_i2c_client(dev);
-+	int ret_val, val;
-+	unsigned long int lux;
++	struct als_data *data = i2c_get_clientdata(client);
++	unsigned int ret_val;
 +	int temp;
 +
-+	pm_runtime_get_sync(dev);
-+	msleep(100);
-+
-+	mutex_lock(&mutex);
-+	temp = i2c_smbus_read_byte_data(client, 0x02); /* MSB data */
++	/* Protect against parallel reads */
++	mutex_lock(&data->mutex);
++	temp = i2c_smbus_read_byte_data(client, 0x8C);/*LSB data*/
 +	if (temp < 0) {
-+		pm_runtime_put_sync(dev);
-+		mutex_unlock(&mutex);
-+		return temp;
++		ret_val = temp;
++		goto failed;
 +	}
-+
-+	ret_val = i2c_smbus_read_byte_data(client, 0x01); /* LSB data */
-+	mutex_unlock(&mutex);
-+
-+	if (ret_val < 0) {
-+		pm_runtime_put_sync(dev);
-+		return ret_val;
-+	}
-+
-+	ret_val |= temp << 8;
-+	val = i2c_smbus_read_byte_data(client, 0x00);
-+	pm_runtime_put_sync(dev);
-+	if (val < 0)
-+		return val;
-+	lux = ((((1 << (2 * (val & 3))))*1000) * ret_val) / 65536;
-+	return sprintf(buf, "%ld\n", lux);
++	ret_val = i2c_smbus_read_byte_data(client, 0x8D);/*MSB data*/
++	if (ret_val < 0)
++		goto failed;
++	mutex_unlock(&data->mutex);
++	ret_val = (ret_val << 8) | temp;
++	return sprintf(buf, "%d\n", ret_val);
++failed:
++	mutex_unlock(&data->mutex);
++	return ret_val;
 +}
 +
 +static ssize_t als_sensing_range_store(struct device *dev,
 +		struct device_attribute *attr, const  char *buf, size_t count)
 +{
 +	struct i2c_client *client = to_i2c_client(dev);
++	struct als_data *data = i2c_get_clientdata(client);
 +	unsigned int ret_val;
 +	unsigned long val;
 +
 +	if (strict_strtoul(buf, 10, &val))
 +		return -EINVAL;
-+	if (val < 1 || val > 64000)
-+		return -EINVAL;
 +
-+	/* Pick the smallest sensor range that will meet our requirements */
-+	if (val <= 1000)
++	if (val < 4096)
 +		val = 1;
-+	else if (val <= 4000)
++	else if (val < 65536)
 +		val = 2;
-+	else if (val <= 16000)
-+		val = 3;
 +	else
-+		val = 4;
++		return -ERANGE;
 +
-+	ret_val = i2c_smbus_read_byte_data(client, 0x00);
++	/* Make sure nobody else reads/modifies/writes 0x81 while we
++	   are active */
 +
-+	ret_val &= 0xFC; /*reset the bit before setting them */
-+	ret_val |= val - 1;
-+	ret_val = i2c_smbus_write_byte_data(client, 0x00, ret_val);
++	mutex_lock(&data->mutex);
 +
++	ret_val = i2c_smbus_read_byte_data(client, 0x81);
++	if (ret_val < 0)
++		goto fail;
++
++	/* Reset the bits before setting them */
++	ret_val = ret_val & 0xFA;
++
++	if (val == 1) /* Setting the continous measurement up to 4k LUX */
++		ret_val = (ret_val | 0x05);
++	else /* Setting the continous measurement up to 64k LUX*/
++		ret_val = (ret_val | 0x04);
++
++	ret_val = i2c_smbus_write_byte_data(client, 0x81, ret_val);
++	if (ret_val >= 0) {
++		/* All OK */
++		mutex_unlock(&data->mutex);
++		return count;
++	}
++fail:
++	mutex_unlock(&data->mutex);
++	return ret_val;
++}
++
++static ssize_t als_power_status_show(struct device *dev,
++			struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	int ret_val;
++	ret_val = i2c_smbus_read_byte_data(client, 0x80);
++	if (ret_val < 0)
++		return ret_val;
++	ret_val = ret_val & 0x01;
++	return sprintf(buf, "%d\n", ret_val);
++}
++
++static int als_set_power_state(struct i2c_client *client, bool on_off)
++{
++	int ret_val;
++	struct als_data *data = i2c_get_clientdata(client);
++
++	mutex_lock(&data->mutex);
++	ret_val = i2c_smbus_read_byte_data(client, 0x80);
++	if (ret_val < 0)
++		goto fail;
++	if (on_off)
++		ret_val = ret_val | 0x01;
++	else
++		ret_val = ret_val & 0xFE;
++	ret_val = i2c_smbus_write_byte_data(client, 0x80, ret_val);
++fail:
++	mutex_unlock(&data->mutex);
++	return ret_val;
++}
++
++static ssize_t als_power_status_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct als_data *data = i2c_get_clientdata(client);
++	unsigned long val;
++	int ret_val;
++
++	if (strict_strtoul(buf, 10, &val))
++		return -EINVAL;
++	if (val == POWER_STA_ENABLE) {
++		ret_val = als_set_power_state(client, true);
++		data->needresume = true;
++	} else if (val == POWER_STA_DISABLE) {
++		ret_val = als_set_power_state(client, false);
++		data->needresume = false;
++	} else
++		return -EINVAL;
 +	if (ret_val < 0)
 +		return ret_val;
 +	return count;
 +}
 +
-+static void als_set_power_state(struct i2c_client *client, int enable)
-+{
-+	int ret_val;
-+
-+	ret_val = i2c_smbus_read_byte_data(client, 0x00);
-+	if (ret_val < 0)
-+		return;
-+
-+	if (enable)
-+		ret_val |= 0x80;
-+	else
-+		ret_val &= 0x7F;
-+
-+	i2c_smbus_write_byte_data(client, 0x00, ret_val);
-+}
-+
 +static DEVICE_ATTR(lux0_sensor_range, S_IRUGO | S_IWUSR,
 +	als_sensing_range_show, als_sensing_range_store);
-+static DEVICE_ATTR(lux0_input, S_IRUGO, als_lux_input_data_show, NULL);
++static DEVICE_ATTR(lux0_input, S_IRUGO, als_lux0_input_data_show, NULL);
++static DEVICE_ATTR(power_state, S_IRUGO | S_IWUSR,
++	als_power_status_show, als_power_status_store);
 +
 +static struct attribute *mid_att_als[] = {
 +	&dev_attr_lux0_sensor_range.attr,
 +	&dev_attr_lux0_input.attr,
++	&dev_attr_power_state.attr,
 +	NULL
 +};
 +
 +static struct attribute_group m_als_gr = {
-+	.name = "isl29020",
++	.name = "apds9802als",
 +	.attrs = mid_att_als
 +};
 +
 +static int als_set_default_config(struct i2c_client *client)
 +{
-+	int retval;
-+
-+	retval = i2c_smbus_write_byte_data(client, 0x00, 0xc0);
-+	if (retval < 0) {
-+		dev_err(&client->dev, "default write failed.");
-+		return retval;
++	int ret_val;
++	/* Write the command and then switch on */
++	ret_val = i2c_smbus_write_byte_data(client, 0x80, 0x01);
++	if (ret_val < 0) {
++		dev_err(&client->dev, "failed default switch on write\n");
++		return ret_val;
 +	}
-+	return 0;;
++	/* Continous from 1Lux to 64k Lux */
++	ret_val = i2c_smbus_write_byte_data(client, 0x81, 0x04);
++	if (ret_val < 0)
++		dev_err(&client->dev, "failed default LUX on write\n");
++	return ret_val;
 +}
 +
-+static int  isl29020_probe(struct i2c_client *client,
++static int  apds9802als_probe(struct i2c_client *client,
 +					const struct i2c_device_id *id)
 +{
 +	int res;
++	struct als_data *data;
 +
-+	res = als_set_default_config(client);
-+	if (res <  0)
-+		return res;
-+
++	data = kzalloc(sizeof(struct als_data), GFP_KERNEL);
++	if (data == NULL) {
++		dev_err(&client->dev, "Memory allocation failed\n");
++		return -ENOMEM;
++	}
++	i2c_set_clientdata(client, data);
 +	res = sysfs_create_group(&client->dev.kobj, &m_als_gr);
 +	if (res) {
-+		dev_err(&client->dev, "isl29020: device create file failed\n");
-+		return res;
++		dev_err(&client->dev, "device create file failed\n");
++		goto als_error1;
 +	}
-+	dev_info(&client->dev, "%s isl29020: ALS chip found\n", client->name);
-+	als_set_power_state(client, 0);
-+	pm_runtime_enable(&client->dev);
++	dev_info(&client->dev,
++		"%s apds9802als: ALS chip found\n", client->name);
++	als_set_default_config(client);
++	data->needresume = true;
++	mutex_init(&data->mutex);
++	return res;
++als_error1:
++	i2c_set_clientdata(client, NULL);
++	kfree(data);
 +	return res;
 +}
 +
-+static int isl29020_remove(struct i2c_client *client)
++static int apds9802als_remove(struct i2c_client *client)
 +{
 +	struct als_data *data = i2c_get_clientdata(client);
 +	sysfs_remove_group(&client->dev.kobj, &m_als_gr);
@@ -283,62 +352,58 @@ diff -puN /dev/null drivers/misc/isl29020.c
 +	return 0;
 +}
 +
-+static struct i2c_device_id isl29020_id[] = {
-+	{ "isl29020", 0 },
++static int apds9802als_suspend(struct i2c_client *client, pm_message_t mesg)
++{
++	als_set_power_state(client, false);
++	return 0;
++}
++
++static int apds9802als_resume(struct i2c_client *client)
++{
++	struct als_data *data = i2c_get_clientdata(client);
++
++	if (data->needresume == true)
++		als_set_power_state(client, true);
++	return 0;
++}
++
++static struct i2c_device_id apds9802als_id[] = {
++	{ DRIVER_NAME, 0 },
 +	{ }
 +};
 +
-+static int isl29020_runtime_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	als_set_power_state(client, 0);
-+	return 0;
-+}
++MODULE_DEVICE_TABLE(i2c, apds9802als_id);
 +
-+static int isl29020_runtime_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	als_set_power_state(client, 1);
-+	return 0;
-+}
-+
-+MODULE_DEVICE_TABLE(i2c, isl29020_id);
-+
-+static const struct dev_pm_ops isl29020_pm_ops = {
-+	.runtime_suspend = isl29020_runtime_suspend,
-+	.runtime_resume = isl29020_runtime_resume,
-+};
-+
-+static struct i2c_driver isl29020_driver = {
++static struct i2c_driver apds9802als_driver = {
 +	.driver = {
-+		.name = "isl29020",
-+		.pm = &isl29020_pm_ops,
++	.name = DRIVER_NAME,
++	.owner = THIS_MODULE,
 +	},
-+	.probe = isl29020_probe,
-+	.remove = isl29020_remove,
-+	.id_table = isl29020_id,
++	.probe = apds9802als_probe,
++	.remove = apds9802als_remove,
++	.suspend = apds9802als_suspend,
++	.resume = apds9802als_resume,
++	.id_table = apds9802als_id,
 +};
 +
-+static int __init sensor_isl29020_init(void)
++static int __init sensor_apds9802als_init(void)
 +{
-+	return i2c_add_driver(&isl29020_driver);
++	return i2c_add_driver(&apds9802als_driver);
 +}
 +
-+static void  __exit sensor_isl29020_exit(void)
++static void  __exit sensor_apds9802als_exit(void)
 +{
-+	i2c_del_driver(&isl29020_driver);
++	i2c_del_driver(&apds9802als_driver);
 +}
++module_init(sensor_apds9802als_init);
++module_exit(sensor_apds9802als_exit);
 +
-+module_init(sensor_isl29020_init);
-+module_exit(sensor_isl29020_exit);
-+
-+MODULE_AUTHOR("Kalhan Trisal <kalhan.trisal@intel.com");
-+MODULE_DESCRIPTION("Intersil isl29020 ALS Driver");
++MODULE_AUTHOR("Anantha Narayanan <Anantha.Narayanan@intel.com");
++MODULE_DESCRIPTION("Avago apds9802als ALS Driver");
 +MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from kalhan.trisal@intel.com are
+Patches currently in -mm which might be from anantha.narayanan@intel.com are
 
-isl29020-ambient-light-sensor.patch
-isl29020-ambient-light-sensor-fix.patch
+drivers-misc-apds9802alsc-als-drivers-for-the-apds9802als.patch
 
