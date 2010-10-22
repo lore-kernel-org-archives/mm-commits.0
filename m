@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-fix-numbering-in-proc-locks.patch added to -mm tree
-Date: Fri, 22 Oct 2010 14:27:08 -0700
-Message-ID: <201010222127.o9MLR8KG008602@imap1.linux-foundation.org>
+Subject: + ibm_rtl-fix-printk-format-warning.patch added to -mm tree
+Date: Fri, 22 Oct 2010 16:23:42 -0700
+Message-ID: <201010222323.o9MNNg6f013556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755987Ab0JVV1X (ORCPT
+	by vger.kernel.org with ESMTP id S1754541Ab0JVXY1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Oct 2010 17:27:23 -0400
+	Fri, 22 Oct 2010 19:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmarchan@redhat.com, matthew@wil.cx, xemul@parallels.com
+Cc: randy.dunlap@oracle.com, kmannth@us.ibm.com, mjg@redhat.com, vernux@us.ibm.com
 
 
 The patch titled
-     procfs: fix numbering in /proc/locks
+     ibm_rtl: fix printk format warning
 has been added to the -mm tree.  Its filename is
-     procfs-fix-numbering-in-proc-locks.patch
+     ibm_rtl-fix-printk-format-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: fix numbering in /proc/locks
-From: Jerome Marchand <jmarchan@redhat.com>
+Subject: ibm_rtl: fix printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The lock number in /proc/locks (first field) is implemented by a counter
-(private field of struct seq_file) which is incremented at each call of
-locks_show() and reset to 1 in locks_start() whatever the offset is.  It
-should be reset according to the actual position in the list.  Because of
-this, the numbering erratically restarts at 1 several times when reading a
-long /proc/locks file.
+Fix printk format warning:
 
-Moreover, locks_show() can be called twice to print a single line thus
-skipping a number.  The counter should be incremented in locks_next().
+drivers/platform/x86/ibm_rtl.c:305:warning: format '%#llx' expects type 'long long unsigned int', but argument 2 has type 'phys_addr_t'
 
-And last, pos is a loff_t, which can be bigger than a pointer, so we don't
-use the pointer as an integer anymore, and allocate a loff_t instead.
-
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Keith Mannthey <kmannth@us.ibm.com>
+Cc: Vernon Mauery <vernux@us.ibm.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ drivers/platform/x86/ibm_rtl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/locks.c~procfs-fix-numbering-in-proc-locks fs/locks.c
---- a/fs/locks.c~procfs-fix-numbering-in-proc-locks
-+++ a/fs/locks.c
-@@ -2109,7 +2109,7 @@ EXPORT_SYMBOL_GPL(vfs_cancel_lock);
- #include <linux/seq_file.h>
- 
- static void lock_get_status(struct seq_file *f, struct file_lock *fl,
--							int id, char *pfx)
-+			    loff_t id, char *pfx)
- {
- 	struct inode *inode = NULL;
- 	unsigned int fl_pid;
-@@ -2122,7 +2122,7 @@ static void lock_get_status(struct seq_f
- 	if (fl->fl_file != NULL)
- 		inode = fl->fl_file->f_path.dentry->d_inode;
- 
--	seq_printf(f, "%d:%s ", id, pfx);
-+	seq_printf(f, "%lld:%s ", id, pfx);
- 	if (IS_POSIX(fl)) {
- 		seq_printf(f, "%6s %s ",
- 			     (fl->fl_flags & FL_ACCESS) ? "ACCESS" : "POSIX ",
-@@ -2185,24 +2185,27 @@ static int locks_show(struct seq_file *f
- 
- 	fl = list_entry(v, struct file_lock, fl_link);
- 
--	lock_get_status(f, fl, (long)f->private, "");
-+	lock_get_status(f, fl, *((loff_t *)f->private), "");
- 
- 	list_for_each_entry(bfl, &fl->fl_block, fl_block)
--		lock_get_status(f, bfl, (long)f->private, " ->");
-+		lock_get_status(f, bfl, *((loff_t *)f->private), " ->");
- 
--	f->private++;
- 	return 0;
- }
- 
- static void *locks_start(struct seq_file *f, loff_t *pos)
- {
-+	loff_t *p = f->private;
-+
- 	lock_flocks();
--	f->private = (void *)1;
-+	*p = (*pos + 1);
- 	return seq_list_start(&file_lock_list, *pos);
- }
- 
- static void *locks_next(struct seq_file *f, void *v, loff_t *pos)
- {
-+	loff_t *p = f->private;
-+	++*p;
- 	return seq_list_next(v, &file_lock_list, pos);
- }
- 
-@@ -2220,14 +2223,14 @@ static const struct seq_operations locks
- 
- static int locks_open(struct inode *inode, struct file *filp)
- {
--	return seq_open(filp, &locks_seq_operations);
-+	return seq_open_private(filp, &locks_seq_operations, sizeof(loff_t));
- }
- 
- static const struct file_operations proc_locks_operations = {
- 	.open		= locks_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release,
-+	.release	= seq_release_private,
- };
- 
- static int __init proc_locks_init(void)
+diff -puN drivers/platform/x86/ibm_rtl.c~ibm_rtl-fix-printk-format-warning drivers/platform/x86/ibm_rtl.c
+--- a/drivers/platform/x86/ibm_rtl.c~ibm_rtl-fix-printk-format-warning
++++ a/drivers/platform/x86/ibm_rtl.c
+@@ -302,7 +302,7 @@ static int __init ibm_rtl_init(void) {
+ 			RTL_DEBUG("rtl_cmd_width = %u, rtl_cmd_type = %u\n",
+ 			      rtl_cmd_width, rtl_cmd_type);
+ 			addr = ioread32(&rtl_table->cmd_port_address);
+-			RTL_DEBUG("addr = %#llx\n", addr);
++			RTL_DEBUG("addr = %#llx\n", (unsigned long long)addr);
+ 			plen = rtl_cmd_width/sizeof(char);
+ 			rtl_cmd_addr = rtl_port_map(addr, plen);
+ 			RTL_DEBUG("rtl_cmd_addr = %#llx\n", (u64)rtl_cmd_addr);
 _
 
-Patches currently in -mm which might be from jmarchan@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-procfs-fix-numbering-in-proc-locks.patch
+origin.patch
+kfifo-disable-__kfifo_must_check_helper.patch
+linux-next.patch
+backlight-fix-88pm860x_bl-macro-collision.patch
+ibm_rtl-fix-printk-format-warning.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+fs-move-exportfs-since-it-is-not-a-networking-filesystem.patch
+misc-devices-do-not-enable-by-default.patch
+scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
+kfifo-fix-kfifo_alloc-to-return-a-signed-int-value.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+nfs-include-ratelimith-fix-nfs4state-build-error.patch
 
