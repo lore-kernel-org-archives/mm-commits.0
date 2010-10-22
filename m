@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix.patch added to -mm tree
-Date: Thu, 21 Oct 2010 22:13:09 -0700
-Message-ID: <201010220512.o9M5CpKC027845@imap1.linux-foundation.org>
+Subject: + gpio-add-topcliff-pch-gpio-driver-fix.patch added to -mm tree
+Date: Thu, 21 Oct 2010 23:08:13 -0700
+Message-ID: <201010220607.o9M67tKo030147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752646Ab0JVFMx (ORCPT
+	by vger.kernel.org with ESMTP id S1752734Ab0JVGIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Oct 2010 01:12:53 -0400
+	Fri, 22 Oct 2010 02:08:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, eric.dumazet@gmail.com
+Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, joe@perches.com, linus.walleij@stericsson.com, morinaga526@dsn.okisemi.com, rabin.vincent@stericsson.com, sameo@linux.intel.com, tomoya-linux@dsn.okisemi.com
 
 
 The patch titled
-     percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix
+     gpio-add-topcliff-pch-gpio-driver-fix
 has been added to the -mm tree.  Its filename is
-     percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix.patch
+     gpio-add-topcliff-pch-gpio-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix
+Subject: gpio-add-topcliff-pch-gpio-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix 32-bit overflows.  Make things worse.
+Use DEFINE_PCI_DEVICE_TABLE (per Joe Perches)
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Rabin Vincent <rabin.vincent@stericsson.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Tomoya MORINAGA <morinaga526@dsn.okisemi.com>
+Cc: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |    9 +++++----
- lib/percpu_counter.c           |    8 +++++---
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ drivers/gpio/pch_gpio.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/percpu_counter.h~percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix
-+++ a/include/linux/percpu_counter.h
-@@ -43,7 +43,7 @@ void percpu_counter_destroy(struct percp
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- s64 __percpu_counter_sum(struct percpu_counter *fbc);
- int percpu_counter_compare(struct percpu_counter *fbc, s64 rhs);
--void percpu_counter_handle_overflow(struct percpu_counter *fbc);
-+void percpu_counter_handle_overflow(struct percpu_counter *fbc, s64 amount);
+diff -puN drivers/gpio/pch_gpio.c~gpio-add-topcliff-pch-gpio-driver-fix drivers/gpio/pch_gpio.c
+--- a/drivers/gpio/pch_gpio.c~gpio-add-topcliff-pch-gpio-driver-fix
++++ a/drivers/gpio/pch_gpio.c
+@@ -282,9 +282,9 @@ static int pch_gpio_resume(struct pci_de
+ #define pch_gpio_resume NULL
+ #endif
  
- static __always_inline void percpu_counter_add_batch(struct percpu_counter *fbc,
- 						s64 amount, long batch)
-@@ -52,9 +52,10 @@ static __always_inline void percpu_count
+-static const struct pci_device_id pch_gpio_pcidev_id[] = {
+-	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x8803)},
+-	{0,}
++static DEFINE_PCI_DEVICE_TABLE(pch_gpio_pcidev_id) = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x8803) },
++	{ 0, }
+ };
  
- 	preempt_disable();
- 	pcounter = this_cpu_ptr(fbc->counters);
--	*pcounter += amount;
--	if (unlikely(abs(*pcounter) >= batch))
--		percpu_counter_handle_overflow(fbc);
-+	if (unlikely(abs(amount + *pcounter) >= batch))
-+		percpu_counter_handle_overflow(fbc, amount);
-+	else
-+		*pcounter += amount;
- 	preempt_enable();
- }
- 
-diff -puN lib/percpu_counter.c~percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix
-+++ a/lib/percpu_counter.c
-@@ -72,11 +72,13 @@ EXPORT_SYMBOL(percpu_counter_set);
- /*
-  * Handle overflow of the current cpu's ->count.  Premption is disabled.
-  */
--void percpu_counter_handle_overflow(struct percpu_counter *fbc)
-+void percpu_counter_handle_overflow(struct percpu_counter *fbc, s64 amount)
- {
-+	long *pcounter = this_cpu_ptr(fbc->counters);
-+
- 	spin_lock(&fbc->lock);
--	fbc->count += this_cpu_read(*fbc->counters);
--	this_cpu_write(*fbc->counters, 0);
-+	fbc->count += *pcounter + amount;
-+	*pcounter = 0;
- 	spin_unlock(&fbc->lock);
- }
- EXPORT_SYMBOL(percpu_counter_handle_overflow);
+ static struct pci_driver pch_gpio_driver = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,6 +128,7 @@ vcs-add-poll-fasync-support-fix-fix.patch
 rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
 drivers-rtc-rtc-jz4740c-add-alarm-function-checkpatch-fixes.patch
 gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
+gpio-add-topcliff-pch-gpio-driver-fix.patch
 cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
 memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
 core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
