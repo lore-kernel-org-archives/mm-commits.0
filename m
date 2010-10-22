@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-topcliff-pch-gpio-driver-fix.patch added to -mm tree
-Date: Thu, 21 Oct 2010 23:08:13 -0700
-Message-ID: <201010220607.o9M67tKo030147@imap1.linux-foundation.org>
+Subject: + gpio-add-topcliff-pch-gpio-driver.patch added to -mm tree
+Date: Thu, 21 Oct 2010 23:08:10 -0700
+Message-ID: <201010220607.o9M67r1q030144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734Ab0JVGIG (ORCPT
+	by vger.kernel.org with ESMTP id S1752521Ab0JVGIF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Oct 2010 02:08:06 -0400
+	Fri, 22 Oct 2010 02:08:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, joe@perches.com, linus.walleij@stericsson.com, morinaga526@dsn.okisemi.com, rabin.vincent@stericsson.com, sameo@linux.intel.com, tomoya-linux@dsn.okisemi.com
+Cc: tomoya-linux@dsn.okisemi.com, broonie@opensource.wolfsonmicro.com, joe@perches.com, linus.walleij@stericsson.com, morinaga526@dsn.okisemi.com, rabin.vincent@stericsson.com, sameo@linux.intel.com
 
 
 The patch titled
-     gpio-add-topcliff-pch-gpio-driver-fix
+     gpio: add Topcliff PCH GPIO driver
 has been added to the -mm tree.  Its filename is
-     gpio-add-topcliff-pch-gpio-driver-fix.patch
+     gpio-add-topcliff-pch-gpio-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,379 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-topcliff-pch-gpio-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio: add Topcliff PCH GPIO driver
+From: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
 
-Use DEFINE_PCI_DEVICE_TABLE (per Joe Perches)
+Topcliff PCH is the platform controller hub that is going to be used in
+Intel's upcoming general embedded platform.  All IO peripherals in
+Topcliff PCH are actually devices sitting on AMBA bus.  Topcliff PCH has
+GPIO I/F.  Using this I/F, it is able to access system devices connected
+to GPIO.
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Rabin Vincent <rabin.vincent@stericsson.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 Cc: Tomoya MORINAGA <morinaga526@dsn.okisemi.com>
-Cc: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pch_gpio.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/gpio/Kconfig    |    8 
+ drivers/gpio/Makefile   |    1 
+ drivers/gpio/pch_gpio.c |  312 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 321 insertions(+)
 
-diff -puN drivers/gpio/pch_gpio.c~gpio-add-topcliff-pch-gpio-driver-fix drivers/gpio/pch_gpio.c
---- a/drivers/gpio/pch_gpio.c~gpio-add-topcliff-pch-gpio-driver-fix
+diff -puN drivers/gpio/Kconfig~gpio-add-topcliff-pch-gpio-driver drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-add-topcliff-pch-gpio-driver
++++ a/drivers/gpio/Kconfig
+@@ -325,6 +325,14 @@ config GPIO_LANGWELL
+ 	help
+ 	  Say Y here to support Intel Langwell/Penwell GPIO.
+ 
++config GPIO_PCH
++	tristate "PCH GPIO of Intel Topcliff"
++	depends on PCI
++	help
++	  This driver is for PCH(Platform controller Hub) GPIO of Intel Topcliff
++	  which is an IOH(Input/Output Hub) for x86 embedded processor.
++	  This driver can access PCH GPIO device.
++
+ config GPIO_TIMBERDALE
+ 	bool "Support for timberdale GPIO IP"
+ 	depends on MFD_TIMBERDALE && GPIOLIB && HAS_IOMEM
+diff -puN drivers/gpio/Makefile~gpio-add-topcliff-pch-gpio-driver drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-add-topcliff-pch-gpio-driver
++++ a/drivers/gpio/Makefile
+@@ -21,6 +21,7 @@ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.
+ obj-$(CONFIG_GPIO_74X164)	+= 74x164.o
+ obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
+ obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
++obj-$(CONFIG_GPIO_PCH)		+= pch_gpio.o
+ obj-$(CONFIG_GPIO_PL061)	+= pl061.o
+ obj-$(CONFIG_GPIO_STMPE)	+= stmpe-gpio.o
+ obj-$(CONFIG_GPIO_TC35892)	+= tc35892-gpio.o
+diff -puN /dev/null drivers/gpio/pch_gpio.c
+--- /dev/null
 +++ a/drivers/gpio/pch_gpio.c
-@@ -282,9 +282,9 @@ static int pch_gpio_resume(struct pci_de
- #define pch_gpio_resume NULL
- #endif
- 
--static const struct pci_device_id pch_gpio_pcidev_id[] = {
--	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x8803)},
--	{0,}
-+static DEFINE_PCI_DEVICE_TABLE(pch_gpio_pcidev_id) = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x8803) },
-+	{ 0, }
- };
- 
- static struct pci_driver pch_gpio_driver = {
+@@ -0,0 +1,312 @@
++/*
++ * Copyright (C) 2010 OKI SEMICONDUCTOR Co., LTD.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
++ */
++#include <linux/kernel.h>
++#include <linux/pci.h>
++#include <linux/gpio.h>
++
++#define PCH_GPIO_ALL_PINS	0xfff /* Mask for GPIO pins 0 to 11 */
++#define GPIO_NUM_PINS	12	/* Specifies number of GPIO PINS GPIO0-GPIO11 */
++
++struct pch_regs {
++	u32	ien;
++	u32	istatus;
++	u32	idisp;
++	u32	iclr;
++	u32	imask;
++	u32	imaskclr;
++	u32	po;
++	u32	pi;
++	u32	pm;
++	u32	im0;
++	u32	im1;
++	u32	reserved[4];
++	u32	reset;
++};
++
++/**
++ * struct pch_gpio_reg_data - The register store data.
++ * @po_reg:	To store contents of PO register.
++ * @pm_reg:	To store contents of PM register.
++ */
++struct pch_gpio_reg_data {
++	u32 po_reg;
++	u32 pm_reg;
++};
++
++/**
++ * struct pch_gpio - GPIO private data structure.
++ * @base:			PCI base address of Memory mapped I/O register.
++ * @reg:			Memory mapped PCH GPIO register list.
++ * @dev:			Pointer to device structure.
++ * @gpio:			Data for GPIO infrastructure.
++ * @pch_gpio_reg:		Memory mapped Register data is saved here
++ *				when suspend.
++ */
++struct pch_gpio {
++	void __iomem *base;
++	struct pch_regs __iomem *reg;
++	struct device *dev;
++	struct gpio_chip gpio;
++	struct pch_gpio_reg_data pch_gpio_reg;
++	struct mutex lock;
++};
++
++static void pch_gpio_set(struct gpio_chip *gpio, unsigned nr, int val)
++{
++	u32 reg_val;
++	struct pch_gpio *chip =	container_of(gpio, struct pch_gpio, gpio);
++
++	mutex_lock(&chip->lock);
++	reg_val = ioread32(&chip->reg->po);
++	if (val)
++		reg_val |= (1 << nr);
++	else
++		reg_val &= ~(1 << nr);
++
++	iowrite32(reg_val, &chip->reg->po);
++	mutex_unlock(&chip->lock);
++}
++
++static int pch_gpio_get(struct gpio_chip *gpio, unsigned nr)
++{
++	struct pch_gpio *chip =	container_of(gpio, struct pch_gpio, gpio);
++
++	return ioread32(&chip->reg->pi) & (1 << nr);
++}
++
++static int pch_gpio_direction_output(struct gpio_chip *gpio, unsigned nr,
++				     int val)
++{
++	struct pch_gpio *chip =	container_of(gpio, struct pch_gpio, gpio);
++	u32 pm;
++	u32 reg_val;
++
++	mutex_lock(&chip->lock);
++	pm = ioread32(&chip->reg->pm) & PCH_GPIO_ALL_PINS;
++	pm |= (1 << nr);
++	iowrite32(pm, &chip->reg->pm);
++
++	reg_val = ioread32(&chip->reg->po);
++	if (val)
++		reg_val |= (1 << nr);
++	else
++		reg_val &= ~(1 << nr);
++
++	mutex_unlock(&chip->lock);
++
++	return 0;
++}
++
++static int pch_gpio_direction_input(struct gpio_chip *gpio, unsigned nr)
++{
++	struct pch_gpio *chip =	container_of(gpio, struct pch_gpio, gpio);
++	u32 pm;
++
++	mutex_lock(&chip->lock);
++	pm = ioread32(&chip->reg->pm) & PCH_GPIO_ALL_PINS; /*bits 0-11*/
++	pm &= ~(1 << nr);
++	iowrite32(pm, &chip->reg->pm);
++	mutex_unlock(&chip->lock);
++
++	return 0;
++}
++
++/*
++ * Save register configuration and disable interrupts.
++ */
++static void pch_gpio_save_reg_conf(struct pch_gpio *chip)
++{
++	chip->pch_gpio_reg.po_reg = ioread32(&chip->reg->po);
++	chip->pch_gpio_reg.pm_reg = ioread32(&chip->reg->pm);
++}
++
++/*
++ * This function restores the register configuration of the GPIO device.
++ */
++static void pch_gpio_restore_reg_conf(struct pch_gpio *chip)
++{
++	/* to store contents of PO register */
++	iowrite32(chip->pch_gpio_reg.po_reg, &chip->reg->po);
++	/* to store contents of PM register */
++	iowrite32(chip->pch_gpio_reg.pm_reg, &chip->reg->pm);
++}
++
++static void pch_gpio_setup(struct pch_gpio *chip)
++{
++	struct gpio_chip *gpio = &chip->gpio;
++
++	gpio->label = dev_name(chip->dev);
++	gpio->owner = THIS_MODULE;
++	gpio->direction_input = pch_gpio_direction_input;
++	gpio->get = pch_gpio_get;
++	gpio->direction_output = pch_gpio_direction_output;
++	gpio->set = pch_gpio_set;
++	gpio->dbg_show = NULL;
++	gpio->base = -1;
++	gpio->ngpio = GPIO_NUM_PINS;
++	gpio->can_sleep = 0;
++}
++
++static int __devinit pch_gpio_probe(struct pci_dev *pdev,
++				    const struct pci_device_id *id)
++{
++	s32 ret;
++	struct pch_gpio *chip;
++
++	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
++	if (chip == NULL)
++		return -ENOMEM;
++
++	chip->dev = &pdev->dev;
++	ret = pci_enable_device(pdev);
++	if (ret) {
++		dev_err(&pdev->dev, "%s : pci_enable_device FAILED", __func__);
++		goto err_pci_enable;
++	}
++
++	ret = pci_request_regions(pdev, KBUILD_MODNAME);
++	if (ret) {
++		dev_err(&pdev->dev, "pci_request_regions FAILED-%d", ret);
++		goto err_request_regions;
++	}
++
++	chip->base = pci_iomap(pdev, 1, 0);
++	if (chip->base == 0) {
++		dev_err(&pdev->dev, "%s : pci_iomap FAILED", __func__);
++		ret = -ENOMEM;
++		goto err_iomap;
++	}
++
++	chip->reg = chip->base;
++	pci_set_drvdata(pdev, chip);
++	mutex_init(&chip->lock);
++	pch_gpio_setup(chip);
++	ret = gpiochip_add(&chip->gpio);
++	if (ret) {
++		dev_err(&pdev->dev, "PCH gpio: Failed to register GPIO\n");
++		goto err_gpiochip_add;
++	}
++
++	return 0;
++
++err_gpiochip_add:
++	pci_iounmap(pdev, chip->base);
++
++err_iomap:
++	pci_release_regions(pdev);
++
++err_request_regions:
++	pci_disable_device(pdev);
++
++err_pci_enable:
++	kfree(chip);
++	dev_err(&pdev->dev, "%s Failed returns %d\n", __func__, ret);
++	return ret;
++}
++
++static void __devexit pch_gpio_remove(struct pci_dev *pdev)
++{
++	int err;
++	struct pch_gpio *chip = pci_get_drvdata(pdev);
++
++	err = gpiochip_remove(&chip->gpio);
++	if (err)
++		dev_err(&pdev->dev, "Failed gpiochip_remove\n");
++
++	pci_iounmap(pdev, chip->base);
++	pci_release_regions(pdev);
++	pci_disable_device(pdev);
++	kfree(chip);
++}
++
++#ifdef CONFIG_PM
++static int pch_gpio_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	s32 ret;
++	struct pch_gpio *chip = pci_get_drvdata(pdev);
++
++	pch_gpio_save_reg_conf(chip);
++	pch_gpio_restore_reg_conf(chip);
++
++	ret = pci_save_state(pdev);
++	if (ret) {
++		dev_err(&pdev->dev, "pci_save_state Failed-%d\n", ret);
++		return ret;
++	}
++	pci_disable_device(pdev);
++	pci_set_power_state(pdev, PCI_D0);
++	ret = pci_enable_wake(pdev, PCI_D0, 1);
++	if (ret)
++		dev_err(&pdev->dev, "pci_enable_wake Failed -%d\n", ret);
++
++	return 0;
++}
++
++static int pch_gpio_resume(struct pci_dev *pdev)
++{
++	s32 ret;
++	struct pch_gpio *chip = pci_get_drvdata(pdev);
++
++	ret = pci_enable_wake(pdev, PCI_D0, 0);
++
++	pci_set_power_state(pdev, PCI_D0);
++	ret = pci_enable_device(pdev);
++	if (ret) {
++		dev_err(&pdev->dev, "pci_enable_device Failed-%d ", ret);
++		return ret;
++	}
++	pci_restore_state(pdev);
++
++	iowrite32(0x01, &chip->reg->reset);
++	iowrite32(0x00, &chip->reg->reset);
++	pch_gpio_restore_reg_conf(chip);
++
++	return 0;
++}
++#else
++#define pch_gpio_suspend NULL
++#define pch_gpio_resume NULL
++#endif
++
++static const struct pci_device_id pch_gpio_pcidev_id[] = {
++	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x8803)},
++	{0,}
++};
++
++static struct pci_driver pch_gpio_driver = {
++	.name = "pch_gpio",
++	.id_table = pch_gpio_pcidev_id,
++	.probe = pch_gpio_probe,
++	.remove = __devexit_p(pch_gpio_remove),
++	.suspend = pch_gpio_suspend,
++	.resume = pch_gpio_resume
++};
++
++static int __init pch_gpio_pci_init(void)
++{
++	return pci_register_driver(&pch_gpio_driver);
++}
++module_init(pch_gpio_pci_init);
++
++static void __exit pch_gpio_pci_exit(void)
++{
++	pci_unregister_driver(&pch_gpio_driver);
++}
++module_exit(pch_gpio_pci_exit);
++
++MODULE_DESCRIPTION("PCH GPIO PCI Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tomoya-linux@dsn.okisemi.com are
 
-typesh-move-misplaced-comment.patch
-kfifo-disable-__kfifo_must_check_helper.patch
-linux-next.patch
-next-remove-localversion.patch
-fs-inodec-work-around-bug.patch
-arch-x86-kernel-entry_64s-fix-build-with-gas-2161.patch
-arch-x86-kernel-entry_32s-i386-too.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmap-area-cache.patch
-gcc-46-btrfs-clean-up-unused-variables-bugs.patch
-drivers-gpu-drm-radeon-atomc-fix-warning.patch
-fs-notify-fanotify-fanotify_userc-fix-warnings.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-add-led-trigger-for-input-subsystem-led-events.patch
-backlight-add-low-threshold-to-pwm-backlight.patch
-serial8250-ratelimit-too-much-work-error.patch
-sched-make-sched_param-argument-static-variables-in-some-sched_setscheduler-caller.patch
-drivers-message-fusion-mptsasc-fix-warning.patch
-drivers-block-aoe-aoeblkc-ratelimit-a-warning-printk.patch
-vfs-allow-mnt_want_write-to-sleep.patch
-mm.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
-oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
-oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
-oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
-mm-only-build-per-node-scan_unevictable-functions-when-numa-is-enabled-cleanup.patch
-memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-checkpatch-fixes.patch
-mm-stack-based-kmap_atomic-fix.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer.patch
-mm-retry-page-fault-when-blocking-on-disk-transfer-update-fix.patch
-rmap-make-anon_vma_free-static-fix.patch
-vmstat-include-compactionh-when-config_compaction-fix.patch
-fs-fs-writebackc-restore-lost-comment.patch
-mm-memory_hotplugc-make-scan_lru_pages-static.patch
-proc-swaps-support-polling-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-hpet-factor-timer-allocate-from-open-fix.patch
-drivers-char-hpetc-fix-information-leak-to-userland-fix.patch
-kernelh-add-minmax3-macros-fix.patch
-include-linux-kernelh-add-__must_check-to-strict_strto.patch
-printk-declare-printk_ratelimit_state-in-ratelimith-fix.patch
-vsprintfc-use-default-pointer-field-size-for-null-strings-fix.patch
-scripts-get_maintainerpl-add-git-blame-rolestats-authored-lines-information.patch
-idr-fix-idr_pre_get-locking-description-fix.patch
-percpu_counter-rename-__percpu_counter_add-to-percpu_counter_add_batch.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath.patch
-percpu_counters-inline-the-percpu_counter_add_batch-fastpath-fix.patch
-checkpatch-returning-errno-typically-should-be-negative.patch
-select-rename-estimate_accuracy-to-select_estimate_accuracy.patch
-vcs-add-poll-fasync-support-fix-fix.patch
-rtc-rtc-s3c-fix-access-unit-from-byte-to-word-on-rtccon-checkpatch-fixes.patch
-drivers-rtc-rtc-jz4740c-add-alarm-function-checkpatch-fixes.patch
-gpio-add-support-for-74x164-serial-in-parallel-out-8-bit-shift-register-fix.patch
+gpio-add-topcliff-pch-gpio-driver.patch
 gpio-add-topcliff-pch-gpio-driver-fix.patch
-cgroup_freezer-update_freezer_state-does-incorrect-state-transitions-checkpatch-fixes.patch
-memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2.patch
-core_pattern-fix-long-parameters-was-truncated-by-core_pattern-handler-update-2-checkpatch-fixes.patch
-proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
-drivers-char-hvc_consolec-remove-unneeded-__set_current_statetask_running.patch
-delay-accounting-re-implement-c-for-getdelaysc-to-report-information-on-a-target-command-checkpatch-fixes.patch
-fuse-use-release_pages.patch
-pps-add-async-pps-event-handler-fix.patch
-memstick-add-driver-for-ricoh-r5c592-card-reader-fix.patch
-kernel-resourcec-handle-reinsertion-of-an-already-inserted-resource.patch
-ramoops-use-the-platform-data-structure-instead-of-module-params-fix.patch
-journal_add_journal_head-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
