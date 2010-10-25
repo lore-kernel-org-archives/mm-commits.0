@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_isolation-codeclean-fix-comment-and-rm-unneeded-val-init.patch added to -mm tree
-Date: Mon, 25 Oct 2010 14:40:07 -0700
-Message-ID: <201010252140.o9PLe7Dg017823@imap1.linux-foundation.org>
+Subject: + mm-do_migrate_range-reduce-list_empty-check.patch added to -mm tree
+Date: Mon, 25 Oct 2010 14:40:11 -0700
+Message-ID: <201010252140.o9PLeB7p017829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755784Ab0JYVkh (ORCPT
+	by vger.kernel.org with ESMTP id S1755784Ab0JYVkk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 17:40:37 -0400
+	Mon, 25 Oct 2010 17:40:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lliubbo@gmail.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, k
 
 
 The patch titled
-     mm: page_isolation: codeclean fix comment and rm unneeded val init
+     mm: do_migrate_range: reduce list_empty() check
 has been added to the -mm tree.  Its filename is
-     mm-page_isolation-codeclean-fix-comment-and-rm-unneeded-val-init.patch
+     mm-do_migrate_range-reduce-list_empty-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page_isolation: codeclean fix comment and rm unneeded val init
+Subject: mm: do_migrate_range: reduce list_empty() check
 From: Bob Liu <lliubbo@gmail.com>
 
-__test_page_isolated_in_pageblock() returns 1 if all pages in the range
-are isolated, so fix the comment.  Variable `pfn' will be initialised in
-the following loop so remove it.
+Simple code for reducing list_empty(&source) check.
 
 Signed-off-by: Bob Liu <lliubbo@gmail.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memory_hotplug.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN mm/page_isolation.c~mm-page_isolation-codeclean-fix-comment-and-rm-unneeded-val-init mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_isolation-codeclean-fix-comment-and-rm-unneeded-val-init
-+++ a/mm/page_isolation.c
-@@ -86,7 +86,7 @@ undo_isolate_page_range(unsigned long st
-  * all pages in [start_pfn...end_pfn) must be in the same zone.
-  * zone->lock must be held before call this.
-  *
-- * Returns 0 if all pages in the range is isolated.
-+ * Returns 1 if all pages in the range is isolated.
-  */
- static int
- __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn)
-@@ -119,7 +119,6 @@ int test_pages_isolated(unsigned long st
- 	struct zone *zone;
- 	int ret;
- 
--	pfn = start_pfn;
- 	/*
- 	 * Note: pageblock_nr_page != MAX_ORDER. Then, chunks of free page
- 	 * is not aligned to pageblock_nr_pages.
-_
-
-Patches currently in -mm which might be from lliubbo@gmail.com are
-
-origin.patch
-linux-next.patch
-mm-page_isolation-codeclean-fix-comment-and-rm-unneeded-val-init.patch
-mm-do_migrate_range-exit-loop-if-not_managed-is-true.patch
-mm-do_migrate_range-reduce-list_empty-check.patch
-
+diff -puN mm/memory_hotplug.c~mm-do_migrate_range-reduce-list_empty-check mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-do_migrate_range-reduce-list_empty-check
++++ a/mm/memory_hotplug.c
+@@ -705,24 +705,21 @@ do_migrate_range(unsigned long start_pfn
+ 			   check this again here. */
+ 			if (page_count(page)) {
+ 				not_managed++;
++				ret = -EBUSY;
+ 				break;
+ 			}
+ 		}
+ 	}
+-	ret = -EBUSY;
+-	if (not_managed) {
+-		if (!list_empty(&source))
++	if (!list_empty(&source)) {
++		if (not_managed) {
++			putback_lru_pages(&source);
++			goto out;
++		}
++		/* this function returns # of failed pages */
++		ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
++		if (ret)
+ 			putback_lru_pages(&source);
+-		goto out;
+ 	}
+-	ret = 0;
+-	if (list_empty(&source))
+-		goto out;
+-	/* this function returns # of failed pages */
+-	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
+-	if (ret)
+-		putback_lru_pages(&source);
