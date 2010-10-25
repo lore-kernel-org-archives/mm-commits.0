@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-mxserc-fix-compilation-warning-in-mxserc.patch added to -mm tree
-Date: Mon, 25 Oct 2010 14:11:56 -0700
-Message-ID: <201010252111.o9PLBuNu016614@imap1.linux-foundation.org>
+Subject: + mm-fix-is_mem_section_removable-page_order-bug_on-check.patch added to -mm tree
+Date: Mon, 25 Oct 2010 14:25:24 -0700
+Message-ID: <201010252125.o9PLPOmZ017189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751107Ab0JYVL6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751053Ab0JYVZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 17:11:58 -0400
+	Mon, 25 Oct 2010 17:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rakib.mullick@gmail.com, jirislaby@gmail.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, mhocko@suse.cz
 
 
 The patch titled
-     drivers/char/mxser.c: fix compilation warning in mxser.c
+     mm: fix is_mem_section_removable() page_order BUG_ON check
 has been added to the -mm tree.  Its filename is
-     drivers-char-mxserc-fix-compilation-warning-in-mxserc.patch
+     mm-fix-is_mem_section_removable-page_order-bug_on-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,89 +26,99 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/mxser.c: fix compilation warning in mxser.c
-=46rom: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: mm: fix is_mem_section_removable() page_order BUG_ON check
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Both mxser_disable_must_enchance_mode() and mxser_get_must_hardware_id(=
-)
-called from function CheckIsMoxaMust(), when CONFIG_PCI=3Dy.  So mark b=
-oth
-the functions under CONFIG_PCI.
+page_order() is called by memory hotplug's user interface to check the
+section is removable or not.  (is_mem_section_removable())
 
-We were warned by the following warning.
+It calls page_order() withoug holding zone->lock.
+So, even if the caller does
 
-drivers/char/mxser.c:306: warning: =91mxser_disable_must_enchance_mode=92
-defined but not used
-drivers/char/mxser.c:391: warning: =91mxser_get_must_hardware_id=92
-defined but not used
+	if (PageBuddy(page))
+		ret = page_order(page) ...
+The caller may hit BUG_ON().
 
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+For fixing this, there are 2 choices.
+  1. add zone->lock.
+  2. remove BUG_ON().
+
+is_mem_section_removable() is used for some "advice" and doesn't need to
+be 100% accurate.  This is_removable() can be called via user program.. 
+We don't want to take this important lock for long by user's request.  So,
+this patch removes BUG_ON().
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser.c~drivers-char-mxserc-fix-compilation-warn=
-ing-in-mxserc drivers/char/mxser.c
---- a/drivers/char/mxser.c~drivers-char-mxserc-fix-compilation-warning-=
-in-mxserc
-+++ a/drivers/char/mxser.c
-@@ -303,6 +303,7 @@ static void mxser_enable_must_enchance_m
- 	outb(oldlcr, baseio + UART_LCR);
- }
-=20
-+#ifdef	CONFIG_PCI
- static void mxser_disable_must_enchance_mode(unsigned long baseio)
+diff -puN mm/internal.h~mm-fix-is_mem_section_removable-page_order-bug_on-check mm/internal.h
+--- a/mm/internal.h~mm-fix-is_mem_section_removable-page_order-bug_on-check
++++ a/mm/internal.h
+@@ -62,7 +62,7 @@ extern bool is_free_buddy_page(struct pa
+  */
+ static inline unsigned long page_order(struct page *page)
  {
- 	u8 oldlcr;
-@@ -317,6 +318,7 @@ static void mxser_disable_must_enchance_
- 	outb(efr, baseio + MOXA_MUST_EFR_REGISTER);
- 	outb(oldlcr, baseio + UART_LCR);
+-	VM_BUG_ON(!PageBuddy(page));
++	/* PageBuddy() must be checked by the caller */
+ 	return page_private(page);
  }
-+#endif
-=20
- static void mxser_set_must_xon1_value(unsigned long baseio, u8 value)
- {
-@@ -388,6 +390,7 @@ static void mxser_set_must_enum_value(un
- 	outb(oldlcr, baseio + UART_LCR);
- }
-=20
-+#ifdef CONFIG_PCI
- static void mxser_get_must_hardware_id(unsigned long baseio, u8 *pId)
- {
- 	u8 oldlcr;
-@@ -404,6 +407,7 @@ static void mxser_get_must_hardware_id(u
- 	*pId =3D inb(baseio + MOXA_MUST_HWID_REGISTER);
- 	outb(oldlcr, baseio + UART_LCR);
- }
-+#endif
-=20
- static void SET_MOXA_MUST_NO_SOFTWARE_FLOW_CONTROL(unsigned long basei=
-o)
- {
+ 
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com ar=
-e
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+origin.patch
+mm-fix-return-value-of-scan_lru_pages-in-memory-unplug.patch
 linux-next.patch
-kernel-stop_machinec-fix-unused-variable-warning.patch
-drivers-char-mxserc-fix-compilation-warning-in-mxserc.patch
+vfs-introduce-fmode_neg_offset-for-allowing-negative-f_pos.patch
+oom-add-per-mm-oom-disable-count.patch
+oom-add-per-mm-oom-disable-count-protect-oom_disable_count-with-task_lock-in-fork.patch
+oom-add-per-mm-oom-disable-count-use-old_mm-for-oom_disable_count-in-exec.patch
+oom-avoid-killing-a-task-if-a-thread-sharing-its-mm-cannot-be-killed.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix.patch
+oom-kill-all-threads-sharing-oom-killed-tasks-mm-fix-fix.patch
+oom-rewrite-error-handling-for-oom_adj-and-oom_score_adj-tunables.patch
+oom-fix-locking-for-oom_adj-and-oom_score_adj.patch
+memory-hotplug-fix-notifiers-return-value-check.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code.patch
+memory-hotplug-unify-is_removable-and-offline-detection-code-checkpatch-fixes.patch
+tracing-vmscan-add-trace-events-for-lru-list-shrinking.patch
+writeback-account-for-time-spent-congestion_waited.patch
+vmscan-synchronous-lumpy-reclaim-should-not-call-congestion_wait.patch
+vmscan-narrow-the-scenarios-lumpy-reclaim-uses-synchrounous-reclaim.patch
+vmscan-remove-dead-code-in-shrink_inactive_list.patch
+vmscan-isolated_lru_pages-stop-neighbour-search-if-neighbour-cannot-be-isolated.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encountered-in-the-current-zone.patch
+writeback-do-not-sleep-on-the-congestion-queue-if-there-are-no-congested-bdis-or-if-significant-congestion-is-not-being-encounted-in-the-current-zone-fix.patch
+mm-memory_hotplugc-make-scan_lru_pages-static.patch
+mm-fix-error-reporting-in-move_pages-syscall.patch
+mm-fix-is_mem_section_removable-page_order-bug_on-check.patch
+memcg-fix-race-in-file_mapped-accouting-flag-management.patch
+memcg-avoid-lock-in-updating-file_mapped-was-fix-race-in-file_mapped-accouting-flag-management.patch
+memcg-use-for_each_mem_cgroup.patch
+memcg-cpu-hotplug-aware-percpu-count-updates.patch
+memcg-cpu-hotplug-aware-percpu-count-updates-fix.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection.patch
+memcg-cpu-hotplug-aware-quick-acount_move-detection-checkpatch-fixes.patch
+memcg-generic-filestat-update-interface.patch
+proc-stat-scalability-of-irq-num-per-cpu.patch
+proc-stat-fix-scalability-of-irq-sum-of-all-cpu.patch
+proc-stat-fix-scalability-of-irq-sum-of-all-cpu-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
