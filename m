@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + mm-fix-is_mem_section_removable-page_order-bug_on-check.patch added to -mm tree
-Date: Mon, 25 Oct 2010 14:25:24 -0700
-Message-ID: <201010252125.o9PLPOmZ017189@imap1.linux-foundation.org>
+Date: Mon, 25 Oct 2010 14:25:35 -0700
+Message-ID: <201010252125.o9PLPZam017266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751053Ab0JYVZe (ORCPT
+	by vger.kernel.org with ESMTP id S1751053Ab0JYV0E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Oct 2010 17:25:34 -0400
+	Mon, 25 Oct 2010 17:26:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, mhocko@suse.cz
+Cc: kamezawa.hiroyu@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, mhocko@suse.cz, stable@kernel.org
 
 
 The patch titled
@@ -60,6 +60,7 @@ Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Wu Fengguang <fengguang.wu@intel.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
